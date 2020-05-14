@@ -20,8 +20,11 @@
 #include "SyncArtNet.h"
 #include "SyncSMPTE.h"
 
+#include <log4cpp/Category.hh>
+
 std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) const
 {
+    wxASSERT(_scheduleManager != nullptr);
     if (sm == SYNCMODE::OSCMASTER || rm == REMOTEMODE::OSCSLAVE)
     {
         return std::make_unique<SyncOSC>(SyncOSC(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
@@ -70,6 +73,17 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
     }
 
     return nullptr;
+}
+
+SyncManager::SyncManager(ScheduleManager* scheduleManager) : _scheduleManager(scheduleManager) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (scheduleManager == nullptr) {
+        logger_base.crit("SyncManager::SyncManager created with nullptr to scheduleManager ... this will not end well.");
+    }
+    else {
+        logger_base.debug("SyncManager::SyncManager created ok.");
+    }
 }
 
 void SyncManager::AddMaster(SYNCMODE sm)

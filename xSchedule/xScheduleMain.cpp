@@ -65,6 +65,7 @@
 #include "../xLights/VideoReader.h"
 #include "../xLights/SpecialOptions.h"
 #include "../xLights/outputs/Output.h"
+#include "RemoteModeConfigDialog.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -99,7 +100,6 @@
 #include "../include/no_web_icon.xpm"
 
 #include <log4cpp/Category.hh>
-#include "RemoteModeConfigDialog.h"
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 

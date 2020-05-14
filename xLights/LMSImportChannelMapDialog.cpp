@@ -374,6 +374,7 @@ wxString FindTab(wxString &line) {
     }
     return line;
 }
+
 void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     bool strandwarning = false;

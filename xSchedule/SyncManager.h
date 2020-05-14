@@ -85,7 +85,7 @@ class SyncManager
 
 	public:
 
-		SyncManager(ScheduleManager* scheduleManager) : _scheduleManager(scheduleManager) {}
+        SyncManager(ScheduleManager* scheduleManager);
         virtual ~SyncManager() {
             _remote = nullptr;
             ClearMasters(); 

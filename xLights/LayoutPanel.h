@@ -374,7 +374,7 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *obj_button = nullptr;
         std::string _lastXlightsModel;
         std::string selectedDmxModelType;
-        Model *newModel = nullptr;
+        Model *_newModel = nullptr;
         ModelGroupPanel *model_grp_panel = nullptr;
         ViewObjectPanel *objects_panel = nullptr;
         std::string currentLayoutGroup;

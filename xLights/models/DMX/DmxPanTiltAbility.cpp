@@ -77,65 +77,65 @@ int DmxPanTiltAbility::OnPanTiltPropertyGridChange(wxPropertyGridInterface *grid
      if ("DmxPanChannel" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxPanChannel");
          ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanChannel");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanChannel");
-         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXPanChannel");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanChannel");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanChannel");
+         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanChannel");
          return 0;
      }
      else if ("DmxPanOrient" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxPanOrient");
          ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanOrient");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanOrient");
-         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXPanOrient");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanOrient");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanOrient");
+         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanOrient");
          return 0;
      }
      else if ("DmxPanDegOfRot" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxPanDegOfRot");
          ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanDegOfRot");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanDegOfRot");
-         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXPanDegOfRot");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanDegOfRot");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanDegOfRot");
+         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanDegOfRot");
          return 0;
      }
      else if ("DmxPanSlewLimit" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxPanSlewLimit");
          ModelXml->AddAttribute("DmxPanSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanSlewLimit");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanSlewLimit");
-         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXPanSlewLimit");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanSlewLimit");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanSlewLimit");
+         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXPanSlewLimit");
          return 0;
      }
     else if ("DmxTiltChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltChannel");
         ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXTiltChannel");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltChannel");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltChannel");
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltChannel");
         return 0;
      }
     else if ("DmxTiltOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltOrient");
         ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltOrient");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltOrient");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXTiltOrient");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltOrient");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltOrient");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltOrient");
         return 0;
      }
     else if ("DmxTiltDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltDegOfRot");
         ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltDegOfRot");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltDegOfRot");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXTiltDegOfRot");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltDegOfRot");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltDegOfRot");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltDegOfRot");
         return 0;
      }
     else if ("DmxTiltSlewLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltSlewLimit");
         ModelXml->AddAttribute("DmxTiltSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltSlewLimit");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltSlewLimit");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXTiltSlewLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltSlewLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltSlewLimit");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPanTiltAbility::OnPanTiltPropertyGridChange::DMXTiltSlewLimit");
         return 0;
      }
 

@@ -207,135 +207,135 @@ int DmxSkulltronix::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     if ("DmxPanMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMinLimit");
         ModelXml->AddAttribute("DmxPanMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXPanMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXPanMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXPanMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXPanMinLimit");
         return 0;
     } else if ("DmxPanMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMaxLimit");
         ModelXml->AddAttribute("DmxPanMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXPanMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXPanMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXPanMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXPanMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXPanMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXPanMaxLimit");
         return 0;
     } else if ("DmxTiltMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMinLimit");
         ModelXml->AddAttribute("DmxTiltMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXTiltMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMinLimit");
         return 0;
     } else if ("DmxTiltMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMaxLimit");
         ModelXml->AddAttribute("DmxTiltMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXTiltMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXTiltMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXTiltMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXTiltMaxLimit");
         return 0;
     } else if ("DmxNodChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodChannel");
         ModelXml->AddAttribute("DmxNodChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXNodChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXNodChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXNodChannel");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXNodChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXNodChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::OnPropertyGridChange::DMXNodChannel");
         return 0;
     } else if ("DmxNodOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodOrient");
         ModelXml->AddAttribute("DmxNodOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXNodOrient");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXNodOrient");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXNodOrient");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXNodOrient");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXNodOrient");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXNodOrient");
         return 0;
     } else if ("DmxNodDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodDegOfRot");
         ModelXml->AddAttribute("DmxNodDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXNodDegOfRot");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXNodDegOfRot");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXNodDegOfRot");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXNodDegOfRot");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXNodDegOfRot");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXNodDegOfRot");
         return 0;
     } else if ("DmxNodMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMinLimit");
         ModelXml->AddAttribute("DmxNodMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXNodMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXNodMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXNodMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXNodMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXNodMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXNodMinLimit");
         return 0;
     } else if ("DmxNodMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMaxLimit");
         ModelXml->AddAttribute("DmxNodMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXNodMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXNodMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXNodMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXNodMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXNodMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXNodMaxLimit");
         return 0;
     } else if ("DmxJawChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawChannel");
         ModelXml->AddAttribute("DmxJawChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXJawChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXJawChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXJawChannel");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXJawChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXJawChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::OnPropertyGridChange::DMXJawChannel");
         return 0;
     } else if ("DmxJawMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMinLimit");
         ModelXml->AddAttribute("DmxJawMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXJawMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXJawMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXJawMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXJawMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXJawMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXJawMinLimit");
         return 0;
     } else if ("DmxJawMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMaxLimit");
         ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXJawMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXJawMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXJawMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXJawMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXJawMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXJawMaxLimit");
         return 0;
     } else if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeBrtChannel");
         ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeBrtChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeBrtChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXEyeBrtChannel");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeBrtChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeBrtChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::OnPropertyGridChange::DMXEyeBrtChannel");
         return 0;
     } else if ("DmxEyeUDChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDChannel");
         ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeUDChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeUDChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXEyeUDChannel");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDChannel");
         return 0;
     } else if ("DmxEyeUDMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMinLimit");
         ModelXml->AddAttribute("DmxEyeUDMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeUDMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeUDMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXEyeUDMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMinLimit");
         return 0;
     } else if ("DmxEyeUDMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMaxLimit");
         ModelXml->AddAttribute("DmxEyeUDMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeUDMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeUDMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXEyeUDMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXEyeUDMaxLimit");
         return 0;
     } else if ("DmxEyeLRChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRChannel");
         ModelXml->AddAttribute("DmxEyeLRChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeLRChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeLRChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXEyeLRChannel");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRChannel");
         return 0;
     } else if ("DmxEyeLRMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMinLimit");
         ModelXml->AddAttribute("DmxEyeLRMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeLRMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeLRMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXEyeLRMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMinLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMinLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMinLimit");
         return 0;
     } else if ("DmxEyeLRMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMaxLimit");
         ModelXml->AddAttribute("DmxEyeLRMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXEyeLRMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXEyeLRMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXEyeLRMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMaxLimit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkulltronix::OnPropertyGridChange::DMXEyeLRMaxLimit");
         return 0;
     }
 

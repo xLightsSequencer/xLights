@@ -1064,6 +1064,8 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     auto caps = GetControllerCaps();
 
+    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName());
+
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
@@ -3711,7 +3713,7 @@ std::string Model::GetNodeXY(const std::string& nodenumstr) {
 }
 
 std::string Model::GetNodeXY(int nodeinx) {
-    if ((nodeinx < 0) || (nodeinx >= GetNodeCount())) return "";
+    if ((nodeinx < 0) || (nodeinx >= (int)GetNodeCount())) return "";
     if (Nodes[nodeinx]->Coords.empty()) return "";
     if (GetCoordCount(nodeinx) > 1) //show count and first + last coordinates
         if (IsCustom())

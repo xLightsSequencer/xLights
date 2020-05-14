@@ -267,7 +267,7 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
+    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), _newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(nullptr), last_highlight(nullptr),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
@@ -2995,41 +2995,41 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
         if (model_type != "DMX") {
-            newModel = CreateNewModel(model_type);
-            newModel->SetLayoutGroup(currentLayoutGroup);
+            _newModel = CreateNewModel(model_type);
+            _newModel->SetLayoutGroup(currentLayoutGroup);
         }
         else if (model_type == "DMX" && selectedDmxModelType != "") {
-            newModel = CreateNewModel(selectedDmxModelType);
-            newModel->SetLayoutGroup(currentLayoutGroup);
+            _newModel = CreateNewModel(selectedDmxModelType);
+            _newModel->SetLayoutGroup(currentLayoutGroup);
         }
 
-        if (newModel != nullptr) {
+        if (_newModel != nullptr) {
             m_moving_handle = true;
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
             UnSelectAllModels();
-            newModel->Selected = true;
-            newModel->GetBaseObjectScreenLocation().SetActiveHandle(newModel->GetBaseObjectScreenLocation().GetDefaultHandle());
-            newModel->GetBaseObjectScreenLocation().SetAxisTool(newModel->GetBaseObjectScreenLocation().GetDefaultTool());
+            _newModel->Selected = true;
+            _newModel->GetBaseObjectScreenLocation().SetActiveHandle(_newModel->GetBaseObjectScreenLocation().GetDefaultHandle());
+            _newModel->GetBaseObjectScreenLocation().SetAxisTool(_newModel->GetBaseObjectScreenLocation().GetDefaultTool());
             selectionLatched = true;
-            highlightedBaseObject = newModel;
-            selectedBaseObject = newModel;
+            highlightedBaseObject = _newModel;
+            selectedBaseObject = _newModel;
             // need to ensure the model stays selected
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::ProcessLeftMouseClick3D", newModel, nullptr, newModel->GetName());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::ProcessLeftMouseClick3D", _newModel, nullptr, _newModel->GetName());
             creating_model = true;
             if (wi > 0 && ht > 0)
             {
-                modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-                newModel->UpdateXmlWithScale();
+                modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+                _newModel->UpdateXmlWithScale();
             }
             bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
             xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
-            lastModelName = newModel->name;
-            modelPreview->SetAdditionalModel(newModel);
+            lastModelName = _newModel->name;
+            modelPreview->SetAdditionalModel(_newModel);
         }
     }
 
@@ -3142,7 +3142,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (m_polyline_active)
     {
-        Model *m = newModel;
+        Model *m = _newModel;
         m->AddHandle(modelPreview, event.GetX(), event.GetY());
         m->UpdateXmlWithScale();
         m->InitModel();
@@ -3215,24 +3215,24 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         const std::string& model_type = selectedButton->GetModelType();
 
         if (model_type != "DMX") {
-            newModel = CreateNewModel(model_type);
+            _newModel = CreateNewModel(model_type);
         }
         else if (model_type == "DMX" && selectedDmxModelType != "") {
-            newModel = CreateNewModel(selectedDmxModelType);
+            _newModel = CreateNewModel(selectedDmxModelType);
         }
 
-        if (newModel != nullptr) {
+        if (_newModel != nullptr) {
             m_moving_handle = true;
-            newModel->SetLayoutGroup(currentLayoutGroup);
+            _newModel->SetLayoutGroup(currentLayoutGroup);
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
             UnSelectAllModels();
-            newModel->Selected = true;
-            modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-            newModel->UpdateXmlWithScale();
-            lastModelName = newModel->name;
-            modelPreview->SetAdditionalModel(newModel);
+            _newModel->Selected = true;
+            modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+            _newModel->UpdateXmlWithScale();
+            lastModelName = _newModel->name;
+            modelPreview->SetAdditionalModel(_newModel);
         }
     }
     else
@@ -3315,7 +3315,7 @@ void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
     if (m_polyline_active && m_over_handle > 1) {
-        Model *m = newModel;
+        Model *m = _newModel;
         if (m != nullptr)
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Polyline deleting handle.");
@@ -3328,19 +3328,19 @@ void LayoutPanel::FinalizeModel()
     creating_model = false;
     m_over_handle = NO_HANDLE;
 
-    if (newModel != nullptr) {
+    if (_newModel != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel New model is not null.");
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
-            float min_x = (float)(newModel->GetBaseObjectScreenLocation().GetLeft());
-            float max_x = (float)(newModel->GetBaseObjectScreenLocation().GetRight());
-            float min_y = (float)(newModel->GetBaseObjectScreenLocation().GetBottom());
-            float max_y = (float)(newModel->GetBaseObjectScreenLocation().GetTop());
+            float min_x = (float)(_newModel->GetBaseObjectScreenLocation().GetLeft());
+            float max_x = (float)(_newModel->GetBaseObjectScreenLocation().GetRight());
+            float min_y = (float)(_newModel->GetBaseObjectScreenLocation().GetBottom());
+            float max_y = (float)(_newModel->GetBaseObjectScreenLocation().GetTop());
             bool cancelled = false;
-            auto pos = newModel->GetBaseObjectScreenLocation().GetWorldPosition();
+            auto pos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
 
             wxProgressDialog* prog = nullptr;
             if (b->GetModelType() == "Download")
@@ -3348,27 +3348,55 @@ void LayoutPanel::FinalizeModel()
                 prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
                 prog->Show();
             }
-            auto oldNewModel = newModel;
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99);
+            auto oldNewModel = _newModel;
+            auto oldam = modelPreview->GetAdditionalModel();
+            modelPreview->SetAdditionalModel(nullptr); // just in case we delete the model
+
+            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99);
+
+            // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
+            if (_newModel != oldNewModel) {
+                // model was changed
+
+                if (highlightedBaseObject == oldNewModel) {
+                    highlightedBaseObject = _newModel;
+                }
+                if (selectedBaseObject == oldNewModel) {
+                    selectedBaseObject = _newModel;
+                }
+
+                if (oldam == oldNewModel) {
+                    modelPreview->SetAdditionalModel(_newModel);
+                    oldam = nullptr;
+                }
+                else {
+                    modelPreview->SetAdditionalModel(oldam);
+                }
+                delete oldNewModel;
+                oldNewModel = nullptr;
+            }
+            else {
+                modelPreview->SetAdditionalModel(oldam);
+            }
 
             // we get rid of additional model here
-            auto oldam = modelPreview->GetAdditionalModel();
-            modelPreview->SetAdditionalModel(nullptr);
             if (prog != nullptr)
             {
                 delete prog;
             }
 
-            if (cancelled || newModel == nullptr) {
+            if (cancelled || _newModel == nullptr) {
                 _lastXlightsModel = "";
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
                 xlights->GetOutputModelManager()->ClearSelectedModel();
                 modelPreview->SetAdditionalModel(nullptr);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Additional model cleared.");
-                if (newModel != nullptr)
+                if (_newModel != nullptr)
                 {
-                    delete newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
-                    newModel = nullptr;
+                    xlights->AddTraceMessage("LayoutPanel::FinalizeModel About to delete newModel.");
+                    delete _newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
+                    xlights->AddTraceMessage("LayoutPanel::FinalizeModel newModel successfully deleted.");
+                    _newModel = nullptr;
                 }
                 xlights->AddTraceMessage("LayoutPanel::Model deleted.");
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
@@ -3379,24 +3407,13 @@ void LayoutPanel::FinalizeModel()
                 return;
             }
 
-            if (oldNewModel != newModel)
-            {
-                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Download changed model.");
-                modelPreview->SetAdditionalModel(newModel); // download changed the model
-            }
-            else
-            {
-                // restore what it was
-                modelPreview->SetAdditionalModel(oldam); 
-            }
-
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + newModel->GetDisplayAs());
-            newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
+            _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
-            if (newModel->GetDisplayAs() == "Poly Line")
+            if (_newModel->GetDisplayAs() == "Poly Line")
             {
-                newModel->SetPosition(pos.x, pos.y);
+                _newModel->SetPosition(pos.x, pos.y);
             }
             if (b->GetState() == 1)
             {
@@ -3405,17 +3422,17 @@ void LayoutPanel::FinalizeModel()
         }
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel Adding the model.");
         CreateUndoPoint("All", "", "");
-        newModel->UpdateXmlWithScale();
-        xlights->AllModels.AddModel(newModel);
+        _newModel->UpdateXmlWithScale();
+        xlights->AllModels.AddModel(_newModel);
 
-        newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+        _newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
         if ((b != nullptr && b->GetState() == 1) || selectedDmxModelType != "") {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting done.");
-            std::string name = newModel->name;
-            newModel = nullptr;
+            std::string name = _newModel->name;
+            _newModel = nullptr;
             if (b != nullptr) {  // needed if dmx model type
                 b->SetState(0);
             }
@@ -3428,7 +3445,7 @@ void LayoutPanel::FinalizeModel()
         }
         else {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting but can draw another model.");
-            newModel = nullptr;
+            _newModel = nullptr;
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
@@ -3674,7 +3691,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 
                 int selectedModelCnt = ModelsSelectedCount();
                 int selectedViewObjectCnt = ViewObjectsSelectedCount();
-                if (selectedBaseObject != newModel) {
+                if (selectedBaseObject != _newModel) {
                     CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
                 }
                 bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
@@ -3826,13 +3843,13 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         }
         if (m_moving_handle)
         {
-            BaseObject *obj = newModel;
+            BaseObject *obj = _newModel;
             if (obj == nullptr) {
                 obj = selectedBaseObject;
                 if (obj == nullptr) return;
             }
             int active_handle = obj->GetBaseObjectScreenLocation().GetActiveHandle();
-            if (obj != newModel) {
+            if (obj != _newModel) {
                 CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", obj->name, std::to_string(active_handle));
             }
             bool z_scale = obj->GetBaseObjectScreenLocation().GetSupportsZScaling();
@@ -3938,8 +3955,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
     /////////////////////////////////////*/
 
-    if (m_creating_bound_rect)
-    {
+    if (m_creating_bound_rect) {
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
@@ -3948,8 +3964,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
         return;
     }
-    else if (m_wheel_down)
-    {
+    else if (m_wheel_down) {
         float delta_x = event.GetX() - m_previous_mouse_x;
         float delta_y = event.GetY() - m_previous_mouse_y;
         delta_x /= modelPreview->GetZoom();
@@ -3960,18 +3975,17 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
 
-    Model *m = newModel;
+    Model* m = _newModel;
     if (m == nullptr) {
         m = dynamic_cast<Model*>(selectedBaseObject);
-        if( m == nullptr ) return;
+        if (m == nullptr) return;
     }
 
-    if(m_moving_handle)
-    {
-        if (m != newModel) {
+    if (m_moving_handle) {
+        if (m != _newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        auto pos = m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
+        auto pos = m->MoveHandle(modelPreview, m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
 
         //SetupPropGrid(m);
@@ -3981,8 +3995,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
-    else if (m_dragging && event.Dragging())
-    {
+    else if (m_dragging && event.Dragging()) {
         double delta_x = (double)event.GetX() - m_previous_mouse_x;
         double delta_y = -((double)event.GetY() - m_previous_mouse_y);
 
@@ -3991,12 +4004,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         delta_y /= modelPreview->GetZoom() / scale;
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
-        if (wi > 0 && ht > 0)
-        {
-            for (size_t i=0; i<modelPreview->GetModels().size(); i++)
-            {
-                if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
-                {
+        if (wi > 0 && ht > 0) {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected) {
                     CreateUndoPoint("SingleModel", m->name, "location");
                     modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
@@ -4010,13 +4020,11 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
-        xlights->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+        xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
-    else
-    {
-        if(m->Selected)
-        {
+    else {
+        if (m->Selected) {
             modelPreview->SetCursor(m->GetBaseObjectScreenLocation().CheckIfOverHandles(modelPreview, m_over_handle, event.GetX(), event.GetY()));
         }
     }
@@ -4024,12 +4032,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
 bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
 {
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
-        {
-            if (!modelPreview->GetModels()[i]->IsPixelProtocol())
-            {
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected) {
+            if (!modelPreview->GetModels()[i]->IsPixelProtocol()) {
                 return false;
             }
         }
@@ -5542,6 +5547,8 @@ void LayoutPanel::DeleteSelectedModel() {
         bool selectedModelFound = false;
         for (size_t i = 0; i<modelPreview->GetModels().size(); i++) {
             if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                // Trying to trace a crash that shows up in RemoveModelFromLists
+                xlights->AddTraceMessage(wxString::Format("LayoutPanel::Delete Selected Model : %s", modelPreview->GetModels()[i]->name));
                 if (!selectedModelFound && modelPreview->GetModels()[i] == selectedBaseObject) {
                     selectedModelFound = true;
                 }
@@ -6005,7 +6012,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     undoBuffer[idx].data = data;
 
     if (type == "SingleModel") {
-        Model *m = newModel;
+        Model *m = _newModel;
         if (m == nullptr) {
             if( selectedBaseObject == nullptr ) {
                 undoBuffer.resize(idx);
@@ -6016,7 +6023,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         }
         wxXmlDocument doc;
         wxXmlNode *parent = m->GetModelXml()->GetParent();
-        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint Model Parent was NULL ... this is going to get ugly.");
+        if (parent == nullptr) {
+            undoBuffer.resize(idx); // restore undo buffer back to its old size
+            return; // this shouldnt happend but it does and when it does it crashes.
+        }
         wxXmlNode *next = m->GetModelXml()->GetNext();
         parent->RemoveChild(m->GetModelXml());
         doc.SetRoot(m->GetModelXml());
@@ -6035,7 +6045,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         wxASSERT(obj != nullptr);
         wxXmlDocument doc;
         wxXmlNode *parent = obj->GetModelXml()->GetParent();
-        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ViewObject Parent was NULL ... this is going to get ugly.");
+        if (parent == nullptr) {
+            undoBuffer.resize(idx); // restore undo buffer back to its old size
+            return; // this shouldnt happend but it does and when it does it crashes.
+        }
         wxXmlNode *next = obj->GetModelXml()->GetNext();
         parent->RemoveChild(obj->GetModelXml());
         doc.SetRoot(obj->GetModelXml());
@@ -6047,7 +6060,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     } else if (type == "All") {
         wxXmlDocument doc;
         wxXmlNode *parent = xlights->ModelsNode->GetParent();
-        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ModelsNode Parent was NULL ... this is going to get ugly.");
+        if (parent == nullptr) {
+            undoBuffer.resize(idx); // restore undo buffer back to its old size
+            return; // this shouldnt happend but it does and when it does it crashes.
+        }
         wxXmlNode *next = xlights->ModelsNode->GetNext();
         parent->RemoveChild(xlights->ModelsNode);
         doc.SetRoot(xlights->ModelsNode);
@@ -6070,7 +6086,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
 
         wxStringOutputStream stream2;
         parent = xlights->ModelGroupsNode->GetParent();
-        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ModelGroupsNode Parent was NULL ... this is going to get ugly.");
+        if (parent == nullptr) {
+            undoBuffer.resize(idx); // restore undo buffer back to its old size
+            return; // this shouldnt happend but it does and when it does it crashes.
+        }
         next = xlights->ModelGroupsNode->GetNext();
         parent->RemoveChild(xlights->ModelGroupsNode);
         doc.SetRoot(xlights->ModelGroupsNode);
@@ -7123,19 +7142,17 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 
 bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
 
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
-        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
-    {
+        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown())) {
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
-        {
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL)) {
             return false;
         }
     }
@@ -7143,72 +7160,56 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     auto binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE::Layout);
     if (binding != nullptr) {
         std::string type = binding->GetType();
-        if (type == "LOCK_MODEL")
-        {
+        if (type == "LOCK_MODEL") {
             LockSelectedModels(true);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
         }
-        else if (type == "UNLOCK_MODEL")
-        {
+        else if (type == "UNLOCK_MODEL") {
             LockSelectedModels(false);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
         }
-        else if (type == "GROUP_MODELS")
-        {
+        else if (type == "GROUP_MODELS") {
             CreateModelGroupFromSelected();
         }
-        else if (type == "WIRING_VIEW")
-        {
+        else if (type == "WIRING_VIEW") {
             ShowWiring();
         }
-        else if (type == "NODE_LAYOUT")
-        {
+        else if (type == "NODE_LAYOUT") {
             ShowNodeLayout();
         }
-        else if (type == "SAVE_LAYOUT")
-        {
+        else if (type == "SAVE_LAYOUT") {
             SaveEffects();
         }
-        else if (type == "MODEL_ALIGN_TOP")
-        {
+        else if (type == "MODEL_ALIGN_TOP") {
             PreviewModelAlignTops();
         }
-        else if (type == "MODEL_ALIGN_BOTTOM")
-        {
+        else if (type == "MODEL_ALIGN_BOTTOM") {
             PreviewModelAlignBottoms();
         }
-        else if (type == "MODEL_ALIGN_LEFT")
-        {
+        else if (type == "MODEL_ALIGN_LEFT") {
             PreviewModelAlignLeft();
         }
-        else if (type == "MODEL_ALIGN_RIGHT")
-        {
+        else if (type == "MODEL_ALIGN_RIGHT") {
             PreviewModelAlignRight();
         }
-        else if (type == "MODEL_ALIGN_CENTER_VERT")
-        {
+        else if (type == "MODEL_ALIGN_CENTER_VERT") {
             PreviewModelAlignVCenter();
         }
-        else if (type == "MODEL_ALIGN_CENTER_HORIZ")
-        {
+        else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
             PreviewModelAlignHCenter();
         }
-        else if (type == "MODEL_DISTRIBUTE_HORIZ")
-        {
+        else if (type == "MODEL_DISTRIBUTE_HORIZ") {
             PreviewModelHDistribute();
         }
-        else if (type == "SELECT_ALL_MODELS")
-        {
+        else if (type == "SELECT_ALL_MODELS") {
             SelectAllModels();
         }
-        else if (type == "MODEL_DISTRIBUTE_VERT")
-        {
+        else if (type == "MODEL_DISTRIBUTE_VERT") {
             PreviewModelVDistribute();
         }
-        else
-        {
+        else {
             logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
             wxASSERT(false);
             return false;
@@ -7225,7 +7226,8 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
     UnSelectAllModels();
     if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
         editing_models = true;
-    } else {
+    }
+    else {
         editing_models = false;
     }
 }
@@ -7233,5 +7235,5 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 bool LayoutPanel::IsNewModel(Model* m) const
 {
     if (m == nullptr) return false;
-    return m == newModel;
+    return m == _newModel;
 }

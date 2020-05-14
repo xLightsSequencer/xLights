@@ -6039,10 +6039,16 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
     const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Importing servo data for " + name);
+
     if (min_limit == max_limit)         {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("ImportServoData cannot have min limit and max limit equal. Aborting import as it would crash.");
         return;
+    }
+    if (layer == nullptr)         {
+        logger_base.crit("ImportServoData cannot have null layer to import onto - this is going to crash.");
     }
 
     float last_pos = -1.0;
@@ -6113,6 +6119,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
         }
     }
+    logger_base.debug("Importing servo data done.");
 }
 
 void xLightsFrame::ImportVsa(const wxFileName &filename) {

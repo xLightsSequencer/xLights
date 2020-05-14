@@ -1064,7 +1064,12 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
                 mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
                 ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
-                mel->Init(*xlights->GetModel(model.ToStdString()));
+                if (mel != nullptr) {
+                    mel->Init(*xlights->GetModel(model.ToStdString()));
+                }
+                else {
+                    logger_base.warn("Strange ... load mapping returned null model for " + model);
+                }
                 modelEl = mel;
             }
 
