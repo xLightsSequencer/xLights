@@ -78,10 +78,10 @@ public:
                 long style = wxTextEntryDialogStyle,
                 const wxPoint& pos = wxDefaultPosition) {
         bool b = wxPasswordEntryDialog::Create(parent, message, caption, value, style, pos);
-        
+
         savePasswordCheckbox = new wxCheckBox(this, wxID_ANY, _("Save Password"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PWD"));
         savePasswordCheckbox->SetValue(false);
-        
+
         wxSizerFlags flagsBorder2;
         flagsBorder2.DoubleBorder();
 
@@ -92,15 +92,15 @@ public:
 #endif
         return b;
     }
-    
+
     bool shouldSavePassword() const {
         return savePasswordCheckbox && savePasswordCheckbox->IsChecked();
     }
 
 private:
     wxCheckBox *savePasswordCheckbox = nullptr;
-    
-    
+
+
 public:
 #if wxUSE_SECRETSTORE
     static wxSecretStore pwdStore;
@@ -151,7 +151,7 @@ FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minor
         hostName = ad;
         ipAddress = address.IPAddress();
         _ip = ipAddress;
-        
+
     }
     _connected = true; // well not really but i need to fake it
 }
@@ -201,11 +201,11 @@ class FPPWriteData {
 public:
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
-    
+
     uint8_t *data;
     size_t dataSize;
     size_t curPos;
-    
+
     wxFile *file;
 
     uint8_t *postData;
@@ -216,7 +216,7 @@ public:
     size_t totalWritten;
     size_t lastDone;
     bool cancelled;
-    
+
     size_t readData(void *ptr, size_t buffer_size) {
         if (data != nullptr) {
             size_t remaining = dataSize - curPos;
@@ -246,7 +246,7 @@ public:
         if (file != nullptr) {
             size_t t = file->Read(ptr, buffer_size);
             totalWritten += t;
-            
+
             if (progress) {
                 size_t donePct = totalWritten;
                 donePct *= 1000;
@@ -299,13 +299,13 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     std::string fullUrl = "http://" + ipAddress + url;
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-    
+
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    
+
     bool retValue = false;
     int i = ::curl_easy_perform(curl);
     long response_code = 0;
@@ -351,7 +351,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    
+
     struct curl_slist *chunk = nullptr;
     chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
     std::string ct = "Content-Type: " + contentType;
@@ -678,7 +678,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     std::string ct = "Content-Type: application/octet-stream";
     bool deleteFile = false;
     std::string fullFileName = file;
-    
+
     setupCurl();
     //if we cannot upload it in 5 minutes, we have serious issues
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
@@ -703,7 +703,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    
+
     wxMemoryBuffer memBuffPost;
     addString(memBuffPost, "\r\n--");
     addString(memBuffPost, bound);
@@ -712,7 +712,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
     addString(memBuffPost, bound);
     addString(memBuffPost, "--\r\n");
-    
+
     std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
     cd += fn.ToStdString();
     cd += "\"\r\n";
@@ -735,7 +735,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     data.postDataSize = memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-    
+
     data.progress = progressDialog;
     data.progressString = "Transferring " + filename + " to " + ipAddress;
     data.lastDone = lastDone;
@@ -1004,22 +1004,22 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         wxString name(model->name);
         name.Replace(" ", "_");
-        
-        
+
+
         int numStr = model->GetNumStrings();
         if (numStr == 0) {
             numStr = 1;
         }
         int straPerStr =  model->GetNumStrands() / numStr;
         if (straPerStr < 1) straPerStr = 1;
-        
+
         wxJSONValue jm;
         jm["Name"] = name;
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
         jm["StrandsPerString"] = straPerStr;
         jm["StringCount"] = numStr;
-        
+
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
             if (mm->isVerticalMatrix()) {
@@ -1033,7 +1033,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
-        
+
         models.Append(jm);
     }
     json["models"] = models;
@@ -1064,7 +1064,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
             first = 0;
             ret += "# Preview Size\n";
             ret += wxString::Format("%d,%d\n", model->GetModelScreenLocation().previewW, model->GetModelScreenLocation().previewH);
-            
+
             if (center0) {
                 xoffset = model->GetModelScreenLocation().previewW / 2;
             }
@@ -1205,7 +1205,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     }
 
     wxJSONValue f = CreateUniverseFile(selected, false);
-    
+
     std::map<int, int> rng;
     FillRanges(rng);
     for (int x = 0; x < f["channelOutputs"][0]["universes"].Size(); x++) {
@@ -1215,7 +1215,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
         rng[start] = len;
     }
     SetNewRanges(rng);
-    
+
     return UploadUDPOut(f);
 }
 
@@ -1345,14 +1345,14 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
-                
+
                 // TODO this needs work to restore the loading of multiple universes as a single line
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
                     universes.Append(universe);
                     break;
                 }
-                else { 
+                else {
                     universe["universeCount"] = 1;
                 }
                 universes.Append(universe);
@@ -1507,7 +1507,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
-    
+
     std::map<int, int> rngs;
     FillRanges(rngs);
 
@@ -1624,7 +1624,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }
-    
+
     if (maxport > rules->GetMaxPixelPort()) {
         maxport = rules->GetMaxPixelPort();
     }
@@ -1646,7 +1646,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 vs["description"] = pvs->_description;
                 vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
                 vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
-                
+
                 rngs[pvs->_startChannel - 1] = pvs->Channels();
 
                 if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
@@ -1705,7 +1705,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 if (pvs->_smartRemote >= 1) {
                     stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
                 }
-                
+
                 stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
             }
         }
@@ -1771,7 +1771,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
-    
+
     bool isDMX = true;
     int maxChan = 0;
     bool hasSerial = false;
@@ -1791,7 +1791,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             maxChan = std::max(mx, maxChan);
         }
     }
-    
+
     wxJSONValue bbbDmxData;
     bool hasBBBDmx = false;
     wxJSONValue otherDmxData;
@@ -1824,7 +1824,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 port["type"] = vport->GetProtocol();
                 otherDmxData["channelOutputs"].Append(port);
             }
-            
+
         } else if (portType == "BBBSerial") {
             hasBBBDmx = true;
             port["startChannel"] = 0;
@@ -1856,7 +1856,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         root["channelOutputs"].Append(bbbDmxData);
     } else {
         wxJSONValue otherOrigRoot;
-        
+
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
         } else {
@@ -1918,7 +1918,7 @@ public:
     ~CurlData() {
         curl_easy_cleanup(curl);
     }
-    
+
     void setFPP(FPP *f) {
         fpp = f;
         if (f->username != "" || f->password != "")  {
@@ -1942,10 +1942,10 @@ public:
     char errorBuffer[CURL_ERROR_SIZE];
     int type;
     int authenticated;
-    
+
     //either fpp or the ipAddress/username/password
     FPP *fpp;
-    
+
     std::string ipAddress;
     std::string username;
     std::string password;
@@ -1973,7 +1973,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         curl_multi_add_handle(curlMulti, data->curl);
     }
     std::vector<wxDatagramSocket *> sockets;
-    
+
 
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
     buffer[5] = 207-7;
@@ -1997,7 +1997,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     //we don't want anyone trying to contact us, so we'll set to 0
     buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
     strcpy((char *)&buffer[84], ver.c_str());
-    
+
     // scan all ip networks
     wxIPV4address localaddr;
     localaddr.AnyAddress();
@@ -2015,7 +2015,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         }
         wxIPV4address localaddr;
         localaddr.Hostname(ip);
-        
+
         wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
         socket->SetTimeout(1);
         socket->Notify(false);
@@ -2039,13 +2039,13 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         remoteaddr.Service(0x7535);
         uint8_t buf[] = { 0x5a, 0x43, 0x50, 0x50, 0, 0, 0, 0 };
         mainSocket->SendTo(remoteaddr, buf, sizeof(buf));
-        
+
         remoteaddr.Hostname(toIp(target2));
         remoteaddr.Service(0x7E40);
         mainSocket->SendTo(remoteaddr, buffer, 207);
     }
-    
-    
+
+
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = curls.size();
     while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
@@ -2105,7 +2105,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                         curls.push_back(data);
                         curl_multi_add_handle(curlMulti, data->curl);
                         running++;
-                        
+
                         fullAddress = "http://" + inst->ipAddress + "/api/proxies";
                         data = new CurlData(fullAddress);
                         data->type = 4;
@@ -2126,13 +2126,13 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                 if (found) {
                     continue;
                 }
-                
+
                 FPP *fpp = new FPP();
                 fpp->setIPAddress(address);
                 fpp->hostName = address;
                 instances.push_back(fpp);
 
-                
+
                 std::string fullAddress = "http://" + address + "/";
                 CurlData *data = new CurlData(fullAddress);
                 data->type = 5;
@@ -2167,7 +2167,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 bool parsed = true;
                                 AddTraceMessage("Received curl response: " + std::to_string(curls[x]->type) + " - " + std::to_string(response_code));
                                 AddTraceMessage("    url: " + curls[x]->url);
-                                
+
                                 if (response_code == 401 && curls[x]->authenticated != 1) {
                                     bool handled = false;
                                     std::string ip = curls[x]->ipAddress;
@@ -2257,7 +2257,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                     curls[x]->fpp->curMode = mode;
                                                 }
                                             }
-                                            
+
                                             std::string file = "co-pixelStrings";
                                             if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
                                                 file = "co-bbbStrings";
@@ -2289,7 +2289,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
-                                            
+
                                             if (curls[x]->fpp->proxy == "") {
                                                 fullAddress = baseUrl + "/api/proxies";
                                                 data = new CurlData(fullAddress);
@@ -2323,7 +2323,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             if (found) {
                                                 continue;
                                             }
-                                            
+
                                             FPP *fpp = new FPP();
                                             fpp->setIPAddress(address);
                                             fpp->hostName = address;
@@ -2333,7 +2333,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curls[x]->fpp->isFPP = false;
                                             instances.push_back(fpp);
 
-                                            
+
                                             std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/";
                                             CurlData *data = new CurlData(fullAddress);
                                             data->type = 5;
@@ -2376,7 +2376,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                     curls[x]->fpp->model = falc.GetModel();
                                                     curls[x]->fpp->fullVersion = falc.GetFullName();
                                                     curls[x]->fpp->platform = "Falcon";
-                                                    
+
                                                     curls[x]->fpp->mode = "bridge";
                                                     int idx = curls[x]->buffer.find("name=\"m\" ");
                                                     if (idx > 0) {
@@ -2388,7 +2388,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                             }
                                                         }
                                                     }
-                                                                                                        
+
                                                     curls[x]->fpp->isFPP = false;
                                                 }
                                             } else {
@@ -2401,7 +2401,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
-                                                
+
                                                 fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/H?";
                                                 data = new CurlData(fullAddress);
                                                 data->type = 7;
@@ -2409,7 +2409,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
-                                                
+
                                                 fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/sysinfo.htm";
                                                 data = new CurlData(fullAddress);
                                                 data->type = 8;
@@ -2602,7 +2602,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     }
     AddTraceMessage("Closing network resources");
     curl_multi_cleanup(curlMulti);
-    
+
     for (const auto& socket : sockets) {
         socket->Close();
         delete socket;
