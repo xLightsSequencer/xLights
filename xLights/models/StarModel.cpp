@@ -144,29 +144,31 @@ bool StarModel::AllNodesAllocated() const
 // parm3 is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
-void StarModel::InitModel() {
+void StarModel::InitModel()
+{
     starRatio = wxAtof(ModelXml->GetAttribute("starRatio", "2.618034"));
 
-    wxString tempstr=ModelXml->GetAttribute("starSizes");
+    wxString tempstr = ModelXml->GetAttribute("starSizes");
     starSizes.resize(0);
     while (tempstr.size() > 0) {
         wxString t2 = tempstr;
         if (tempstr.Contains(",")) {
             t2 = tempstr.SubString(0, tempstr.Find(","));
             tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
+        }
+        else {
             tempstr = "";
         }
         long i2 = 0;
         t2.ToLong(&i2);
-        if ( i2 > 0) {
+        if (i2 > 0) {
             starSizes.resize(starSizes.size() + 1);
             starSizes[starSizes.size() - 1] = i2;
         }
     }
 
-    if (parm3 < 2) parm3=2; // need at least 2 arms
-    SetNodeCount(parm1,parm2,rgbOrder);
+    if (parm3 < 2) parm3 = 2; // need at least 2 arms
+    SetNodeCount(parm1, parm2, rgbOrder);
 
     // Found a problem where a user had multiple layer sizes but just 1 string and set to RGB dumb string type.
     // I think the commented out code would fix this but I am not sure it would work in all situations.
@@ -186,7 +188,18 @@ void StarModel::InitModel() {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
+
+    bool duplicateSized = false;
+    std::list<int> duplicateSizedLayers;
     for (int x = 0; x < starSizes.size(); x++) {
+
+        if (std::find(begin(duplicateSizedLayers), end(duplicateSizedLayers), starSizes[x]) == duplicateSizedLayers.end()) {
+            duplicateSizedLayers.push_back(starSizes[x]);
+        }
+        else {
+            duplicateSized = true;
+        }
+
         if ((cnt + starSizes[x]) > numlights) {
             starSizes[x] = numlights - cnt;
         }
@@ -195,11 +208,20 @@ void StarModel::InitModel() {
             maxLights = starSizes[x];
         }
     }
-    SetBufferSize(maxLights+1,maxLights+1);
 
-    int LastStringNum=-1;
+    // This is used to separate layers with equal numbers of nodes
+    const int SEPERATION_FACTOR = 10;
+    if (duplicateSized) {
+        int size = maxLights + 1 + SEPERATION_FACTOR * starSizes.size();
+        SetBufferSize(size, size);
+    }
+    else {
+        SetBufferSize(maxLights + 1, maxLights + 1);
+    }
+    int LastStringNum = -1;
     int chan = 0;
     int start = 0;
+    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR);
 
     for (int cur = 0; cur < starSizes.size(); cur++) {
         numlights = starSizes[cur];
@@ -207,65 +229,88 @@ void StarModel::InitModel() {
             continue;
         }
 
-        int offset=numlights/2;
+        double offset = 0.0;
+        double coffset = 0.0;
 
-        int coffset = (maxLights - numlights) / 2;
+        if (duplicateSized) {
+            // we do funky things if there are duplicate layers with the same number of pixels as the orignal code 
+            // forced the pixels into order largest to smallest ... at least on the display
+            // I have kept the old code for stars without duplicate sized layers to minimise impacts on users.
+            double sep = (double)(SEPERATION_FACTOR * (starSizes.size() - cur));
+            offset = ((double)(numlights) / 2.0 + sep) * scale;
+            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale;
+        }
+        else {
+            offset = (double)numlights / 2.0;
+            coffset = (double)(maxLights - numlights) / 2.0;
+        }
 
-        int numsegments=parm3*2;
-        double dpct=1.0/(double)numsegments;
-        double OuterRadius=offset;
-        double InnerRadius=OuterRadius / starRatio; // divide by ratio (default is golden ratio squared)
-        double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
-        double pctIncr=1.0 / (double)numlights;     // this is cw
-        if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
+        int numsegments = parm3 * 2;
+        double dpct = 1.0 / (double)numsegments;
+        double OuterRadius = offset;
+        double InnerRadius = OuterRadius / starRatio; // divide by ratio (default is golden ratio squared)
+        double pct = isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
+        double pctIncr = 1.0 / (double)numlights;     // this is cw
+        if (IsLtoR != isBotToTop) pctIncr *= -1.0;    // adjust to ccw
         int ChanIncr = GetNodeChannelCount(StringType);
         for (size_t cnt2 = 0; cnt2 < numlights; cnt2++) {
             int n;
             if (!SingleNode) {
                 n = start + cnt2;
-            } else {
+            }
+            else {
                 n = cur;
                 if (n >= Nodes.size()) {
                     n = Nodes.size() - 1;
                 }
             }
             if (Nodes[n]->StringNum != LastStringNum) {
-                LastStringNum=Nodes[n]->StringNum;
-                chan=stringStartChan[LastStringNum];
+                LastStringNum = Nodes[n]->StringNum;
+                chan = stringStartChan[LastStringNum];
             }
-            Nodes[n]->ActChan=chan;
+            Nodes[n]->ActChan = chan;
             if (!SingleNode) {
-                chan+=ChanIncr;
+                chan += ChanIncr;
             }
-            size_t CoordCount=GetCoordCount(n);
-            int lastx = 0, lasty = 0;
-            for(size_t c=0; c < CoordCount; c++) {
+            size_t CoordCount = GetCoordCount(n);
+            int lastx = 0;
+            int lasty = 0;
+            if (duplicateSized) {
+                lastx = offset;
+                lasty = offset;
+            }
+            for (size_t c = 0; c < CoordCount; c++) {
                 if (c >= numlights) {
-                    Nodes[n]->Coords[c].bufX=lastx;
-                    Nodes[n]->Coords[c].bufY=lasty;
-                } else {
-                    int cursegment = (int)((double)numsegments*pct) % numsegments;
-                    int nextsegment = (cursegment+1) % numsegments;
+                    Nodes[n]->Coords[c].bufX = lastx;
+                    Nodes[n]->Coords[c].bufY = lasty;
+                }
+                else {
+                    int cursegment = (int)((double)numsegments * pct) % numsegments;
+                    int nextsegment = (cursegment + 1) % numsegments;
                     double segstart_pct = (double)cursegment / numsegments;
                     double segend_pct = (double)nextsegment / numsegments;
                     double dseg = pct - segstart_pct;
                     double segpct = dseg / dpct;
-                    double r = cursegment%2==0 ? OuterRadius : InnerRadius;
-                    double segstart_x = r*sin(segstart_pct*2.0*M_PI);
-                    double segstart_y = r*cos(segstart_pct*2.0*M_PI);
-                    r=nextsegment%2==0 ? OuterRadius : InnerRadius;
-                    double segend_x = r*sin(segend_pct*2.0*M_PI);
-                    double segend_y = r*cos(segend_pct*2.0*M_PI);
+                    double r = cursegment % 2 == 0 ? OuterRadius : InnerRadius;
+                    double segstart_x = r * sin(segstart_pct * 2.0 * M_PI);
+                    double segstart_y = r * cos(segstart_pct * 2.0 * M_PI);
+                    r = nextsegment % 2 == 0 ? OuterRadius : InnerRadius;
+                    double segend_x = r * sin(segend_pct * 2.0 * M_PI);
+                    double segend_y = r * cos(segend_pct * 2.0 * M_PI);
                     // now interpolate between segstart and segend
-                    int x = (segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
-                    int y = (segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
+                    int x = (segend_x - segstart_x) * segpct + segstart_x + offset + 0.5 + coffset; 
+                    int y = (segend_y - segstart_y) * segpct + segstart_y + offset + 0.5 + coffset;
+                    if (duplicateSized)                         {
+                        x += (SEPERATION_FACTOR * starSizes.size()) / 2;
+                        y += (SEPERATION_FACTOR * starSizes.size()) / 2;
+                    }
                     Nodes[n]->Coords[c].bufX = x;
                     Nodes[n]->Coords[c].bufY = y;
                     lastx = x;
                     lasty = y;
                     pct += pctIncr;
-                    if (pct >= 1.0) pct-=1.0;
-                    if (pct < 0.0) pct+=1.0;
+                    if (pct >= 1.0) pct -= 1.0;
+                    if (pct < 0.0) pct += 1.0;
                 }
             }
         }
