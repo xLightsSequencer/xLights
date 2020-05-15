@@ -60,7 +60,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Load models in parallel to speed up model load
    -- enh (keith)  Add port tooltips in visualiser to help manually configure controllers
    -- enh (priemd) Add grey option to wiring view
-   -- bug (kevin)  Fix house-preview video export broken for odd-numbered heights
    -- bug (keith)  Fix issues with control tab convert not converting some !desc:sc entries correctly
    -- bug (keith)  Fix display export does not work for animations
    -- bug (keith)  Fix crash in servo effect if some skull servos are missing
