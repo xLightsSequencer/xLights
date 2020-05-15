@@ -250,28 +250,44 @@ std::tuple<int,int,int> FindNode(int node, const std::vector<std::vector<std::ve
     return { -1,-1,-1 };
 }
 
-std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data, int width)
+std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data, int width, int height, int depth)
 {
     std::vector<std::vector<std::vector<int>>> res;
 
-    wxArrayString layers = wxSplit(data, '|');
-    for (auto l : layers)
-    {
-        std::vector<std::vector<int>> ll;
-        wxArrayString rows = wxSplit(l, ';');
-        for (auto r : rows)
-        {
-            std::vector<int> rr;
-            wxArrayString columns = wxSplit(r, ',');
-            for (auto c : columns)
-            {
-                if (c == "") rr.push_back(-1);
-                else rr.push_back(wxAtoi(c));
+    wxASSERT(width > 0);
+    wxASSERT(height > 0);
+    wxASSERT(depth > 0);
+
+    if (data == "")         {
+        for (int l = 0; l < depth; l++)             {
+            std::vector<std::vector<int>> ll;
+            for (int r = 0; r < height; r++)                 {
+                std::vector<int> rr;
+                for (int c = 0; c < width; c++)                     {
+                    rr.push_back(-1);
+                }
+                ll.push_back(rr);
             }
-            while (rr.size() < width) rr.push_back(-1);
-            ll.push_back(rr);
+            res.push_back(ll);
         }
-        res.push_back(ll);
+    }
+    else {
+        wxArrayString layers = wxSplit(data, '|');
+        for (auto l : layers) {
+            std::vector<std::vector<int>> ll;
+            wxArrayString rows = wxSplit(l, ';');
+            for (auto r : rows) {
+                std::vector<int> rr;
+                wxArrayString columns = wxSplit(r, ',');
+                for (auto c : columns) {
+                    if (c == "") rr.push_back(-1);
+                    else rr.push_back(wxAtoi(c));
+                }
+                while (rr.size() < width) rr.push_back(-1);
+                ll.push_back(rr);
+            }
+            res.push_back(ll);
+        }
     }
     return res;
 }
@@ -554,6 +570,8 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
     int height = parm2;
     int depth = _depth;
 
+    wxASSERT(width > 0 && height > 0 && depth > 0);
+
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
 
     if (SingleChannel || SingleNode)
@@ -569,7 +587,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
 
     GetBufferSize(type, camera, transform, BufferWi, BufferHi);
 
-    auto locations = ParseCustomModel(ModelXml->GetAttribute("CustomModel"), parm1);
+    auto locations = ParseCustomModel(ModelXml->GetAttribute("CustomModel"), width, height, depth);
 
     if (type == "Stacked X Horizontally")
     {
@@ -1019,57 +1037,47 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     if (data == "") {
         html += "<tr><td>No custom data</td></tr>";
     }
-
-    std::vector<std::vector<std::vector<wxString>>> _data;
-
-    int cols = parm1;
-    wxArrayString layers = wxSplit(data, '|');
-    for (auto l : layers)
-    {
-        std::vector<std::vector<wxString>> ll;
-        wxArrayString rows = wxSplit(l, ';');
-        for (auto r : rows)
-        {
-            std::vector<wxString> rr;
-            wxArrayString columns = wxSplit(r, ',');
-            for (auto c : columns)
-            {
-                rr.push_back(c);
+    else {
+        std::vector<std::vector<std::vector<wxString>>> _data;
+        int cols = parm1;
+        wxArrayString layers = wxSplit(data, '|');
+        for (auto l : layers) {
+            std::vector<std::vector<wxString>> ll;
+            wxArrayString rows = wxSplit(l, ';');
+            for (auto r : rows) {
+                std::vector<wxString> rr;
+                wxArrayString columns = wxSplit(r, ',');
+                for (auto c : columns) {
+                    rr.push_back(c);
+                }
+                while (rr.size() < cols) rr.push_back("");
+                ll.push_back(rr);
             }
-            while (rr.size() < cols) rr.push_back("");
-            ll.push_back(rr);
+            _data.push_back(ll);
         }
-        _data.push_back(ll);
-    }
 
-    for (int r = 0; r < parm2; r++)
-    {
-        html += "<tr>";
-        for (int l = 0; l < _depth; l++)
-        {
-            for (int c = 0; c < parm1; c++)
-            {
-                wxString value = _data[l][r][c];
-                if (!value.IsEmpty() && value != "0")
-                {
-                    wxString bgcolor = "#ADD8E6"; //"#90EE90"
-                    if (_strings == 1)
-                    {
-                        html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+        for (int r = 0; r < parm2; r++) {
+            html += "<tr>";
+            for (int l = 0; l < _depth; l++) {
+                for (int c = 0; c < parm1; c++) {
+                    wxString value = _data[l][r][c];
+                    if (!value.IsEmpty() && value != "0") {
+                        wxString bgcolor = "#ADD8E6"; //"#90EE90"
+                        if (_strings == 1) {
+                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+                        }
+                        else {
+                            int string = GetCustomNodeStringNumber(wxAtoi(value));
+                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
+                        }
                     }
-                    else
-                    {
-                        int string = GetCustomNodeStringNumber(wxAtoi(value));
-                        html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
+                    else {
+                        html += "<td>&nbsp&nbsp&nbsp</td>";
                     }
                 }
-                else
-                {
-                    html += "<td>&nbsp&nbsp&nbsp</td>";
-                }
             }
+            html += "</tr>";
         }
-        html += "</tr>";
     }
 
     html += "</table></body></html>";

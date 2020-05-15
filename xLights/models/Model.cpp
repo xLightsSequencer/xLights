@@ -1026,18 +1026,24 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
 
 static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     wxString tp = "Single Color Custom";
-    wxColour c;
-    c << p->GetValue();
-    if (c == *wxRED) {
-        tp = "Single Color Red";
-    } else if (c == *wxBLUE) {
-        tp = "Single Color Blue";
-    } else if (c == *wxGREEN) {
-        tp = "Single Color Green";
-    } else if (c == *wxWHITE) {
-        tp = "Single Color White";
-    } else {
-        xc = c;
+    if (p != nullptr) {
+        wxColour c;
+        c << p->GetValue();
+        if (c == *wxRED) {
+            tp = "Single Color Red";
+        }
+        else if (c == *wxBLUE) {
+            tp = "Single Color Blue";
+        }
+        else if (c == *wxGREEN) {
+            tp = "Single Color Green";
+        }
+        else if (c == *wxWHITE) {
+            tp = "Single Color White";
+        }
+        else {
+            xc = c;
+        }
     }
     return tp;
 }
@@ -1561,13 +1567,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             if (NODE_TYPES[i] == "Single Color Intensity") {
                 tp = "Single Color Intensity";
             }
-            else if (NODE_TYPES[i] == "Node Single Color") {
+            else if (NODE_TYPES[i] == "Node Single Color" && p != nullptr) {
                 tp = "Node Single Color";
                 wxColor cc;
                 cc << p->GetValue();
                 c = cc;
             }
-            p->Enable();
+            if (p != nullptr) p->Enable();
             if (tp == "Single Color Custom" || tp == "Single Color Intensity" || tp == "Node Single Color") {
                 ModelXml->DeleteAttribute("CustomColor");
                 xlColor xc = c;

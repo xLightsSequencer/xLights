@@ -486,6 +486,14 @@ CustomModelDialog::~CustomModelDialog()
 
 void CustomModelDialog::ValidateWindow()
 {
+    if (SpinCtrl_Depth->GetValue() < 1 ||
+        WidthSpin->GetValue() < 1 ||
+        HeightSpin->GetValue() < 1) {
+        ButtonOk->Enable(false);
+    }
+    else {
+        ButtonOk->Enable();
+    }
 }
 
 void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::string& modelData)
@@ -506,8 +514,9 @@ void CustomModelDialog::UpdatePreview()
     UpdatePreview(WidthSpin->GetValue(), HeightSpin->GetValue(), SpinCtrl_Depth->GetValue(), GetModelData());
 }
 
-void CustomModelDialog::Setup(CustomModel *m) {
-    
+void CustomModelDialog::Setup(CustomModel* m)
+{
+
     _model = m;
     _modelPreview->SetModel(m, CheckBox_ShowWiring->IsChecked(), true);
     name = m->GetName();
@@ -516,60 +525,59 @@ void CustomModelDialog::Setup(CustomModel *m) {
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
     std::string data = m->GetCustomData();
-    if (data == "") {
-        WidthSpin->SetValue(5);
-        HeightSpin->SetValue(5);
-        SpinCtrl_Depth->SetValue(1);
-        ResizeCustomGrid();
-        return;
-    }
-
-    WidthSpin->SetValue(1);
-    HeightSpin->SetValue(1);
-    SpinCtrl_Depth->SetValue(1);
-    ResizeCustomGrid();
 
     if (background_image != "" && wxFile::Exists(background_image)) {
         bkg_image = new wxImage(background_image);
     }
 
-    wxArrayString layers=wxSplit(data, '|');
-    for (auto layer = 0; layer < layers.size(); layer++)
-    {
-        AddPage();
-        auto grid = GetLayerGrid(layer);
-        wxFont font = grid->GetDefaultCellFont();
-        grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
-        grid->SetDefaultColSize(2 * font.GetPixelSize().y);
-        wxArrayString rows = wxSplit(layers[layer], ';');
-        grid->AppendRows(rows.size()-1);
-        
-        for (auto row = 0; row < rows.size(); row++)
-        {
-            wxArrayString cols = wxSplit(rows[row], ',');
-            if (row == 0) {
-                grid->AppendCols(cols.size()-1);
-            }
-            for (auto col = 0; col < cols.size(); col++)
-            {
-                wxString value = cols[col];
-                if (!value.IsEmpty() && value != "0")
-                {
-                    grid->SetCellValue(row, col, value);
+    SpinCtrl_Depth->SetValue(m->GetCustomDepth());
+    WidthSpin->SetValue(m->GetCustomWidth());
+    HeightSpin->SetValue(m->GetCustomHeight());
+
+    if (data == "") {
+        for (int i = 0; i < m->GetCustomDepth(); i++) {
+            AddPage();
+            auto grid = GetLayerGrid(i);
+            wxFont font = grid->GetDefaultCellFont();
+            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
+            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+        }
+    }
+    else {
+        wxArrayString layers = wxSplit(data, '|');
+        for (auto layer = 0; layer < layers.size(); layer++) {
+            AddPage();
+            //ResizeCustomGrid();
+            auto grid = GetLayerGrid(layer);
+            wxFont font = grid->GetDefaultCellFont();
+            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
+            wxArrayString rows = wxSplit(layers[layer], ';');
+            //grid->AppendRows(rows.size() - 1);
+
+            for (auto row = 0; row < rows.size(); row++) {
+                wxArrayString cols = wxSplit(rows[row], ',');
+                //if (row == 0) {
+                //    grid->AppendCols(cols.size() - 1);
+                //}
+                for (auto col = 0; col < cols.size(); col++) {
+                    wxString value = cols[col];
+                    if (!value.IsEmpty() && value != "0") {
+                        grid->SetCellValue(row, col, value);
+                    }
                 }
             }
-        }
 
-        grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-        grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-        grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+        }
     }
 
     UpdateBackground();
-
-    WidthSpin->SetValue(GetActiveGrid()->GetNumberCols());
-    HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
-    SpinCtrl_Depth->SetValue(Notebook1->GetPageCount());
 
     _saveScale = m->GetModelScreenLocation().GetScaleMatrix();
     _saveWorldPos = m->GetModelScreenLocation().GetWorldPosition();
@@ -618,10 +626,9 @@ void CustomModelDialog::Setup(CustomModel *m) {
 // make grid the size specified by the spin controls
 void CustomModelDialog::ResizeCustomGrid()
 {
-    int numCols=WidthSpin->GetValue();
-    int numRows=HeightSpin->GetValue();
-    for (auto grid : _grids)
-    {
+    int numCols = WidthSpin->GetValue();
+    int numRows = HeightSpin->GetValue();
+    for (auto grid : _grids) {
         int deltaCols = numCols - grid->GetNumberCols();
         int deltaRows = numRows - grid->GetNumberRows();
         if (deltaCols > 0) grid->AppendCols(deltaCols);
@@ -1828,7 +1835,9 @@ void CustomModelDialog::UpdateHighlight(int r, int c)
 {
     if (r == -1) r = GetActiveGrid()->GetGridCursorRow();
     if (c == -1) c = GetActiveGrid()->GetGridCursorCol();
-    _highlightpixel = wxAtoi(GetActiveGrid()->GetCellValue(r, c));
+    if (r != -1 && c != -1) {
+        _highlightpixel = wxAtoi(GetActiveGrid()->GetCellValue(r, c));
+    }
 }
 
 void CustomModelDialog::OnGridPopup(wxCommandEvent& event)

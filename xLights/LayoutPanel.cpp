@@ -3641,8 +3641,11 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D");
+
     if (m_creating_bound_rect)
     {
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Creating bounding rectangle");
         m_bound_end_x = event.GetX();
         m_bound_end_y = event.GetY();
         HighlightAllInBoundingRect(event.ControlDown() && event.ShiftDown());
@@ -3651,6 +3654,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
     else if (m_wheel_down)
     {
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Wheel down");
         float new_x = event.GetX() - m_previous_mouse_x;
         float new_y = event.GetY() - m_previous_mouse_y;
         // account for grid rotation
@@ -3686,6 +3690,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
     else if (m_mouse_down) {
         if (m_moving_handle) {
+            xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Mouse down moving handle");
             if (selectedBaseObject != nullptr) {
                 int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
 
@@ -3787,6 +3792,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
         }
         else {
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Mouse down NOT moving handle");
             int delta_x = event.GetPosition().x - m_last_mouse_x;
             int delta_y = event.GetPosition().y - m_last_mouse_y;
             modelPreview->SetCameraView(delta_x, delta_y, false);
@@ -3795,6 +3801,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
     else {
         if (!selectionLatched) {
+            xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched");
             glm::vec3 ray_origin;
             glm::vec3 ray_direction;
             GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
@@ -3843,6 +3850,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         }
         if (m_moving_handle)
         {
+            xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving handle");
             BaseObject *obj = _newModel;
             if (obj == nullptr) {
                 obj = selectedBaseObject;
@@ -3866,6 +3874,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         }
         else {
             if (selectedBaseObject != nullptr) {
+                xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving but no model selected");
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
