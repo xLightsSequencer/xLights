@@ -265,6 +265,7 @@ class LayoutPanel: public wxPanel
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true );
         void SelectAllModels();
+        void SelectModels(const wxTreeListItems& models);
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() const {return modelPreview;}

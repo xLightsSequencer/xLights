@@ -60,9 +60,11 @@
 #include "ViewsModelsPanel.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
-
 #include <log4cpp/Category.hh>
 
+#include <set>
+
+#include <set>
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -443,7 +445,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerModels->Add(new_panel, 1, wxALL|wxEXPAND, 0);
     PanelModels->SetSizer(FlexGridSizerModels);
     wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
-    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE, new_panel);
+    TreeListViewModels = CreateTreeListCtrl(wxTL_MULTIPLE, new_panel);
     sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
     new_panel->SetSizer(sizer1);
     sizer1->SetSizeHints(new_panel);
@@ -1150,7 +1152,7 @@ void LayoutPanel::refreshModelList() {
                 wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
                 if (cv != endStr) {
                     data->endingChannel = model->GetLastChannel()+1;
-                    
+
                     SetTreeListViewItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
@@ -1341,7 +1343,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     int width = 0;
     if (full_refresh) {
         UnSelectAllModels();
-        
+
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
         if (sorted) {
@@ -2194,7 +2196,7 @@ void LayoutPanel::SelectAllModels()
         auto models = modelPreview->GetModels();
         for (size_t i = 0; i < models.size(); i++)
         {
-            Model* m = modelPreview->GetModels()[i];
+            Model* m = models[i];
 
             if (selectedBaseObject == nullptr)
             {
@@ -2228,6 +2230,30 @@ void LayoutPanel::SelectAllModels()
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectAllModels");
 }
 
+void LayoutPanel::SelectModels(const wxTreeListItems& selectedModels)
+{
+    for (auto selectedModel : selectedModels)
+    {
+        wxClientData* ptr = TreeListViewModels->GetItemData( selectedModel );
+        if (ptr == nullptr)
+            continue;
+        ModelTreeData* data = dynamic_cast<ModelTreeData *>( ptr );
+        if (data == nullptr)
+            continue;
+
+        // Multi-select should only work with models (no groups or submodels)
+        Model* model = data->GetModel();
+        if ( dynamic_cast<ModelGroup*>(model) != nullptr || dynamic_cast<SubModel*>(model) != nullptr )
+            TreeListViewModels->Unselect(selectedModel);
+        else
+            SelectModel(model, false);
+    }
+
+    clearPropGrid();
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectModels");
+}
+
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
     if (base_object == nullptr || propertyEditor == nullptr) return;
@@ -2252,7 +2278,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     {
         base_object->EnableLayoutGroupProperty(propertyEditor, false);
     }
-    
+
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
 
@@ -2412,7 +2438,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     bool changed = false;
     if (selectedBaseObject != m)
-    { 
+    {
         changed = true;
     }
 
@@ -2446,6 +2472,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         }
 
         if( highlight_tree ) {
+            wxTreeListItem itemForModel;
             for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
                   item.IsOk();
                   item = TreeListViewModels->GetNextSibling(item) )
@@ -2453,13 +2480,20 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                 if (TreeListViewModels->GetItemData(item) != nullptr)
                 {
                     ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                    if (mitem != nullptr && mitem->GetModel() == m) {
-                        TreeListViewModels->Select(item);
-                        TreeListViewModels->EnsureVisible(item);
-                        break;
+                    if (mitem != nullptr)
+                    {
+                        Model* model = mitem->GetModel();
+                        if (model == m)
+                            itemForModel = item;
+                        if (model->Selected)
+                            TreeListViewModels->Select(item);
+                        else
+                            TreeListViewModels->Unselect(item);
                     }
                 }
             }
+            if (itemForModel.IsOk())
+                TreeListViewModels->EnsureVisible(itemForModel);
         }
         if (CheckBoxOverlap->GetValue() == true) {
             foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
@@ -2597,7 +2631,7 @@ void LayoutPanel::SaveEffects()
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]) || 
+        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]) ||
             IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
             modelPreview->GetModels()[i]->UpdateXmlWithScale();
         }
@@ -2870,7 +2904,6 @@ void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
                 view_object->Highlighted = false;
             }
         }
-
     }
 }
 
@@ -2879,47 +2912,44 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
     if (modelCount == 0)
-    {
         return false;
-    }
-    else if(modelCount>0)
+
+    propertyEditor->Freeze();
+    clearPropGrid();
+    propertyEditor->Thaw();
+    if (modelPreview->GetModels()[found[0]]->Selected)
     {
-        propertyEditor->Freeze();
-        clearPropGrid();
-        propertyEditor->Thaw();
-        if(modelPreview->GetModels()[found[0]]->Selected)
-        {
-            modelPreview->GetModels()[found[0]]->Selected = false;
-            modelPreview->GetModels()[found[0]]->Highlighted = false;
-            modelPreview->GetModels()[found[0]]->GroupSelected = false;
-            modelPreview->GetModels()[found[0]]->SelectHandle(-1);
-            modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-        }
-        else if (modelPreview->GetModels()[found[0]]->GroupSelected)
-        {
-            SetSelectedModelToGroupSelected();
+        modelPreview->GetModels()[found[0]]->Selected = false;
+        modelPreview->GetModels()[found[0]]->Highlighted = false;
+        modelPreview->GetModels()[found[0]]->GroupSelected = false;
+        modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+        modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+    }
+    else if (modelPreview->GetModels()[found[0]]->GroupSelected)
+    {
+        SetSelectedModelToGroupSelected();
+        modelPreview->GetModels()[found[0]]->Selected = true;
+        modelPreview->GetModels()[found[0]]->Highlighted = true;
+        SelectModel(modelPreview->GetModels()[found[0]]);
+        modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+        modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+    }
+    else
+    {
+        modelPreview->GetModels()[found[0]]->Highlighted = true;
+        if (ModelsSelectedCount() == 0) {
             modelPreview->GetModels()[found[0]]->Selected = true;
-            modelPreview->GetModels()[found[0]]->Highlighted = true;
             SelectModel(modelPreview->GetModels()[found[0]]);
             modelPreview->GetModels()[found[0]]->SelectHandle(-1);
             modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        } else {
+            modelPreview->GetModels()[found[0]]->GroupSelected = true;
         }
-        else
-        {
-            modelPreview->GetModels()[found[0]]->Highlighted = true;
-            if( ModelsSelectedCount() == 0 ) {
-                modelPreview->GetModels()[found[0]]->Selected = true;
-                SelectModel(modelPreview->GetModels()[found[0]]);
-                modelPreview->GetModels()[found[0]]->SelectHandle(-1);
-                modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-            } else {
-                modelPreview->GetModels()[found[0]]->GroupSelected = true;
-            }
-        }
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
-        return true;
     }
-    return false;
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
+
+    return true;
 }
 
 void LayoutPanel::SetMouseStateForModels(bool value)
@@ -6533,7 +6563,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     obj_button->Enable(is_3d && currentLayoutGroup == "Default");
 }
 
-void LayoutPanel::PreviewSaveImage()    
+void LayoutPanel::PreviewSaveImage()
 {
 	wxImage *image = modelPreview->GrabImage();
 	if (image == nullptr)
@@ -6644,9 +6674,9 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                     wxString const smodels = it2->GetModelXml()->GetAttribute("models");
                     auto models = wxSplit(smodels, ',');
 
-                    models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s) 
-                        { 
-                            return (xlights->AllModels.GetModel(s) == nullptr); 
+                    models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
+                        {
+                            return (xlights->AllModels.GetModel(s) == nullptr);
                         }), models.end());
 
                     it2->GetModelXml()->DeleteAttribute("models");
@@ -6976,8 +7006,17 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     UnSelectAllModels(false);
-    if( editing_models ) {
-        wxTreeListItem item = event.GetItem();
+    if (editing_models) {
+        wxTreeListItems selectedItems;
+        unsigned numSelected = TreeListViewModels->GetSelections( selectedItems );
+        if (numSelected > 1)
+        {
+            SelectModels(selectedItems);
+            return;
+        }
+
+        // with multiple selection enabled, event's item may be one that is unselected
+        wxTreeListItem item = ( numSelected == 1 ) ? selectedItems[0] : event.GetItem();
         if (item.IsOk()) {
 
             ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
