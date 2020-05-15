@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add a plugin to xSchedule to work with Remote Falcon
+   -- enh (keith)  Add commands to xSchedule to allow buttons to play and play looped a specific step
+   -- enh (priemd) Add ability to rotate wiring view
+   -- bug (scott)  Fix max serial port channels on FPP hats
+   -- bug (scott)  Fix hinks pix controller upload crash due to non-ethernet controller type
+   -- bug (keith)  Fix stars with multiple layers the same size generate overlapping nodes
 2020.19 May 11 2020
    -- enh (keith)  Make it possible to clear the set model brightness from in the visualiser
    -- enh (keith)  Limit the list of vendors to those who have controllers that work with the chosen controller type
