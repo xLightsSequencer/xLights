@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.20 May 17 2020
    -- enh (keith)  Add a plugin to xSchedule to work with Remote Falcon
    -- enh (keith)  Add commands to xSchedule to allow buttons to play and play looped a specific step
    -- enh (priemd) Add ability to rotate wiring view
