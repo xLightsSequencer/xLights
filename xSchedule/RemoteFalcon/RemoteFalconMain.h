@@ -52,6 +52,7 @@ class RemoteFalconFrame : public wxFrame
     std::string _oldSteps;
     std::string _playlist;
     std::future<void> _sendPlaylistFuture;
+    std::future<void> _sendPlayingFuture;
     std::future<void> _handleStatusFuture;
     std::atomic<int> _toProcess;
 
@@ -60,6 +61,8 @@ class RemoteFalconFrame : public wxFrame
     void AddMessage(const std::string& msg);
     void DoAddMessage(const std::string& msg);
     void DoNotifyStatus(const std::string& status);
+    void DoSendPlayingSong(const std::string& playing);
+    void SendPlayingSong(const std::string& playing);
 
     void LoadOptions();
     void SaveOptions();

@@ -437,9 +437,23 @@ void RemoteFalconFrame::Stop(bool suppressMessage)
     // ensure any other thread processing is complete
     if (_handleStatusFuture.valid()) _handleStatusFuture.wait();
     if (_sendPlaylistFuture.valid()) _sendPlaylistFuture.wait();
+    if (_sendPlayingFuture.valid()) _sendPlayingFuture.wait();
 
     if (!suppressMessage) {
         AddMessage("Stopped.");
+    }
+}
+
+void RemoteFalconFrame::DoSendPlayingSong(const std::string& playing)
+{
+    AddMessage("Updating remote falcon with the playing song: " + playing);
+    AddMessage(_remoteFalcon->SendPlayingSong(playing));
+}
+
+void RemoteFalconFrame::SendPlayingSong(const std::string& playing)
+{
+    if (!_sendPlayingFuture.valid() || _sendPlayingFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        _sendPlayingFuture = std::async(std::launch::async, [this, playing]() { DoSendPlayingSong(playing); });
     }
 }
 
@@ -457,7 +471,7 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
 
     std::string nextSong = "";
     if (!val.IsNull())         {
-        if (val["code"].AsInt() == 200)             {
+        if (val["code"].AsInt() == 200 && !val["data"]["nextPlaylist"].IsNull()) {
             nextSong = val["data"]["nextPlaylist"].AsString();
         }
     }
@@ -480,17 +494,32 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
 
 void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    static std::string _lastPlaying;
+
     wxJSONReader reader;
     wxJSONValue val;
     reader.Parse(status, &val);
 
     if (!val.IsNull()) {
-        int queueLength = wxAtoi(val["queuelength"].AsString());
-        auto playing = val["step"].AsString();
-        auto lefts = wxAtol(val["leftms"].AsString()) / 1000;
 
-        if (queueLength == 0 || (queueLength == 1 && lefts <= 4)) {
-            GetAndPlaySong(playing);
+        auto playing = val["step"].AsString();
+        if (_lastPlaying != playing) {
+            SendPlayingSong(playing);
+            _lastPlaying = playing;
+        }
+
+        auto trigger = val["trigger"].AsString();
+
+        // Only play songs if a schedule is playing
+        if (trigger == "scheduled") {
+            int queueLength = wxAtoi(val["queuelength"].AsString());
+            auto lefts = wxAtol(val["leftms"].AsString()) / 1000;
+
+            if (queueLength == 0 || (queueLength == 1 && lefts <= 4)) {
+                GetAndPlaySong(playing);
+            }
         }
     }
 }

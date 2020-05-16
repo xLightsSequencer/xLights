@@ -656,7 +656,7 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     {
         running = _immediatePlay;
     }
-    else if (_queuedSongs->GetSteps().size() > 0 && _queuedSongs->IsRunning())
+    else if (_queuedSongs->GetStepCount() > 0 && _queuedSongs->IsRunning())
     {
         running = _queuedSongs;
     }
@@ -3486,6 +3486,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 data += "{\"name\":\"" + (*it)->GetNameNoTime() +
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     first + last +
+                    "\",\"everystep\":\"" + ((*it)->GetEveryStep() ? _("true") : _("false")) +
                     "\",\"offset\":\"" + (*it)->GetStartTime(p) +
                     "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) +
                     "\",\"lengthms\":\"" + wxString::Format("%ld", (long)(*it)->GetLengthMS()) + "\"}";

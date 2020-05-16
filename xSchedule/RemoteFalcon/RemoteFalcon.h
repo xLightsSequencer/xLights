@@ -46,6 +46,12 @@ class RemoteFalcon
             return Curl::HTTPSPost(URLBase + "updatePlaylistQueue.php", t, "JSON");
         }
 
+        std::string SendPlayingSong(const std::string& playing)
+        {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", token, playing);
+            return Curl::HTTPSPost(URLBase + "updateWhatsPlaying.php", t, "JSON");
+        }
+
         std::string SyncPlayLists(const std::string& playlist, const std::string& steps)
         {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -54,13 +60,22 @@ class RemoteFalcon
             wxJSONReader reader;
             wxJSONValue val;
             reader.Parse(steps, &val);
+            bool first = true;
             if (!val.IsNull()) {
                 for (int i = 0; i < val["steps"].AsArray()->Count(); i++) {
-                    if (i != 0) body += ",";
+                    // filter out any everystep
+                    if (val["steps"][i]["everystep"].AsString() == "false") {
+                        if (first) {
+                            first = false;
+                        }
+                        else {
+                            body += ",";
+                        }
 
-                    body += "{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistItems\":[";
-                    body += wxString::Format("{\"playlistItemType\":\"both\",\"playlistItemEnabled\":1,\"playlistItemSequenceName\":\"%s.fseq\",\"playlistItemMediaName\":\"\",\"playlistItemDuration\":%d}", val["steps"][i]["name"].AsString(), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
-                    body += "]}";
+                        body += "{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistItems\":[";
+                        body += wxString::Format("{\"playlistItemType\":\"both\",\"playlistItemEnabled\":1,\"playlistItemSequenceName\":\"%s.fseq\",\"playlistItemMediaName\":\"\",\"playlistItemDuration\":%d}", val["steps"][i]["name"].AsString(), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
+                        body += "]}";
+                    }
                 }
             }
         
