@@ -813,8 +813,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    const std::string vendorlink = "http://localhost:3000/xlights-vendors.xml";
-    //const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://threebuttes.com/Extras/dmx_models/xlights_vendors.xml";
 
     std::string filename;
