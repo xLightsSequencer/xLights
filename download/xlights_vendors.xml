@@ -5,6 +5,10 @@
 		<link>http://hohenseefamily.com/xlights/boscoyo.xml</link>
 	</vendor>
 	<vendor>
+		<name>Gilbert Engineering USA</name>
+		<link>https://raw.githubusercontent.com/GEUSA/xmodels/master/geusa-xlights.xml</link>
+	</vendor>
+	<vendor>
 		<name>DMX Fixture Library</name>
 		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>
