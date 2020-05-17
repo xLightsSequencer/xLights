@@ -101,7 +101,7 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
 
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && active) {
+    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
         xlColor proxy;
         Nodes[shutter_channel - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
