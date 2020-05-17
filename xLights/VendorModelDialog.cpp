@@ -813,7 +813,8 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlink = "http://localhost:3000/xlights-vendors.xml";
+    //const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://threebuttes.com/Extras/dmx_models/xlights_vendors.xml";
 
     std::string filename;
@@ -1185,6 +1186,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(1)->Hide();
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MVendorTreeItemData*)tid)->GetVendor());
+                PopulateModelPanel((MModel*)nullptr);
                 TreeCtrl_Navigator->SetFocus();
             }
             else if (type == "Model")
@@ -1194,6 +1196,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(1);
                 TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MModelTreeItemData*)tid)->GetModel());
+                PopulateVendorPanel(((MModelTreeItemData*)tid)->GetModel()->_vendor);
             }
             else if (type == "Wiring")
             {
@@ -1202,6 +1205,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(1);
                 TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
+                PopulateVendorPanel(((MWiringTreeItemData*)tid)->GetWiring()->_model->_vendor);
             }
             else
             {
@@ -1209,6 +1213,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(1)->Hide();
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->GetVendor());
+                PopulateModelPanel((MModel*)nullptr);
                 TreeCtrl_Navigator->SetFocus();
             }
         }
