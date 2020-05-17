@@ -40,7 +40,7 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && active) {
+    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
         xlColor proxy;
         Nodes[shutter_channel - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -56,7 +56,8 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
     if (red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount)
+        blue_channel > NodeCount ||
+        white_channel > NodeCount)
     {
         return;
     }
@@ -71,14 +72,29 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
     if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+        xlColor proxy = xlBLACK;
+        if (white_channel > 0) {
+            Nodes[white_channel - 1]->GetColor(proxy);
+            beam_color = proxy;
+        }
+
+        if (proxy == xlBLACK) {
+            Nodes[red_channel - 1]->GetColor(proxy);
+            beam_color.red = proxy.red;
+            Nodes[green_channel - 1]->GetColor(proxy);
+            beam_color.green = proxy.red;
+            Nodes[blue_channel - 1]->GetColor(proxy);
+            beam_color.blue = proxy.red;
+        }
+    }
+    else if (white_channel > 0) {
         xlColor proxy;
-        Nodes[red_channel - 1]->GetColor(proxy);
+        Nodes[white_channel - 1]->GetColor(proxy);
         beam_color.red = proxy.red;
-        Nodes[green_channel - 1]->GetColor(proxy);
         beam_color.green = proxy.red;
-        Nodes[blue_channel - 1]->GetColor(proxy);
         beam_color.blue = proxy.red;
     }
+
     if (!active) {
         beam_color = color;
     }
@@ -123,7 +139,7 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
 
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && active) {
+    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
         xlColor proxy;
         Nodes[shutter_channel - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -139,7 +155,8 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
 
     if (red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount) {
+        blue_channel > NodeCount ||
+        white_channel > NodeCount) {
         return;
     }
 
@@ -153,14 +170,30 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
     if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+
+        xlColor proxy = xlBLACK;
+        if (white_channel > 0) {
+            Nodes[white_channel - 1]->GetColor(proxy);
+            beam_color = proxy;
+        }
+
+        if (proxy == xlBLACK) {
+            Nodes[red_channel - 1]->GetColor(proxy);
+            beam_color.red = proxy.red;
+            Nodes[green_channel - 1]->GetColor(proxy);
+            beam_color.green = proxy.red;
+            Nodes[blue_channel - 1]->GetColor(proxy);
+            beam_color.blue = proxy.red;
+        }
+    }
+    else if (white_channel > 0) {
         xlColor proxy;
-        Nodes[red_channel - 1]->GetColor(proxy);
+        Nodes[white_channel - 1]->GetColor(proxy);
         beam_color.red = proxy.red;
-        Nodes[green_channel - 1]->GetColor(proxy);
         beam_color.green = proxy.red;
-        Nodes[blue_channel - 1]->GetColor(proxy);
         beam_color.blue = proxy.red;
     }
+
     if (!active) {
         beam_color = color;
     }
