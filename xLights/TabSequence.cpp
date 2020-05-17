@@ -1508,7 +1508,8 @@ int xLightsFrame::ChooseRandomEffect()
 
     const int select = rand() % _randomEffectsToUse.size();
     const wxString effect = _randomEffectsToUse[select];
-    return effectManager.GetEffectIndex(effect);
+    const int index = effectManager.GetEffectIndex(effect);
+    return index != -1 ? index : 0;
 }
 
 void xLightsFrame::VCChanged(wxCommandEvent& event)
