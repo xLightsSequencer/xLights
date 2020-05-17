@@ -121,7 +121,7 @@ std::string WebSocketClient::Receive()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     unsigned char buffer[4096];
     _socket.Peek(buffer, sizeof(buffer));
-    int read = _socket.LastCount();
+    auto read = _socket.LastCount();
     if (read >= 2)
     {
         bool fin = (buffer[0] & 0x80) == 0x80;

@@ -748,8 +748,20 @@ void xLightsFrame::PingController(Controller* e) {
 void xLightsFrame::DoASAPWork() {
 
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+
+    // If any function called in DoWork yields then this can reenter and we need to stop that
+    static bool reenter = false;
+    if (reenter) {
+        // we need to clear the work requested flag to ensure we get called again
+        _outputModelManager.ClearWorkRequested();
+        return;
+    }
+    reenter = true;
+
     logger_work.debug("Doing ASAP Work.");
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
+
+    reenter = false;
 }
 
 bool xLightsFrame::DoAllWork() {
