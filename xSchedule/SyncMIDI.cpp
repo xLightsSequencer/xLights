@@ -257,12 +257,16 @@ SyncMIDI::SyncMIDI(SyncMIDI&& from) : SyncBase(from)
 {
     _threadTimecode = from._threadTimecode;
     from._threadTimecode = nullptr; // this is a transfer of ownership
-    _threadTimecode->UpdateSyncMIDI(this);
+    if (_threadTimecode != nullptr) {
+        _threadTimecode->UpdateSyncMIDI(this);
+    }
 
 #ifdef USE_CLOCK_THREAD
     _threadClock = from._threadClock;
     from._threadClock = nullptr; // this is a transfer of ownership
-    _threadClock->UpdateSyncMIDI(this);
+    if (_threadClock != nullptr) {
+        _threadClock->UpdateSyncMIDI(this);
+    }
 #endif
     _midi = from._midi;
     from._midi = nullptr; // this is a transfer of ownership
