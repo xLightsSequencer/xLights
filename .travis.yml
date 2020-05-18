@@ -1,12 +1,16 @@
 dist: trusty
 sudo: required
 services:
-- docker
+  - docker
 git:
   depth: 3
 script:
-- docker pull debenham/xlights
-- docker run --name buildvm debenham/xlights /bin/bash Recipe
+  - docker pull debenham/xlights
+  - docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+  - docker cp buildvm:/xLights/xLights/AppImage/ /tmp/
+  - ls -lh /tmp/* ./*
+  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - bash upload.sh /tmp/AppImage/*.AppImage
 env:
   global:
     - MAKEFLAGS="-j 2"
@@ -17,3 +21,7 @@ notifications:
       - keithsw1111@hotmail.com
     on_success: never
     on_failure: always
+branches:
+￼  except:
+￼    - # Do not build tags that we create when we upload to GitHub Releases
+￼    - /^(?i:continuous)/
