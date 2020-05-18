@@ -88,6 +88,7 @@ void InitVideoToolboxAcceleration() {
         rbFlipKernel = [CIColorKernel kernelWithString: @"kernel vec4 swapRedAndGreenAmount(__sample s) { return s.bgra; }" ];
         [rbFlipKernel retain];
     }
+    [dict release];
 
     logger_base.info("Hardware decoder initialized.");
 }

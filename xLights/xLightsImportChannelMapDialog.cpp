@@ -1677,14 +1677,12 @@ void xLightsImportChannelMapDialog::MarkUsed()
     // go through each tree row where mapping is not blank
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i)
     {
-        bool found = false;
         auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "")
         {
             if (std::find(used.begin(), used.end(), model->_mapping) == used.end())
             {
                 used.push_back(model->_mapping.ToStdString());
-                found = true;
             }
         }
 
@@ -1696,7 +1694,6 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 if (std::find(used.begin(), used.end(), strand->_mapping) == used.end())
                 {
                     used.push_back(strand->_mapping.ToStdString());
-                    found = true;
                 }
             }
 
@@ -1708,7 +1705,6 @@ void xLightsImportChannelMapDialog::MarkUsed()
                     if (std::find(used.begin(), used.end(), node->_mapping) == used.end())
                     {
                         used.push_back(node->_mapping.ToStdString());
-                        found = true;
                     }
                 }
             }

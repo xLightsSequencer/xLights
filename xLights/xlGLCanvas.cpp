@@ -29,7 +29,7 @@ static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
 wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
 
-static wxGLAttributes GetAttributes(int zdepth) {
+static wxGLAttributes GetAttributes(int &zdepth) {
     DrawGLUtils::SetupDebugLogging();
     
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));

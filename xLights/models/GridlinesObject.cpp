@@ -61,7 +61,7 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
+    grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
 
     p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
     p->SetAttribute("UseCheckbox", true);

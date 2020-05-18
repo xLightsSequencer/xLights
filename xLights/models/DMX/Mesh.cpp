@@ -773,13 +773,9 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                             c[1] /= len;
                             c[2] /= len;
                         }
-                        float red = c[0] * 0.5 + 0.5;
-                        float green = c[1] * 0.5 + 0.5;
-                        float blue = c[2] * 0.5 + 0.5;
-
-                        red = diffuse[0];
-                        green = diffuse[1];
-                        blue = diffuse[2];
+                        float red = diffuse[0];
+                        float green = diffuse[1];
+                        float blue = diffuse[2];
 
                         float trans = materials[current_material_id].dissolve * 255.0f;
                         xlColor color(red * 255, green * 255, blue * 255, trans);

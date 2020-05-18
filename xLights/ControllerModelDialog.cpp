@@ -960,11 +960,10 @@ void ControllerModelDialog::ReloadModels()
                 pp->CreateVirtualStrings(_caps == nullptr ? true : _caps->MergeConsecutiveVirtualStrings());
                 if (pp->GetVirtualStringCount() == 0) {
                     y += VERTICAL_GAP + VERTICAL_SIZE;
-                }
-                else {
+                } else {
                     int vs = 0;
+                    int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                     for (const auto& it : pp->GetVirtualStrings()) {
-                        int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                         for (const auto& it2 : it->_models) {
                             if (it2->GetModel() != nullptr) {
                                 if (it2->GetModel()->GetSmartRemote() != 0) pixelPortsWithSmartRemotes.push_back(i + 1);
@@ -974,11 +973,16 @@ void ControllerModelDialog::ReloadModels()
                             }
                         }
                         if (x > maxx) maxx = x;
+                        if (_caps->MergeConsecutiveVirtualStrings()) {
+                            y += VERTICAL_GAP + VERTICAL_SIZE;
+                            x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                        }
+                    }
+                    if (!_caps->MergeConsecutiveVirtualStrings()) {
                         y += VERTICAL_GAP + VERTICAL_SIZE;
                     }
                 }
-            }
-            else {
+            } else {
                 int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                 for (const auto& it : pp->GetModels()) {
                     if (it->GetModel() != nullptr) {
@@ -1592,7 +1596,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     std::string sr;
     if (port->GetVirtualStringCount() <= 1 || virtualString < 0)         {
         if (port->GetModelCount() > 0 && port->Channels() > 0) {
-            sc = wxString::Format("Start Channel: %ld (#%d:%d)\nChannels: %ld", 
+            sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
                 port->GetStartChannel(), 
                 port->GetUniverse(),
                 port->GetUniverseStartChannel(),
@@ -1619,7 +1623,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                 break;
             }
             if (pvs->Channels() > 0)                 {
-                sc = wxString::Format("Start Channel: %ld (#%d:%d)\nChannels: %ld",
+                sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
                     pvs->_startChannel,
                     pvs->_universe,
                     pvs->_universeStartChannel,
