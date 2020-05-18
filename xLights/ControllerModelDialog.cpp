@@ -1580,24 +1580,27 @@ void ControllerModelDialog::ClearOver(wxPanel* panel, std::list<BaseCMObject*> l
 
 std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int virtualString)
 {
-    std::string res;
+    // Because un merging consecutive strings are displayed on one line it breaks the port tooltip code I am disabling them.
+    // This can be added back later if desired once the port tooltip code handles unmerged consecutive virtual strings.
+    if (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings()) return "";
 
     std::string protocol;
-    if (port->GetProtocol() != "")         {
+    if (port->GetProtocol() != "") {
         protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
     }
 
     std::string vs;
-    if (port->GetVirtualStringCount() > 1) {
-        vs = wxString::Format("Virtual String: %d\n", virtualString+1);
-    }
-
     std::string sc;
     std::string sr;
-    if (port->GetVirtualStringCount() <= 1 || virtualString < 0)         {
+
+    if (port->GetVirtualStringCount() > 1) {
+        vs = wxString::Format("Virtual String: %d\n", virtualString + 1);
+    }
+
+    if (port->GetVirtualStringCount() <= 1 || virtualString < 0) {
         if (port->GetModelCount() > 0 && port->Channels() > 0) {
             sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
-                port->GetStartChannel(), 
+                port->GetStartChannel(),
                 port->GetUniverse(),
                 port->GetUniverseStartChannel(),
                 port->Channels());
@@ -1608,8 +1611,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         if (pvs == nullptr) {
         }
         else {
-            switch (pvs->_smartRemote)
-            {
+            switch (pvs->_smartRemote) {
             case 1:
                 sr = "Smart Remote: A\n";
                 break;
@@ -1622,7 +1624,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
             default:
                 break;
             }
-            if (pvs->Channels() > 0)                 {
+            if (pvs->Channels() > 0) {
                 sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
                     pvs->_startChannel,
                     pvs->_universe,
@@ -1633,7 +1635,6 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     }
 
     return wxString::Format("Port: %d\nType: %s\n%s%s%s%s", port->GetPort(), port->GetType(), protocol, sr, vs, sc);
-    return res;
 }
 
 std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
