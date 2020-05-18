@@ -203,8 +203,10 @@ public:
     virtual bool HitYTest(wxPoint mouse) override {
         int totaly = VERTICAL_SIZE;
 
-        if (GetUDPort()->GetVirtualStringCount() > 1) {
-            totaly += (GetUDPort()->GetVirtualStringCount() - 1)* (VERTICAL_SIZE + VERTICAL_GAP);
+        if (!_caps || _caps->MergeConsecutiveVirtualStrings()) {
+            if (GetUDPort()->GetVirtualStringCount() > 1) {
+                totaly += (GetUDPort()->GetVirtualStringCount() - 1)* (VERTICAL_SIZE + VERTICAL_GAP);
+            }
         }
 
         return (mouse.y >= _location.y &&
@@ -1580,10 +1582,6 @@ void ControllerModelDialog::ClearOver(wxPanel* panel, std::list<BaseCMObject*> l
 
 std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int virtualString)
 {
-    // Because un merging consecutive strings are displayed on one line it breaks the port tooltip code I am disabling them.
-    // This can be added back later if desired once the port tooltip code handles unmerged consecutive virtual strings.
-    if (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings()) return "";
-
     std::string protocol;
     if (port->GetProtocol() != "") {
         protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
@@ -1593,7 +1591,9 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     std::string sc;
     std::string sr;
 
-    if (port->GetVirtualStringCount() > 1) {
+    if (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings() && port->GetVirtualStringCount() > 1) {
+        vs = wxString::Format("Virtual Strings: %d\n", port->GetVirtualStringCount());
+    } else if (port->GetVirtualStringCount() > 1) {
         vs = wxString::Format("Virtual String: %d\n", virtualString + 1);
     }
 
@@ -1605,8 +1605,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                 port->GetUniverseStartChannel(),
                 port->Channels());
         }
-    }
-    else {
+    } else {
         auto pvs = port->GetVirtualString(virtualString);
         if (pvs == nullptr) {
         }
