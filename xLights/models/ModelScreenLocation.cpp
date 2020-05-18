@@ -3880,9 +3880,11 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
         }
 
         num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
+        if (num_points < 2) num_points = 2;
         mPos.resize(num_points);
         wxString point_data = ModelNode->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
         wxArrayString point_array = wxSplit(point_data, ',');
+        while (point_array.size() < num_points * 3) point_array.push_back("0.0");
         for (int i = 0; i < num_points; ++i) {
             mPos[i].x = wxAtof(point_array[i * 3]);
             mPos[i].y = wxAtof(point_array[i * 3 + 1]);
