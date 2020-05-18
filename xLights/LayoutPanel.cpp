@@ -45,6 +45,7 @@
 #include "LayoutGroup.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
+#include "models/PolyLineModel.h"
 #include "models/ModelGroup.h"
 #include "models/ViewObject.h"
 #include "WiringDialog.h"
@@ -3320,6 +3321,18 @@ void LayoutPanel::FinalizeModel()
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Polyline deleting handle.");
             m->DeleteHandle(m_over_handle);
+
+            auto plm = dynamic_cast<PolyLineModel*>(m);
+            if (plm->GetNumHandles() < 2) {
+                // If we end up with less than 2 points then we destroy the polyline
+                highlightedBaseObject = nullptr;
+                selectedBaseObject = nullptr;
+                modelPreview->SetAdditionalModel(nullptr);
+                delete _newModel;
+                _newModel = nullptr;
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
+            }
         }
     }
     m_moving_handle = false;
