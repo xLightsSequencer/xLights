@@ -3372,7 +3372,8 @@ void LayoutPanel::FinalizeModel()
                 else {
                     modelPreview->SetAdditionalModel(oldam);
                 }
-                delete oldNewModel;
+                // dont delete the oldNewModel as it should already be deleted
+                //delete oldNewModel;
                 oldNewModel = nullptr;
             }
             else {
