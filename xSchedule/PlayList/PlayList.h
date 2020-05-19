@@ -122,6 +122,7 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
+    void ClearStopAtEndOfThisLoop() { _lastLoop = false; }
     std::string GetStepStartTime(PlayListStep* step) const;
     bool IsSimple();
     std::string GetActiveSyncItemFSEQ();
@@ -138,6 +139,7 @@ public:
     bool IsSuspended() const;
     void Stop();
     void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
+    void ClearStopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = false; }
     void TogglePause();
     void RemoveAllSteps();
     bool IsPaused() const;

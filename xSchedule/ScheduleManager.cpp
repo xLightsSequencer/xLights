@@ -1674,6 +1674,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             }
                             else {
                                 GetRunningPlayList()->SetStepLooping(true);
+                                GetRunningPlayList()->ClearStopAtEndOfCurrentStep();
                             }
                         }
                     }
