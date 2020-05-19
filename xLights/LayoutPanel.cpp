@@ -4208,7 +4208,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
-    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models"));
+    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups"));
 
     // ViewPoint menus
     mnu.AppendSeparator();
@@ -6524,19 +6524,34 @@ void LayoutPanel::ImportModelsFromRGBEffects()
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
-        for (const auto& it2 : dlg.GetModelsInPreview(""))
+        for (auto const& it2 : dlg.GetModelsInPreview(""))
         {
-            std::string newName = it2.first;
+            std::string newName = it2->GetName();
             if (xlights->AllModels.GetModel(newName) != nullptr) {
-                newName = xlights->AllModels.GenerateModelName(it2.first);
+                newName = xlights->AllModels.GenerateModelName(it2->GetName());
             }
             wxString lg = ChoiceLayoutGroups->GetStringSelection();
             if (lg == "All Models") lg = "Default";
-            it2.second->DeleteAttribute("name");
-            it2.second->DeleteAttribute("LayoutGroup");
-            it2.second->AddAttribute("name", newName);
-            it2.second->AddAttribute("LayoutGroup", lg);
-            xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+            it2->GetModelXml()->DeleteAttribute("name");
+            it2->GetModelXml()->DeleteAttribute("LayoutGroup");
+            it2->GetModelXml()->AddAttribute("name", newName);
+            it2->GetModelXml()->AddAttribute("LayoutGroup", lg);
+
+            if (it2->IsModelGroup())//if a group, try to add models if exist
+            {
+                wxString const smodels = it2->GetModelXml()->GetAttribute("models");
+                auto models = wxSplit(smodels, ',');
+
+                models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
+                    {
+                        return (xlights->AllModels.GetModel(s) == nullptr);
+                    }), models.end());
+
+                it2->GetModelXml()->DeleteAttribute("models");
+                it2->GetModelXml()->AddAttribute("models", wxJoin( models,','));
+            }
+
+            xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
         }
 
         for (const auto& it : dlg.GetPreviews())
@@ -6564,13 +6579,27 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             }
             for (const auto& it2 : dlg.GetModelsInPreview(it))
             {
-                std::string newName = it2.first;
+                std::string newName = it2->GetName();
                 if (xlights->AllModels.GetModel(newName) != nullptr) {
-                    newName = xlights->AllModels.GenerateModelName(it2.first);
+                    newName = xlights->AllModels.GenerateModelName(it2->GetName());
                 }
-                it2.second->DeleteAttribute("name");
-                it2.second->AddAttribute("name", newName);
-                xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+                it2->GetModelXml()->DeleteAttribute("name");
+                it2->GetModelXml()->AddAttribute("name", newName);
+
+                if (it2->IsModelGroup())//if a group, try to add models if exist
+                {
+                    wxString const smodels = it2->GetModelXml()->GetAttribute("models");
+                    auto models = wxSplit(smodels, ',');
+
+                    models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s) 
+                        { 
+                            return (xlights->AllModels.GetModel(s) == nullptr); 
+                        }), models.end());
+
+                    it2->GetModelXml()->DeleteAttribute("models");
+                    it2->GetModelXml()->AddAttribute("models", wxJoin(models, ','));
+                }
+                xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
             }
         }
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");

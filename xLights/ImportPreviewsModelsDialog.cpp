@@ -31,6 +31,8 @@ const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTEXISTING = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALLMODELS = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALLMODELSGROUPS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_EXPANDALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_COLLAPSEALL = wxNewId();
 
@@ -38,15 +40,6 @@ BEGIN_EVENT_TABLE(ImportPreviewsModelsDialog,wxDialog)
 	//(*EventTable(ImportPreviewsModelsDialog)
 	//*)
 END_EVENT_TABLE()
-
-class impTreeItemData : public wxClientData
-{
-    wxXmlNode* _modelNode;
-public:
-    impTreeItemData(wxXmlNode* n) : _modelNode(n)
-    {}
-    wxXmlNode* GetModelXml() const { return _modelNode; }
-};
 
 ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id,const wxPoint& pos,const wxSize& size) :
     _allModels(allModels), _layoutGroups(layoutGroups)
@@ -98,6 +91,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     if (_doc.IsOk())
     {
         wxXmlNode* models = nullptr;
+        wxXmlNode* modelgroups = nullptr;
         for (wxXmlNode* m = _doc.GetRoot(); m != nullptr; m = m->GetNext())
         {
             for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext())
@@ -105,15 +99,19 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
                 if (mm->GetName() == "models")
                 {
                     models = mm;
-                    break;
+                }
+                else if (mm->GetName() == "modelGroups")
+                {
+                    modelgroups = mm;
                 }
             }
         }
 
-        if (models != nullptr)
+        if (models != nullptr || modelgroups != nullptr)
         {
-            AddModels(TreeListCtrl1, defaultItem, models, "Default");
-            AddModels(TreeListCtrl1, unassignedItem, models, "Unassigned");
+            AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default");
+            AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned");
+
             for (wxXmlNode* n = _doc.GetRoot(); n != nullptr; n = n->GetNext())
             {
                 for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
@@ -127,13 +125,14 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
                                 if (lg != "")
                                 {
                                     wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
-                                    AddModels(TreeListCtrl1, t, models, lg);
+                                    AddModels(TreeListCtrl1, t, models, modelgroups, lg);
                                 }
                             }
                         }
                     }
                 }
             }
+           
         }
     }
     ValidateWindow();
@@ -157,9 +156,9 @@ wxArrayString ImportPreviewsModelsDialog::GetPreviews() const
     return res;
 }
 
-std::list<std::pair<wxString, wxXmlNode*>> ImportPreviewsModelsDialog::GetModelsInPreview(wxString preview) const
+std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxString preview) const
 {
-    std::list<std::pair<wxString, wxXmlNode*>> res;
+    std::list<impTreeItemData*> res;
 
     if (preview == "")
     {
@@ -171,7 +170,7 @@ std::list<std::pair<wxString, wxXmlNode*>> ImportPreviewsModelsDialog::GetModels
                 {
                     if (TreeListCtrl1->GetCheckedState(it2) == wxCHK_CHECKED)
                     {
-                        res.push_back({ TreeListCtrl1->GetItemText(it2), ((impTreeItemData*)TreeListCtrl1->GetItemData(it2))->GetModelXml() });
+                        res.push_back(((impTreeItemData*)TreeListCtrl1->GetItemData(it2)));
                     }
                 }
             }
@@ -187,7 +186,7 @@ std::list<std::pair<wxString, wxXmlNode*>> ImportPreviewsModelsDialog::GetModels
                 {
                     if (TreeListCtrl1->GetCheckedState(it2) == wxCHK_CHECKED)
                     {
-                        res.push_back({ TreeListCtrl1->GetItemText(it2), ((impTreeItemData*)TreeListCtrl1->GetItemData(it2))->GetModelXml() });
+                        res.push_back(((impTreeItemData*)TreeListCtrl1->GetItemData(it2)));
                     }
                 }
             }
@@ -198,15 +197,30 @@ std::list<std::pair<wxString, wxXmlNode*>> ImportPreviewsModelsDialog::GetModels
 }
 
 
-void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxString preview)
+void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxXmlNode* modelgroups, wxString preview)
 {
-    for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext())
+    if (modelgroups != nullptr)
     {
-        if (m->GetAttribute("LayoutGroup") == preview)
+        for (wxXmlNode* m = modelgroups->GetChildren(); m != nullptr; m = m->GetNext())
         {
-            wxString mn = m->GetAttribute("name");
-            tree->AppendItem(item, mn, -1, -1, new impTreeItemData(m));
-            if (!tree->IsExpanded(item)) tree->Expand(item);
+            if (m->GetAttribute("LayoutGroup") == preview)
+            {
+                wxString mn = m->GetAttribute("name");
+                wxTreeListItem it2 = tree->AppendItem(item, mn + " - Group", -1, -1, new impTreeItemData(mn, m, true));
+                if (!tree->IsExpanded(item)) tree->Expand(item);
+            }
+        }
+    }
+    if (models != nullptr)
+    {
+        for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext())
+        {
+            if (m->GetAttribute("LayoutGroup") == preview)
+            {
+                wxString mn = m->GetAttribute("name");
+                tree->AppendItem(item, mn, -1, -1, new impTreeItemData(mn, m, false));
+                if (!tree->IsExpanded(item)) tree->Expand(item);
+            }
         }
     }
 }
@@ -231,9 +245,13 @@ void ImportPreviewsModelsDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.AppendSeparator();
     mnuContext.Append(ID_MNU_IPM_SELECTALL, "Select All");
     mnuContext.Append(ID_MNU_IPM_DESELECTALL, "Deselect All");
+    mnuContext.AppendSeparator();
     mnuContext.Append(ID_MNU_IPM_SELECTSIBLINGS, "Select Siblings");
     mnuContext.Append(ID_MNU_IPM_DESELECTSIBLINGS, "Deselect Siblings");
     mnuContext.Append(ID_MNU_IPM_DESELECTEXISTING, "Deselect Models Already In Layout");
+    mnuContext.AppendSeparator();
+    mnuContext.Append(ID_MNU_IPM_SELECTALLMODELS, "Select All Models");
+    mnuContext.Append(ID_MNU_IPM_SELECTALLMODELSGROUPS, "Select All Model Groups");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ImportPreviewsModelsDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -260,6 +278,14 @@ void ImportPreviewsModelsDialog::OnListPopup(wxCommandEvent& event)
     else if (event.GetId() == ID_MNU_IPM_DESELECTEXISTING)
     {
         DeselectExistingModels();
+    }
+    else if (event.GetId() == ID_MNU_IPM_SELECTALLMODELS)
+    {
+        SelectAllModel(true);
+    }
+    else if (event.GetId() == ID_MNU_IPM_SELECTALLMODELSGROUPS)
+    {
+        SelectAllModelGroups(true);
     }
     else if (event.GetId() == ID_MNU_IPM_EXPANDALL)
     {
@@ -330,6 +356,24 @@ void ImportPreviewsModelsDialog::SelectAll(bool checked)
     for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
     {
         TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+    }
+}
+
+void ImportPreviewsModelsDialog::SelectAllModel(bool checked)
+{
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
+    {
+        if(TreeListCtrl1->GetItemData(it) != nullptr && !((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsModelGroup())
+            TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+    }
+}
+
+void ImportPreviewsModelsDialog::SelectAllModelGroups(bool checked)
+{
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
+    {
+        if (TreeListCtrl1->GetItemData(it) != nullptr && ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsModelGroup())
+            TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
     }
 }
 

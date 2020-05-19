@@ -23,6 +23,19 @@
 
 class LayoutGroup;
 
+class impTreeItemData : public wxClientData
+{
+    wxXmlNode* _modelNode;
+    bool _modelGroup;
+    const wxString _name;
+public:
+    impTreeItemData(wxString name, wxXmlNode* n, bool mg) : _name(name), _modelNode(n), _modelGroup(mg)
+    {}
+    wxString GetName() const { return _name; };
+    wxXmlNode* GetModelXml() const { return _modelNode; }
+    bool IsModelGroup() const { return _modelGroup; }
+};
+
 class ImportPreviewsModelsDialog: public wxDialog
 {
     wxTreeListCtrl* TreeListCtrl1;
@@ -32,11 +45,13 @@ class ImportPreviewsModelsDialog: public wxDialog
     std::vector<LayoutGroup*>& _layoutGroups;
 
     void ValidateWindow();
-    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxString preview);
+    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxXmlNode* modelgroups, wxString preview);
     void SelectAll(bool checked);
     void SelectSiblings(wxTreeListItem item, bool checked);
     void ExpandAll(bool expand);
     void DeselectExistingModels();
+    void SelectAllModel(bool checked);
+    void SelectAllModelGroups(bool checked);
     bool ModelExists(const std::string& modelName) const;
     bool LayoutExists(const std::string& layoutName) const;
 
@@ -45,7 +60,7 @@ class ImportPreviewsModelsDialog: public wxDialog
 		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ImportPreviewsModelsDialog();
         wxArrayString GetPreviews() const;
-        std::list<std::pair<wxString, wxXmlNode*>> GetModelsInPreview(wxString preview) const;
+        std::list<impTreeItemData*> GetModelsInPreview(wxString preview) const;
 		//(*Declarations(ImportPreviewsModelsDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
@@ -66,6 +81,8 @@ class ImportPreviewsModelsDialog: public wxDialog
         static const long ID_MNU_IPM_SELECTSIBLINGS;
         static const long ID_MNU_IPM_DESELECTSIBLINGS;
         static const long ID_MNU_IPM_DESELECTEXISTING;
+        static const long ID_MNU_IPM_SELECTALLMODELS;
+        static const long ID_MNU_IPM_SELECTALLMODELSGROUPS;
 
 	private:
 
