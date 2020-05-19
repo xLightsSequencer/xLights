@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.21 May 19 2020
+   -- enh (scott)  Add model group import from other rgb effects files
+   -- enh (chris)  Add auto build of linux builds
+   -- enh (dkulp)  Merge virtual strings onto single line in visualiser on controllers that dont merge models
+   -- enh (keith)  Enable download of Gilbert Engineering models
+   -- bug (keith)  Fix play playlist step loop does not actually loop
+   -- bug (keith)  Fix crash turning on MIDI remote mode
+   -- bug (keith)  Fix escaping polyline before dropping a second point leaves an invalid single point polyline
+   -- bug (keith)  Fix crash when finalising models - numerous scenarios
+   -- bug (keith)  Fix handling of white channel on DMX floods
+   -- bug (keith)  Fix a crash when shutter channel on a DMX flood is invalid
+   -- bug (scott)  Fix a random effects crash
+   -- bug (hearms) Fix MIDI and ARTNET timecode dont handle hours correctly
 2020.20 May 17 2020
    -- enh (keith)  Add a plugin to xSchedule to work with Remote Falcon
    -- enh (keith)  Add commands to xSchedule to allow buttons to play and play looped a specific step
