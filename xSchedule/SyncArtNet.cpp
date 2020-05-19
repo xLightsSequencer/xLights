@@ -173,9 +173,7 @@ SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept : SyncBase(from)
 {
     _threadTimecode = from._threadTimecode;
     from._threadTimecode = nullptr; // this is a transfer of ownership
-    if (_threadTimecode != nullptr) {
-        _threadTimecode->UpdateSyncArtNet(this);
-    }
+    _threadTimecode->UpdateSyncArtNet(this);
 
     _artnetSocket = from._artnetSocket;
     from._artnetSocket = nullptr; // this is a transfer of ownership
@@ -244,7 +242,7 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
     }
 
     buffer[17] = ms / (3600000);
-    ms = ms % 360000;
+    ms = ms % 3600000;
 
     buffer[16] = ms / 60000;
     ms = ms % 60000;
