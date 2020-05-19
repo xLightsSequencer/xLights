@@ -1,12 +1,23 @@
 dist: trusty
 sudo: required
 services:
-- docker
+  - docker
 git:
   depth: 3
 script:
-- docker pull debenham/xlights
-- docker run --name buildvm debenham/xlights /bin/bash Recipe
+  - docker pull debenham/xlights
+  - docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+after_success:
+  - docker cp buildvm:/xLights/xLights/AppImage/ /tmp/
+  - ls -lh /tmp/*
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glod: true
+  file: /tmp/AppImage/*.AppImage
+  skip_cleanup: true
+  on:
+    tags: true
 env:
   global:
     - MAKEFLAGS="-j 2"
