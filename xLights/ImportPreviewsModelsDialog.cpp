@@ -170,7 +170,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
                 {
                     if (TreeListCtrl1->GetCheckedState(it2) == wxCHK_CHECKED)
                     {
-                        res.push_back(((impTreeItemData*)TreeListCtrl1->GetItemData(it2)));
+                        res.push_back((impTreeItemData*)TreeListCtrl1->GetItemData(it2));
                     }
                 }
             }
@@ -186,7 +186,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
                 {
                     if (TreeListCtrl1->GetCheckedState(it2) == wxCHK_CHECKED)
                     {
-                        res.push_back(((impTreeItemData*)TreeListCtrl1->GetItemData(it2)));
+                        res.push_back((impTreeItemData*)TreeListCtrl1->GetItemData(it2));
                     }
                 }
             }
