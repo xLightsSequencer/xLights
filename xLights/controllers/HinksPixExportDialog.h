@@ -27,16 +27,16 @@ class ControllerEthernet;
 
 class HSEQFile : public V1FSEQFile {
 public:
-	HSEQFile(const std::string& fn, ControllerEthernet* hinx, ControllerEthernet* remote1, ControllerEthernet* remote2, uint32_t orgChannelCount)
-		: V1FSEQFile(fn), _hinx(hinx), _remote1(remote1), _remote2(remote2), _orgChannelCount(orgChannelCount){
+	HSEQFile(const std::string& fn, ControllerEthernet* hinx, ControllerEthernet* slave1, ControllerEthernet* slave2, uint32_t orgChannelCount)
+		: V1FSEQFile(fn), _hinx(hinx), _slave1(slave1), _slave2(slave2), _orgChannelCount(orgChannelCount){
 	};
 
 
 	virtual void writeHeader() override;
 private:
 	ControllerEthernet* _hinx;
-	ControllerEthernet* _remote1;
-	ControllerEthernet* _remote2;
+	ControllerEthernet* _slave1;
+	ControllerEthernet* _slave2;
 	uint32_t      _orgChannelCount;
 };
 
@@ -130,13 +130,13 @@ class HinksPixExportDialog: public wxDialog
 
 		void createModeFile(wxString const& drive, int mode);
 
-		bool Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortFSEQName, ControllerEthernet* hix, ControllerEthernet* remote1, ControllerEthernet* remote2, wxString& errorMsg);
+		bool Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortFSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString& errorMsg);
 
 		wxString createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names);
 
 		bool Make_AU_From_ProcessedAudio( const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg );
 
-		int howManyRemoteUniverses(ControllerEthernet* controller);
+		int howManySlaveUniverses(ControllerEthernet* controller);
 
         void OnPopup(wxCommandEvent &event);
 
@@ -155,9 +155,9 @@ class HinksPixExportDialog: public wxDialog
 		void SetCheckValue(const wxString& col, bool b);
 		void SetDropDownItems(const wxString& col, const wxArrayString& items);
 
-		bool CheckRemoteSizes(ControllerEthernet* controller, ControllerEthernet* remote1, ControllerEthernet* remote2);
+		bool CheckSlaveSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2);
 
-		ControllerEthernet* getRemoteController(const std::string& name)
+		ControllerEthernet* getSlaveController(const std::string& name)
 		{
 			auto contrl = std::find_if(_otherControllers.begin(), _otherControllers.end(), [&name](auto po) {return po->GetName() == name; });
 			if (contrl != _otherControllers.end())

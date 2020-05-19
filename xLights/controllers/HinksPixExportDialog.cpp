@@ -29,8 +29,8 @@
 
 static const std::string CHECK_COL = "ID_UPLOAD_";
 static const std::string MODE_COL = "ID_MODE_";
-static const std::string REMOTE1_COL = "ID_REMOTE1_";
-static const std::string REMOTE2_COL = "ID_REMOTE2_";
+static const std::string SLAVE1_COL = "ID_SLAVE1_";
+static const std::string SLAVE2_COL = "ID_SLAVE2_";
 static const std::string DISK_COL = "ID_DISK_";
 
 //(*IdInit(HinksPixExportDialog)
@@ -100,9 +100,9 @@ void HSEQFile::writeHeader() {
     header[4] = 3; //format version
 
     int num_of_Addition_Controllers = 0;
-    if (_remote1)
+    if (_slave1)
         num_of_Addition_Controllers++;
-    if (_remote2)
+    if (_slave2)
         num_of_Addition_Controllers++;   
 
     header[9] = num_of_Addition_Controllers; //# of Slave Controllers
@@ -115,34 +115,34 @@ void HSEQFile::writeHeader() {
 
     strcpy((char*)&header[28], _hinx->GetIP().c_str());//IP of master controllers
 
-    if (_remote1)
+    if (_slave1)
     {
-        write2ByteUInt(&header[76], _remote1->GetChannels());
+        write2ByteUInt(&header[76], _slave1->GetChannels());
 
-        auto const remote1IP = getIPBytes(_remote1->GetIP());
-        header[72] = remote1IP[0];
-        header[73] = remote1IP[1];
-        header[74] = remote1IP[2];
-        header[75] = remote1IP[3];
+        auto const slave1IP = getIPBytes(_slave1->GetIP());
+        header[72] = slave1IP[0];
+        header[73] = slave1IP[1];
+        header[74] = slave1IP[2];
+        header[75] = slave1IP[3];
         int j = 0;
-        for (auto const output : _remote1->GetOutputs())
+        for (auto const output : _slave1->GetOutputs())
         {
             write2ByteUInt(&header[80 + (j * 2)], output->GetUniverse());
             write2ByteUInt(&header[148 + (j * 2)], output->GetChannels());
             j++;
         }
     }
-    if (_remote2)
+    if (_slave2)
     {
-        write2ByteUInt(&header[220], _remote2->GetChannels());
+        write2ByteUInt(&header[220], _slave2->GetChannels());
 
-        auto const remote2IP = getIPBytes(_remote2->GetIP());
-        header[216] = remote2IP[0];
-        header[217] = remote2IP[1];
-        header[218] = remote2IP[2];
-        header[219] = remote2IP[3];
+        auto const slave2IP = getIPBytes(_slave2->GetIP());
+        header[216] = slave2IP[0];
+        header[217] = slave2IP[1];
+        header[218] = slave2IP[2];
+        header[219] = slave2IP[3];
         int j = 0;
-        for (auto const output : _remote2->GetOutputs())
+        for (auto const output : _slave2->GetOutputs())
         {
             write2ByteUInt(&header[224 + (j * 2)], output->GetUniverse());
             write2ByteUInt(&header[258 + (j * 2)], output->GetChannels());
@@ -269,8 +269,8 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     AddInstanceHeader("Model");
     AddInstanceHeader("Mode");
     AddInstanceHeader("Drive");
-    AddInstanceHeader("Remote1");
-    AddInstanceHeader("Remote2");
+    AddInstanceHeader("Slave1");
+    AddInstanceHeader("Slave2");
     
     CheckListBox_Sequences->EnableCheckBoxes();
 
@@ -382,9 +382,9 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
 
         HinkControllerSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
 
-        wxChoice* Choice2 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, REMOTE1_COL + rowStr);
+        wxChoice* Choice2 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, SLAVE1_COL + rowStr);
         Choice2->Append(_(""));
-        wxChoice* Choice3 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, REMOTE2_COL + rowStr);
+        wxChoice* Choice3 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, SLAVE2_COL + rowStr);
         Choice3->Append(_(""));
         for (wxString const& oth : otherControllers)
         {
@@ -698,8 +698,8 @@ void HinksPixExportDialog::SaveSettings()
         ipaddress.Replace(".", "_");
         config->Write("HinksPixExportExport_" + ipaddress, GetCheckValue(CHECK_COL + rowStr));
         config->Write("HinksPixExportMode_" + ipaddress, GetChoiceValue(MODE_COL + rowStr));
-        config->Write("HinksPixExportRemote1_" + ipaddress, GetChoiceValue(REMOTE1_COL + rowStr));
-        config->Write("HinksPixExportRemote2_" + ipaddress, GetChoiceValue(REMOTE2_COL + rowStr));
+        config->Write("HinksPixExportSlave1_" + ipaddress, GetChoiceValue(SLAVE1_COL + rowStr));
+        config->Write("HinksPixExportSlave2_" + ipaddress, GetChoiceValue(SLAVE2_COL + rowStr));
         config->Write("HinksPixExportDisk_" + ipaddress, GetChoiceValue(DISK_COL + rowStr));
         row++;
     }
@@ -712,8 +712,8 @@ void HinksPixExportDialog::ApplySavedSettings()
     /*
     static const std::string CHECK_COL = "ID_UPLOAD_";
     static const std::string MODE_COL = "ID_MODE_";
-    static const std::string REMOTE1_COL = "ID_REMOTE1_";
-    static const std::string REMOTE2_COL = "ID_REMOTE2_";
+    static const std::string SLAVE1_COL = "ID_SLAVE1_";
+    static const std::string SLAVE2_COL = "ID_SLAVE2_";
     static const std::string DISK_COL = "ID_DISK_";
      */
 
@@ -734,11 +734,11 @@ void HinksPixExportDialog::ApplySavedSettings()
             if (config->Read("HinksPixExportMode_" + ipAddress, &sval)) {
                 SetChoiceValue(MODE_COL + rowStr, sval);
             }
-            if (config->Read("HinksPixExportRemote1_" + ipAddress, &sval)) {
-                SetChoiceValue(REMOTE1_COL + rowStr, sval);
+            if (config->Read("HinksPixExportSlave1_" + ipAddress, &sval)) {
+                SetChoiceValue(SLAVE1_COL + rowStr, sval);
             }
-            if (config->Read("HinksPixExportRemote2_" + ipAddress, &sval)) {
-                SetChoiceValue(REMOTE2_COL + rowStr, sval);
+            if (config->Read("HinksPixExportSlave2_" + ipAddress, &sval)) {
+                SetChoiceValue(SLAVE2_COL + rowStr, sval);
             }
             if (config->Read("HinksPixExportDisk_" + ipAddress, &sval)) {
                 SetChoiceValue(DISK_COL + rowStr, sval);
@@ -841,38 +841,38 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'" , hix->GetName()));
 
-        wxString remoteName1 = GetChoiceValue(REMOTE1_COL + rowStr);
-        wxString remoteName2 = GetChoiceValue(REMOTE2_COL + rowStr);
+        wxString slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+        wxString slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
 
-        if (!remoteName1.IsEmpty() && remoteName1 == remoteName2)
+        if (!slaveName1.IsEmpty() && slaveName1 == slaveName2)
         {
             error = true;
-            errorMsg = wxString::Format("Remote 1 and 2 cannot not be the same Controller: '%s'", remoteName1);
+            errorMsg = wxString::Format("Slave Controller 1 and 2 cannot not be the same: '%s'", slaveName1);
             continue;
         }  
 
-        auto remote1 = getRemoteController(remoteName1);
-        auto remote2 = getRemoteController(remoteName2);
+        auto slave1 = getSlaveController(slaveName1);
+        auto slave2 = getSlaveController(slaveName2);
 
-        if (!remote1 && remote2)
+        if (!slave1 && slave2)
         {
-            std::swap(remote1, remote2);
+            std::swap(slave1, slave2);
         }
 
-        if (remote1 && remote2)
+        if (slave1 && slave2)
         {
-            if (remote2->GetOutputCount() > remote1->GetOutputCount())
+            if (slave2->GetOutputCount() > slave1->GetOutputCount())
             {
-                std::swap(remote1, remote2);
+                std::swap(slave1, slave2);
             }
         }
 
-        if (remote1 || remote2)
+        if (slave1 || slave2)
         {
-            if (!CheckRemoteSizes(hix, remote1, remote2))
+            if (!CheckSlaveSizes(hix, slave1, slave2))
             {
                 error = true;
-                errorMsg = wxString::Format("Too Many Remote Universes for '%s'", hix->GetName());
+                errorMsg = wxString::Format("Too Many Slave Controller Universes for '%s'", hix->GetName());
                 continue;
             }
         } 
@@ -899,7 +899,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 wxString const shortHseqName = shortName + ".hseq";
                 prgs.Update(++count, "Generating HSEQ File " + shortHseqName);
 
-                bool worked = Create_HinksPix_HSEQ_File(fseq, drive + wxFileName::GetPathSeparator() + shortHseqName, hix, remote1, remote2, errorMsg);
+                bool worked = Create_HinksPix_HSEQ_File(fseq, drive + wxFileName::GetPathSeparator() + shortHseqName, hix, slave1, slave2, errorMsg);
 
                 wxString auName;
                 if (worked && !media.IsEmpty())
@@ -989,33 +989,33 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
         wxChoice* cb = dynamic_cast<wxChoice*>(item);
         if (cb) {
             auto name = cb->GetName();
-            if (name.Contains(REMOTE1_COL) || name.Contains(REMOTE2_COL))
+            if (name.Contains(SLAVE1_COL) || name.Contains(SLAVE2_COL))
             {
                 int row = 0;
                 for (auto hix : _hixControllers)
                 {
                     std::string const rowStr = std::to_string(row);
                     ++row;
-                    wxString const remoteName1 = GetChoiceValue(REMOTE1_COL + rowStr);
-                    wxString const remoteName2 = GetChoiceValue(REMOTE2_COL + rowStr);
-                    if (name == REMOTE1_COL + rowStr || name == REMOTE2_COL + rowStr)
+                    wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+                    wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
+                    if (name == SLAVE1_COL + rowStr || name == SLAVE2_COL + rowStr)
                     {
-                        if (!CheckRemoteSizes(hix, getRemoteController(remoteName1), getRemoteController(remoteName2)))
+                        if (!CheckSlaveSizes(hix, getSlaveController(slaveName1), getSlaveController(slaveName2)))
                         {
                             cb->SetSelection(0);
                             event.Skip();
                             return;
                         }
-                        if (name == REMOTE1_COL + rowStr && remoteName2 == text)
+                        if (name == SLAVE1_COL + rowStr && slaveName2 == text)
                         {
-                            DisplayError(wxString::Format("Cannot Set Remote 1 and 2 to the same Controller '%s' ", text));
+                            DisplayError(wxString::Format("Cannot Set Slave Controller 1 and 2 as the same '%s' ", text));
                             cb->SetSelection(0);
                             event.Skip();
                             return;
                         }
-                        if (name == REMOTE2_COL + rowStr && remoteName1 == text)
+                        if (name == SLAVE2_COL + rowStr && slaveName1 == text)
                         {
-                            DisplayError(wxString::Format("Cannot Set Remote 1 and 2 to the same Controller '%s' ", text));
+                            DisplayError(wxString::Format("Cannot Set Slave Controller 1 and 2 as the same '%s' ", text));
                             cb->SetSelection(0);
                             event.Skip();
                             return;
@@ -1023,9 +1023,9 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
                         continue;
                     }
 
-                    if (text == remoteName1 || text == remoteName2)
+                    if (text == slaveName1 || text == slaveName2)
                     {
-                        DisplayError(wxString::Format("Cannot use the Same Remote accross multiple Controller '%s' ", text));
+                        DisplayError(wxString::Format("Cannot use the Same Slave Controller accross multiple HinksPix Controllers '%s' ", text));
                         cb->SetSelection(0);
                         event.Skip();
                         return;
@@ -1123,7 +1123,7 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
     }
 }
 
-bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* remote1, ControllerEthernet* remote2, wxString & errorMsg)
+bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString & errorMsg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile));
@@ -1153,14 +1153,14 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     // acquire channel data on all controllers
     int32_t ef_Num_Channel_To_Write = hix->GetChannels();
 
-    if (remote1)
-        ef_Num_Channel_To_Write += remote1->GetChannels();
+    if (slave1)
+        ef_Num_Channel_To_Write += slave1->GetChannels();
 
-    if (remote2)
-        ef_Num_Channel_To_Write += remote2->GetChannels();
+    if (slave2)
+        ef_Num_Channel_To_Write += slave2->GetChannels();
 
     // read file ready -- do write file
-    std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, remote1, remote2, ogNumChannels));
+    std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, slave1, slave2, ogNumChannels));
     if (!ef)
     {
         errorMsg = wxString::Format("HinksPix Failed Write opening FSEQ %s", shortHSEQName);
@@ -1196,18 +1196,18 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
         memmove(dest, src, hix->GetChannels());
         dest += hix->GetChannels();
         
-        if (remote1)
+        if (slave1)
         {
-            src = tmpBuf + remote1->GetStartChannel() - 1;
-            memmove(dest, src, remote1->GetChannels());
-            dest += remote1->GetChannels();
+            src = tmpBuf + slave1->GetStartChannel() - 1;
+            memmove(dest, src, slave1->GetChannels());
+            dest += slave1->GetChannels();
         }
 
-        if (remote2)
+        if (slave2)
         {
-            src = tmpBuf + remote2->GetStartChannel() - 1;
-            memmove(dest, src, remote2->GetChannels());
-            dest += remote2->GetChannels();
+            src = tmpBuf + slave2->GetStartChannel() - 1;
+            memmove(dest, src, slave2->GetChannels());
+            dest += slave2->GetChannels();
         }        
 
         ef->addFrame(frame, WriteBuf);
@@ -1283,52 +1283,52 @@ bool HinksPixExportDialog::Make_AU_From_ProcessedAudio( const std::vector<int16_
     return true;
 }
 
-bool HinksPixExportDialog::CheckRemoteSizes(ControllerEthernet* controller, ControllerEthernet* remote1, ControllerEthernet* remote2)
+bool HinksPixExportDialog::CheckSlaveSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int slaveUni, slaveUni2;
-    slaveUni = slaveUni2 = howManyRemoteUniverses(controller);
+    slaveUni = slaveUni2 = howManySlaveUniverses(controller);
 
-    if (remote1)
+    if (slave1)
     {
-        if (remote1->GetOutputCount()> 32)
+        if (slave1->GetOutputCount()> 32)
         {
-            logger_base.error("HinksPixExportDialog export - Remote '%s' has too many Unverses, Max is 32 Currently Used is %d",
-                remote1->GetName().c_str(), remote1->GetOutputCount());
+            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Unverses, Max is 32 Currently Used is %d",
+                slave1->GetName().c_str(), slave1->GetOutputCount());
 
-            DisplayError(wxString::Format("Remote '%s' has too many Unverses, Max is 32 Currently Used is %d",
-                remote1->GetName().c_str(), remote1->GetOutputCount()));
+            DisplayError(wxString::Format("Slave Controller '%s' has too many Unverses, Max is 32 Currently Used is %d",
+                slave1->GetName().c_str(), slave1->GetOutputCount()));
             return false;
         }
-        slaveUni -= remote1->GetOutputCount();
+        slaveUni -= slave1->GetOutputCount();
     }
 
-    if (remote2)
+    if (slave2)
     {
-        if (remote2->GetOutputCount() > 16)
+        if (slave2->GetOutputCount() > 16)
         {
-            logger_base.error("HinksPixExportDialog export - Remote '%s' has too many Unverses, Max is 16 Currently Used is %d",
-                remote2->GetName().c_str(), remote2->GetOutputCount());
+            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Unverses, Max is 16 Currently Used is %d",
+                slave2->GetName().c_str(), slave2->GetOutputCount());
 
-            DisplayError(wxString::Format("Remote '%s' has too many Unverses, Max is 16 Currently Used is %d",
-                remote2->GetName().c_str(), remote2->GetOutputCount()));
+            DisplayError(wxString::Format("Slave Controller '%s' has too many Unverses, Max is 16 Currently Used is %d",
+                slave2->GetName().c_str(), slave2->GetOutputCount()));
             return false;
         }
-        slaveUni -= remote2->GetOutputCount();
+        slaveUni -= slave2->GetOutputCount();
     }
 
     if (slaveUni >= 0)
         return true;
 
-    logger_base.error("HinksPixExportDialog export - too many Slave Unverses - '%s' : Max %d Used %d",
+    logger_base.error("HinksPixExportDialog export - too many Slave Controller Unverses - '%s' : Max %d Used %d",
         controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
 
-    DisplayError(wxString::Format("Too many Remote Unverses off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
+    DisplayError(wxString::Format("Too Many Slave Controller Unverses off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
 
     return false;
 }
 
-int HinksPixExportDialog::howManyRemoteUniverses(ControllerEthernet* controller)
+int HinksPixExportDialog::howManySlaveUniverses(ControllerEthernet* controller)
 {
     if (controller->GetModel().find("PRO") != std::string::npos)   // PRO
     {
