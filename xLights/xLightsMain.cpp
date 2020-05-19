@@ -1678,10 +1678,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     splash.Hide();
 
-#ifdef __WXMSW__
-    check32AppOn64Machine();
-#endif
-
     config->Read("xLightsUserEmail", &_userEmail, "");
     if (_userEmail == "") CollectUserEmail();
     if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
@@ -8448,18 +8444,6 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxDELETE(httpStream);
     get.Close();
     return found_update;
-}
-
-void xLightsFrame::check32AppOn64Machine()
-{
-    wxConfigBase* config = wxConfigBase::Get();
-    bool alreadyRun = config->ReadBool("xLights32bitCheck", false);
-
-    if (!alreadyRun && wxIsPlatform64Bit() && sizeof(size_t) == 4)
-    {
-        config->Write("xLights32bitCheck", true);
-        DisplayWarning("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights");
-    }
 }
 
 void xLightsFrame::SetSmallWaveform(bool b)

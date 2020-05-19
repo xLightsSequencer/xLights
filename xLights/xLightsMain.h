@@ -1543,7 +1543,6 @@ private:
     void DoDonate();
     void AutoShowHouse();
     bool CheckForUpdate(bool force);
-    void check32AppOn64Machine();
     void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
     void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();
