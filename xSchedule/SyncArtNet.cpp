@@ -244,7 +244,7 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
     }
 
     buffer[17] = ms / (3600000);
-    ms = ms % 360000;
+    ms = ms % 3600000;
 
     buffer[16] = ms / 60000;
     ms = ms % 60000;

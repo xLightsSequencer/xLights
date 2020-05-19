@@ -415,7 +415,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         buffer[4] = 0x01;
 
         buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + ms / (3600000); // hour
-        ms = ms % 360000;
+        ms = ms % 3600000;
 
         buffer[6] = ms / 60000; // minute
         ms = ms % 60000;
@@ -454,7 +454,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         ms += _timeCodeOffset;
 
         int hours = (static_cast<int>(_timeCodeFormat) << 5) + ms / (3600000);
-        ms = ms % 360000;
+        ms = ms % 3600000;
 
         int mins = ms / 60000;
         ms = ms % 60000;
