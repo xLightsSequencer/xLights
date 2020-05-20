@@ -1519,7 +1519,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 void LayoutPanel::BulkEditDimmingCurves()
 {
     // get the first dimming curve
-    ModelDimmingCurveDialog dlg(this);
+    ModelDimmingCurveDialog dlg(nullptr);
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
@@ -1650,7 +1650,7 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;
     }
-    ControllerConnectionDialog dlg(this, ccbe);
+    ControllerConnectionDialog dlg(nullptr, ccbe);
     dlg.Set(cc);
     OptimiseDialogPosition(&dlg);
 
@@ -1779,7 +1779,7 @@ void LayoutPanel::BulkEditControllerName()
         cn.push_back(it);
         i++;
     }
-    wxSingleChoiceDialog dlg(this, "Choose the controller name", "Controller Name", cn);
+    wxSingleChoiceDialog dlg(nullptr, "Choose the controller name", "Controller Name", cn);
     dlg.SetSelection(sel);
     OptimiseDialogPosition(&dlg);
 
@@ -1910,7 +1910,7 @@ void LayoutPanel::BulkEditControllerPreview()
         }
         j++;
     }
-    wxSingleChoiceDialog dlg(this, "Preview", "Preview", choices);
+    wxSingleChoiceDialog dlg(nullptr, "Preview", "Preview", choices);
     dlg.SetSelection(sel);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
@@ -1945,12 +1945,12 @@ void LayoutPanel::BulkEditControllerPreview()
 
 void LayoutPanel::CreateModelGroupFromSelected()
 {
-    wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
+    wxTextEntryDialog dlg(nullptr, "Enter name for new group", "Enter name for new group");
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK) {
         wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
         while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-            wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
+            wxTextEntryDialog dlg2(nullptr, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
             OptimiseDialogPosition(&dlg2);
             if (dlg2.ShowModal() == wxID_OK) {
                 name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
@@ -4591,7 +4591,7 @@ void LayoutPanel::ShowNodeLayout()
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
     wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
-    ChannelLayoutDialog dialog(this);
+    ChannelLayoutDialog dialog(nullptr);
     dialog.SetHtmlSource(html);
     dialog.ShowModal();
 }
@@ -4600,7 +4600,7 @@ void LayoutPanel::ShowWiring()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
-    WiringDialog dlg(this, md->GetName());
+    WiringDialog dlg(nullptr, md->GetName());
     dlg.SetData(md);
     dlg.ShowModal();
 }
@@ -5603,7 +5603,7 @@ void LayoutPanel::ReplaceModel()
         }
     }
 
-    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
+    wxSingleChoiceDialog dlg(nullptr, "", "Select the model to replace with this model.", choices);
     dlg.SetSelection(0);
     OptimiseDialogPosition(&dlg);
 
@@ -6297,13 +6297,13 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if (mSelectedGroup.IsOk()) {
             wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
-            wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
+            wxTextEntryDialog dlg(nullptr, "Enter new name for group " + sel, "Rename " + sel, sel);
             OptimiseDialogPosition(&dlg);
             if (dlg.ShowModal() == wxID_OK) {
                 wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
 
                 while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-                    wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
+                    wxTextEntryDialog dlg2(nullptr, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
                     OptimiseDialogPosition(&dlg2);
                     if (dlg2.ShowModal() == wxID_OK) {
                         name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
@@ -6327,12 +6327,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     else if (id == ID_MNU_ADD_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
-        wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
+        wxTextEntryDialog dlg(nullptr, "Enter name for new group", "Enter name for new group");
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() == wxID_OK && !Model::SafeModelName(dlg.GetValue().ToStdString()).empty()) {
             wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
             while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-                wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
+                wxTextEntryDialog dlg2(nullptr, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
                 OptimiseDialogPosition(&dlg2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
@@ -6416,12 +6416,12 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 
     std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
     if( choice_layout == "<Create New Preview>" ) {
-        wxTextEntryDialog dlg(this, "Enter name for new preview", "Create New Preview");
+        wxTextEntryDialog dlg(nullptr, "Enter name for new preview", "Create New Preview");
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() == wxID_OK) {
             wxString name = dlg.GetValue();
             while (GetLayoutGroup(name.ToStdString()) != nullptr || name == "Default" || name == "All Models" || name == "Unassigned") {
-                wxTextEntryDialog dlg2(this, "Preview of name " + name + " already exists. Enter name for new preview", "Create New Preview");
+                wxTextEntryDialog dlg2(nullptr, "Preview of name " + name + " already exists. Enter name for new preview", "Create New Preview");
                 OptimiseDialogPosition(&dlg2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     name = dlg2.GetValue();
@@ -6506,7 +6506,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                                        wxFD_FILE_MUST_EXIST | wxFD_OPEN);
     if (filename.IsEmpty()) return;
 
-    ImportPreviewsModelsDialog dlg(this, filename, xlights->AllModels, xlights->LayoutGroups);
+    ImportPreviewsModelsDialog dlg(nullptr, filename, xlights->AllModels, xlights->LayoutGroups);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
