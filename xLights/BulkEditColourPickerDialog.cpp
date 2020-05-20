@@ -56,6 +56,7 @@ BulkEditColourPickerDialog::BulkEditColourPickerDialog(wxWindow* parent, const s
 	//*)
 
 	SetEscapeId(Button_Cancel->GetId());
+	Button_Ok->SetFocus();
 	Button_Ok->SetDefault();
 
 	StaticText1->SetLabel(label);
