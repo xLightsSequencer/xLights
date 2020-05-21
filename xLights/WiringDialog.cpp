@@ -607,6 +607,7 @@ void WiringDialog::RotatePoints(int rotateBy) {
             }
         }
         _points[string] = data;
+        data.clear();
         string++;
     }
 }
