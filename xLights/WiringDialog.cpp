@@ -627,9 +627,11 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
 {
     wxMenu mnuLayer;
     mnuLayer.Append(ID_MNU_RESET, "Reset");
+    mnuLayer.AppendSeparator();
     mnuLayer.Append(ID_MNU_EXPORT, "Export");
     mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
     mnuLayer.Append(ID_MNU_PRINT, "Print");
+    mnuLayer.AppendSeparator();
     auto dark = mnuLayer.Append(ID_MNU_DARK, "Dark", "", wxITEM_RADIO);
     auto gray = mnuLayer.Append(ID_MNU_GRAY, "Gray", "", wxITEM_RADIO);
     auto light = mnuLayer.Append(ID_MNU_LIGHT, "Light", "", wxITEM_RADIO);
@@ -644,9 +646,11 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
         dark->Check();
     }
     
+    mnuLayer.AppendSeparator();
     auto fontSmaller = mnuLayer.Append(ID_MNU_FONTSMALLER, "Smaller Font");
     if (_fontSize <= MINFONTSIZE) fontSmaller->Enable(false);
     mnuLayer.Append(ID_MNU_FONTLARGER, "Larger Font");
+    mnuLayer.AppendSeparator();
     auto front = mnuLayer.Append(ID_MNU_FRONT, "Front", "", wxITEM_RADIO);
     auto rear = mnuLayer.Append(ID_MNU_REAR, "Rear", "", wxITEM_RADIO);
     if (_rear)
