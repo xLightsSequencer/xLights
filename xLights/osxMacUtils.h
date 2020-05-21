@@ -9,8 +9,6 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
-//  Created by Daniel Kulp on 8/17/15.
-//  Copyright (c) 2015 Daniel Kulp. All rights reserved.
 
 #ifdef __WXOSX__
 class xlGLCanvas;
@@ -30,6 +28,8 @@ class AudioManager;
 void AddAudioDeviceChangeListener(AudioManager *am);
 void RemoveAudioDeviceChangeListener(AudioManager *am);
 
+#define AdjustModalDialogParent(par) par = nullptr
+
 #define WINDOW_LOCKER(a, b)
 
 #else
@@ -43,6 +43,7 @@ void RemoveAudioDeviceChangeListener(AudioManager *am);
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener(a)
+#define AdjustModalDialogParent(par)
 
 inline bool IsMouseEventFromTouchpad() {
     return false;

@@ -10,6 +10,7 @@
 
 #include "ModelDimmingCurveDialog.h"
 #include "xLightsXmlFile.h"
+#include "osxMacUtils.h"
 
 //(*InternalHeaders(ModelDimmingCurveDialog)
 #include <wx/button.h>
@@ -64,6 +65,7 @@ END_EVENT_TABLE()
 
 ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    AdjustModalDialogParent(parent);
 	//(*Initialize(ModelDimmingCurveDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer8;
