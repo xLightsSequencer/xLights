@@ -55,6 +55,7 @@ public:
 
     #pragma region Getters and Setters
     bool SupportsUpload() const;
+    bool SupportsFullxLightsControl() const;
     bool SupportsInputOnlyUpload() const;
     bool SupportsLEDPanelMatrix() const;
     bool SupportsVirtualStrings() const;
@@ -83,6 +84,7 @@ public:
     int GetMaxPixelPortChannels() const;
     int GetMaxSerialPortChannels() const;
     int GetMaxInputUniverseChannels() const;
+    int GetMinInputUniverseChannels() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;

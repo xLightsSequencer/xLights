@@ -104,6 +104,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
         SetActive(node->GetAttribute("ActiveState", "Active"));
     }
     SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
+    _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
     SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
     if (!_autoLayout) _autoSize = false;
     _vendor = node->GetAttribute("Vendor");
@@ -136,6 +137,8 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Model", GetModel());
     node->AddAttribute("Variant", GetVariant());
     if (_autoSize) node->AddAttribute("AutoSize", "1");
+    if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
+
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
@@ -473,6 +476,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
         p->SetEditor("CheckBox");
     }
+    if (SupportsFullxLightsControl()) {
+        p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
+        p->SetEditor("CheckBox");
+    }
 
     if (ACTIVETYPENAMES.IsEmpty())         {
         ACTIVETYPENAMES.push_back("Active");
@@ -587,6 +594,11 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize");
+        return true;
+    }
+    else if (name == "FullxLightsControl") {
+        SetFullxLightsControl(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::FullxLightsControl");
         return true;
     }
     else if (name == "Vendor") {

@@ -50,6 +50,7 @@ protected:
     std::string _description;                  // a description for the controller
     bool _ok = false;                          // controller initiated ok
     bool _autoSize = false;                    // controller flexes the number of outputs to meet the needs of xLights
+    bool _fullxLightsControl = false;          // when true on upload xLights wipes all other config
     //bool _autoStartChannels = false;         // models on this controller can be managed by xLights
     std::list<Output*> _outputs;               // the outputs on the controller
     ACTIVESTATE _active = ACTIVESTATE::ACTIVE; // output to controller is active
@@ -113,6 +114,9 @@ public:
     void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
     bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
     
+    void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }
+    bool IsFullxLightsControl() const { return _fullxLightsControl; }
+
     bool IsEnabled() const { return std::any_of(begin(_outputs), end(_outputs), [](Output* o) { return o->IsEnabled(); }); }
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }
 
@@ -181,6 +185,8 @@ public:
 
     // True if this controller type can support autosize
     virtual bool SupportsAutoSize() const { return false; }
+
+    virtual bool SupportsFullxLightsControl() const { return false; }
 
     // Used in tooltip on model dialog
     virtual std::string GetChannelMapping(int32_t ch) const = 0;

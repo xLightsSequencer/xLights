@@ -11,7 +11,8 @@
 		<SupportsPixelPortGrouping/>
 		<SupportsPixelPortDirection/>
 		<SupportsPixelPortColourOrder/>
-		
+		<SupportsFullxLightsControl/>
+
         <SupportsMultipleSimultaneousOutputProtocols/>
         <SupportsMultipleSimultaneousInputProtocols/>
         <UniversesMustBeInNumericalOrder/>

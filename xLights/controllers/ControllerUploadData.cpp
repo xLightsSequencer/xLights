@@ -946,6 +946,16 @@ bool UDController::HasSerialPort(int port) const {
     return false;
 }
 
+int UDController::GetMaxPixelPortChannels() const
+{
+    int res = 0;
+
+    for (const auto& it : _pixelPorts) {
+        res = std::max(res, it.second->Channels());
+    }
+    return res;
+}
+
 Model* UDController::GetModelAfter(Model* m) const
 {
     for (const auto& it : _pixelPorts)
@@ -1052,7 +1062,8 @@ void UDController::Dump() const {
         logger_base.debug("   HostName %s.", (const char*)_hostName.c_str());
     }
     logger_base.debug("   Outputs:");
-    for (const auto& it : _outputs) {
+    auto outputs = _controller->GetOutputs();
+    for (const auto& it : outputs) {
         logger_base.debug("        %s", it->GetLongDescription().c_str());
     }
     logger_base.debug("   Pixel Ports %d. Maximum port Number %d.", (int)_pixelPorts.size(), GetMaxPixelPort());
@@ -1073,6 +1084,8 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     bool success = true;
+
+    auto outputs = _controller->GetOutputs();
 
     // all serial ports must be valid ports for this controller
     // all pixel ports must be valid for this controller
@@ -1097,7 +1110,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
     if (!rules->SupportsMultipleSimultaneousInputProtocols()) {
         std::string protocol = "";
-        for (const auto& o : _outputs) {
+        for (const auto& o : outputs) {
             if (protocol == "") {
                 protocol = o->GetType();
             }
@@ -1107,6 +1120,19 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                     res += wxString::Format("ERR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
                     success = false;
                 }
+            }
+        }
+    }
+
+    for (const auto& o : outputs) {
+        if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
+            if (o->GetChannels() > rules->GetMaxInputUniverseChannels()) {
+                res += wxString::Format("ERR: Controller limits universe sizes to max of %d but you are trying to use %d. Universe %d.\n", rules->GetMaxInputUniverseChannels(), o->GetChannels(), o->GetUniverse()).ToStdString();
+                success = false;
+            }
+            if (o->GetChannels() < rules->GetMinInputUniverseChannels()) {
+                res += wxString::Format("ERR: Controller limits universe sizes to min of %d but you are trying to use %d. Universe %d.\n", rules->GetMinInputUniverseChannels(), o->GetChannels(), o->GetUniverse()).ToStdString();
+                success = false;
             }
         }
     }
@@ -1166,7 +1192,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
     if (rules->AllInputUniversesMustBeSameSize()) {
         int size = -1;
-        for (const auto& it : _outputs) {
+        for (const auto& it : outputs) {
             if (size == -1) size = it->GetChannels();
             if (size != it->GetChannels()) {
                 res += wxString::Format("ERR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
@@ -1178,7 +1204,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->UniversesMustBeInNumericalOrder()) {
         int last = -1;
 
-        for (const auto& it : _outputs) {
+        for (const auto& it : outputs) {
             if (last >= it->GetUniverse()) {
                 res += wxString::Format("ERR: All universes must be in numerical order. %d followed %d.\n", it->GetUniverse(), last).ToStdString();
                 success = false;
@@ -1190,7 +1216,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->UniversesMustBeSequential()) {
         int seq = -1;
 
-        for (const auto& it : _outputs) {
+        for (const auto& it : outputs) {
             if (seq == -1) seq = it->GetUniverse() - 1;
             if (seq + 1 != it->GetUniverse()) {
                 res += wxString::Format("ERR: All universes must be sequential. %d followed %d.\n", it->GetUniverse(), seq).ToStdString();
@@ -1228,8 +1254,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
 Output* UDController::GetFirstOutput() const {
 
-    if (_outputs.size() == 0) return nullptr;
-    return _outputs.front();
+    return _controller->GetFirstOutput();
 }
 #pragma endregion
 

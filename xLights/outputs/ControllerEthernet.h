@@ -91,6 +91,8 @@ public:
 
     virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
 
+    virtual bool SupportsFullxLightsControl() const override;
+
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return ""; }
 

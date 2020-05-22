@@ -206,7 +206,7 @@ class UDController
     Controller* _controller = nullptr;
 	std::string _ipAddress;
     std::string _hostName;
-	std::list<Output*> _outputs;
+	//std::list<Output*> _outputs;
 	std::map<int, UDControllerPort*> _pixelPorts;
 	std::map<int, UDControllerPort*> _serialPorts;
     std::list<Model*> _noConnectionModels;
@@ -237,6 +237,7 @@ class UDController
     int GetMaxPixelPort() const;
     bool HasPixelPort(int port) const;
     bool HasSerialPort(int port) const;
+    int GetMaxPixelPortChannels() const;
 
     Model* GetModelAfter(Model* m) const;
 

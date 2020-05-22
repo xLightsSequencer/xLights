@@ -65,10 +65,25 @@ public:
             brightness,
             gamma);
     }
+    const bool operator>(const FalconString& other) const
+    {
+        if (port / 4 == other.port / 4) {
+            if (smartRemote > other.smartRemote) return false;
+            if (smartRemote < other.smartRemote) return true;
+        }
+
+        if (port > other.port) return false;
+        if (port < other.port) return true;
+
+        if (virtualStringIndex > other.virtualStringIndex) return false;
+        if (virtualStringIndex < other.virtualStringIndex) return true;
+
+        return true;
+    }
 };
 
-#define MINIMUMPIXELS 1
-void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max) const {
+#define MINIMUMPIXELS 0
+void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Filling in missing strings.");
@@ -91,7 +106,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
             string->virtualStringIndex = 0;
             string->pixels = MINIMUMPIXELS;
             string->protocol = 0;
-            string->universe = 1;
+            string->universe = minuniverse;
             string->description = "";
             string->port = i;
             string->index = index++;
@@ -164,7 +179,22 @@ int Falcon::GetMaxPixelPort(const std::vector<FalconString*>& stringData) const 
     return max;
 }
 
-void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote) {
+void Falcon::RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    auto it = begin(stringData);
+    while (it != end(stringData)) {
+        if ((*it)->port == port && (*it)->smartRemote == 0) {
+            logger_base.debug("Removing non smart remote port %d", port + 1);
+            it = stringData.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
+}
+
+void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -183,7 +213,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         string->virtualStringIndex = 0;
         string->pixels = 0;
         string->protocol = 0;
-        string->universe = 1;
+        string->universe = minuniverse;
         string->description = "";
         string->port = port;
         string->index = stringData.size();
@@ -281,7 +311,13 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
         string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
         string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
-        string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
+        int sr = wxAtoi(e->GetAttribute("sr", "-1"));
+        if (sr == -1) {
+            string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
+        }
+        else {
+            string->smartRemote = sr;
+        }
         string->virtualStringIndex = wxAtoi(e->GetAttribute("si", "0"));
         string->index = i;
         stringData[i] = string;
@@ -327,7 +363,9 @@ void Falcon::UploadStringPort(const std::string& request, bool final) {
     PutURL("/StringPorts.htm", r);
 }
 
-void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2) {
+void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int maxPort = 0;
     for (const auto& sd : stringData) {
@@ -350,12 +388,27 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
 
         if (maxRemote > 0) {
             for (int k = 0; k < 4; k++) {
+                RemoveNonSmartRemote(stringData, i * 4 + k);
                 for (int j = 0; j < maxRemote; j++) {
-                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1);
+                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse);
                 }
             }
         }
     }
+
+    // Sort strings in the right order
+    std::sort(begin(stringData), end(stringData), [](FalconString* a, FalconString* b) {
+        return *a > *b;
+        });
+
+    // reindex the string data
+    int i = 0;
+    for (auto& it : stringData)         {
+        it->index = i++;
+    }
+
+    logger_base.debug("Final string data for upload.");
+    DumpStringData(stringData);
 
     int S = stringData.size();
     int m = 0;
@@ -781,54 +834,68 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     cud.Dump();
 
-    if (doProgress) progress->Update(10, "Retrieving string configuration from Falcon.");
-    logger_base.info("Retrieving string configuration from Falcon.");
+    bool fullcontrol = false;
+    int currentStrings = 0;
+    int mainPixels = 680;
+    int daughter1Pixels = 0;
+    int daughter2Pixels = 0;
+    int minuniverse = controller->GetFirstOutput()->GetUniverse();
 
-    // get the current config before I start
-    std::string strings = GetURL("/strings.xml");
-    if (strings == "") {
-        DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
-        if (doProgress) progress->Update(100, "Aborting.");
-        return false;
+    if (caps != nullptr) {
+        fullcontrol = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+        mainPixels = caps->GetMaxPixelPortChannels() / 3;
     }
 
     std::vector<FalconString*> stringData;
 
-    wxStringInputStream strm(wxString(strings.c_str()));
-    wxXmlDocument stringsDoc(strm);
+    if (!fullcontrol) {
+        if (doProgress) progress->Update(10, "Retrieving string configuration from Falcon.");
+        logger_base.info("Retrieving string configuration from Falcon.");
 
-    if (!stringsDoc.IsOk()) {
-        DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
-        if (doProgress) progress->Update(100, "Aborting.");
-        return false;
-    }
-
-    if (doProgress) progress->Update(40, "Processing current configuration data.");
-    logger_base.info("Processing current configuration data.");
-
-    int currentStrings = CountStrings(stringsDoc);
-    int mainPixels = GetMaxPixels();
-    int daughter1Pixels = 0;
-    int daughter2Pixels = 0;
-    if (SupportsVariableExpansions()) {
-        mainPixels = MaxPixels(stringsDoc, 0);
-        daughter1Pixels = MaxPixels(stringsDoc, 1);
-        daughter2Pixels = MaxPixels(stringsDoc, 2);
-    }
-    else {
-        if (currentStrings > GetBank1Threshold()) {
-            mainPixels = mainPixels / 2;
-            daughter1Pixels = mainPixels;
+        // get the current config before I start
+        std::string strings = GetURL("/strings.xml");
+        if (strings == "") {
+            DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
+            if (doProgress) progress->Update(100, "Aborting.");
+            return false;
         }
+
+        wxStringInputStream strm(wxString(strings.c_str()));
+        wxXmlDocument stringsDoc(strm);
+
+        if (!stringsDoc.IsOk()) {
+            DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
+            if (doProgress) progress->Update(100, "Aborting.");
+            return false;
+        }
+
+        if (doProgress) progress->Update(40, "Processing current configuration data.");
+        logger_base.info("Processing current configuration data.");
+
+        currentStrings = CountStrings(stringsDoc);
+        mainPixels = GetMaxPixels();
+        daughter1Pixels = 0;
+        daughter2Pixels = 0;
+        if (SupportsVariableExpansions()) {
+            mainPixels = MaxPixels(stringsDoc, 0);
+            daughter1Pixels = MaxPixels(stringsDoc, 1);
+            daughter2Pixels = MaxPixels(stringsDoc, 2);
+        }
+        else {
+            if (currentStrings > GetBank1Threshold()) {
+                mainPixels = mainPixels / 2;
+                daughter1Pixels = mainPixels;
+            }
+        }
+
+        logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
+        logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
+
+        ReadStringData(stringsDoc, stringData);
+
+        logger_base.debug("Downloaded string data.");
+        DumpStringData(stringData);
     }
-
-    logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
-    logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
-
-    ReadStringData(stringsDoc, stringData);
-
-    logger_base.debug("Downloaded string data.");
-    DumpStringData(stringData);
 
     int maxPixels = GetMaxPixels();
     int totalPixelPorts = GetDaughter1Threshold();
@@ -845,7 +912,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     else {
         logger_base.info("String port count needs to be %d.", GetDaughter1Threshold());
     }
-    InitialiseStrings(stringData, totalPixelPorts);
+    InitialiseStrings(stringData, totalPixelPorts, minuniverse);
 
     //logger_base.debug("Missing strings added.");
     //DumpStringData(stringData);
@@ -955,7 +1022,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             for (const auto& sd : stringData) {
                 if (sd->port == pp - 1) {
                     sd->index = index++;
-                    if (sd->port % 4 != 0 && priorSmartRemote != 0) sd->smartRemote = 1;
+                    if (sd->port % 4 != 0 && priorSmartRemote != 0 && sd->smartRemote == 0) sd->smartRemote = 1;
                     newStringData.push_back(sd);
                 }
                 priorSmartRemote = sd->smartRemote;
@@ -1124,7 +1191,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
 
         logger_base.info("Uploading string ports.");
-        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2);
+        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse);
     }
     else {
         if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {

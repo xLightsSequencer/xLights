@@ -281,6 +281,11 @@ bool ControllerCaps::SupportsUpload() const {
            DoesXmlNodeExist(_config, "SupportsInputOnlyUpload");
 }
 
+bool ControllerCaps::SupportsFullxLightsControl() const
+{
+    return DoesXmlNodeExist(_config, "SupportsFullxLightsControl");
+}
+
 bool ControllerCaps::SupportsInputOnlyUpload() const {
 
     return DoesXmlNodeExist(_config, "SupportsInputOnlyUpload");
@@ -425,6 +430,11 @@ int ControllerCaps::GetMaxSerialPortChannels() const {
 int ControllerCaps::GetMaxInputUniverseChannels() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512"));
+}
+
+int ControllerCaps::GetMinInputUniverseChannels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1"));
 }
 
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {

@@ -39,19 +39,20 @@ class Falcon : public BaseController
     #pragma endregion
 
     #pragma region FalconString Handling
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max) const;
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse) const;
     std::string BuildStringPort(FalconString* string) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     int GetPixelCount(const std::vector<FalconString*>& stringData, int port) const;
     int GetMaxPixelPort(const std::vector<FalconString*>& stringData) const;
-    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote);
+    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse);
+    void RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port);
     void DumpStringData(std::vector<FalconString*> stringData) const;
     #pragma endregion
 
     #pragma region Port Handling
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2);
+    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse);
     std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     #pragma endregion
 
