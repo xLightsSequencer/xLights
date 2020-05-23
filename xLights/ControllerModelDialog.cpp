@@ -1597,7 +1597,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         vs = wxString::Format("Virtual String: %d\n", virtualString + 1);
     }
 
-    if (port->GetVirtualStringCount() <= 1 || virtualString < 0) {
+    if (port->GetVirtualStringCount() <= 1 || virtualString < 0 || (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings())) {
         if (port->GetModelCount() > 0 && port->Channels() > 0) {
             sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
                 port->GetStartChannel(),
