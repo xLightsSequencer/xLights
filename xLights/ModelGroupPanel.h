@@ -103,6 +103,10 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_LISTCTRL2;
 		//*)
 
+		static const long ID_MNU_CLEARALL;
+		static const long ID_MNU_COPY;
+		static const long ID_MNU_SORTBYNAME;
+
 	private:
         LayoutPanel *layoutPanel = nullptr;
         ModelManager &mModels;
@@ -129,6 +133,7 @@ class ModelGroupPanel: public wxPanel
 		void OnListBoxAddToModelGroupItemDeselect(wxListEvent& event);
 		void OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event);
 		void OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event);
+		void OnListBoxModelsInGroupItemRClick(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -137,6 +142,7 @@ class ModelGroupPanel: public wxPanel
         bool IsItemSelected(wxListCtrl* ctrl, int item);
         void ValidateWindow();
         int GetSelectedModelCount();
+        void OnPopup(wxCommandEvent& event);
 
         bool _dragRowModel;
         bool _dragRowNonModel;
@@ -146,4 +152,7 @@ class ModelGroupPanel: public wxPanel
         void ClearSelections(wxListCtrl* listCtrl, long stateMask);
         int GetFirstSelectedModel(wxListCtrl* list);
         void ResizeColumns();
+        void SortModelsByName();
+        void CopyModelList();
+        wxArrayString getGroupList();
 };

@@ -106,6 +106,10 @@ const long ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
 const long ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
 //*)
 
+const long ModelGroupPanel::ID_MNU_CLEARALL = wxNewId();
+const long ModelGroupPanel::ID_MNU_COPY = wxNewId();
+const long ModelGroupPanel::ID_MNU_SORTBYNAME = wxNewId();
+
 BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
 	//(*EventTable(ModelGroupPanel)
 	//*)
@@ -237,6 +241,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemDeselect);
 	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
 	//*)
+
+    Connect(ID_LISTCTRL2, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemRClick);
 
     ChoicePreviews->Append("Default");
     ChoicePreviews->Append("All Previews");
@@ -1043,4 +1049,100 @@ void ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event)
 void ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event)
 {
     SaveGroupChanges();
+}
+
+void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(ID_MNU_COPY, "Copy From...");
+    if(ListBoxModelsInGroup->GetItemCount() != 0) {
+        mnu.AppendSeparator();
+        mnu.Append(ID_MNU_SORTBYNAME, "Sort By Name");
+        mnu.AppendSeparator();
+        mnu.Append(ID_MNU_CLEARALL, "Clear");
+    }    
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ModelGroupPanel::OnPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void ModelGroupPanel::OnPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if (id == ID_MNU_CLEARALL) {
+        if (wxMessageBox("Remove All Models From Group?", "Clear Group", wxYES_NO, this) == wxYES) {
+            for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+                ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
+                ListBoxModelsInGroup->DeleteItem(i);
+            }
+            SaveGroupChanges();
+            UpdatePanel(mGroup);
+        }
+    }
+    else if (id == ID_MNU_COPY) {
+        CopyModelList();
+    }
+    else if (id == ID_MNU_SORTBYNAME) {
+        SortModelsByName();
+    }
+}
+
+void ModelGroupPanel::CopyModelList()
+{
+    wxArrayString choices = getGroupList();
+    wxSingleChoiceDialog dlg(GetParent(), "", "Select Group", choices);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        ModelGroup* cg = (ModelGroup*)mModels[dlg.GetStringSelection()];
+        if (cg == nullptr) return;
+        wxString const models = cg->GetModelXml()->GetAttribute("models");
+        ClearSelections(ListBoxModelsInGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
+        int index = ListBoxModelsInGroup->GetItemCount();
+        ModelGroup* g = (ModelGroup*)mModels[mGroup];
+        wxXmlNode* e = g->GetModelXml();
+        wxArrayString const modelArray = wxSplit(models, ',');
+        for (size_t i = 0; i < modelArray.size(); ++i) {
+            wxString const modelName = modelArray[i];
+            if (std::find(g->ModelNames().begin(), g->ModelNames().end(), modelName) != g->ModelNames().end())
+                continue;
+            ListBoxModelsInGroup->InsertItem(index, modelName);
+            index++;
+        }
+        SaveGroupChanges();
+        UpdatePanel(mGroup);
+    }
+}
+
+void ModelGroupPanel::SortModelsByName()
+{
+    ModelGroup* g = (ModelGroup*)mModels[mGroup];
+    if (g == nullptr) return;
+    wxXmlNode* e = g->GetModelXml();
+    wxArrayString models;
+    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+        wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
+        models.push_back(modelName);
+        ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
+        ListBoxModelsInGroup->DeleteItem(i);
+    }
+    models.Sort(wxStringNumberAwareStringCompare);
+    for (int i = 0; i < models.size(); ++i) {
+        ListBoxModelsInGroup->InsertItem(i, models[i]);
+    }
+    SaveGroupChanges();
+    UpdatePanel(mGroup);
+}
+
+wxArrayString ModelGroupPanel::getGroupList()
+{
+    wxArrayString choices;
+    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
+        ModelGroup* g = (ModelGroup*)it->second;
+        if (g == nullptr) continue;
+        if (g->GetDisplayAs() != "ModelGroup") continue;
+        if (g->Name() == mGroup)//Skip Current Group
+            continue;
+        choices.Add(g->Name());
+    }
+    return choices;
 }

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added model group to list right-click menu with the ability to Copy, Sort, and Clear models.
 2020.21 May 19 2020
    -- enh (scott)  Add model group import from other rgb effects files
    -- enh (chris)  Add auto build of linux builds
