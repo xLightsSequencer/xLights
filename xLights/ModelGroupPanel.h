@@ -50,6 +50,7 @@ class ModelGroupPanel: public wxPanel
 
 		void UpdatePanel(const std::string group);
 		void AddPreviewChoice(const std::string name);
+		std::string GetGroupName() const { return mGroup; }
 
 		//(*Declarations(ModelGroupPanel)
 		wxBitmapButton* ButtonAddModel;

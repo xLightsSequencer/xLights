@@ -5548,6 +5548,11 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
             }
         }
     }
+    else {
+        if (ModelGroupWindow->IsShown()) {
+            res = dynamic_cast<ModelGroup*>(xlights->AllModels[model_grp_panel->GetGroupName()]);
+        }
+    }
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup done");
     return res;
 }
