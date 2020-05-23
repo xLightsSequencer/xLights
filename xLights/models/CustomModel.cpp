@@ -98,7 +98,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 30);
+    p->SetAttribute("Max", 48);
     p->SetEditor("SpinCtrl");
 
     if (_strings == 1)
