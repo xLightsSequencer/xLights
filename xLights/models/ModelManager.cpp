@@ -782,14 +782,18 @@ bool ModelManager::ReworkStartChannel() const
             {
                 logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));                
                 
+                auto oldC = it->GetChannels();
+                // Set channel size wont always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1));
-                outputManager->SomethingChanged();
+                if (it->GetChannels() != oldC) {
+                    outputManager->SomethingChanged();
 
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
+                }
             }
         }
     }
