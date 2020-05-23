@@ -975,12 +975,12 @@ void ControllerModelDialog::ReloadModels()
                             }
                         }
                         if (x > maxx) maxx = x;
-                        if (_caps->MergeConsecutiveVirtualStrings()) {
+                        if (_caps == nullptr || _caps->MergeConsecutiveVirtualStrings()) {
                             y += VERTICAL_GAP + VERTICAL_SIZE;
                             x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                         }
                     }
-                    if (!_caps->MergeConsecutiveVirtualStrings()) {
+                    if (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings()) {
                         y += VERTICAL_GAP + VERTICAL_SIZE;
                     }
                 }
