@@ -869,7 +869,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 
         if (slave1 || slave2)
         {
-            if (!CheckSlaveSizes(hix, slave1, slave2))
+            if (!CheckSlaveControllerSizes(hix, slave1, slave2))
             {
                 error = true;
                 errorMsg = wxString::Format("Too Many Slave Controller Universes for '%s'", hix->GetName());
@@ -1000,7 +1000,7 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
                     wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
                     if (name == SLAVE1_COL + rowStr || name == SLAVE2_COL + rowStr)
                     {
-                        if (!CheckSlaveSizes(hix, getSlaveController(slaveName1), getSlaveController(slaveName2)))
+                        if (!CheckSlaveControllerSizes(hix, getSlaveController(slaveName1), getSlaveController(slaveName2)))
                         {
                             cb->SetSelection(0);
                             event.Skip();
@@ -1283,11 +1283,11 @@ bool HinksPixExportDialog::Make_AU_From_ProcessedAudio( const std::vector<int16_
     return true;
 }
 
-bool HinksPixExportDialog::CheckSlaveSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2)
+bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int slaveUni, slaveUni2;
-    slaveUni = slaveUni2 = howManySlaveUniverses(controller);
+    slaveUni = slaveUni2 = getMaxSlaveControllerUniverses(controller);
 
     if (slave1)
     {
@@ -1328,7 +1328,7 @@ bool HinksPixExportDialog::CheckSlaveSizes(ControllerEthernet* controller, Contr
     return false;
 }
 
-int HinksPixExportDialog::howManySlaveUniverses(ControllerEthernet* controller)
+int HinksPixExportDialog::getMaxSlaveControllerUniverses(ControllerEthernet* controller)
 {
     if (controller->GetModel().find("PRO") != std::string::npos)   // PRO
     {

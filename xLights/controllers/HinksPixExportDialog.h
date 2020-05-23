@@ -136,7 +136,7 @@ class HinksPixExportDialog: public wxDialog
 
 		bool Make_AU_From_ProcessedAudio( const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg );
 
-		int howManySlaveUniverses(ControllerEthernet* controller);
+		int getMaxSlaveControllerUniverses(ControllerEthernet* controller);
 
         void OnPopup(wxCommandEvent &event);
 
@@ -155,7 +155,7 @@ class HinksPixExportDialog: public wxDialog
 		void SetCheckValue(const wxString& col, bool b);
 		void SetDropDownItems(const wxString& col, const wxArrayString& items);
 
-		bool CheckSlaveSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2);
+		bool CheckSlaveControllerSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2);
 
 		ControllerEthernet* getSlaveController(const std::string& name)
 		{
