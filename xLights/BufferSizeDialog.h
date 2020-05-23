@@ -11,12 +11,12 @@
  **************************************************************/
 
  //(*Headers(BufferSizeDialog)
-#include <wx/bmpbuttn.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-//*)
+ #include <wx/bmpbuttn.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ //*)
 
 #include "ValueCurveButton.h"
 
@@ -28,7 +28,7 @@ class BufferSizeDialog: public wxDialog
 
 		BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferSizeDialog();
-        void SetSizes(int top, int left, int bottom, int right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc);
+        void SetSizes(double top, double left, double bottom, double right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc);
         void OnVCChanged(wxCommandEvent& event); 
 
 		//(*Declarations(BufferSizeDialog)
@@ -36,10 +36,10 @@ class BufferSizeDialog: public wxDialog
 		ValueCurveButton* ValueCurve_Left;
 		ValueCurveButton* ValueCurve_Right;
 		ValueCurveButton* ValueCurve_Top;
-		wxSpinCtrl* SpinCtrl_Bottom;
-		wxSpinCtrl* SpinCtrl_Left;
-		wxSpinCtrl* SpinCtrl_Right;
-		wxSpinCtrl* SpinCtrl_Top;
+		wxSpinCtrlDouble* SpinCtrl_Bottom;
+		wxSpinCtrlDouble* SpinCtrl_Left;
+		wxSpinCtrlDouble* SpinCtrl_Right;
+		wxSpinCtrlDouble* SpinCtrl_Top;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -66,10 +66,10 @@ class BufferSizeDialog: public wxDialog
 	private:
 
 		//(*Handlers(BufferSizeDialog)
-		void OnSpinCtrl_TopChange(wxSpinEvent& event);
-		void OnSpinCtrl_LeftChange(wxSpinEvent& event);
-		void OnSpinCtrl_BottomChange(wxSpinEvent& event);
-		void OnSpinCtrl_RightChange(wxSpinEvent& event);
+		void OnSpinCtrl_TopChange(wxSpinDoubleEvent& event);
+		void OnSpinCtrl_LeftChange(wxSpinDoubleEvent& event);
+		void OnSpinCtrl_BottomChange(wxSpinDoubleEvent& event);
+		void OnSpinCtrl_RightChange(wxSpinDoubleEvent& event);
 		void OnValueCurve_Click(wxCommandEvent& event);
 		//*)
 

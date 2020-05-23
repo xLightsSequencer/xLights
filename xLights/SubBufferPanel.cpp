@@ -679,17 +679,17 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     {
         dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
     }
-    dc.DrawRectangle(x1b, y1b, x2b-x1b,y2b-y1b);
+    dc.DrawRectangle(x1b, y1b, x2b-x1b, y2b-y1b);
 
     dc.SetTextForeground(*wxYELLOW);
     dc.SetFont(wxFont(wxSize(0, 8), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
-    wxString str = wxString::Format("%dx%d", (int)x2, (int)y2);
+    wxString str = wxString::Format("%.2fx%.2f", x2, y2);
     wxSize sz = dc.GetTextExtent(str);
-    dc.DrawText(wxString::Format("%dx%d", (int)x1, (int)y1), x1b + 2, y1b - sz.GetHeight() - 1);
-    dc.DrawText(wxString::Format("%dx%d", (int)x1, (int)y2), x1b + 2, y2b);
+    dc.DrawText(wxString::Format("%.2fx%.2f", x1, y1), x1b + 2, y1b - sz.GetHeight() - 1);
+    dc.DrawText(wxString::Format("%.2fx%.2f", x1, y2), x1b + 2, y2b);
 
     dc.DrawText(str, x2b - 3 - sz.GetWidth(), y2b);
-    str = wxString::Format("%dx%d", (int)x2, (int)y1);
+    str = wxString::Format("%.2fx%.2f", x2, y1);
     sz = dc.GetTextExtent(str);
     dc.DrawText(str, x2b - 3 - sz.GetWidth(), y1b - sz.GetHeight() - 1);
 }

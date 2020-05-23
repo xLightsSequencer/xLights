@@ -21,11 +21,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Top" member="yes">
+						<object class="wxSpinCtrlDouble" name="ID_SPINCTRL1" variable="SpinCtrl_Top" member="yes">
 							<value>100</value>
-							<min>1</min>
-							<max>200</max>
-							<handler function="OnSpinCtrl_TopChange" entry="EVT_SPINCTRL" />
+							<min>1.000000</min>
+							<max>200.000000</max>
+							<handler function="OnSpinCtrl_TopChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -33,8 +33,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferTop" subclass="ValueCurveButton" variable="ValueCurve_Top" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -50,11 +50,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_Left" member="yes">
+						<object class="wxSpinCtrlDouble" name="ID_SPINCTRL2" variable="SpinCtrl_Left" member="yes">
 							<value>0</value>
-							<min>-100</min>
-							<max>99</max>
-							<handler function="OnSpinCtrl_LeftChange" entry="EVT_SPINCTRL" />
+							<min>-100.000000</min>
+							<max>99.000000</max>
+							<handler function="OnSpinCtrl_LeftChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -62,8 +62,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferLeft" subclass="ValueCurveButton" variable="ValueCurve_Left" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -79,11 +79,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_Bottom" member="yes">
+						<object class="wxSpinCtrlDouble" name="ID_SPINCTRL3" variable="SpinCtrl_Bottom" member="yes">
 							<value>0</value>
-							<min>-100</min>
-							<max>99</max>
-							<handler function="OnSpinCtrl_BottomChange" entry="EVT_SPINCTRL" />
+							<min>-100.000000</min>
+							<max>99.000000</max>
+							<handler function="OnSpinCtrl_BottomChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -91,8 +91,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferBottom" subclass="ValueCurveButton" variable="ValueCurve_Bottom" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -108,11 +108,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_Right" member="yes">
+						<object class="wxSpinCtrlDouble" name="ID_SPINCTRL4" variable="SpinCtrl_Right" member="yes">
 							<value>100</value>
-							<min>1</min>
-							<max>200</max>
-							<handler function="OnSpinCtrl_RightChange" entry="EVT_SPINCTRL" />
+							<min>1.000000</min>
+							<max>200.000000</max>
+							<handler function="OnSpinCtrl_RightChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -120,8 +120,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferRight" subclass="ValueCurveButton" variable="ValueCurve_Right" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
