@@ -200,27 +200,28 @@ int xLightsXmlFile::GetFrequency() const
     return (int)(1000/freq_ms);
 }
 
-void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
+void xLightsXmlFile::SetSequenceTiming(const wxString& timing)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Sequence timing set to " + timing + "ms");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Sequence timing set to " + timing);
 
     seq_timing = timing;
 
-    wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* root = seqDocument.GetRoot();
 
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-       if (e->GetName() == "head")
-       {
-            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
-            {
-                if( element->GetName() == "sequenceTiming")
-                {
+    // looking to work out if this is why i have seen a crash in this function
+    if (root == nullptr) {
+        logger_base.crit("SetSequenceTiming is about to crash because sequence XML document has not root. Strange!");
+    }
+
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "head") {
+            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+                if (element->GetName() == "sequenceTiming") {
                     SetNodeContent(element, seq_timing);
                 }
             }
-       }
+        }
     }
 }
 
