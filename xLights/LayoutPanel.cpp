@@ -2268,14 +2268,21 @@ void LayoutPanel::SelectBaseObject3D()
     if (is_3d) {
         // latch center handle immediately
         if (selectedBaseObject != nullptr) {
-            if( editing_models ) {
+            if (editing_models) {
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-                selectedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-                selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(-1);
-            } else {
+                // I think the selected model might not be a model in some undo situations
+                if (selectedModel != nullptr) {
+                    selectedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(-1);
+                }
+            }
+            else {
                 ViewObject* selectedViewObject = dynamic_cast<ViewObject*>(selectedBaseObject);
-                selectedViewObject->GetObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-                selectedViewObject->GetObjectScreenLocation().SetActiveAxis(-1);
+                // I think the selected model might not be a view object in some undo situations
+                if (selectedViewObject != nullptr) {
+                    selectedViewObject->GetObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    selectedViewObject->GetObjectScreenLocation().SetActiveAxis(-1);
+                }
             }
             highlightedBaseObject = selectedBaseObject;
             selectionLatched = true;
@@ -2346,6 +2353,7 @@ void LayoutPanel::SelectBaseObject(BaseObject *obj, bool highlight_tree)
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    xlights->AddTraceMessage("LayoutPanel::SelectModel: " + name);
     Model *m = xlights->AllModels[name];
     if (m == nullptr)
     {
@@ -3823,6 +3831,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             float distance = 1000000000.0f;
             float intersection_distance = 1000000000.0f;
             if( editing_models ) {
+                xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Editing models");
                 for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                 {
                     if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
@@ -3833,6 +3842,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     }
                 }
             } else {
+                xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models");
                 for (const auto& it : xlights->AllObjects) {
                     ViewObject *view_object = it.second;
                     if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
@@ -3845,6 +3855,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
             if (which_object == nullptr)
             {
+                xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models - AAA");
                 if (highlightedBaseObject != nullptr) {
                     highlightedBaseObject->Highlighted = false;
                     highlightedBaseObject = nullptr;
@@ -3853,6 +3864,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
             else
             {
+                xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models - BBB");
                 if (which_object != last_selection) {
                     UnSelectAllModels();
                     highlightedBaseObject = which_object;
@@ -3862,6 +3874,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
             last_selection = which_object;
         }
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D CCC");
         if (m_moving_handle)
         {
             xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving handle");
@@ -5539,20 +5552,20 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
 
     // This is here because I am seeing crashes which i believe originate here
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup");
-    if (mSelectedGroup.IsOk()) {
-        ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(mSelectedGroup));
-        Model* model = data != nullptr ? data->GetModel() : nullptr;
-        if (model != nullptr) {
-            if (model->GetDisplayAs() == "ModelGroup") {
-                res = dynamic_cast<ModelGroup*>(model);
-            }
-        }
-    }
-    else {
+    //if (mSelectedGroup.IsOk()) {
+    //    ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(mSelectedGroup));
+    //    Model* model = data != nullptr ? data->GetModel() : nullptr;
+    //    if (model != nullptr) {
+    //        if (model->GetDisplayAs() == "ModelGroup") {
+    //            res = dynamic_cast<ModelGroup*>(model);
+    //        }
+    //    }
+    //}
+    //else {
         if (ModelGroupWindow->IsShown()) {
             res = dynamic_cast<ModelGroup*>(xlights->AllModels[model_grp_panel->GetGroupName()]);
         }
-    }
+    //}
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup done");
     return res;
 }
@@ -6941,6 +6954,13 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
                     return;
+                }
+#elif defined(__WXOSX__)
+                // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
+                // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
+                // This code will prove that theory
+                if (!xlights->AllModels.IsModelValid(model))                     {
+                    logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.")
                 }
 #else
                 wxASSERT(xlights->AllModels.IsModelValid(model));

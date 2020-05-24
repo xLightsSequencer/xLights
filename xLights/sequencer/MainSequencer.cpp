@@ -1307,7 +1307,7 @@ bool MainSequencer::CopySelectedEffects() {
     else {
         GetSelectedEffectsData(copy_data);
     }
-    if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
+    if (!copy_data.IsEmpty() && wxTheClipboard != nullptr && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
             DisplayError("Unable to copy data to clipboard.", this);
         }

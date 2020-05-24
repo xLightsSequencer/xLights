@@ -216,6 +216,9 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             break;
         case UNDO_EFFECT_DELETED:
         {
+            if (next_action->deleted_effect_info.size() == 0) {
+                logger_base.crit("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. XXX");
+            }
             Element* element = mParentSequence->GetElement(next_action->deleted_effect_info[0]->element_name);
             if (element != nullptr)
             {
@@ -241,6 +244,9 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
         break;
         case UNDO_EFFECT_ADDED:
         {
+            if (next_action->added_effect_info.size() == 0) {
+                logger_base.crit("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. AAA");
+            }
             Element* element = mParentSequence->GetElement(next_action->added_effect_info[0]->element_name);
             if (element != nullptr)
             {
@@ -261,6 +267,9 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
         break;
         case UNDO_EFFECT_MOVED:
         {
+            if (next_action->moved_effect_info.size() == 0) {
+                logger_base.crit("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. BBB");
+            }
             Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
             if (element != nullptr)
             {
@@ -289,13 +298,16 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
         break;
         case UNDO_EFFECT_MODIFIED:
         {
+            if (next_action->modified_effect_info.size() == 0) {
+                logger_base.crit("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. CCC");
+            }
             Element* element = mParentSequence->GetElement(next_action->modified_effect_info[0]->element_name);
             if (element != nullptr)
             {
                 EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
                 if (el == nullptr)
                 {
-                    logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
+                    logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->modified_effect_info[0]->layer_index);
                 }
                 else
                 {

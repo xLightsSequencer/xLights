@@ -737,6 +737,9 @@ bool ControllerModelPrintout::OnPrintPage(int pageNum) {
 
 ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id,const wxPoint& pos,const wxSize& size) :
     _cud(cud), _mm(mm), _controller(controller), _xLights((xLightsFrame*)parent) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	//(*Initialize(ControllerModelDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -840,6 +843,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Panel4->SetMinSize(panel4Size);
     SetMinSize(wxSize(800, 400));
     SetSize(wxSize(1200, 800));
+
+    if (_cud == nullptr)         {
+        logger_base.crit("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
+    }
 
     _autoLayout = _controller->IsAutoLayout();
 

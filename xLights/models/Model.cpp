@@ -1068,9 +1068,11 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
 }
 
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     auto caps = GetControllerCaps();
 
-    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName());
+    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + event.GetValue().GetString() + " : " + wxString::Format("%ld", event.GetValue().GetLong()));
 
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
@@ -1294,6 +1296,12 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         int idx;
         GetControllerProtocols(cp, idx);
         std::string oldProtocol = GetControllerProtocol();
+
+        // This may be why i see some crashes here
+        if (event.GetValue().GetLong() >= cp.size()) {
+            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols. This is going to crash", (int)cp.size());
+        }
+
         SetControllerProtocol(cp[event.GetValue().GetLong()]);
 
         clearUnusedProtocolProperties(GetControllerConnection());

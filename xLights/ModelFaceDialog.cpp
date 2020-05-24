@@ -1167,10 +1167,18 @@ void ModelFaceDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent
 
 void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxArrayString choices;
     for (Model* sm : model->GetSubModels())
     {
         choices.Add(sm->Name());
+    }
+
+    // don't offer a choice if there is nothing to choose
+    if (choices.GetCount() == 0) {
+        wxMessageBox("No submodels found.");
+        return;
     }
 
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -1179,6 +1187,11 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK)
     {
         Model* sm = model->GetSubModel(dlg.GetStringSelection());
+        if (sm == nullptr)             {
+            logger_base.error("Strange ... ModelFaceDialog::ImportSubmodel returned no model for %s but it was in the list we gave the user.", (const char*)dlg.GetStringSelection().c_str());
+            dlg.Close();
+            return;
+        }
         const auto nodes = getSubmodelNodes(sm);
         NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, nodes);
         NodeRangeGrid->Refresh();
@@ -1189,18 +1202,16 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 
 wxString ModelFaceDialog::getSubmodelNodes(Model* sm)
 {
+    if (sm == nullptr) return "";
+
     wxXmlNode* root = sm->GetModelXml();
     wxString row = "";
 
-    if (root->GetName() == "subModel")
-    {
-        bool isRanges = root->GetAttribute("type", "") == "ranges";
-        if (isRanges)
-        {
+    if (root->GetName() == "subModel") {
+        if (root->GetAttribute("type", "") == "ranges") {
             wxArrayString rows;
             int line = 0;
-            while (root->HasAttribute(wxString::Format("line%d", line)))
-            {
+            while (root->HasAttribute(wxString::Format("line%d", line))) {
                 auto l = root->GetAttribute(wxString::Format("line%d", line), "");
                 rows.Add(l);
                 line++;

@@ -517,7 +517,7 @@ void ModelGroup::ResetModels()
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
-        if (c != nullptr) {
+        if (c != nullptr && c != this) {
             if (c->GetDisplayAs() == "ModelGroup")
             {
                 static_cast<ModelGroup*>(c)->ResetModels();
