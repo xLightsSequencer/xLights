@@ -25,6 +25,7 @@
 							<value>100</value>
 							<min>1.000000</min>
 							<max>200.000000</max>
+							<initial>100.000000</initial>
 							<handler function="OnSpinCtrl_TopChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -112,6 +113,7 @@
 							<value>100</value>
 							<min>1.000000</min>
 							<max>200.000000</max>
+							<initial>100.000000</initial>
 							<handler function="OnSpinCtrl_RightChange" entry="EVT_SPINCTRLDOUBLE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
