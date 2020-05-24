@@ -435,11 +435,12 @@ void xLightsFrame::ActivateSelectedControllers(const std::string& active) {
     int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     while (item != -1) {
         auto controller = _outputManager.GetController(List_Controllers->GetItemText(item));
-        controller->SetActive(active);
+        if (controller != nullptr) {
+            controller->SetActive(active);
 
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ActivateSelectedControllers", nullptr);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ActivateSelectedControllers", nullptr);
-
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ActivateSelectedControllers", nullptr);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ActivateSelectedControllers", nullptr);
+        }
         item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }

@@ -5040,6 +5040,9 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
         {
             std::set<std::string> modelsToRender;
 
+            // we refer to all_efdata[1] below so make sure it is there
+            if (all_efdata.size() < 2) return res;
+
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             if (eff1data.size() < 7) return res;
 
@@ -5216,6 +5219,9 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
         }
         else
         {
+            // we refer to all_efdata[1] below so make sure it is there
+            if (all_efdata.size() < 2) return res;
+
             wxArrayString efdata = wxSplit(all_efdata[1], '\t');
             if (efdata.size() < 3) {
                 return res;
@@ -5300,6 +5306,9 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
     }
     else if (mCellRangeSelected) {
         if (number_of_timings == 0 && number_of_effects == 1) { // only single effect paste allowed for range
+            // we refer to all_efdata[1] below so make sure it is there
+            if (all_efdata.size() < 2) return res;
+
             wxArrayString efdata = wxSplit(all_efdata[1], '\t');
             if (efdata.size() < 3)  return res;
             if (efdata[0] == "Random") {
