@@ -61,6 +61,9 @@
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 
+#include <log4cpp/Category.hh>
+
+
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	wxRect r;
@@ -263,8 +266,6 @@ private:
     unsigned int state;
     wxBitmap bitmap;
 };
-
-#include <log4cpp/Category.hh>
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
@@ -6959,8 +6960,9 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                 // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
                 // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
                 // This code will prove that theory
-                if (!xlights->AllModels.IsModelValid(model))                     {
-                    logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.")
+                if (!xlights->AllModels.IsModelValid(model)) {
+                    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
                 }
 #else
                 wxASSERT(xlights->AllModels.IsModelValid(model));

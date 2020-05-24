@@ -1099,7 +1099,6 @@ void ModelGroupPanel::CopyModelList()
         ClearSelections(ListBoxModelsInGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
         int index = ListBoxModelsInGroup->GetItemCount();
         ModelGroup* g = (ModelGroup*)mModels[mGroup];
-        wxXmlNode* e = g->GetModelXml();
         wxArrayString const modelArray = wxSplit(models, ',');
         for (size_t i = 0; i < modelArray.size(); ++i) {
             wxString const modelName = modelArray[i];
@@ -1117,7 +1116,6 @@ void ModelGroupPanel::SortModelsByName()
 {
     ModelGroup* g = (ModelGroup*)mModels[mGroup];
     if (g == nullptr) return;
-    wxXmlNode* e = g->GetModelXml();
     wxArrayString models;
     for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
         wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);

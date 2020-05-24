@@ -206,7 +206,7 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
             if (m->GetAttribute("LayoutGroup") == preview)
             {
                 wxString mn = m->GetAttribute("name");
-                wxTreeListItem it2 = tree->AppendItem(item, mn + " - Group", -1, -1, new impTreeItemData(mn, m, true));
+                tree->AppendItem(item, mn + " - Group", -1, -1, new impTreeItemData(mn, m, true));
                 if (!tree->IsExpanded(item)) tree->Expand(item);
             }
         }

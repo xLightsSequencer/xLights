@@ -50,9 +50,13 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     hdiutil attach xLights.dmg
 
     cp -a xLights.app /Volumes/xLights-$VER
-    if [ "${ALLTARGETS}" == "1" ]; then
+    if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
         cp -a xSchedule.app /Volumes/xLights-$VER
+    fi
+    if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
         cp -a xCapture.app /Volumes/xLights-$VER
+    fi
+    if [ -f xFade.app/Contents/MacOS/xFade ]; then
         cp -a xFade.app /Volumes/xLights-$VER
     fi
     ln -s /Applications /Volumes/xLights-$VER/Applications
@@ -78,9 +82,13 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
 
     # attache the notarization stamps to the apps
     xcrun stapler staple -v xLights.app
-    if [ "${ALLTARGETS}" == "1" ]; then
+    if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
         xcrun stapler staple -v xSchedule.app
+    fi
+    if [ -f xFade.app/Contents/MacOS/xFade ]; then
         xcrun stapler staple -v xFade.app
+    fi
+    if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
         xcrun stapler staple -v xCapture.app
     fi
 
@@ -99,9 +107,13 @@ hdiutil create -size 192m -fs HFS+ -volname "xLights-$VER" xLights.dmg
 hdiutil attach xLights.dmg
 
 cp -a xLights.app /Volumes/xLights-$VER
-if [ "${ALLTARGETS}" == "1" ]; then
+if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
     cp -a xSchedule.app /Volumes/xLights-$VER
+fi
+if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
     cp -a xCapture.app /Volumes/xLights-$VER
+fi
+if [ -f xFade.app/Contents/MacOS/xFade ]; then
     cp -a xFade.app /Volumes/xLights-$VER
 fi
 ln -s /Applications /Volumes/xLights-$VER/Applications
