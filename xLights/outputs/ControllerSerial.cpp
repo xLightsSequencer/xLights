@@ -26,6 +26,8 @@
 #include "RenardOutput.h"
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
+#include "PixelNetOutput.h"
+#include "xxxSerialOutput.h"
 #include "../models/ModelManager.h"
 
 #pragma region Property Choices
@@ -166,6 +168,8 @@ void ControllerSerial::SetChannels(int channels) {
 
 void ControllerSerial::SetProtocol(const std::string& type)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_outputs.front() != nullptr) {
         if (_outputs.front()->GetType() != type) {
             _type = type;
@@ -198,15 +202,24 @@ void ControllerSerial::SetProtocol(const std::string& type)
             else if (type == OUTPUT_RENARD) {
                 o = new RenardOutput();
             }
+            else if (type == OUTPUT_PIXELNET) {
+                o = new PixelNetOutput();
+            }
+            else if (type == OUTPUT_xxxSERIAL) {
+                o = new xxxSerialOutput();
+            }
             else {
                 wxASSERT(false);
+                logger_base.error("Could not create serial output of type %s.", (const char*)type.c_str());
             }
 
-            o->SetCommPort(p);
-            o->SetBaudRate(s);
-            o->SetChannels(c);
-            _outputs.push_front(o);
-            _dirty = true;
+            if (o != nullptr) {
+                o->SetCommPort(p);
+                o->SetBaudRate(s);
+                o->SetChannels(c);
+                _outputs.push_front(o);
+                _dirty = true;
+            }
         }
     }
 }
