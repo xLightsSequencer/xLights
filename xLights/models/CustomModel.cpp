@@ -286,6 +286,12 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data
                 while (rr.size() < width) rr.push_back(-1);
                 ll.push_back(rr);
             }
+            // this should not happen but I have seen situations where it does ... so pad out the model to the right size
+            while (ll.size() < height)                 {
+                std::vector<int> rr;
+                while (rr.size() < width) rr.push_back(-1);
+                ll.push_back(rr);
+            }
             res.push_back(ll);
         }
     }
@@ -827,7 +833,9 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
         }
     }
 
-    SetBufferSize(height,width*depth);
+    // we have 2 sources of truth for the width, height and depth but we take the parm settings rather than the data
+    //SetBufferSize(height, width * depth);
+    SetBufferSize(parm2, parm1* _depth);
     if (screenLocation.RenderDp < 10.0f) {
         screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
     }
@@ -1050,6 +1058,12 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                 for (auto c : columns) {
                     rr.push_back(c);
                 }
+                while (rr.size() < cols) rr.push_back("");
+                ll.push_back(rr);
+            }
+            // This should never happen but i have seen files where it did so lets just pad it and not crash
+            while (ll.size() < parm2)                 {
+                std::vector<wxString> rr;
                 while (rr.size() < cols) rr.push_back("");
                 ll.push_back(rr);
             }
