@@ -1284,7 +1284,8 @@ void V2FSEQFile::writeHeader() {
 
     // Use m_seqChanDataOffset for buffer size to avoid additional writes or buffer allocations
     // It also comes pre-memory aligned to avoid adding padding
-    uint8_t header[m_seqChanDataOffset];
+    //uint8_t header[m_seqChanDataOffset]; // MSW does not support non compile time constant array sizes
+    uint8_t* header = (uint8_t*)malloc(m_seqChanDataOffset);
     memset(header, 0, m_seqChanDataOffset);
 
     // File identifier (PSEQ) - 4 bytes
@@ -1361,6 +1362,8 @@ void V2FSEQFile::writeHeader() {
     // If writePos extends past m_seqChanDataOffset (in error), writing m_seqChanDataOffset prevents data overflow
     write(header, m_seqChanDataOffset);
 
+    free(header);
+
     LogDebug(VB_SEQUENCE, "Setup for writing v2 FSEQ\n");
     dumpInfo(true);
 }
@@ -1401,7 +1404,7 @@ m_handler(nullptr)
         
         uint64_t offset = m_seqChanDataOffset;
         int hoffset = V2FSEQ_HEADER_SIZE;
-        for (int x = 0; x < maxBlocks; x++) {
+        for (uint32_t x = 0; x < maxBlocks; x++) {
             int frame = read4ByteUInt(&header[hoffset]);
             hoffset += 4;
             uint64_t dlen = read4ByteUInt(&header[hoffset]);
