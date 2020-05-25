@@ -1087,15 +1087,18 @@ void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->SetColumnWidth(0, 20);
     TreeListViewModels->SetColumnWidth(3, 20);
 }
-void LayoutPanel::ThawTreeListView() {
+void LayoutPanel::ThawTreeListView(int defWidth) {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
     int i = TreeListViewModels->GetColumnWidth(0);
     if (i <= 20) {
         i = TreeListViewModels->GetSize().GetWidth() / 3;
     }
+    if (i <= 20 && defWidth) {
+        i = defWidth;
+    }
     if (i > 20) {
-        TreeListViewModels->SetColumnWidth(0, i);
+        TreeListViewModels->SetColumnWidth(0, i + 6); // add a smidgen to account for borders
     }
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->Thaw();
@@ -1326,9 +1329,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
 
+    int width = 0;
     if (full_refresh) {
         UnSelectAllModels();
-        int width = 0;
         
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
@@ -1400,7 +1403,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     xlights->PreviewModels = models;
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    ThawTreeListView();
+    ThawTreeListView(width);
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)

@@ -292,7 +292,7 @@ class LayoutPanel: public wxPanel
 
     protected:
         void FreezeTreeListView();
-        void ThawTreeListView();
+        void ThawTreeListView(int defWidth = 0);
         void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
 
         std::string TreeModelName(const Model* model, bool fullname);
