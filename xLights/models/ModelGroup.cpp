@@ -518,13 +518,13 @@ void ModelGroup::ResetModels()
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
         if (c != nullptr && c != this) {
-            if (c->GetDisplayAs() == "ModelGroup")
-            {
+            if (c->GetDisplayAs() == "ModelGroup") {
                 static_cast<ModelGroup*>(c)->ResetModels();
             }
             models.push_back(c);
         }
     }
+    CheckForChanges();
 }
 
 ModelGroup::~ModelGroup() {}
@@ -654,10 +654,14 @@ bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &
     return changed;
 }
 
-void ModelGroup::CheckForChanges() const {
+bool ModelGroup::CheckForChanges() const {
 
     unsigned long l = 0;
     for (const auto& it : models) {
+        ModelGroup *grp = dynamic_cast<ModelGroup*>(it);
+        if (grp != nullptr) {
+            grp->CheckForChanges();
+        }
         l += it->GetChangeCount();
     }
 
@@ -665,7 +669,9 @@ void ModelGroup::CheckForChanges() const {
         // this is ugly ... it is casting away the const-ness of this
         ModelGroup *group = (ModelGroup*)this;
         if (group != nullptr) group->Reset();
+        return true;
     }
+    return false;
 }
 
 void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHt) const {

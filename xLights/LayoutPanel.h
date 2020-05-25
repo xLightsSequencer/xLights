@@ -291,6 +291,10 @@ class LayoutPanel: public wxPanel
         ModelGroup* GetSelectedModelGroup() const;
 
     protected:
+        void FreezeTreeListView();
+        void ThawTreeListView();
+        void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
+
         std::string TreeModelName(const Model* model, bool fullname);
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );

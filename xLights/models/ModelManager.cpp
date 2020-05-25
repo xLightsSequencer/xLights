@@ -416,8 +416,7 @@ bool ModelManager::RecalcStartChannels() const {
 
     if (countInvalid > 0) {
         DisplayStartChannelCalcWarning();
-    }
-
+    }  
     return changed;
 }
 
@@ -817,8 +816,6 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
                 if (ModelGroup::AllModelsExist(e, *this))
                 {
                     ModelGroup* model = new ModelGroup(e, *this, previewW, previewH);
-                    bool reset = model->Reset();
-                    wxASSERT(reset);
                     models[model->name] = model;
                     model->SetLayoutGroup(e->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
                 }

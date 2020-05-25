@@ -64,7 +64,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
     private:
-        void CheckForChanges() const;
+        bool CheckForChanges() const;
 
         std::vector<std::string> modelNames;
         std::vector<Model *> models;

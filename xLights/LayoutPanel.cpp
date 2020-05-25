@@ -1081,13 +1081,38 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
         return "<" + name + ">";
     }
 }
-
+void LayoutPanel::FreezeTreeListView() {
+    TreeListViewModels->Freeze();
+    //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
+    TreeListViewModels->SetColumnWidth(0, 10);
+    TreeListViewModels->SetColumnWidth(3, 10);
+}
+void LayoutPanel::ThawTreeListView() {
+    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
+    int i = TreeListViewModels->GetColumnWidth(0);
+    #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
+    i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
+    #endif
+    if (i > 10) {
+        TreeListViewModels->SetColumnWidth(0, i);
+    }
+    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
+}
+void LayoutPanel::SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt) {
+    wxString orig = TreeListViewModels->GetItemText(item, col);
+    if (orig != txt) {
+        TreeListViewModels->SetItemText(item, col, txt);
+    }
+}
 void LayoutPanel::refreshModelList() {
 
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        refreshModelList.");
 
-    TreeListViewModels->Freeze();
+    FreezeTreeListView();
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
@@ -1103,33 +1128,29 @@ void LayoutPanel::refreshModelList() {
                 wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
-                    {
-                        TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
-                    }
-                    else
-                    {
-                        TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
+                    if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString())) {
+                        SetTreeListViewItemText(item, Col_StartChan, startStr);
+                    } else {
+                        SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
                     }
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
                 wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
                 if (cv != endStr) {
-                    data->endingChannel = model->GetLastChannel()+1;;
-                    TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
+                    data->endingChannel = model->GetLastChannel()+1;
+                    
+                    SetTreeListViewItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
 
                 std::string cc = model->GetControllerConnectionRangeString();
-                if (cv != cc)
-                {
-                    TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
+                if (cv != cc) {
+                    SetTreeListViewItemText(item, Col_ControllerConnection, cc);
                 }
             }
         }
     }
-    TreeListViewModels->Thaw();
-    TreeListViewModels->Refresh();
+    ThawTreeListView();
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
@@ -1142,11 +1163,11 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
         if (data != nullptr && data->GetModel() == model) {
             if (model->IsActive())
             {
-                TreeListViewModels->SetItemText(item, new_name);
+                SetTreeListViewItemText(item, 0, new_name);
             }
             else
             {
-                TreeListViewModels->SetItemText(item, "<" + new_name + ">");
+                SetTreeListViewItemText(item, 0, "<" + new_name + ">");
             }
         }
     }
@@ -1225,16 +1246,16 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
         if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
         {
-            TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+            SetTreeListViewItemText(item, Col_StartChan, startStr);
         }
         else
         {
-            TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
+            SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
         }
-        TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
+        SetTreeListViewItemText(item, Col_EndChan, endStr);
 
         std::string cc = model->GetControllerConnectionRangeString();
-        TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
+        SetTreeListViewItemText(item, Col_ControllerConnection, cc);
 
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
@@ -1282,7 +1303,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
 
-    TreeListViewModels->Freeze();
+    FreezeTreeListView();
     unsigned sortcol;
     bool ascending;
     bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
@@ -1308,9 +1329,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     if (full_refresh) {
         UnSelectAllModels();
         int width = 0;
-        //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
-        TreeListViewModels->SetColumnWidth(0, 10);
-        TreeListViewModels->SetColumnWidth(3, 10);
         
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
@@ -1371,17 +1389,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->SetColumnWidth(3, width);
         }
 
-        TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-        // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
-        int i = TreeListViewModels->GetColumnWidth(0);
-#ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
-
-        i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
-#endif
-        if (i > 10) {
-            TreeListViewModels->SetColumnWidth(0, i);
-        }
-        TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
 
         //turn the sorting back on
         TreeListViewModels->SetItemComparator(&comparator);
@@ -1393,8 +1400,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     xlights->PreviewModels = models;
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    TreeListViewModels->Thaw();
-    TreeListViewModels->Refresh();
+    ThawTreeListView();
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
@@ -7016,7 +7022,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
     if (full_refresh) return;
 
-    TreeListViewModels->Freeze();
+    FreezeTreeListView();
 
     std::vector<Model *> modelsToAdd(models);
 
@@ -7081,8 +7087,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
         AddModelToTree(a, &root, false, 0);
     }
 
-    TreeListViewModels->Thaw();
-    TreeListViewModels->Refresh();
+    ThawTreeListView();
 }
 
 CopyPasteBaseObject::~CopyPasteBaseObject()

@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Faster refresh/startup on OSX with complicated group trees
+   -- bug (dkulp)  Fix problems where changes to models nested deep within groups within groups would not
+                   trigger rebuild of buffers resulting in effects rendered improperly or not at all
    -- enh (scott)  Added model group to list right-click menu with the ability to Copy, Sort, and Clear models.
    -- enh (keith)  Add a setting for Falcon controllers which optionally allow you to let xLights fully control the falcon 
                    config erasing any other settings from string ports
