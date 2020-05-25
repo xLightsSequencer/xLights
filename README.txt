@@ -12,6 +12,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott)  Added model group to list right-click menu with the ability to Copy, Sort, and Clear models.
+   -- enh (keith)  Add a setting for Falcon controllers which optionally allow you to let xLights fully control the falcon 
+                   config erasing any other settings from string ports
+   -- bug (keith)  Fix model group centre cross disappears
+   -- bug (keith)  Fix controller tab says it needs saving immediately on load
+   -- bug (keith)  Fix crash when opening the visualiser
+   -- bug (keith)  Fix crash when changing serial protocol to Pixelnet
+   -- bug (keith)  Fix or add tracing for all crashes reported in crash log upload
 2020.21 May 19 2020
    -- enh (scott)  Add model group import from other rgb effects files
    -- enh (chris)  Add auto build of linux builds
