@@ -1084,9 +1084,17 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
     //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
-    TreeListViewModels->SetColumnWidth(0, 20);
-    TreeListViewModels->SetColumnWidth(3, 20);
+    TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
+    TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
 }
+
+#ifdef __WXOSX__
+// need to add a bit for the arrow which isn't accounted for in column with on OSX
+#define ADDTIONAL_COLUMN_WIDTH 8
+#else
+#define ADDTIONAL_COLUMN_WIDTH 0
+#endif
+
 void LayoutPanel::ThawTreeListView(int defWidth) {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
@@ -1097,9 +1105,10 @@ void LayoutPanel::ThawTreeListView(int defWidth) {
     if (i <= 20 && defWidth) {
         i = defWidth;
     }
-    if (i > 20) {
-        TreeListViewModels->SetColumnWidth(0, i + 6); // add a smidgen to account for borders
+    if (i <= 20) {
+        i = 100;
     }
+    TreeListViewModels->SetColumnWidth(0, i + ADDTIONAL_COLUMN_WIDTH); // add a smidgen to account for borders
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
