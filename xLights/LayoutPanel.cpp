@@ -1084,14 +1084,17 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
     //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
-    TreeListViewModels->SetColumnWidth(0, 10);
-    TreeListViewModels->SetColumnWidth(3, 10);
+    TreeListViewModels->SetColumnWidth(0, 20);
+    TreeListViewModels->SetColumnWidth(3, 20);
 }
 void LayoutPanel::ThawTreeListView() {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
     int i = TreeListViewModels->GetColumnWidth(0);
-    if (i > 10) {
+    if (i <= 20) {
+        i = TreeListViewModels->GetSize().GetWidth() / 3;
+    }
+    if (i > 20) {
         TreeListViewModels->SetColumnWidth(0, i);
     }
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
