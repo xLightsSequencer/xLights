@@ -67,8 +67,24 @@ public:
     };
     typedef struct Var Var;
 
-    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10)
+//#ifdef _DEBUG
+//    static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* userdata)
+//    {
+//        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+//        if (buffer != nullptr) {
+//            logger_base.debug(buffer);
+//        }
+//        return size * nitems;
+//    }
+//#endif
+
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef _DEBUG
+        logger_base.debug(url.c_str());
+#endif
+
         CURL* curl = curl_easy_init();
 
         if (curl != nullptr)
@@ -108,6 +124,13 @@ public:
                 headerlist = curl_slist_append(headerlist, buf2);
             }
 
+            for (const auto& it : customHeaders) {
+                auto s = wxString::Format("%s: %s", it.first, it.second);
+                headerlist = curl_slist_append(headerlist, s.c_str());
+            }
+
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             if (user != "" || password != "")
             {
@@ -115,7 +138,6 @@ public:
                 curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                 curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
             }
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
             std::string buffer = "";
@@ -126,6 +148,10 @@ public:
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+
+//#ifdef _DEBUG
+//            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+//#endif 
 
             CURLcode res = curl_easy_perform(curl);
             curl_easy_cleanup(curl);
@@ -142,8 +168,13 @@ public:
         return "";
     }
 
-    static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10)
+    static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef _DEBUG
+        logger_base.debug(url.c_str());
+#endif
+
         CURL* curl = curl_easy_init();
 
         if (curl != nullptr)
@@ -160,10 +191,6 @@ public:
                     CURLFORM_END);
             }
 
-            struct curl_slist *headerlist = nullptr;
-            static const char buf[] = "Expect:";
-            headerlist = curl_slist_append(headerlist, buf);
-
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             if (user != "" || password != "")
             {
@@ -171,12 +198,25 @@ public:
                 curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                 curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
             }
+
+            struct curl_slist* headerlist = nullptr;
+            static const char buf[] = "Expect:";
+            headerlist = curl_slist_append(headerlist, buf);
+            for (const auto& it : customHeaders) {
+                auto s = wxString::Format("%s: %s", it.first, it.second);
+                headerlist = curl_slist_append(headerlist, s.c_str());
+            }
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
             curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
             std::string buffer = "";
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+//#ifdef _DEBUG
+//            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+//#endif 
 
             CURLcode res = curl_easy_perform(curl);
             
@@ -195,11 +235,14 @@ public:
         return "";
     }
 
-    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10)
+    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        std::string res;
+#ifdef _DEBUG
+        logger_base.debug(s.c_str());
+#endif
 
+        std::string res;
         CURL* curl = curl_easy_init();
         if (curl)
         {
@@ -219,14 +262,27 @@ public:
             curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
+            struct curl_slist* headerlist = nullptr;
+            for (const auto& it : customHeaders)                 {
+                auto s = wxString::Format("%s: %s", it.first, it.second);
+                headerlist = curl_slist_append(headerlist, s.c_str());
+            }
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
             std::string response_string;
-            std::string header_string;
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-            curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+
+//#ifdef _DEBUG
+//            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+//#endif 
 
             /* Perform the request, res will get the return code */
             CURLcode r = curl_easy_perform(curl);
+
+            if (headerlist != nullptr) {
+                curl_slist_free_all(headerlist);
+            }
 
             if (r != CURLE_OK)
             {
@@ -246,6 +302,10 @@ public:
     static bool HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user = "", const std::string& password = "", int timeout = 10, wxProgressDialog * prog = nullptr)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef _DEBUG
+        logger_base.debug(s.c_str());
+#endif
+
         bool res = true;
 
         FILE* fp = fopen(filename.c_str(), "wb");
@@ -285,6 +345,10 @@ public:
 
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFileFunction);
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+//#ifdef _DEBUG
+//                curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+//#endif 
 
                 /* Perform the request, res will get the return code */
                 CURLcode r = curl_easy_perform(curl);

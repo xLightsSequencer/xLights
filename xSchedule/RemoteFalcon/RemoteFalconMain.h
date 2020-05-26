@@ -51,6 +51,7 @@ class RemoteFalconFrame : public wxFrame
     std::atomic<bool> _running;
     std::string _oldSteps;
     std::string _playlist;
+    std::string _mode;
     std::future<void> _sendPlaylistFuture;
     std::future<void> _sendPlayingFuture;
     std::future<void> _handleStatusFuture;
@@ -64,6 +65,7 @@ class RemoteFalconFrame : public wxFrame
     void DoSendPlayingSong(const std::string& playing);
     void SendPlayingSong(const std::string& playing);
 
+    void GetMode();
     void LoadOptions();
     void SaveOptions();
     void Start();

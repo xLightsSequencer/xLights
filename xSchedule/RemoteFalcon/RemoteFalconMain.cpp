@@ -119,11 +119,11 @@ void RemoteFalconFrame::DoSendPlaylists()
         wxJSONValue val;
         reader.Parse(res, &val);
 
-        if (val.IsNull() || val["status"].AsString() == "Error") {
-            // did not update
+        if (!val.IsNull() || val["message"].AsString() == "Success") {
+            _oldSteps = plsteps;
         }
         else {
-            _oldSteps = plsteps;
+            // did not update
         }
     }
 }
@@ -236,6 +236,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     if (_sendPlaylistFuture.valid()) _sendPlaylistFuture.wait();
 
     AddMessage("Clearing remote falcon list of songs.");
+    int tries = 100;
     bool done = false;
     do {
         auto res = _remoteFalcon->UpdatePlaylistQueue();
@@ -245,13 +246,15 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
         wxJSONValue val;
         reader.Parse(res, &val);
     
-    if (val.IsNull() || val["status"].AsString() == "Error") {
+        if (!val.IsNull() && val["message"].AsString() == "Queue Empty") {
             done = true;
         }
-        else {
-            done = val["message"].AsString() == "Queue is now empty";
-        }
-    } while (!done);
+        tries--;
+    } while (!done && tries > 0);
+
+    if (tries == 0) {
+        logger_base.warn("RemoteFalcon failed to clear existing list of songs.");
+    }
 
     ValidateWindow();
 }
@@ -420,6 +423,8 @@ void RemoteFalconFrame::Start()
     if (_remoteFalcon == nullptr) return;
     _running = true;
 
+    GetMode();
+
     SendPlaylists();
 
     Timer_UpdatePlaylist.Start(10000);
@@ -457,12 +462,46 @@ void RemoteFalconFrame::SendPlayingSong(const std::string& playing)
     }
 }
 
+void RemoteFalconFrame::GetMode()
+{
+    AddMessage("Fetching current playing mode ...");
+    auto res = _remoteFalcon->FetchCurrentPlayMode();
+    AddMessage(res);
+
+    _mode = "";
+
+    wxJSONReader reader;
+    wxJSONValue val;
+    reader.Parse(res, &val);
+
+    if (!val.IsNull()) {
+        if (!val["viewerControlMode"].IsNull()) {
+            _mode = val["viewerControlMode"].AsString();
+        }
+    }
+
+    if (_mode == "")         {
+        AddMessage("ERROR: Unknown mode so defaulting to JUKEBOX.");
+        _mode = "jukebox";
+    }
+    else         {
+        AddMessage("MODE: " + _mode);
+    }
+}
+
 void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
 {
     if (_remoteFalcon == nullptr) return;
 
     AddMessage("Asking remote falcon for the song we should be playing.");
-    auto song = _remoteFalcon->FetchCurrentPlaylistFromQueue();
+    std::string song;
+    
+    if (_mode == "voting") {
+        song = _remoteFalcon->FetchHighestVotedPlaylist();
+    }
+    else {
+        song = _remoteFalcon->FetchCurrentPlaylistFromQueue();
+    }
     AddMessage("    " + song);
 
     wxJSONReader reader;
@@ -471,26 +510,37 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
 
     std::string nextSong = "";
     if (!val.IsNull())         {
-        if (val["code"].AsInt() == 200 && !val["data"]["nextPlaylist"].IsNull()) {
-            nextSong = val["data"]["nextPlaylist"].AsString();
+        if (_mode == "voting") {
+            if (!val["winningPlaylist"].IsNull()) {
+                nextSong = val["winningPlaylist"].AsString();
+            }
+        }
+        else {
+            if (!val["nextPlaylist"].IsNull()) {
+                nextSong = val["nextPlaylist"].AsString();
+            }
         }
     }
 
     if (nextSong != "" && nextSong != "null" && playing != nextSong) {
         AddMessage("Asking xSchedule to play " + nextSong);
         auto result = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
-        //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
-        AddMessage("    " + result);
-        if (result == "{\"result\":\"ok\"}")             {
-            AddMessage("Asking remote falcon to take the song off the queue as it is now playing.");
-            AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
-        }
-        else             {
-            AddMessage("Asking remote falcon to take the song off the queue as it caused an error.");
-            AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
+        if (_mode != "voting") {
+            //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
+            AddMessage("    " + result);
+            if (result == "{\"result\":\"ok\"}") {
+                AddMessage("Asking remote falcon to take the song off the queue as it is now playing.");
+                AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
+            }
+            else {
+                AddMessage("Asking remote falcon to take the song off the queue as it caused an error.");
+                AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
+            }
         }
     }
 }
+
+#define GRACE_SECONDS_TO_GRAB_NEXT_SONG 5
 
 void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 {
@@ -513,11 +563,11 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
         auto trigger = val["trigger"].AsString();
 
         // Only play songs if a schedule is playing
-        if (trigger == "scheduled") {
+        if (trigger == "scheduled" || trigger == "queued") {
             int queueLength = wxAtoi(val["queuelength"].AsString());
             auto lefts = wxAtol(val["leftms"].AsString()) / 1000;
 
-            if (queueLength == 0 || (queueLength == 1 && lefts <= 4)) {
+            if (queueLength == 0 || (queueLength == 1 && lefts <= GRACE_SECONDS_TO_GRAB_NEXT_SONG)) {
                 GetAndPlaySong(playing);
             }
         }
