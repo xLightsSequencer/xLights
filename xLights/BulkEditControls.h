@@ -209,7 +209,7 @@ public:
     BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxChoiceNameStr);
     virtual ~BulkEditChoice() {}
     void OnRightDown(wxMouseEvent& event);
-    void OnChoicePopup(wxCommandEvent &event);
+    virtual void OnChoicePopup(wxCommandEvent &event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
