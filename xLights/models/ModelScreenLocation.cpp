@@ -4315,6 +4315,9 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
     wxASSERT(!preview->Is3D());
 
     wxCursor return_value = wxCURSOR_DEFAULT;
+
+    if (preview == nullptr) return return_value;
+
     handle = NO_HANDLE;
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
@@ -4422,6 +4425,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
 
     // test for clicking a boundary handle
     if (handle == NO_HANDLE) {
+
         for (size_t h = num_points + 1; h < num_points + 5; h++) {
             handle_aabb_min[h].x = mHandlePosition[h].x - GetRectHandleWidth(zoom, scale);
             handle_aabb_min[h].y = mHandlePosition[h].y - GetRectHandleWidth(zoom, scale);

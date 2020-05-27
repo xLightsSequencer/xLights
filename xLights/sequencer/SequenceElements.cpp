@@ -951,19 +951,23 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     return true;
 }
 
-void SequenceElements::PrepareViews(xLightsXmlFile& xml_file) {
+void SequenceElements::PrepareViews(xLightsXmlFile& xml_file)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_viewsManager == nullptr) {
+        logger_base.crit("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
+    }
+
     // Select view and set current view models as visible
     int last_view = xml_file.GetLastView();
     auto views = _viewsManager->GetViews();
-    for(auto it = views.begin(); it != views.end(); ++it)
-    {
+    for (const auto& it : views) {
         std::vector <Element*> new_view;
         mAllViews.push_back(new_view);
-        int view_index = mAllViews.size()-1;
-        if( view_index == last_view )
-        {
-            AddMissingModelsToSequence((*it)->GetModelsString());
-            PopulateView((*it)->GetModelsString(), view_index);
+        int view_index = mAllViews.size() - 1;
+        if (view_index == last_view) {
+            AddMissingModelsToSequence(it->GetModelsString());
+            PopulateView(it->GetModelsString(), view_index);
             SetCurrentView(view_index);
         }
     }

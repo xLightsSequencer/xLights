@@ -1901,7 +1901,7 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     AddTraceMessage("Timer1");
     _outputManager.StartFrame(curtime);
     AddTraceMessage("Output frame started");
-    if (Notebook1) {
+    if (Notebook1 != nullptr) {
         switch (Notebook1->GetSelection())
         {
         case NEWSEQUENCER:

@@ -284,6 +284,7 @@ ViewsModelsPanel::~ViewsModelsPanel()
 
 void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ListCtrlModels->Freeze();
     ListCtrlNonModels->Freeze();
 
@@ -291,14 +292,12 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     int topN = ListCtrlNonModels->GetTopItem();
 
     int itemSize;
-    if (ListCtrlModels->GetItemCount() > 0)
-    {
+    if (ListCtrlModels->GetItemCount() > 0) {
         wxRect rect;
         ListCtrlModels->GetItemRect(0, rect);
         itemSize = rect.GetHeight();
     }
-    else
-    {
+    else {
         // need to add something so i can measure it
 
         ListCtrlModels->AppendColumn("Test");
@@ -308,16 +307,17 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         ListCtrlModels->GetItemRect(0, rect);
         itemSize = rect.GetHeight();
     }
-    wxASSERT(itemSize != 0);
+
+    if (itemSize == 0) {
+        logger_base.crit("ViewsModelsPanel::Populate models ... itemSize = 0 ... this is going to crash.");
+    }
 
     int visibileM = ListCtrlModels->GetRect().GetHeight() / itemSize - 1;
     int visibileN = ListCtrlNonModels->GetRect().GetHeight() / itemSize - 1;
 
-    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
-    {
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
-        if (e != nullptr && e->GetType() == ElementType::ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
-        {
+        if (e != nullptr && e->GetType() == ElementType::ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr) {
             delete e;
             ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
         }
@@ -359,111 +359,92 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
     _numModels = 0;
     _numNonModels = 0;
-    if (_sequenceElements != nullptr)
-    {
+    if (_sequenceElements != nullptr) {
         int current_view = _sequenceElements->GetCurrentView();
-        for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
-        {
+        for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
             Element* elem = _sequenceElements->GetElement(i);
-            if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-            {
-                TimingElement *te = dynamic_cast<TimingElement*>(elem);
-                if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view))
-                {
+            if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                TimingElement* te = dynamic_cast<TimingElement*>(elem);
+                if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view)) {
                     AddTimingToList(elem);
                 }
-                else
-                {
+                else {
                     AddTimingToNotList(elem);
                 }
             }
         }
 
-        if (current_view > 0)
-        {
-            SequenceView * view = _sequenceViewManager->GetSelectedView();
-            if (view != nullptr)
-            {
+        if (current_view > 0) {
+            SequenceView* view = _sequenceViewManager->GetSelectedView();
+            if (view != nullptr) {
                 _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
                 auto models = view->GetModels();
-                for (const auto& it : models)
-                {
+                for (const auto& it : models) {
                     Element* elem = _sequenceElements->GetElement(it);
                     AddModelToList(elem);
                 }
 
                 // add everything that isnt in the view
-                for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
-                {
+                for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
                     Element* elem = _sequenceElements->GetElement(i);
-                    if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
-                    {
+                    if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end()) {
                         AddModelToNotList(elem);
                     }
                 }
             }
         }
-        else
-        {
-            for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
-            {
+        else {
+            for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
                 Element* elem = _sequenceElements->GetElement(i);
-                if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL)
-                {
+                if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                     AddModelToList(elem);
                 }
             }
         }
 
-        for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
-        {
-            if (e->GetName() == "modelGroup")
-            {
-                wxString name = e->GetAttribute("name");
-                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
-                {
-                    ModelElement *me = new ModelElement(name.ToStdString());
-                    AddModelToNotList(me);
+        if (_modelGroups != nullptr) {
+            for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext()) {
+                if (e->GetName() == "modelGroup") {
+                    wxString name = e->GetAttribute("name");
+                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0)) {
+                        ModelElement* me = new ModelElement(name.ToStdString());
+                        AddModelToNotList(me);
+                    }
                 }
             }
         }
 
-        for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
-        {
-            if (e->GetName() == "model")
-            {
-                wxString name = e->GetAttribute("name");
-                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
-                {
-                    ModelElement *me = new ModelElement(name.ToStdString());
-                    AddModelToNotList(me);
+        if (_models != nullptr) {
+            for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext()) {
+                if (e->GetName() == "model") {
+                    wxString name = e->GetAttribute("name");
+                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0)) {
+                        ModelElement* me = new ModelElement(name.ToStdString());
+                        AddModelToNotList(me);
+                    }
                 }
             }
         }
 
         if (visibileM > 0 && visibileN > 0) {
             if (ListCtrlModels->GetItemCount() > 0) {
-                if (topM + visibileM - 1 < ListCtrlModels->GetItemCount())
-                {
+                if (topM + visibileM - 1 < ListCtrlModels->GetItemCount()) {
                     ListCtrlModels->EnsureVisible(topM + visibileM - 1);
                 }
                 ListCtrlModels->EnsureVisible(topM);
             }
             if (ListCtrlNonModels->GetItemCount() > 0) {
-                if (topN + visibileN - 1 < ListCtrlNonModels->GetItemCount())
-                {
+                if (topN + visibileN - 1 < ListCtrlNonModels->GetItemCount()) {
                     ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
                 }
                 ListCtrlNonModels->EnsureVisible(topN);
             }
         }
 
-        if (selectModels != "")
-        {
+        if (selectModels != "") {
             wxArrayString models = wxSplit(selectModels, ',');
 
-            for (const auto& it : models)
-            {
+            for (const auto& it : models) {
                 SelectItem(ListCtrlModels, it.ToStdString(), 2, true);
             }
         }
