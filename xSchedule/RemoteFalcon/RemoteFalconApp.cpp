@@ -34,6 +34,7 @@
 #include <wx/msgdlg.h>
 
 #include "../../xLights/xLightsVersion.h"
+#include "../../xLights/SpecialOptions.h"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -165,6 +166,7 @@ static void InitialiseLogging(bool fromMain)
     // always called when the dll is found ... should not actually do anything
     bool RemoteFalcon_xSchedule_Load(char* showDir) {
         __showDir = std::string(showDir);
+        SpecialOptions::StashShowDir(showDir);
         return true;
     }
 

@@ -20,42 +20,60 @@
 #include "../../xLights/UtilFunctions.h"
 #include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
+#include "../../xLights/SpecialOptions.h"
 
 #include <log4cpp/Category.hh>
 
 class RemoteFalcon
 {
-    std::string token;
-    const std::string URLBase = "https://remotefalcon.com/services/rmrghbsEvMhSH8LKuJydVn23pvsFKX/api/";
+    static std::string __token;
+    std::string _URLBase;
 
     public:
 
         RemoteFalcon(const RemoteFalconOptions& options) {
-            token = options.GetToken();
+            __token = options.GetToken();
+            _URLBase = SpecialOptions::GetOption("RemoteFalconURL", "https://remotefalcon.com") + "/remotefalcon/api";
+        }
+
+        static std::string DeTokenfy(std::string s)
+        {
+            wxString ss(s);
+            ss.Replace(__token, "{token}");
+            return ss.ToStdString();
         }
 
         std::string FetchCurrentPlaylistFromQueue()
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", token);
-            return Curl::HTTPSPost(URLBase + "fetchNextPlaylistFromQueue.php", t, "JSON");
+            return Curl::HTTPSGet(_URLBase + "/nextPlaylistInQueue", "", "", 10, { {"remotetoken", __token} });
+        }
+
+        std::string FetchCurrentPlayMode()
+        {
+            return Curl::HTTPSGet(_URLBase + "/viewerControlMode", "", "", 10, { {"remotetoken", __token} });
+        }
+
+        std::string FetchHighestVotedPlaylist()
+        {
+            return Curl::HTTPSGet(_URLBase + "/highestVotedPlaylist", "", "", 10, { {"remotetoken", __token} });
         }
 
         std::string UpdatePlaylistQueue()
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", token);
-            return Curl::HTTPSPost(URLBase + "updatePlaylistQueue.php", t, "JSON");
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
+            return Curl::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SendPlayingSong(const std::string& playing)
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", token, playing);
-            return Curl::HTTPSPost(URLBase + "updateWhatsPlaying.php", t, "JSON");
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", __token, playing);
+            return Curl::HTTPSPost(_URLBase + "/updateWhatsPlaying", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SyncPlayLists(const std::string& playlist, const std::string& steps)
         {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            std::string body = wxString::Format("{\"remoteToken\":\"%s\",\"playlists\":[", token);
+            std::string body = wxString::Format("{\"remoteToken\":\"%s\",\"playlists\":[", __token);
 
             wxJSONReader reader;
             wxJSONValue val;
@@ -72,15 +90,16 @@ class RemoteFalcon
                             body += ",";
                         }
 
-                        body += "{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistItems\":[";
-                        body += wxString::Format("{\"playlistItemType\":\"both\",\"playlistItemEnabled\":1,\"playlistItemSequenceName\":\"%s.fseq\",\"playlistItemMediaName\":\"\",\"playlistItemDuration\":%d}", val["steps"][i]["name"].AsString(), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
-                        body += "]}";
+                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistDuration\":%d}",
+                            wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
                     }
                 }
             }
         
             body += "]}";
-            logger_base.debug(body);
-            return Curl::HTTPSPost(URLBase + "syncPlaylists.php", body, "JSON");
+            auto url = _URLBase + "/syncPlaylists";
+            logger_base.debug(RemoteFalcon::DeTokenfy(url));
+            logger_base.debug(RemoteFalcon::DeTokenfy(body));
+            return Curl::HTTPSPost(url, body, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 };
