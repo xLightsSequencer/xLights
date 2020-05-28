@@ -179,6 +179,7 @@
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\wxJSON\jsonval.cpp" />
+    <ClCompile Include="RemoteFalcon.cpp" />
     <ClCompile Include="RemoteFalconOptions.cpp" />
     <ClCompile Include="RemoteFalconSettingsDialog.cpp" />
     <ClCompile Include="RemoteFalconApp.cpp" />
@@ -186,6 +187,7 @@
     <ClCompile Include="xSchedule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\wxJSON\jsonreader.h" />
     <ClInclude Include="..\wxJSON\jsonval.h" />

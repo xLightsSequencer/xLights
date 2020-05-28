@@ -12,4 +12,7 @@
   <!-- Prioritises the D3DTEXTUREFILTERTYPE used in windows directx9 hardware video decode-->
   <!--Option name="dxva2_filter" value="-1"/-->
 
+  <!-- Controls the base URL for remote falcon-->
+  <!--Option name="RemoteFalconURL" value=""/-->
+
 </SpecialOptions>
