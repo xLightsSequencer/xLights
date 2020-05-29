@@ -1183,7 +1183,7 @@ void xLightsFrame::SaveSequence()
         while (!ok);
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
         _renderCache.SetSequence(renderCacheDirectory.ToStdString(), xmlFileName.GetName());
-        xmlFileName.SetExt("xml");
+        xmlFileName.SetExt("xsq");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
 
@@ -1336,7 +1336,7 @@ void xLightsFrame::SaveAsSequence()
 
     SetPanelSequencerLabel(oName.GetName().ToStdString());
 
-    oName.SetExt("xml");
+    oName.SetExt("xsq");
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     _renderCache.SetSequence(renderCacheDirectory.ToStdString(), oName.GetName());

@@ -146,6 +146,14 @@ void InitialiseLogging(bool fromMain)
         }
 #endif
 
+#ifdef _MSC_VER
+        if (!wxFile::Exists(initFileName)) {
+            wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+            wxString appPath(f.GetPath());
+            initFileName = appPath + "\\" + initFileName;
+        }
+#endif
+
         if (!wxFile::Exists(initFileName))
         {
 #ifdef _MSC_VER

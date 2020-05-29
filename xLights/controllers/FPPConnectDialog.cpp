@@ -423,11 +423,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
     directory.Open(dir);
 
     wxString file;
-    bool fcont = directory.GetFirst(&file, "*.xml");
+    bool fcont = directory.GetFirst(&file, "*.x*");
     static const int BUFFER_SIZE = 1024*12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
     while (fcont) {
-        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml") {
+        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" &&
+            (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
             // this could be a sequence file ... lets open it and check
             //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
             wxFile doc(dir + wxFileName::GetPathSeparator() + file);
