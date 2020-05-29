@@ -140,14 +140,14 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    wxDir::GetAllFiles(folder, &files, "*.xml");
+    wxDir::GetAllFiles(folder, &files, "*.x*");
     files.Sort();
     for (size_t x = 0; x < files.size(); x++) {
         wxString name = files[x].SubString(folder.length(), files[x].size());
         if (name[0] == '/' || name[0] == '\\') {
             name = name.SubString(1, name.size());
         }
-        if (!name.Contains("xlights_")) {
+        if (!name.Contains("xlights_") && (name.Lower().EndsWith("xsq")|| name.Lower().EndsWith("xml"))) {
             allFiles.push_back(name);
         }
     }

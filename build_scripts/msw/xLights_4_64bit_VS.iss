@@ -35,7 +35,7 @@ AppVersion={#Year}.{#Version}{#Other}
 DefaultDirName={commonpf64}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=..\..\include\{#MyTitleName}64.ico
-
+ChangesAssociations = yes
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
@@ -157,6 +157,10 @@ Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{commonpf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
+Root: HKCR; Subkey: ".xsq";                              ValueData: "{#MyTitleName}";          Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyTitleName}";                    ValueData: "Program {#MyTitleName}";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyTitleName}\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,0";                          ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyTitleName}\shell\open\command"; ValueData: """{app}\{#MyTitleName}.exe"" ""%1""";                 ValueType: string;  ValueName: ""
 
 [Code]
 
