@@ -1203,11 +1203,12 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xml."));
-    logger_base.info("Saving XML file.");
+    CurrentSeqXmlFile->SetExt("xsq");
+    SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
+    logger_base.info("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     CurrentSeqXmlFile->Save(mSequenceElements);
-    logger_base.info("XML file done.");
+    logger_base.info("XSQ file done.");
 
     if (mBackupOnSave)
     {
