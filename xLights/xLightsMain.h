@@ -637,7 +637,6 @@ public:
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_AUIEFFECTSTOOLBAR;
-    static const long ID_BUTTON_OTHER_FOLDERS;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_SAVE_SETUP;
@@ -788,7 +787,6 @@ public:
     wxButton* ButtonDeleteAllControllers;
     wxButton* ButtonDiscover;
     wxButton* ButtonOpen;
-    wxButton* ButtonOtherFolders;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
@@ -981,6 +979,13 @@ public:
     void SetBackupPurgeDays(int i);
     int GetBackupPugeDays() const { return BackupPurgeDays; }
     void DoAltBackup(bool prompt = true);
+
+    void GetMediaFolder(bool& useShow, std::string& folder);
+    void SetMediaFolder(bool useShow, const std::string& folder);
+    void GetFSEQFolder(bool& useShow, std::string& folder);
+    void SetFSEQFolder(bool useShow, const std::string& folder);
+    void GetRenderCacheFolder(bool& useShow, std::string& folder);
+    void SetRenderCacheFolder(bool useShow, const std::string& folder);
 
     void GetBackupFolder(bool& useShow, std::string& folder);
     void SetBackupFolder(bool useShow, const std::string& folder);

@@ -1203,7 +1203,12 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    CurrentSeqXmlFile->SetExt("xsq");
+
+    if (CurrentSeqXmlFile->GetExt().Lower() == "xml") {
+        // Remove the old xml file as we are about to save it as an xsq
+        wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
+        CurrentSeqXmlFile->SetExt("xsq");
+    }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     logger_base.info("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
