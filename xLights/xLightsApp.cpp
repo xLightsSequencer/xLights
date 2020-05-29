@@ -555,6 +555,19 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 }
 #endif
 
+void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (fileNames.empty()) {
+        return;
+    }
+    wxString fileName = fileNames[0];
+    logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
+    if (__frame) {
+        __frame->OpenSequence(fileName, nullptr);
+    } else {
+        logger_base.info("       No xLightsFrame");
+    }
+}
 
 bool xLightsApp::OnInit()
 {
