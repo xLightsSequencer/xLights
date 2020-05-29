@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin)  Allow for multi-select of models from list in layout tab
 2020.22 May 26 2020
    -- enh (dkulp)  Faster refresh/startup on OSX with complicated group trees
    -- enh (scott)  Added model group to list right-click menu with the ability to Copy, Sort, and Clear models.
@@ -50,7 +51,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Load models in parallel to speed up model load
    -- enh (keith)  Add port tooltips in visualiser to help manually configure controllers
    -- enh (priemd) Add grey option to wiring view
-   -- bug (kevin)  Fix house-preview video export broken for odd-numbered heights
    -- bug (keith)  Fix issues with control tab convert not converting some !desc:sc entries correctly
    -- bug (keith)  Fix display export does not work for animations
    -- bug (keith)  Fix crash in servo effect if some skull servos are missing

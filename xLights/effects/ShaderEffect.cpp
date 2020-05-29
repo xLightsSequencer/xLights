@@ -292,7 +292,7 @@ class ShaderGLCanvas : public xlGLCanvas {
 public:
     ShaderGLCanvas(wxWindow *parent) : xlGLCanvas(parent, -1) {}
     virtual ~ShaderGLCanvas() {}
-    
+
     virtual void InitializeGLContext() {}
 };
 
@@ -458,7 +458,7 @@ public:
             unsigned rbTex = s_rbTex;
             unsigned programId = s_programId;
             xlGLCanvas *preview = this->preview;
-            
+
             preview->CallAfter([preview,
                                 vertexArrayId,
                                 vertexBufferId,
@@ -474,7 +474,7 @@ public:
                                  rbTex,
                                  programId);
             });
-            
+
             s_programId = 0;
             s_vertexArrayId = 0;
             s_vertexBufferId = 0;
@@ -501,7 +501,7 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
-    
+
     void DestroyResources() {
         DestroyResources(s_vertexArrayId,
                          s_vertexBufferId,
@@ -555,7 +555,7 @@ public:
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
 
-#if defined(__WXOSX__)     
+#if defined(__WXOSX__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
@@ -620,7 +620,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     if (cache->glContextInfo == nullptr) {
         // we grab it here and release it when the cache is deleted
         cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
-        
+
         cache->glContextInfo->SetCurrent();
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
@@ -629,7 +629,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
                                             (const char *)str,
                                             (const char *)rend,
                                             (const char *)vend);
-        
+
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info(configs);
     }
@@ -882,7 +882,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     xlColorVector& cv(buffer.pixels);
     LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
     LOG_GL_ERRORV(glUseProgram(0));
-    
+
     UnsetGLContext(cache);
 }
 
@@ -1137,8 +1137,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     for (int i = 0; i < passes.Size(); i++)
     {
         _passes.push_back({
-            inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString() : "",
-            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false
+            passes[i].HasMember("TARGET") ? passes[i]["TARGET"].AsString() : "",
+            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false,
             });
     }
 
