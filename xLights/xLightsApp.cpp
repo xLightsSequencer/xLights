@@ -555,6 +555,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 }
 #endif
 
+#ifdef __WXOSX__
 void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (fileNames.empty()) {
@@ -568,6 +569,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         logger_base.info("       No xLightsFrame");
     }
 }
+#endif
 
 bool xLightsApp::OnInit()
 {
