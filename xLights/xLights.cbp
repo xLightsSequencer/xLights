@@ -520,8 +520,6 @@
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
-		<Unit filename="FolderSelection.cpp" />
-		<Unit filename="FolderSelection.h" />
 		<Unit filename="FontManager.cpp" />
 		<Unit filename="FontManager.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
@@ -1284,7 +1282,6 @@
 		<Unit filename="wxsmith/FillPanel.wxs" />
 		<Unit filename="wxsmith/FirePanel.wxs" />
 		<Unit filename="wxsmith/FireworksPanel.wxs" />
-		<Unit filename="wxsmith/FolderSelection.wxs" />
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
@@ -1429,8 +1426,15 @@
 		<Unit filename="xlSlider.h" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
-			<code_completion />
-			<debugger />
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="xLightsApp.cpp" main="xLightsFrame" init_handlers="necessary" language="CPP" />
 				<resources>
@@ -1455,7 +1459,6 @@
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FolderSelection.wxs" src="FolderSelection.cpp" hdr="FolderSelection.h" fwddecl="0" i18n="1" name="FolderSelection" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
@@ -1599,16 +1602,6 @@
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<DoxyBlocks>
-				<comment_style block="0" line="0" />
-				<doxyfile_project />
-				<doxyfile_build />
-				<doxyfile_warnings />
-				<doxyfile_output />
-				<doxyfile_dot />
-				<general />
-			</DoxyBlocks>
-			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

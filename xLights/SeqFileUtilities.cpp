@@ -230,7 +230,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool loaded_fseq = false;
     wxString filename;
-    wxString wildcards = "xLights Sequence files (*.xsq)|*.xsq|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
+    wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
         filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     } else {

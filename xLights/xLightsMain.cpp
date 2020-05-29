@@ -53,7 +53,6 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
-#include "FolderSelection.h"
 #include "JukeboxPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
@@ -191,7 +190,6 @@ const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
-const long xLightsFrame::ID_BUTTON_OTHER_FOLDERS = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
@@ -641,7 +639,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
-    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -650,8 +648,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonOtherFolders = new wxButton(PanelSetup, ID_BUTTON_OTHER_FOLDERS, _("Subfolders.."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OTHER_FOLDERS"));
-    GridBagSizer1->Add(ButtonOtherFolders, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
@@ -740,9 +736,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
-    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     StatusBarSizer = new wxGridBagSizer(0, 0);
-    StatusBarSizer->AddGrowableRow(0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
@@ -757,6 +752,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
     StatusBarSizer->Fit(AUIStatusBar);
     StatusBarSizer->SetSizeHints(AUIStatusBar);
@@ -1053,7 +1049,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
-    Connect(ID_BUTTON_OTHER_FOLDERS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonOtherFoldersClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
@@ -3886,6 +3881,99 @@ void xLightsFrame::DoAltBackup(bool prompt)
     if (errors != "") {
         DisplayError(errors, this);
     }
+}
+
+void xLightsFrame::GetMediaFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == mediaDirectory);
+    folder = mediaDirectory;
+}
+
+void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (useShow) {
+        if (mediaDirectory == showDirectory) return;
+        mediaDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            if (mediaDirectory == folder) return;
+            mediaDirectory = folder;
+        }
+        else {
+            DisplayError("Media directory does not exist. Media folder was not changed to " + folder + ". Media folder remains : " + mediaDirectory, this);
+            return;
+        }
+    }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(_("MediaDir"), mediaDirectory);
+
+    logger_base.debug("Media directory set to : %s.", (const char*)mediaDirectory.c_str());
+}
+
+void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == fseqDirectory);
+    folder = fseqDirectory;
+}
+
+void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (useShow) {
+        if (fseqDirectory == showDirectory) return;
+        fseqDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            if (fseqDirectory == folder) return;
+            fseqDirectory = folder;
+        }
+        else {
+            DisplayError("FSEQ directory does not exist. FSEQ folder was not changed to " + folder + ". FSEQ folder remains : " + fseqDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("fseqDir", fseqDirectory);
+    UnsavedRgbEffectsChanges = true;
+
+    logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
+}
+
+void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == renderCacheDirectory);
+    folder = renderCacheDirectory;
+}
+
+void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (useShow) {
+        if (renderCacheDirectory == showDirectory) return;
+        renderCacheDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            if (renderCacheDirectory == folder) return;
+            renderCacheDirectory = folder;
+        }
+        else {
+            DisplayError("Render Cache directory does not exist. Render Cache folder was not changed to " + folder + ". Render Cache folder remains : " + renderCacheDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("renderCacheDir", renderCacheDirectory);
+    UnsavedRgbEffectsChanges = true;
+
+    logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
 }
 
 void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
@@ -8613,41 +8701,6 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
    pane.IsShown() ? pane.Hide() : pane.Show();
    m_mgr->Update();
-}
-
-
-void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, renderCacheDirectory, backupDirectory, mAltBackupDir);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_OK) {
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("MediaDir"), dlg.MediaDirectory);
-        config->Write(_("LinkFlag"), dlg.LinkMediaDir);
-        config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
-
-        //Always set values in xgb effects setting just in case
-        SetXmlSetting("fseqDir", dlg.FseqDirectory);
-        SetXmlSetting("renderCacheDir", dlg.RenderCacheDirectory);
-        SetXmlSetting("backupDir", dlg.BackupDirectory);
-        UnsavedRgbEffectsChanges = true;
-
-        mediaDirectory = dlg.MediaDirectory;
-        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
-        fseqDirectory = dlg.FseqDirectory;
-        FseqDir = fseqDirectory;
-        logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
-        renderCacheDirectory = dlg.RenderCacheDirectory;
-        logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
-        backupDirectory = dlg.BackupDirectory;
-        logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
-        mAltBackupDir = dlg.AltBackupDirectory;
-        logger_base.debug("Alt Backup directory set to : %s.", (const char *)mAltBackupDir.c_str());
-    }
 }
 
 void xLightsFrame::DoBackupPurge()

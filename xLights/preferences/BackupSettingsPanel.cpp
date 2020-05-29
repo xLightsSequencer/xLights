@@ -76,11 +76,11 @@ BackupSettingsPanel::BackupSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWi
 	CheckBox_Backup = new wxCheckBox(this, ID_CHECKBOX4, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_Backup->SetValue(false);
 	StaticBoxSizer1->Add(CheckBox_Backup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	DirPickerCtrl_Backup = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL1, wxEmptyString, _("Select a directory"), wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL1"));
+	DirPickerCtrl_Backup = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL1, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL1"));
 	StaticBoxSizer1->Add(DirPickerCtrl_Backup, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Alternative Backup Directory"));
-	DirPickerCtrl_AltBackup = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL2, wxEmptyString, _("Select a directory"), wxDefaultPosition, wxDefaultSize, wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL2"));
+	DirPickerCtrl_AltBackup = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL2, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL2"));
 	StaticBoxSizer2->Add(DirPickerCtrl_AltBackup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
