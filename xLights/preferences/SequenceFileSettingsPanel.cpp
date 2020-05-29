@@ -276,24 +276,21 @@ bool SequenceFileSettingsPanel::ValidateWindow()
 
     if (CheckBox_Media->GetValue()) {
         DirPickerCtrl_Media->Enable(false);
-    }
-    else {
+    } else {
         if (!wxDir::Exists(DirPickerCtrl_Media->GetPath())) res = false;
         DirPickerCtrl_Media->Enable(true);
     }
 
     if (CheckBox_FSEQ->GetValue()) {
         DirPickerCtrl_FSEQ->Enable(false);
-    }
-    else {
+    } else {
         if (!wxDir::Exists(DirPickerCtrl_FSEQ->GetPath())) res = false;
         DirPickerCtrl_FSEQ->Enable(true);
     }
 
     if (CheckBox_RenderCache->GetValue()) {
         DirPickerCtrl_RenderCache->Enable(false);
-    }
-    else {
+    } else {
         if (!wxDir::Exists(DirPickerCtrl_RenderCache->GetPath())) res = false;
         DirPickerCtrl_RenderCache->Enable(true);
     }
@@ -302,31 +299,25 @@ bool SequenceFileSettingsPanel::ValidateWindow()
 }
 void SequenceFileSettingsPanel::OnCheckBox_RenderCacheClick(wxCommandEvent& event)
 {
+    ValidateWindow();
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
-    }
-    else {
-        ValidateWindow();
     }
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_MediaClick(wxCommandEvent& event)
 {
+    ValidateWindow();
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
-    }
-    else {
-        ValidateWindow();
     }
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_FSEQClick(wxCommandEvent& event)
 {
+    ValidateWindow();
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
-    }
-    else {
-        ValidateWindow();
     }
 }
 
