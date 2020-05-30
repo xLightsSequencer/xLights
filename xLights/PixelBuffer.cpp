@@ -2770,12 +2770,13 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         }
         offset = std::min(offset, 1.0f);
 
-        // do gausian blur
-        if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1)
-        {
-            Blur(layers[layer], offset);
+        if (layers[layer]->freezeAfterFrame > EffectPeriod - effStartPer) {
+            // do gausian blur
+            if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1) {
+                Blur(layers[layer], offset);
+            }
+            RotoZoom(layers[layer], offset);
         }
-        RotoZoom(layers[layer], offset);
     }
 
     for(int ii=0; ii < numLayers; ii++)
