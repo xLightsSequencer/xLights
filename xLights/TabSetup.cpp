@@ -69,10 +69,10 @@ const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
     wxString newdir = MenuFile->GetLabel(id);
-    SetDir(newdir);
+    SetDir(newdir, true);
 }
 
-bool xLightsFrame::SetDir(const wxString& newdir) {
+bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     static bool HasMenuSeparator = false;
 
@@ -132,39 +132,42 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
     */
 
     // save config
-    bool DirExists = wxFileName::DirExists(newdir);
-    wxString value;
-    wxConfigBase* config = wxConfigBase::Get();
-    if (DirExists) config->Write(_("LastDir"), newdir);
-    for (size_t i = 0; i < MRU_LENGTH; i++) {
-        wxString mru_name = wxString::Format("mru%d", (int)i);
-        if (mru_MenuItem[i] != nullptr) {
-            Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
-            MenuFile->Delete(mru_MenuItem[i]);
-            mru_MenuItem[i] = nullptr;
+        bool DirExists = wxFileName::DirExists(newdir);
+        wxString value;
+        wxConfigBase* config = wxConfigBase::Get();
+        if (permanent) {
+            if (DirExists) config->Write(_("LastDir"), newdir);
+            _permanentShowFolder = newdir;
         }
-        if (i < cnt) {
-            value = mru[i];
+        for (size_t i = 0; i < MRU_LENGTH; i++) {
+            wxString mru_name = wxString::Format("mru%d", (int)i);
+            if (mru_MenuItem[i] != nullptr) {
+                Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+                MenuFile->Delete(mru_MenuItem[i]);
+                mru_MenuItem[i] = nullptr;
+            }
+            if (i < cnt) {
+                value = mru[i];
+            }
+            else {
+                value = wxEmptyString;
+            }
+            config->Write(mru_name, value);
         }
-        else {
-            value = wxEmptyString;
-        }
-        config->Write(mru_name, value);
-    }
 
-    // append mru items to menu
-    cnt = mru.GetCount();
-    if (!HasMenuSeparator) {
-        MenuFile->AppendSeparator();
-        HasMenuSeparator = true;
-    }
-    for (size_t i = 0; i < cnt; i++) {
-        int menuID = wxNewId();
-        mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
-        Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
-        MenuFile->Append(mru_MenuItem[i]);
-    }
-    MenuFile->UpdateUI();
+        // append mru items to menu
+        cnt = mru.GetCount();
+        if (!HasMenuSeparator) {
+            MenuFile->AppendSeparator();
+            HasMenuSeparator = true;
+        }
+        for (size_t i = 0; i < cnt; i++) {
+            int menuID = wxNewId();
+            mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
+            Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+            MenuFile->Append(mru_MenuItem[i]);
+        }
+        MenuFile->UpdateUI();
 
     if (!DirExists) {
         wxString msg = _("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
@@ -207,7 +210,7 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
     config->Read(_("LinkFlag"), &LinkFlag);
     if( LinkFlag ) {
         mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), mediaDirectory);
+        config->Write(_("MediaDir"), wxString(mediaDirectory));
         logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
     }
 
@@ -215,7 +218,7 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
     config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
-        config->Write(_("FSEQDir"), fseqDirectory);
+        config->Write(_("FSEQDir"), wxString(fseqDirectory));
         logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
     }
 
@@ -250,6 +253,19 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
     ShowDirectoryLabel->SetLabel(showDirectory);
     ShowDirectoryLabel->GetParent()->Layout();
 
+    if (permanent) {
+        ShowDirectoryLabel->SetForegroundColour(*wxBLACK);
+        ShowDirectoryLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+            wxFONTWEIGHT_NORMAL, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+        Button_CheckShowFolderTemporarily->SetLabelText("Change Temporarily");
+    }
+    else {
+        ShowDirectoryLabel->SetForegroundColour(wxColor(255, 200, 0));
+        ShowDirectoryLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+            wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+        Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
+    }
+
     logger_base.debug("Updating networks on setup tab.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
     logger_base.debug("    Networks updated.");
@@ -276,7 +292,7 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
     config->Read(_("LinkFlag"), &LinkFlag);
     if (LinkFlag) {
         mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), mediaDirectory);
+        config->Write(_("MediaDir"), wxString(mediaDirectory));
         logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
     }
 
@@ -295,10 +311,24 @@ bool xLightsFrame::SetDir(const wxString& newdir) {
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event) {
 
-    PromptForShowDirectory();
+    PromptForShowDirectory(true);
 }
 
-bool xLightsFrame::PromptForShowDirectory() {
+
+void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
+{
+    if (Button_CheckShowFolderTemporarily->GetLabel() == "Change Temporarily") {
+        PromptForShowDirectory(false);
+    }
+    else {
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        layoutPanel->ClearUndo();
+        wxASSERT(_permanentShowFolder != "");
+        SetDir(_permanentShowFolder, true);
+    }
+}
+
+bool xLightsFrame::PromptForShowDirectory(bool permanent) {
 
     wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
@@ -320,7 +350,7 @@ bool xLightsFrame::PromptForShowDirectory() {
         {
             displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
             layoutPanel->ClearUndo();
-            return SetDir(newdir);
+            return SetDir(newdir, permanent);
         }
     }
     return false;
