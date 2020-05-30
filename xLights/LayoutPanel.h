@@ -33,6 +33,7 @@ class wxStaticText;
 
 #include <vector>
 #include <list>
+#include <map>
 
 class xLightsFrame;
 class ModelPreview;
@@ -246,7 +247,7 @@ class LayoutPanel: public wxPanel
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
-        void DeleteSelectedModel();
+        void DeleteSelectedModels();
 		void DeleteSelectedObject();
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
@@ -325,6 +326,18 @@ class LayoutPanel: public wxPanel
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
+        Model* GetModelFromTreeItem(wxTreeListItem treeItem);
+        wxTreeListItem GetTreeItemFromModel(Model* model);
+        std::vector<Model*> GetSelectedModelsFromGroup(wxTreeListItem groupItem, bool nested = true);
+        std::vector<Model*> GetSelectedModelsForEdit();
+        std::vector<std::list<std::string>> GetSelectedTreeModelPaths();
+        std::list<std::string> GetTreeItemPath(wxTreeListItem item);
+        wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
+        void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
+        void SelectModelInTree(Model* modelToSelect);
+        void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
+        void UnSelectModelInTree(Model* modelToUnSelect);
+        void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
         std::list<BaseObject*> GetSelectedBaseObjects() const;
         void PreviewModelAlignWithGround();
         void PreviewModelAlignTops();
@@ -357,11 +370,16 @@ class LayoutPanel: public wxPanel
         int mNumGroups;
         bool mPropGridActive;
         wxTreeListItem mSelectedGroup;
+        wxTreeListItems mSelectedGroups;
+        wxTreeListItems mSelectedModels;
+        wxTreeListItems mSelectedSubModels;
+        wxTreeListItems selectedTreeViewObjects;
 
         wxPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
+        wxTreeListItem selectedBaseTreeItem = nullptr;
         bool selectionLatched;
         int over_handle;
         glm::vec3 last_centerpos;
