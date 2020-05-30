@@ -191,6 +191,7 @@ const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
+const long xLightsFrame::ID_BUTTON11 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON9 = wxNewId();
@@ -437,15 +438,6 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
 
 END_EVENT_TABLE()
 
-
-xlAuiToolBar::xlAuiToolBar(wxWindow* parent,
-                           wxWindowID id,
-                           const wxPoint& pos,
-                           const wxSize& size,
-                           long style)
-: wxAuiToolBar(parent, id, pos, size, style) {
-}
-
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 
     int size = ScaleWithSystemDPI(16);
@@ -648,10 +640,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+    GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
@@ -787,7 +781,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Export_Video);
     MenuFile->AppendSeparator();
-    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
@@ -1050,6 +1044,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
+    Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChangeShowFolderTemporarily);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
@@ -1403,13 +1398,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     logger_base.debug("Show directory %s.", (const char *)dir.c_str());
 
+    wxString md;
+
     if (!xLightsApp::mediaDir.IsNull()) {
-        mediaDirectory = xLightsApp::mediaDir;
-    } else if (ok && !config->Read(_("MediaDir"), &mediaDirectory)) {
-        mediaDirectory=dir;
+        md = xLightsApp::mediaDir;
+    } else if (ok && !config->Read(_("MediaDir"), &md)) {
+        md=dir;
     }
+    mediaDirectory = md;
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
-    ObtainAccessToURL(mediaDirectory.ToStdString());
+    ObtainAccessToURL(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
@@ -1562,8 +1560,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
     {
-        if (!SetDir(dir)) {
-            if (!PromptForShowDirectory())
+        if (!SetDir(dir, true)) {
+            if (!PromptForShowDirectory(true))
             {
                 CurrentDir = "";
                 splash.Hide();
@@ -1573,7 +1571,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     else
     {
-        if (!PromptForShowDirectory())
+        if (!PromptForShowDirectory(true))
         {
             CurrentDir = "";
             splash.Hide();
@@ -3893,12 +3891,16 @@ void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    wxConfigBase* config = wxConfigBase::Get();
+
     if (useShow) {
+        config->Write("LinkFlag", true);
         if (mediaDirectory == showDirectory) return;
         mediaDirectory = showDirectory;
     }
     else {
         if (wxDir::Exists(folder)) {
+            config->Write("LinkFlag", false);
             if (mediaDirectory == folder) return;
             mediaDirectory = folder;
         }
@@ -3908,8 +3910,7 @@ void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write(_("MediaDir"), mediaDirectory);
+    config->Write(_("MediaDir"), wxString(mediaDirectory));
 
     logger_base.debug("Media directory set to : %s.", (const char*)mediaDirectory.c_str());
 }
@@ -3924,12 +3925,16 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    wxConfigBase* config = wxConfigBase::Get();
+
     if (useShow) {
+        config->Write("FSEQLinkFlag", true);
         if (fseqDirectory == showDirectory) return;
         fseqDirectory = showDirectory;
     }
     else {
         if (wxDir::Exists(folder)) {
+            config->Write("FSEQLinkFlag", false);
             if (fseqDirectory == folder) return;
             fseqDirectory = folder;
         }
@@ -4505,7 +4510,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Working in a backup directory");
 
-    if (ShowFolderIsInBackup(GetShowDirectory().ToStdString()))
+    if (ShowFolderIsInBackup(GetShowDirectory()))
     {
         wxString msg = wxString::Format("    ERR: Show directory is a (or is under a) backup show directory. %s.", GetShowDirectory());
         LogAndWrite(f, msg.ToStdString());
@@ -5991,7 +5996,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             if (wxFile::Exists(ff))
             {
-                ff = ff.substr(showDirectory.Length());
+                ff = ff.substr(showDirectory.size());
                 wxArrayString folders = Split(ff, delimiters);
 
                 for (auto it2 : folders)
@@ -9051,7 +9056,7 @@ void xLightsFrame::SetEnableRenderCache(const wxString &t)
 
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr) {
         // this will force a reload of the cache
-        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
     } else {
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&mSequenceElements, false);

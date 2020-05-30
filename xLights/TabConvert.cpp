@@ -98,7 +98,7 @@ void xLightsFrame:: SetMediaFilename(const wxString& filename)
         return;
     }
 
-    wxPathFormat PathFmt = mediaFilename.Contains(wxString("\\")) ? wxPATH_DOS : wxPATH_NATIVE;
+    wxPathFormat PathFmt = Contains(mediaFilename, "\\") ? wxPATH_DOS : wxPATH_NATIVE;
     wxFileName fn1(mediaFilename, PathFmt);
     if (!fn1.FileExists())
     {

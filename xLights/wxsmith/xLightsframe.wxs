@@ -638,7 +638,7 @@
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON3" variable="Button03" member="no">
-														<label>Change</label>
+														<label>Change Permanently</label>
 														<handler function="OnMenuOpenFolderSelected" entry="EVT_BUTTON" />
 													</object>
 													<col>1</col>
@@ -648,10 +648,21 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON11" variable="Button_CheckShowFolderTemporarily" member="yes">
+														<label>Change Temporarily</label>
+														<handler function="OnButton_ChangeShowFolderTemporarily" entry="EVT_BUTTON" />
+													</object>
+													<col>2</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT4" variable="ShowDirectoryLabel" member="yes">
 														<label>{Show Directory not set}</label>
 													</object>
-													<col>2</col>
+													<col>3</col>
 													<row>0</row>
 													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -1033,7 +1044,6 @@
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
-					<accel>F9</accel>
 					<bitmap stock_id="wxART_FOLDER" />
 					<handler function="OnMenuOpenFolderSelected" entry="EVT_MENU" />
 				</object>

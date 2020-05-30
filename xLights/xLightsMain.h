@@ -207,10 +207,12 @@ class wxLed;
 class xlAuiToolBar : public wxAuiToolBar {
 public:
     xlAuiToolBar(wxWindow* parent,
-                 wxWindowID id = wxID_ANY,
-                 const wxPoint& pos = wxDefaultPosition,
-                 const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE);
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxAUI_TB_DEFAULT_STYLE) : wxAuiToolBar(parent, id, pos, size, style)
+    {
+    }
     virtual ~xlAuiToolBar() {}
 
     wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}
@@ -353,8 +355,8 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    const wxString &GetShowDirectory() const { return showDirectory; }
-    const wxString &GetFseqDirectory() const { return fseqDirectory; }
+    const std::string &GetShowDirectory() const { return showDirectory; }
+    const std::string &GetFseqDirectory() const { return fseqDirectory; }
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
@@ -412,8 +414,6 @@ public:
     void OnAbout(wxCommandEvent& event);
     void OnMenuOpenFolderSelected(wxCommandEvent& event);
     void OnTimer1Trigger(wxTimerEvent& event);
-    void OnButtonNetworkChangeClick(wxCommandEvent& event);
-    void OnButtonNetworkDeleteClick(wxCommandEvent& event);
     void OnButtonNetworkMoveUpClick(wxCommandEvent& event);
     void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
@@ -421,7 +421,6 @@ public:
     void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
     void OnButtonStopNowClick(wxCommandEvent& event);
-    void OnButtonNetworkDeleteAllClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
     void OnBitmapButtonSaveSeqClick(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
@@ -460,7 +459,6 @@ public:
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
-    void OnButtonAddNullClick(wxCommandEvent& event);
     void ShowHidePerspectivesWindow(wxCommandEvent& event);
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
@@ -522,7 +520,6 @@ public:
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
     void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
-    void OnButtonAddLORClick(wxCommandEvent& event);
     void OnMenuItem_LoudVolSelected(wxCommandEvent& event);
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
@@ -532,8 +529,6 @@ public:
     uint64_t BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS);
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
-    void OnButtonAddDDPClick(wxCommandEvent& event);
-    void OnButtonOtherFoldersClick(wxCommandEvent& event);
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     void OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event);
@@ -542,8 +537,6 @@ public:
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
-    void OnButton_AddZCPPClick(wxCommandEvent& event);
-    void OnButton_DiscoverClick(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
@@ -552,8 +545,6 @@ public:
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
-    void OnButtonAddControllerClick(wxCommandEvent& event);
-    void OnButtonDeleteControllerClick(wxCommandEvent& event);
     void OnButtonDiscoverClick(wxCommandEvent& event);
     void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
     void OnButtonVisualiseClick(wxCommandEvent& event);
@@ -566,6 +557,7 @@ public:
     void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
     void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
+    void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -638,6 +630,7 @@ public:
     static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
+    static const long ID_BUTTON11;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON9;
@@ -791,6 +784,7 @@ public:
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
+    wxButton* Button_CheckShowFolderTemporarily;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
@@ -1135,12 +1129,11 @@ public:
     void OnListItemScrollTimerControllers(wxTimerEvent& event);
 
     void OnMenuMRU(wxCommandEvent& event);
-    bool SetDir(const wxString& dirname);
-    bool PromptForShowDirectory();
+    bool SetDir(const wxString& dirname, bool permanent);
+    bool PromptForShowDirectory(bool permanent);
     bool SaveNetworksFile();
     void NetworkChange();
     void NetworkChannelsChange();
-    void UploadFPPProxyOuputs();
 	void PingController(Controller* e);
     void SetModelData(ControllerEthernet* controller, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
     int SetZCPPPort(Controller* c, std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
@@ -1151,12 +1144,13 @@ public:
     std::queue<RenderEvent*> mainThreadRenderEvents;
     std::mutex renderEventLock;
 
-    wxString mediaFilename;
-    wxString showDirectory;
-    wxString mediaDirectory;
-    wxString fseqDirectory;
-    wxString renderCacheDirectory;
-    wxString backupDirectory;
+    std::string _permanentShowFolder;
+    std::string mediaFilename;
+    std::string showDirectory;
+    std::string mediaDirectory;
+    std::string fseqDirectory;
+    std::string renderCacheDirectory;
+    std::string backupDirectory;
     SeqDataType SeqData;
     wxTimer _scrollTimer;
 
@@ -1200,9 +1194,6 @@ private:
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime);
-
-
-    void OnNetworkPopup(wxCommandEvent &event);
 
     // sequence
     void LoadEffectsFile();

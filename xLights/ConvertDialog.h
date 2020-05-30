@@ -40,7 +40,7 @@ class ConvertDialog: public wxDialog
     SeqDataType& SeqData;
     OutputManager* _outputManager;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
-    wxString& mediaFilename;
+    std::string& mediaFilename;
     wxArrayString& ChannelNames;
     wxArrayInt& ChannelColors;
     wxArrayString& ChNames;
@@ -73,7 +73,7 @@ class ConvertDialog: public wxDialog
         void ConversionError(const wxString& msg);
         void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
         void SetStatusText(const wxString &msg);
-        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, std::string& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ConvertDialog();
 
 		//(*Declarations(ConvertDialog)

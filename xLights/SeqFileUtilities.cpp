@@ -340,7 +340,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             {
                 plog->Show(true);
             }
-            wxString mf;
+            std::string mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
                                           &_outputManager,                              // global network info
@@ -378,7 +378,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         // open the xml file so we can see if it has media
         CurrentSeqXmlFile->Open(GetShowDirectory());
 
-        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -658,14 +658,14 @@ bool xLightsFrame::CloseSequence()
     AbortRender();
 
     _renderCache.CleanupCache(&mSequenceElements);
-    _renderCache.SetSequence(renderCacheDirectory.ToStdString(), "");
+    _renderCache.SetSequence(renderCacheDirectory, "");
 
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
     sequenceVideoPanel->SetMediaPath("");
     xlightsFilename = "";
-    mediaFilename.Clear();
+    mediaFilename = "";
     previewLoaded = false;
     previewPlaying = false;
     playType = 0;
