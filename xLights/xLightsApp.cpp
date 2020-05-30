@@ -563,6 +563,17 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     }
     wxString fileName = fileNames[0];
     logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
+    
+    
+    wxString showDir = wxPathOnly(fileName);
+    while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
+        auto old = showDir;
+        showDir = wxPathOnly(showDir);
+        if (showDir == old) showDir = "";
+    }
+    if (showDir != "" && showDir != __frame->showDirectory) {
+        __frame->SetDir(showDir, false);
+    }
     if (__frame) {
         __frame->OpenSequence(fileName, nullptr);
     } else {

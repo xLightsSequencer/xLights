@@ -697,7 +697,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         mediaFilename = "";
         if (xml_file.GetMedia() == nullptr) {
             mediaFilename = xml_file.GetMediaFile();
-            ObtainAccessToURL(mediaFilename.ToStdString());
+            ObtainAccessToURL(mediaFilename);
             if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
                 SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT(""));
                 setting_dlg.Fit();
@@ -707,7 +707,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
                 if (xml_file.GetMedia() != nullptr) {
                     mediaFilename = xml_file.GetMedia()->FileName();
-                    ObtainAccessToURL(mediaFilename.ToStdString());
+                    ObtainAccessToURL(mediaFilename);
                     if (xml_file.GetMedia() != nullptr && xml_file.GetMedia()->GetFrameInterval() < 0) {
                         xml_file.GetMedia()->SetFrameInterval(xml_file.GetFrameMS());
                     }
@@ -721,7 +721,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         }
         else {
             mediaFilename = xml_file.GetMediaFile();
-            ObtainAccessToURL(mediaFilename.ToStdString());
+            ObtainAccessToURL(mediaFilename);
         }
 
         if (mediaFilename != wxEmptyString) {
