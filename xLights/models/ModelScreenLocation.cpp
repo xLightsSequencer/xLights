@@ -4407,17 +4407,19 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
                     break;
                 }
             } else {
-                if (VectorMath::TestRayOBBIntersection2D(
-                    ray_origin,
-                    seg_aabb_min[i],
-                    seg_aabb_max[i],
-                    *mPos[i].mod_matrix)
-                    ) {
-                    if (i != selected_segment) {
-                        handle = i | 0x10000;
-                        return_value = wxCURSOR_BULLSEYE;
+                if (mPos[i].mod_matrix != nullptr) {
+                    if (VectorMath::TestRayOBBIntersection2D(
+                        ray_origin,
+                        seg_aabb_min[i],
+                        seg_aabb_max[i],
+                        *mPos[i].mod_matrix)
+                        ) {
+                        if (i != selected_segment) {
+                            handle = i | 0x10000;
+                            return_value = wxCURSOR_BULLSEYE;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
