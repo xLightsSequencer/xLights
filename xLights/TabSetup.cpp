@@ -254,15 +254,17 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     ShowDirectoryLabel->GetParent()->Layout();
 
     if (permanent) {
-        ShowDirectoryLabel->SetForegroundColour(*wxBLACK);
-        ShowDirectoryLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-            wxFONTWEIGHT_NORMAL, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+        ShowDirectoryLabel->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+        wxFont font = ShowDirectoryLabel->GetFont();
+        font.SetWeight(wxFONTWEIGHT_NORMAL);
+        ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Change Temporarily");
     }
     else {
         ShowDirectoryLabel->SetForegroundColour(wxColor(255, 200, 0));
-        ShowDirectoryLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-            wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+        wxFont font = ShowDirectoryLabel->GetFont();
+        font.SetWeight(wxFONTWEIGHT_BOLD);
+        ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
     }
 

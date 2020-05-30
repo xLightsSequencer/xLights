@@ -307,8 +307,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
     backupDirectory = GetXmlSetting("backupDir", showDirectory);
-    ObtainAccessToURL(fseqDirectory.ToStdString());
-    ObtainAccessToURL(backupDirectory.ToStdString());
+    ObtainAccessToURL(fseqDirectory);
+    ObtainAccessToURL(backupDirectory);
     if (!wxDir::Exists(fseqDirectory))
     {
         logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
