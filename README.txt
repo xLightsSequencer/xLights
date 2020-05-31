@@ -11,7 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add voting support to remote falcon plugin
    -- enh (kevin)  Allow for multi-select of models from list in layout tab
+   -- enh (keith)  Allow temporary change to show folder
+   -- enh (keith)  Change sequence filename extension to xsq
+   -- enh (keith)  Move all the subfolder settings into preferences
+   -- enh (keith)  Add bulk edit support to morph quick set button
+   -- bug (keith)  Fix crash when moving polyline between previews
+   -- bug (keith)  Fix global proxy being ignored when outputing pixel data
+   -- bug (keith)  Fix effect freeze does not freeze rotozoom and blur
 2020.22 May 26 2020
    -- enh (dkulp)  Faster refresh/startup on OSX with complicated group trees
    -- enh (scott)  Added model group to list right-click menu with the ability to Copy, Sort, and Clear models.
