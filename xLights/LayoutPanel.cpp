@@ -2772,45 +2772,37 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     int modelCount = FindModelsClicked(x, y, found);
     if (modelCount == 0)
         return false;
-    
-    bool treeSelectionChanged = false;
+
     propertyEditor->Freeze();
     clearPropGrid();
     propertyEditor->Thaw();
-    
     Model* clickedModel = modelPreview->GetModels()[found[0]];
-    
+    bool treeSelectionChanged = false;
     if (clickedModel->Selected)
     {
-        UnSelectModelInTree(clickedModel);
         treeSelectionChanged = true;
+        UnSelectModelInTree(clickedModel);
     }
-    else if (modelPreview->GetModels()[found[0]]->GroupSelected)
+    else if (clickedModel->GroupSelected)
     {
-        clickedModel->GroupSelected = false;
-        clickedModel->Selected = true;
-        if (selectedBaseObject != nullptr) {
-            selectedBaseObject->GroupSelected = true;
-            selectedBaseObject->Selected = false;
-            selectedBaseObject->SelectHandle(-1);
-            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-        }
+        SetSelectedModelToGroupSelected();
+        modelPreview->GetModels()[found[0]]->Selected = true;
+        modelPreview->GetModels()[found[0]]->Highlighted = true;
         selectedBaseObject = clickedModel;
-        highlightedBaseObject = selectedBaseObject;
-        selectedBaseObject->SelectHandle(-1);
-        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        highlightedBaseObject = clickedModel;
+        clickedModel->SelectHandle(-1);
+        clickedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
     }
     else
     {
-        SelectModelInTree(modelPreview->GetModels()[found[0]]);
         treeSelectionChanged = true;
+        SelectModelInTree(clickedModel);
+        modelPreview->GetModels()[found[0]]->Highlighted = true;
     }
 
+    // no need to do this work if tree selection changed as it is already done at the end of SelectionChanged();
     if (!treeSelectionChanged) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
-    } else {
-        // take focus away from model tree
-        modelPreview->SetFocus();
     }
 
     return true;
@@ -3041,7 +3033,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                 }
                 
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+                // no need to do this work if tree selection changed as it is already done at the end of SelectionChanged();
+                if (!treeSelectionChanged) {
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+                }
             }
         }
     }
@@ -4902,7 +4897,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             if (mitem != nullptr && mitem->GetModel() == modelToSelect) {
                 TreeListViewModels->Select(item);
                 TreeListViewModels->EnsureVisible(item);
-                selectedTreeModels.push_back(item);
+                //selectedTreeModels.push_back(item);
                 break;
             }
         }
@@ -4969,7 +4964,7 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
             if (model->GetDisplayAs() == "ModelGroup" && nested == true) {
                 std::vector<Model *> nestedModels = GetSelectedModelsFromGroup(item, true);
                 for (Model* nestedModel: nestedModels) {
-                    if (std::find(groupModels.begin(), groupModels.end(), nestedModel) != groupModels.end()) {
+                    if (std::find(groupModels.begin(), groupModels.end(), nestedModel) == groupModels.end()) {
                         groupModels.push_back(nestedModel);
                     }
                 }
@@ -7138,7 +7133,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
         
         Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
         resetPropertyGrid();
-        if (item.IsOk()) {
+        if (item.IsOk() && selectedItems.size() > 0) {
             bool isPrimary = false;
             if (selectedItems.size() == 1) {
                 isPrimary = true;
@@ -7232,9 +7227,10 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             
             SetToolTipForTreeList(TreeListViewModels, tooltip);
                         
-            #ifndef LINUX
-            //TreeListViewModels->SetFocus();
-            #endif
+            // removing below or Keyboard Cut/Copy/Paste/etc will not fire when making selections in preview
+            // #ifndef LINUX
+            // TreeListViewModels->SetFocus();
+            // #endif
             
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnSelectionChanged");
         } else {
