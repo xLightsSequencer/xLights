@@ -5586,7 +5586,7 @@ void xLightsFrame::CheckSequence(bool display)
         if (mg != nullptr) {
             for (const auto& it2 : modelGroupsWithDMXModels) {
                 if (mg->DirectlyContainsModel(it2)) {
-                    wxString msg = wxString::Format("    WARN: Model group '%s' contains model group %s which contains one or more DMX models. This is not likely to work as expected.", (const char*)mg->Name().c_str(), (const char*)it2->Name().c_str());
+                    wxString msg = wxString::Format("    WARN: Model group '%s' contains model group '%s' which contains one or more DMX models. This is not likely to work as expected.", (const char*)mg->Name().c_str(), (const char*)it2->Name().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
@@ -5659,13 +5659,13 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Submodels with nodes not in parent model");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            for (int i = 0; i < it.second->GetNumSubModels(); ++i)
             {
-                SubModel* sm = (SubModel*)it->second->GetSubModel(i);
+                SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid())
                 {
                     wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.",
