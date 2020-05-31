@@ -330,6 +330,9 @@ class LayoutPanel: public wxPanel
         wxTreeListItem GetTreeItemFromModel(Model* model);
         std::vector<Model*> GetSelectedModelsFromGroup(wxTreeListItem groupItem, bool nested = true);
         std::vector<Model*> GetSelectedModelsForEdit();
+        void SetTreeModelSelected(Model* model, bool isPrimary);
+        void SetTreeGroupModelsSelected(Model* model, bool isPrimary);
+        void SetTreeSubModelSelected(Model* model, bool isPrimary);
         std::vector<std::list<std::string>> GetSelectedTreeModelPaths();
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
@@ -369,17 +372,15 @@ class LayoutPanel: public wxPanel
         int mHitTestNextSelectModelIndex;
         int mNumGroups;
         bool mPropGridActive;
-        wxTreeListItem mSelectedGroup;
-        wxTreeListItems mSelectedGroups;
-        wxTreeListItems mSelectedModels;
-        wxTreeListItems mSelectedSubModels;
-        wxTreeListItems selectedTreeViewObjects;
+        wxTreeListItems selectedTreeGroups;
+        wxTreeListItems selectedTreeModels;
+        wxTreeListItems selectedTreeSubModels;
 
         wxPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
-        wxTreeListItem selectedBaseTreeItem = nullptr;
+        wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched;
         int over_handle;
         glm::vec3 last_centerpos;
