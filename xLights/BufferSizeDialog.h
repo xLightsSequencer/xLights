@@ -12,9 +12,11 @@
 
  //(*Headers(BufferSizeDialog)
  #include <wx/bmpbuttn.h>
+ #include <wx/button.h>
  #include <wx/dialog.h>
  #include <wx/sizer.h>
  #include <wx/spinctrl.h>
+ #include <wx/statline.h>
  #include <wx/stattext.h>
  //*)
 
@@ -36,10 +38,13 @@ class BufferSizeDialog: public wxDialog
 		ValueCurveButton* ValueCurve_Left;
 		ValueCurveButton* ValueCurve_Right;
 		ValueCurveButton* ValueCurve_Top;
+		wxButton* Button_Export;
+		wxButton* Button_Load;
 		wxSpinCtrlDouble* SpinCtrl_Bottom;
 		wxSpinCtrlDouble* SpinCtrl_Left;
 		wxSpinCtrlDouble* SpinCtrl_Right;
 		wxSpinCtrlDouble* SpinCtrl_Top;
+		wxStaticLine* StaticLine1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -61,6 +66,9 @@ class BufferSizeDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL4;
 		static const long ID_VALUECURVE_BufferRight;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
+		static const long ID_STATICLINE1;
 		//*)
 
 	private:
@@ -71,6 +79,8 @@ class BufferSizeDialog: public wxDialog
 		void OnSpinCtrl_BottomChange(wxSpinDoubleEvent& event);
 		void OnSpinCtrl_RightChange(wxSpinDoubleEvent& event);
 		void OnValueCurve_Click(wxCommandEvent& event);
+		void OnButton_ExportClick(wxCommandEvent& event);
+		void OnButton_LoadClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
