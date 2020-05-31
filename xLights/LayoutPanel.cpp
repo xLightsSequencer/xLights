@@ -2800,7 +2800,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         modelPreview->GetModels()[found[0]]->Highlighted = true;
     }
 
-    // no need to do this work if tree selection changed as it is already done at the end of SelectionChanged();
+    // no need to do this work if tree selection changed as it is already done at the end of OnSelectionChanged();
     if (!treeSelectionChanged) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
     }
@@ -3033,7 +3033,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                 }
                 
-                // no need to do this work if tree selection changed as it is already done at the end of SelectionChanged();
+                // no need to do this work if tree selection changed as it is already done at the end of OnSelectionChanged();
                 if (!treeSelectionChanged) {
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                 }
