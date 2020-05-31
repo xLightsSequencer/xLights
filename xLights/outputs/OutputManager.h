@@ -130,7 +130,7 @@ public:
     std::list<std::string> GetIps() const;
 
     std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
-    void SetGlobalFPPProxy(const std::string& globalFPPProxy) { if (_globalFPPProxy != globalFPPProxy) { _globalFPPProxy = globalFPPProxy; _dirty = true; } }
+    void SetGlobalFPPProxy(const std::string& globalFPPProxy);
     
     bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
     

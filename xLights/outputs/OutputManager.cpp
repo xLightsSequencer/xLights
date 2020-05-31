@@ -297,6 +297,11 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         logger_base.warn("Error loading networks file: %s.", (const char*)fn.GetFullPath().c_str());
         return false;
     }
+
+    for (const auto& it : _controllers)         {
+        it->SetGlobalFPPProxy(_globalFPPProxy);
+    }
+
     logger_base.debug("Networks loaded.");
 
     AsyncPingAll();
@@ -443,7 +448,10 @@ std::list<ControllerEthernet*> OutputManager::GetControllers(const std::string& 
     return res;
 }
 
-void OutputManager::AddController(Controller* controller, int pos) {
+void OutputManager::AddController(Controller* controller, int pos)
+{
+    // Make sure global FPP proxy has been set
+    controller->SetGlobalFPPProxy(_globalFPPProxy);
 
     if (pos < 0 || pos > _controllers.size()) {
         _controllers.push_back(controller);
@@ -817,6 +825,16 @@ std::list<std::string> OutputManager::GetIps() const {
     return res;
 }
 
+void OutputManager::SetGlobalFPPProxy(const std::string& globalFPPProxy)
+{
+    if (_globalFPPProxy != globalFPPProxy) {
+        _globalFPPProxy = globalFPPProxy; _dirty = true;
+        for (const auto& it : _controllers) {
+            it->SetGlobalFPPProxy(globalFPPProxy);
+        }
+    }
+}
+
 bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>& renames) {
 
     bool found = false;
@@ -1053,6 +1071,10 @@ bool OutputManager::StartOutput() {
     bool err = false;
 
     for (const auto& it : GetAllOutputs()) {
+
+        // make sure global FPP proxy is up to date ...
+        it->SetGlobalFPPProxyIP(_globalFPPProxy);
+
         bool preok = ok;
         ok = it->Open() && ok;
         if (!ok && ok != preok) {

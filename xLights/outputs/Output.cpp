@@ -59,6 +59,7 @@ Output::Output(Output* output) {
     _description_CONVERT = output->GetDescription_CONVERT();
     _autoSize_CONVERT = output->IsAutoSize_CONVERT();
     _fppProxy = output->GetFPPProxyIP();
+    _globalFPPProxy = output->_globalFPPProxy;
     _enabled = output->IsEnabled();
 }
 
@@ -204,12 +205,20 @@ bool Output::Open() {
     _skippedFrames = 9999;
     _lastOutputTime = 0;
 
-    if (_fppProxy != "") {
-        _fppProxyOutput = new DDPOutput();
-        _fppProxyOutput->_ip = _fppProxy;
-        _fppProxyOutput->_startChannel = _startChannel;
-        _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
-        _fppProxyOutput->Open();
+    // We only proxy IP outputs
+    if (IsIpOutput()) {
+        std::string proxy = _fppProxy;
+        if (proxy == "") {
+            proxy = _globalFPPProxy;
+        }
+
+        if (proxy != "") {
+            _fppProxyOutput = new DDPOutput();
+            _fppProxyOutput->_ip = proxy;
+            _fppProxyOutput->_startChannel = _startChannel;
+            _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
+            _fppProxyOutput->Open();
+        }
     }
     return true;
 }
