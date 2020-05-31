@@ -2018,59 +2018,64 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnselectAllModels");
 
     if (!updatingProperty && addBkgProps) {
-        propertyEditor->Freeze();
-        clearPropGrid();
-
-        GetBackgroundImageForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundFile
-        GetBackgroundScaledForSelectedPreview();      // don't need return value....just let it set local variable previewBackgroundScaled
-        GetBackgroundBrightnessForSelectedPreview();  // don't need return value....just let it set local variable previewBackgroundBrightness
-        GetBackgroundAlphaForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundBrightness
-
-        if (backgroundFile != previewBackgroundFile) {
-            delete background;
-            background = nullptr;
-        }
-
-        if (background == nullptr) {
-            backgroundFile = previewBackgroundFile;
-            if (backgroundFile != "" && wxFileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
-                background = new wxImage(backgroundFile);
-            }
-        }
-        wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
-            "BkgImage",
-            previewBackgroundFile,
-            background));
-        p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
-        propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
-        if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
-            wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
-            prop->SetAttribute("Min", 0);
-            prop->SetAttribute("Max", 4096);
-            prop->SetEditor("SpinCtrl");
-            prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
-            prop->SetAttribute("Min", 0);
-            prop->SetAttribute("Max", 4096);
-            prop->SetEditor("SpinCtrl");
-        }
-        wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness",  previewBackgroundBrightness));
-        prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 100);
-        prop->SetEditor("SpinCtrl");
-
-        prop = propertyEditor->Append(new wxUIntProperty("Transparency", "BkgTransparency",  100 - previewBackgroundAlpha));
-        prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 100);
-        prop->SetEditor("SpinCtrl");
-
-        prop = propertyEditor->Append(new wxBoolProperty("2D Bounding Box", "BoundingBox", xlights->GetDisplay2DBoundingBox()));
-        prop->SetAttribute("UseCheckbox", true);
-
-        prop = propertyEditor->Append(new wxBoolProperty("X0 Is Center", "2DXZeroIsCenter", xlights->GetDisplay2DCenter0()));
-        prop->SetAttribute("UseCheckbox", true);
-
-        propertyEditor->Thaw();
+        showBackgroundProperties();
     }
+}
+
+void LayoutPanel::showBackgroundProperties()
+{
+    propertyEditor->Freeze();
+    clearPropGrid();
+
+    GetBackgroundImageForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundFile
+    GetBackgroundScaledForSelectedPreview();      // don't need return value....just let it set local variable previewBackgroundScaled
+    GetBackgroundBrightnessForSelectedPreview();  // don't need return value....just let it set local variable previewBackgroundBrightness
+    GetBackgroundAlphaForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundBrightness
+
+    if (backgroundFile != previewBackgroundFile) {
+        delete background;
+        background = nullptr;
+    }
+
+    if (background == nullptr) {
+        backgroundFile = previewBackgroundFile;
+        if (backgroundFile != "" && wxFileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
+            background = new wxImage(backgroundFile);
+        }
+    }
+    wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
+        "BkgImage",
+        previewBackgroundFile,
+        background));
+    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
+    propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
+    if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
+        wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 4096);
+        prop->SetEditor("SpinCtrl");
+        prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 4096);
+        prop->SetEditor("SpinCtrl");
+    }
+    wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
+    prop->SetAttribute("Min", 0);
+    prop->SetAttribute("Max", 100);
+    prop->SetEditor("SpinCtrl");
+
+    prop = propertyEditor->Append(new wxUIntProperty("Transparency", "BkgTransparency", 100 - previewBackgroundAlpha));
+    prop->SetAttribute("Min", 0);
+    prop->SetAttribute("Max", 100);
+    prop->SetEditor("SpinCtrl");
+
+    prop = propertyEditor->Append(new wxBoolProperty("2D Bounding Box", "BoundingBox", xlights->GetDisplay2DBoundingBox()));
+    prop->SetAttribute("UseCheckbox", true);
+
+    prop = propertyEditor->Append(new wxBoolProperty("X0 Is Center", "2DXZeroIsCenter", xlights->GetDisplay2DCenter0()));
+    prop->SetAttribute("UseCheckbox", true);
+
+    propertyEditor->Thaw();
 }
 
 void LayoutPanel::SelectAllModels()
@@ -2695,6 +2700,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
 void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
+        int count = 0;
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
@@ -2706,8 +2712,11 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
                 }
                 modelPreview->GetModels()[i]->GroupSelected = true;
                 SelectModelInTree(modelPreview->GetModels()[i]);
+                count++;
             }
         }
+        if (count>1)
+            showBackgroundProperties();
     }
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
@@ -7203,9 +7212,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             std::string tooltip = "";
             
             if (totalSelections > 1) {
-                ShowPropGrid(false);
-                model_grp_panel->UpdatePanel("");
-                model_grp_panel->Hide();
+                showBackgroundProperties();
                 tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n", gSize, mSize, smSize);
             } else if (gSize == 1) {
                 ShowPropGrid(false);
