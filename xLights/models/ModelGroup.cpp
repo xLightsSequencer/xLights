@@ -124,6 +124,17 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
     return found;
 }
 
+bool ModelGroup::DirectlyContainsModel(Model* m)
+{
+    for (const auto& it : models) {
+        if (m == it) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool ModelGroup::ContainsModel(Model* m)
 {
     wxASSERT(m->GetDisplayAs() != "ModelGroup");
