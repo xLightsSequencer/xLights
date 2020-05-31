@@ -2672,23 +2672,16 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
 {
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
-    if (modelCount == 0)
-    {
-        TreeListViewModels->UnselectAll();
+    TreeListViewModels->UnselectAll();
+    if (modelCount == 0) {
         return false;
-    }
-    else if (modelCount == 1)
-    {
+    } else if (modelCount == 1) {
         SelectModel(modelPreview->GetModels()[found[0]]);
         mHitTestNextSelectModelIndex = 0;
         return true;
-    }
-    else if (modelCount > 1)
-    {
-        for (int i = 0; i < modelCount; i++)
-        {
-            if (mHitTestNextSelectModelIndex == i)
-            {
+    } else if (modelCount > 1)  {
+        for (int i = 0; i < modelCount; i++) {
+            if (mHitTestNextSelectModelIndex == i) {
                 SelectModel(modelPreview->GetModels()[found[i]]);
                 mHitTestNextSelectModelIndex += 1;
                 mHitTestNextSelectModelIndex %= modelCount;
