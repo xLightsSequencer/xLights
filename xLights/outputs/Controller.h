@@ -144,6 +144,8 @@ public:
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
 
+    void SetGlobalFPPProxy(const std::string& globalFPPProxy);
+
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
     #pragma endregion
 
