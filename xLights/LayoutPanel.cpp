@@ -4893,6 +4893,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             if (mitem != nullptr && mitem->GetModel() == modelToSelect) {
                 TreeListViewModels->Select(item);
                 TreeListViewModels->EnsureVisible(item);
+                selectedTreeModels.push_back(item);
                 break;
             }
         }
