@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Change sequence filename extension to xsq
    -- enh (keith)  Move all the subfolder settings into preferences
    -- enh (keith)  Add bulk edit support to morph quick set button
+   -- enh (keith)  Add the ability to export and load sub-buffer definitions to simplify reuse
    -- bug (keith)  Fix crash when moving polyline between previews
    -- bug (keith)  Fix global proxy being ignored when outputing pixel data
    -- bug (keith)  Fix effect freeze does not freeze rotozoom and blur
