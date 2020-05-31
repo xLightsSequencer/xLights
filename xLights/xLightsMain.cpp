@@ -5507,9 +5507,9 @@ void xLightsFrame::CheckSequence(bool display)
 
                 int modelCount = 0;
 
-                for (auto m = models.begin(); m != models.end(); ++m)
+                for (const auto& m : models)
                 {
-                    Model* model = AllModels.GetModel(*m);
+                    Model* model = AllModels.GetModel(m);
 
                     if (model == nullptr)
                     {
@@ -5547,9 +5547,8 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing no models that exist");
 
-    for (auto it = emptyModelGroups.begin(); it != emptyModelGroups.end(); ++it)
-    {
-        wxString msg = wxString::Format("    ERR: Model group '%s' contains no models.", *it);
+    for (const auto& it : emptyModelGroups) {
+        wxString msg = wxString::Format("    ERR: Model group '%s' contains no models.", it);
         LogAndWrite(f, msg.ToStdString());
         errcount++;
     }
@@ -5561,17 +5560,84 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Check for model groups and DMX models and common problems
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups with DMX models likely to cause issues");
+
+    std::list<ModelGroup*> modelGroupsWithDMXModels;
+    for (const auto& it : AllModels) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+
+        if (mg != nullptr) {
+            for (const auto& it2 : mg->ModelNames()) {
+                auto m = AllModels[it2];
+                if (m->IsDMXModel()) {
+                    modelGroupsWithDMXModels.push_back(mg);
+                    break;
+                }
+            }
+        }
+    }
+
+    // now we have a list of groups containing models ... look for model groups containing those groups
+    for (const auto& it : AllModels) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+
+        if (mg != nullptr) {
+            for (const auto& it2 : modelGroupsWithDMXModels) {
+                if (mg->DirectlyContainsModel(it2)) {
+                    wxString msg = wxString::Format("    WARN: Model group '%s' contains model group %s which contains one or more DMX models. This is not likely to work as expected.", (const char*)mg->Name().c_str(), (const char*)it2->Name().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+        }
+    }
+
+    // Also check those groups only contain models which are all DMX and the same number of channels
+    for (const auto& it : modelGroupsWithDMXModels) {
+        int numchannels = -1;
+        for (const auto& it2 : it->ModelNames()) {
+            auto m = AllModels[it2];
+            if (!m->IsDMXModel()) {
+                wxString msg = wxString::Format("    WARN: Model group '%s' contains a mix of DMX and non DMX models. This is not likely to work as expected.", (const char*)it->Name().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+                break;
+            }
+            else {
+                if (numchannels == -1) {
+                    numchannels = m->GetChanCount();
+                }
+                else {
+                    if (numchannels != m->GetChanCount()) {
+                        wxString msg = wxString::Format("    WARN: Model group '%s' contains DMX models with varying numbers of channels. This is not likely to work as expected.", (const char*)it->Name().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave) {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Check for submodels with no nodes
     LogAndWrite(f, "");
     LogAndWrite(f, "Submodels with no nodes");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            for (int i = 0; i < it.second->GetNumSubModels(); ++i)
             {
-                Model* sm = it->second->GetSubModel(i);
+                Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0)
                 {
                     wxString msg = wxString::Format("    ERR: Submodel '%s' contains no nodes.", sm->GetFullName());
