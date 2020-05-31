@@ -4966,7 +4966,7 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
             if (model->GetDisplayAs() == "ModelGroup" && nested == true) {
                 std::vector<Model *> nestedModels = GetSelectedModelsFromGroup(item, true);
                 for (Model* nestedModel: nestedModels) {
-                    if (std::find(groupModels.begin(), groupModels.end(), nestedModel) != groupModels.end()) {
+                    if (std::find(groupModels.begin(), groupModels.end(), nestedModel) == groupModels.end()) {
                         groupModels.push_back(nestedModel);
                     }
                 }
@@ -7135,7 +7135,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
         
         Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
         resetPropertyGrid();
-        if (item.IsOk()) {
+        if (item.IsOk() && selectedItems.size() > 0) {
             bool isPrimary = false;
             if (selectedItems.size() == 1) {
                 isPrimary = true;
@@ -7232,7 +7232,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             SetToolTipForTreeList(TreeListViewModels, tooltip);
                         
             #ifndef LINUX
-            //TreeListViewModels->SetFocus();
+            TreeListViewModels->SetFocus();
             #endif
             
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnSelectionChanged");
