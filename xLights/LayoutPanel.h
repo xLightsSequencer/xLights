@@ -26,6 +26,7 @@ class wxStaticText;
 
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
+#include <wx/treectrl.h>
 #include <wx/xml/xml.h>
 #include <glm/glm.hpp>
 
@@ -33,6 +34,7 @@ class wxStaticText;
 
 #include <vector>
 #include <list>
+#include <map>
 
 class xLightsFrame;
 class ModelPreview;
@@ -246,7 +248,7 @@ class LayoutPanel: public wxPanel
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
-        void DeleteSelectedModel();
+        void DeleteSelectedModels();
 		void DeleteSelectedObject();
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
@@ -264,6 +266,7 @@ class LayoutPanel: public wxPanel
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true );
+        void showBackgroundProperties();
         void SelectAllModels();
         void SelectModels(const wxTreeListItems& models);
         void SetupPropGrid(BaseObject *model);
@@ -310,8 +313,12 @@ class LayoutPanel: public wxPanel
         void ShowNodeLayout();
         void ShowWiring();
         bool IsAllSelectedModelsArePixelProtocol() const;
-
-        bool SelectSingleModel(int x,int y);
+        void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
+        void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
+        void AddAlignOptionsToMenu(wxMenu* mnuAlign);
+        void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
+        void AddResizeOptionsToMenu(wxMenu* mnuResize);
+        Model* SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
         void HighlightAllInBoundingRect(bool models_and_objects);
@@ -325,6 +332,23 @@ class LayoutPanel: public wxPanel
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
+        Model* GetModelFromTreeItem(wxTreeListItem treeItem);
+        wxTreeListItem GetTreeItemFromModel(Model* model);
+        std::vector<Model*> GetSelectedModelsFromGroup(wxTreeListItem groupItem, bool nested = true);
+        std::vector<Model*> GetSelectedModelsForEdit();
+        void SetTreeModelSelected(Model* model, bool isPrimary);
+        void SetTreeGroupModelsSelected(Model* model, bool isPrimary);
+        void SetTreeSubModelSelected(Model* model, bool isPrimary);
+        void CheckModelForOverlaps(Model* model);
+        std::vector<std::list<std::string>> GetSelectedTreeModelPaths();
+        std::list<std::string> GetTreeItemPath(wxTreeListItem item);
+        wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
+        void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
+        void SelectModelInTree(Model* modelToSelect);
+        void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
+        void UnSelectModelInTree(Model* modelToUnSelect);
+        void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
+        void UnSelectAllModelsInTree();
         std::list<BaseObject*> GetSelectedBaseObjects() const;
         void PreviewModelAlignWithGround();
         void PreviewModelAlignTops();
@@ -356,12 +380,15 @@ class LayoutPanel: public wxPanel
         int mHitTestNextSelectModelIndex;
         int mNumGroups;
         bool mPropGridActive;
-        wxTreeListItem mSelectedGroup;
+        wxTreeListItems selectedTreeGroups;
+        wxTreeListItems selectedTreeModels;
+        wxTreeListItems selectedTreeSubModels;
 
         wxPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
+        wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched;
         int over_handle;
         glm::vec3 last_centerpos;
@@ -465,6 +492,7 @@ class LayoutPanel: public wxPanel
         bool mouse_state_set;
 
         void OnSelectionChanged(wxTreeListEvent& event);
+        void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
         static const long ID_MNU_DELETE_MODEL;

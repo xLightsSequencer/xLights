@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (priemd) Layout Panel multi select in Tree (#2071)
+   -- enh (priemd) Additional options for Layout Panel Tree View popup menu
 2020.23 June 5 2020
    -- enh (scott)  Add blend mode which is overwrite all but black to xSchedule blend modes
    -- enh (keith)  Add voting support to remote falcon plugin
@@ -63,6 +65,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Load models in parallel to speed up model load
    -- enh (keith)  Add port tooltips in visualiser to help manually configure controllers
    -- enh (priemd) Add grey option to wiring view
+   -- bug (kevin)  Fix house-preview video export broken for odd-numbered heights
    -- bug (keith)  Fix issues with control tab convert not converting some !desc:sc entries correctly
    -- bug (keith)  Fix display export does not work for animations
    -- bug (keith)  Fix crash in servo effect if some skull servos are missing
