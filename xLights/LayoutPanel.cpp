@@ -6529,6 +6529,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
     }
+    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
+    {
+        CreateModelGroupFromSelected();
+    }
     else if (id == ID_MNU_ADD_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
@@ -6556,14 +6560,14 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
             node->AddAttribute("LayoutGroup", grp);
 
-            xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
-            model_grp_panel->UpdatePanel(name.ToStdString());
-            //ShowPropGrid(false);
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
+            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+                    
+            Model* model = xlights->GetModel(name.ToStdString());
+            SelectModelInTree(model);
+            
+            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
         }
     }
     else if (id == ID_MNU_CLONE_MODEL_GROUP)
@@ -7035,6 +7039,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     }
 
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Group");
+    if ((selectedTreeModels.size() + selectedTreeSubModels.size() + selectedTreeGroups.size()) > 0) {
+        mnuContext.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group from Selections");
+    }
 
     if (selectedTreeModels.size() == 0 && selectedTreeSubModels.size() == 0) {
         if (selectedTreeGroups.size() > 1) {
