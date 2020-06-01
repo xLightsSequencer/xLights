@@ -111,7 +111,6 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 	//*)
     EVT_TREELIST_SELECTION_CHANGED(wxID_ANY, LayoutPanel::OnSelectionChanged)
     EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, LayoutPanel::OnItemContextMenu)
-    EVT_TREE_SEL_CHANGED(wxID_ANY, LayoutPanel::OnTreeSelectionChanged)
     //EVT_TREELIST_ITEM_EXPANDING(wxID_ANY, LayoutPanel::OnItemExpanding)
     //EVT_TREELIST_ITEM_EXPANDED(wxID_ANY, LayoutPanel::OnSelectionChanged)
     //EVT_TREELIST_ITEM_CHECKED(wxID_ANY, LayoutPanel::OnItemChecked)
@@ -523,7 +522,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnListCharHook), nullptr, this);
-
     wxScrolledWindow *sw = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     sw->SetSizer(sizer);
@@ -7277,10 +7275,6 @@ void LayoutPanel::HandleSelectionChanged() {
         ShowPropGrid(true);
         SetToolTipForTreeList(TreeListViewModels, "");
     }
-}
-
-void LayoutPanel::OnTreeSelectionChanged(wxTreeEvent& event) {
-    std::cout << "selection changed \n";
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {

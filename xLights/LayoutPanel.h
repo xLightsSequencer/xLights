@@ -486,7 +486,6 @@ class LayoutPanel: public wxPanel
         bool mouse_state_set;
 
         void OnSelectionChanged(wxTreeListEvent& event);
-        void OnTreeSelectionChanged(wxTreeEvent& event);
         void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
