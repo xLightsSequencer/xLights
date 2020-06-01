@@ -485,6 +485,7 @@ class LayoutPanel: public wxPanel
         bool mouse_state_set;
 
         void OnSelectionChanged(wxTreeListEvent& event);
+        void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
         static const long ID_MNU_DELETE_MODEL;

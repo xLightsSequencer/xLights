@@ -2344,10 +2344,18 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                         Model* model = mitem->GetModel();
                         if (model == m)
                             itemForModel = item;
-                        if (model->Selected)
+                        if (model->Selected) {
                             TreeListViewModels->Select(item);
-                        else
+                        #ifdef __WXMSW__
+                            HandleSelectionChanged();
+                        #endif
+                        }
+                        else {
                             TreeListViewModels->Unselect(item);
+                        #ifdef __WXMSW__
+                            HandleSelectionChanged();
+                        #endif
+                        }
                     }
                 }
             }
@@ -4896,8 +4904,10 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             if (mitem != nullptr && mitem->GetModel() == modelToSelect) {
                 TreeListViewModels->Select(item);
+                #ifdef __WXMSW__
+                HandleSelectionChanged();
+                #endif
                 TreeListViewModels->EnsureVisible(item);
-                //selectedTreeModels.push_back(item);
                 break;
             }
         }
@@ -5122,6 +5132,9 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
                 std::string childName = TreeListViewModels->GetItemText(child);
                 if (TreeListViewModels->GetItemText(child) == modelName) {
                     TreeListViewModels->Select(child);
+                    #ifdef __WXMSW__
+                    HandleSelectionChanged();
+                    #endif
                 }
             }
         } else {
@@ -7120,6 +7133,19 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
+    if (editing_models) {
+        HandleSelectionChanged();
+    } else {
+        UnSelectAllModels(false);
+        ViewObject* view_object = nullptr;
+        bool show_prop_grid = objects_panel->OnSelectionChanged(event, &view_object, currentLayoutGroup);
+        SelectViewObject(view_object, false);
+        ShowPropGrid(show_prop_grid);
+        selectedBaseObject = view_object;
+    }
+}
+
+void LayoutPanel::HandleSelectionChanged() {
     // Even when Tree is Frozen which happens during full refresh this event is still fired on DeleteItem()/DeleteItems()
     // and randomly causes crash when model is nullptr, so bail when Frozen.  Also make sure tooltip is empty and property
     // grid is shown so background props show after full refresh when nothing is selected.
@@ -7133,125 +7159,116 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     
     UnSelectAllModels(false);
 
-    if (editing_models) {
-        wxTreeListItems selectedItems;
-        TreeListViewModels->GetSelections(selectedItems);
-        wxTreeListItem item = event.GetItem();
-        
-        Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
-        resetPropertyGrid();
-        if (item.IsOk() && selectedItems.size() > 0) {
-            bool isPrimary = false;
-            if (selectedItems.size() == 1) {
-                isPrimary = true;
-            }
-            
-            for (const auto& item : selectedItems) {
-                Model* model = GetModelFromTreeItem(item);
-                if (model != nullptr) {
-                    #ifdef __LINUX__
-                                    // This seems to happen only on Linux so prevent the crash
-                                    if (!xlights->AllModels.IsModelValid(model)) {
-                                        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                                        logger_base.debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
-                                        return;
-                                    }
-                    #elif defined(__WXOSX__)
-                                    // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
-                                    // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
-                                    // This code will prove that theory
-                                    if (!xlights->AllModels.IsModelValid(model)) {
-                                        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                                        logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
-                                    }
-                    #else
-                                    wxASSERT(xlights->AllModels.IsModelValid(model));
-                    #endif
-                    if (model->GetDisplayAs() == "ModelGroup") {
-                        selectedTreeGroups.push_back(item);
-                        SetTreeGroupModelsSelected(model, isPrimary);
-                    } else if (model->GetDisplayAs() == "SubModel") {
-                        selectedTreeSubModels.push_back(item);
-                        SetTreeSubModelSelected(model, isPrimary);
-                        SetupPropGrid(model);
-                    } else {
-                        selectedTreeModels.push_back(item);
-                        if (model == lastSelectedModel || lastSelectedBaseObject == nullptr || isPrimary) {
-                            selectedPrimaryTreeItem = item;
-                            SetTreeModelSelected(model, true);
-                        } else {
-                            SetTreeModelSelected(model, false);
-                        }
-                        SetupPropGrid(model);
-                    }
-                }
-            }
-            
-            // if we still don't have a primary model selected then force one if we can
-            if (selectedPrimaryTreeItem == nullptr) {
-                if (selectedTreeModels.size() > 0) {
-                    Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
-                    SetTreeModelSelected(model, true);
-                    selectedPrimaryTreeItem = selectedTreeModels[0];
-                    SetupPropGrid(model);
-                } else if (selectedTreeSubModels.size() > 0) {
-                    Model* model = GetModelFromTreeItem(selectedTreeSubModels[0]);
-                    SetTreeSubModelSelected(model, true);
-                    SetupPropGrid(model);
-                } else if (selectedTreeGroups.size() > 0){
-                    Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
-                    SetTreeGroupModelsSelected(model, true);
-                    SetupPropGrid(model);
-                }
-            }
-                                  
-            // determine which panel and tooltip to show if any
-            int mSize = selectedTreeModels.size();
-            int gSize = selectedTreeGroups.size();
-            int smSize = selectedTreeSubModels.size();
-            int totalSelections = mSize + smSize + gSize;
-            
-            std::string tooltip = "";
-            
-            if (totalSelections > 1) {
-                showBackgroundProperties();
-                tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n", gSize, mSize, smSize);
-            } else if (gSize == 1) {
-                ShowPropGrid(false);
-                model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
-                model_grp_panel->Show();
-            } else if (smSize == 1) {
-                model_grp_panel->Hide();
-                ShowPropGrid(true);
-            } else if (mSize == 1) {
-                model_grp_panel->Hide();
-                Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
-                if (model != nullptr) {
-                    tooltip = xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString();
-                    ShowPropGrid(true);
-                }
-            }
-            
-            SetToolTipForTreeList(TreeListViewModels, tooltip);
-                        
-            // removing below or Keyboard Cut/Copy/Paste/etc will not fire when making selections in preview
-            // #ifndef LINUX
-            // TreeListViewModels->SetFocus();
-            // #endif
-            
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnSelectionChanged");
-        } else {
-            selectedBaseObject = nullptr;
-            UnSelectAllModels(true);
-            ShowPropGrid(true);
-            SetToolTipForTreeList(TreeListViewModels, "");
+    wxTreeListItems selectedItems;
+    TreeListViewModels->GetSelections(selectedItems);
+    
+    Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
+    resetPropertyGrid();
+    if (selectedItems.size() > 0) {
+        bool isPrimary = false;
+        if (selectedItems.size() == 1) {
+            isPrimary = true;
         }
+        
+        for (const auto& item : selectedItems) {
+            Model* model = GetModelFromTreeItem(item);
+            if (model != nullptr) {
+                #ifdef __LINUX__
+                                // This seems to happen only on Linux so prevent the crash
+                                if (!xlights->AllModels.IsModelValid(model)) {
+                                    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                                    logger_base.debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
+                                    return;
+                                }
+                #elif defined(__WXOSX__)
+                                // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
+                                // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
+                                // This code will prove that theory
+                                if (!xlights->AllModels.IsModelValid(model)) {
+                                    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                                    logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
+                                }
+                #else
+                                wxASSERT(xlights->AllModels.IsModelValid(model));
+                #endif
+                if (model->GetDisplayAs() == "ModelGroup") {
+                    selectedTreeGroups.push_back(item);
+                    SetTreeGroupModelsSelected(model, isPrimary);
+                } else if (model->GetDisplayAs() == "SubModel") {
+                    selectedTreeSubModels.push_back(item);
+                    SetTreeSubModelSelected(model, isPrimary);
+                    SetupPropGrid(model);
+                } else {
+                    selectedTreeModels.push_back(item);
+                    if (model == lastSelectedModel || lastSelectedBaseObject == nullptr || isPrimary) {
+                        selectedPrimaryTreeItem = item;
+                        SetTreeModelSelected(model, true);
+                    } else {
+                        SetTreeModelSelected(model, false);
+                    }
+                    SetupPropGrid(model);
+                }
+            }
+        }
+        
+        // if we still don't have a primary model selected then force one if we can
+        if (selectedPrimaryTreeItem == nullptr) {
+            if (selectedTreeModels.size() > 0) {
+                Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
+                SetTreeModelSelected(model, true);
+                selectedPrimaryTreeItem = selectedTreeModels[0];
+                SetupPropGrid(model);
+            } else if (selectedTreeSubModels.size() > 0) {
+                Model* model = GetModelFromTreeItem(selectedTreeSubModels[0]);
+                SetTreeSubModelSelected(model, true);
+                SetupPropGrid(model);
+            } else if (selectedTreeGroups.size() > 0){
+                Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
+                SetTreeGroupModelsSelected(model, true);
+                SetupPropGrid(model);
+            }
+        }
+                              
+        // determine which panel and tooltip to show if any
+        int mSize = selectedTreeModels.size();
+        int gSize = selectedTreeGroups.size();
+        int smSize = selectedTreeSubModels.size();
+        int totalSelections = mSize + smSize + gSize;
+        
+        std::string tooltip = "";
+        
+        if (totalSelections > 1) {
+            showBackgroundProperties();
+            tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n", gSize, mSize, smSize);
+        } else if (gSize == 1) {
+            ShowPropGrid(false);
+            model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
+            model_grp_panel->Show();
+        } else if (smSize == 1) {
+            model_grp_panel->Hide();
+            ShowPropGrid(true);
+        } else if (mSize == 1) {
+            model_grp_panel->Hide();
+            Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
+            if (model != nullptr) {
+                tooltip = xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString();
+                ShowPropGrid(true);
+            }
+        }
+        
+        SetToolTipForTreeList(TreeListViewModels, tooltip);
+                    
+        // removing below or Keyboard Cut/Copy/Paste/etc will not fire when making selections in preview
+        // #ifndef LINUX
+        // TreeListViewModels->SetFocus();
+        // #endif
+        
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnSelectionChanged");
     } else {
-        ViewObject* view_object = nullptr;
-        bool show_prop_grid = objects_panel->OnSelectionChanged(event, &view_object, currentLayoutGroup);
-        SelectViewObject(view_object, false);
-        ShowPropGrid(show_prop_grid);
-        selectedBaseObject = view_object;
+        selectedBaseObject = nullptr;
+        UnSelectAllModels(true);
+        ShowPropGrid(true);
+        SetToolTipForTreeList(TreeListViewModels, "");
     }
 }
 
