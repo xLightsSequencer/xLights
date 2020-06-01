@@ -111,6 +111,7 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 	//*)
     EVT_TREELIST_SELECTION_CHANGED(wxID_ANY, LayoutPanel::OnSelectionChanged)
     EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, LayoutPanel::OnItemContextMenu)
+    EVT_TREE_SEL_CHANGED(wxID_ANY, LayoutPanel::OnTreeSelectionChanged)
     //EVT_TREELIST_ITEM_EXPANDING(wxID_ANY, LayoutPanel::OnItemExpanding)
     //EVT_TREELIST_ITEM_EXPANDED(wxID_ANY, LayoutPanel::OnSelectionChanged)
     //EVT_TREELIST_ITEM_CHECKED(wxID_ANY, LayoutPanel::OnItemChecked)
@@ -2686,6 +2687,9 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
     TreeListViewModels->UnselectAll();
+#ifdef __WXMSW__
+    HandleSelectionChanged();
+#endif
     if (modelCount == 0) {
         return false;
     } else if (modelCount == 1) {
@@ -2840,6 +2844,9 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     if (editing_models) {
         TreeListViewModels->UnselectAll();
+#ifdef __WXMSW__
+        HandleSelectionChanged();
+#endif
     } else {
         UnSelectAllModels();
     }
@@ -7270,6 +7277,10 @@ void LayoutPanel::HandleSelectionChanged() {
         ShowPropGrid(true);
         SetToolTipForTreeList(TreeListViewModels, "");
     }
+}
+
+void LayoutPanel::OnTreeSelectionChanged(wxTreeEvent& event) {
+    std::cout << "selection changed \n";
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
