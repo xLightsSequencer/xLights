@@ -307,8 +307,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
     backupDirectory = GetXmlSetting("backupDir", showDirectory);
-    ObtainAccessToURL(fseqDirectory.ToStdString());
-    ObtainAccessToURL(backupDirectory.ToStdString());
+    ObtainAccessToURL(fseqDirectory);
+    ObtainAccessToURL(backupDirectory);
     if (!wxDir::Exists(fseqDirectory))
     {
         logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
@@ -1182,8 +1182,8 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
-        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), xmlFileName.GetName());
-        xmlFileName.SetExt("xml");
+        _renderCache.SetSequence(renderCacheDirectory, xmlFileName.GetName());
+        xmlFileName.SetExt("xsq");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
 
@@ -1203,11 +1203,17 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xml."));
-    logger_base.info("Saving XML file.");
+
+    if (CurrentSeqXmlFile->GetExt().Lower() == "xml") {
+        // Remove the old xml file as we are about to save it as an xsq
+        wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
+        CurrentSeqXmlFile->SetExt("xsq");
+    }
+    SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
+    logger_base.info("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     CurrentSeqXmlFile->Save(mSequenceElements);
-    logger_base.info("XML file done.");
+    logger_base.info("XSQ file done.");
 
     if (mBackupOnSave)
     {
@@ -1336,10 +1342,10 @@ void xLightsFrame::SaveAsSequence()
 
     SetPanelSequencerLabel(oName.GetName().ToStdString());
 
-    oName.SetExt("xml");
+    oName.SetExt("xsq");
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
-    _renderCache.SetSequence(renderCacheDirectory.ToStdString(), oName.GetName());
+    _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + " - " + NewFilename);
 }

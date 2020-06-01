@@ -146,6 +146,14 @@ void InitialiseLogging(bool fromMain)
         }
 #endif
 
+#ifdef _MSC_VER
+        if (!wxFile::Exists(initFileName)) {
+            wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+            wxString appPath(f.GetPath());
+            initFileName = appPath + "\\" + initFileName;
+        }
+#endif
+
         if (!wxFile::Exists(initFileName))
         {
 #ifdef _MSC_VER
@@ -547,6 +555,32 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 }
 #endif
 
+#ifdef __WXOSX__
+void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (fileNames.empty()) {
+        return;
+    }
+    wxString fileName = fileNames[0];
+    logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
+    
+    
+    wxString showDir = wxPathOnly(fileName);
+    while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
+        auto old = showDir;
+        showDir = wxPathOnly(showDir);
+        if (showDir == old) showDir = "";
+    }
+    if (showDir != "" && showDir != __frame->showDirectory) {
+        __frame->SetDir(showDir, false);
+    }
+    if (__frame) {
+        __frame->OpenSequence(fileName, nullptr);
+    } else {
+        logger_base.info("       No xLightsFrame");
+    }
+}
+#endif
 
 bool xLightsApp::OnInit()
 {

@@ -611,7 +611,7 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-					<style>wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER</style>
+					<style>wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE</style>
 					<handler function="OnNotebook1PageChanged1" entry="EVT_AUINOTEBOOK_PAGE_CHANGED" />
 					<handler function="OnNotebook1PageChanging" entry="EVT_AUINOTEBOOK_PAGE_CHANGING" />
 					<object class="AuiNotebookPage">
@@ -637,19 +637,8 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON_OTHER_FOLDERS" variable="ButtonOtherFolders" member="yes">
-														<label>Subfolders..</label>
-														<handler function="OnButtonOtherFoldersClick" entry="EVT_BUTTON" />
-													</object>
-													<col>3</col>
-													<row>0</row>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON3" variable="Button03" member="no">
-														<label>Change</label>
+														<label>Change Permanently</label>
 														<handler function="OnMenuOpenFolderSelected" entry="EVT_BUTTON" />
 													</object>
 													<col>1</col>
@@ -659,10 +648,21 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON11" variable="Button_CheckShowFolderTemporarily" member="yes">
+														<label>Change Temporarily</label>
+														<handler function="OnButton_ChangeShowFolderTemporarily" entry="EVT_BUTTON" />
+													</object>
+													<col>2</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT4" variable="ShowDirectoryLabel" member="yes">
 														<label>{Show Directory not set}</label>
 													</object>
-													<col>2</col>
+													<col>3</col>
 													<row>0</row>
 													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -927,7 +927,7 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxPanel" name="ID_PANEL1" variable="AUIStatusBar" member="yes">
-					<style>wxNO_BORDER|wxTAB_TRAVERSAL</style>
+					<style>wxBORDER_NONE|wxTAB_TRAVERSAL</style>
 					<object class="wxGridBagSizer" variable="StatusBarSizer" member="yes">
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
@@ -1044,7 +1044,6 @@
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
-					<accel>F9</accel>
 					<bitmap stock_id="wxART_FOLDER" />
 					<handler function="OnMenuOpenFolderSelected" entry="EVT_MENU" />
 				</object>

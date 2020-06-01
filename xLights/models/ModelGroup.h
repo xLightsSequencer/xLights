@@ -45,8 +45,9 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         Model* GetFirstModel() const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
-        bool ContainsModel(Model* mg);
-        bool ContainsModel(Model* mg, std::list<Model*>& visited);
+        bool DirectlyContainsModel(Model* m);
+        bool ContainsModel(Model* m);
+        bool ContainsModel(Model* m, std::list<Model*>& visited);
         int GetModelCount() const { return models.size(); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;

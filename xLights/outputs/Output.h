@@ -67,6 +67,7 @@ protected:
     int _skippedFrames = 9999;
     bool _changed = false; // set to true when something in the packed has changed
     std::string _fppProxy;
+    std::string _globalFPPProxy;
     Output *_fppProxyOutput = nullptr;
 
     bool _autoSize_CONVERT = false;
@@ -119,6 +120,7 @@ public:
     const std::string GetFPPProxyIP() const { return _fppProxy; }
     void SetFPPProxyIP(const std::string& ip) { _fppProxy = ip; }
     bool IsUsingFPPProxy() const { return _fppProxy != ""; }
+    void SetGlobalFPPProxyIP(const std::string& ip) { _globalFPPProxy = ip; }
 
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }

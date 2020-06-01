@@ -692,58 +692,49 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
     mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
-    if(xml_file.GetSequenceType()=="Media")
-    {
+    if (xml_file.GetSequenceType() == "Media") {
         int musicLength = 0;
-		mediaFilename = wxEmptyString;
-		if (xml_file.GetMedia() == nullptr)
-		{
-			mediaFilename = xml_file.GetMediaFile();
-            ObtainAccessToURL(mediaFilename.ToStdString());
-			if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename))
-			{
-				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT(""));
-				setting_dlg.Fit();
-				int ret_val = setting_dlg.ShowModal();
+        mediaFilename = "";
+        if (xml_file.GetMedia() == nullptr) {
+            mediaFilename = xml_file.GetMediaFile();
+            ObtainAccessToURL(mediaFilename);
+            if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
+                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT(""));
+                setting_dlg.Fit();
+                int ret_val = setting_dlg.ShowModal();
 
                 mediaFilename = xml_file.GetMediaFile();
 
-                if (xml_file.GetMedia() != nullptr)
-                {
+                if (xml_file.GetMedia() != nullptr) {
                     mediaFilename = xml_file.GetMedia()->FileName();
-                    ObtainAccessToURL(mediaFilename.ToStdString());
-                    if (xml_file.GetMedia() != nullptr && xml_file.GetMedia()->GetFrameInterval() < 0)
-                    {
+                    ObtainAccessToURL(mediaFilename);
+                    if (xml_file.GetMedia() != nullptr && xml_file.GetMedia()->GetFrameInterval() < 0) {
                         xml_file.GetMedia()->SetFrameInterval(xml_file.GetFrameMS());
                     }
                     SetAudioControls();
                 }
 
-                if (ret_val == NEEDS_RENDER)
-                {
+                if (ret_val == NEEDS_RENDER) {
                     RenderAll();
                 }
             }
-        } else {
+        }
+        else {
             mediaFilename = xml_file.GetMediaFile();
-            ObtainAccessToURL(mediaFilename.ToStdString());
+            ObtainAccessToURL(mediaFilename);
         }
 
-        if( mediaFilename != wxEmptyString )
-        {
-			wxString error;
+        if (mediaFilename != wxEmptyString) {
+            wxString error;
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
-            if (musicLength <= 0)
-            {
+            if (musicLength <= 0) {
                 DisplayWarning(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error).ToStdString());
             }
-            else
-            {
-               sequenceVideoPanel->SetMediaPath( mediaFilename.ToStdString() );
+            else {
+                sequenceVideoPanel->SetMediaPath(mediaFilename);
             }
         }
-        else if (xml_file.GetSequenceType() == "Media")
-        {
+        else if (xml_file.GetSequenceType() == "Media") {
             DisplayWarning("Media File must be specified");
         }
 
@@ -3479,7 +3470,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 void xLightsFrame::ImportTimingElement()
 {
     wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
-        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
+        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
@@ -3510,7 +3501,7 @@ void xLightsFrame::ImportTimingElement()
             {
                 CurrentSeqXmlFile->ProcessLSPTiming(fDir, filenames, this);
             }
-            else if (file1.GetExt().Lower() == "xml")
+            else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq")
             {
                 CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
             }

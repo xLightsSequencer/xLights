@@ -375,6 +375,13 @@ void Controller::SetSuppressDuplicateFrames(bool suppress) {
         std::for_each(begin(_outputs), end(_outputs), [suppress](Output* o) { o->SetSuppressDuplicateFrames(suppress); });
     }
 }
+
+void Controller::SetGlobalFPPProxy(const std::string& globalFPPProxy)
+{
+    for (const auto& it : _outputs)         {
+        it->SetGlobalFPPProxyIP(globalFPPProxy);
+    }
+}
 #pragma endregion
 
 #pragma region Virtual Functions

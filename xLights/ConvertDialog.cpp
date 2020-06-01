@@ -71,7 +71,7 @@ BEGIN_EVENT_TABLE(ConvertDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), _outputManager(outputManager_), mediaFilename(mediaFilename_), ChannelColors(ChannelColors_), ChannelNames(ChannelNames_), ChNames(ChNames_)
+ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, std::string& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), _outputManager(outputManager_), mediaFilename(mediaFilename_), ChannelColors(ChannelColors_), ChannelNames(ChannelNames_), ChNames(ChNames_)
 {
     _parent = (xLightsFrame*)parent;
 

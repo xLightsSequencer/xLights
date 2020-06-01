@@ -53,7 +53,6 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
-#include "FolderSelection.h"
 #include "JukeboxPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
@@ -191,8 +190,8 @@ const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
-const long xLightsFrame::ID_BUTTON_OTHER_FOLDERS = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
+const long xLightsFrame::ID_BUTTON11 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON9 = wxNewId();
@@ -439,15 +438,6 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
 
 END_EVENT_TABLE()
 
-
-xlAuiToolBar::xlAuiToolBar(wxWindow* parent,
-                           wxWindowID id,
-                           const wxPoint& pos,
-                           const wxSize& size,
-                           long style)
-: wxAuiToolBar(parent, id, pos, size, style) {
-}
-
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 
     int size = ScaleWithSystemDPI(16);
@@ -641,7 +631,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
-    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -650,12 +640,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonOtherFolders = new wxButton(PanelSetup, ID_BUTTON_OTHER_FOLDERS, _("Subfolders.."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OTHER_FOLDERS"));
-    GridBagSizer1->Add(ButtonOtherFolders, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+    GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
@@ -740,9 +730,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
-    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     StatusBarSizer = new wxGridBagSizer(0, 0);
-    StatusBarSizer->AddGrowableRow(0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
@@ -757,6 +746,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
     StatusBarSizer->Fit(AUIStatusBar);
     StatusBarSizer->SetSizeHints(AUIStatusBar);
@@ -791,7 +781,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Export_Video);
     MenuFile->AppendSeparator();
-    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
@@ -1053,8 +1043,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
-    Connect(ID_BUTTON_OTHER_FOLDERS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonOtherFoldersClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
+    Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChangeShowFolderTemporarily);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
@@ -1408,13 +1398,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     logger_base.debug("Show directory %s.", (const char *)dir.c_str());
 
+    wxString md;
+
     if (!xLightsApp::mediaDir.IsNull()) {
-        mediaDirectory = xLightsApp::mediaDir;
-    } else if (ok && !config->Read(_("MediaDir"), &mediaDirectory)) {
-        mediaDirectory=dir;
+        md = xLightsApp::mediaDir;
+    } else if (ok && !config->Read(_("MediaDir"), &md)) {
+        md=dir;
     }
+    mediaDirectory = md;
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
-    ObtainAccessToURL(mediaDirectory.ToStdString());
+    ObtainAccessToURL(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
@@ -1567,8 +1560,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
     {
-        if (!SetDir(dir)) {
-            if (!PromptForShowDirectory())
+        if (!SetDir(dir, true)) {
+            if (!PromptForShowDirectory(true))
             {
                 CurrentDir = "";
                 splash.Hide();
@@ -1578,7 +1571,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     else
     {
-        if (!PromptForShowDirectory())
+        if (!PromptForShowDirectory(true))
         {
             CurrentDir = "";
             splash.Hide();
@@ -2505,7 +2498,8 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         return;
     }
 
-    if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
+    if (CopyFiles("*.xsq", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
+        CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xmap", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) > 0)
@@ -3887,6 +3881,106 @@ void xLightsFrame::DoAltBackup(bool prompt)
     }
 }
 
+void xLightsFrame::GetMediaFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == mediaDirectory);
+    folder = mediaDirectory;
+}
+
+void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (useShow) {
+        config->Write("LinkFlag", true);
+        if (mediaDirectory == showDirectory) return;
+        mediaDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            config->Write("LinkFlag", false);
+            if (mediaDirectory == folder) return;
+            mediaDirectory = folder;
+        }
+        else {
+            DisplayError("Media directory does not exist. Media folder was not changed to " + folder + ". Media folder remains : " + mediaDirectory, this);
+            return;
+        }
+    }
+
+    config->Write(_("MediaDir"), wxString(mediaDirectory));
+
+    logger_base.debug("Media directory set to : %s.", (const char*)mediaDirectory.c_str());
+}
+
+void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == fseqDirectory);
+    folder = fseqDirectory;
+}
+
+void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (useShow) {
+        config->Write("FSEQLinkFlag", true);
+        if (fseqDirectory == showDirectory) return;
+        fseqDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            config->Write("FSEQLinkFlag", false);
+            if (fseqDirectory == folder) return;
+            fseqDirectory = folder;
+        }
+        else {
+            DisplayError("FSEQ directory does not exist. FSEQ folder was not changed to " + folder + ". FSEQ folder remains : " + fseqDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("fseqDir", fseqDirectory);
+    UnsavedRgbEffectsChanges = true;
+
+    logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
+}
+
+void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == renderCacheDirectory);
+    folder = renderCacheDirectory;
+}
+
+void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (useShow) {
+        if (renderCacheDirectory == showDirectory) return;
+        renderCacheDirectory = showDirectory;
+    }
+    else {
+        if (wxDir::Exists(folder)) {
+            if (renderCacheDirectory == folder) return;
+            renderCacheDirectory = folder;
+        }
+        else {
+            DisplayError("Render Cache directory does not exist. Render Cache folder was not changed to " + folder + ". Render Cache folder remains : " + renderCacheDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("renderCacheDir", renderCacheDirectory);
+    UnsavedRgbEffectsChanges = true;
+
+    logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
+}
+
 void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
 {
     useShow = (showDirectory == backupDirectory);
@@ -4416,7 +4510,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Working in a backup directory");
 
-    if (ShowFolderIsInBackup(GetShowDirectory().ToStdString()))
+    if (ShowFolderIsInBackup(GetShowDirectory()))
     {
         wxString msg = wxString::Format("    ERR: Show directory is a (or is under a) backup show directory. %s.", GetShowDirectory());
         LogAndWrite(f, msg.ToStdString());
@@ -5413,9 +5507,9 @@ void xLightsFrame::CheckSequence(bool display)
 
                 int modelCount = 0;
 
-                for (auto m = models.begin(); m != models.end(); ++m)
+                for (const auto& m : models)
                 {
-                    Model* model = AllModels.GetModel(*m);
+                    Model* model = AllModels.GetModel(m);
 
                     if (model == nullptr)
                     {
@@ -5453,9 +5547,8 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing no models that exist");
 
-    for (auto it = emptyModelGroups.begin(); it != emptyModelGroups.end(); ++it)
-    {
-        wxString msg = wxString::Format("    ERR: Model group '%s' contains no models.", *it);
+    for (const auto& it : emptyModelGroups) {
+        wxString msg = wxString::Format("    ERR: Model group '%s' contains no models.", it);
         LogAndWrite(f, msg.ToStdString());
         errcount++;
     }
@@ -5467,17 +5560,84 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Check for model groups and DMX models and common problems
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups with DMX models likely to cause issues");
+
+    std::list<ModelGroup*> modelGroupsWithDMXModels;
+    for (const auto& it : AllModels) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+
+        if (mg != nullptr) {
+            for (const auto& it2 : mg->ModelNames()) {
+                auto m = AllModels[it2];
+                if (m->IsDMXModel()) {
+                    modelGroupsWithDMXModels.push_back(mg);
+                    break;
+                }
+            }
+        }
+    }
+
+    // now we have a list of groups containing models ... look for model groups containing those groups
+    for (const auto& it : AllModels) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+
+        if (mg != nullptr) {
+            for (const auto& it2 : modelGroupsWithDMXModels) {
+                if (mg->DirectlyContainsModel(it2)) {
+                    wxString msg = wxString::Format("    WARN: Model group '%s' contains model group '%s' which contains one or more DMX models. This is not likely to work as expected.", (const char*)mg->Name().c_str(), (const char*)it2->Name().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+        }
+    }
+
+    // Also check those groups only contain models which are all DMX and the same number of channels
+    for (const auto& it : modelGroupsWithDMXModels) {
+        int numchannels = -1;
+        for (const auto& it2 : it->ModelNames()) {
+            auto m = AllModels[it2];
+            if (!m->IsDMXModel()) {
+                wxString msg = wxString::Format("    WARN: Model group '%s' contains a mix of DMX and non DMX models. This is not likely to work as expected.", (const char*)it->Name().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+                break;
+            }
+            else {
+                if (numchannels == -1) {
+                    numchannels = m->GetChanCount();
+                }
+                else {
+                    if (numchannels != m->GetChanCount()) {
+                        wxString msg = wxString::Format("    WARN: Model group '%s' contains DMX models with varying numbers of channels. This is not likely to work as expected.", (const char*)it->Name().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave) {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Check for submodels with no nodes
     LogAndWrite(f, "");
     LogAndWrite(f, "Submodels with no nodes");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            for (int i = 0; i < it.second->GetNumSubModels(); ++i)
             {
-                Model* sm = it->second->GetSubModel(i);
+                Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0)
                 {
                     wxString msg = wxString::Format("    ERR: Submodel '%s' contains no nodes.", sm->GetFullName());
@@ -5499,13 +5659,13 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Submodels with nodes not in parent model");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            for (int i = 0; i < it.second->GetNumSubModels(); ++i)
             {
-                SubModel* sm = (SubModel*)it->second->GetSubModel(i);
+                SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid())
                 {
                     wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.",
@@ -5902,7 +6062,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             if (wxFile::Exists(ff))
             {
-                ff = ff.substr(showDirectory.Length());
+                ff = ff.substr(showDirectory.size());
                 wxArrayString folders = Split(ff, delimiters);
 
                 for (auto it2 : folders)
@@ -8614,41 +8774,6 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
    m_mgr->Update();
 }
 
-
-void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, renderCacheDirectory, backupDirectory, mAltBackupDir);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_OK) {
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("MediaDir"), dlg.MediaDirectory);
-        config->Write(_("LinkFlag"), dlg.LinkMediaDir);
-        config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
-
-        //Always set values in xgb effects setting just in case
-        SetXmlSetting("fseqDir", dlg.FseqDirectory);
-        SetXmlSetting("renderCacheDir", dlg.RenderCacheDirectory);
-        SetXmlSetting("backupDir", dlg.BackupDirectory);
-        UnsavedRgbEffectsChanges = true;
-
-        mediaDirectory = dlg.MediaDirectory;
-        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
-        fseqDirectory = dlg.FseqDirectory;
-        FseqDir = fseqDirectory;
-        logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
-        renderCacheDirectory = dlg.RenderCacheDirectory;
-        logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
-        backupDirectory = dlg.BackupDirectory;
-        logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
-        mAltBackupDir = dlg.AltBackupDirectory;
-        logger_base.debug("Alt Backup directory set to : %s.", (const char *)mAltBackupDir.c_str());
-    }
-}
-
 void xLightsFrame::DoBackupPurge()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -8997,7 +9122,7 @@ void xLightsFrame::SetEnableRenderCache(const wxString &t)
 
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr) {
         // this will force a reload of the cache
-        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
     } else {
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&mSequenceElements, false);

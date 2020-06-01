@@ -230,9 +230,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool loaded_fseq = false;
     wxString filename;
-    wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
+    wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
-        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     } else {
         filename = passed_filename;
     }
@@ -297,7 +297,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         SetPanelSequencerLabel(selected_file.GetName().ToStdString());
 
         wxFileName xml_file = selected_file;
-        xml_file.SetExt("xml");
+        if (xml_file.GetExt() != "xml")             {
+            xml_file.SetExt("xsq");
+        }
         wxFileName media_file;
 
         wxFileName fseq_file = selected_file;
@@ -338,7 +340,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             {
                 plog->Show(true);
             }
-            wxString mf;
+            std::string mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
                                           &_outputManager,                              // global network info
@@ -376,7 +378,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         // open the xml file so we can see if it has media
         CurrentSeqXmlFile->Open(GetShowDirectory());
 
-        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -656,14 +658,14 @@ bool xLightsFrame::CloseSequence()
     AbortRender();
 
     _renderCache.CleanupCache(&mSequenceElements);
-    _renderCache.SetSequence(renderCacheDirectory.ToStdString(), "");
+    _renderCache.SetSequence(renderCacheDirectory, "");
 
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
     sequenceVideoPanel->SetMediaPath("");
     xlightsFilename = "";
-    mediaFilename.Clear();
+    mediaFilename = "";
     previewLoaded = false;
     previewPlaying = false;
     playType = 0;
@@ -1052,7 +1054,8 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
     filters.push_back("LOR S5(*.loredit)|*.loredit");
-    filters.push_back("xLights Sequence (*.xml)|*.xml");
+    filters.push_back("xLights Sequence (*.xsq)|*.xsq");
+    filters.push_back("Old xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
     filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
     filters.push_back("Vixen 3.x Sequence(*.tim)|*.tim");
@@ -1129,7 +1132,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         else if (ext == "vix") {
             ImportVix(fn);
         }
-        else if (ext == "xml") {
+        else if (ext == "xml" || ext == "xsq") {
             ImportXLights(fn);
         }
         else if (ext == "msq") {

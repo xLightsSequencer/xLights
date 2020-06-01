@@ -27,7 +27,6 @@ AppVersion={#Year}.{#Version}{#Other}
 DefaultDirName={commonpf32}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=..\..\include\{#MyTitleName}.ico
-
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes

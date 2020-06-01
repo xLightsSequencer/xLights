@@ -80,8 +80,8 @@ public:
 
     static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef _DEBUG
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug(url.c_str());
 #endif
 
@@ -170,8 +170,8 @@ public:
 
     static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef _DEBUG
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug(url.c_str());
 #endif
 

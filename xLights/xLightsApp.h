@@ -38,6 +38,10 @@ public:
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 
+    #ifdef __WXOSX__
+    virtual void MacOpenFiles(const wxArrayString &fileNames) override;
+    #endif
+
     virtual void OnFatalException() override;
     
     virtual bool ProcessIdle() override;

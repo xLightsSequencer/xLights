@@ -250,7 +250,6 @@
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
-    <ClCompile Include="FolderSelection.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
@@ -664,7 +663,6 @@
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="EmailDialog.h" />
-    <ClInclude Include="FolderSelection.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />

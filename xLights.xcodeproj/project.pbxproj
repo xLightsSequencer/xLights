@@ -93,7 +93,6 @@
 		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
-		6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730747A208E737800D57F99 /* FolderSelection.cpp */; };
 		6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */; };
 		67367C7423DDD80E00B185E2 /* ServoConfigDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67367C7323DDD80E00B185E2 /* ServoConfigDialog.cpp */; };
 		67372761234AB2FD00C6C2F2 /* ColoursPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */; };
@@ -746,8 +745,6 @@
 		672F95211A7A6619005FF8BF /* Image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
 		672F95221A7A6619005FF8BF /* PreviewModels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewModels.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
-		6730747A208E737800D57F99 /* FolderSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FolderSelection.cpp; sourceTree = "<group>"; };
-		6730747B208E737800D57F99 /* FolderSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FolderSelection.h; sourceTree = "<group>"; };
 		6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteRangeDialog.cpp; sourceTree = "<group>"; };
 		6731448722C6F98F00764C44 /* NoteRangeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteRangeDialog.h; sourceTree = "<group>"; };
 		6733CF041E60659E00B97F60 /* xschedule.mac.properties */ = {isa = PBXFileReference; lastKnownFileType = text; name = xschedule.mac.properties; path = bin/xschedule.mac.properties; sourceTree = "<group>"; };
@@ -2535,8 +2532,6 @@
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
 				676DCBF81A98E53800FBA86B /* FileConverter.cpp */,
 				675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */,
-				6730747A208E737800D57F99 /* FolderSelection.cpp */,
-				6730747B208E737800D57F99 /* FolderSelection.h */,
 				6755B8671F75D303005EEEF5 /* FontManager.cpp */,
 				6755B8681F75D304005EEEF5 /* FontManager.h */,
 				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
@@ -3409,7 +3404,6 @@
 				67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67372762234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp in Sources */,
-				6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67B2CFD61C3A186A003C17CA /* SnowflakesEffect.cpp in Sources */,

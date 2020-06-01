@@ -141,7 +141,7 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, std::string& media_dir, const wxString& warning, bool wizard_active_)
 	: xml_file(file_to_handle_),
 	media_directory(media_dir),
 	xLightsParent((xLightsFrame*)parent),
@@ -1044,7 +1044,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
 
         }
 
-        wxString media_filename;
+        std::string media_filename;
         ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
                                       new_data_layer->GetSequenceData(),                        // sequence data object
                                       xLightsParent->GetOutputManager(),                        // global network info
@@ -1133,7 +1133,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
     DataLayer* layer = data->GetLayer();
     Button_Close->Enable(false);
-    wxString media_filename;
+    std::string media_filename;
     wxFileName full_name(layer->GetSource());
     ConvertParameters conv_params(layer->GetSource(),                                       // input filename
                                   layer->GetSequenceData(),                                 // sequence data object

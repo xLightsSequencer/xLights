@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="SequenceFileSettingsPanel">
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="RenderOnSaveCheckBox" member="yes">
@@ -23,7 +22,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>1</row>
+				<row>6</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -35,7 +34,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>2</row>
+				<row>1</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -45,7 +44,7 @@
 					<label>Render Cache</label>
 				</object>
 				<col>0</col>
-				<row>3</row>
+				<row>2</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -61,7 +60,7 @@
 					<handler function="OnRenderCacheChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>3</row>
+				<row>2</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -100,7 +99,7 @@
 					<label>FSEQ Version</label>
 				</object>
 				<col>0</col>
-				<row>5</row>
+				<row>7</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -117,8 +116,98 @@
 					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>5</row>
+				<row>7</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer3" member="no">
+					<label>Render Cache Directory</label>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_RenderCache" member="yes">
+							<label>Use Show Folder</label>
+							<handler function="OnCheckBox_RenderCacheClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL3" variable="DirPickerCtrl_RenderCache" member="yes">
+							<message></message>
+							<size>400,-1</size>
+							<handler function="OnDirPickerCtrl_RenderCacheDirChanged" entry="EVT_DIRPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
+					<label>FSEQ Directory</label>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_FSEQ" member="yes">
+							<label>Use Show Folder</label>
+							<handler function="OnCheckBox_FSEQClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL2" variable="DirPickerCtrl_FSEQ" member="yes">
+							<message></message>
+							<size>400,-1</size>
+							<handler function="OnDirPickerCtrl_FSEQDirChanged" entry="EVT_DIRPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+					<label>Media Directory</label>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_Media" member="yes">
+							<label>Use Show Folder</label>
+							<handler function="OnCheckBox_MediaClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL1" variable="DirPickerCtrl_Media" member="yes">
+							<message></message>
+							<size>400,-1</size>
+							<handler function="OnDirPickerCtrl_MediaDirChanged" entry="EVT_DIRPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

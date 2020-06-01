@@ -145,6 +145,7 @@ public:
     virtual bool StrandsZigZagOnString() const { return false;};
     int GetDefaultBufferWi() const {return BufferWi;}
     int GetDefaultBufferHt() const {return BufferHt;}
+    virtual bool IsDMXModel() const { return false; }
 
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
