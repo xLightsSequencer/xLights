@@ -26,6 +26,7 @@ class wxStaticText;
 
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
+#include <wx/treectrl.h>
 #include <wx/xml/xml.h>
 #include <glm/glm.hpp>
 
@@ -485,6 +486,7 @@ class LayoutPanel: public wxPanel
         bool mouse_state_set;
 
         void OnSelectionChanged(wxTreeListEvent& event);
+        void OnTreeSelectionChanged(wxTreeEvent& event);
         void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
