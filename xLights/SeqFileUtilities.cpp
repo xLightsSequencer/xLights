@@ -6040,17 +6040,17 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 }
 
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
-    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
+    const std::vector< VSAFile::vsaEventRecord >& events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Importing servo data for " + name);
 
-    if (min_limit == max_limit)         {
+    if (min_limit == max_limit) {
         logger_base.error("ImportServoData cannot have min limit and max limit equal. Aborting import as it would crash.");
         return;
     }
-    if (layer == nullptr)         {
+    if (layer == nullptr) {
         logger_base.crit("ImportServoData cannot have null layer to import onto - this is going to crash.");
     }
 
@@ -6069,22 +6069,36 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         }
         settings += "E_CHOICE_Channel=" + name + ",";
         settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
-        float start_pos = (events[i].start_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        float start_pos = (((float)events[i].start_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
         settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
-        float end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        float end_pos = (((float)events[i].end_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
         if (start_pos < 0.0) {
             if (warn) {
-                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos < 0%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
                 warn = false;
             }
             start_pos = 0.0;
         }
+        else if (start_pos > 100.0)             {
+            if (warn) {
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos > 100%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
+                warn = false;
+            }
+            start_pos = 100.0;
+        }
         if (end_pos > 100.0) {
             if (warn) {
-                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. end_pos > 100%% : %.2f min/max %d/%d", name, end_pos, min_limit, max_limit).ToStdString());
                 warn = false;
             }
             end_pos = 100.0;
+        }
+        else if (end_pos < 0.0) {
+            if (warn) {
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. end_pos < 0%% : %.2f min/max %d/%d", name, end_pos, min_limit, max_limit).ToStdString());
+                warn = false;
+            }
+            end_pos = 0.0;
         }
         settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
@@ -6107,8 +6121,8 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         last_time = events[i].end_time * timing;
 
         // check for filling to end of sequence
-        if( i == events.size() - 1) {
-            if( last_time < sequence_end_time ) {
+        if (i == events.size() - 1) {
+            if (last_time < sequence_end_time) {
                 std::string settings3;
                 if (is_16bit) {
                     settings3 += "E_CHECKBOX_16bit=1,";
@@ -6125,8 +6139,10 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
     logger_base.debug("Importing servo data done.");
 }
 
-void xLightsFrame::ImportVsa(const wxFileName &filename) {
+void xLightsFrame::ImportVsa(const wxFileName& filename)
+{
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw; // start a stopwatch timer
 
     VsaImportDialog dlg(this);
@@ -6139,15 +6155,15 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
         return;
     }
 
-    const std::vector< VSAFile::vsaTrackRecord > &tracks = vsa.GetTrackInfo();
-    const std::vector< std::vector< VSAFile::vsaEventRecord > > &events = vsa.GetEventInfo();
+    const std::vector< VSAFile::vsaTrackRecord >& tracks = vsa.GetTrackInfo();
+    const std::vector< std::vector< VSAFile::vsaEventRecord > >& events = vsa.GetEventInfo();
     const uint32_t vsa_timing = vsa.GetTiming();
 
-    for( int m = 0; m < dlg.selectedModels.size(); ++m ) {
+    for (int m = 0; m < dlg.selectedModels.size(); ++m) {
         std::string modelName = dlg.selectedModels[m];
-        if( modelName != "" ) {
-            ModelElement * model = nullptr;
-            for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
+        if (modelName != "") {
+            ModelElement* model = nullptr;
+            for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
                 if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                     && modelName == mSequenceElements.GetElement(i)->GetName()) {
                     model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
@@ -6155,32 +6171,41 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                 }
             }
 
-            if( model != nullptr ) {
+            if (model != nullptr) {
                 EffectLayer* layer;
                 int layer_number = dlg.selectedLayers[m];
-                while( model->GetEffectLayerCount() < layer_number+1 ) {
+                while (model->GetEffectLayerCount() < layer_number + 1) {
                     model->AddEffectLayer();
                 }
 
                 layer = model->GetEffectLayer(layer_number);
-                if( layer != nullptr && dlg.selectedChannels[m] != "" ) {
-                    bool is_16bit = true;
-                    int idx = dlg.trackIndex[m];
-                    switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
-                    {
-                    case VSAFile::MINISSC_SERVO:
-                    case VSAFile::DMX_DIMMER:
-                    case VSAFile::DMX_RELAY:
-                        is_16bit = false;
-                    default:
-                        break;
+                if (layer != nullptr && dlg.selectedChannels[m] != "") {
+                    if (m < dlg.trackIndex.size()) {
+                        bool is_16bit = true;
+                        int idx = dlg.trackIndex[m];
+                        if (idx < events.size()) {
+                            switch ((VSAFile::vsaControllers)(tracks[idx].controller)) {
+                            case VSAFile::MINISSC_SERVO:
+                            case VSAFile::DMX_DIMMER:
+                            case VSAFile::DMX_RELAY:
+                                is_16bit = false;
+                            default:
+                                break;
+                            }
+                            ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit);
+                        }
+                        else {
+                            logger_base.error("ImportVSA: idx exceeds available events.");
+                        }
                     }
-                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit );
+                    else {
+                        logger_base.error("ImportVSA: m exceeds available tracks.");
+                    }
                 }
             }
         }
     }
 
-    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
