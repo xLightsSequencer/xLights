@@ -5607,7 +5607,11 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
                 FinalizeModel();
             }
             else if (is_3d) {
-                UnSelectAllModels();
+                if (editing_models) {
+                    UnSelectAllModelsInTree();
+                } else {
+                    UnSelectAllModels();
+                }
             }
             break;
 
