@@ -5774,8 +5774,9 @@ void LayoutPanel::ReplaceModel()
 
 void LayoutPanel::LockSelectedModels(bool lock)
 {
-    for (const auto& modelItem : selectedTreeModels) {
-        Model* model = GetModelFromTreeItem(modelItem);
+    std::vector<Model*> modelsToLock = GetSelectedModelsForEdit();
+
+    for (const auto& model : modelsToLock) {
         model->Lock(lock);
     }
 
