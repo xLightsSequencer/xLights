@@ -18,6 +18,7 @@ class wxChoice;
 typedef enum {
     METHOD_OVERWRITE,
     METHOD_OVERWRITEIFZERO,
+    METHOD_OVERWRITESKIPBLACK,
     METHOD_MASK,
     METHOD_UNMASK,
     METHOD_AVERAGE,
@@ -42,6 +43,7 @@ void Minimum(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
 void OverwriteIfBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
 void MaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
 void UnmaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
+void OverwriteSkipBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
 APPLYMETHOD EncodeBlendMode(const std::string blendMode);
 std::string DecodeBlendMode(APPLYMETHOD blendMode);
 
