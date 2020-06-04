@@ -314,7 +314,7 @@ class LayoutPanel: public wxPanel
         void ShowWiring();
         bool IsAllSelectedModelsArePixelProtocol() const;
 
-        bool SelectSingleModel(int x,int y);
+        Model* SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
         void HighlightAllInBoundingRect(bool models_and_objects);
@@ -335,6 +335,7 @@ class LayoutPanel: public wxPanel
         void SetTreeModelSelected(Model* model, bool isPrimary);
         void SetTreeGroupModelsSelected(Model* model, bool isPrimary);
         void SetTreeSubModelSelected(Model* model, bool isPrimary);
+        void CheckModelForOverlaps(Model* model);
         std::vector<std::list<std::string>> GetSelectedTreeModelPaths();
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
@@ -343,6 +344,7 @@ class LayoutPanel: public wxPanel
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
+        void UnSelectAllModelsInTree();
         std::list<BaseObject*> GetSelectedBaseObjects() const;
         void PreviewModelAlignWithGround();
         void PreviewModelAlignTops();

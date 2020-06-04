@@ -1468,8 +1468,9 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                 // itself
                                 SelectModel(model, false);
                             }
-                            m->GroupSelected = true;
-                            m->Highlighted = true;
+                            // DP - should not need these
+                            // m->GroupSelected = true;
+                            // m->Highlighted = true;
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
@@ -1485,8 +1486,9 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                         {
                                             SelectModel(it3, false);
                                         }
-                                        it3->GroupSelected = true;
-                                        it3->Highlighted = true;
+                                        // DP - shouldn't need these
+                                        // it3->GroupSelected = true;
+                                        // it3->Highlighted = true;
                                         prev_models.push_back(it3);
                                     }
                                     else
@@ -1509,7 +1511,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                                         }
                                                         prev_models.push_back(itm.second);
                                                     }
-                                                    itm.second->GroupSelected = true;
+                                                    // DP - shouldn't need this
+                                                    // itm.second->GroupSelected = true;
                                                 }
                                             }
                                         }
@@ -2212,16 +2215,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         }
         if (m != selectedBaseObject)
         {
-            for (const auto& it : xlights->AllModels)
-            {
-                Model* model = it.second;
-                model->Selected = false;
-                model->Highlighted = false;
-                model->GroupSelected = false;
-                model->SelectHandle(-1);
-                model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-            }
-            SelectModel(m, highlight_tree);
+            SelectModelInTree(m);
         }
     } else {
         ViewObject *v = xlights->AllObjects[name];
@@ -2247,7 +2241,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
 void LayoutPanel::SelectBaseObject(BaseObject *obj, bool highlight_tree)
 {
     if( editing_models ) {
-        SelectModel(dynamic_cast<Model*>(obj), highlight_tree);
+        SelectBaseObjectInTree(obj);
     } else {
         SelectViewObject(dynamic_cast<ViewObject*>(obj), highlight_tree);
     }
@@ -2262,9 +2256,8 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     {
         logger_base.warn("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
     }
-    if (selectedBaseObject != m)
-    {
-        SelectModel(m, highlight_tree);
+    else {
+        SelectModelInTree(m);
     }
 }
 
@@ -2282,7 +2275,7 @@ void LayoutPanel::SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& 
         }
         else
         {
-            it->GroupSelected = true;
+            SelectModelInTree(m);
         }
     }
 }
@@ -2294,122 +2287,8 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     // TODO need to strip out extra logging once I know for sure what is going on
     if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
 
-    bool changed = false;
-    if (selectedBaseObject != m)
-    {
-        changed = true;
-    }
-
-    modelPreview->SetFocus();
-    int foundStart = 0;
-    int foundEnd = 0;
-
-    if (m != nullptr) {
-
-        if (m->GetDisplayAs() == "SubModel")
-        {
-            SubModel *subModel = dynamic_cast<SubModel*>(m);
-            if (subModel != nullptr) {
-                // this is the only thing I can see here that could crash
-                //if (subModel->GetParent() == nullptr) logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
-                //subModel->GetParent()->Selected = true;
-                subModel->Selected = true;
-            }
-            else {
-                m->Selected = true;
-            }
-        }
-        else if (m->GetDisplayAs() == "ModelGroup")
-        {
-            std::list<ModelGroup*> processed;
-            SelectModelGroupModels(dynamic_cast<ModelGroup*>(m), processed);
-        }
-        else
-        {
-            m->Selected = true;
-        }
-
-        if( highlight_tree ) {
-            wxTreeListItem itemForModel;
-            for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
-                  item.IsOk();
-                  item = TreeListViewModels->GetNextSibling(item) )
-            {
-                if (TreeListViewModels->GetItemData(item) != nullptr)
-                {
-                    ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                    if (mitem != nullptr)
-                    {
-                        Model* model = mitem->GetModel();
-                        if (model == m)
-                            itemForModel = item;
-                        if (model->Selected) {
-                            TreeListViewModels->Select(item);
-                        #ifdef __WXMSW__
-                            HandleSelectionChanged();
-                        #endif
-                        }
-                        else {
-                            TreeListViewModels->Unselect(item);
-                        #ifdef __WXMSW__
-                            HandleSelectionChanged();
-                        #endif
-                        }
-                    }
-                }
-            }
-            if (itemForModel.IsOk())
-                TreeListViewModels->EnsureVisible(itemForModel);
-        }
-        if (CheckBoxOverlap->GetValue() == true) {
-            foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
-            foundEnd = m->GetLastChannel();
-        }
-        if (changed)
-            SetupPropGrid(m);
-    } else {
-        propertyEditor->Freeze();
-        clearPropGrid();
-        propertyEditor->Thaw();
-    }
-
-    selectedBaseObject = m;
-    if (selectedBaseObject != nullptr)
-    {
-        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-        selectionLatched = true;
-    }
-
-    if (CheckBoxOverlap->GetValue() && selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() != "ModelGroup") {
-        for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
-              item.IsOk();
-              item = TreeListViewModels->GetNextSibling(item) )
-        {
-            if (TreeListViewModels->GetItemData(item) != nullptr)
-            {
-                ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                Model *mm = data != nullptr ? data->GetModel() : nullptr;
-                if (mm != nullptr && mm != selectedBaseObject) {
-                    int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
-                    int endChan = mm->GetLastChannel();
-                    if ((startChan >= foundStart) && (endChan <= foundEnd)) {
-                        mm->Overlapping = true;
-                    }
-                    else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
-                        mm->Overlapping = true;
-                    }
-                    else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
-                        mm->Overlapping = true;
-                    }
-                    else {
-                        mm->Overlapping = false;
-                    }
-                }
-            }
-        }
-    }
-    SelectBaseObject3D();
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectModel");
+    SelectModelInTree(m);
+    //SelectBaseObject3D();
 }
 
 void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
@@ -2680,31 +2559,27 @@ int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
     return found.size();
 }
 
-bool LayoutPanel::SelectSingleModel(int x, int y)
+Model* LayoutPanel::SelectSingleModel(int x, int y)
 {
+    UnSelectAllModelsInTree();
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
-    TreeListViewModels->UnselectAll();
-#ifdef __WXMSW__
-    HandleSelectionChanged();
-#endif
+
     if (modelCount == 0) {
-        return false;
+        return nullptr;
     } else if (modelCount == 1) {
-        SelectModel(modelPreview->GetModels()[found[0]]);
         mHitTestNextSelectModelIndex = 0;
-        return true;
+        return modelPreview->GetModels()[found[0]];
     } else if (modelCount > 1)  {
         for (int i = 0; i < modelCount; i++) {
             if (mHitTestNextSelectModelIndex == i) {
-                SelectModel(modelPreview->GetModels()[found[i]]);
                 mHitTestNextSelectModelIndex += 1;
                 mHitTestNextSelectModelIndex %= modelCount;
-                return true;
+                return modelPreview->GetModels()[found[0]];
             }
         }
     }
-    return false;
+    return nullptr;
 }
 
 void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
@@ -2715,12 +2590,6 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
         {
             if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
             {
-                // if we dont have a selected model make the first one we find the selected model so alignment etc works
-                if (selectedBaseObject == nullptr)
-                {
-                    SelectBaseObject(modelPreview->GetModels()[i]->GetName(), false);
-                }
-                modelPreview->GetModels()[i]->GroupSelected = true;
                 SelectModelInTree(modelPreview->GetModels()[i]);
                 count++;
             }
@@ -2787,32 +2656,19 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     clearPropGrid();
     propertyEditor->Thaw();
     Model* clickedModel = modelPreview->GetModels()[found[0]];
-    bool treeSelectionChanged = false;
+
     if (clickedModel->Selected)
     {
-        treeSelectionChanged = true;
         UnSelectModelInTree(clickedModel);
     }
     else if (clickedModel->GroupSelected)
     {
-        SetSelectedModelToGroupSelected();
-        modelPreview->GetModels()[found[0]]->Selected = true;
-        modelPreview->GetModels()[found[0]]->Highlighted = true;
-        selectedBaseObject = clickedModel;
-        highlightedBaseObject = clickedModel;
-        clickedModel->SelectHandle(-1);
-        clickedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        UnSelectAllModelsInTree();
+        SelectBaseObjectInTree(clickedModel);
     }
     else
     {
-        treeSelectionChanged = true;
         SelectModelInTree(clickedModel);
-        modelPreview->GetModels()[found[0]]->Highlighted = true;
-    }
-
-    // no need to do this work if tree selection changed as it is already done at the end of OnSelectionChanged();
-    if (!treeSelectionChanged) {
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
     }
 
     return true;
@@ -2841,10 +2697,7 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     if (editing_models) {
-        TreeListViewModels->UnselectAll();
-#ifdef __WXMSW__
-        HandleSelectionChanged();
-#endif
+        UnSelectAllModelsInTree();
     } else {
         UnSelectAllModels();
     }
@@ -2905,11 +2758,15 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             }
         }
         else {
-            SelectBaseObject(highlightedBaseObject);
-            selectionLatched = true;
-            // latch center handle immediately
-            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+            if (editing_models) {
+                SelectBaseObjectInTree(highlightedBaseObject);
+            } else {
+                SelectBaseObject(highlightedBaseObject);
+                selectionLatched = true;
+                // latch center handle immediately
+                selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+            }
         }
     }
     else {
@@ -3011,18 +2868,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                 }
                 else if (which_object->GroupSelected) {
-                    which_object->GroupSelected = false;
-                    which_object->Selected = true;
-                    if (selectedBaseObject != nullptr) {
-                        selectedBaseObject->GroupSelected = true;
-                        selectedBaseObject->Selected = false;
-                        selectedBaseObject->SelectHandle(-1);
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-                    }
+                    UnSelectBaseObjectInTree(which_object);
                     selectedBaseObject = which_object;
-                    highlightedBaseObject = selectedBaseObject;
-                    selectedBaseObject->SelectHandle(-1);
-                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    SelectBaseObjectInTree(which_object);
                 }
                 else if (which_object->Selected) {
                     if (editing_models) {
@@ -3048,7 +2896,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 
                 // no need to do this work if tree selection changed as it is already done at the end of OnSelectionChanged();
                 if (!treeSelectionChanged) {
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+                    //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                 }
             }
         }
@@ -3171,11 +3019,13 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
         if (!event.wxKeyboardState::ControlDown())
         {
-            UnSelectAllModels();
+            UnSelectAllModelsInTree();
         }
 
-        if (SelectSingleModel(event.GetX(), event.GetY()))
+        Model* singleModel = SelectSingleModel(event.GetX(), event.GetY());
+        if (singleModel != nullptr)
         {
+            SelectModelInTree(singleModel);
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
@@ -4930,6 +4780,9 @@ void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
             ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             if (mitem != nullptr && mitem->GetModel() == modelToUnSelect) {
                 TreeListViewModels->Unselect(item);
+                #ifdef __WXMSW__
+                    HandleSelectionChanged();
+                #endif
                 break;
             }
         }
@@ -4962,6 +4815,13 @@ wxTreeListItem LayoutPanel::GetTreeItemFromModel(Model* model) {
     }
     
     return modelTreeItem;
+}
+
+void LayoutPanel::UnSelectAllModelsInTree() {
+        TreeListViewModels->UnselectAll();
+        #ifdef __WXMSW__
+            HandleSelectionChanged();
+        #endif
 }
 
 // Get unique models from selected tree model group included those deeply nested
@@ -4997,7 +4857,6 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
 
 // The will return unique selected models for edit, useful when groups are also selected in model tree
 std::vector<Model*> LayoutPanel::GetSelectedModelsForEdit() {
-    wxStopWatch sw;
     std::vector<Model*> modelsForEdit;
 
     for (const auto& groupItem : selectedTreeGroups) {
@@ -5030,7 +4889,11 @@ void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
         selectedBaseObject->Highlighted = true;
         selectedBaseObject->SelectHandle(-1);
         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        if (CheckBoxOverlap->GetValue() == true) {
+            CheckModelForOverlaps(model);
+        }
     } else {
+        model->Selected = false;
         model->GroupSelected = true;
         model->Highlighted = true;
         model->SelectHandle(-1);
@@ -5060,10 +4923,40 @@ void LayoutPanel::SetTreeSubModelSelected(Model* model, bool isPrimary) {
         highlightedBaseObject = model;
         selectionLatched = true;
     }
-        model->GroupSelected = true;
-        model->Highlighted = true;
-        model->SelectHandle(-1);
-        model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+    model->GroupSelected = true;
+    model->Highlighted = true;
+    model->SelectHandle(-1);
+    model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+}
+
+void LayoutPanel::CheckModelForOverlaps(Model* model) {
+    int mStart = model->GetNumberFromChannelString(model->ModelStartChannel);
+    int mEnd = model->GetLastChannel();
+    
+    for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+          item.IsOk();
+          item = TreeListViewModels->GetNextSibling(item) ) {
+        if (TreeListViewModels->GetItemData(item) != nullptr) {
+            ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+            Model *mm = data != nullptr ? data->GetModel() : nullptr;
+            if (mm != nullptr && mm != selectedBaseObject) {
+                int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
+                int endChan = mm->GetLastChannel();
+                if ((startChan >= mStart) && (endChan <= mEnd)) {
+                    mm->Overlapping = true;
+                }
+                else if ((startChan >= mStart) && (startChan <= mEnd)) {
+                    mm->Overlapping = true;
+                }
+                else if ((endChan >= mStart) && (endChan <= mEnd)) {
+                    mm->Overlapping = true;
+                }
+                else {
+                    mm->Overlapping = false;
+                }
+            }
+        }
+    }
 }
 
 std::vector<std::list<std::string>> LayoutPanel::GetSelectedTreeModelPaths() {
@@ -5150,8 +5043,6 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
 
 int LayoutPanel::ModelsSelectedCount() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
     int selectedModelCount = 0;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
@@ -5160,9 +5051,7 @@ int LayoutPanel::ModelsSelectedCount() const
             selectedModelCount++;
         }
     }
-    
-    logger_base.debug("ModelsSelectedCount() found in %ldms", sw.Time());
-    
+        
     return selectedModelCount;
 }
 
@@ -6679,7 +6568,6 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         }
     } else {
         SetCurrentLayoutGroup(choice_layout);
-        //mSelectedGroup = nullptr;
         UpdateModelList(true);
     }
     modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
@@ -6976,7 +6864,7 @@ void LayoutPanel::DeleteCurrentPreview() {
             }
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
-        //mSelectedGroup = nullptr;
+
         for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
             if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
                 ChoiceLayoutGroups->Delete(i);
@@ -7151,6 +7039,9 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 }
 
 void LayoutPanel::HandleSelectionChanged() {
+    
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     // Even when Tree is Frozen which happens during full refresh this event is still fired on DeleteItem()/DeleteItems()
     // and randomly causes crash when model is nullptr, so bail when Frozen.  Also make sure tooltip is empty and property
     // grid is shown so background props show after full refresh when nothing is selected.
@@ -7161,14 +7052,13 @@ void LayoutPanel::HandleSelectionChanged() {
     }
     
     BaseObject* lastSelectedBaseObject = selectedBaseObject;
-    
-    UnSelectAllModels(false);
-
+    Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
     wxTreeListItems selectedItems;
     TreeListViewModels->GetSelections(selectedItems);
     
-    Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
+    UnSelectAllModels(false);
     resetPropertyGrid();
+    
     if (selectedItems.size() > 0) {
         bool isPrimary = false;
         if (selectedItems.size() == 1) {
@@ -7181,7 +7071,6 @@ void LayoutPanel::HandleSelectionChanged() {
                 #ifdef __LINUX__
                                 // This seems to happen only on Linux so prevent the crash
                                 if (!xlights->AllModels.IsModelValid(model)) {
-                                    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                                     logger_base.debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
                                     return;
                                 }
@@ -7190,7 +7079,6 @@ void LayoutPanel::HandleSelectionChanged() {
                                 // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
                                 // This code will prove that theory
                                 if (!xlights->AllModels.IsModelValid(model)) {
-                                    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                                     logger_base.crit("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
                                 }
                 #else
@@ -7250,15 +7138,18 @@ void LayoutPanel::HandleSelectionChanged() {
             model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
             model_grp_panel->Show();
         } else if (smSize == 1) {
-            model_grp_panel->Hide();
             ShowPropGrid(true);
         } else if (mSize == 1) {
-            model_grp_panel->Hide();
             Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
             if (model != nullptr) {
                 tooltip = xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString();
-                ShowPropGrid(true);
+            } else {
+                logger_base.crit("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
+            ShowPropGrid(true);
+        } else {
+            logger_base.crit("LayoutPanel::HandleSelectionChanged No models selected after processing, this should not have happen, when we started there were %d selections.", selectedItems.size());
+            showBackgroundProperties();
         }
         
         SetToolTipForTreeList(TreeListViewModels, tooltip);
@@ -7268,11 +7159,11 @@ void LayoutPanel::HandleSelectionChanged() {
         // TreeListViewModels->SetFocus();
         // #endif
         
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnSelectionChanged");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
     } else {
         selectedBaseObject = nullptr;
         UnSelectAllModels(true);
-        ShowPropGrid(true);
+        showBackgroundProperties();
         SetToolTipForTreeList(TreeListViewModels, "");
     }
 }
@@ -7579,11 +7470,12 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 {
-    UnSelectAllModels();
     if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
+        UnSelectAllModels();
         editing_models = true;
     }
     else {
+        UnSelectAllModelsInTree();
         editing_models = false;
     }
 }
