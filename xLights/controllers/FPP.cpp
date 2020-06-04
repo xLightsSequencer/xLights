@@ -35,6 +35,7 @@
 
 #include "FPP.h"
 #include "../xLightsXmlFile.h"
+#include "../models/CustomModel.h"
 #include "../models/Model.h"
 #include "../models/MatrixModel.h"
 #include "../outputs/OutputManager.h"
@@ -1000,6 +1001,10 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
     wxJSONValue models;
     for (const auto& m : *allmodels) {
         Model* model = m.second;
+        
+        if (model->GetDisplayAs() == "ModelGroup")
+            continue;
+        
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         wxString name(model->name);
@@ -1013,12 +1018,15 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
         int straPerStr =  model->GetNumStrands() / numStr;
         if (straPerStr < 1) straPerStr = 1;
         
+        if (model->GetDisplayAs() == "Custom") {
+            straPerStr = 1;
+        }
+        
         wxJSONValue jm;
         jm["Name"] = name;
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
-        jm["StrandsPerString"] = straPerStr;
-        jm["StringCount"] = numStr;
+        jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
         
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
@@ -1027,9 +1035,17 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
             } else {
                 jm["Orientation"] = wxString("horizontal");
             }
+        } else if (model->GetDisplayAs() == "Custom") {
+            straPerStr = 1;
+            numStr = 1;
+            jm["Orientation"] = wxString("custom");
+            CustomModel *cm = dynamic_cast<CustomModel*>(model);
+            jm["data"] = cm->GetCustomData();
         } else {
             jm["Orientation"] = wxString("horizontal");
         }
+        jm["StringCount"] = numStr;
+        jm["StrandsPerString"] = straPerStr;
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
