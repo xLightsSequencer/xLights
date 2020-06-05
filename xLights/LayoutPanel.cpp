@@ -4774,9 +4774,12 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             if (mitem != nullptr && mitem->GetModel() == modelToSelect) {
                 TreeListViewModels->Select(item);
-                #ifdef __WXMSW__
-                HandleSelectionChanged();
+                
+                // OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
+                #if defined(__WXMSW__) || defined(__LINUX__)
+                    HandleSelectionChanged();
                 #endif
+
                 TreeListViewModels->EnsureVisible(item);
                 break;
             }
@@ -4802,7 +4805,9 @@ void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
             ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             if (mitem != nullptr && mitem->GetModel() == modelToUnSelect) {
                 TreeListViewModels->Unselect(item);
-                #ifdef __WXMSW__
+                
+                // OnSelectionChanged() doesn't fire on MSW or GTK when Unselect is called
+                #if defined(__WXMSW__) || defined(__LINUX__)
                     HandleSelectionChanged();
                 #endif
                 break;
@@ -4841,9 +4846,12 @@ wxTreeListItem LayoutPanel::GetTreeItemFromModel(Model* model) {
 
 void LayoutPanel::UnSelectAllModelsInTree() {
         TreeListViewModels->UnselectAll();
-        #ifdef __WXMSW__
+    
+        // OnSelectionChanged() doesn't fire on MSW or GTK when unselectAll is called
+        #if defined(__WXMSW__) || defined(__LINUX__)
             HandleSelectionChanged();
         #endif
+
 }
 
 // Get unique models from selected tree model group included those deeply nested
@@ -5053,8 +5061,10 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
                 std::string childName = TreeListViewModels->GetItemText(child);
                 if (TreeListViewModels->GetItemText(child) == modelName) {
                     TreeListViewModels->Select(child);
-                    #ifdef __WXMSW__
-                    HandleSelectionChanged();
+                    
+                    // OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
+                    #if defined(__WXMSW__) || defined(__LINUX__)
+                        HandleSelectionChanged();
                     #endif
                 }
             }
