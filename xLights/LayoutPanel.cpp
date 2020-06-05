@@ -1698,10 +1698,20 @@ void LayoutPanel::BulkEditActive(bool active)
 
     // remember the selected models
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
-
+    
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
+            std::string preChangeName = TreeModelName(model, false);
             model->SetActive(active);
+            std::string postChangeName = TreeModelName(model, false);
+            
+            // fix name for reselect
+            for (auto& path : selectedModelPaths) {
+                if (path.back() == preChangeName) {
+                    path.pop_back();
+                    path.push_back(postChangeName);
+                }
+            }
         }
     }
     
@@ -5000,18 +5010,24 @@ std::vector<std::list<std::string>> LayoutPanel::GetSelectedTreeModelPaths() {
     }
     
     for (const auto& item : selectedTreeGroups) {
-        std::list<std::string> modelPath = GetTreeItemPath(item);
-        modelPaths.push_back(modelPath);
+        if (selectedPrimaryTreeItem != item) {
+            std::list<std::string> modelPath = GetTreeItemPath(item);
+            modelPaths.push_back(modelPath);
+        }
     }
 
     for (const auto& item : selectedTreeModels) {
-        std::list<std::string> modelPath = GetTreeItemPath(item);
-        modelPaths.push_back(modelPath);
+        if (selectedPrimaryTreeItem != item) {
+            std::list<std::string> modelPath = GetTreeItemPath(item);
+            modelPaths.push_back(modelPath);
+        }
     }
 
     for (const auto& item : selectedTreeSubModels) {
-        std::list<std::string> modelPath = GetTreeItemPath(item);
-        modelPaths.push_back(modelPath);
+        if (selectedPrimaryTreeItem != item) {
+            std::list<std::string> modelPath = GetTreeItemPath(item);
+            modelPaths.push_back(modelPath);
+        }
     }
 
     return modelPaths;
@@ -5046,7 +5062,7 @@ wxTreeListItem LayoutPanel::GetTreeItemBranch(wxTreeListItem parent, std::string
 
 void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPaths) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     for (auto path : modelPaths) {
         // model name is last string in path
         std::string modelName = path.back();
@@ -5066,10 +5082,11 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
                     #if defined(__WXMSW__) || defined(__LINUX__)
                         HandleSelectionChanged();
                     #endif
+                    break;
                 }
             }
         } else {
-            logger_base.crit("LayoutPanel::ReselectTreeModels Model could not be found in tree... this shouldn't happen.");
+            logger_base.crit("LayoutPanel::ReselectTreeModels branch could not be found in tree... this shouldn't happen.");
         }
     }
 }
