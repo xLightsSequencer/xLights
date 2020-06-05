@@ -3900,6 +3900,58 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
     return true;
 }
 
+void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
+    mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETACTIVE, "Active");
+    mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETINACTIVE, "Inactive");
+    if (editing_models) {
+        if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
+        {
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
+        }
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TAGCOLOUR, "Tag Color");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+        if (IsAllSelectedModelsArePixelProtocol())
+        {
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SMARTREMOTE, "Smart Remote");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER, "Controller Colour Order");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES, "Controller Null Nodes");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT, "Controller Group Count");
+        }
+    }
+    mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
+    if (editing_models) {
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_DIMMINGCURVES, "Dimming Curves");
+    }
+}
+
+void LayoutPanel::AddAlignOptionsToMenu(wxMenu* mnuAlign) {
+    mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
+    mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
+    mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
+    mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT, "Right");
+    if (is_3d) {
+        mnuAlign->Append(ID_PREVIEW_ALIGN_FRONT, "Front");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_BACK, "Back");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_GROUND, "With Ground");
+    }
+    mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
+    mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+}
+
+void LayoutPanel::AddDistributeOptionsToMenu(wxMenu* mnuDistribute) {
+    mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
+    mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+}
+
+void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
+    mnuResize->Append(ID_PREVIEW_RESIZE_SAMEWIDTH, "Match Width");
+    mnuResize->Append(ID_PREVIEW_RESIZE_SAMEHEIGHT, "Match Height");
+    mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
+}
+
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
@@ -3912,55 +3964,19 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     if (selectedObjectCnt > 1)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
-        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETACTIVE, "Active");
-        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETINACTIVE, "Inactive");
-        if( editing_models ) {
-            if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
-            {
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
-            }
-            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TAGCOLOUR, "Tag Color");
-            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
-            if (IsAllSelectedModelsArePixelProtocol())
-            {
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SMARTREMOTE, "Smart Remote");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER, "Controller Colour Order");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES, "Controller Null Nodes");
-                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT, "Controller Group Count");
-            }
-        }
-        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
-        if( editing_models ) {
-            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_DIMMINGCURVES, "Dimming Curves");
-        }
+        AddBulkEditOptionsToMenu(mnuBulkEdit);
         mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         wxMenu* mnuAlign = new wxMenu();
-        mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT, "Right");
-        if (is_3d) {
-            mnuAlign->Append(ID_PREVIEW_ALIGN_FRONT, "Front");
-            mnuAlign->Append(ID_PREVIEW_ALIGN_BACK, "Back");
-            mnuAlign->Append(ID_PREVIEW_ALIGN_GROUND, "With Ground");
-        }
-        mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        AddAlignOptionsToMenu(mnuAlign);
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         wxMenu* mnuDistribute = new wxMenu();
-        mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
-        mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        AddDistributeOptionsToMenu(mnuDistribute);
         mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         wxMenu* mnuResize = new wxMenu();
-        mnuResize->Append(ID_PREVIEW_RESIZE_SAMEWIDTH, "Match Width");
-        mnuResize->Append(ID_PREVIEW_RESIZE_SAMEHEIGHT, "Match Height");
-        mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
+        AddResizeOptionsToMenu(mnuResize);
         mnuResize->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         mnu.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
@@ -6290,6 +6306,146 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
     }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
+    {
+        if(editing_models ) {
+            PreviewModelAlignBottoms();
+        } else {
+            objects_panel->PreviewObjectAlignBottoms();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND)
+    {
+        if(editing_models ) {
+            PreviewModelAlignWithGround();
+        } else {
+            objects_panel->PreviewObjectAlignWithGround();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE
+        )
+    {
+        BulkEditControllerConnection(event.GetId());
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
+    {
+        BulkEditControllerName();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE)
+    {
+        BulkEditActive(true);
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE)
+    {
+        BulkEditActive(false);
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR)
+    {
+        BulkEditTagColour();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
+    {
+        BulkEditControllerPreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES)
+    {
+        BulkEditDimmingCurves();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
+    {
+        if(editing_models ) {
+            PreviewModelAlignLeft();
+        } else {
+            objects_panel->PreviewObjectAlignLeft();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT)
+    {
+        if(editing_models ) {
+            PreviewModelAlignRight();
+        } else {
+            objects_panel->PreviewObjectAlignRight();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT)
+    {
+        if(editing_models ) {
+            PreviewModelAlignFronts();
+        } else {
+            objects_panel->PreviewObjectAlignFronts();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_BACK)
+    {
+        if(editing_models ) {
+            PreviewModelAlignBacks();
+        } else {
+            objects_panel->PreviewObjectAlignBacks();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER)
+    {
+        if(editing_models ) {
+            PreviewModelAlignHCenter();
+        } else {
+            objects_panel->PreviewObjectAlignHCenter();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
+    {
+        if(editing_models ) {
+            PreviewModelAlignVCenter();
+        } else {
+            objects_panel->PreviewObjectAlignVCenter();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
+    {
+        if(editing_models ) {
+            PreviewModelHDistribute();
+        } else {
+            objects_panel->PreviewObjectHDistribute();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE)
+    {
+        if(editing_models ) {
+            PreviewModelVDistribute();
+        } else {
+            objects_panel->PreviewObjectVDistribute();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
+    {
+        if(editing_models ) {
+            PreviewModelResize(true, false);
+        } else {
+            objects_panel->PreviewObjectResize(true, false);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT)
+    {
+        if(editing_models ) {
+            PreviewModelResize(false, true);
+        } else {
+            objects_panel->PreviewObjectResize(false, true);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE)
+    {
+        if(editing_models ) {
+            PreviewModelResize(true, true);
+        } else {
+            objects_panel->PreviewObjectResize(true, true);
+        }
+    }
     else if (id == ID_MNU_DELETE_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
@@ -7008,6 +7164,32 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
             mnuContext.AppendSeparator();
         }
+    }
+    
+    // add model menu options if only models selected and selected > 1n
+    if (selectedTreeModels.size() > 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
+        wxMenu* mnuBulkEdit = new wxMenu();
+        AddBulkEditOptionsToMenu(mnuBulkEdit);
+        mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+        
+        wxMenu* mnuAlign = new wxMenu();
+        AddAlignOptionsToMenu(mnuAlign);
+        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+        
+        wxMenu* mnuDistribute = new wxMenu();
+        AddDistributeOptionsToMenu(mnuDistribute);
+        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+        
+        wxMenu* mnuResize = new wxMenu();
+        AddResizeOptionsToMenu(mnuResize);
+        mnuResize->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+        
+        mnuContext.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
+        mnuContext.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
+        mnuContext.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
+        mnuContext.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
+
+        mnuContext.AppendSeparator();
     }
 
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Group");

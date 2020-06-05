@@ -313,7 +313,10 @@ class LayoutPanel: public wxPanel
         void ShowNodeLayout();
         void ShowWiring();
         bool IsAllSelectedModelsArePixelProtocol() const;
-
+        void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
+        void AddAlignOptionsToMenu(wxMenu* mnuAlign);
+        void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
+        void AddResizeOptionsToMenu(wxMenu* mnuResize);
         Model* SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
