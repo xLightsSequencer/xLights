@@ -313,6 +313,7 @@ class LayoutPanel: public wxPanel
         void ShowNodeLayout();
         void ShowWiring();
         bool IsAllSelectedModelsArePixelProtocol() const;
+        void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);

@@ -3900,6 +3900,71 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
     return true;
 }
 
+void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
+    int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
+
+    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked())
+    {
+        bool need_sep = false;
+        if( editing_models ) {
+            Model* model = dynamic_cast<Model*>(selectedBaseObject);
+            int sel_seg = model->GetSelectedSegment();
+            if( sel_seg != -1 ) {
+                if( !model->HasCurve(sel_seg) ) {
+                    menu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
+                    menu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
+                } else {
+                    menu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
+                }
+                need_sep = true;
+            }
+            int sel_hdl = model->GetSelectedHandle();
+            if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
+                menu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+                need_sep = true;
+            }
+        }
+        if( need_sep ) {
+            menu.AppendSeparator();
+        }
+        if( editing_models && (selectedBaseObject->GetDisplayAs() == "Matrix" ))
+        {
+            menu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
+        }
+        if (is_3d && selectedObjectCnt == 1) {
+            menu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
+        }
+    }
+    if (editing_models && (selectedBaseObject != nullptr))
+    {
+        Model* model = dynamic_cast<Model*>(selectedBaseObject);
+        if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
+        {
+            menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+        }
+        menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
+        menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
+        if (model->SupportsExportAsCustom())
+        {
+            menu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
+        }
+        if (model->SupportsWiringView())
+        {
+            menu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
+        }
+        if (model->SupportsXlightsModel())
+        {
+            menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
+        }
+        menu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
+    }
+
+    if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1))
+    {
+        menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+    }
+}
+
 void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
     mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETACTIVE, "Active");
     mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETINACTIVE, "Inactive");
@@ -3988,66 +4053,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     }
 
     if (selectedObjectCnt > 0) {
-        if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked())
-        {
-            bool need_sep = false;
-            if( editing_models ) {
-                Model* model = dynamic_cast<Model*>(selectedBaseObject);
-                int sel_seg = model->GetSelectedSegment();
-                if( sel_seg != -1 ) {
-                    if( !model->HasCurve(sel_seg) ) {
-                        mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
-                        mnu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
-                    } else {
-                        mnu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
-                    }
-                    need_sep = true;
-                }
-                int sel_hdl = model->GetSelectedHandle();
-                if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
-                    mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
-                    need_sep = true;
-                }
-            }
-            if( need_sep ) {
-                mnu.AppendSeparator();
-            }
-            if( editing_models && (selectedBaseObject->GetDisplayAs() == "Matrix" ))
-            {
-                mnu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
-            }
-            if (is_3d && selectedObjectCnt == 1) {
-                mnu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
-            }
-        }
-        if (editing_models && (selectedBaseObject != nullptr))
-        {
-            Model* model = dynamic_cast<Model*>(selectedBaseObject);
-            if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
-            {
-                mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
-            }
-            mnu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
-            mnu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
-            if (model->SupportsExportAsCustom())
-            {
-                mnu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
-            }
-            if (model->SupportsWiringView())
-            {
-                mnu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
-            }
-            if (model->SupportsXlightsModel())
-            {
-                mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
-            }
-            mnu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
-        }
-
-        if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1))
-        {
-            mnu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
-        }
+        AddSingleModelOptionsToBaseMenu(mnu);
     }
 
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
@@ -6306,6 +6312,121 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
     }
+    else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
+    {
+        ShowNodeLayout();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
+    {
+        LockSelectedModels(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
+    {
+        LockSelectedModels(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
+    {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr) return;
+        md->ExportAsCustomXModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
+    {
+        CreateModelGroupFromSelected();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
+    {
+        ShowWiring();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        int screen_wi = md->GetBaseObjectScreenLocation().GetMWidth();
+        int screen_ht = md->GetBaseObjectScreenLocation().GetMHeight();
+        float render_ht = md->GetBaseObjectScreenLocation().GetRenderHt();
+        float render_wi = md->GetBaseObjectScreenLocation().GetRenderWi();
+        float ht_ratio = render_ht / (float)screen_ht;
+        float wi_ratio = render_wi / (float)screen_wi;
+        if( ht_ratio > wi_ratio) {
+            render_wi = render_wi / ht_ratio;
+            md->GetBaseObjectScreenLocation().SetMWidth((int)render_wi);
+        } else {
+            render_ht = render_ht / wi_ratio;
+            md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
+        }
+        md->GetBaseObjectScreenLocation().Write(md->ModelXml);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        md->ExportXlightsModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
+    {
+        DeleteCurrentPreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        int handle = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
+        md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        //SetupPropGrid(md);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        int selected_handle = md->GetSelectedHandle();
+        if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
+        {
+            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
+            md->DeleteHandle(selected_handle);
+            md->SelectHandle(-1);
+            md->GetModelScreenLocation().SelectSegment(-1);
+            md->UpdateXmlWithScale();
+            md->InitModel();
+            //SetupPropGrid(md);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        int seg = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
+        md->SetCurve(seg, true);
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
+    {
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
+        if( md == nullptr ) return;
+        int seg = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
+        md->SetCurve(seg, false);
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
+    }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
         if(editing_models ) {
@@ -7162,8 +7283,15 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         
         if (selectedTreeModels.size() > 1) {
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
+            mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
+            mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
             mnuContext.AppendSeparator();
         }
+    }
+    
+    if (selectedTreeModels.size() == 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
+        AddSingleModelOptionsToBaseMenu(mnuContext);
+        mnuContext.AppendSeparator();
     }
     
     // add model menu options if only models selected and selected > 1n
