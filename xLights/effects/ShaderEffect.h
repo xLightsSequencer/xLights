@@ -135,12 +135,12 @@ struct ShaderParm
         return GetId(ctrl).AfterFirst('_');
     }
     wxString GetLabel() const { if (_label != "") return _label; return _name; }
-    bool ShowParm() const 
-    { 
-        return _type == ShaderParmType::SHADER_PARM_FLOAT || 
-            _type == ShaderParmType::SHADER_PARM_BOOL || 
+    bool ShowParm() const
+    {
+        return _type == ShaderParmType::SHADER_PARM_FLOAT ||
+            _type == ShaderParmType::SHADER_PARM_BOOL ||
             _type == ShaderParmType::SHADER_PARM_LONGCHOICE ||
-            _type == ShaderParmType::SHADER_PARM_POINT2D; 
+            _type == ShaderParmType::SHADER_PARM_POINT2D;
     }
 };
 
@@ -152,6 +152,7 @@ class ShaderConfig
     std::list<ShaderPass> _passes;
     std::string _code;
     bool _canvasMode = false;
+    bool _audioFFTMode = false;
     bool _hasRendersize = false;
     bool _hasTime = false;
 
@@ -163,6 +164,7 @@ public:
     std::string GetDescription() const { return _description; }
     std::string GetCode() const { return _code; }
     bool IsCanvasShader() const { return _canvasMode; }
+    bool IsAudioFFTShader() const { return _audioFFTMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
 };
@@ -200,9 +202,9 @@ protected:
         unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight);
     void recompileFromShaderConfig(const ShaderConfig* cfg, unsigned& s_programId);
 
-    typedef struct _VertexTex
+    struct VertexTex
     {
         float v[2];
         float t[2];
-    } VertexTex;
+    };
 };

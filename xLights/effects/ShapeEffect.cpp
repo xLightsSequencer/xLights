@@ -369,10 +369,10 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = *(pf->cbegin());
             }
         }
     }
@@ -1100,7 +1100,7 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     fi.Light(font.GetWeight() == wxFONTWEIGHT_LIGHT);
     fi.AntiAliased(font.IsAntiAliased());
     fi.Encoding(font.GetEncoding());
-    
+
     context->SetFont(fi, color);
 
     wxUniChar ch = emoji;

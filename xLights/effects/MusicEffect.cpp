@@ -147,12 +147,12 @@ class MusicEvent
 			{
 				return 0.0;
 			}
-			
+
 			return ((float)frame - (float)_startframe) / (float)_duration;
 		}
 };
 
-class MusicRenderCache : public EffectRenderCache 
+class MusicRenderCache : public EffectRenderCache
 {
 public:
 	void ClearEvents()
@@ -168,7 +168,7 @@ public:
 		}
 		_events.clear();
 	}
-    MusicRenderCache() 
+    MusicRenderCache()
 	{
 	};
     virtual ~MusicRenderCache() {
@@ -357,11 +357,11 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     // go through each frame and extract the data i need
     for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
     {
-        std::list<float>* pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
+        std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
 
         if (pdata != nullptr)
         {
-            auto pn = pdata->begin();
+            auto pn = pdata->cbegin();
 
             // skip to start note
             for (int i = 0; i < startNote && pn != pdata->end(); i++)

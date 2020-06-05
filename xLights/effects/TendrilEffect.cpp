@@ -823,10 +823,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr)
             {
-                std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                std::list<float> const * const p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
                 if (p != nullptr)
                 {
-                    f = *p->begin();
+                    f = *p->cbegin();
                 }
             }
 
@@ -853,7 +853,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr)
             {
-                std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                const std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
                 if (p != nullptr)
                 {
                     f = *p->begin();

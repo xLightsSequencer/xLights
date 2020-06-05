@@ -20,6 +20,8 @@
 
 #include "xlGLCanvas.h"
 
+#include <memory>
+
 extern PFNGLCREATESHADERPROC      glCreateShader;
 extern PFNGLSHADERSOURCEPROC      glShaderSource;
 extern PFNGLCOMPILESHADERPROC     glCompileShader;
@@ -126,7 +128,7 @@ namespace
             std::vector<char> errorMessage( infoLogLength + 1 );
             char*             messagePtr = &errorMessage[0];
             glGetShaderInfoLog( shaderID, infoLogLength, NULL, messagePtr );
-             
+
              messagePtr[infoLogLength] = 0;
              std::string m = "Shader fail message: ";
              m += messagePtr;
@@ -180,7 +182,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
         AddTraceMessage("FShader failed to compile");
         LOG_GL_ERRORV(glDeleteShader(vertexShader));
         LOG_GL_ERRORV(glDeleteShader(fragmentShader));
-       
+
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         logger_opengl.error("%s", (const char*)fragmentSource.c_str());
         return 0;
