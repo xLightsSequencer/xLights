@@ -2857,26 +2857,41 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         }
         if (which_object != nullptr)
         {
+            bool mmWorkRequired = false;
             if (which_object->Highlighted) {
-                bool treeSelectionChanged = false;
                 if (!which_object->GroupSelected && !which_object->Selected) {
                     if (editing_models) {
                         SelectBaseObjectInTree(which_object);
-                        treeSelectionChanged = true;
                     } else {
                         which_object->GroupSelected = true;
+                        mmWorkRequired = true;
                     }
                 }
                 else if (which_object->GroupSelected) {
-                    UnSelectBaseObjectInTree(which_object);
+                    which_object->GroupSelected = false;
+                    which_object->Selected = true;
+                    if (selectedBaseObject != nullptr) {
+                        selectedBaseObject->GroupSelected = true;
+                        selectedBaseObject->Selected = false;
+                        selectedBaseObject->SelectHandle(-1);
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                    }
                     selectedBaseObject = which_object;
-                    SelectBaseObjectInTree(which_object);
+                    highlightedBaseObject = selectedBaseObject;
+                    selectedBaseObject->SelectHandle(-1);
+                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    mmWorkRequired = true;
                 }
                 else if (which_object->Selected) {
                     if (editing_models) {
                         UnSelectBaseObjectInTree(which_object);
-                        treeSelectionChanged = true;
                     } else {
+                        which_object->Selected = false;
+                        which_object->Highlighted = false;
+                        which_object->SelectHandle(-1);
+                        which_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                        selectedBaseObject = nullptr;
+                        
                         for (const auto& it : xlights->AllObjects) {
                             ViewObject* view_object = it.second;
                             if (view_object->GroupSelected) {
@@ -2891,12 +2906,12 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
                             highlightedBaseObject = selectedBaseObject;
                         }
+                        mmWorkRequired = true;
                     }
                 }
                 
-                // no need to do this work if tree selection changed as it is already done at the end of OnSelectionChanged();
-                if (!treeSelectionChanged) {
-                    //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+                if (mmWorkRequired) {
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                 }
             }
         }
@@ -4771,6 +4786,13 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
 
 // Unselect a Model in the tree, currently only unselects top level model if found
 void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
+    // clear any flags used for preview
+    modelToUnSelect->Selected = false;
+    modelToUnSelect->Highlighted = false;
+    modelToUnSelect->GroupSelected = false;
+    modelToUnSelect->SelectHandle(-1);
+    modelToUnSelect->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+    
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextSibling(item) )
@@ -4883,6 +4905,7 @@ std::vector<Model*> LayoutPanel::GetSelectedModelsForEdit() {
 void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
     if (isPrimary) {
         model->Selected = true;
+        model->GroupSelected = false;
         selectionLatched = true;
         selectedBaseObject = model;
         highlightedBaseObject = model;
@@ -7475,12 +7498,11 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 {
+    UnSelectAllModelsInTree(); // this will also call UnSelectAllModels() for 3D Objects
     if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
-        UnSelectAllModels();
         editing_models = true;
     }
     else {
-        UnSelectAllModelsInTree();
         editing_models = false;
     }
 }
