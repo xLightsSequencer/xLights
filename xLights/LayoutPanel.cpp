@@ -1685,8 +1685,10 @@ void LayoutPanel::BulkEditControllerConnection(int id)
                 dlg.Get(model->GetControllerConnection());
             }
         }
-        std::string sm = GetSelectedModelName();
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerConnection", nullptr, nullptr, sm);
+        
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerConnection");
         
         ReselectTreeModels(selectedModelPaths);
     }
@@ -1735,9 +1737,16 @@ void LayoutPanel::BulkEditActive(bool active)
         selectedBaseObject->SetActive(active);
     }
 
-    std::string sm = GetSelectedModelName();
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditActive", nullptr, nullptr, sm);
-
+    if (editing_models) {
+        // If we don't clear selection and bulk edits were made with models nested in groups selected then as part of the work
+        // the model is also selected in the root of the tree even though it wasn't before.  I could not find any issues with
+        // subsequent bulk edits/move/show wiring/export/etc but if this going to be a problem we can also force it to be unselected
+        // in tree/preview after. BulkEditDimming was the only one this issue didn't appear and after the work there OMM selectedmodel is "".
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+    }
+    
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditActive");
+    
     // reselect all the models
     ReselectTreeModels(selectedModelPaths);
 }
@@ -1780,8 +1789,9 @@ void LayoutPanel::BulkEditControllerName()
             model->SetControllerName(name);
         }
 
-        std::string sm = GetSelectedModelName();
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName", nullptr, nullptr, sm);
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName");
 
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
@@ -1818,8 +1828,9 @@ void LayoutPanel::BulkEditTagColour()
             model->SetTagColour(colour);
         }
 
-        std::string sm = GetSelectedModelName();
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditTagColour", nullptr, nullptr, sm);
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditTagColour");
 
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
@@ -1835,7 +1846,6 @@ void LayoutPanel::BulkEditControllerPreview()
 
     // get the first preview
     std::string p = "";
-    wxColour colour = *wxBLACK;
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
             p = model->GetLayoutGroup();
@@ -1865,8 +1875,9 @@ void LayoutPanel::BulkEditControllerPreview()
             }
         }
 
-        std::string sm = GetSelectedModelName();
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerPreview", nullptr, nullptr, sm);
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerPreview");
 
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
