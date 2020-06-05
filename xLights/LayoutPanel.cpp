@@ -992,7 +992,7 @@ void LayoutPanel::UpdatePreview()
 
 void LayoutPanel::updatePropertyGrid()
 {
-    if (selectedBaseObject == nullptr || propertyEditor == nullptr) return;
+    if (selectedBaseObject == nullptr || propertyEditor == nullptr || ModelsSelectedCount() > 1) return;
 
     selectedBaseObject->UpdateProperties(propertyEditor, xlights->GetOutputManager());
 }
@@ -7101,7 +7101,8 @@ void LayoutPanel::HandleSelectionChanged() {
     // and randomly causes crash when model is nullptr, so bail when Frozen.  Also make sure tooltip is empty and property
     // grid is shown so background props show after full refresh when nothing is selected.
     if (TreeListViewModels->IsFrozen()) {
-        ShowPropGrid(true);
+        //ShowPropGrid(true);
+        showBackgroundProperties();
         SetToolTipForTreeList(TreeListViewModels, "");
         return;
     }
@@ -7145,7 +7146,6 @@ void LayoutPanel::HandleSelectionChanged() {
                 } else if (model->GetDisplayAs() == "SubModel") {
                     selectedTreeSubModels.push_back(item);
                     SetTreeSubModelSelected(model, isPrimary);
-                    SetupPropGrid(model);
                 } else {
                     selectedTreeModels.push_back(item);
                     if (model == lastSelectedModel || lastSelectedBaseObject == nullptr || isPrimary) {
@@ -7154,7 +7154,6 @@ void LayoutPanel::HandleSelectionChanged() {
                     } else {
                         SetTreeModelSelected(model, false);
                     }
-                    SetupPropGrid(model);
                 }
             }
         }
@@ -7165,15 +7164,12 @@ void LayoutPanel::HandleSelectionChanged() {
                 Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
                 SetTreeModelSelected(model, true);
                 selectedPrimaryTreeItem = selectedTreeModels[0];
-                SetupPropGrid(model);
             } else if (selectedTreeSubModels.size() > 0) {
                 Model* model = GetModelFromTreeItem(selectedTreeSubModels[0]);
                 SetTreeSubModelSelected(model, true);
-                SetupPropGrid(model);
             } else if (selectedTreeGroups.size() > 0){
                 Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
                 SetTreeGroupModelsSelected(model, true);
-                SetupPropGrid(model);
             }
         }
                               
@@ -7193,6 +7189,8 @@ void LayoutPanel::HandleSelectionChanged() {
             model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
             model_grp_panel->Show();
         } else if (smSize == 1) {
+            Model* subModel = GetModelFromTreeItem(selectedTreeSubModels[0]);
+            SetupPropGrid(subModel);
             ShowPropGrid(true);
         } else if (mSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
@@ -7201,6 +7199,7 @@ void LayoutPanel::HandleSelectionChanged() {
             } else {
                 logger_base.crit("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
+            SetupPropGrid(model);
             ShowPropGrid(true);
         } else {
             logger_base.crit("LayoutPanel::HandleSelectionChanged No models selected after processing, this should not have happen, when we started there were %d selections.", selectedItems.size());
@@ -7214,7 +7213,7 @@ void LayoutPanel::HandleSelectionChanged() {
         // TreeListViewModels->SetFocus();
         // #endif
         
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
     } else {
         selectedBaseObject = nullptr;
         UnSelectAllModels(true);
