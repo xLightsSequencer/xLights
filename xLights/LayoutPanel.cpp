@@ -1625,8 +1625,8 @@ void LayoutPanel::BulkEditDimmingCurves()
         }
         
         // If we don't do these as ImmediateWork then the Model Tree is still frozen and models don't get reselected after refresh
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditDimmingCurves");
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditDimmingCurves");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditDimmingCurves");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditDimmingCurves");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditDimmingCurves");
         
         ReselectTreeModels(selectedModelPaths);
@@ -4457,7 +4457,8 @@ void LayoutPanel::PreviewModelAlignWithGround()
             modelPreview->GetModels()[i]->SetBottom(0.0f);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
+    
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4497,9 +4498,8 @@ void LayoutPanel::PreviewModelAlignTops()
             modelPreview->GetModels()[i]->SetTop(top);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignTops");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignTops");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4520,9 +4520,8 @@ void LayoutPanel::PreviewModelAlignBottoms()
             modelPreview->GetModels()[i]->SetBottom(bottom);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBottoms");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBottoms");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4543,9 +4542,8 @@ void LayoutPanel::PreviewModelAlignLeft()
             modelPreview->GetModels()[i]->SetLeft(left);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignLeft");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignLeft");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4566,9 +4564,8 @@ void LayoutPanel::PreviewModelAlignFronts()
             modelPreview->GetModels()[i]->SetFront(front);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignFronts");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignFronts");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4589,9 +4586,8 @@ void LayoutPanel::PreviewModelAlignBacks()
             modelPreview->GetModels()[i]->SetBack(back);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBacks");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBacks");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4632,9 +4628,8 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             }
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignResize");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignResize");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4655,9 +4650,8 @@ void LayoutPanel::PreviewModelAlignRight()
             modelPreview->GetModels()[i]->SetRight(right);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignRight");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignRight");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4678,9 +4672,8 @@ void LayoutPanel::PreviewModelAlignHCenter()
             modelPreview->GetModels()[i]->SetHcenterPos(center);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignHCenter");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignHCenter");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4750,9 +4743,8 @@ void LayoutPanel::PreviewModelHDistribute()
             x += space;
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelHDistribute");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelHDistribute");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4806,9 +4798,8 @@ void LayoutPanel::PreviewModelVDistribute()
             y += space;
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVDistribute");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVDistribute");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -4829,9 +4820,8 @@ void LayoutPanel::PreviewModelAlignVCenter()
             modelPreview->GetModels()[i]->SetVcenterPos(center);
         }
     }
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVCenter");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVCenter");
-    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter", nullptr, nullptr, GetSelectedModelName());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
     
     ReselectTreeModels(selectedModelPaths);
 }
@@ -7591,7 +7581,7 @@ void LayoutPanel::HandleSelectionChanged() {
         // TreeListViewModels->SetFocus();
         // #endif
         
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
     } else {
         selectedBaseObject = nullptr;
         UnSelectAllModels(true);
