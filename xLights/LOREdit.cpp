@@ -1290,6 +1290,80 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     return res;
 }
 
+std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, wxXmlNode* prop, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
+        if ((tc->GetName() == "channel")) {
+            int row = wxAtoi(tc->GetAttribute("row", "0"));
+            int col = wxAtoi(tc->GetAttribute("col", "0"));
+            int colour = wxAtoi(tc->GetAttribute("color", "0"));
+
+            if ((targetRow == -1 && targetCol == -1) || // map regardless
+                (row == targetRow && col == targetCol) || // map because the node matches
+                (row == 0 && col == 0 && colour == targetCol && targetRow == 0)) {
+                for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
+                    LOREditEffect effect;
+                    effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
+                    effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
+                    effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
+                    int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
+                    if (si != 9999) {
+                        if (si < 0) {
+                            if (ef->GetAttribute("settings") == "DMX_INTENSITY") {
+                                effect.startIntensity = 255;
+                                effect.endIntensity = 255;
+                            }
+                            else {
+                                effect.startIntensity = 100;
+                                effect.endIntensity = 100;
+                            }
+                            effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                            effect.endColour = effect.startColour;
+                        }
+                        else {
+                            effect.startIntensity = si;
+                            effect.endIntensity = si;
+                            effect.startColour = xlWHITE;
+                            effect.endColour = xlWHITE;
+                        }
+                    }
+                    else {
+                        si = wxAtoi(ef->GetAttribute("startIntensity", "9999"));
+                        if (si != 9999) {
+                            if (si < 0) {
+                                if (ef->GetAttribute("settings") == "DMX_INTENSITY") {
+                                    effect.startIntensity = 255;
+                                    effect.endIntensity = 255;
+                                }
+                                else {
+                                    effect.startIntensity = 100;
+                                    effect.endIntensity = 100;
+                                }
+                                effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                int ei = wxAtoi(ef->GetAttribute("endIntensity", "-1"));
+                                effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
+                            }
+                            else {
+                                effect.startIntensity = si;
+                                effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
+                                effect.startColour = xlWHITE;
+                                effect.endColour = xlWHITE;
+                            }
+                        }
+                    }
+                    effect.type = loreditType::CHANNELS;
+                    effect.effectType = ef->GetAttribute("settings");
+                    res.push_back(effect);
+                }
+                return res;
+            }
+        }
+    }
+    return res;
+}
+
 std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const
 {
     std::vector<LOREditEffect> res;
@@ -1349,83 +1423,19 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                     }
                     if (name == model)
                     {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if ((tc->GetName() == "channel")) {
-                                int row = wxAtoi(tc->GetAttribute("row", "0"));
-                                int col = wxAtoi(tc->GetAttribute("col", "0"));
-                                int colour = wxAtoi(tc->GetAttribute("color", "0"));
-
-                                if ((row == targetRow && col == targetCol) || (row == 0 && col == 0 && colour == targetCol && targetRow == 0))
-                                {
-                                    for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
-                                        LOREditEffect effect;
-                                        effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
-                                        effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
-                                        effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
-                                        int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
-                                        if (si != 9999)
-                                        {
-                                            if (si < 0)
-                                            {
-                                                if (ef->GetAttribute("settings") == "DMX_INTENSITY")
-                                                {
-                                                    effect.startIntensity = 255;
-                                                    effect.endIntensity = 255;
-                                                }
-                                                else
-                                                {
-                                                    effect.startIntensity = 100;
-                                                    effect.endIntensity = 100;
-                                                }
-                                                effect.startColour = xlColor((si & 0xFF0000) >> 16,(si & 0xFF00) >> 8, si & 0xFF);
-                                                effect.endColour = effect.startColour;
-                                            }
-                                            else
-                                            {
-                                                effect.startIntensity = si;
-                                                effect.endIntensity = si;
-                                                effect.startColour = xlWHITE;
-                                                effect.endColour = xlWHITE;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            si = wxAtoi(ef->GetAttribute("startIntensity", "9999"));
-                                            if (si != 9999)
-                                            {
-                                                if (si < 0)
-                                                {
-                                                    if (ef->GetAttribute("settings") == "DMX_INTENSITY")
-                                                    {
-                                                        effect.startIntensity = 255;
-                                                        effect.endIntensity = 255;
-                                                    }
-                                                    else
-                                                    {
-                                                        effect.startIntensity = 100;
-                                                        effect.endIntensity = 100;
-                                                    }
-                                                    effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
-                                                    int ei = wxAtoi(ef->GetAttribute("endIntensity", "-1"));
-                                                    effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
-                                                }
-                                                else
-                                                {
-                                                    effect.startIntensity = si;
-                                                    effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
-                                                    effect.startColour = xlWHITE;
-                                                    effect.endColour = xlWHITE;
-                                                }
-                                            }
-                                        }
-                                        effect.type = loreditType::CHANNELS;
-                                        effect.effectType = ef->GetAttribute("settings");
-                                        res.push_back(effect);
-                                    }
-                                    return res;
-                                }
-                            }
+                        res = GetChannelEffectsForNode(targetRow, targetCol, prop, offset);
+                        if (res.size() != 0) {
+                            return res;
                         }
+
+                        // if we got here and the source only has one node just map it regardless
+                        if (rows == 1 && cols == 1)
+                        {
+                            return GetChannelEffectsForNode(-1, -1, prop, offset);
+                        }
+
+                        // still no match
+
                         return res;
                     }
                 }

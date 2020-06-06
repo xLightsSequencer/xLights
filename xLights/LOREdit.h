@@ -56,6 +56,8 @@ class LOREdit {
     wxXmlDocument& _input_xml;
     int _frequency = 20;
 
+    std::vector<LOREditEffect> GetChannelEffectsForNode(int targetRow, int targetCol, wxXmlNode* prop, int offset) const;
+
     public:
     LOREdit(wxXmlDocument &input_xml, int frequency);
     virtual ~LOREdit() {};
