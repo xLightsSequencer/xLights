@@ -2596,7 +2596,7 @@ Model* LayoutPanel::SelectSingleModel(int x, int y)
             if (mHitTestNextSelectModelIndex == i) {
                 mHitTestNextSelectModelIndex += 1;
                 mHitTestNextSelectModelIndex %= modelCount;
-                return modelPreview->GetModels()[found[0]];
+                return modelPreview->GetModels()[found[i]];
             }
         }
     }
