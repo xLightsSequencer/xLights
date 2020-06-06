@@ -88,59 +88,104 @@ const std::string &NodeClassRGBW::GetNodeType() const {
 #define RGB_HANDLING_NORMAL   0
 #define RGB_HANDLING_RGB      1
 #define RGB_HANDLING_WHITE    2
+#define RGB_HANDLING_ADVANCED 3
 
-void NodeClassRGBW::SetFromChannels(const unsigned char *buf) {
+void NodeClassRGBW::SetFromChannels(const unsigned char* buf)
+{
     switch (rgbwHandling) {
-        case RGB_HANDLING_RGB:
+    case RGB_HANDLING_RGB:
+        for (int x = 0; x < 3; x++) {
+            if (offsets[x] != 255) {
+                c[x] = buf[offsets[x] + wOffset];
+            }
+        }
+        break;
+    case RGB_HANDLING_WHITE:
+        c[0] = c[1] = c[2] = buf[wIndex];
+        break;
+    case RGB_HANDLING_ADVANCED:
+
+        for (int x = 0; x < 3; x++) {
+            if (offsets[x] != 255) {
+                c[x] = buf[offsets[x] + wOffset] + buf[wIndex];
+            }
+        }
+
+        break;
+
+    default: //RGB_HANDLING_NORMAL
+        if (buf[wIndex] != 0) {
+            c[0] = c[1] = c[2] = buf[wIndex];
+        }
+        else {
             for (int x = 0; x < 3; x++) {
                 if (offsets[x] != 255) {
                     c[x] = buf[offsets[x] + wOffset];
                 }
             }
-            break;
-        case RGB_HANDLING_WHITE:
-            c[0] = c[1] = c[2] = buf[wIndex];
-            break;
-        default: //RGB_HANDLING_NORMAL
-            if (buf[wIndex] != 0) {
-                c[0] = c[1] = c[2] = buf[wIndex];
-            } else {
-                for (int x = 0; x < 3; x++) {
-                    if (offsets[x] != 255) {
-                        c[x] = buf[offsets[x] + wOffset];
-                    }
-                }
-            }
-            break;
+        }
+        break;
     }
 }
-void NodeClassRGBW::GetForChannels(unsigned char *buf) const {
+
+void NodeClassRGBW::GetForChannels(unsigned char* buf) const
+{
     switch (rgbwHandling) {
-        case RGB_HANDLING_RGB:
+    case RGB_HANDLING_RGB:
+        for (int x = 0; x < 3; x++) {
+            if (offsets[x] != 255) {
+                buf[offsets[x] + wOffset] = c[x];
+            }
+        }
+        break;
+    case RGB_HANDLING_WHITE:
+        if (c[0] == c[1] && c[1] == c[2]) {
+            buf[wIndex] = c[0];
+        }
+        break;
+    case RGB_HANDLING_ADVANCED:
+    {
+        uint8_t maxc = std::max(c[0], std::max(c[1], c[2]));
+        if (maxc == 0) {
+            buf[wIndex] = 0;
+        }
+        else {
+            uint8_t minc = std::min(c[0], std::min(c[1], c[2]));
+            // find colour with 100% hue
+            float multiplier = 255.0f / maxc;
+            float h0 = c[0] * multiplier;
+            float h1 = c[1] * multiplier;
+            float h2 = c[2] * multiplier;
+
+            float maxW = std::max(h0, std::max(h1, h2));
+            float minW = std::min(h0, std::min(h1, h2));
+            uint8_t whiteness = ((maxW + minW) / 2.0f - 127.5f) * (255.0f / 127.5f) / multiplier;
+            if (whiteness < 0) whiteness = 0;
+            else if (whiteness > minc) whiteness = minc;
+
+            buf[wIndex] = whiteness;
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = c[x] - whiteness;
+                }
+            }
+        }
+    }
+    break;
+    default: //RGB_HANDLING_NORMAL
+        if (c[0] == c[1] && c[1] == c[2]) {
+            buf[0 + wOffset] = buf[1 + wOffset] = buf[2 + wOffset] = 0;
+            buf[wIndex] = c[0];
+        }
+        else {
             for (int x = 0; x < 3; x++) {
                 if (offsets[x] != 255) {
                     buf[offsets[x] + wOffset] = c[x];
                 }
             }
-            break;
-        case RGB_HANDLING_WHITE:
-            if (c[0] == c[1] && c[1] == c[2]) {
-                buf[wIndex] = c[0];
-            }
-            break;
-        default: //RGB_HANDLING_NORMAL
-            if (c[0] == c[1] && c[1] == c[2]) {
-                buf[0 + wOffset] = buf[1 + wOffset] = buf[2 + wOffset] = 0;
-                buf[wIndex] = c[0];
-            } else {
-                for (int x = 0; x < 3; x++) {
-                    if (offsets[x] != 255) {
-                        buf[offsets[x] + wOffset] = c[x];
-                    }
-                }
-                buf[wIndex] = 0;
-            }
-            break;
+            buf[wIndex] = 0;
+        }
+        break;
     }
 }
 

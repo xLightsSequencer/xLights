@@ -59,8 +59,8 @@ static const char* NODE_TYPE_VLUES[] = {
 };
 static wxArrayString NODE_TYPES(26, NODE_TYPE_VLUES);
 
-static const char *RGBW_HANDLING_VALUES[] = {"R=G=B -> W", "RGB Only", "White Only"};
-static wxArrayString RGBW_HANDLING(3, RGBW_HANDLING_VALUES);
+static const char *RGBW_HANDLING_VALUES[] = {"R=G=B -> W", "RGB Only", "White Only", "Advanced"};
+static wxArrayString RGBW_HANDLING(4, RGBW_HANDLING_VALUES);
 
 static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
