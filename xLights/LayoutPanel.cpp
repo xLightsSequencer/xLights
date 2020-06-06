@@ -4447,6 +4447,9 @@ void LayoutPanel::PreviewModelAlignWithGround()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected)
@@ -4454,7 +4457,9 @@ void LayoutPanel::PreviewModelAlignWithGround()
             modelPreview->GetModels()[i]->SetBottom(0.0f);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::ShowNodeLayout()
@@ -4481,6 +4486,8 @@ void LayoutPanel::PreviewModelAlignTops()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0) return;
 
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float top = modelPreview->GetModels()[selectedindex]->GetTop();
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -4490,15 +4497,19 @@ void LayoutPanel::PreviewModelAlignTops()
             modelPreview->GetModels()[i]->SetTop(top);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignTops");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignTops");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignTops");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignTops");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignBottoms()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float bottom = modelPreview->GetModels()[selectedindex]->GetBottom();
@@ -4509,15 +4520,19 @@ void LayoutPanel::PreviewModelAlignBottoms()
             modelPreview->GetModels()[i]->SetBottom(bottom);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBottoms");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBottoms");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBottoms");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBottoms");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignLeft()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+    
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float left = modelPreview->GetModels()[selectedindex]->GetLeft();
@@ -4528,15 +4543,19 @@ void LayoutPanel::PreviewModelAlignLeft()
             modelPreview->GetModels()[i]->SetLeft(left);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignLeft");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignLeft");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignLeft");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignLeft");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignFronts()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float front = modelPreview->GetModels()[selectedindex]->GetFront();
@@ -4547,15 +4566,19 @@ void LayoutPanel::PreviewModelAlignFronts()
             modelPreview->GetModels()[i]->SetFront(front);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignFronts");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignFronts");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignFronts");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignFronts");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignBacks()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float back = modelPreview->GetModels()[selectedindex]->GetBack();
@@ -4566,15 +4589,19 @@ void LayoutPanel::PreviewModelAlignBacks()
             modelPreview->GetModels()[i]->SetBack(back);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBacks");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBacks");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBacks");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBacks");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
@@ -4605,15 +4632,19 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             }
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignResize");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignResize");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignResize");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignResize");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignRight()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float right = modelPreview->GetModels()[selectedindex]->GetRight();
@@ -4624,15 +4655,19 @@ void LayoutPanel::PreviewModelAlignRight()
             modelPreview->GetModels()[i]->SetRight(right);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignRight");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignRight");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignRight");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignRight");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignHCenter()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetHcenterPos();
@@ -4643,9 +4678,11 @@ void LayoutPanel::PreviewModelAlignHCenter()
             modelPreview->GetModels()[i]->SetHcenterPos(center);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignHCenter");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignHCenter");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignHCenter");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignHCenter");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 bool SortModelX(const Model* first, const Model* second)
@@ -4692,6 +4729,8 @@ void LayoutPanel::PreviewModelHDistribute()
 
     float space = (maxx - minx) / (count - 1);
 
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
     CreateUndoPoint("All", models.front()->name);
 
     float x = -1;
@@ -4711,9 +4750,11 @@ void LayoutPanel::PreviewModelHDistribute()
             x += space;
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelHDistribute");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelHDistribute");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelHDistribute");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelHDistribute");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelVDistribute()
@@ -4743,6 +4784,8 @@ void LayoutPanel::PreviewModelVDistribute()
     models.sort(SortModelY);
 
     float space = (maxy - miny) / (count - 1);
+    
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", models.front()->name);
 
@@ -4763,15 +4806,19 @@ void LayoutPanel::PreviewModelVDistribute()
             y += space;
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVDistribute");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVDistribute");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVDistribute");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVDistribute");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::PreviewModelAlignVCenter()
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
@@ -4782,9 +4829,11 @@ void LayoutPanel::PreviewModelAlignVCenter()
             modelPreview->GetModels()[i]->SetVcenterPos(center);
         }
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVCenter");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVCenter");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter", nullptr, nullptr, GetSelectedModelName());
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVCenter");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVCenter");
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter", nullptr, nullptr, GetSelectedModelName());
+    
+    ReselectTreeModels(selectedModelPaths);
 }
 
 int LayoutPanel::GetSelectedModelIndex() const
@@ -6441,6 +6490,14 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             PreviewModelAlignWithGround();
         } else {
             objects_panel->PreviewObjectAlignWithGround();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
+    {
+        if(editing_models ) {
+            PreviewModelAlignTops();
+        } else {
+            objects_panel->PreviewObjectAlignTops();
         }
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
