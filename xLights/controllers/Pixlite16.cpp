@@ -889,6 +889,28 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     logger_base.debug(check);
 
+    // Handle varying maximum pixels based on expansion mode
+    int maxPixels = 0;
+    if (_config._numOutputs == 4 || _config._numOutputs == 8)         {
+        // 4 board
+        if (cud.GetMaxPixelPort() > 4) {
+            maxPixels = 510;
+        }
+        else {
+            maxPixels = 1020;
+        }
+    }
+    else if (_config._numOutputs == 16 || _config._numOutputs == 32)
+    {
+        // 16 board
+        if (cud.GetMaxPixelPort() > 16)             {
+            maxPixels = 510;
+        }
+        else             {
+            maxPixels = 1020;
+        }
+    }
+
     std::list<Output*> outputs = controller->GetOutputs();
     if (success && cud.GetMaxPixelPort() > 0) {
         for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
@@ -898,6 +920,11 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._simpleConfig = false;
 
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
+
+                if (port->Pixels() > maxPixels)                     {
+                    check += wxString::Format("ERR: String port %d has more pixels than this controller supports (%d when maximum is %d).\n", pp, port->Pixels(), maxPixels);
+                    success = false;
+                }
 
                 // update the data
                 _config._currentDriver = DecodeStringPortProtocol(port->GetProtocol());

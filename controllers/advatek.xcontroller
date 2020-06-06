@@ -41,7 +41,7 @@
 			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
-			<MaxPixelPort>4</MaxPixelPort>
+			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
@@ -115,7 +115,7 @@
 			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
-			<MaxPixelPort>16</MaxPixelPort>
+			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
