@@ -2256,6 +2256,7 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
             int idx = valstr.Index('-');
             start = wxAtoi(valstr.Left(idx));
             end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+            if (end < start) std::swap(start, end);
         }
         else {
             start = end = wxAtoi(valstr);
