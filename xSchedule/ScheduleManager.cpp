@@ -656,7 +656,8 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     {
         running = _immediatePlay;
     }
-    else if (_queuedSongs->GetStepCount() > 0 && _queuedSongs->IsRunning())
+    else if ((GetRunningSchedule() == nullptr || GetRunningSchedule()->GetSchedule()->GetPriority() <= Schedule::GetMaxSchedulePriorityBelowQueued()) && 
+        _queuedSongs->GetStepCount() > 0 && _queuedSongs->IsRunning())
     {
         running = _queuedSongs;
     }
@@ -1316,6 +1317,8 @@ int ScheduleManager::CheckSchedule()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking the schedule ...");
 
+    bool higherThanQueuedPlayListScheduleFound = false;
+
     // check all the schedules and add into the list any that should be in the active schedules list
     for (const auto& it : _playLists) {
         auto schedules = it->GetSchedules();
@@ -1327,6 +1330,9 @@ int ScheduleManager::CheckSchedule()
 
                 for (const auto& it3 : _activeSchedules) {
                     if (it3->GetSchedule()->GetId() == it2->GetId()) {
+                        if (it3->GetSchedule()->GetPriority() > Schedule::GetMaxSchedulePriorityBelowQueued()) {
+                            higherThanQueuedPlayListScheduleFound = true;
+                        }
                         found = true;
                         break;
                     }
@@ -1336,6 +1342,9 @@ int ScheduleManager::CheckSchedule()
                 if (!found && it2->ShouldFire()) {
                     // is hasnt been active before now
                     RunningSchedule* rs = new RunningSchedule(it, it2);
+                    if (rs->GetSchedule() != nullptr && rs->GetSchedule()->GetPriority() > Schedule::GetMaxSchedulePriorityBelowQueued()) {
+                        higherThanQueuedPlayListScheduleFound = true;
+                    }
                     _activeSchedules.push_back(rs);
                     rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
 
@@ -1397,7 +1406,10 @@ int ScheduleManager::CheckSchedule()
     _activeSchedules.sort(compare_runningschedules);
 
     if (_immediatePlay == nullptr) {
-        if (_queuedSongs->GetSteps().size() == 0) {
+        if (higherThanQueuedPlayListScheduleFound && !_queuedSongs->IsSuspended()) {
+            _queuedSongs->Suspend(true);
+        }
+        if (_queuedSongs->GetSteps().size() == 0 || higherThanQueuedPlayListScheduleFound) {
             RunningSchedule* toUnsuspend = nullptr;
             bool first = true;
             for (const auto& it : _activeSchedules) {
@@ -3982,14 +3994,23 @@ int ScheduleManager::GetNonStoppedCount() const
 RunningSchedule* ScheduleManager::GetRunningSchedule() const
 {
     if (_immediatePlay != nullptr) return nullptr;
-    if (_queuedSongs->IsRunning()) return nullptr;
+
+    bool highPrioritySchedule = false;
+    for (const auto& it : _activeSchedules) {
+        if (it->GetPlayList()->IsRunning() && !it->GetPlayList()->IsSuspended() && it->GetSchedule()->GetPriority() > Schedule::GetMaxSchedulePriorityBelowQueued()) {
+            highPrioritySchedule = true;
+            break;
+        }
+    }
+
+    if (!highPrioritySchedule && _queuedSongs->IsRunning()) return nullptr;
     if (_activeSchedules.size() == 0) return nullptr;
 
-    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    for (const auto& it : _activeSchedules)
     {
-        if ((*it)->GetPlayList()->IsRunning() && !(*it)->GetPlayList()->IsSuspended())
+        if (it->GetPlayList()->IsRunning() && !it->GetPlayList()->IsSuspended())
         {
-            return *it;
+            return it;
         }
     }
 

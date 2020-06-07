@@ -52,6 +52,9 @@ class Schedule
 
     public:
 
+        static int GetMaxSchedulePriority() { return 20; }
+        static int GetMaxSchedulePriorityBelowQueued() { return 10; }
+
         static void Test();
 
         static void SetCity(std::string city) { __city = city; }
