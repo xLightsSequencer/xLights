@@ -907,14 +907,19 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     effectLayer = se->GetEffectLayer(layer);
                                 }
                                 else {
-                                    StrandElement *se = dynamic_cast<ModelElement*>(element)->GetStrand(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
-                                    int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
-                                    while (layer >= se->GetEffectLayerCount()) {
-                                        se->AddEffectLayer();
+                                    if (dynamic_cast<ModelElement*>(element) != nullptr) {
+                                        StrandElement* se = dynamic_cast<ModelElement*>(element)->GetStrand(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
+                                        int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
+                                        while (layer >= se->GetEffectLayerCount()) {
+                                            se->AddEffectLayer();
+                                        }
+                                        effectLayer = se->GetEffectLayer(layer);
+                                        if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
+                                            se->SetName(effectLayerNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
+                                        }
                                     }
-                                    effectLayer = se->GetEffectLayer(layer);
-                                    if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                                        se->SetName(effectLayerNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
+                                    else                                         {
+                                        logger_base.error("Element %s was not a model element: %s. This typically happens when a timing track is created with the same name as a model.", (const char *)element->GetName().c_str());
                                     }
                                 }
                                 if (effectLayer != nullptr) {
