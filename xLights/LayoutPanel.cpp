@@ -1687,7 +1687,9 @@ void LayoutPanel::BulkEditControllerConnection(int id)
         }
         
         // see comment in BulkEditActive()
-        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnectionDialog::Get");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnectionDialog::Get");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnectionDialog::Get");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerConnection");
         
         ReselectTreeModels(selectedModelPaths);
@@ -1789,11 +1791,12 @@ void LayoutPanel::BulkEditControllerName()
             model->SetControllerName(name);
         }
 
-        // see comment in BulkEditActive()
-        xlights->GetOutputModelManager()->ClearSelectedModel();
+        std::string sm = xlights->GetOutputModelManager()->GetSelectedModel();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditControllerName");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditControllerName");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName");
-
-        // reselect all the models
+        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
+        
         ReselectTreeModels(selectedModelPaths);
     }
 }
