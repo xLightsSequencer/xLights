@@ -7350,6 +7350,8 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     
     if (selectedTreeModels.size() == 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
         AddSingleModelOptionsToBaseMenu(mnuContext);
+        // Remove preview 'Create Group' option as it may be confusing with tree list 'Create Group from Selections'
+        mnuContext.Remove(ID_PREVIEW_MODEL_CREATEGROUP);
         mnuContext.AppendSeparator();
     }
     
