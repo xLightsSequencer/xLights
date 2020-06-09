@@ -1686,7 +1686,6 @@ void LayoutPanel::BulkEditControllerConnection(int id)
             }
         }
         
-        // see comment in BulkEditActive()
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnectionDialog::Get");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnectionDialog::Get");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnectionDialog::Get");
@@ -1788,15 +1787,21 @@ void LayoutPanel::BulkEditControllerName()
         name = dlg.GetStringSelection();
         
         for (Model* model : modelsToEdit) {
-            model->SetControllerName(name);
+            // model->SetControllerName() adds WORK_RELOAD_MODELLIST as ASAP work which causes issues with Reselect especially on
+            // msw and linux so just update model manually and add the appropriate work here.
+            // model->SetControllerName(name);
+            wxXmlNode* modelXml = model->GetModelXml();
+            modelXml->DeleteAttribute("Controller");
+            modelXml->AddAttribute("Controller", name);
         }
 
-        std::string sm = xlights->GetOutputModelManager()->GetSelectedModel();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "BulkEditControllerName");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "BulkEditControllerName");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditControllerName");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditControllerName");
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName");
-        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
-        
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "BulkEditControllerName");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "BulkEditControllerName");
+
         ReselectTreeModels(selectedModelPaths);
     }
 }
