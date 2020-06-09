@@ -74,6 +74,7 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_CUT;
     static const long CUSTOMMODELDLGMNU_COPY;
     static const long CUSTOMMODELDLGMNU_PASTE;
+	static const long CUSTOMMODELDLGMNU_DELETE;
     static const long CUSTOMMODELDLGMNU_FLIPH;
     static const long CUSTOMMODELDLGMNU_FLIPV;
     static const long CUSTOMMODELDLGMNU_ROTATE90;
@@ -246,6 +247,7 @@ class CustomModelDialog: public wxDialog
         CopyPasteGrid* GetActiveGrid() const;
         CopyPasteGrid* GetLayerGrid(int layer) const;
         void CopyLayer(bool forward, int layers);
+		void DeleteCells();
 
 		DECLARE_EVENT_TABLE()
 };

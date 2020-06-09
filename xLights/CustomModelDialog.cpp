@@ -72,6 +72,7 @@ const long CustomModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CUT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPY = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_PASTE = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_DELETE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPH = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPV = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
@@ -1856,6 +1857,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         Paste();
     }
+    else if (id == CUSTOMMODELDLGMNU_DELETE)
+    {
+        DeleteCells();
+    }
     else if (id == CUSTOMMODELDLGMNU_FLIPH)
     {
         FlipHorizontal();
@@ -2431,7 +2436,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     wxMenuItem* menu_cut = mnu.Append(CUSTOMMODELDLGMNU_CUT, "Cut");
     wxMenuItem* menu_copy = mnu.Append(CUSTOMMODELDLGMNU_COPY, "Copy");
     wxMenuItem* menu_paste = mnu.Append(CUSTOMMODELDLGMNU_PASTE, "Paste");
-    if (GetActiveGrid()->GetSelectedCells().size() > 0)
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0)
     {
         menu_cut->Enable(true);
         menu_copy->Enable(true);
@@ -2443,7 +2448,8 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
         menu_copy->Enable(false);
         menu_paste->Enable(false);
     }
-
+    mnu.AppendSeparator();
+    mnu.Append(CUSTOMMODELDLGMNU_DELETE, "Clear Cells");
     mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
@@ -2629,5 +2635,20 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 void CustomModelDialog::OnCheckBox_ShowWiringClick(wxCommandEvent& event)
 {
     _modelPreview->SetModel(_model, CheckBox_ShowWiring->IsChecked(), true);
+    UpdatePreview();
+}
+
+void CustomModelDialog::DeleteCells()
+{
+    auto grid = GetActiveGrid();
+
+    for (int k = 0; k < grid->GetNumberCols(); k++) {
+        for (int i = grid->GetNumberRows(); i >= 0; i--) {
+            if (grid->IsInSelection(i, k)) {
+                _changed = true;
+                grid->SetCellValue(i, k, wxEmptyString);
+            }
+        }
+    }
     UpdatePreview();
 }
