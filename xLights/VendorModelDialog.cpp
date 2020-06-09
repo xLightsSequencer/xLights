@@ -52,7 +52,11 @@ public:
             return wxColour(255, 128, 0);
         }
         else {
-            return *wxBLUE;
+            if (wxSystemSettings::GetAppearance().IsDark()) {
+                return *wxCYAN;
+            } else {
+                return *wxBLUE;
+            }
         }
     }
 
@@ -143,7 +147,11 @@ public:
             return wxColour(255, 128, 0);
         }
         else {
-            return *wxBLUE;
+            if (wxSystemSettings::GetAppearance().IsDark()) {
+                return *wxCYAN;
+            } else {
+                return *wxBLUE;
+            }
         }
     }
 
@@ -786,6 +794,12 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
 
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        HyperlinkCtrl_Facebook->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_ModelWebLink->SetNormalColour(*wxCYAN);
+    }
+    
     ValidateWindow();
 }
 

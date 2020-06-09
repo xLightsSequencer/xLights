@@ -185,6 +185,14 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
 
     Button_Search->SetDefault();
 
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        HyperlinkCtrl_Facebook->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_VideoLink->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_WebLink->SetNormalColour(*wxCYAN);
+        HyperlinkCtrl_MusicLink->SetNormalColour(*wxCYAN);
+    }
+    
     ValidateWindow();
 }
 
