@@ -193,6 +193,16 @@ const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
+
+// OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
+// se we mimic it by calling HandleSelectionChanged as needed
+#if defined(__WXMSW__) || defined(__LINUX__)
+#define PlatformHandleSelectionChanged() HandleSelectionChanged()
+#else
+#define PlatformHandleSelectionChanged()
+#endif
+
+
 class ModelTreeData : public wxTreeItemData {
 public:
     ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), model(m), fullname(fullname) {
@@ -4867,11 +4877,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             if (mitem != nullptr && mitem->GetModel() == modelToSelect) {
                 TreeListViewModels->Select(item);
                 
-                // OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
-                #if defined(__WXMSW__) || defined(__LINUX__)
-                    HandleSelectionChanged();
-                #endif
-
+                PlatformHandleSelectionChanged();
                 TreeListViewModels->EnsureVisible(item);
                 break;
             }
@@ -4897,11 +4903,7 @@ void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
             ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             if (mitem != nullptr && mitem->GetModel() == modelToUnSelect) {
                 TreeListViewModels->Unselect(item);
-                
-                // OnSelectionChanged() doesn't fire on MSW or GTK when Unselect is called
-                #if defined(__WXMSW__) || defined(__LINUX__)
-                    HandleSelectionChanged();
-                #endif
+                PlatformHandleSelectionChanged();
                 break;
             }
         }
@@ -4937,13 +4939,8 @@ wxTreeListItem LayoutPanel::GetTreeItemFromModel(Model* model) {
 }
 
 void LayoutPanel::UnSelectAllModelsInTree() {
-        TreeListViewModels->UnselectAll();
-    
-        // OnSelectionChanged() doesn't fire on MSW or GTK when unselectAll is called
-        #if defined(__WXMSW__) || defined(__LINUX__)
-            HandleSelectionChanged();
-        #endif
-
+    TreeListViewModels->UnselectAll();
+    PlatformHandleSelectionChanged();
 }
 
 // Get unique models from selected tree model group included those deeply nested
@@ -5159,11 +5156,7 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
                 std::string childName = TreeListViewModels->GetItemText(child);
                 if (TreeListViewModels->GetItemText(child) == modelName) {
                     TreeListViewModels->Select(child);
-                    
-                    // OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
-                    #if defined(__WXMSW__) || defined(__LINUX__)
-                        HandleSelectionChanged();
-                    #endif
+                    PlatformHandleSelectionChanged();
                     break;
                 }
             }
