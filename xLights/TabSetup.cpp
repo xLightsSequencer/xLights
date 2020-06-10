@@ -251,7 +251,6 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     }
 
     ShowDirectoryLabel->SetLabel(showDirectory);
-    ShowDirectoryLabel->GetParent()->Layout();
 
     if (permanent) {
         ShowDirectoryLabel->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
@@ -267,6 +266,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
     }
+    
+    // do layout after so button resizes to fit label (only issue on osx, "Restore to Permanent" is cut off)
+    ShowDirectoryLabel->GetParent()->Layout();
 
     logger_base.debug("Updating networks on setup tab.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
@@ -1442,11 +1444,11 @@ void xLightsFrame::InitialiseControllersTab() {
     }
 
     if (LedPing == nullptr) {
-        LedPing = new wxLed(Panel5, wxID_ANY);
+        // setting initial size makes led visible on create and properly centers led with buttons, prior it didn't
+        // show until selection was made and was aligned below buttons
+        LedPing = new wxLed(Panel5, wxID_ANY, "000000", wxDefaultPosition, wxSize(17,17));
         FlexGridSizerSetupControllerButtons->Add(LedPing, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-        LedPing->Enable();
         LedPing->Show();
-        LedPing->SetColor("808080");
 
         if (StaticTextDummy != nullptr) {
             // I remove the static text as this was the only way I seem to be able to make the LED visible
@@ -1519,7 +1521,7 @@ void xLightsFrame::SetControllersProperties() {
         ButtonUploadOutput->Enable(false);
         ButtonOpen->Enable(false);
         ButtonControllerDelete->Enable(false);
-        LedPing->SetColor("808080");
+        LedPing->Disable();
 
         wxPGProperty* p = Controllers_PropertyEditor->Append(new wxBoolProperty("Controller Sync", "ControllerSync", me131Sync));
         p->SetEditor("CheckBox");
@@ -1591,6 +1593,7 @@ void xLightsFrame::SetControllersProperties() {
             }
             ButtonControllerDelete->Enable();
 
+            LedPing->Enable();
             auto pingresult = controller->GetLastPingState();
             if (pingresult == Output::PINGSTATE::PING_ALLFAILED) {
                 LedPing->SetColor("FF0000");
