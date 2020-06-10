@@ -21,6 +21,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
@@ -429,6 +430,10 @@ void TreeModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</treemodel>");
     f.Close();
 }
@@ -507,6 +512,10 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 else if (n->GetName() == "faceInfo")
                 {
                     AddFace(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

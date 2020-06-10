@@ -10,6 +10,7 @@
 
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
+#include <wx/sstream.h>
 
 #include "ModelGroup.h"
 #include "ModelManager.h"
@@ -124,7 +125,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
     return found;
 }
 
-bool ModelGroup::DirectlyContainsModel(Model* m)
+bool ModelGroup::DirectlyContainsModel(Model* m) const
 {
     for (const auto& it : models) {
         if (m == it) {
@@ -135,11 +136,11 @@ bool ModelGroup::DirectlyContainsModel(Model* m)
     return false;
 }
 
-bool ModelGroup::ContainsModel(Model* m)
+bool ModelGroup::ContainsModel(Model* m) const
 {
     wxASSERT(m->GetDisplayAs() != "ModelGroup");
 
-    std::list<Model*> visited;
+    std::list<const Model*> visited;
     visited.push_back(this);
 
     bool found = false;
@@ -168,7 +169,7 @@ bool ModelGroup::ContainsModel(Model* m)
     return found;
 }
 
-bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
+bool ModelGroup::ContainsModel(Model* m, std::list<const Model*>& visited) const
 {
     visited.push_back(this);
 
@@ -198,6 +199,35 @@ bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
     }
 
     return found;
+}
+
+// Returns true if group only contains model and submodels of that model
+bool ModelGroup::OnlyContainsModel(const std::string& name) const
+{
+    for (const auto& it : modelNames)         {
+        if (!StartsWith(it, name)) return false;
+    }
+    return true;
+}
+
+wxString ModelGroup::SerialiseModelGroup(const std::string& forModel) const
+{
+    wxXmlDocument new_doc;
+    new_doc.SetRoot(new wxXmlNode(*GetModelXml()));
+
+    std::string nmns;
+    auto mns = wxSplit(new_doc.GetRoot()->GetAttribute("models"), ',');
+    for (auto& it : mns)         {
+        if (nmns != "") nmns += ",";
+        it.Replace(forModel + "/", "EXPORTEDMODEL/");
+        nmns += it;
+    }
+    new_doc.GetRoot()->DeleteAttribute("models");
+    new_doc.GetRoot()->AddAttribute("models", nmns);
+    wxStringOutputStream stream;
+    new_doc.Save(stream);
+    wxString s = stream.GetString();
+    return s.SubString(s.Find("\n") + 1, s.Length()) + "\n"; // skip over xml format header
 }
 
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
@@ -290,6 +320,28 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
     ModelXml = node;
     screenLocation.previewW = w;
     screenLocation.previewH = h;
+    Reset();
+}
+
+ModelGroup::ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname) : ModelWithScreenLocation(m)
+{
+    ModelXml = new wxXmlNode(*node);
+    ModelXml->DeleteAttribute("name");
+    ModelXml->AddAttribute("name", mgname);
+    screenLocation.previewW = w;
+    screenLocation.previewH = h;
+
+    // We have to fix the model name before we reset otherwise it will fail
+    auto mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+    std::string nmns;
+    for (auto& it : mn)         {
+        if (nmns != "") nmns += ",";
+        it.Replace("EXPORTEDMODEL", mname);
+        nmns += it;
+    }
+    ModelXml->DeleteAttribute("models");
+    ModelXml->AddAttribute("models", nmns);
+
     Reset();
 }
 

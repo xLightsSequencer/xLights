@@ -25,6 +25,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
 
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
+        ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname);
         virtual ~ModelGroup();
 
         // void TestNodeInit() const; // This function should be uncommented for testing issues where model group buffer styles create different numbers of nodes
@@ -45,10 +46,12 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         Model* GetFirstModel() const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
-        bool DirectlyContainsModel(Model* m);
-        bool ContainsModel(Model* m);
-        bool ContainsModel(Model* m, std::list<Model*>& visited);
+        bool DirectlyContainsModel(Model* m) const;
+        bool ContainsModel(Model* m) const;
+        bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
+        bool OnlyContainsModel(const std::string& name) const;
         int GetModelCount() const { return models.size(); }
+        wxString SerialiseModelGroup(const std::string& forModel) const;
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;

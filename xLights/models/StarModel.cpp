@@ -20,6 +20,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
@@ -471,6 +472,10 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     wxString state = SerialiseState();
     if (state != "")
     {
@@ -562,6 +567,10 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 else if (n->GetName() == "faceInfo")
                 {
                     AddFace(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

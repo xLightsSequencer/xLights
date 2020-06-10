@@ -1017,6 +1017,10 @@ void DmxSkull::ExportXlightsModel()
     {
         f.Write(state);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1104,6 +1108,10 @@ void DmxSkull::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
                 else if (n->GetName() == "stateInfo")
                 {
                     AddState(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

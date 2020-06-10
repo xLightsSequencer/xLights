@@ -27,6 +27,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1170,6 +1171,10 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 else if (n->GetName() == "subModel") {
                     AddSubmodel(n);
                 }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
+                }
             }
 
             int num_points = wxAtoi(pts);
@@ -1269,6 +1274,10 @@ void PolyLineModel::ExportXlightsModel()
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
         f.Write(submodel);
+    }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
     }
     f.Write("</polylinemodel>");
     f.Close();

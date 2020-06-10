@@ -20,6 +20,8 @@
 #include "xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
+#include "../ModelPreview.h"
 
 ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), arc(180)
 {
@@ -555,6 +557,10 @@ void ArchesModel::ExportXlightsModel()
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("Hollow=\"%s\" ", h));
     f.Write(" >\n");
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     wxString state = SerialiseState();
     if (state != "")
     {
@@ -637,6 +643,10 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 else if (n->GetName() == "subModel")
                 {
                     AddSubmodel(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

@@ -20,6 +20,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -421,6 +422,10 @@ void MatrixModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</matrixmodel>");
     f.Close();
 }
@@ -491,6 +496,10 @@ void MatrixModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 else if (n->GetName() == "faceInfo")
                 {
                     AddFace(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

@@ -22,6 +22,7 @@
 #include "UtilFunctions.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
+#include "../ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1003,6 +1004,10 @@ void CubeModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
     f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
     f.Write(" >\n");
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     wxString state = SerialiseState();
     if (state != "")
     {
@@ -1098,6 +1103,10 @@ void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 else if (n->GetName() == "faceInfo")
                 {
                     AddFace(n);
+                }
+                else if (n->GetName() == "modelGroup")                     {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 
@@ -1270,6 +1279,10 @@ void CubeModel::ExportAsCustomXModel() const {
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
+    wxString groups = SerialiseGroups();
+    if (groups != "")         {
+        f.Write(groups);
+    }
     wxString face = SerialiseFace();
     if (face != "")
     {

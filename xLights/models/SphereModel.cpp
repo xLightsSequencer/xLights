@@ -21,6 +21,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
@@ -215,6 +216,10 @@ void SphereModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</spheremodel>");
     f.Close();
 }
@@ -291,6 +296,10 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 else if (n->GetName() == "faceInfo")
                 {
                     AddFace(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

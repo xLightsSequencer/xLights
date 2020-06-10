@@ -26,6 +26,7 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 #include <log4cpp/Category.hh>
+#include "../../ModelPreview.h"
 
 static const int SUPPORTED_SERVOS = 24;
 
@@ -488,6 +489,10 @@ void DmxServo::ExportXlightsModel()
     {
         f.Write(state);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</dmxservo>");
     f.Close();
 }
@@ -570,6 +575,10 @@ void DmxServo::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
                 else if (n->GetName() == "stateInfo")
                 {
                     AddState(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 

@@ -20,6 +20,7 @@
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+#include "../ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1164,6 +1165,10 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 {
                     AddSubmodel(n);
                 }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
+                }
             }
 
             GetModelScreenLocation().SetMWidth(max_x - min_x);
@@ -1502,6 +1507,10 @@ void CustomModel::ExportXlightsModel()
     if (submodel != "")
     {
         f.Write(submodel);
+    }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
     }
     f.Write("</custommodel>");
     f.Close();

@@ -320,6 +320,29 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
+wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
+{
+    wxString res;
+    for (const auto& it : models)         {
+        if (it.second->GetDisplayAs() == "ModelGroup" && dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name))             {
+            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
+        }
+    }
+    return res;
+}
+
+void ModelManager::DeserialiseModelGroup(wxXmlNode* n, int w, int h, const std::string& mname)
+{
+    auto mgname = n->GetAttribute("name");
+    std::string nn = mgname;
+    int i = 1;
+    while (models.find(nn) != models.end())         {
+        nn = wxString::Format("%s_%d", mgname, i++).ToStdString();
+    }
+    ModelGroup* mg = new ModelGroup(n, *this, w, h, nn, mname);
+    AddModel(mg);
+}
+
 bool ModelManager::RecalcStartChannels() const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);

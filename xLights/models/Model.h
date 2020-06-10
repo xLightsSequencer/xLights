@@ -111,7 +111,9 @@ public:
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     wxString SerialiseFace() const;
-    wxString SerialiseState()const ;
+    wxString SerialiseState() const;
+    wxString SerialiseGroups() const;
+    void DeserialiseGroups(wxXmlNode* n, int w, int h, const wxString& name);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
     static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);

@@ -1918,6 +1918,16 @@ wxString Model::SerialiseState() const
     return res;
 }
 
+wxString Model::SerialiseGroups() const
+{
+    return modelManager.SerialiseModelGroupsForModel(GetName());
+}
+
+void Model::DeserialiseGroups(wxXmlNode* n, int w, int h, const wxString& name)
+{
+    modelManager.GetXLightsFrame()->AllModels.DeserialiseModelGroup(n, w, h, name);
+}
+
 std::string Model::ComputeStringStartChannel(int i) {
     if (i == 0) {
         return ModelXml->GetAttribute("StartChannel", "1").ToStdString();

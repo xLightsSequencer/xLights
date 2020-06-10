@@ -20,6 +20,7 @@
 #include "xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "../UtilFunctions.h"
+#include "../ModelPreview.h"
 
 CircleModel::CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), insideOut(false)
 {
@@ -368,7 +369,11 @@ void CircleModel::ExportXlightsModel()
 	{
 		f.Write(submodel);
 	}
-	f.Write("</circlemodel>");
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
+    f.Write("</circlemodel>");
 	f.Close();
 }
 
@@ -435,7 +440,11 @@ void CircleModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
 				{
 					AddSubmodel(n);
 				}
-			}
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
+                }
+            }
 
 			xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");
 			xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::ImportXlightsModel");

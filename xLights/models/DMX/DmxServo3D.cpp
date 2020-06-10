@@ -752,6 +752,10 @@ void DmxServo3d::ExportXlightsModel()
     {
         f.Write(state);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</dmxservo3d>");
     f.Close();
 }
@@ -828,6 +832,10 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
                 else if (n->GetName() == "stateInfo")
                 {
                     AddState(n);
+                }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
 
