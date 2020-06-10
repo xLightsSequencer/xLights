@@ -535,7 +535,6 @@ void ModelGroup::ResetModels()
             models.push_back(c);
         }
     }
-    CheckForChanges();
 }
 
 ModelGroup::~ModelGroup() {}
