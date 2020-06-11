@@ -1045,6 +1045,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     wxJSONValue root;
     reader.Parse(json, &root);
     _description = root["DESCRIPTION"].AsString();
+    if (_description == "xLights AudioFFT")
+        _audioFFTMode = true;
     wxJSONValue inputs = root["INPUTS"];
     wxString canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++)
@@ -1111,14 +1113,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                 inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                 ShaderParmType::SHADER_PARM_AUDIO
-            ));
-        }
-        else if (type == "audiofft")
-        {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_AUDIOFFT
             ));
         }
         else if (type == "bool")
@@ -1267,6 +1261,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 texture2D(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
