@@ -197,7 +197,8 @@ bool ShaderPanel::BuildUI(const wxString& filename)
 			TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
 			layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 		}
-        FilePickerCtrl1->SetToolTip(desc);
+        wxString const shortName = wxFileName(_shaderConfig->GetFilename()).GetFullName();
+        FilePickerCtrl1->SetToolTip(shortName + "\n\n" + desc);
 
         for (const auto& it : _shaderConfig->GetParms())
         {
