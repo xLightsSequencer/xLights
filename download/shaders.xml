@@ -722,6 +722,12 @@
 		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591893025/freq_2_eei4zx.png</image>
 		<rating>3</rating>
         </shader>
+        <shader>
+		<name>Audio - waves remix</name>
+		<id>5ee2b7d8658b34001590ff20</id>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591917211/waves_remix_ocyrlc.png</image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>
