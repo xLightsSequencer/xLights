@@ -701,7 +701,25 @@
         <shader>
 		<name>Audio - Circle Wave</name>
 		<id>5ee1b2d59a2c7b00176938c6</id>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/bkueyyadw5k6qfmrzrou</image>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591893025/circle_wave_sk84sq.png</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Audio - Audio Surf</name>
+		<id>5ee24667658b34001590ff1a</id>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591893025/AudioSurf_gcz7rm.png</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Audio - Fractal Audio</name>
+		<id>5ee254369a2c7b00176938d2</id>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591893025/fractal_audio_sgyqwf.png</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Audio - Freq 2</name>
+		<id>5ee2598b658b34001590ff1f</id>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591893025/freq_2_eei4zx.png</image>
 		<rating>3</rating>
         </shader>
 	<!--shader>
