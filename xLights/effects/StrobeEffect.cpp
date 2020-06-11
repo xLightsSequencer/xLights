@@ -48,7 +48,7 @@ wxPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
 class StrobeClass
 {
 public:
-    
+
     int x,y;
     int duration; // How frames strobe light stays on. Will be decremented each frame
     HSVValue hsv;
@@ -98,9 +98,9 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     if (reactToMusic) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr) {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
         }
         Number_Strobes *= f;
@@ -214,5 +214,5 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
             ++it;
         }
     }
-    
+
 }

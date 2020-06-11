@@ -698,6 +698,12 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/bkueyyadw5k6qfmrzrou</image>
 		<rating>3</rating>
 	</shader>
+        <shader>
+		<name>Audio - Circle Wave</name>
+		<id>5ee1b2d59a2c7b00176938c6</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/bkueyyadw5k6qfmrzrou</image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>

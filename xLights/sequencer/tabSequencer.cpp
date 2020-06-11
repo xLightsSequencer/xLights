@@ -540,7 +540,7 @@ void xLightsFrame::CheckForValidModels()
                     {
                         logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
                         // This does not seem to be necessary and it has some bad side effects such as removing the model from all views
-                        //mSequenceElements.DeleteElement(newName); 
+                        //mSequenceElements.DeleteElement(newName);
                         mSequenceElements.GetElement(x)->SetName(newName);
                         if (AllModels[newName] == nullptr)
                         {
@@ -2018,7 +2018,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                                                                        el->GetIndex(),
                                                                        el->GetEffect(j));
 
-                // Keep canvas mode if it was set as the effect is unlikely to work 
+                // Keep canvas mode if it was set as the effect is unlikely to work
                 // properly without it
                 for (const auto& it : oldSettings)
                 {
@@ -2084,7 +2084,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
     // grab a copy of the pointer in case user clicks off the effect
     Effect* eff = selectedEffect;
-    
+
     // This should not be necessary but i have seen enough crashes where accessing the eff at this point bombs out that I want to check it is valid
     if (eff != nullptr)
     {
@@ -3077,7 +3077,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioM
 
         for (size_t i = 0; i < frames; i++)
         {
-            std::list<float>* pdata = audio->GetFrameData(i, FRAMEDATA_NOTES, "");
+            std::list<float> const * const pdata = audio->GetFrameData(i, FRAMEDATA_NOTES, "");
             if (pdata != nullptr)
             {
                 res[i*intervalMS] = *pdata;

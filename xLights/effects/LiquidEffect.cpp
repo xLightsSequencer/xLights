@@ -527,10 +527,10 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
         float audioLevel = 0.0001f;
         if (buffer.GetMedia() != nullptr)
         {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                audioLevel = *pf->begin();
+                audioLevel = *pf->cbegin();
             }
         }
 

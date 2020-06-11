@@ -335,7 +335,7 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
 
 void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    
+
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
     int particleCount = GetValueCurveInt("Fireworks_Count", 50, SettingsMap, offset, FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", 2.0, SettingsMap, offset, FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -359,10 +359,10 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
         }
     }
@@ -372,13 +372,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         cache = new FireworksRenderCache();
         buffer.infoCache[id] = cache;
     }
-    
+
     auto& sinceLastTriggered = cache->_sinceLastTriggered;
     auto& fireworks = cache->_fireworks;
     auto& firePeriods = cache->_firePeriods;
 
     size_t colorcnt = buffer.GetColorCount();
-    
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         SetPanelTimingTracks();
@@ -405,7 +405,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             if (sinceLastTriggered == 0 || sinceLastTriggered > REPEATTRIGGER)
             {
                 auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
-                int colourIndex = rand() % colorcnt; 
+                int colourIndex = rand() % colorcnt;
                 fireworks.push_back(Firework(particleCount,
                     location.first, location.second,
                     xVelocity, yVelocity,
@@ -429,7 +429,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             sinceLastTriggered = 0;
         }
     }
-    
+
     if (useTiming)
     {
         if (mSequenceElements == nullptr)

@@ -122,7 +122,7 @@ namespace
       }
       double x, y;
    };
-   
+
    xlColor tex2D(const ColorBuffer& cb, const Vec2D& st) {
        return tex2D(cb, st.x, st.y);
    }
@@ -2784,9 +2784,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         if (layers[ii]->use_music_sparkle_count &&
             layers[ii]->buffer.GetMedia() != nullptr) {
             float f = 0.0;
-            std::list<float>* pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr) {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
             layers[ii]->music_sparkle_count_factor = f;
         } else {

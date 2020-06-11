@@ -108,6 +108,25 @@ namespace
         return texId;
     }
 
+    GLuint FFTAudioTexture()
+    {
+        GLuint texId = 0;
+
+        LOG_GL_ERRORV(glGenTextures(1, &texId));
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, texId));
+
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+
+        return texId;
+    }
+
     bool createOpenGLRenderBuffer(int width, int height, GLuint* rbID, GLuint* fbID)
     {
         LOG_GL_ERRORV(glGenRenderbuffers(1, rbID));
@@ -292,7 +311,7 @@ class ShaderGLCanvas : public xlGLCanvas {
 public:
     ShaderGLCanvas(wxWindow *parent) : xlGLCanvas(parent, -1) {}
     virtual ~ShaderGLCanvas() {}
-    
+
     virtual void InitializeGLContext() {}
 };
 
@@ -458,7 +477,7 @@ public:
             unsigned rbTex = s_rbTex;
             unsigned programId = s_programId;
             xlGLCanvas *preview = this->preview;
-            
+
             preview->CallAfter([preview,
                                 vertexArrayId,
                                 vertexBufferId,
@@ -474,7 +493,7 @@ public:
                                  rbTex,
                                  programId);
             });
-            
+
             s_programId = 0;
             s_vertexArrayId = 0;
             s_vertexBufferId = 0;
@@ -492,6 +511,7 @@ public:
     unsigned s_fbId = 0;
     unsigned s_rbId = 0;
     unsigned s_rbTex = 0;
+    unsigned s_audioTex = 0;
     unsigned s_programId = 0;
     int s_rbWidth = 0;
     int s_rbHeight = 0;
@@ -501,13 +521,14 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
-    
+
     void DestroyResources() {
         DestroyResources(s_vertexArrayId,
                          s_vertexBufferId,
                          s_fbId,
                          s_rbId,
                          s_rbTex,
+                         s_audioTex,
                          s_programId);
         s_programId = 0;
         s_vertexArrayId = 0;
@@ -515,12 +536,14 @@ public:
         s_fbId = 0;
         s_rbId = 0;
         s_rbTex = 0;
+        s_audioTex = 0;
     }
     static void DestroyResources(unsigned s_vertexArrayId,
                                  unsigned s_vertexBufferId,
                                  unsigned s_fbId,
                                  unsigned s_rbId,
                                  unsigned s_rbTex,
+                                 unsigned s_audioTex,
                                  unsigned s_programId) {
         if (s_programId) {
             LOG_GL_ERRORV(glDeleteProgram(s_programId));
@@ -540,6 +563,9 @@ public:
         if (s_rbTex) {
             LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
         }
+        if (s_audioTex) {
+            LOG_GL_ERRORV(glDeleteTextures(1, &s_audioTex));
+        }
     }
 
 #if defined(__WXOSX__)
@@ -555,7 +581,7 @@ public:
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
 
-#if defined(__WXOSX__)     
+#if defined(__WXOSX__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
@@ -620,7 +646,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     if (cache->glContextInfo == nullptr) {
         // we grab it here and release it when the cache is deleted
         cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
-        
+
         cache->glContextInfo->SetCurrent();
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
@@ -629,7 +655,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
                                             (const char *)str,
                                             (const char *)rend,
                                             (const char *)vend);
-        
+
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info(configs);
     }
@@ -675,6 +701,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     unsigned& s_rbId = cache->s_rbId;
     unsigned& s_programId = cache->s_programId;
     unsigned& s_rbTex = cache->s_rbTex;
+    unsigned& s_audioTex = cache->s_audioTex;
     int& s_rbWidth = cache->s_rbWidth;
     int& s_rbHeight = cache->s_rbHeight;
     long& _timeMS = cache->_timeMS;
@@ -738,9 +765,31 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
-    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
-    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
-    LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]));
+    if (_shaderConfig->IsAudioFFTShader())
+    {
+        if (s_audioTex == 0)
+            s_audioTex = FFTAudioTexture();
+
+        AudioManager* audioManager = buffer.GetMedia();
+        if (audioManager != nullptr)
+        {
+            auto fftData = audioManager->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+            std::vector<float> fft128(fftData->cbegin(), fftData->cend());
+            fft128.push_back( 0.f );
+
+            LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+            LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
+            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, 128,1, GL_RED, GL_FLOAT, fft128.data()));
+        }
+    }
+    else
+    {
+        LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
+        LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]));
+    }
+
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
 
@@ -882,7 +931,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     xlColorVector& cv(buffer.pixels);
     LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
     LOG_GL_ERRORV(glUseProgram(0));
-    
+
     UnsetGLContext(cache);
 }
 
@@ -996,8 +1045,10 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     wxJSONValue root;
     reader.Parse(json, &root);
     _description = root["DESCRIPTION"].AsString();
+    if (_description == "xLights AudioFFT")
+        _audioFFTMode = true;
     wxJSONValue inputs = root["INPUTS"];
-    wxString canvasImgName;
+    wxString canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++)
     {
         wxString type = inputs[i]["TYPE"].AsString();
@@ -1064,14 +1115,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 ShaderParmType::SHADER_PARM_AUDIO
             ));
         }
-        else if (type == "audiofft")
-        {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_AUDIOFFT
-            ));
-        }
         else if (type == "bool")
         {
             _parms.push_back(ShaderParm(
@@ -1121,6 +1164,14 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             {
                 canvasImgName = inputs[i]["NAME"].AsString();
                 //_canvasMode = true;
+            }
+        }
+        else if (type == "audioFFT")
+        {
+            if (inputs[i].HasMember("NAME"))
+            {
+                audioFFTName = inputs[i]["NAME"].AsString();
+                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char *>(audioFFTName.c_str()));
             }
         }
         else if (type == "event")
@@ -1210,6 +1261,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 texture2D(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
@@ -1246,7 +1298,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
     shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
-    if (!canvasImgName.empty())
+    if (!audioFFTName.empty())
+    {
+        shaderCode.Replace(audioFFTName, "texSampler");
+        _audioFFTMode = true;
+    }
+    else if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");
         _canvasMode = true;

@@ -92,7 +92,7 @@ public:
             firePaletteColors.push_back(hsv);
             firePaletteColorsAlpha.push_back(xlColor(255, 0, 0, i * 255 / 100));
         }
-        
+
         // gives 100 hues red to yellow
         hsv.value=1.0;
         for (i=0; i<100; i++)
@@ -115,7 +115,7 @@ public:
     const xlColor &asAlphaColor(int x) const {
         return firePaletteColorsAlpha[x];
     }
-    
+
 private:
     hsvVector firePalette;
     xlColorVector firePaletteColors;
@@ -163,7 +163,7 @@ class FireRenderCache : public EffectRenderCache {
 public:
     FireRenderCache() {};
     virtual ~FireRenderCache() {};
-    
+
     std::vector<int> FireBuffer;
 };
 
@@ -211,10 +211,10 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         if (buffer.GetMedia() != nullptr)
         {
             float f = 0.0;
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
             HeightPct += 90 * f;
         }
@@ -229,7 +229,7 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
     }
     if (HeightPct<1) HeightPct=1;
-    
+
     int maxMHt = buffer.ModelBufferHt;
     int maxMWi = buffer.ModelBufferWi;
     if (loc == 2 || loc == 3) {
@@ -305,7 +305,7 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             SetFireBuffer(x,y,new_index, cache->FireBuffer, maxMWi, maxMHt);
         }
     }
-    
+
     //  Now play fire
     for (y=0; y<maxHt; y++)
     {
