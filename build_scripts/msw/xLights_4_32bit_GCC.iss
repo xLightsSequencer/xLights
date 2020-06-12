@@ -49,7 +49,7 @@ Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "../../bin/xSchedule.exe"; DestDir: "{app}"
 Source: "../../bin/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
+Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xCapture
@@ -116,22 +116,19 @@ Source: "../../License.txt"; DestDir: "{app}";
 Source: "../../README.txt";  DestDir: "{app}"; Flags: isreadme
 
 ; Color Curves
-Source: "../../colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameversion recursesubdirs
+Source: "../../colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: ignoreversion recursesubdirs
 
 ; Value Curves
-Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
+Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: ignoreversion recursesubdirs
 
 ; Mesh Objects
-Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: replacesameversion recursesubdirs
+Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
 
-; Mesh Objects
-Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+; Controllers
+Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
 ; Palettes
-Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
-
-; controllers
-; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
 [Icons] 
 Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"

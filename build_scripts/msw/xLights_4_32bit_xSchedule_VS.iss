@@ -45,7 +45,7 @@ Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "../../xSchedule/Release/xSchedule.exe"; DestDir: "{app}"
 Source: "../../xSchedule/Release/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
+Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xSMSDaemon
@@ -69,8 +69,8 @@ Source: "../../bin/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-; Mesh Objects
-Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+; Controllers
+Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
 ; SDL - audio playing
 Source: "../../bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
