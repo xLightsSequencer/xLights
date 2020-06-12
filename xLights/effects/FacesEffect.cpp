@@ -74,6 +74,47 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
+std::string FacesEffect::GetEffectString()
+{
+    FacesPanel* p = (FacesPanel*)panel;
+    std::stringstream ret;
+
+    if (p->CheckBox_Faces_Outline->GetValue()) {
+        ret << "E_CHECKBOX_Faces_Outline=1,";
+    }
+
+    if (p->CheckBox_SuppressWhenNotSinging->GetValue()) {
+        ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
+    }
+
+    if (p->CheckBox_TransparentBlack->GetValue()) {
+        ret << "E_CHECKBOX_Faces_TransparentBlack=1,";
+        ret << "E_TEXTCTRL_Faces_TransparentBlack=";
+        ret << p->TextCtrl_Faces_TransparentBlack->GetValue().ToStdString();
+        ret << ",";
+    }
+
+    ret << "E_CHOICE_Faces_Eyes=";
+    ret << p->Choice_Faces_Eyes->GetStringSelection().ToStdString();
+    ret << ",";
+
+    ret << "E_CHOICE_Faces_FaceDefinition=";
+    ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
+    ret << ",";
+    
+    if (p->RadioButton1->GetValue())         {
+        ret << "E_CHOICE_Faces_Phoneme=";
+        ret << p->Choice_Faces_Phoneme->GetStringSelection().ToStdString();
+        ret << ",";
+    }
+    else         {
+        ret << "E_CHOICE_Faces_TimingTrack=";
+        ret << p->Choice_Faces_TimingTrack->GetStringSelection().ToStdString();
+        ret << ",";
+    }
+    return ret.str();
+}
+
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
