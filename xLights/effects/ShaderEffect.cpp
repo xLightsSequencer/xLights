@@ -185,6 +185,18 @@ ShaderEffect::~ShaderEffect()
 
 }
 
+bool ShaderEffect::IsShaderFile(std::string filename)
+{
+    wxFileName fn(filename);
+    auto ext = fn.GetExt().Lower().ToStdString();
+
+    if (ext == "fs") {
+        return true;
+    }
+
+    return false;
+}
+
 wxPanel *ShaderEffect::CreatePanel(wxWindow *parent)
 {
     return new ShaderPanel(parent);

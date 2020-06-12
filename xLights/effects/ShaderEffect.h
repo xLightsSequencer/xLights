@@ -188,6 +188,7 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    static bool IsShaderFile(std::string filename);
 
 protected:
     bool SetGLContext(ShaderRenderCache*);

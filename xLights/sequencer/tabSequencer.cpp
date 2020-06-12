@@ -1298,6 +1298,9 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         {
             effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
         }
+        else if (effectName == "Shader") {
+            effect->GetSettings()["E_0FILEPICKERCTRL_IFS"] = filename;
+        }
 
         last_effect_created = effect;
 

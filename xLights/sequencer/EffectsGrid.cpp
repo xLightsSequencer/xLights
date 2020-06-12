@@ -37,6 +37,7 @@
 #include "effects/GlediatorEffect.h"
 #include "effects/VideoEffect.h"
 #include "effects/PicturesEffect.h"
+#include "effects/ShaderEffect.h"
 #include "ColorManager.h"
 #include "models/Model.h"
 #include "PixelBuffer.h"
@@ -1031,6 +1032,9 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
                     mDropEndTimeMS = std::min(std::min(tlEnd, glediatorEnd), nextEffectStart);
                 }
             }
+        }
+        else if (ShaderEffect::IsShaderFile(file))             {
+            effectName = "Shader";
         }
 
         if (effectName != "")

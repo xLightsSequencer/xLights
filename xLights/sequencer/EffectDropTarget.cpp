@@ -16,6 +16,7 @@
 #include "effects/PicturesEffect.h"
 #include "effects/VideoEffect.h"
 #include "effects/GlediatorEffect.h"
+#include "effects/ShaderEffect.h"
 
 EffectDropTarget::EffectDropTarget(EffectsGrid* parent)
 {
@@ -92,7 +93,8 @@ wxDragResult EffectDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
         {
             if (PicturesEffect::IsPictureFile(fn->ToStdString()) ||
                 VideoEffect::IsVideoFile(fn->ToStdString()) ||
-                GlediatorEffect::IsGlediatorFile(fn->ToStdString()))
+                GlediatorEffect::IsGlediatorFile(fn->ToStdString()) ||
+                ShaderEffect::IsShaderFile(fn->ToStdString()))
             {
                 return wxDragCopy;
             }
