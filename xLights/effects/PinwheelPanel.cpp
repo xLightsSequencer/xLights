@@ -83,6 +83,7 @@ END_EVENT_TABLE()
 PinwheelPanel::PinwheelPanel(wxWindow* parent)
 {
 	//(*Initialize(PinwheelPanel)
+	BulkEditTextCtrl* TextCtrl1;
 	BulkEditTextCtrl* TextCtrl64;
 	BulkEditTextCtrl* TextCtrl65;
 	BulkEditTextCtrl* TextCtrl66;
