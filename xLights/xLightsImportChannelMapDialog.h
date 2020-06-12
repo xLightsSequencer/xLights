@@ -391,6 +391,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         std::vector<std::string> ccrNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
+        std::map<std::string, bool> timingTrackAlreadyExists;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:
@@ -410,6 +411,9 @@ protected:
 		static const long ID_SPLITTERWINDOW1;
 		//*)
 
+        static const long ID_MNU_SELECTALL;
+        static const long ID_MNU_SELECTNONE;
+
 	private:
         wxString FindTab(wxString &line);
         void AddModel(Model *model, int &cnt);
@@ -428,6 +432,8 @@ protected:
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		//*)
 
+        void RightClickTimingTracks(wxContextMenuEvent& event);
+        void OnPopupTimingTracks(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()

@@ -430,6 +430,9 @@ const long xLightsImportChannelMapDialog::ID_PANEL2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
+const long xLightsImportChannelMapDialog::ID_MNU_SELECTALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_SELECTNONE = wxNewId();
+
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//(*EventTable(xLightsImportChannelMapDialog)
 	//*)
@@ -528,6 +531,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
     //*)
 
+    Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
+
     SetSize(800, 600);
 
     ListCtrl_Available->SetSize(150, -1);
@@ -566,6 +571,23 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     }
 
     EnsureWindowHeaderIsOnScreen(this);
+}
+
+void xLightsImportChannelMapDialog::RightClickTimingTracks(wxContextMenuEvent& event)
+{
+    wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_SELECTALL, "Select All");
+    mnuLayer.Append(ID_MNU_SELECTNONE, "Select None");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupTimingTracks, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
+{
+    for (int i = 0; i < TimingTrackListBox->GetCount(); i++)
+    {
+        TimingTrackListBox->Check(i, event.GetId() == ID_MNU_SELECTALL);
+    }
 }
 
 xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
@@ -618,8 +640,11 @@ bool xLightsImportChannelMapDialog::InitImport() {
     }
     else
     {
-        for (auto it = timingTracks.begin(); it != timingTracks.end(); ++it) {
-            TimingTrackListBox->Append(*it);
+        for (const auto& it : timingTracks) {
+            int item = TimingTrackListBox->Append(it);
+            if (!timingTrackAlreadyExists[it]) {
+                TimingTrackListBox->Check(item, true);
+            }
         }
     }
 

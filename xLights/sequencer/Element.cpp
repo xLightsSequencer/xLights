@@ -57,6 +57,7 @@ const std::string &Element::GetName() const
 {
     return mName;
 }
+
 void Element::SetName(const std::string &name)
 {
     mName = name;
@@ -79,11 +80,10 @@ bool Element::HasEffects() const {
 }
 
 
-bool TimingElement::HasLyrics(int layer) const {
-    if (mEffectLayers.size() > layer)
-    {
-        for (const auto& it : mEffectLayers[layer]->GetAllEffects())
-        {
+bool TimingElement::HasLyrics(int layer) const
+{
+    if (mEffectLayers.size() > layer) {
+        for (const auto& it : mEffectLayers[layer]->GetAllEffects()) {
             if (it->GetEffectName() != "") return true;
         }
     }
@@ -686,7 +686,8 @@ void ModelElement::AddSubModel(SubModelElement* sme) {
     mSubModels.push_back(sme);
 }
 
-SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
+SubModelElement* ModelElement::GetSubModel(const std::string& name, bool create)
+{
     for (const auto& a : mSubModels) {
         if (name == a->GetName()) {
             return a;
@@ -707,10 +708,8 @@ SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create)
 std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFileReferences(em));
         }
@@ -721,10 +720,8 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFacesUsed(em));
         }
@@ -735,10 +732,8 @@ std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 {
     bool rc = false;
-    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             rc = el->CleanupFileLocations(frame, em) || rc;
         }
@@ -748,12 +743,10 @@ bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 
 Effect* Element::SelectEffectUsingDescription(std::string description)
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++)
-    {
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
         Effect* e = el->SelectEffectUsingDescription(description);
-        if (e != nullptr)
-        {
+        if (e != nullptr) {
             return e;
         }
     }
@@ -762,19 +755,15 @@ Effect* Element::SelectEffectUsingDescription(std::string description)
 
 bool StrandElement::IsEffectValid(Effect* e) const
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++)
-    {
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
-        if (el->IsEffectValid(e))
-        {
+        if (el->IsEffectValid(e)) {
             return true;
         }
     }
 
-    for (int j = 0; j < GetNodeLayerCount(); j++)
-    {
-        if (GetNodeEffectLayer(j)->IsEffectValid(e))
-        {
+    for (int j = 0; j < GetNodeLayerCount(); j++) {
+        if (GetNodeEffectLayer(j)->IsEffectValid(e)) {
             return true;
         }
     }
@@ -784,11 +773,9 @@ bool StrandElement::IsEffectValid(Effect* e) const
 
 bool Element::IsEffectValid(Effect* e) const
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++)
-    {
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
-        if (el->IsEffectValid(e))
-        {
+        if (el->IsEffectValid(e)) {
             return true;
         }
     }
@@ -797,12 +784,10 @@ bool Element::IsEffectValid(Effect* e) const
 
 Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
-    if (layer < GetEffectLayerCount())
-    {
+    if (layer < GetEffectLayerCount()) {
         EffectLayer* el = GetEffectLayer(layer);
         Effect* e = el->SelectEffectUsingTime(time);
-        if (e != nullptr)
-        {
+        if (e != nullptr) {
             return e;
         }
     }

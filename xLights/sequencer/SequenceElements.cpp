@@ -1218,19 +1218,17 @@ void addSubModelElement(SubModelElement* elem,
 void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mRowInformation,
     int& rowIndex, xLightsFrame* xframe,
     std::vector <Element*>& elements,
-    bool submodel) {
+    bool submodel)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (elem == nullptr)
-    {
+    if (elem == nullptr) {
         logger_base.error("addModelElement attempted to add null element.");
         return;
     }
 
-    if (!elem->GetCollapsed())
-    {
-        for (int j = 0; j < elem->GetEffectLayerCount(); j++)
-        {
+    if (!elem->GetCollapsed()) {
+        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.displayName = elem->GetName();
@@ -1242,8 +1240,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
             mRowInformation.push_back(ri);
         }
     }
-    else
-    {
+    else {
         Row_Information_Struct ri;
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
@@ -1328,25 +1325,22 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     }
 }
 
-void SequenceElements::addTimingElement(TimingElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
-                                        int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex) {
-    if( elem->GetEffectLayerCount() > 1 )
-    {
+void SequenceElements::addTimingElement(TimingElement* elem, std::vector<Row_Information_Struct>& mRowInformation,
+    int& rowIndex, int& selectedTimingRow, int& timingRowCount, int& timingColorIndex)
+{
+    if (elem->GetEffectLayerCount() > 1) {
         hasPapagayoTiming = true;
     }
 
-    if(!elem->GetCollapsed())
-    {
-        for(int j =0; j<elem->GetEffectLayerCount();j++)
-        {
+    if (!elem->GetCollapsed()) {
+        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.Collapsed = elem->GetCollapsed();
             ri.colorIndex = timingColorIndex;
             ri.layerIndex = j;
-            if(selectedTimingRow<0 && j==0)
-            {
-                selectedTimingRow = elem->GetActive()?rowIndex:-1;
+            if (selectedTimingRow < 0 && j == 0) {
+                selectedTimingRow = elem->GetActive() ? rowIndex : -1;
             }
 
             ri.Index = rowIndex++;
@@ -1354,17 +1348,15 @@ void SequenceElements::addTimingElement(TimingElement *elem, std::vector<Row_Inf
             timingRowCount++;
         }
     }
-    else
-    {
+    else {
         Row_Information_Struct ri;
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
         ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
-        if(selectedTimingRow<0)
-        {
-            selectedTimingRow = elem->GetActive()?rowIndex:-1;
+        if (selectedTimingRow < 0) {
+            selectedTimingRow = elem->GetActive() ? rowIndex : -1;
         }
         ri.Index = rowIndex++;
         mRowInformation.push_back(ri);

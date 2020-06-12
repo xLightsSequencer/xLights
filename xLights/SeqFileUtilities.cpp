@@ -1270,6 +1270,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
     std::vector<std::string> timingTrackNames;
+    std::map<std::string, bool> timingTrackAlreadyExists;
     std::map<std::string, TimingElement*> timingTracks;
 
     for (const auto& it : elements) {
@@ -1325,6 +1326,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if (hasEffects) {
                     timingTrackNames.push_back(tel->GetName());
                     timingTracks[tel->GetName()] = tel;
+
+                    // we want to know which timing tracks exist so we can preselect the ones which are not already present
+                    timingTrackAlreadyExists[tel->GetName()] = (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr);
                 }
             }
         }
@@ -1332,6 +1336,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
+    dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
     bool ok = dlg.InitImport();
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
