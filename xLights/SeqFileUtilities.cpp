@@ -297,8 +297,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         SetPanelSequencerLabel(selected_file.GetName().ToStdString());
 
         wxFileName xml_file = selected_file;
-        if (xml_file.GetExt() != "xml")             {
+        if (xml_file.GetExt() != "xml") {
             xml_file.SetExt("xsq");
+            // maybe the filename has not changed
+            if (!xml_file.Exists()) {
+                xml_file.SetExt("xml");
+            }
         }
         wxFileName media_file;
 
