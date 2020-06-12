@@ -107,6 +107,7 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
     int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int poffset = GetValueCurveInt("Pinwheel_Offset", 0, SettingsMap, oset, PINWHEEL_OFFSET_MIN, PINWHEEL_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     const std::string& pinwheel_style = SettingsMap["CHOICE_Pinwheel_Style"];
 
     double pos = (double)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (double)PINWHEEL_SPEED_MAX;
@@ -141,10 +142,10 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
 
             int angle = (a * degrees_per_arm);
             if (pinwheel_rotation == 1) { // do we have CW rotation
-                angle = (270 - angle) + pos;
+                angle = (270 - angle) + pos + poffset;
             }
             else {
-                angle = angle - 90 - pos;
+                angle = angle - 90 - pos + poffset;
             }
 
             if (max_radius != 0)
@@ -180,10 +181,10 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
                         double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
                         if (pinwheel_rotation == 1) // do we have CW rotation
                         {
-                            theta = pos + theta + (tmax / 2);
+                            theta = pos + theta + (tmax / 2) + poffset;
                         }
                         else {
-                            theta = pos - theta + (tmax / 2);
+                            theta = pos - theta + (tmax / 2) + poffset;
                         }
                         theta = theta + 540.0;
                         int t2 = (int)theta % degrees_per_arm;
@@ -253,10 +254,10 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
             int base_degrees;
             if (pinwheel_rotation == 1) // do we have CW rotation
             {
-                base_degrees = (a - 1) * degrees_per_arm + pos; // yes
+                base_degrees = (a - 1) * degrees_per_arm + pos + poffset; // yes
             }
             else {
-                base_degrees = (a - 1) * degrees_per_arm - pos; // no, we are CCW
+                base_degrees = (a - 1) * degrees_per_arm - pos + poffset; // no, we are CCW
             }
 
             float tmax = (pinwheel_thickness / 100.0) * degrees_per_arm / 2.0;

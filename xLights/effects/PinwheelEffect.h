@@ -32,6 +32,9 @@ class xlColor;
 #define PINWHEEL_TWIST_MIN -360
 #define PINWHEEL_TWIST_MAX 360
 
+#define PINWHEEL_OFFSET_MIN 0
+#define PINWHEEL_OFFSET_MAX 360
+
 class PinwheelEffect : public RenderableEffect
 {
     public:
