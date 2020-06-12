@@ -172,7 +172,7 @@
 												<object class="sizeritem">
 													<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
 														<cols>2</cols>
-														<rows>13</rows>
+														<rows>14</rows>
 														<labelrowheight>20</labelrowheight>
 														<labelcolwidth>150</labelcolwidth>
 														<defaultcolsize>200</defaultcolsize>
@@ -182,6 +182,7 @@
 														</collabels>
 														<rowlabels>
 															<item>Face Outline</item>
+															<item>Face Outline 2</item>
 															<item>Mouth - AI</item>
 															<item>Mouth - E</item>
 															<item>Mouth - etc</item>

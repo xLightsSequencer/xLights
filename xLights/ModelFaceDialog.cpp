@@ -9,9 +9,9 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelFaceDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+ #include <wx/intl.h>
+ #include <wx/string.h>
+ //*)
 
 #include <wx/filefn.h>
 #include <wx/filename.h>
@@ -198,7 +198,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
 	CustomColorNodeRanges->SetValue(false);
 	FlexGridSizer9->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
-	NodeRangeGrid->CreateGrid(13,2);
+	NodeRangeGrid->CreateGrid(14,2);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
 	NodeRangeGrid->EnableEditing(true);
 	NodeRangeGrid->EnableGridLines(true);
@@ -208,18 +208,19 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
 	NodeRangeGrid->SetColLabelValue(0, _("Nodes"));
 	NodeRangeGrid->SetColLabelValue(1, _("Color"));
 	NodeRangeGrid->SetRowLabelValue(0, _("Face Outline"));
-	NodeRangeGrid->SetRowLabelValue(1, _("Mouth - AI"));
-	NodeRangeGrid->SetRowLabelValue(2, _("Mouth - E"));
-	NodeRangeGrid->SetRowLabelValue(3, _("Mouth - etc"));
-	NodeRangeGrid->SetRowLabelValue(4, _("Mouth - FV"));
-	NodeRangeGrid->SetRowLabelValue(5, _("Mouth - L"));
-	NodeRangeGrid->SetRowLabelValue(6, _("Mouth - MBP"));
-	NodeRangeGrid->SetRowLabelValue(7, _("Mouth - O"));
-	NodeRangeGrid->SetRowLabelValue(8, _("Mouth - rest"));
-	NodeRangeGrid->SetRowLabelValue(9, _("Mouth - U"));
-	NodeRangeGrid->SetRowLabelValue(10, _("Mouth - WQ"));
-	NodeRangeGrid->SetRowLabelValue(11, _("Eyes - Open"));
-	NodeRangeGrid->SetRowLabelValue(12, _("Eyes - Closed"));
+	NodeRangeGrid->SetRowLabelValue(1, _("Face Outline 2"));
+	NodeRangeGrid->SetRowLabelValue(2, _("Mouth - AI"));
+	NodeRangeGrid->SetRowLabelValue(3, _("Mouth - E"));
+	NodeRangeGrid->SetRowLabelValue(4, _("Mouth - etc"));
+	NodeRangeGrid->SetRowLabelValue(5, _("Mouth - FV"));
+	NodeRangeGrid->SetRowLabelValue(6, _("Mouth - L"));
+	NodeRangeGrid->SetRowLabelValue(7, _("Mouth - MBP"));
+	NodeRangeGrid->SetRowLabelValue(8, _("Mouth - O"));
+	NodeRangeGrid->SetRowLabelValue(9, _("Mouth - rest"));
+	NodeRangeGrid->SetRowLabelValue(10, _("Mouth - U"));
+	NodeRangeGrid->SetRowLabelValue(11, _("Mouth - WQ"));
+	NodeRangeGrid->SetRowLabelValue(12, _("Eyes - Open"));
+	NodeRangeGrid->SetRowLabelValue(13, _("Eyes - Closed"));
 	NodeRangeGrid->SetDefaultCellFont( NodeRangeGrid->GetFont() );
 	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
 	FlexGridSizer9->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 0);

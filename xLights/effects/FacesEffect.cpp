@@ -1069,6 +1069,20 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         else {
             colors.insert(colors.begin(), color);
         }
+
+        todo.insert(todo.begin(), "FaceOutline2");
+        if (customColor) {
+            std::string const cname = model_info->faceInfo[definition]["FaceOutline2-Color"];
+            if (cname == "") {
+                colors.insert(colors.begin(), xlWHITE);
+            }
+            else {
+                colors.insert(colors.begin(), xlColor(cname));
+            }
+        }
+        else {
+            colors.insert(colors.begin(), color);
+        }
     }
 
     if (type == 2) {
