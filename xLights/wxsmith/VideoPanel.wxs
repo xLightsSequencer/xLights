@@ -146,7 +146,7 @@
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_Video_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_Speed" member="yes">
 											<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -198,11 +198,30 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropLeft" subclass="BulkEditSlider" variable="Slider_Video_CropLeft" member="yes">
-											<size>200,-1</size>
+										<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+											<cols>2</cols>
+											<growablecols>0</growablecols>
+											<object class="sizeritem">
+												<object class="wxSlider" name="IDD_SLIDER_Video_CropLeft" subclass="BulkEditSlider" variable="Slider_Video_CropLeft" member="yes">
+													<size>200,-1</size>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropLeft" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropLeftVC" member="yes">
+													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
+										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -224,12 +243,31 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropRight" subclass="BulkEditSlider" variable="Slider_Video_CropRight" member="yes">
-											<value>100</value>
-											<size>200,-1</size>
+										<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+											<cols>2</cols>
+											<growablecols>0</growablecols>
+											<object class="sizeritem">
+												<object class="wxSlider" name="IDD_SLIDER_Video_CropRight" subclass="BulkEditSlider" variable="Slider_Video_CropRight" member="yes">
+													<value>100</value>
+													<size>200,-1</size>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropRight" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropRightVC" member="yes">
+													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
+										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -251,12 +289,31 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropTop" subclass="BulkEditSlider" variable="Slider_Video_CropTop" member="yes">
-											<value>100</value>
-											<size>200,-1</size>
+										<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+											<cols>2</cols>
+											<growablecols>0</growablecols>
+											<object class="sizeritem">
+												<object class="wxSlider" name="IDD_SLIDER_Video_CropTop" subclass="BulkEditSlider" variable="Slider_Video_CropTop" member="yes">
+													<value>100</value>
+													<size>200,-1</size>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropTop" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropTopVC" member="yes">
+													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
+										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -278,11 +335,30 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropBottom" subclass="BulkEditSlider" variable="Slider_Video_CropBottom" member="yes">
-											<size>200,-1</size>
+										<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
+											<cols>2</cols>
+											<growablecols>0</growablecols>
+											<object class="sizeritem">
+												<object class="wxSlider" name="IDD_SLIDER_Video_CropBottom" subclass="BulkEditSlider" variable="Slider_Video_CropBottom" member="yes">
+													<size>200,-1</size>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropBottom" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropBottomVC" member="yes">
+													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">

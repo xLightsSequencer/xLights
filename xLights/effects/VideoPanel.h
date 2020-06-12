@@ -31,6 +31,8 @@ class wxTextCtrl;
 #define VIDEO_SPEED_MIN -1000
 #define VIDEO_SPEED_MAX 1000
 #define VIDEO_SPEED_DIVISOR 100
+#define VIDEO_CROP_MIN 0
+#define VIDEO_CROP_MAX 100
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv"
 
@@ -83,6 +85,10 @@ class VideoPanel: public wxPanel
         BulkEditTextCtrl* TextCtrl_Video_CropTop;
         BulkEditTextCtrlF2* TextCtrl_Video_Speed;
         BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
+        BulkEditValueCurveButton* BitmapButton_Video_CropBottomVC;
+        BulkEditValueCurveButton* BitmapButton_Video_CropLeftVC;
+        BulkEditValueCurveButton* BitmapButton_Video_CropRightVC;
+        BulkEditValueCurveButton* BitmapButton_Video_CropTopVC;
         BulkEditValueCurveButton* BitmapButton_Video_Speed;
         wxStaticText* StaticText1;
         wxStaticText* StaticText2;
@@ -118,15 +124,19 @@ protected:
 		static const long ID_CHECKBOX_SynchroniseWithAudio;
 		static const long ID_STATICTEXT_Video_CropLeft;
 		static const long IDD_SLIDER_Video_CropLeft;
+		static const long ID_VALUECURVE_Video_CropLeft;
 		static const long ID_TEXTCTRL_Video_CropLeft;
 		static const long ID_STATICTEXT_Video_CropRight;
 		static const long IDD_SLIDER_Video_CropRight;
+		static const long ID_VALUECURVE_Video_CropRight;
 		static const long ID_TEXTCTRL_Video_CropRight;
 		static const long ID_STATICTEXT_Video_CropTop;
 		static const long IDD_SLIDER_Video_CropTop;
+		static const long ID_VALUECURVE_Video_CropTop;
 		static const long ID_TEXTCTRL_Video_CropTop;
 		static const long ID_STATICTEXT_Video_CropBottom;
 		static const long IDD_SLIDER_Video_CropBottom;
+		static const long ID_VALUECURVE_Video_CropBottom;
 		static const long ID_TEXTCTRL_Video_CropBottom;
 		static const long ID_CHECKBOX_Video_TransparentBlack;
 		static const long IDD_SLIDER_Video_TransparentBlack;

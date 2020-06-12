@@ -164,6 +164,10 @@ void VideoEffect::SetDefaultParameters()
     SetSliderValue(vp->Slider_Video_CropLeft, 0);
     SetSliderValue(vp->Slider_Video_CropRight, 100);
     SetSliderValue(vp->Slider_Video_CropTop, 100);
+    vp->BitmapButton_Video_CropLeftVC->SetActive(false);
+    vp->BitmapButton_Video_CropRightVC->SetActive(false);
+    vp->BitmapButton_Video_CropTopVC->SetActive(false);
+    vp->BitmapButton_Video_CropBottomVC->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
@@ -194,13 +198,18 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
 void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
+    int cl = GetValueCurveInt("Video_CropLeft", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cr = GetValueCurveInt("Video_CropRight", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int ct = GetValueCurveInt("Video_CropTop", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cb = GetValueCurveInt("Video_CropBottom", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
-		std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
-        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
-        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
-        std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
+		std::min(cl, cr),
+        std::max(cl, cr),
+        std::max(ct, cb),
+        std::min(ct, cb),
         SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
 		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
         SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
@@ -242,16 +251,12 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
     if (cropLeft > cropRight)
     {
-        auto temp = cropLeft;
-        cropLeft = cropRight;
-        cropRight = temp;
+        std::swap(cropLeft, cropRight);
     }
 
     if (cropBottom > cropTop)
     {
-        auto temp = cropBottom;
-        cropBottom = cropTop;
-        cropTop = temp;
+        std::swap(cropTop, cropBottom);
     }
 
     if (cropLeft == cropRight)
@@ -372,6 +377,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             {
                 logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)filename.c_str());
             }
+        }
+    }
+
+    if (_videoreader != nullptr)         {
+        int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
+        int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+
+        if (_videoreader->GetWidth() != width || _videoreader->GetHeight() != height)             {
+            // need to close and reopen video reader to the new size ... this is inefficient ... but lots of work to do to change video reader size dynamically
+            delete _videoreader;
+            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
         }
     }
 
