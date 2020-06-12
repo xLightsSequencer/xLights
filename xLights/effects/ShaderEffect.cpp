@@ -475,6 +475,7 @@ public:
             unsigned fbId = s_fbId;
             unsigned rbId = s_rbId;
             unsigned rbTex = s_rbTex;
+            unsigned audioTex = s_audioTex;
             unsigned programId = s_programId;
             xlGLCanvas *preview = this->preview;
 
@@ -484,6 +485,7 @@ public:
                                 fbId,
                                 rbId,
                                 rbTex,
+                                audioTex,
                                 programId] {
                 preview->SetCurrentGLContext();
                 DestroyResources(vertexArrayId,
@@ -491,6 +493,7 @@ public:
                                  fbId,
                                  rbId,
                                  rbTex,
+                                 audioTex,
                                  programId);
             });
 
