@@ -1033,7 +1033,8 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
                 }
             }
         }
-        else if (ShaderEffect::IsShaderFile(file))             {
+        else if (ShaderEffect::IsShaderFile(file))
+        {
             effectName = "Shader";
         }
 
