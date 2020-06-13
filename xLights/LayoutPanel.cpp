@@ -2696,6 +2696,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     propertyEditor->Freeze();
     clearPropGrid();
     propertyEditor->Thaw();
+    bool mmWorkRequired = false;
     Model* clickedModel = modelPreview->GetModels()[found[0]];
 
     if (clickedModel->Selected)
@@ -2704,12 +2705,28 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     }
     else if (clickedModel->GroupSelected)
     {
-        UnSelectAllModelsInTree();
-        SelectBaseObjectInTree(clickedModel);
+        clickedModel->GroupSelected = false;
+        clickedModel->Selected = true;
+        if (selectedBaseObject != nullptr) {
+            selectedBaseObject->GroupSelected = true;
+            selectedBaseObject->Selected = false;
+            selectedBaseObject->SelectHandle(-1);
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+        
+        selectedBaseObject = clickedModel;
+        highlightedBaseObject = selectedBaseObject;
+        selectedBaseObject->SelectHandle(-1);
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        mmWorkRequired = true;
     }
     else
     {
         SelectModelInTree(clickedModel);
+    }
+    
+    if (mmWorkRequired) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
     }
 
     return true;
