@@ -2927,11 +2927,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2016.23  May 03, 2016
    -- enh (keith) Added new option "Tools, Generate Custom Model"
    -- enh (dkulp) Upgrade to newer OpenGL library.
-                  The OpenGL rendering has been updated from the âfixed pipelineâ? code
+                  The OpenGL rendering has been updated from the "fixed pipeline" code
 				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).
 				  This allows us to better use the capabilities of modern video cards.
 				  However, to support older machines, we can drop down to OpenGL 2.1 shaders
-				  or even to the old 1.3 fixed pipeline.  Modern machines should be faster,
+				  or even to the old 1.3 fixed pipeline. Modern machines should be faster,
 				  older machines should still work.
    -- enh (dkulp) New option on the Tree model, "Spirals". This is how many times a strand is wrapped
            around the tree. 1.0=one full wrap, 2.5 = 2 1/2 wraps from bottom to top.
@@ -4024,7 +4024,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 3.4.24   Oct 28, 2014
    -enh (dpitts) New feature to allow creating views. A view is a collection of models. When you select a view it acts
       like a filter and only shows you the models contained in your view. T
-    -enh (dkulp) Star model can now have multiple star size âlayersâ? to model exploding star type things
+    -enh (dkulp) Star model can now have multiple star size "layers" to model exploding star type things
                      Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
    -bug (djulien) Fixed multi-cell morph (caused Papagayo flicker), avoid error if try to save file with no pgo data
    -enh (sean) Increased custom model from 300x300 to 1000x1000
@@ -4115,7 +4115,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 3.4.6   Jul 23,2014
    -Enh (sean) Increased maximum time for a empty sequence from 300 seconds to 3600 seconds
 3.4.5   Jul 15, 2014
-     --  enh (dkulp) If an empty LMS channel is part of an RGB group, donât consider it empty.
+     --  enh (dkulp) If an empty LMS channel is part of an RGB group, don't consider it empty.
      --  enh (dkulp) Add a checkbox to TabConvert to go ahead and map the empty channels
      -- bug fix (mbrown) Fix Custom RGB Models that have multiple nodes with the same number
      -- bug fix (djulien) fix segv due to incorrect compiler code in Piano effect
