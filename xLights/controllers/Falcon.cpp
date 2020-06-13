@@ -899,7 +899,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     int maxPixels = GetMaxPixels();
     int totalPixelPorts = GetDaughter1Threshold();
-    if (cud.GetMaxPixelPort() > GetDaughter2Threshold() ||
+    if (IsF48() || cud.GetMaxPixelPort() > GetDaughter2Threshold() ||
         currentStrings > GetDaughter2Threshold()) {
         logger_base.info("String port count needs to be %d.", caps->GetMaxPixelPort());
         totalPixelPorts = caps->GetMaxPixelPort();
