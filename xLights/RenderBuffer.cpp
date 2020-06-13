@@ -1464,7 +1464,7 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
                 c.red = color.red;
                 c.green = color.red;
                 c.blue = color.red;
-                pixels[white_channel - 1] = c;
+                if (pixels.size() > white_channel - 1) pixels[white_channel - 1] = c;
             }
             else
             {
@@ -1475,19 +1475,19 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
                     c.red = color.red;
                     c.green = color.red;
                     c.blue = color.red;
-                    pixels[red_channel - 1] = c;
+                    if (pixels.size() > red_channel - 1) pixels[red_channel - 1] = c;
                 }
                 if (grn_channel != 0) {
                     c.red = color.green;
                     c.green = color.green;
                     c.blue = color.green;
-                    pixels[grn_channel - 1] = c;
+                    if (pixels.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
                 }
                 if (blu_channel != 0) {
                     c.red = color.blue;
                     c.green = color.blue;
                     c.blue = color.blue;
-                    pixels[blu_channel - 1] = c;
+                    if (pixels.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
                 }
             }
         }
