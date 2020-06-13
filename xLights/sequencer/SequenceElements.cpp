@@ -752,12 +752,17 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         TraceLog::AddTraceMessage("Processing " + e->GetName());;
         if (e->GetName() == "DisplayElements")
         {
+            std::list<wxXmlNode*> toremove;
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext())
             {
                 bool active = false;
                 bool selected = false;
                 bool collapsed = false;
                 std::string name = element->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString();
+                if (name != element->GetAttribute(STR_NAME)) {
+                    element->DeleteAttribute(STR_NAME);
+                    element->AddAttribute(STR_NAME, name);
+                }
                 std::string type = element->GetAttribute(STR_TYPE).ToStdString();
                 bool visible = element->GetAttribute("visible") == '1' ? true : false;
 
@@ -772,6 +777,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 if (ElementExists(name))
                 {
                     DisplayError("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
+                    // we will delete them as they cause issues
+                    // these mostly arose from old models with leading or trailing spaces
+                    toremove.push_back(element);
                 }
                 else
                 {
@@ -782,6 +790,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         dynamic_cast<TimingElement*>(elem)->SetViews(views);
                     }
                 }
+            }
+            // remove any weird nodes
+            for (const auto& it : toremove)                 {
+                e->RemoveChild(it);
             }
         }
         else if (e->GetName() == "TimingTags")
@@ -857,7 +869,12 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             {
                 if (elementNode->GetName() == STR_ELEMENT)
                 {
-                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
+                    auto nm = elementNode->GetAttribute(STR_NAME).Trim(true).Trim(false);
+                    if (elementNode->GetAttribute(STR_NAME) != nm)                         {
+                        elementNode->DeleteAttribute(STR_NAME);
+                        elementNode->AddAttribute(STR_NAME, nm);
+                    }
+                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME));
                     if (element != nullptr)
                     {
                         // check for fixed timing interval
@@ -898,6 +915,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                 }
                                 else if (effectLayerNode->GetName() == STR_SUBMODEL_EFFECTLAYER) {
                                     wxString name = effectLayerNode->GetAttribute("name").Trim(true).Trim(false);
+                                    if (name != effectLayerNode->GetAttribute("name")) {
+                                        effectLayerNode->DeleteAttribute("name");
+                                        effectLayerNode->AddAttribute("name", name);
+                                    }
                                     int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
                                     SubModelElement *se = dynamic_cast<ModelElement*>(element)->GetSubModel(name.ToStdString(), true);
                                     wxASSERT(se != nullptr);

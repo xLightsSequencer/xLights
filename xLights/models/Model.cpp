@@ -2304,6 +2304,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     Nodes.clear();
 
     name=ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    if (name != ModelNode->GetAttribute("name")) {
+        ModelNode->DeleteAttribute("name");
+        ModelNode->AddAttribute("name", name);
+    }
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
     StringType=ModelNode->GetAttribute("StringType").ToStdString();
     _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
