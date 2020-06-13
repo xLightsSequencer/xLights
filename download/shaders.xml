@@ -728,6 +728,12 @@
 		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1591917211/waves_remix_ocyrlc.png</image>
 		<rating>3</rating>
         </shader>
+        <shader>
+		<name>Audio - polar visualizer</name>
+		<id>5ee442d8658b34001590ff23</id>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1592018257/polar_visualizer_nq7is5.png</image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>
