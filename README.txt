@@ -11,8 +11,36 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.24 June 13 2020
+   -- enh (keith)  Change model export to xmodel to include all groups that only contain submodels/strands 
+                   of the model being exported
+   -- enh (keith)  Optionally allow xCapture to insert any missing frames in the generated FSEQ file due to frame dropping.
+   -- enh (keith)  Be smarter about pre-selecting timing tracks when importing sequences if they are not already present in the sequence
+   -- enh (keith)  Add right click select all/none to lyric track list in import dialog
+   -- enh (keith)  Add the ability to drop fragment shaders onto the effects grid from explorer/finder
+   -- enh (keith)  Add value curves to the video effect crop settings ... but beware this is slow
+   -- enh (keith)  Increase xSchedule schedule priority range to 1-20. Priorities above 10 will beak anything in the queue allowing schedules
+                   to trump remote falcon when required
+   -- enh (keith)  Add advanced RGB-RGBW conversion
+   -- enh (kevin)  Add support for audio shaders
    -- enh (priemd) Layout Panel multi select in Tree (#2071)
    -- enh (priemd) Additional options for Layout Panel Tree View popup menu
+   -- enh (scott)  Add an optional secound outline on face definitions
+   -- enh (scott)  Add a rotation offset to the pinwheel effect
+   -- enh (scott)  Add right click clear cells to custom model editor
+   -- bug (keith)  Fix falcon full control of F48 with less than 32 outputs configured not uploading correctly
+   -- bug (keith)  Fix a crash rendering effect on a DMX model
+   -- bug (keith)  Fix some residual issues with models which had leading or trailing spaces. They will still throw an error
+				   but that will go away on next save of sequence/layout
+   -- bug (keith)  Fix opening sequence via FSEQ no longer finds XML if that is still the sequence file name
+   -- bug (keith)  Fix windows setup to update controller config files on install
+   -- bug (keith)  Fix an issue with face effect where it stops refering to the lyric track and uses the selected phoneme
+   -- bug (keith)  Fix fade node range order does not work if specified backwards
+   -- bug (keith)  Fix reversed LOR models not importing from S5
+   -- bug (keith)  Fix Advatek controller config did not allow for expanded mode
+   -- bug (dkulp)  Fix some dark mode colour issues
+   -- bug (dkulp)  Add xsq to "all" sequence import selection
+   -- bug (scott)  Fix cut/copy/paste greyed out in custom model dialog
 2020.23 June 5 2020
    -- enh (scott)  Add blend mode which is overwrite all but black to xSchedule blend modes
    -- enh (keith)  Add voting support to remote falcon plugin
