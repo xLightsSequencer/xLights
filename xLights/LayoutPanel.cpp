@@ -2754,13 +2754,16 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
-    if (editing_models) {
-        UnSelectAllModelsInTree();
-    } else {
-        UnSelectAllModels();
+    if (!event.ControlDown()) {
+        if (editing_models) {
+            UnSelectAllModelsInTree();
+        }
+        else {
+            UnSelectAllModels();
+        }
+        m_mouse_down = false;
+        SetMouseStateForModels(m_mouse_down);
     }
-    m_mouse_down = false;
-    SetMouseStateForModels(m_mouse_down);
 }
 
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
