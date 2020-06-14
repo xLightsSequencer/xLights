@@ -1565,7 +1565,8 @@ bool ScheduleManager::IsQuery(const wxString& command)
         c == "getplaylistschedule" ||
         c == "getplayingstatus" ||
         c == "getrangesset" ||
-        c == "getbuttons")
+        c == "getbuttons" ||
+        c == "getmatrix")
     {
         return true;
     }
@@ -3526,6 +3527,31 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             data += "\"" + (*it)->GetName() + "\"";
         }
         data += "],\"reference\":\""+reference+"\"}";
+    }
+    else if (c == "getmatrix")
+    {
+        auto ms = _scheduleOptions->GetMatrices();
+        for (auto it : *ms)
+        {
+            if (wxString(it->GetName()).Lower() == wxString(parameters).Lower())
+            {
+                data = "{\"name\":\"" + it->GetName() +
+                    "\",\"width\":\"" + wxString::Format(wxT("%i"), it->GetWidth()) +
+                    "\",\"height\":\"" + wxString::Format(wxT("%i"), it->GetHeight()) +
+                    "\",\"startchannel\":\"" + it->GetStartChannel() +
+                    "\",\"channels\":\"" + wxString::Format(wxT("%zu"), it->GetChannels()) +
+                    "\",\"startlocation\":\"" + it->GetStartLocation() +
+                    "\",\"orientation\":\"" + it->GetOrientation() +
+                    "\",\"strings\":\"" + wxString::Format(wxT("%i"), it->GetStrings()) +
+                    "\",\"stringlength\":\"" + wxString::Format(wxT("%i"), it->GetStringLength()) +
+                    "\",\"strandsperstring\":\"" + wxString::Format(wxT("%i"), it->GetStrandsPerString()) +
+                    "\",\"reference\":\"" + reference + "\"}";
+            }
+        }
+        if (data.IsEmpty())//not found
+        {
+            data = "{\"name\":\"\",\"width\":\"\",\"height\":\"\",\"startchannel\":\"\",\"channels\":\"\",\"startlocation\":\"\",\"orientation\":\"\",\"strings\":\"\",\"stringlength\":\"\",\"strandsperstring\":\"\",\"reference\":\"" + reference + "\"}";
+        }
     }
     else if (c == "getrangesset")
     {

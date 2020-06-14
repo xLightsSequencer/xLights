@@ -36,6 +36,19 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 		GetMatrices
 			- gets a list of matrices that the user has defined for text output and other matrix runtime output. Data includes:
 				- Name
+
+		GetMatrix <matrix name>
+			- gets the matrix configuration settings for the matix name. Data includes:
+				- Name
+				- Width
+				- Height
+				- Start Channel
+				- Channels
+				- Start Location
+				- Orientation
+				- Strings
+				- String Length
+				- Strands Per String
 	
 		GetPlayListSchedules <playlist name>
 			- get the list of schedules that exist for the specified playlist. If the playlist name is not unique then it will return the first playlist found only. Data includes:
