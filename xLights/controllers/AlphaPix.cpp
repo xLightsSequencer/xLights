@@ -138,11 +138,14 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
 
         if (_page.Contains("name=\"U01\"")) {//look for certian web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
-            logger_base.debug("AlphaPix V2/V3");
+            logger_base.debug("v2 WebPag format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
+        } else {
+            _revision = 1;
+            logger_base.debug("v1 WebPag format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
         }
 
         if (_modelnum == 48) {
-            _model = "AlphaPix Flex";
+            _model = wxString::Format("AlphaPix Flex v%d", _revision).ToStdString();
         }
         else { 
             _model = wxString::Format("AlphaPix %d v%d", _modelnum, _revision).ToStdString();
@@ -184,9 +187,7 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
 
     for (int i = 1; i <= GetNumberOfOutputs(); i++) {
         AlphaPixOutput* output;
-        if (_modelnum == 48)
-            output = ExtractFlexOutputData(page, i);
-        else if  (_revision == 2)
+        if (_revision == 2)
             output = ExtractOutputDataV2(page, i);
         else
             output = ExtractOutputData(page, i);
@@ -221,55 +222,30 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
 
 AlphaPixOutput* AlphaPix::ExtractOutputData(const wxString& page, int port) {
 
-    const wxString p(page);
-    int start = p.find("SPI Pixel Output Configuration");
-
     AlphaPixOutput* output = new AlphaPixOutput(port);
 
-    output->universe = ExtractIntFromPage(page, wxString::Format("SU%d", port), "input", 1, start);
-    output->startChannel = ExtractIntFromPage(page, wxString::Format("SC%d", port), "input", 1, start);
-    output->pixels = ExtractIntFromPage(page, wxString::Format("PC%d", port), "input", 0, start);
-    output->nullPixel = ExtractIntFromPage(page, wxString::Format("NP%d", port), "input", 0, start);
-    output->zigZag = ExtractIntFromPage(page, wxString::Format("RA%d", port), "input", 0, start);
-    output->brightness = ExtractIntFromPage(page, wxString::Format("LM%d", port), "input", 100, start);
-    output->reverse = ExtractIntFromPage(page, wxString::Format("RV%d", port), "checkbox", 0, start);
+    output->universe = ExtractIntFromPage(page, wxString::Format("SU%d", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, wxString::Format("SC%d", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, wxString::Format("PC%d", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, wxString::Format("NP%d", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, wxString::Format("RA%d", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, wxString::Format("LM%d", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, wxString::Format("RV%d", port), "checkbox", 0);
 
     return output;
 }
 
 AlphaPixOutput* AlphaPix::ExtractOutputDataV2(const wxString& page, int port) {
 
-    const wxString p(page);
-    int start = p.find("SPI Pixel Output Configuration");
-
     AlphaPixOutput* output = new AlphaPixOutput(port);
 
-    output->universe = ExtractIntFromPage(page, wxString::Format("U%02d", port), "input", 1, start);
-    output->startChannel = ExtractIntFromPage(page, wxString::Format("C%02d", port), "input", 1, start);
-    output->pixels = ExtractIntFromPage(page, wxString::Format("P%02d", port), "input", 0, start);
-    output->nullPixel = ExtractIntFromPage(page, wxString::Format("N%02d", port), "input", 0, start);
-    output->zigZag = ExtractIntFromPage(page, wxString::Format("R%02d", port), "input", 0, start);
-    output->brightness = ExtractIntFromPage(page, wxString::Format("L%02d", port), "input", 100, start);
-    output->reverse = ExtractIntFromPage(page, wxString::Format("V%02d", port), "checkbox", 0, start);
-
-    return output;
-}
-
-AlphaPixOutput* AlphaPix::ExtractFlexOutputData(const wxString& page, int port) {
-
-    const wxString p(page);
-    int group = ((port - 1) / 16) + 1;
-    int start = p.find(wxString::Format("(Port %d)", group));
-
-    AlphaPixOutput* output = new AlphaPixOutput(port);
-
-    output->universe = ExtractIntFromPage(page, wxString::Format("U%02d", port), "input", 1, start);
-    output->startChannel = ExtractIntFromPage(page, wxString::Format("C%02d", port), "input", 1, start);
-    output->pixels = ExtractIntFromPage(page, wxString::Format("P%02d", port), "input", 0, start);
-    output->nullPixel = ExtractIntFromPage(page, wxString::Format("N%02d", port), "input", 0, start);
-    output->zigZag = ExtractIntFromPage(page, wxString::Format("R%02d", port), "input", 0, start);
-    output->brightness = ExtractIntFromPage(page, wxString::Format("L%02d", port), "input", 100, start);
-    output->reverse = ExtractIntFromPage(page, wxString::Format("V%02d", port), "checkbox", 0, start);
+    output->universe = ExtractIntFromPage(page, wxString::Format("U%02d", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, wxString::Format("C%02d", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, wxString::Format("P%02d", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, wxString::Format("N%02d", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, wxString::Format("R%02d", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, wxString::Format("L%02d", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, wxString::Format("V%02d", port), "checkbox", 0);
 
     return output;
 }
@@ -426,7 +402,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
         //<input\s+style\s=\s\".*\"\stype=\"text\"\s+value=\"(.*)\"\s+name=\"SU1\"
-        const wxString regex = "<input\\s+style\\s=\\s\\\".*\\\"\\stype=\\\"text\\\"\\s+value=\\\"(.*)\\\"\\s+name=\\\"" + parameter + "\\\"";
+        const wxString regex = "<input\\s+style\\s?=\\s?\\\".*\\\"\\stype=\\\"text\\\"\\s+value=\\\"(.*)\\\"\\s+name=\\\"" + parameter + "\\\"";
         //logger_base.debug("Regex:%s", (const char*)regex.c_str());
 
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
@@ -450,7 +426,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
     }
     else if (type == "checkbox") {
         //<input\s+(?:style\s=\s\".*\"\s+)?type=\"checkbox\"\s+name=\"(\w+)\"\s+(checked=\"checked\"\s+)?value=\"[0-9]\"
-        const wxString regex = "<input\\s+(?:style\\s=\\s\\\".*\\\"\\s+)?type=\"checkbox\"\\s+name=\\\"" + parameter + "\"\\s+(checked=\\\"checked\\\"\\s+)?value=\\\"[0-9]\\\"";
+        const wxString regex = "<input\\s+(?:style\\s?=\\s?\\\".*\\\"\\s+)?type=\"checkbox\"\\s+name=\\\"" + parameter + "\"\\s+(checked=\\\"checked\\\"\\s+)?value=\\\"[0-9]\\\"";
         //logger_base.debug("Regex:%s", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
@@ -577,7 +553,7 @@ wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
         reverseAdd);
 }
 
-wxString AlphaPix::BuildFlexStringPortRequest(AlphaPixOutput* po) const {
+wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -676,8 +652,6 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     progress.Update(20, "Uploading String Output Information.");
     if (_modelnum == 48)
         UploadFlexPixelOutputs(worked);
-    else if (_revision == 2)
-        UploadPixelOutputsV2(worked);
     else
         UploadPixelOutputs(worked);
 
@@ -805,7 +779,10 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
     for (const auto& pixelPort : _pixelOutputs) {
         if (requestString != "")
             requestString += "&";
-        requestString += BuildStringPortRequest(pixelPort);
+        if(_revision == 2)
+            requestString += BuildStringPortRequestV2(pixelPort);
+        else
+            requestString += BuildStringPortRequest(pixelPort);
     }
 
     logger_base.info("PUT String Output Information.");
@@ -814,30 +791,7 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
         const wxString res = PutURL(GetOutputURL(), requestString);
         if (res.empty())
             worked = false;
-        wxMilliSleep(1000);
-    }
-}
-
-void AlphaPix::UploadPixelOutputsV2(bool& worked) {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Building pixel upload:");
-
-    std::string requestString;
-    bool upload = false;
-    for (const auto& pixelPort : _pixelOutputs) {
-        if (requestString != "")
-            requestString += "&";
-        requestString += BuildFlexStringPortRequest(pixelPort);
-        upload |= pixelPort->upload;
-    }
-
-    logger_base.info("PUT String Output Information.");
-    if (!requestString.empty()) {
-        const wxString res = PutURL(GetOutputURL(), requestString);
-        if (res.empty())
-            worked = false;
-        wxMilliSleep(1000);
+        wxMilliSleep(2000);
     }
 }
 
@@ -855,7 +809,10 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
             AlphaPixOutput* pixelPort = FindPortData(port);
             if (requestString != "")
                 requestString += "&";
-            requestString += BuildFlexStringPortRequest(pixelPort);
+            if (_revision == 2)
+                requestString += BuildStringPortRequestV2(pixelPort);
+            else
+                requestString += BuildStringPortRequest(pixelPort);
             upload |= pixelPort->upload;
         }
 
@@ -864,7 +821,7 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
             const wxString res = PutURL(GetOutputURL(i + 1), requestString);
             if (res.empty())
                 worked = false;
-            wxMilliSleep(1000);
+            wxMilliSleep(2000);
         }
     }
 }

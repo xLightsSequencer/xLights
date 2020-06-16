@@ -36,7 +36,7 @@ class AlphaPix : public BaseController
     void UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData) const;
 
     wxString BuildStringPortRequest(AlphaPixOutput* po) const;
-    wxString BuildFlexStringPortRequest(AlphaPixOutput* po) const;
+    wxString BuildStringPortRequestV2(AlphaPixOutput* po) const;
 
     AlphaPixOutput* FindPortData(int port);
     AlphaPixSerial* FindSerialData(int port);
@@ -45,7 +45,6 @@ class AlphaPix : public BaseController
 
     AlphaPixOutput* ExtractOutputData(const wxString& page, int port);
     AlphaPixOutput* ExtractOutputDataV2(const wxString& page, int port);
-    AlphaPixOutput* ExtractFlexOutputData(const wxString& page, int port);
     AlphaPixSerial* ExtractSerialData(const wxString& page, int port);
     std::string ExtractName(const wxString& page);
     int ExtractInputType(const wxString& page);
@@ -66,7 +65,6 @@ class AlphaPix : public BaseController
     std::string SafeDescription(const std::string description) const;
 
     void UploadPixelOutputs(bool& worked);
-    void UploadPixelOutputsV2(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
 
     const std::string GetFirmware() { return _version; }

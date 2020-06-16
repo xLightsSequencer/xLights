@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fix AlphaPix Flex/Evolution upload for firmware 4.02, 4.04, and 4.05
 2020.24 June 13 2020
    -- enh (keith)  Change model export to xmodel to include all groups that only contain submodels/strands 
                    of the model being exported
