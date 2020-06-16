@@ -8488,7 +8488,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
 #ifdef LINUX
     wxString hostname = wxT("www.adebenham.com");
     wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-    wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
+    wxString downloadUrl = wxT("https://github.com/smeighan/xLights/releases/latest");
     MenuItem_Update->Enable(true);
 #else
 #ifdef  __WXOSX_MAC__
