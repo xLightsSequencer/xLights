@@ -341,6 +341,19 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
         CheckBox_OrderedSelection->SetValue(checked);
     }
 
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsNodeSelectDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 200) sz.SetHeight(200);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
+    EnsureWindowHeaderIsOnScreen(this);
+
     LoadGrid(rows);
 
     GridNodes->BeginBatch();
@@ -362,6 +375,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 
 NodeSelectGrid::~NodeSelectGrid()
 {
+    SaveWindowPosition("xLightsNodeSelectDialogPosition", this);
 	//(*Destroy(NodeSelectGrid)
 	//*)
 }
