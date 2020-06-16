@@ -1923,17 +1923,9 @@ void LayoutPanel::CreateModelGroupFromSelected()
             }
         }
 
-        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-        xlights->ModelGroupsNode->AddChild(node);
-        node->AddAttribute("selected", "0");
-        node->AddAttribute("name", name);
-        node->AddAttribute("layout", "minimalGrid");
-        node->AddAttribute("GridSize", "400");
-        wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
-        node->AddAttribute("LayoutGroup", grp);
-
         wxArrayString newGroupModels;
         
+        // save selections so they can be added after create/reload
         // add selected groups
         for (const auto& group : selectedTreeGroups) {
             newGroupModels.Add(TreeListViewModels->GetItemText(group));
@@ -1954,19 +1946,31 @@ void LayoutPanel::CreateModelGroupFromSelected()
             }
         }
 
-        wxString xmlModels = wxJoin(newGroupModels, ',');
-        node->AddAttribute("models", xmlModels);
+        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+        xlights->ModelGroupsNode->AddChild(node);
+        node->AddAttribute("selected", "0");
+        node->AddAttribute("name", name);
+        node->AddAttribute("layout", "minimalGrid");
+        node->AddAttribute("GridSize", "400");
+        wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
+        node->AddAttribute("LayoutGroup", grp);
 
+        // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
+        // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
         xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CreateModelGroupFromSelected");
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
-                
-        Model* model = xlights->GetModel(name.ToStdString());
-        SelectModelInTree(model);
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected");
+             
+        // now add the group models to already created group
+        node->DeleteAttribute("models");
+        wxString groups = wxJoin(newGroupModels, ',');
+        node->AddAttribute("models", groups);
         
-        //RenderLayout();
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CreateModelGroupFromSelected");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
+
+        // we don't needs these, when group is selected after work is finished OnSelectionChange is fired and takes care of these
+        //xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
+        //xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
     }
 }
 
