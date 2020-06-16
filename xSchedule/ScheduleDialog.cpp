@@ -256,7 +256,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     Connect(ID_TEXTCTRL2, wxEVT_KILL_FOCUS, (wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OnKillFocus);
 
 	// Allow schedule priorities to go to 11 which puts the schedule above queued playlists
-	SpinCtrl_Priority->SetMax(Schedule::GetMaxSchedulePriority());
+	SpinCtrl_Priority->SetRange(1,Schedule::GetMaxSchedulePriority());
 
     TextCtrl_Name->SetValue(schedule->GetName());
     TextCtrl_OnTime->SetValue(schedule->GetStartTimeAsString());
