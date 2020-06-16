@@ -121,7 +121,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
             _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
             _connected = true;
         }
-        else if (_page.Contains("AlphaPix Flex Lighting Controller")) {
+        else if (_page.Contains("AlphaPix Flex Lighting Controller") || _page.Contains("AlphaPix Evolution Lighting Controller")) {
             _modelnum = 48;
             _connected = true;
         }
