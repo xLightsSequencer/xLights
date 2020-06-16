@@ -138,10 +138,10 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
 
         if (_page.Contains("name=\"U01\"")) {//look for certian web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
-            logger_base.debug("v2 WebPag format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
+            logger_base.debug("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
         } else {
             _revision = 1;
-            logger_base.debug("v1 WebPag format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
+            logger_base.debug("v1 WebPage format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
         }
 
         if (_modelnum == 48) {
