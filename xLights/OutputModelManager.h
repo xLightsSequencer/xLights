@@ -111,6 +111,7 @@ public:
 #endif
         return res;
     }
+    void RemoveWork(const std::string& type, uint32_t toremove);
     uint32_t ClearWork(const std::string& type, uint32_t currentwork, uint32_t work);
     void AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
     void AddASAPWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");

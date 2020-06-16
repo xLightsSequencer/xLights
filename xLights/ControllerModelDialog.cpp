@@ -1310,7 +1310,10 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             logger_base.debug("    but not onto a port ... so nothing to do.");
         }
 
-        while (!_xLights->DoAllWork());
+        while (!_xLights->DoAllWork())             {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
         ReloadModels();
     }
 }

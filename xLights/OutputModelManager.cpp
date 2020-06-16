@@ -181,6 +181,19 @@ void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from
     _frame->DoWork(work, "Immediate", m, selectedModel);
 }
 
+void OutputModelManager::RemoveWork(const std::string& type, uint32_t toremove)
+{
+    if (type == "ASAP") {
+        _workASAP &= ~toremove;
+    }
+    else if (type == "Setup") {
+        _setupTabWork &= ~toremove;
+    }
+    else if (type == "Layout") {
+        _layoutTabWork &= ~toremove;
+    }
+}
+
 uint32_t OutputModelManager::ClearWork(const std::string& type, uint32_t currentwork, uint32_t work)
 {
     // current work is the work we are doing
