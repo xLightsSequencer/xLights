@@ -4641,7 +4641,6 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
 
-    std::string selectedType = modelPreview->GetModels()[selectedindex]->GetDisplayAs();
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
     
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
@@ -4659,12 +4658,8 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
                     modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
                 }
                 
-                // if matrix is based selected object and adjusting another matrix to match width, then match scale
-                if (selectedType == "Matrix" && modelPreview->GetModels()[i]->DisplayAs == selectedType) {
-                    glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
-                    modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
-                }
-
+                glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
+                modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
             }
         }
     }
@@ -4677,13 +4672,9 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
                 modelPreview->GetModels()[i]->SetHeight(height);
-                
-                // if matrix is based selected object and adjusting another matrix to match height, then match scale
-                if (selectedType == "Matrix" && modelPreview->GetModels()[i]->DisplayAs == selectedType) {
-                    glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
-                    modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
-                }
 
+                glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
+                modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
             }
         }
     }
