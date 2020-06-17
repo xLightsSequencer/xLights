@@ -295,6 +295,10 @@ bool ControllerCaps::SupportsLEDPanelMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsLEDPanelMatrix");
 }
+bool ControllerCaps::SupportsVirtualMatrix() const {
+
+    return DoesXmlNodeExist(_config, "SupportsVirtualMatrix");
+}
 
 bool ControllerCaps::SupportsVirtualStrings() const {
 

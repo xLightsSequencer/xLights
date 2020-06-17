@@ -58,6 +58,19 @@
 			</SerialProtocols>
 		</Variant>
 	</Controller>
+    <Controller Name="Virtual Matrix">
+        <Variant Name="" ID="Virtual Matrix" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsVirtualMatrix/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
 	<Controller Name="Pi Hat">
 		<Variant Name="" ID="PiHat" Base="FPP:BaseFPPSettings">
 			<MaxPixelPort>2</MaxPixelPort>

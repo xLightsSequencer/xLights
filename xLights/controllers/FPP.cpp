@@ -482,37 +482,37 @@ void FPP::parseProxies(wxJSONValue& val) {
 }
 void FPP::parseControllerType(wxJSONValue& val) {
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
-        if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
-            if (val["channelOutputs"][x]["enabled"].AsInt()) {
+        if (val["channelOutputs"][x]["enabled"].AsInt()) {
+            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
                 pixelControllerType = PIHAT;
-            }
-        } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
-            if (val["channelOutputs"][x]["enabled"].AsInt()) {
+            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
-            }
-        } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-            pixelControllerType = LEDPANELS;
-            int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
-            int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
-            int nw = 0; int nh = 0;
-            bool tall = false;
-            for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
-                int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
-                int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
-                nw = std::max(c, nw);
-                nh = std::max(r, nh);
-                std::string orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
-                if (orientation == "E" || orientation == "W") {
-                    tall = true;
+            } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+                pixelControllerType = LEDPANELS;
+                int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
+                int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
+                int nw = 0; int nh = 0;
+                bool tall = false;
+                for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
+                    int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
+                    int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
+                    nw = std::max(c, nw);
+                    nh = std::max(r, nh);
+                    std::string orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
+                    if (orientation == "E" || orientation == "W") {
+                        tall = true;
+                    }
                 }
+                nw++; nh++;
+                if (tall) {
+                    std::swap(pw, ph);
+                }
+                panelSize = std::to_string(pw * nw);
+                panelSize.append("x");
+                panelSize.append(std::to_string(ph * nh));
+            } else if (val["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+                pixelControllerType = "Virtual Matrix";
             }
-            nw++; nh++;
-            if (tall) {
-                std::swap(pw, ph);
-            }
-            panelSize = std::to_string(pw * nw);
-            panelSize.append("x");
-            panelSize.append(std::to_string(ph * nh));
         }
     }
 }
@@ -1574,6 +1574,47 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
         SetNewRanges(rngs);
         return false;
+    } else if (rules->SupportsLEDPanelMatrix()) {
+        int startChannel = -1;
+        if (cud.GetMaxPixelPort()) {
+            //The matrix actually has the controller connection defined, we'll use it
+            startChannel = cud.GetControllerPixelPort(1)->GetStartChannel();
+            startChannel--;
+        } else if (!cud.GetNoConnectionModels().empty()) {
+            startChannel = cud.GetNoConnectionModels().front()->GetStringStartChan(0);
+        }
+        if (startChannel >= 0) {
+            startChannel++;  //one based
+            wxJSONValue origJson;
+            if (IsDrive()) {
+                GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
+            } else {
+                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson);
+            }
+            bool changed = true;
+            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+                if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+                    if (origJson["channelOutputs"][x].HasMember("startChannel")
+                        && origJson["channelOutputs"][x]["startChannel"].AsInt() == startChannel) {
+                        changed = false;
+                    } else {
+                        origJson["channelOutputs"][x]["startChannel"] = startChannel;
+                    }
+                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
+                }
+            }
+
+            if (changed) {
+                if (IsDrive()) {
+                    WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
+                } else {
+                    PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=co-other", origJson);
+                    SetRestartFlag();
+                }
+            }
+        }
+        SetNewRanges(rngs);
+        return false;
     }
 
     std::string fppFileName = "co-bbbStrings";
@@ -2291,6 +2332,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             running++;
 
                                             fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 2;
+                                            data->setFPP(curls[x]->fpp);
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=co-other";
                                             data = new CurlData(fullAddress);
                                             data->type = 2;
                                             data->setFPP(curls[x]->fpp);

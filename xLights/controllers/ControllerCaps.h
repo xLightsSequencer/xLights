@@ -58,6 +58,7 @@ public:
     bool SupportsFullxLightsControl() const;
     bool SupportsInputOnlyUpload() const;
     bool SupportsLEDPanelMatrix() const;
+    bool SupportsVirtualMatrix() const;
     bool SupportsVirtualStrings() const;
     bool SupportsSmartRemotes() const;
     bool SupportsAutoLayout() const;
