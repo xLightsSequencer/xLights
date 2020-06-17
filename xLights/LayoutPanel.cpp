@@ -4641,8 +4641,9 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
 
+    std::string selectedType = modelPreview->GetModels()[selectedindex]->GetDisplayAs();
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
-
+    
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
     if (sameWidth)
@@ -4657,6 +4658,13 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
                 if (z_scale) {
                     modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
                 }
+                
+                // if matrix is based selected object and adjusting another matrix to match width, then match scale
+                if (selectedType == "Matrix" && modelPreview->GetModels()[i]->DisplayAs == selectedType) {
+                    glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
+                    modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
+                }
+
             }
         }
     }
@@ -4669,10 +4677,17 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
                 modelPreview->GetModels()[i]->SetHeight(height);
+                
+                // if matrix is based selected object and adjusting another matrix to match height, then match scale
+                if (selectedType == "Matrix" && modelPreview->GetModels()[i]->DisplayAs == selectedType) {
+                    glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
+                    modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
+                }
+
             }
         }
     }
-
+    
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize");
     
     ReselectTreeModels(selectedModelPaths);
