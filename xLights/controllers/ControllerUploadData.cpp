@@ -292,8 +292,8 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                             (const char*)(*it2)->GetName().c_str(),
                             (const char*)(*it)->GetName().c_str()
                         );
-                        _models.erase(it2);
                         if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
+                        _models.erase(it2);
                         erased = true;
                     }
                 }
