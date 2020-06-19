@@ -11,6 +11,8 @@
 #include "ModelChainDialog.h"
 #include <vector>
 
+#include "UtilFunctions.h"
+
 //(*InternalHeaders(ModelChainDialog)
 #include <wx/button.h>
 #include <wx/intl.h>
@@ -89,7 +91,7 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
             port >= it.second->GetControllerPort() &&
             port <= it.second->GetControllerPort() + it.second->GetNumPhysicalStrings() - 1 &&
             smartRemote == it.second->GetSmartRemote() &&
-            protocol == it.second->GetControllerProtocol()) {
+            ::Lower(protocol) == ::Lower(it.second->GetControllerProtocol())) {
             list.push_back(it.first);
         }
     }
