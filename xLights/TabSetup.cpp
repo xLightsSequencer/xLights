@@ -1041,6 +1041,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work.debug("    WORK_REDRAW_LAYOUTPREVIEW.");
         // repaint the layout panel
         layoutPanel->UpdatePreview();
+        // Since the layout panel list selection was implemented the redraw triggers a redraw ... this is a problem .. until that is fix suppress the repeat
+        _outputModelManager.RemoveWork(type, OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |

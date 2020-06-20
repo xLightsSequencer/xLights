@@ -760,7 +760,7 @@ bool ModelManager::ReworkStartChannel() const
                 else
                 {
                     // when chained the use next channel
-                    if (last != "" &&
+                    if (last != "" && itm->GetControllerDMXChannel() == 0 && 
                         (itm->GetModelChain() == last ||
                             itm->GetModelChain() == ">" + last))
                     {

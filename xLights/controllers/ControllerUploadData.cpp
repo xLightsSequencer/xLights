@@ -757,7 +757,12 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
         if (ch == -1) ch = it->GetStartChannel() - 1;
         if (it->GetStartChannel() > ch + 1 && lastSmartRemote == it->GetSmartRemote()) {
             if (it->GetSmartRemote() == 0) {
-                res += wxString::Format("WARN: Gap in models on %s port %d channel %d to %d.\n", (rules->IsValidSerialProtocol(_protocol) ? "serial" : "pixel"), _port, ch, it->GetStartChannel()).ToStdString();
+                if (rules->IsValidSerialProtocol(_protocol)) {
+                    // we dont warn about serial gaps ... they are normal
+                }
+                else {
+                    res += wxString::Format("WARN: Gap in models on %s port %d channel %d to %d.\n", (rules->IsValidSerialProtocol(_protocol) ? "serial" : "pixel"), _port, ch, it->GetStartChannel()).ToStdString();
+                }
             }
             else {
                 res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %d channel %d to %d.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();

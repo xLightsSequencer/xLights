@@ -867,7 +867,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         // If you are doing auto layout then all models must have controller name set ... this may much up model chaining but it has to be done
         // or things will get funky
         if (_cud->SetAllModelsToControllerName(_controller->GetName())) {
-            wxMessageBox("At least one model had to have its controller name set because you are using Auto Layout. This may have mucked up the order of model chaining on some ports and you will need to fix that up here.");
+            wxMessageBox("At least one model had to have its controller name set because you are using Auto Layout. This may have mucked up the order of model chaining on some ports and you will need to fix that up here.", wxEmptyString, 5, parent);
             changed = true;
         }
     }
@@ -888,7 +888,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
     if (changed) {
         // Now need to let all the recalculations work
-        while (!_xLights->DoAllWork());
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
     }
 
     ReloadModels();
@@ -1082,7 +1085,10 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
     }
     else if (_popup != nullptr) {
         if (_popup->HandlePopup(this, id)) {
-            while (!_xLights->DoAllWork());
+            while (!_xLights->DoAllWork()) {
+                // dont get into a redraw loop from here
+                _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+            }
             ReloadModels();
         }
     }
@@ -1204,7 +1210,10 @@ void ControllerModelDialog::FixDMXChannels() {
         }
     }
 
-    while (!_xLights->DoAllWork());
+    while (!_xLights->DoAllWork()) {
+        // dont get into a redraw loop from here
+        _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+    }
 
     // if we changed anything we need to scan it one more time
     if (changed) {
@@ -1450,7 +1459,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
         }
     }
 
-    while (!_xLights->DoAllWork());
+    while (!_xLights->DoAllWork())         {
+        // dont get into a redraw loop from here
+        _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+    }
     ReloadModels();
 }
 
