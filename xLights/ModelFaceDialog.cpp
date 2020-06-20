@@ -427,6 +427,7 @@ void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, s
         NodeRangeGrid->HideCellEditControl();
     }
     finfo.clear();
+
     for (std::map<std::string, std::map<std::string, std::string> >::iterator it = faceData.begin();
          it != faceData.end(); ++it) {
         if (!it->second.empty()) {
@@ -757,6 +758,15 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
         } else {
             SingleNodeGrid->HideCol(1);
             faceData[name]["CustomColors"] = "0";
+            for (auto& it : faceData[name])  
+            {
+                if (EndsWith(it.first, "-Color"))                     {
+                    it.second = "";
+                }
+            }
+            for (int r = 0; r < SingleNodeGrid->GetNumberRows(); r++)                 {
+                SingleNodeGrid->SetCellBackgroundColour(r, COLOR_COL, *wxWHITE);
+            }
         }
     } else {
         if (CustomColorNodeRanges->IsChecked()) {
@@ -765,6 +775,14 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
         } else {
             NodeRangeGrid->HideCol(1);
             faceData[name]["CustomColors"] = "0";
+            for (auto& it : faceData[name]) {
+                if (EndsWith(it.first, "-Color")) {
+                    it.second = "";
+                }
+            }
+            for (int r = 0; r < NodeRangeGrid->GetNumberRows(); r++) {
+                NodeRangeGrid->SetCellBackgroundColour(r, COLOR_COL, *wxWHITE);
+            }
         }
     }
 }

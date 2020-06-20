@@ -437,6 +437,14 @@ void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
         } else {
             SingleNodeGrid->HideCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "0";
+            for (auto& it : stateData[name]) {
+                if (EndsWith(it.first, "-Color")) {
+                    it.second = "";
+                }
+            }
+            for (int r = 0; r < SingleNodeGrid->GetNumberRows(); r++) {
+                SingleNodeGrid->SetCellBackgroundColour(r, COLOUR_COL, *wxWHITE);
+            }
         }
     } else {
         if (CustomColorNodeRanges->IsChecked()) {
@@ -445,6 +453,14 @@ void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
         } else {
             NodeRangeGrid->HideCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "0";
+            for (auto& it : stateData[name]) {
+                if (EndsWith(it.first, "-Color")) {
+                    it.second = "";
+                }
+            }
+            for (int r = 0; r < NodeRangeGrid->GetNumberRows(); r++) {
+                NodeRangeGrid->SetCellBackgroundColour(r, COLOUR_COL, *wxWHITE);
+            }
         }
     }
 }

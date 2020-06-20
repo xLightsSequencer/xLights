@@ -1799,12 +1799,12 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
 
 void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
     if (!faceInfo.empty()) {
-        for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {
+        for (const auto& it : faceInfo) {
             wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE , "faceInfo");
-            std::string name = it->first;
+            std::string name = it.first;
             f->AddAttribute("Name", name);
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                f->AddAttribute(it2->first, it2->second);
+            for (const auto& it2 : it.second) {
+                f->AddAttribute(it2.first, it2.second);
             }
         }
     }
@@ -1840,10 +1840,10 @@ wxString Model::SerialiseFace() const
     wxString res = "";
 
     if (!faceInfo.empty()) {
-        for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {
-            res += "    <faceInfo Name=\"" + it->first + "\" ";
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                res += it2->first + "=\"" + it2->second + "\" ";
+        for (const auto& it : faceInfo) {
+            res += "    <faceInfo Name=\"" + it.first + "\" ";
+            for (const auto& it2 : it.second) {
+                res += it2.first + "=\"" + it2.second + "\" ";
             }
             res += "/>\n";
         }
@@ -1879,8 +1879,8 @@ void Model::ParseStateInfo(wxXmlNode *f, std::map<std::string, std::map<std::str
 
 void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &stateInfo, bool forceCustom) {
     if (!stateInfo.empty()) {
-        for (auto it = stateInfo.begin(); it != stateInfo.end(); ++it) {
-            std::string name = it->first;
+        for (const auto& it : stateInfo) {
+            std::string name = it.first;
             if (wxString(name).Trim(true).Trim(false) != "")
             {
                 wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "stateInfo");
@@ -1889,9 +1889,9 @@ void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::
                 {
                     f->AddAttribute("CustomColors", "1");
                 }
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                    if (wxString(it2->first).Trim(true).Trim(false) != "")
-                        f->AddAttribute(it2->first, it2->second);
+                for (const auto& it2 : it.second) {
+                    if (wxString(it2.first).Trim(true).Trim(false) != "")
+                        f->AddAttribute(it2.first, it2.second);
                 }
             }
         }
@@ -1903,12 +1903,12 @@ wxString Model::SerialiseState() const
     wxString res = "";
 
     if (!stateInfo.empty()) {
-        for (auto it = stateInfo.begin(); it != stateInfo.end(); ++it) {
-            res += "    <stateInfo Name=\"" + it->first + "\" ";
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                if (wxString(it2->first).Trim(false).Trim(true) != "")
+        for (const auto& it : stateInfo) {
+            res += "    <stateInfo Name=\"" + it.first + "\" ";
+            for (const auto& it2 : it.second) {
+                if (wxString(it2.first).Trim(false).Trim(true) != "")
                 {
-                    res += it2->first + "=\"" + it2->second + "\" ";
+                    res += it2.first + "=\"" + it2.second + "\" ";
                 }
             }
             res += "/>\n";
