@@ -4732,35 +4732,67 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    
+    Model* selectedModel = modelPreview->GetModels()[selectedindex];
+    std::string selectedType = selectedModel->GetDisplayAs();
+    int width = selectedModel->GetWidth();
+    int height = selectedModel->GetHeight();
 
-    if (sameWidth)
+    bool isBoxed = false;
+    if ((dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr)) {
+        isBoxed = true;
+    }
+    
+    bool isCustom3d = false;
+    wxString customFingerprint = "";
+    
+    // check if custom 3d and set model fingerprint if so
+    if (selectedType == "Custom") {
+        if (wxSplit(customFingerprint, '|').size() > 1) {
+            customFingerprint = selectedModel->GetModelXml()->GetAttribute("CustomModel", "");
+            isCustom3d = true;
+        }
+    }
+    
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        int width = modelPreview->GetModels()[selectedindex]->GetWidth();
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        if (modelPreview->GetModels()[i]->GroupSelected)
         {
-            if (modelPreview->GetModels()[i]->GroupSelected)
-            {
-                modelPreview->GetModels()[i]->SetWidth(width);
+            Model* modelToResize = modelPreview->GetModels()[i];
+            std::string modelType = modelToResize->GetDisplayAs();
+            bool custom3dPrintsMatch = false;
+            
+            // if selected is Custom3d check if model fingerprints match
+            if (isCustom3d && customFingerprint != "") {
+                wxString mToResizeFingerprint = modelToResize->GetModelXml()->GetAttribute("CustomModel", "");
+                
+                if (customFingerprint == mToResizeFingerprint) {
+                    custom3dPrintsMatch = true;
+                }
+            }
+            
+            if ((isBoxed && selectedType == modelType && selectedType != "Custom") || custom3dPrintsMatch) {
+                // boxed model, types match and not a custom model OR custom 3d model and fingerprints matched so use scale matrix
+                glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
+                modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
+            } else {
+                // no special resizing, same as 2020.24 and prior
                 bool z_scale = modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().GetSupportsZScaling();
-                if (z_scale) {
-                    modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
+
+                if (sameWidth) {
+                    modelPreview->GetModels()[i]->SetWidth(width);
+                    if (z_scale) {
+                        modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
+                    }
+                }
+                
+                if (sameHeight) {
+                    modelToResize->SetHeight(height);
                 }
             }
         }
     }
-
-    if (sameHeight)
-    {
-        int height = modelPreview->GetModels()[selectedindex]->GetHeight();
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GroupSelected)
-            {
-                modelPreview->GetModels()[i]->SetHeight(height);
-            }
-        }
-    }
-
+    
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize");
     
     ReselectTreeModels(selectedModelPaths);
