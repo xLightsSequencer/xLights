@@ -35,6 +35,8 @@ class SequenceElements;
 
 class ChangeListener {
 public:
+    ChangeListener() {}
+    virtual ~ChangeListener() {}
     virtual void IncrementChangeCount(Element *el) = 0;
 };
 

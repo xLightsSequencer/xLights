@@ -3811,6 +3811,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_PREFIX_HEADER = "";
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3841,6 +3842,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
