@@ -761,7 +761,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
                     // we dont warn about serial gaps ... they are normal
                 }
                 else {
-                    res += wxString::Format("WARN: Gap in models on %s port %d channel %d to %d.\n", (rules->IsValidSerialProtocol(_protocol) ? "serial" : "pixel"), _port, ch, it->GetStartChannel()).ToStdString();
+                    res += wxString::Format("WARN: Gap in models on pixel port %d channel %d to %d.\n", _port, ch, it->GetStartChannel()).ToStdString();
                 }
             }
             else {
