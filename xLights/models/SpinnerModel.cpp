@@ -177,6 +177,11 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 80);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxIntProperty("Start Angle", "StartAngle", startangle));
+    p->SetAttribute("Min", -360);
+    p->SetAttribute("Max", 360);
+    p->SetEditor("SpinCtrl");
+
     p = grid->Append(new wxUIntProperty("Arc", "Arc", arc));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 360);
@@ -229,11 +234,20 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("Hollow" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("Hollow");
          ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Hollow");
-         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Hollow");
-         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Hollow");
-         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::Hollow");
+         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::StartAngle");
+         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::StartAngle");
+         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::StartAngle");
+         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::StartAngle");
          return 0;
+    }
+    else if ("StartAngle" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("StartAngle");
+        ModelXml->AddAttribute("StartAngle", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Hollow");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Hollow");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Hollow");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::Hollow");
+        return 0;
     } else if ("Arc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Arc");
         ModelXml->AddAttribute("Arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -297,6 +311,7 @@ void SpinnerModel::InitModel() {
     int pixelsperstring = parm3*parm2;
     int armcount = parm3*parm1;
     hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "20"));
+    startangle = wxAtoi(ModelXml->GetAttribute("StartAngle", "0"));
     arc = wxAtoi(ModelXml->GetAttribute("Arc", "360"));
     zigzag = (ModelXml->GetAttribute("ZigZag", "false") == "true");
     alternate = (ModelXml->GetAttribute("Alternate", "false") == "true");
@@ -414,7 +429,7 @@ void SpinnerModel::SetSpinnerCoord() {
     int armsperstring = parm3;
     int armcount = parm3*parm1;
 
-    float angle = ((float)M_PI * 2.0f * 270.0f) / 360.0f;
+    float angle = ((float)M_PI * 2.0f * (270.0f + startangle)) / 360.0f;
     float angleincrement = (M_PI * 2.0f * (float)arc) / ((float)stringcount * (float)armsperstring * 360.0f);
     if (arc < 360 && armsperstring * stringcount > 1)
     {

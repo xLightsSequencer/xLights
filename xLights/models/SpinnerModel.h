@@ -43,7 +43,8 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetSpinnerCoord();
         int hollow;
         int arc;
-        bool zigzag; // if true then numbering alternates in and out along arms
-        bool alternate;
+        bool zigzag = false; // if true then numbering alternates in and out along arms
+        bool alternate = false;
+        int startangle = 90;
     private:
 };
