@@ -119,11 +119,16 @@ void RemoteFalconFrame::DoSendPlaylists()
         wxJSONValue val;
         reader.Parse(res, &val);
 
-        if (!val.IsNull() || val["message"].AsString() == "Success") {
-            _oldSteps = plsteps;
+        if (!val.IsNull()) {
+            if (val["message"].AsString() == "Success") {
+                _oldSteps = plsteps;
+            }
+            else if (!val["message"].IsNull()) {
+                AddMessage("ERROR: " + val["message"].AsString());
+            }
         }
-        else {
-            // did not update
+        else             {
+            AddMessage("ERROR: uploading playlist to remote falcon.");
         }
     }
 }
@@ -246,8 +251,14 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
         wxJSONValue val;
         reader.Parse(res, &val);
     
-        if (!val.IsNull() && val["message"].AsString() == "Queue Empty") {
-            done = true;
+        if (!val.IsNull()) {
+            if (val["message"].AsString() == "Queue Empty") {
+                done = true;
+            }
+            else if (val["message"].AsString() == "Unauthorized")                 {
+                tries = 1;
+                AddMessage("Error: " + val["message"].AsString());
+            }
         }
         tries--;
     } while (!done && tries > 0);
@@ -320,6 +331,10 @@ void RemoteFalconFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     {
         SaveOptions();
         LoadOptions();
+
+        if (_remoteFalcon != nullptr) {
+            _remoteFalcon->SetToken(_options.GetToken());
+        }
 
         _playlist = xSchedule::DecodePlayList(_options.GetPlaylist());
         AddMessage("Playlist selected: " + _playlist);
@@ -477,6 +492,9 @@ void RemoteFalconFrame::GetMode()
     if (!val.IsNull()) {
         if (!val["viewerControlMode"].IsNull()) {
             _mode = val["viewerControlMode"].AsString();
+        }
+        else if (!val["message"].IsNull()) {
+            AddMessage("ERROR: " + val["message"].AsString());
         }
     }
 

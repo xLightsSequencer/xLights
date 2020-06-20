@@ -36,6 +36,11 @@ class RemoteFalcon
             _URLBase = SpecialOptions::GetOption("RemoteFalconURL", "https://remotefalcon.com") + "/remotefalcon/api";
         }
 
+        void SetToken(const std::string& token)
+        {
+            __token = token;
+        }
+
         static std::string DeTokenfy(std::string s)
         {
             wxString ss(s);
