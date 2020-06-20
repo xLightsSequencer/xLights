@@ -1151,7 +1151,10 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped) {
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting) {
+
+    if (eraseExisting) target->DeleteAllEffects();
+
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
@@ -1169,7 +1172,7 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
 void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
     std::map<std::string, EffectLayer *> &layerMap,
     SequenceElements &seqEl,
-    std::vector<EffectLayer *> &mapped) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
@@ -1180,7 +1183,7 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
-        MapXLightsEffects(target, src, mapped);
+        MapXLightsEffects(target, src, mapped, eraseExisting);
     }
     else {
         printf("Source strand %s doesn't exist\n", name.c_str());
@@ -1192,7 +1195,7 @@ void MapXLightsEffects(Element *target,
     SequenceElements &seqEl,
     std::map<std::string, Element *> &elementMap,
     std::map<std::string, EffectLayer *> &layerMap,
-    std::vector<EffectLayer *> &mapped) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND)
@@ -1209,7 +1212,7 @@ void MapXLightsEffects(Element *target,
     Element *el = elementMap[name];
 
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src, mapped);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting);
         return;
     }
 
@@ -1227,7 +1230,7 @@ void MapXLightsEffects(Element *target,
         target->AddEffectLayer();
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); x++) {
-        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped);
+        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting);
     }
 }
 
@@ -1375,7 +1378,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 }
                 EffectLayer *dst = target->GetEffectLayer(l);
                 std::vector<EffectLayer *> mapped2;
-                MapXLightsEffects(dst, src, mapped2);
+                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
     }
@@ -1402,7 +1405,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
             else
             {
-                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -1423,7 +1426,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 {
                     SubModelElement *ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -1444,7 +1447,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped);
+                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -1455,8 +1458,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     }
 
     if (clearSrc) {
-        for (auto it = mapped.begin(); it != mapped.end(); ++it) {
-            (*it)->RemoveAllEffects(nullptr);
+        for (const auto& it : mapped) {
+            it->RemoveAllEffects(nullptr);
         }
     }
 }
@@ -1490,6 +1493,7 @@ void MapToStrandName(const std::string &name, std::vector<std::string> &strands)
         }
     }
 }
+
 void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
     for (wxXmlNode* chani=chand->GetChildren(); chani!=nullptr; chani=chani->GetNext()) {
         if ("IlluminationData" == chani->GetName()) {
@@ -1509,8 +1513,9 @@ void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
         }
     }
 }
+
 void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNode* tuniv, int frames, int frameTime,
-                              const wxString &cn, wxColor color, Model &mc, bool byStrand) {
+                              const wxString &cn, wxColor color, Model &mc, bool byStrand, bool eraseExisting) {
     if (cn == "") {
         return;
     }
@@ -1586,8 +1591,9 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
             colors[x] = hsv;
         }
     }
-    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
+
 std::string FindHLSStrandName(const std::string &ccrName, int node, const std::vector<std::string> &channelNames) {
     std::string r = ccrName + wxString::Format("P%03d", node).ToStdString();
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
@@ -1634,7 +1640,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
                               const std::string & channelName,
                               const std::vector<std::string> &channels,
                               wxColor color,
-                              Model &mc) {
+                              Model &mc, bool eraseExisting) {
     if (channelName == "") {
         return;
     }
@@ -1667,7 +1673,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
             colors[x] = hsv;
         }
     }
-    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
 
 // xml
@@ -1935,7 +1941,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     m->_mapping.ToStdString(),
                     unsortedChannels,
                     m->_color,
-                    *mc);
+                    *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -1960,7 +1966,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                             VixSeqData, frameTime, numFrames,
                             s->_mapping.ToStdString(),
                             unsortedChannels,
-                            s->_color, *mc);
+                            s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -1985,7 +1991,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                                     VixSeqData, frameTime, numFrames,
                                     ns->_mapping.ToStdString(),
                                     unsortedChannels,
-                                    ns->_color, *mc);
+                                    ns->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -2099,7 +2105,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                  totalUniverses, frames, frameTime,
                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                 *mc, dlg.MapByStrand->GetValue());
+                                 *mc, dlg.MapByStrand->GetValue(), false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
         row++;
 
         if (!dlg.MapByStrand->GetValue()) {
@@ -2111,7 +2117,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                          totalUniverses, frames, frameTime,
                                          dlg.ChannelMapGrid->GetCellValue(row, 3),
                                          dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                         *mc, false);
+                                         *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                 row++;
             }
         }
@@ -2125,7 +2131,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                              totalUniverses, frames, frameTime,
                                              dlg.ChannelMapGrid->GetCellValue(row, 3),
                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                             *mc, false);
+                                             *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                 } else {
                     std::string ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString();
                     for (int n = 0; n < se->GetNodeLayerCount(); n++) {
@@ -2137,7 +2143,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                                  totalUniverses, frames, frameTime,
                                                  nm,
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                                 *mc, true);
+                                                 *mc, true, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
 
 
 
@@ -2152,7 +2158,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                                  totalUniverses, frames, frameTime,
                                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                                 *mc, false);
+                                                 *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                     }
                     row++;
                 }
@@ -2613,10 +2619,13 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
     }
 }
 
-bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc) {
+bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc, bool eraseExisting) {
     if ("" == nm) {
         return false;
     }
+
+    if (eraseExisting) layer->DeleteAllEffects();
+
     wxXmlNode *channel = nullptr;
     wxXmlNode *rchannel = nullptr;
     wxXmlNode *gchannel = nullptr;
@@ -2651,7 +2660,7 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     return true;
 }
 
-void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     wxString ccrName = m->_mapping;
 
@@ -2678,13 +2687,13 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
             MapChannelInformation(effectManager,
                 layer, input_xml,
                 nm, m->_color,
-                *mc);
+                *mc, eraseExisting);
             node++;
         }
     }
 }
 
-void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     int node = 0;
     wxString ccrName = s->_mapping;
@@ -2707,12 +2716,12 @@ void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* s
         MapChannelInformation(effectManager,
             layer, input_xml,
             nm, s->_color,
-            *mc);
+            *mc, eraseExisting);
         node++;
     }
 }
 
-void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     if (mc->GetDisplayAs() == "ModelGroup")
     {
@@ -2720,13 +2729,13 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
         int node = 0;
         for (auto it = mg->Models().begin(); it != mg->Models().end(); ++it)
         {
-            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager);
+            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager, eraseExisting);
         }
     }
     else
     {
         int node = 0;
-        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager);
+        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager, eraseExisting);
     }
 }
 
@@ -2882,14 +2891,14 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
                 else
                 {
                     MapChannelInformation(effectManager,
                         model->GetEffectLayer(0), input_xml,
                         m->_mapping,
-                        m->_color, *mc);
+                        m->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
             }
         }
@@ -2912,7 +2921,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end())
                     {
                         StrandElement *se = model->GetStrand(str);
-                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager);
+                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                     else
                     {
@@ -2921,7 +2930,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             MapChannelInformation(effectManager,
                                 ste->GetEffectLayer(0), input_xml,
                                 s->_mapping,
-                                s->_color, *mc);
+                                s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                     }
                 }
@@ -2946,7 +2955,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                 MapChannelInformation(effectManager,
                                     nl, input_xml,
                                     ns->_mapping,
-                                    ns->_color, *mc);
+                                    ns->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -3868,9 +3877,11 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
     return settings;
 }
 
-void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const wxXmlDocument& input_xml, const wxString& model, bool left, int frequency)
+void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const wxXmlDocument& input_xml, const wxString& model, bool left, int frequency, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (eraseExisting) layer->DeleteAllEffects();
 
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
@@ -4024,7 +4035,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     }
 }
 
-void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxXmlDocument& input_xml, const wxString& mapping, int frequency)
+void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxXmlDocument& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4033,7 +4044,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     {
         logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
+        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 0, false))
     {
@@ -4044,7 +4055,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
+        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 1, true))
     {
@@ -4055,7 +4066,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
+        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 1, false))
     {
@@ -4066,13 +4077,15 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
+        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
 }
 
-void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset)
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset, bool eraseExisting)
 {
     if (el == nullptr) return;
+
+    if (eraseExisting) el->DeleteAllEffects();
 
     auto st = lorEdit.GetSequencingType(model);
 
@@ -4115,9 +4128,11 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     }
 }
 
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     if (nl == nullptr) return;
+
+    if (eraseExisting) nl->DeleteAllEffects();
 
     auto st = lorEdit.GetSequencingType(mapping);
 
@@ -4160,9 +4175,11 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     }
 }
 
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     if (nl == nullptr) return;
+
+    if (eraseExisting) nl->DeleteAllEffects();
 
     auto st = lorEdit.GetSequencingType(mapping);
 
@@ -4205,7 +4222,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     }
 }
 
-void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4216,7 +4233,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
     {
         if (m->GetNodeCount() == 1)
         {
-            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
         }
         else
         {
@@ -4225,7 +4242,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
 
             if (lr == 1 && lc == 1)
             {
-                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
             }
             else
             {
@@ -4234,7 +4251,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
                     NodeLayer* nl = model->GetNodeEffectLayer(i);
                     if (nl != nullptr)
                     {
-                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
                     }
                 }
             }
@@ -4248,12 +4265,12 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             {
                 model->AddEffectLayer();
             }
-            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
         }
     }
 }
 
-void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4264,7 +4281,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
     {
         if (se->GetNodeLayerCount() == 1)
         {
-            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset);
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
         }
         else
         {
@@ -4273,7 +4290,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
 
             if (lr == 1 && lc == 1)
             {
-                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset);
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
             }
             else
             {
@@ -4283,7 +4300,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
                     NodeLayer* nl = se->GetNodeEffectLayer(i);
                     if (nl != nullptr)
                     {
-                        MapS5ChannelEffects(effectManager, i, nl, nodes, lorEdit, mapping, frequency, offset);
+                        MapS5ChannelEffects(effectManager, i, nl, nodes, lorEdit, mapping, frequency, offset, eraseExisting);
                     }
                 }
             }
@@ -4297,16 +4314,16 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
             {
                 se->AddEffectLayer();
             }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
         }
     }
 }
 
-void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     if (dynamic_cast<StrandElement*>(se) != nullptr)
     {
-        return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset);
+        return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset, eraseExisting);
     }
 
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4318,7 +4335,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
     {
         if (m->GetNodeCount() == 1)
         {
-            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
         }
         else
         {
@@ -4327,7 +4344,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
 
             if (lr == 1 && lc == 1)
             {
-                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
             }
             else
             {
@@ -4336,7 +4353,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
                     NodeLayer* nl = se->GetNodeEffectLayer(i);
                     if (nl != nullptr)
                     {
-                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
                     }
                 }
             }
@@ -4350,7 +4367,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
             {
                 se->AddEffectLayer();
             }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
         }
     }
 }
@@ -4437,7 +4454,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                 }
                 else
                 {
-                    MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                    MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
             }
 
@@ -4458,7 +4475,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                     {
                         SubModelElement* ste = model->GetSubModel(str);
                         if (ste != nullptr) {
-                            MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                            MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                     }
                 }
@@ -4481,11 +4498,11 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                                 if (nl != nullptr) {
                                     auto st = lorEdit.GetSequencingType(ns->_mapping);
                                     if (st == loreditType::CHANNELS) {
-                                        MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                        MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                                     }
                                     else if (st == loreditType::TRACKS) {
                                         // no layers so we just map the first
-                                        MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset);
+                                        MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                                     }
                                 }
                             }
@@ -4579,7 +4596,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
             }
             else
             {
-                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency());
+                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -4600,7 +4617,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                 {
                         SubModelElement *ste = model->GetSubModel(str);
                         if (ste != nullptr) {
-                            MapLPEEffects(effectManager, ste, input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency());
+                            MapLPEEffects(effectManager, ste, input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                 }
             }
@@ -4621,7 +4638,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapLPE(effectManager, 0, nl, input_xml, ns->_mapping, true, CurrentSeqXmlFile->GetFrequency());
+                                MapLPE(effectManager, 0, nl, input_xml, ns->_mapping, true, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -4636,9 +4653,11 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     return true;
 }
 
-void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, const Vixen3& vixen, const wxString& model, bool left, long offset, int frameMS)
+void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, const Vixen3& vixen, const wxString& model, bool left, long offset, int frameMS, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (eraseExisting) layer->DeleteAllEffects();
 
     auto effects = vixen.GetEffects(model.ToStdString());
 
@@ -4668,7 +4687,7 @@ void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, c
     }
 }
 
-void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS)
+void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4676,7 +4695,7 @@ void MapVixen3Effects(const EffectManager& effectManager, Element* model, const 
     int layer = 0;
     logger_base.debug("Creating effects on model %s layer %d from %s",
         (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-    MapVixen3(effectManager, 0, model->GetEffectLayer(layer), vixen, mapping, true, offset, frameMS);
+    MapVixen3(effectManager, 0, model->GetEffectLayer(layer), vixen, mapping, true, offset, frameMS, eraseExisting);
 }
 
 bool xLightsFrame::ImportVixen3(const wxFileName &filename)
@@ -4788,7 +4807,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
             }
             else
             {
-                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS());
+                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -4809,7 +4828,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                 {
                         SubModelElement *ste = model->GetSubModel(str);
                         if (ste != nullptr) {
-                            MapVixen3Effects(effectManager, ste, vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS());
+                            MapVixen3Effects(effectManager, ste, vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                 }
             }
@@ -4830,7 +4849,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS());
+                                MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }

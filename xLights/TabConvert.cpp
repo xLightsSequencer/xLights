@@ -507,7 +507,7 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsign
             }
         }
         EffectLayer layer(nullptr);
-        DoConvertDataRowToEffects(&layer, colors, dataBuf->FrameTime());
+        DoConvertDataRowToEffects(&layer, colors, dataBuf->FrameTime(), false);
 
         int lastEndTime = 0;
         for (int eidx = 0; eidx < layer.GetEffectCount(); eidx++) {

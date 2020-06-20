@@ -104,9 +104,11 @@ class EffectLayer
         void ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
         void UnTagAllEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
+        void DeleteAllEffects();
         void DeleteEffect(int id);
         void DeleteEffectByIndex(int idx);
-        static bool ShouldDeleteSelected(Effect *eff);
+        static bool ShouldDeleteSelected(Effect* eff);
+        static bool ShouldDeleteNotLocked(Effect* eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const std::string& palette);
 

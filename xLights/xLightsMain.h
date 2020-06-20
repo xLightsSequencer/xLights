@@ -1245,7 +1245,7 @@ public:
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ExecuteImportNotes(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
-    void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
+    void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
     void DoPromoteEffects(ModelElement *element);
     wxXmlNode* CreateEffectNode(wxString& name);

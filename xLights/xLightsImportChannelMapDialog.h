@@ -366,8 +366,10 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_AutoMap;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
+		wxFlexGridSizer* FlexGridSizer11;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
@@ -399,6 +401,7 @@ protected:
 		//(*Identifiers(xLightsImportChannelMapDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX11;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;

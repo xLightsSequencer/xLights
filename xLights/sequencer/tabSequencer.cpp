@@ -3563,7 +3563,10 @@ int RampLenColor(int start, std::vector<xlColor> &colors) {
 }
 
 
-void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime) {
+void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting) {
+
+    if (eraseExisting) layer->DeleteAllEffects();
+
     colors.push_back(xlBLACK);
     int startTime = 0;
     xlColor lastColor(xlBLACK);
@@ -3657,7 +3660,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                             xlColor c = ssModel->GetNodeColor(0);
                             colors.push_back(c);
                         }
-                        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
                         delete ssModel;
                     }
                 }
@@ -3689,7 +3692,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                         xlColor c = ssModel->GetNodeColor(0);
                         colors.push_back(c);
                     }
-                    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
                     delete ssModel;
                 }
             }
@@ -3709,7 +3712,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                     xlColor c = ssModel->GetNodeColor(0);
                     colors.push_back(c);
                 }
-                DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
                 delete ssModel;
             }
         }

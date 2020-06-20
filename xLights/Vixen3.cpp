@@ -584,6 +584,7 @@ std::list<std::string> Vixen3::GetTimings() const
 
 std::string Vixen3::GetTimingType(const std::string& timing) const
 {
+    if (_timingType.find(timing) == _timingType.end()) return "";
     return _timingType.at(timing);
 }
 

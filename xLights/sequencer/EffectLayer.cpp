@@ -1180,29 +1180,25 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 
 void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    for (int i = 0; i<mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
-        if (eff1 == nullptr && effectName != "")
-        {
-            logger_base.error("Effect not found: '%s'", (const char *)effectName.c_str());
+        if (eff1 == nullptr && effectName != "") {
+            logger_base.error("Effect not found: '%s'", (const char*)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
-        if (eff2 == nullptr)
-        {
+        if (eff2 == nullptr) {
             // this cant happen
-            logger_base.error("Effect not found when scanning effects: '%s'", (const char *)mEffects[i]->GetEffectName().c_str());
+            logger_base.error("Effect not found when scanning effects: '%s'", (const char*)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
-        if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
+        if ((effectName == "" || eff1 == nullptr || eff2 == nullptr || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-             (mEffects[i]->GetSelected() == EFFECT_SELECTED))
-           )
-        {
+                (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+                (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+            ) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->PressButton(eff2, id);
 
@@ -1215,13 +1211,11 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
-    for (int i = 0; i < mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if (mEffects[i]->GetEffectName() == "DMX" &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED)))
-        {
+                (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+                (mEffects[i]->GetSelected() == EFFECT_SELECTED))) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
 
@@ -1232,13 +1226,11 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 
 void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    for (int i = 0; i<mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_SELECTED)
-           )
-        {
+            ) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->ConvertTo(effectManager.GetEffectIndex(effectName));
 
@@ -1250,8 +1242,7 @@ void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_
 void EffectLayer::UnTagAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for(int i=0; i<mEffects.size();i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         mEffects[i]->SetTagged(false);
     }
 }
@@ -1259,22 +1250,37 @@ void EffectLayer::UnTagAllEffects()
 void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); ++it) {
-        if (!(*it)->IsLocked())
+    for (const auto& it : mEffects) {
+        if (!it->IsLocked())
         {
-            if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
-                IncrementChangeCount((*it)->GetStartTimeMS(), (*it)->GetEndTimeMS());
-                undo_mgr.CaptureEffectToBeDeleted(mParentElement->GetModelName(), mIndex, (*it)->GetEffectName(),
-                    (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
-                    (*it)->GetStartTimeMS(), (*it)->GetEndTimeMS(),
-                    (*it)->GetSelected(), (*it)->GetProtected());
-                (*it)->SetTimeToDelete();
-                mEffectsToDelete.push_back(*it);
+            if (it->GetSelected() != EFFECT_NOT_SELECTED) {
+                IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
+                undo_mgr.CaptureEffectToBeDeleted(mParentElement->GetModelName(), mIndex, it->GetEffectName(),
+                    it->GetSettingsAsString(), it->GetPaletteAsString(),
+                    it->GetStartTimeMS(), it->GetEndTimeMS(),
+                    it->GetSelected(), it->GetProtected());
+                it->SetTimeToDelete();
+                mEffectsToDelete.push_back(it);
             }
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteSelected),mEffects.end());
 }
+
+void EffectLayer::DeleteAllEffects()
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+
+    for (const auto& it : mEffects) {
+        if (!it->IsLocked()) {
+            IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
+            it->SetTimeToDelete();
+            mEffectsToDelete.push_back(it);
+        }
+    }
+    mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteNotLocked), mEffects.end());
+}
+
 void EffectLayer::DeleteEffectByIndex(int idx) {
     std::unique_lock<std::recursive_mutex> locker(lock);
     if (!mEffects[idx]->IsLocked())
@@ -1289,6 +1295,11 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)
 {
     return !eff->IsLocked() && eff->GetSelected() != EFFECT_NOT_SELECTED;
+}
+
+bool EffectLayer::ShouldDeleteNotLocked(Effect* eff)
+{
+    return !eff->IsLocked();
 }
 
 bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
