@@ -4746,10 +4746,10 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     bool isCustom3d = false;
     wxString customFingerprint = "";
     
-    // check if custom 3d and set model fingerprint if so
+    // check if custom 3d and set model fingerprint
     if (selectedType == "Custom") {
+        customFingerprint = selectedModel->GetModelXml()->GetAttribute("CustomModel", "");
         if (wxSplit(customFingerprint, '|').size() > 1) {
-            customFingerprint = selectedModel->GetModelXml()->GetAttribute("CustomModel", "");
             isCustom3d = true;
         }
     }
@@ -4773,8 +4773,18 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             
             if ((isBoxed && selectedType == modelType && selectedType != "Custom") || custom3dPrintsMatch) {
                 // boxed model, types match and not a custom model OR custom 3d model and fingerprints matched so use scale matrix
-                glm::vec3 matrixScale = modelPreview->GetModels()[selectedindex]->GetModelScreenLocation().GetScaleMatrix();
-                modelPreview->GetModels()[i]->GetModelScreenLocation().SetScaleMatrix(matrixScale);
+                glm::vec3 matrixScale = selectedModel->GetModelScreenLocation().GetScaleMatrix();
+                if (sameWidth && sameHeight) {
+                    modelToResize->GetModelScreenLocation().SetScaleMatrix(matrixScale);
+                } else if (sameWidth) {
+                    float scaleY = ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).GetScaleY();
+                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScale(matrixScale.x, scaleY);
+                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScaleZ(matrixScale.z);
+                } else {
+                    float scaleX = ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).GetScaleX();
+                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScale(scaleX, matrixScale.y);
+                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScaleZ(matrixScale.z);
+                }
             } else {
                 // no special resizing, same as 2020.24 and prior
                 bool z_scale = modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().GetSupportsZScaling();
