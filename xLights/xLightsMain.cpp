@@ -1548,7 +1548,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     if (mEffectAssistMode < 0 || mEffectAssistMode > EFFECT_ASSIST_TOGGLE_MODE) {
         mEffectAssistMode = EFFECT_ASSIST_TOGGLE_MODE;
     }
-    logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
+    logger_base.debug("Effect Assist Mode: %d.", mEffectAssistMode);
+    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+        SetEffectAssistWindowState(true);
+    }
+    else {
+        SetEffectAssistWindowState(false);
+    }
 
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
@@ -1959,61 +1965,50 @@ void xLightsFrame::ResetAllSequencerWindows()
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // this logging is extra until we find out why this function crashes
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows");
 
-    if (m_mgr == nullptr)
-    {
+    if (m_mgr == nullptr) {
         logger_base.crit("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
     }
-    wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show && savedPaneShown.size() > 0)
-    {
+    if (show && savedPaneShown.size() > 0) {
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show %d %d", (int)info.size(), (int)savedPaneShown.size());
-        for (size_t x = 0; x < info.size(); x++)
-        {
+        for (size_t x = 0; x < info.size(); x++) {
             logger_base.debug("     %s", (const char*)info[x].name.c_str());
             if (info[x].IsOk() &&
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
-                savedPaneShown[info[x].name])
-            {
+                savedPaneShown[info[x].name]) {
                 if (info[x].frame != nullptr)
                     info[x].frame->Show();
             }
         }
         savedPaneShown.clear();
     }
-    else
-    {
+    else {
         savedPaneShown.clear();
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide %d", (int)info.size());
-        for (size_t x = 0; x < info.size(); x++)
-        {
+        for (size_t x = 0; x < info.size(); x++) {
             logger_base.debug("     %s", (const char*)info[x].name.c_str());
             savedPaneShown[info[x].name] = false;
-            if (info[x].IsOk())
-            {
-                if (info[x].frame != nullptr)
-                {
-                    if (info[x].IsFloating() && info[x].IsShown())
-                    {
+            if (info[x].IsOk()) {
+                if (info[x].frame != nullptr) {
+                    if (info[x].IsFloating() && info[x].IsShown()) {
                         savedPaneShown[info[x].name] = true;
                     }
                     info[x].frame->Hide();
                 }
             }
-            else
-            {
+            else {
                 logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
 
-    if (update)
-    {
+    if (update) {
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
@@ -2023,8 +2018,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = *it;
         if (grp != nullptr) {
-            if (grp->GetMenuItem() == nullptr)
-            {
+            if (grp->GetMenuItem() == nullptr) {
                 logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
             }
             if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
@@ -2032,6 +2026,23 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             }
         }
     }
+
+    // Handle the effect Assist
+    if (mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
+        if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
+            SetEffectAssistWindowState(true);
+        }
+        else {
+            SetEffectAssistWindowState(false);
+        }
+    }
+    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+        SetEffectAssistWindowState(true);
+    }
+    else {
+        SetEffectAssistWindowState(false);
+    }
+
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 

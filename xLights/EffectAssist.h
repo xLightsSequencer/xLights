@@ -33,6 +33,7 @@ class EffectAssist: public wxPanel
 		//*)
 
         void SetPanel(AssistPanel* panel_);
+        AssistPanel* GetPanel() const { return mAssistPanel; }
         void ForceRefresh();
 
         AssistPanel * GetDefaultAssistPanel();

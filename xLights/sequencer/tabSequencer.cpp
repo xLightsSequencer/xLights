@@ -111,6 +111,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1).BestSize(250,250));
     sEffectAssist->Layout();
+    sEffectAssist->Hide();
 
     logger_base.debug("        Color.");
     colorPanel = new ColorPanel(PanelSequencer);
