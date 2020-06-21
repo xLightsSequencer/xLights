@@ -651,7 +651,19 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
     return false;
 }
 
-void SaveWindowPosition(const std::string tag, wxWindow* window)
+void SaveInt(const std::string& tag, int value)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(tag, value);
+}
+
+int LoadInt(const std::string& tag, int default)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->ReadLong(tag, default);
+}
+
+void SaveWindowPosition(const std::string& tag, wxWindow* window)
 {
     wxConfigBase* config = wxConfigBase::Get();
     if (window != nullptr)
@@ -666,7 +678,7 @@ void SaveWindowPosition(const std::string tag, wxWindow* window)
     }
 }
 
-void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
+void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
 {
     wxConfigBase* config = wxConfigBase::Get();
 

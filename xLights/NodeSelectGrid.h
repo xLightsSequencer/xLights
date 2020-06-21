@@ -36,6 +36,8 @@ class wxModelGridCellRenderer;
 
 class NodeSelectGrid: public wxDialog
 {
+	void SetGridSizeForFont(const wxFont& font);
+
 	public:
 
 		NodeSelectGrid(bool multiline, const wxString &title, Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
