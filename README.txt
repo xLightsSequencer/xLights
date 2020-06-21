@@ -11,9 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.25 June 21 2020
    -- enh (dkulp)  Add "Virtual Matrix" as FPP controller type
    -- enh (dkulp)  "Discover" will now discover FPP instances used as Virtual Matrix
+   -- enh (scott)  Add a GetMatrix xSchedule API call to get the matrix details
+   -- enh (scott)  Remember node selection dialog size and position and zoom
+   -- enh (priemd) Add ability to select models and add them to an existing group
+   -- enh (keith)  Add a start angle to the spinner model
+   -- enh (keith)  Add option on import to erase any existing effects on layers being imported
    -- bug (scott)  Fix AlphaPix Flex/Evolution upload for firmware 4.02, 4.04, and 4.05
+   -- bug (scott)  Fix protocol case issues affect ability to chain a model
+   -- bug (keith)  Fix visualiser hangs
+   -- bug (keith)  Fix issues with serial model channel assignment and remove warning about model gaps
+   -- bug (keith)  Erase colours when force colour option is turned off in faces and states
+   -- bug (keith)  Fix remote falcon plugin seems to hang when token is invalid
+   -- bug (keith)  Fix entering effect duration does not always take
+   -- bug (keith)  Fix effect assist does not follow its preference setting
 2020.24 June 13 2020
    -- enh (keith)  Change model export to xmodel to include all groups that only contain submodels/strands 
                    of the model being exported
