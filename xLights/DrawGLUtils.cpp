@@ -341,8 +341,6 @@ public:
         glGetFloatv(GL_MODELVIEW_MATRIX, glm::value_ptr(curMatrix));
         glm::mat4 mat = curMatrix * matrix;
         LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(mat)));
-        float bri = brightness;
-        bri /= 100.0f;
 
         if (wf) {
             if (!transparent) {

@@ -1550,9 +1550,9 @@ void xLightsFrame::SetControllersProperties() {
             choices.Add(it);
         }
 
-        p = Controllers_PropertyEditor->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
+        Controllers_PropertyEditor->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
 
-        p = Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
+        Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
     }
     else if (selections.size() == 1) {
 

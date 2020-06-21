@@ -187,7 +187,7 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 		if (it == k) val = choices.GetCount();
 		choices.Add(KeyBinding::EncodeKey(it, false));
 	}
-	p = _propertyGrid->Append(new wxEnumProperty("Key", "KBKey", choices, val));
+	_propertyGrid->Append(new wxEnumProperty("Key", "KBKey", choices, val));
 
 	p = _propertyGrid->Append(new wxBoolProperty("Control", "KBControl", b.RequiresControl()));
 	p->SetEditor("CheckBox");
@@ -208,12 +208,12 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 			effchoices.Add(it->Name());
 		}
 
-		p = _propertyGrid->Append(new wxEnumProperty("Effect", "KBEffect", effchoices, val));
+		_propertyGrid->Append(new wxEnumProperty("Effect", "KBEffect", effchoices, val));
 	}
 
 	if (b.GetType() == "EFFECT" || b.GetType() == "APPLYSETTING")
 	{
-		p = _propertyGrid->Append(new wxStringProperty("Effect Setting", "KBEffectSetting", b.GetEffectString()));
+		_propertyGrid->Append(new wxStringProperty("Effect Setting", "KBEffectSetting", b.GetEffectString()));
 	}
 
 	if (b.GetType() == "PRESET")
@@ -225,7 +225,7 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 			if (it == b.GetEffectName()) val = presetchoices.GetCount();
 			presetchoices.Add(it);
 		}
-		p = _propertyGrid->Append(new wxEnumProperty("Preset", "KBPreset", presetchoices, val));
+		_propertyGrid->Append(new wxEnumProperty("Preset", "KBPreset", presetchoices, val));
 	}
 
 	// restore property grid location

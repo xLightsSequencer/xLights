@@ -347,16 +347,12 @@ void DmxServo::InitModel() {
         (*it)->Set16Bit(_16bit);
     }
 
-    bool last_exists = !motion_images[0]->GetExists();
     for (auto it = static_images.begin(); it != static_images.end(); ++it) {
         (*it)->Init(this);
-        last_exists = (*it)->GetExists();
     }
 
-    last_exists = static_images[0]->GetExists();
     for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
         (*it)->Init(this);
-        last_exists = (*it)->GetExists();
     }
 
     // create node names

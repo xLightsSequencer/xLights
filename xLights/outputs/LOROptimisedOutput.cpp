@@ -497,7 +497,7 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
         p = propertyGrid->AppendIn(p2, new DeleteLorControllerProperty(GetControllers(), _("Delete this device"), wxString::Format("DeleteDevice/%d", i)));
         propertyGrid->LimitPropertyEditing(p);
 
-        p = propertyGrid->AppendIn(p2, new wxEnumProperty("Device Type", wxString::Format("DeviceType/%d", i), __lorDeviceTypes, Controller::EncodeChoices(__lorDeviceTypes, it->GetType())));
+        propertyGrid->AppendIn(p2, new wxEnumProperty("Device Type", wxString::Format("DeviceType/%d", i), __lorDeviceTypes, Controller::EncodeChoices(__lorDeviceTypes, it->GetType())));
 
         std::string ch = "Channels";
         if (isPixie) {
@@ -518,10 +518,10 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
         p->SetBackgroundColour(*wxLIGHT_GREY);
 
         if (!isPixie) {
-            p = propertyGrid->AppendIn(p2, new wxEnumProperty("Address Mode", wxString::Format("DeviceAddressMode/%d", i), __lorAddressModes, (int)it->GetAddressMode()));
+            propertyGrid->AppendIn(p2, new wxEnumProperty("Address Mode", wxString::Format("DeviceAddressMode/%d", i), __lorAddressModes, (int)it->GetAddressMode()));
         }
 
-        p = propertyGrid->AppendIn(p2, new wxStringProperty("Description", wxString::Format("DeviceDescription/%d", i), it->GetDescription()));
+        propertyGrid->AppendIn(p2, new wxStringProperty("Description", wxString::Format("DeviceDescription/%d", i), it->GetDescription()));
 
         i++;
     }

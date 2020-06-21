@@ -60,6 +60,7 @@ void ObtainAccessToURL(const std::string &path) {
                                              bookmarkDataIsStale:&isStale
                                              error:&error];
         [fileURL startAccessingSecurityScopedResource];
+        [nsdata release];
     }
     delete config;
 }

@@ -48,7 +48,8 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* out
 
     //LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
-    wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    wxPGProperty *p;
+    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
     p = grid->Append(new wxBoolProperty("Active", "Active", IsActive()));
     p->SetAttribute("UseCheckbox", true);
 

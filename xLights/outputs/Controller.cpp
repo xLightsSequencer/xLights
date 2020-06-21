@@ -462,7 +462,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
     p->SetHelpString("This must be unique.");
 
-    p = propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
+    propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
 
     if (IsNeedsId()) {
         p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
@@ -493,7 +493,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         ACTIVETYPENAMES.push_back("Inactive");
         ACTIVETYPENAMES.push_back("xLights Only");
     }
-    p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
+    propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
 
     int v = 0;
     wxPGChoices vendors;
@@ -504,7 +504,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         }
     }
     if (vendors.GetCount() > 0) {
-        p = propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
+        propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
 
         if (_vendor != "") {
             int m = 0;
@@ -516,7 +516,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                 }
             }
             if (models.GetCount() > 0) {
-                p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+                propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
                 if (_model != "") {
                     int v = 0;
@@ -527,8 +527,9 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                             v = versions.GetCount() - 1;
                         }
                     }
-                    if (versions.GetCount() > 1)
-                        p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
+                    if (versions.GetCount() > 1) {
+                        propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
+                    }
                 }
             }
         }

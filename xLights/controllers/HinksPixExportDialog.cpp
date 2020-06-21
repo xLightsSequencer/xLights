@@ -331,7 +331,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
     while (w) {
         wxWindow* tmp = w->GetNextSibling();
         w->Destroy();
-        tmp = w;
+        w = tmp;
     }
 
     auto const controllers = outputManager->GetControllers();

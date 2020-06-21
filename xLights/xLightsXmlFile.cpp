@@ -805,24 +805,19 @@ void xLightsXmlFile::DeleteTimingSection(const std::string & section)
     bool found = false;
     wxXmlNode* root=seqDocument.GetRoot();
 
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr && !found; e=e->GetNext() )
-    {
-        if (e->GetName() == "DisplayElements")
-        {
-            for(wxXmlNode* element=e->GetChildren(); element!=nullptr && !found; element=element->GetNext() )
-            {
-                if (element->GetName() == "Element")
-                {
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr && !found; e=e->GetNext()) {
+        if (e->GetName() == "DisplayElements") {
+            for(wxXmlNode* element=e->GetChildren(); element != nullptr && !found; element = element ? element->GetNext() : nullptr) {
+                if (element->GetName() == "Element") {
                     wxString attr;
                     element->GetAttribute("type", &attr);
-                    if( attr == "timing")
-                    {
+                    if( attr == "timing") {
                         element->GetAttribute("name", &attr);
-                        if( attr == section )
-                        {
+                        if( attr == section ) {
                             e->RemoveChild(element);
                             delete element;
                             timing_list.Remove(section);
+                            element = nullptr;
                             found = true;
                         }
                     }
@@ -831,23 +826,18 @@ void xLightsXmlFile::DeleteTimingSection(const std::string & section)
         }
     }
     found = false;
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr && !found; e=e->GetNext() )
-    {
-        if (e->GetName() == "ElementEffects")
-        {
-            for(wxXmlNode* element=e->GetChildren(); element!=nullptr && !found; element=element->GetNext() )
-            {
-                if (element->GetName() == "Element")
-                {
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr && !found; e=e->GetNext()) {
+        if (e->GetName() == "ElementEffects") {
+            for(wxXmlNode* element=e->GetChildren(); element != nullptr && !found; element = element ? element->GetNext() : nullptr) {
+                if (element->GetName() == "Element") {
                     wxString attr;
                     element->GetAttribute("type", &attr);
-                    if( attr == "timing")
-                    {
+                    if (attr == "timing") {
                         element->GetAttribute("name", &attr);
-                        if( attr == section )
-                        {
+                        if (attr == section) {
                             e->RemoveChild(element);
                             delete element;
+                            element = nullptr;
                             found = true;
                         }
                     }
@@ -1346,27 +1336,21 @@ void xLightsXmlFile::CleanUpEffects() const
     }
 
     // connect timing gaps
-    for(wxXmlNode* element=node->GetChildren(); element!=nullptr; element=element->GetNext() )
-    {
-        for( wxXmlNode* layer=element->GetChildren(); layer!=nullptr; layer=layer->GetNext() )
-        {
+    for (wxXmlNode* element=node->GetChildren(); element!=nullptr; element=element->GetNext()) {
+        for (wxXmlNode* layer=element->GetChildren(); layer!=nullptr; layer=layer->GetNext()) {
             wxXmlNode* eff1 = layer->GetChildren();
             if( eff1 == nullptr ) continue;
             wxXmlNode* eff2 = eff1->GetNext();
             if( eff2 == nullptr ) continue;
 
-            while( eff1 != nullptr && eff2 != nullptr )
-            {
+            while( eff1 != nullptr && eff2 != nullptr ) {
                 wxString start_time;
                 wxString end_time;
                 eff1->GetAttribute("endTime", &end_time);
                 eff2->GetAttribute("startTime", &start_time);
-                if( end_time != start_time && start_time != "" )
-                {
-                    for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=nullptr; attr=attr->GetNext() )
-                    {
-                        if( attr->GetName() == "endTime" )
-                        {
+                if (end_time != start_time && start_time != "") {
+                    for (wxXmlAttribute* attr=eff1->GetAttributes(); attr!=nullptr; attr=attr->GetNext()) {
+                        if (attr->GetName() == "endTime") {
                             attr->SetValue(start_time);
                             break;
                         }
@@ -1380,16 +1364,14 @@ void xLightsXmlFile::CleanUpEffects() const
 
     // remove Effect 1 and slider is 0 , then delete effect 2
     // remove Effect 2 and slider is 100 , then delete effect 1
-    for(wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
+    for (wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext()) {
         wxXmlNode* layer1 = e->GetChildren();
         if( layer1 == nullptr ) continue;
         wxXmlNode* layer2 = layer1->GetNext();
         wxXmlNode* effect1 = layer1->GetChildren();
         wxXmlNode* effect2 = layer2->GetChildren();
 
-        while(effect1 != nullptr && effect2 != nullptr )
-        {
+        while (effect1 != nullptr && effect2 != nullptr) {
             wxString layer_effect_name;
             effect1->GetAttribute("name", &layer_effect_name);
             layer_effect_name = UnXmlSafe(layer_effect_name);
@@ -1423,24 +1405,18 @@ void xLightsXmlFile::CleanUpEffects() const
     }
 
     // remove "None" effects
-    for(wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-        for( wxXmlNode* layer=e->GetChildren(); layer!=nullptr; layer=layer->GetNext() )
-        {
-            for( wxXmlNode* effect=layer->GetChildren(); effect!=nullptr; )
-            {
+    for (wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        for (wxXmlNode* layer=e->GetChildren(); layer!=nullptr; layer=layer->GetNext()) {
+            for (wxXmlNode* effect=layer->GetChildren(); effect!=nullptr;) {
                 wxString layer_effect_name;
                 effect->GetAttribute("name", &layer_effect_name);
                 layer_effect_name = UnXmlSafe(layer_effect_name);
-                if( layer_effect_name == "None" )
-                {
+                if (layer_effect_name == "None") {
                     wxXmlNode* node_to_delete = effect;
                     effect = effect->GetNext();
                     layer->RemoveChild(node_to_delete);
                     delete node_to_delete;
-                }
-                else
-                {
+                } else {
                     effect = effect->GetNext();
                 }
             }
@@ -1448,20 +1424,15 @@ void xLightsXmlFile::CleanUpEffects() const
     }
 
     // remove empty layers
-    for(wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-        for( wxXmlNode* layer=e->GetChildren(); layer!=nullptr; )
-        {
+    for (wxXmlNode* e=node->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        for (wxXmlNode* layer=e->GetChildren(); layer!=nullptr;) {
             wxXmlNode* child = layer->GetChildren();
-            if( child == nullptr )
-            {
+            if (child == nullptr) {
                 wxXmlNode* node_to_delete = layer;
                 layer = layer->GetNext();
                 e->RemoveChild(node_to_delete);
                 delete node_to_delete;
-            }
-            else
-            {
+            } else {
                 layer = layer->GetNext();
             }
         }
@@ -1489,14 +1460,10 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length)
 
     wxXmlNode* root=seqDocument.GetRoot();
 
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-       if (e->GetName() == "head")
-       {
-            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
-            {
-                if( element->GetName() == "sequenceDuration")
-                {
+    for (wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+       if (e->GetName() == "head") {
+            for (wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
+                if (element->GetName() == "sequenceDuration") {
                     SetNodeContent(element, length);
                     return;
                 }

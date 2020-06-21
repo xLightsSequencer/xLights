@@ -354,14 +354,13 @@ bool E131Output::Open() {
     }
     _remoteAddr.Service(E131_PORT);
 
-    int i = _channels;
     uint8_t NumHi = (_channels + 1) >> 8;   // Channels (high)
     uint8_t NumLo = (_channels + 1) & 0xff; // Channels (low)
 
     _data[123] = NumHi;  // Property value count (high)
     _data[124] = NumLo;  // Property value count (low)
 
-    i = E131_PACKET_LEN - 16 - (512 - _channels);
+    int i = E131_PACKET_LEN - 16 - (512 - _channels);
     uint8_t hi = i >> 8;   // (high)
     uint8_t lo = i & 0xff; // (low)
 

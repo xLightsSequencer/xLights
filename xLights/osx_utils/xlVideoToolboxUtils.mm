@@ -167,7 +167,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         }
 
         AddTraceMessage("VideoToolbox - Applying BGRA -> RGBA filter");
-        CIRBFlipFilter *filter = [[CIRBFlipFilter alloc] init];
+        CIRBFlipFilter *filter = [[[CIRBFlipFilter alloc] init] autorelease];
         filter->inputImage = scaledimage;
         CIImage *swappedImage =  [filter outputImage];
         if (swappedImage == nullptr) {

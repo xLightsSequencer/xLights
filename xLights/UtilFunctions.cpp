@@ -657,10 +657,10 @@ void SaveInt(const std::string& tag, int value)
     config->Write(tag, value);
 }
 
-int LoadInt(const std::string& tag, int default)
+int LoadInt(const std::string& tag, int defaultValue)
 {
     wxConfigBase* config = wxConfigBase::Get();
-    return config->ReadLong(tag, default);
+    return config->ReadLong(tag, defaultValue);
 }
 
 void SaveWindowPosition(const std::string& tag, wxWindow* window)

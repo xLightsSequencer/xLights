@@ -576,7 +576,8 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     wxPGProperty* sp;
 
-    wxPGProperty* p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    wxPGProperty* p;
+    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
     AddTypeProperties(grid);
 
@@ -743,7 +744,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 }
@@ -807,11 +808,11 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     if (caps == nullptr || caps->SupportsSmartRemotes()) {
         if (Model::IsPixelProtocol(protocol)) {
-            sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
+            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
         }
     }
 
-    sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+    grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
 
     wxXmlNode *node = GetControllerConnection();
     if (IsSerialProtocol()) {

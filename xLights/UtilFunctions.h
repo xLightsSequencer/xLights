@@ -75,7 +75,7 @@ inline double rand01()
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 void SaveInt(const std::string& tag, int value);
-int LoadInt(const std::string& tag, int default);
+int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);
 inline int NumberAwareStringCompareRev(const std::string &a, const std::string &b) { return NumberAwareStringCompare(b, a); }
 inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }

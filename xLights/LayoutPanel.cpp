@@ -3513,14 +3513,13 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 float centery = modelPreview->getHeight() / 2.0f;
                 float deltax = mouse_x - centerx;
                 float deltay = mouse_y - centery;
-                float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
                 if (fromTrackPad) {
                     float f = event.GetWheelRotation();
                     zoom_delta = -f / 100.0f;
                 }
                 modelPreview->SetZoomDelta(zoom_delta);
-                zoom = modelPreview->GetZoom();
+                float zoom = modelPreview->GetZoom();
                 float new_x = deltax * zoom_delta / zoom;
                 float new_y = deltay * zoom_delta / zoom;
 
@@ -3574,14 +3573,13 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 float centery = modelPreview->getHeight() / 2.0f;
                 float deltax = mouse_x - centerx;
                 float deltay = mouse_y - centery;
-                float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
                 if (fromTrackPad) {
                     float f = event.GetWheelRotation();
                     zoom_delta = -f / 100.0f;
                 }
                 modelPreview->SetZoomDelta(zoom_delta);
-                zoom = modelPreview->GetZoom();
+                float zoom = modelPreview->GetZoom();
                 float new_x = deltax * zoom_delta / zoom;
                 float new_y = deltay * zoom_delta / zoom;
                 modelPreview->SetPan(new_x, -new_y, 0.0f);

@@ -138,7 +138,7 @@
         if (label == "") {
             label = item->GetName();
         }
-        NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
+        NSCustomTouchBarItem *ret = [[[NSCustomTouchBarItem alloc] initWithIdentifier:identifier] autorelease];
         NSString *nm = [NSString stringWithCString:label.c_str()
                                           encoding:[NSString defaultCStringEncoding]];
         
@@ -272,7 +272,7 @@
                                encoding:[NSString defaultCStringEncoding]];
         
         if ([identifier isEqualToString:n]) {
-            return [self createChildItem:identifier item:(*it) ];
+            return [self createChildItem:identifier item:(*it)];
         }
     }
     return nil;

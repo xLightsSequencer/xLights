@@ -334,7 +334,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
     }
 
     auto protocols = GetProtocols();
-    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
+    propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
 
     if (GetFirstOutput()->GetType() != OUTPUT_LOR_OPT)
     {

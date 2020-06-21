@@ -182,7 +182,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
     FilePickerCtrl1->UnsetToolTip();
 
     _shaderConfig = ShaderEffect::ParseShader(filename);
-    wxWindow* last = BitmapButton_Shader_Speed;
 
     if (_shaderConfig != nullptr)
     {
@@ -219,7 +218,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min*100, it._max*100);
                     vcb->GetValue()->SetDivisor(100);
-                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
@@ -242,7 +240,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                     auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min, it._max);
-                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
@@ -262,7 +259,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                         choice->AppendString(it2);
                     }
                     choice->SetSelection(it._default);
-                    last = choice;
                     FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                 }
@@ -272,7 +268,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
                     auto checkbox = new BulkEditCheckBox(this, wxNewId(), _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
                     checkbox->SetValue(it._default == 1);
-                    last = checkbox;
                     FlexGridSizer_Dynamic->Add(checkbox, 1, wxALL | wxEXPAND, 2);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                 }
@@ -312,7 +307,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._minPt.y * 100, it._maxPt.y * 100);
                     vcb->GetValue()->SetDivisor(100);
-                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);

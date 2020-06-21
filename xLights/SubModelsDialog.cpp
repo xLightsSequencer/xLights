@@ -300,7 +300,6 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 
     SubModelTextDropTarget *mdt = new SubModelTextDropTarget(this, ListCtrl_SubModels, "SubModel");
     ListCtrl_SubModels->SetDropTarget(mdt);

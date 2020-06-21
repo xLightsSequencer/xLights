@@ -548,7 +548,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     }
 
     auto protocols = GetProtocols();
-    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, _type)));
+    propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, _type)));
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() == 1) {

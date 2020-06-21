@@ -194,13 +194,10 @@ namespace DrawGLUtils
         }
         void AddVertex(float x, float y, float z, const xlColor& c, bool replace = false)
         {
-
-            bool found = false;
             if (replace) {
                 for (unsigned int i = 0; i < count; i++) {
                     int base = i * coordsPerVertex;
                     if (vertices[base] == x && vertices[base + 1] == y && (coordsPerVertex == 2 || vertices[base + 2] == z)) {
-                        found = true;
                         base = i * 4;
                         colors[base] = c.Red();
                         colors[base + 1] = c.Green();
@@ -211,21 +208,19 @@ namespace DrawGLUtils
                 }
             }
 
-            if (!found) {
-                PreAlloc(1);
-                int i = count * coordsPerVertex;
-                vertices[i++] = x;
-                vertices[i++] = y;
-                if (coordsPerVertex == 3) {
-                    vertices[i] = z;
-                }
-                i = count * 4;
-                colors[i++] = c.Red();
-                colors[i++] = c.Green();
-                colors[i++] = c.Blue();
-                colors[i] = c.Alpha();
-                count++;
+            PreAlloc(1);
+            int i = count * coordsPerVertex;
+            vertices[i++] = x;
+            vertices[i++] = y;
+            if (coordsPerVertex == 3) {
+                vertices[i] = z;
             }
+            i = count * 4;
+            colors[i++] = c.Red();
+            colors[i++] = c.Green();
+            colors[i++] = c.Blue();
+            colors[i] = c.Alpha();
+            count++;
         }
 
 

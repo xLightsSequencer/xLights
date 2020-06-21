@@ -344,12 +344,12 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
     // add nodes to root in reverse order
     wxXmlNode *node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
-    wxXmlNode *textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, SeqData.base64_encode());
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, SeqData.base64_encode());
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Audio");
     node->AddAttribute("filename", mediaFilename);
     node->AddAttribute("duration", string_format("%ld", TotalTime));
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
     wxXmlNode *chparent = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Channels");
 
     for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
@@ -407,23 +407,23 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
             ChannelColor = 0xffffffff;
         }
         node->AddAttribute("color", string_format("%d", (int)ChannelColor));
-        textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, ChannelName);
+        new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, ChannelName);
     }
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "AudioDevice");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "-1");
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "-1");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "MaximumLevel");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "255");
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "255");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "MinimumLevel");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", (long)TotalTime));
+    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", (long)TotalTime));
 
     return doc.Save(filename);
 }

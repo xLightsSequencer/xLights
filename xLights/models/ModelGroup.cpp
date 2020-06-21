@@ -1102,10 +1102,6 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
         bool horiz = type == HORIZ_PER_MODELSTRAND;
         int curS = 0;
-        double maxSL = BufferWi;
-        if (horiz) {
-            maxSL = BufferHt;
-        }
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
