@@ -71,6 +71,10 @@ public:
                 v = (value / _step) * _step;
                 wxSpinCtrl::SetValue(v);
             }
+            else {
+                v = (int)((float)value / (float)_step + 0.5) * _step;
+                wxSpinCtrl::SetValue(v);
+            }
         }
         else
         {

@@ -1013,18 +1013,16 @@ TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOf
     CurrentTimeMS = currentTime;
 }
 
-int TimeLine::RoundToMultipleOfPeriod(int number,double frequency)
+int TimeLine::RoundToMultipleOfPeriod(int number, double frequency)
 {
-    double period = (double)1/frequency;
-    int i = (int)(((double)number/1000.0)/period);
-    double d = ((double)number/1000.0)/period;
-    if(d-(double)i < .5)
-    {
+    double period = (double)1 / frequency;
+    int i = (int)(((double)number / 1000.0) / period);
+    double d = ((double)number / 1000.0) / period;
+    if (d - (double)i < .5) {
         return (int)(((double)i * period) * 1000.0);
     }
-    else
-    {
-        return (int)(((double)(i+1) * period) * 1000.0);
+    else {
+        return (int)(((double)(i + 1) * period) * 1000.0);
     }
 }
 
