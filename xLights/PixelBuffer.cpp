@@ -1817,23 +1817,17 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
             u = (b - 1) / 2;
         }
         RenderBuffer orig(layer->buffer);
-        for (int x = 0; x < layer->BufferWi; x++)
-        {
-            for (int y = 0; y < layer->BufferHt; y++)
-            {
+        for (int x = 0; x < layer->BufferWi; x++) {
+            for (int y = 0; y < layer->BufferHt; y++) {
                 int r = 0;
                 int g = 0;
                 int b2 = 0;
                 int a = 0;
                 int sm = 0;
-                for (int i = x - d; i <= x + u; i++)
-                {
-                    if (i >= 0 && i < layer->BufferWi)
-                    {
-                        for (int j = y - d; j <= y + u; j++)
-                        {
-                            if (j >=0 && j < layer->BufferHt)
-                            {
+                for (int i = x - d; i <= x + u; i++) {
+                    if (i >= 0 && i < layer->BufferWi) {
+                        for (int j = y - d; j <= y + u; j++) {
+                            if (j >=0 && j < layer->BufferHt) {
                                 const xlColor &c = orig.GetPixel(i, j);
                                 r += c.red;
                                 g += c.green;
@@ -1843,6 +1837,9 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
                             }
                         }
                     }
+                }
+                if (sm == 0) {
+                    sm = 1;
                 }
                 layer->buffer.SetPixel(x, y, xlColor(r/sm, g/sm, b2/sm, a/sm));
             }
@@ -2475,7 +2472,7 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &
                     DimmingCurve *curve = n->model->modelDimmingCurve;
                     if (curve != nullptr) {
                         if (n->GetChanCount() == 1) {
-                            uint8_t buf[3];
+                            uint8_t buf[3] = {0, 0, 0};
                             n->GetForChannels(buf);
                             xlColor color(buf[0], buf[0], buf[0]);
                             curve->apply(color);

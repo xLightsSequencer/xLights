@@ -697,12 +697,13 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness(), xlights->LayoutGroups[id - 1]->GetBackgroundAlpha());
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
         }
+    } else {
+        //if xlights isn't set, just return as there is nothing we can do (shouldn't ever happen)
+        return;
     }
-    if (id == 0x2000)
-    {
+    if (id == 0x2000) {
         Reset();
-    }
-    else if (id == 0x1000) {
+    } else if (id == 0x1000) {
         is_3d = !is_3d;
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {

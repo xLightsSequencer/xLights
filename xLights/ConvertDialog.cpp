@@ -350,7 +350,8 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     node->AddAttribute("filename", mediaFilename);
     node->AddAttribute("duration", string_format("%ld", TotalTime));
     new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
-    wxXmlNode *chparent = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Channels");
+    wxXmlNode *chparent = new wxXmlNode(wxXML_ELEMENT_NODE, "Channels");
+    root->AddChild(chparent);
 
     for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
     {
@@ -535,12 +536,14 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     long centiseconds = SeqData.NumFrames() * interval;
     if( interval * 10 != SeqData.FrameTime() ) {
         _parent->ConversionError(wxString("Cannot convert to LOR unless the sequence timing is evenly divisible by 10ms"));
+        free(savedIndexes);
         return;
     }
 
     if (!f.Create(filename, true))
     {
         _parent->ConversionError(wxString("Unable to create file: ") + filename);
+        free(savedIndexes);
         return;
     }
 

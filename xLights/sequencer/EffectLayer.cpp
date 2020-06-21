@@ -678,11 +678,9 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(int &toLeft, int &
 {
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for (int i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
-        {
-            int l, r;
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED) {
+            int l = 0, r = 0;
             GetMaximumRangeOfMovementForEffect(i, l, r);
             toLeft = toLeft < l ? toLeft : l;
             toRight = toRight < r ? toRight : r;
@@ -700,13 +698,14 @@ void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int
     case EFFECT_RT_SELECTED:
         GetMaximumRangeWithRightMovement(index, toLeft, toRight);
         break;
-    case EFFECT_SELECTED:
-        int l1, l2, r1, r2;
+    case EFFECT_SELECTED: {
+        int l1 = 0, l2 = 0, r1 = 0, r2 = 0;
         GetMaximumRangeWithLeftMovement(index, l1, r1);
         GetMaximumRangeWithRightMovement(index, l2, r2);
         toLeft = l1 < l2 ? l1 : l2;
         toRight = r1 < r2 ? r1 : r2;
         break;
+    }
     default:
         toLeft = NO_MAX;
         toRight = NO_MAX;

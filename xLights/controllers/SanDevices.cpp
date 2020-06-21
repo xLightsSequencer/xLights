@@ -431,10 +431,12 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
                 }
                 SanDevicesProtocol* newPort = new SanDevicesProtocol(i, EncodeStringPortProtocolV5(port->GetProtocol()));
                 if (newPort->getProtocol() != firstPort->getProtocol()) {
+                    delete newPort;
                     logger_base.warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
                     wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
                     return false;
                 }
+                delete newPort;
                 if (_protocolData[i - 1]->getProtocol() != firstPort->getProtocol()) {
                     _protocolData[i - 1]->setProtocol(firstPort->getProtocol());
                 }

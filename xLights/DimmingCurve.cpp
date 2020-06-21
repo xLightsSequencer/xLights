@@ -291,9 +291,15 @@ DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {
     while (dc != nullptr) {
         wxString name = dc->GetName();
         if ("all" == name) {
-            if (red) delete red;
-            if (green) delete green;
-            if (blue) delete blue;
+            if (red != nullptr) {
+                delete red;
+            }
+            if (green) {
+                delete green;
+            }
+            if (blue) {
+                delete blue;
+            }
             return createCurve(dc);
         } else if ("red" == dc->GetName()) {
             red = createCurve(dc, 0);

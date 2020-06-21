@@ -2759,12 +2759,11 @@ char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
     int32_t fc = GetFirstChannel();
     if (absoluteChannel < fc + 1 || absoluteChannel > (int32_t)GetLastChannel() + 1) return ' ';
 
-    if (SingleChannel)
-    {
+    if (SingleChannel) {
         return EncodeColour(GetNodeMaskColor(0));
     }
-
-    return GetChannelColorLetter((absoluteChannel - fc - 1) % GetChanCountPerNode());
+    int ccpn = std::max(GetChanCountPerNode(), 1);
+    return GetChannelColorLetter((absoluteChannel - fc - 1) % ccpn);
 }
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
@@ -4695,7 +4694,10 @@ int Model::MapToNodeIndex(int strand, int node) const {
     if (SingleNode) {
         return strand;
     }
-    if (parm3 == 0) logger_base.crit("Map node to index with illegal parm3 = 0.");
+    if (parm3 == 0) {
+        logger_base.crit("Map node to index with illegal parm3 = 0.");
+        return node;
+    }
     return (strand * parm2 / parm3) + node;
 }
 

@@ -5512,43 +5512,35 @@ void xLightsFrame::CheckSequence(bool display)
         if (it.second->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
-            if (mg != nullptr) // this should never fail
-            {
+            if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
 
                 int modelCount = 0;
 
-                for (const auto& m : models)
-                {
+                for (const auto& m : models) {
                     Model* model = AllModels.GetModel(m);
 
-                    if (model == nullptr)
-                    {
-                        wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
+                    if (model == nullptr) {
+                        wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), m.c_str());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
-                    }
-                    else
-                    {
+                    } else {
                         modelCount++;
-                        if (model->GetName() == mg->GetName())
-                        {
+                        if (model->GetName() == mg->GetName()) {
                             wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                     }
                 }
-                if (modelCount == 0)
-                {
+                if (modelCount == 0) {
                     emptyModelGroups.push_back(it.first);
                 }
             }
         }
     }
 
-    if (errcount + warncount == errcountsave + warncountsave)
-    {
+    if (errcount + warncount == errcountsave + warncountsave) {
         LogAndWrite(f, "    No problems found");
     }
     errcountsave = errcount;

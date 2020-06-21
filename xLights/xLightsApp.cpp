@@ -763,9 +763,8 @@ bool xLightsApp::OnInit()
     if (wxsOK)
     {
     	xLightsFrame* Frame = new xLightsFrame(nullptr);
-        if (Frame->CurrentDir == "")
-        {
-            return false;
+        if (Frame->CurrentDir == "") {
+            logger_base.info("Show directory not set");
         }
     	Frame->Show();
     	SetTopWindow(Frame);

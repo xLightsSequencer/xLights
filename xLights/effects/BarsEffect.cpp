@@ -125,9 +125,14 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     int x,y,n,ColorIdx;
     size_t colorcnt = buffer.GetColorCount();
+    if (colorcnt == 0) {
+        colorcnt = 1;
+    }
     int BarCount = PaletteRepeat * colorcnt;
 
-    if (BarCount<1) BarCount=1;
+    if (BarCount < 1) {
+        BarCount=1;
+    }
 
     xlColor color;
 

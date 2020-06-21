@@ -49,24 +49,20 @@ private:
         wxArrayString files;
         dir.GetAllFiles(cacheFolder, &files, "*.cache");
 
-        for (const auto& it : files)
-        {
+        for (const auto& it : files) {
             // allow up to 3 times physical memory
             // This means the render cache will be swapped out ... but I think that is still better than re-rendering
             // Abandon loading render cache if we use too much memory
-            if (IsExcessiveMemoryUsage(3.0))
-            {
+            if (IsExcessiveMemoryUsage(3.0)) {
                 logger_base.warn("Render cache loading abandoned due to too much memory use.");
                 break;
             }
 
             auto rci = new RenderCacheItem(_cache, it);
-            if (rci != nullptr && !rci->IsPurged())
-            {
+            if (rci != nullptr && !rci->IsPurged()) {
                 _cache->AddCacheItem(rci);
-            }
-            else
-            {
+            } else {
+                delete rci;
                 logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
             }
         }

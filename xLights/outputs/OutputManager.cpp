@@ -672,18 +672,14 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const {
                     }
                 }
             }
-        }
-        else if (eth != nullptr) {
+        } else if (eth != nullptr) {
             if (ip == "" || ip == eth->GetIP() || ip == eth->GetResolvedIP()) {
                 if (it->GetId() == universe) {
                     return it->GetFirstOutput();
                 }
             }
-        }
-        else {
-            if (it->GetId() == universe) {
-                return it->GetFirstOutput();
-            }
+        } else if (it != nullptr && it->GetId() == universe) {
+            return it->GetFirstOutput();
         }
     }
     return nullptr;

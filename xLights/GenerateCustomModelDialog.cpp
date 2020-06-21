@@ -2090,7 +2090,9 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
     int totalY = 0;
     int pixelCount = 0;
     WalkPixels(x, y, w, h, w3, data, totalX, totalY, pixelCount);
-
+    if (pixelCount == 0) {
+        pixelCount = 1;
+    }
     return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num, GetPixel(totalX / pixelCount, totalY / pixelCount, w3, grey.GetData()));
 }
 
