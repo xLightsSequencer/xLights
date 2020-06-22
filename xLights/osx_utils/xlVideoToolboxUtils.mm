@@ -167,7 +167,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         }
 
         AddTraceMessage("VideoToolbox - Applying BGRA -> RGBA filter");
-        CIRBFlipFilter *filter = [[[CIRBFlipFilter alloc] init] autorelease];
+        CIRBFlipFilter *filter = [[CIRBFlipFilter alloc] init];
         filter->inputImage = scaledimage;
         CIImage *swappedImage =  [filter outputImage];
         if (swappedImage == nullptr) {
@@ -178,7 +178,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         AddTraceMessage("VideoToolbox - Rendering image to buffer");
         [ciContext render:swappedImage toCVPixelBuffer:scaledBuf];
         pixbuf = nil;
-        
+
         AddTraceMessage("VideoToolbox - Copy data from buffer to dstFrame");
         CVPixelBufferLockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);
         AddTraceMessage("Locked the scaled buffer");
