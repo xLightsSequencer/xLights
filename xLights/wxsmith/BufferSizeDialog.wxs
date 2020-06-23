@@ -4,6 +4,7 @@
 		<title>Buffer Size</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -136,27 +137,41 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="Button_Export" member="yes">
-							<label>Export</label>
-							<handler function="OnButton_ExportClick" entry="EVT_BUTTON" />
+						<object class="wxComboBox" name="ID_COMBOBOX_BUFFER_PRESET" variable="ComboBoxBufferPresets" member="yes">
+							<style>wxCB_READONLY</style>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SAVE" subclass="xlSizedBitmapButton" variable="BitmapButtonSave" member="yes">
+							<bitmap stock_id="xlART_colorpanel_save_xpm" stock_client="wxART_BUTTON" />
+							<size>24,24</size>
+							<tooltip>Save Buffer Preset</tooltip>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+							<handler function="OnBitmapButtonSaveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON2" variable="Button_Load" member="yes">
-							<label>Load</label>
-							<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_DELETE" subclass="xlSizedBitmapButton" variable="BitmapButtonDelete" member="yes">
+							<bitmap stock_id="xlART_colorpanel_delete_xpm" stock_client="wxART_BUTTON" />
+							<size>24,24</size>
+							<tooltip>Delete Buffer Preset</tooltip>
+							<handler function="OnBitmapButtonDeleteClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

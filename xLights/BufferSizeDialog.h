@@ -12,7 +12,7 @@
 
  //(*Headers(BufferSizeDialog)
  #include <wx/bmpbuttn.h>
- #include <wx/button.h>
+ #include <wx/combobox.h>
  #include <wx/dialog.h>
  #include <wx/sizer.h>
  #include <wx/spinctrl.h>
@@ -20,7 +20,10 @@
  #include <wx/stattext.h>
  //*)
 
+#include <wx/dir.h>
+
 #include "ValueCurveButton.h"
+#include "xlLockButton.h"
 
 class BufferSizeDialog: public wxDialog
 {
@@ -38,8 +41,7 @@ class BufferSizeDialog: public wxDialog
 		ValueCurveButton* ValueCurve_Left;
 		ValueCurveButton* ValueCurve_Right;
 		ValueCurveButton* ValueCurve_Top;
-		wxButton* Button_Export;
-		wxButton* Button_Load;
+		wxComboBox* ComboBoxBufferPresets;
 		wxSpinCtrlDouble* SpinCtrl_Bottom;
 		wxSpinCtrlDouble* SpinCtrl_Left;
 		wxSpinCtrlDouble* SpinCtrl_Right;
@@ -49,6 +51,8 @@ class BufferSizeDialog: public wxDialog
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		xlSizedBitmapButton* BitmapButtonDelete;
+		xlSizedBitmapButton* BitmapButtonSave;
 		//*)
 
 	protected:
@@ -66,8 +70,9 @@ class BufferSizeDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL4;
 		static const long ID_VALUECURVE_BufferRight;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
+		static const long ID_COMBOBOX_BUFFER_PRESET;
+		static const long ID_BITMAPBUTTON_SAVE;
+		static const long ID_BITMAPBUTTON_DELETE;
 		static const long ID_STATICLINE1;
 		//*)
 
@@ -79,9 +84,22 @@ class BufferSizeDialog: public wxDialog
 		void OnSpinCtrl_BottomChange(wxSpinDoubleEvent& event);
 		void OnSpinCtrl_RightChange(wxSpinDoubleEvent& event);
 		void OnValueCurve_Click(wxCommandEvent& event);
-		void OnButton_ExportClick(wxCommandEvent& event);
-		void OnButton_LoadClick(wxCommandEvent& event);
+		void OnBitmapButtonSaveClick(wxCommandEvent& event);
+		void OnBitmapButtonDeleteClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
+
+
+		void LoadBufferPreset(wxString const& name);
+		void SaveBufferPreset(wxString const& name);
+
+		void OnBuffer_PresetsSelect(wxCommandEvent& event);
+		void OnBufferChoiceDropDown(wxCommandEvent& event);
+		void CreateBufferPresetsList(wxDir& directory, bool subdirs);
+		void LoadAllBufferPresets();
+		wxString FindBufferPreset(const wxString& name) const;
+
+		wxString _lastShowDir;
+		std::list<std::string> _loadedBufferPresets;
 };

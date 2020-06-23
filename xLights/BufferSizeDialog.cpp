@@ -11,10 +11,12 @@
 #include "BufferSizeDialog.h"
 #include "ValueCurveDialog.h"
 #include "UtilFunctions.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(BufferSizeDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
+#include <wx/button.h>
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -37,8 +39,9 @@ const long BufferSizeDialog::ID_VALUECURVE_BufferBottom = wxNewId();
 const long BufferSizeDialog::ID_STATICTEXT4 = wxNewId();
 const long BufferSizeDialog::ID_SPINCTRL4 = wxNewId();
 const long BufferSizeDialog::ID_VALUECURVE_BufferRight = wxNewId();
-const long BufferSizeDialog::ID_BUTTON1 = wxNewId();
-const long BufferSizeDialog::ID_BUTTON2 = wxNewId();
+const long BufferSizeDialog::ID_COMBOBOX_BUFFER_PRESET = wxNewId();
+const long BufferSizeDialog::ID_BITMAPBUTTON_SAVE = wxNewId();
+const long BufferSizeDialog::ID_BITMAPBUTTON_DELETE = wxNewId();
 const long BufferSizeDialog::ID_STATICLINE1 = wxNewId();
 //*)
 
@@ -55,7 +58,7 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, id, _("Buffer Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, _("Buffer Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -91,12 +94,17 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 	ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
 	FlexGridSizer2->Add(ValueCurve_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
-	Button_Export = new wxButton(this, ID_BUTTON1, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer3->Add(Button_Export, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Load = new wxButton(this, ID_BUTTON2, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer3->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	ComboBoxBufferPresets = new wxComboBox(this, ID_COMBOBOX_BUFFER_PRESET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_READONLY, wxDefaultValidator, _T("ID_COMBOBOX_BUFFER_PRESET"));
+	FlexGridSizer3->Add(ComboBoxBufferPresets, 1, wxALL|wxEXPAND, 5);
+	BitmapButtonSave = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_SAVE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_save_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SAVE"));
+	BitmapButtonSave->SetToolTip(_("Save Buffer Preset"));
+	FlexGridSizer3->Add(BitmapButtonSave, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButtonDelete = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_DELETE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_DELETE"));
+	BitmapButtonDelete->SetToolTip(_("Delete Buffer Preset"));
+	FlexGridSizer3->Add(BitmapButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	StaticLine1 = new wxStaticLine(this, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
 	FlexGridSizer1->Add(StaticLine1, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -116,9 +124,12 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 	Connect(ID_VALUECURVE_BufferBottom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
 	Connect(ID_SPINCTRL4,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_RightChange);
 	Connect(ID_VALUECURVE_BufferRight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnButton_ExportClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnButton_LoadClick);
+	Connect(ID_BITMAPBUTTON_SAVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonSaveClick);
+	Connect(ID_BITMAPBUTTON_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonDeleteClick);
 	//*)
+
+    Connect(wxID_ANY, wxEVT_COMBOBOX_DROPDOWN, (wxObjectEventFunction)&BufferSizeDialog::OnBufferChoiceDropDown, 0, this);
+    Connect(wxID_ANY, wxEVT_COMBOBOX, (wxObjectEventFunction)&BufferSizeDialog::OnBuffer_PresetsSelect, 0, this);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferSizeDialog::OnVCChanged, nullptr, this);
 
@@ -295,6 +306,12 @@ void BufferSizeDialog::ValidateWindow()
     {
         ValueCurve_Right->GetValue()->SetParameter1(SpinCtrl_Right->GetValue());
     }
+
+    if (_loadedBufferPresets.size() == 0)
+    {
+        BitmapButtonDelete->Disable();
+        BitmapButtonSave->Disable();
+    }
 }
 
 void BufferSizeDialog::OnVCChanged(wxCommandEvent& event)
@@ -302,11 +319,15 @@ void BufferSizeDialog::OnVCChanged(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void BufferSizeDialog::OnButton_ExportClick(wxCommandEvent& event)
+void BufferSizeDialog::SaveBufferPreset(wxString const& name)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Buffer", wxEmptyString, "Bufferss (*.xbuffer)|*.xbuffer", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+
+    if (!wxDir::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers"))
+    {
+        wxDir::Make(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers");
+    }
+    const wxString filename = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer";
 
     wxXmlNode* n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Buffer");
 
@@ -324,45 +345,189 @@ void BufferSizeDialog::OnButton_ExportClick(wxCommandEvent& event)
     doc.Save(filename);
 }
 
-void BufferSizeDialog::OnButton_LoadClick(wxCommandEvent& event)
+void BufferSizeDialog::LoadBufferPreset(wxString const& name)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxFileDialog OpenDialog = wxFileDialog(this, "Choose Buffer file to Import", wxEmptyString, wxEmptyString,
-        "Buffer files (*.xbuffer)|*.xbuffer",
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
-    if (OpenDialog.ShowModal() == wxID_OK) {
+    if (name.IsEmpty())
+        return;
 
-        auto filename = OpenDialog.GetDirectory() + wxFileName::GetPathSeparator() + OpenDialog.GetFilename();
+    const wxString filename = FindBufferPreset(name);
 
-        logger_base.debug("Loading buffer file %s.", (const char *)filename.c_str());
+    logger_base.debug("Loading buffer file %s.", (const char *)filename.c_str());
 
-        wxXmlDocument doc;
-        if (wxFile::Exists(filename) && doc.Load(filename) && doc.IsOk())             {
-            auto n = doc.GetRoot();
-            if (n != nullptr && n->GetName() == "Buffer") {
-                SpinCtrl_Left->SetValue(wxAtof(n->GetAttribute("Left", "0.0")));
-                SpinCtrl_Right->SetValue(wxAtof(n->GetAttribute("Right", "100.0")));
-                SpinCtrl_Top->SetValue(wxAtof(n->GetAttribute("Top", "100.0")));
-                SpinCtrl_Bottom->SetValue(wxAtof(n->GetAttribute("Bottom", "0.0")));
-                ValueCurve_Left->GetValue()->Deserialise(n->GetAttribute("VCLeft", "Active=FALSE|"), true);
-                ValueCurve_Right->GetValue()->Deserialise(n->GetAttribute("VCRight", "Active=FALSE|"), true);
-                ValueCurve_Top->GetValue()->Deserialise(n->GetAttribute("VCTop", "Active=FALSE|"), true);
-                ValueCurve_Bottom->GetValue()->Deserialise(n->GetAttribute("VCBottom", "Active=FALSE|"), true);
-                ValueCurve_Left->UpdateBitmap();
-                ValueCurve_Right->UpdateBitmap();
-                ValueCurve_Top->UpdateBitmap();
-                ValueCurve_Bottom->UpdateBitmap();
-                ValueCurve_Left->NotifyChange();
-                ValueCurve_Right->NotifyChange();
-                ValueCurve_Top->NotifyChange();
-                ValueCurve_Bottom->NotifyChange();
-                ValidateWindow();
-                logger_base.debug("buffer file loaded.");
-                return;
-            }
+    wxXmlDocument doc;
+    if (wxFile::Exists(filename) && doc.Load(filename) && doc.IsOk()) {
+        auto n = doc.GetRoot();
+        if (n != nullptr && n->GetName() == "Buffer") {
+            SpinCtrl_Left->SetValue(wxAtof(n->GetAttribute("Left", "0.0")));
+            SpinCtrl_Right->SetValue(wxAtof(n->GetAttribute("Right", "100.0")));
+            SpinCtrl_Top->SetValue(wxAtof(n->GetAttribute("Top", "100.0")));
+            SpinCtrl_Bottom->SetValue(wxAtof(n->GetAttribute("Bottom", "0.0")));
+            ValueCurve_Left->GetValue()->Deserialise(n->GetAttribute("VCLeft", "Active=FALSE|"), true);
+            ValueCurve_Right->GetValue()->Deserialise(n->GetAttribute("VCRight", "Active=FALSE|"), true);
+            ValueCurve_Top->GetValue()->Deserialise(n->GetAttribute("VCTop", "Active=FALSE|"), true);
+            ValueCurve_Bottom->GetValue()->Deserialise(n->GetAttribute("VCBottom", "Active=FALSE|"), true);
+            ValueCurve_Left->UpdateBitmap();
+            ValueCurve_Right->UpdateBitmap();
+            ValueCurve_Top->UpdateBitmap();
+            ValueCurve_Bottom->UpdateBitmap();
+            ValueCurve_Left->NotifyChange();
+            ValueCurve_Right->NotifyChange();
+            ValueCurve_Top->NotifyChange();
+            ValueCurve_Bottom->NotifyChange();
+            ValidateWindow();
+            logger_base.debug("buffer file loaded.");
+            return;
         }
-        logger_base.warn("buffer file load failed.");
-        wxMessageBox("Unable to load buffer file.");
+    }
+    logger_base.warn("buffer file load failed.");
+    wxMessageBox("Unable to load buffer file.");
+}
+
+void BufferSizeDialog::OnBitmapButtonSaveClick(wxCommandEvent& event)
+{
+    int const sel = ComboBoxBufferPresets->GetSelection();
+    wxString name = ComboBoxBufferPresets->GetString(sel);
+
+    if (name == "(New)")
+    {
+        name = wxGetTextFromUser("What is the New Buffer Preset Name?", "New Buffer Preset Name");
+    }
+    if (name.IsEmpty())
+        return;
+
+    _loadedBufferPresets.push_back(name.ToStdString());
+    SaveBufferPreset(name);
+    LoadAllBufferPresets();
+
+    ComboBoxBufferPresets->SetStringSelection(name);
+}
+
+void BufferSizeDialog::OnBitmapButtonDeleteClick(wxCommandEvent& event)
+{
+    int const sel = ComboBoxBufferPresets->GetSelection();
+    const wxString name = ComboBoxBufferPresets->GetString(sel);
+    //wxString name = event.GetString();
+    if (name == "(New)" || name.IsEmpty())
+    {
+        return;
+    }
+
+    const wxString filename = FindBufferPreset(name);
+    if (!name.IsEmpty())
+    {
+        ::wxRemoveFile(filename);
+    }
+
+    LoadAllBufferPresets();
+    ValidateWindow();
+}
+
+void BufferSizeDialog::LoadAllBufferPresets()
+{
+    _loadedBufferPresets.clear();
+    wxDir dir;
+    if (wxDir::Exists(xLightsFrame::CurrentDir))
+    {
+        dir.Open(xLightsFrame::CurrentDir);
+        CreateBufferPresetsList(dir, false);
+    }
+
+    wxString d = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers";
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        CreateBufferPresetsList(dir, true);
+    }
+
+    if (ComboBoxBufferPresets->GetCount() != 0) {
+        ComboBoxBufferPresets->Clear();
+    }
+    ComboBoxBufferPresets->AppendString("(New)");
+    for (auto it = _loadedBufferPresets.begin(); it != _loadedBufferPresets.end(); ++it)
+    {
+        ComboBoxBufferPresets->AppendString(*it);
+    }
+
+    if (_loadedBufferPresets.size() == 0)
+    {
+        BitmapButtonDelete->Disable();
+        BitmapButtonSave->Disable();
+    }
+}
+
+void BufferSizeDialog::CreateBufferPresetsList(wxDir& directory, bool subdirs)
+{
+    wxString filename;
+    bool cont = directory.GetFirst(&filename, "*.xbuffer", wxDIR_FILES);
+
+    while (cont)
+    {
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        const wxString name = fn.GetName();
+        //const wxString name = fn.GetFullName().ToStdString();
+
+        if (!name.IsEmpty() && std::find(_loadedBufferPresets.begin(), _loadedBufferPresets.end(), name) == _loadedBufferPresets.end())
+        {
+            _loadedBufferPresets.push_back(name.ToStdString());
+        }
+
+        cont = directory.GetNext(&filename);
+    }
+}
+
+wxString BufferSizeDialog::FindBufferPreset(const wxString& name) const
+{
+    if (wxFile::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + name + ".xbuffer"))
+    {
+        return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + name + ".xbuffer";
+    }
+
+    if (wxFile::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer"))
+    {
+        return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer";
+    }
+
+    return "";
+}
+
+void BufferSizeDialog::OnBuffer_PresetsSelect(wxCommandEvent& event)
+{
+    long sel = event.GetInt();
+    wxString name = ComboBoxBufferPresets->GetString(sel);
+    //wxString name = event.GetString();
+    if (name == "(New)")
+    {
+        name = wxGetTextFromUser("What is the New Buffer Name?", "New Buffer Name");
+        if (name.IsEmpty())
+        {
+            BitmapButtonDelete->Disable();
+            return;
+        }
+
+        _loadedBufferPresets.push_back(name.ToStdString());
+        SaveBufferPreset(name);
+        LoadAllBufferPresets();
+
+        ComboBoxBufferPresets->SetStringSelection(name);
+        //return;
+    }
+    if (name.IsEmpty())
+        return;
+
+    BitmapButtonDelete->Enable();
+    BitmapButtonSave->Enable();
+
+    LoadBufferPreset(name);
+}
+
+void BufferSizeDialog::OnBufferChoiceDropDown(wxCommandEvent& WXUNUSED(event))
+{
+    if (_lastShowDir != xLightsFrame::CurrentDir)
+    {
+        _lastShowDir = xLightsFrame::CurrentDir;
+        LoadAllBufferPresets();
+        ValidateWindow();
     }
 }
