@@ -1037,6 +1037,11 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
+    if (selectedModel != "") {
+        logger_work.debug("    Selecting model '%s'.", (const char*)selectedModel.c_str());
+        //SelectModel(selectModel);
+        layoutPanel->SelectBaseObject(selectedModel);
+    }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
         logger_work.debug("    WORK_REDRAW_LAYOUTPREVIEW.");
         // repaint the layout panel
@@ -1049,11 +1054,6 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
-    if (selectedModel != "") {
-        logger_work.debug("    Selecting model '%s'.", (const char*)selectedModel.c_str());
-        //SelectModel(selectModel);
-        layoutPanel->SelectBaseObject(selectedModel);
-    }
     if (work & OutputModelManager::WORK_RELOAD_PROPERTYGRID) {
         logger_work.debug("    WORK_RELOAD_PROPERTYGRID.");
         // Reload the property grid either because a value changed and needs to be shown or optional properties should be added or removed
