@@ -238,6 +238,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
     }
     if ( !filename.empty() )
     {
+        if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains("xlights_keybindings.xml" )) {
+            wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
+            return;
+        }
+
         // close any open sequences
         if (!CloseSequence()) {
             return;
