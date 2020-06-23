@@ -1605,6 +1605,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         logger_base.debug("xLights Crash Menu item not removed.");
     }
 #endif
+    
+#ifdef MAC_APP_STORE
+    MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
+    MenuItem_Update = nullptr;
+#endif
 
     _valueCurvesPanel->UpdateValueCurveButtons(false);
     _coloursPanel->UpdateColourButtons(false, this);
@@ -1829,10 +1834,12 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
 
     // dont check for updates if batch rendering
+#ifndef MAC_APP_STORE
     if (!_renderMode)
     {
         CheckForUpdate(false);
     }
+#endif
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 }
 
@@ -8498,7 +8505,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxString hostname = _T("dankulp.com");
     wxString path = _T("/xLightsLatest.php");
     wxString downloadUrl = wxT("http://dankulp.com/xlights/");
-    MenuItem_Update->Enable(true);
+    if (MenuItem_Update) MenuItem_Update->Enable(true);
 #else
     wxString hostname = _T("xlights.org");
 
