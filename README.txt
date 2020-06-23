@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.26 June 23 2020
+   -- enh (scott)  Add drop down for accessing buffer presets
+   -- enh (scott)  Prevent users opening core xml files as sequences
+   -- bug (dkulp)  Fix crash in OSX hardware video decoding
+   -- bug (keith)  Try again to fix hangs relating to model list select dialog
 2020.25 June 21 2020
    -- enh (dkulp)  Add "Virtual Matrix" as FPP controller type
    -- enh (dkulp)  "Discover" will now discover FPP instances used as Virtual Matrix
