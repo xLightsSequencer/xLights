@@ -541,7 +541,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             m /= 1024; // ->mb
 
             DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                          " a very large amount of memory used (%lu MB).", numChan, m), 
+                                          " a very large amount of memory used (%lu MB).", numChan, (unsigned long)m), 
                          this);
         }
 
