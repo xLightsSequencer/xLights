@@ -1475,6 +1475,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     if (wxDir::Exists(mAltBackupDir))
     {
+        ObtainAccessToURL(mAltBackupDir);
         mAltBackupMenuItem->SetHelp(mAltBackupDir);
     }
     else
@@ -3918,6 +3919,7 @@ void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
     }
     else {
         if (wxDir::Exists(folder)) {
+            ObtainAccessToURL(folder);
             config->Write("LinkFlag", false);
             if (mediaDirectory == folder) return;
             mediaDirectory = folder;
@@ -3952,6 +3954,7 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
     }
     else {
         if (wxDir::Exists(folder)) {
+            ObtainAccessToURL(folder);
             config->Write("FSEQLinkFlag", false);
             if (fseqDirectory == folder) return;
             fseqDirectory = folder;
@@ -3984,6 +3987,7 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
     }
     else {
         if (wxDir::Exists(folder)) {
+            ObtainAccessToURL(folder);
             if (renderCacheDirectory == folder) return;
             renderCacheDirectory = folder;
         }
@@ -4015,6 +4019,7 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
     }
     else {
         if (wxDir::Exists(folder)) {
+            ObtainAccessToURL(folder);
             if (backupDirectory == folder) return;
             backupDirectory = folder;
         }
@@ -4049,6 +4054,7 @@ void xLightsFrame::SetAltBackupFolder(const std::string& folder)
     }
     else
     {
+        ObtainAccessToURL(folder);
         config->Write(_("xLightsAltBackupDir"), wxString(folder));
         mAltBackupDir = folder;
         logger_base.debug("Alt Backup directory set to : %s.", (const char*)mAltBackupDir.c_str());
@@ -4072,7 +4078,7 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     {
         return;
     }
-
+    ObtainAccessToURL(mAltBackupDir);
     SaveWorking();
 
     DoAltBackup();

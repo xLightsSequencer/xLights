@@ -17,6 +17,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../TimingPanel.h"
+#include "../osxMacUtils.h"
 
 //(*InternalHeaders(ShaderPanel)
 #include <wx/artprov.h>
@@ -138,7 +139,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     static wxString last = "";
 
     wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
-
+    ObtainAccessToURL(newf.ToStdString());
     // if shader name hasnt changed dont reset
     if (newf == last && (newf == "" || wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath())))
     {

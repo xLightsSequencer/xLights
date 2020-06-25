@@ -11,6 +11,7 @@
 #include "VideoPanel.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
+#include "../osxMacUtils.h"
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/artprov.h>
@@ -262,6 +263,7 @@ PANEL_EVENT_HANDLERS(VideoPanel)
 void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
     std::unique_lock<std::mutex> locker(lock);
     wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    ObtainAccessToURL(fn.GetFullPath().ToStdString());
     int i = videoTimeCache[fn.GetFullPath().ToStdString()];
     if (i > 0) {
         Slider_Video_Starttime->SetMax(i);

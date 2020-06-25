@@ -30,6 +30,7 @@
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include "../osxMacUtils.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -201,6 +202,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER"))
         {
             wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
+            ObtainAccessToURL(ctrl->GetFileName().GetFullPath());
             s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
         }
         else if (ChildName.StartsWith("ID_FONTPICKER"))

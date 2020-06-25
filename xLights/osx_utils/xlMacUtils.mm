@@ -17,13 +17,71 @@
 
 
 #include <list>
+#include <set>
+#include <mutex>
 
 
 #include <CoreAudio/CoreAudio.h>
 #include <CoreServices/CoreServices.h>
 
+
+static std::set<std::string> ACCESSIBLE_URLS;
+static std::mutex URL_LOCK;
+
+
+static void LoadGroupEntries(wxConfig *config, const wxString &grp) {
+    wxString ent;
+    long index = 0;
+    bool cont = config->GetFirstEntry(ent, index);
+    while (cont) {
+        wxString f = grp + ent;
+        if (wxFileExists(f) || wxDirExists(f)) {
+            wxString data = config->Read(ent);
+            NSString* dstr = [NSString stringWithCString:data.c_str()
+                                                    encoding:[NSString defaultCStringEncoding]];
+            NSData *nsdata = [[NSData alloc] initWithBase64EncodedString:dstr options:0];
+            BOOL isStale = false;
+            //options:(NSURLBookmarkResolutionOptions)options
+            //relativeToURL:(NSURL *)relativeURL
+            NSError *error;
+            NSURL *fileURL = [NSURL URLByResolvingBookmarkData:nsdata
+                                                     options:NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithSecurityScope
+                                                     relativeToURL:nil
+                                                     bookmarkDataIsStale:&isStale
+                                                     error:&error];
+            [fileURL startAccessingSecurityScopedResource];
+            [nsdata release];
+            ACCESSIBLE_URLS.insert(f);
+        }
+        cont = config->GetNextEntry(ent, index);
+    }
+    index = 0;
+    ent = "";
+    cont = config->GetFirstGroup(ent, index);
+    while (cont) {
+        wxString p = config->GetPath();
+        config->SetPath(ent + "/");
+        LoadGroupEntries(config, p + "/" + ent + "/");
+        config->SetPath(p);
+        cont = config->GetNextGroup(ent, index);
+    }
+}
+
+
 void ObtainAccessToURL(const std::string &path) {
     if ("" == path) {
+        return;
+    }
+    
+    std::unique_lock<std::mutex> lock(URL_LOCK);
+    if (ACCESSIBLE_URLS.empty()) {
+        wxConfig *config = new wxConfig("xLights-Bookmarks");
+        LoadGroupEntries(config, "/");
+    }
+    if (ACCESSIBLE_URLS.find(path) != ACCESSIBLE_URLS.end()) {
+        return;
+    }
+    if (!wxFileExists(path) && !wxDirExists(path)) {
         return;
     }
     std::string pathurl = path;
@@ -44,6 +102,7 @@ void ObtainAccessToURL(const std::string &path) {
         if (cstr != nullptr && *cstr) {
             data = cstr;
             config->Write(pathurl, data);
+            ACCESSIBLE_URLS.insert(pathurl);
         }
     }
     

@@ -25,13 +25,13 @@ fi
 
 # if using a development team, sign the release build, otherwise, just regular build
 if [ "${DEVELOPMENT_TEAM}x" == "x" ]; then
-    xcodebuild -alltargets -jobs=10
+    xcodebuild -alltargets
 else
-    xcodebuild -target xLights -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
+    xcodebuild -target xLights CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
     if [[ $? != 0 ]]; then
        exit 1
     fi
-    xcodebuild -alltargets -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
+    xcodebuild -alltargets CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
     if [[ $? == 0 ]]; then
         ALLTARGETS=1
     else

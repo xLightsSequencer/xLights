@@ -307,6 +307,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
     backupDirectory = GetXmlSetting("backupDir", showDirectory);
+    ObtainAccessToURL(renderCacheDirectory);
     ObtainAccessToURL(fseqDirectory);
     ObtainAccessToURL(backupDirectory);
     if (!wxDir::Exists(fseqDirectory))
@@ -1091,8 +1092,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
-    if (fseqDirectory != showDirectory)
-    {
+    if (fseqDirectory != showDirectory) {
+        ObtainAccessToURL(fseqDirectory);
         wxFileName fn(xlightsFilename);
         fn.SetPath(fseqDirectory);
         xlightsFilename = fn.GetFullPath();
@@ -1194,8 +1195,8 @@ void xLightsFrame::SaveSequence()
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
 	// Only Change FSEQ save folder if the FSEQ Folder Setting is NOT the Show Dir
-    if (fseqDirectory != showDirectory)
-    {
+    if (fseqDirectory != showDirectory) {
+        ObtainAccessToURL(fseqDirectory);
         wxFileName fn(xlightsFilename);
         fn.SetPath(fseqDirectory);
         xlightsFilename = fn.GetFullPath();

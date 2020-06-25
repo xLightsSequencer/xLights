@@ -319,6 +319,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
 		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
 		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+            ObtainAccessToURL(fseqDirectory);
 			fseq_file.SetPath(fseqDirectory);
 			if (!fseq_file.FileExists()) {
 				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
