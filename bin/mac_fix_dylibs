@@ -2,10 +2,22 @@
 
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
+if [ -f "${SCRIPTDIR}/../xLights/xlights_build_version.h" ]; then
+    XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xlights_build_version.h | tr "\"" "\n" | grep 20)
+else
+    XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
+fi
+
+SHORTVER="${XLVERSION//./0}"
+SHORTVERPFX=${SHORTVER:2:5}
+SHORTVERPO=${SHORTVER:8}
+
+if [ "x${SHORTVERPO}" == "x" ]; then
+    SHORTVERPO="0"
+fi
+SHORTVER="${SHORTVERPFX}${SHORTVERPO}"
+
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $XLVERSION" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
-SHORTVER="${XLVERSION//./0}0"
-SHORTVER=${SHORTVER:2}
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SHORTVER" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
 

@@ -26,6 +26,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -563,7 +564,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     }
     wxString fileName = fileNames[0];
     logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
-    
+    ObtainAccessToURL(fileName);
     
     wxString showDir = wxPathOnly(fileName);
     while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
@@ -572,6 +573,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         if (showDir == old) showDir = "";
     }
     if (showDir != "" && showDir != __frame->showDirectory) {
+        ObtainAccessToURL(showDir);
         __frame->SetDir(showDir, false);
     }
     if (__frame) {

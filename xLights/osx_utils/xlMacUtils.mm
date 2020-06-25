@@ -77,13 +77,31 @@ void ObtainAccessToURL(const std::string &path) {
     if (ACCESSIBLE_URLS.empty()) {
         wxConfig *config = new wxConfig("xLights-Bookmarks");
         LoadGroupEntries(config, "/");
+        delete config;
     }
     if (ACCESSIBLE_URLS.find(path) != ACCESSIBLE_URLS.end()) {
         return;
     }
-    if (!wxFileExists(path) && !wxDirExists(path)) {
+    if (!wxFileName::Exists(path)) {
         return;
     }
+    wxFileName fn(path);
+    if (!fn.IsDir()) {
+        wxFileName parent(fn.GetPath());
+        wxString ps = parent.GetPath();
+        while (ps != "" && ps != "/" && ACCESSIBLE_URLS.find(ps) == ACCESSIBLE_URLS.end()) {
+            parent.RemoveLastDir();
+            ps = parent.GetPath();
+        }
+        
+        if (ACCESSIBLE_URLS.find(ps) != ACCESSIBLE_URLS.end()) {
+            // file is in a directory we already have access to, don't need to record it
+            printf("Using dir %s for %s\n", (const char *)ps.c_str(), (const char *)path.c_str());
+            ACCESSIBLE_URLS.insert(path);
+            return;
+        }
+    }
+    
     std::string pathurl = path;
     wxConfig *config = new wxConfig("xLights-Bookmarks");
     wxString data = config->Read(pathurl);

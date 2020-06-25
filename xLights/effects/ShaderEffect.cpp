@@ -1299,10 +1299,10 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     }
 #endif
 
+    wxUniChar ch133(133);
     wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
     for (int x = 0; x < shaderCode.size(); x++) {
-        char ch = shaderCode[x];
-        if (ch == (char)133) {
+        if (shaderCode[x] == ch133) {
             shaderCode[x] = '.';
         }
     }

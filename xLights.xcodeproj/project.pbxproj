@@ -1955,10 +1955,6 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
-				67C33C3522A7EA05001F9944 /* ShaderEffect.cpp */,
-				67C33C3422A7EA05001F9944 /* ShaderEffect.h */,
-				67C33C3622A7EA05001F9944 /* ShaderPanel.cpp */,
-				67C33C3322A7EA04001F9944 /* ShaderPanel.h */,
 				6761F5EA1C4EA032009780DA /* Assist */,
 				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
 				679BD33F1C375D9F000539FE /* BarsEffect.h */,
@@ -2096,6 +2092,10 @@
 				671130AA1E4EB13B00AF09A7 /* ServoEffect.h */,
 				671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */,
 				671130AC1E4EB13B00AF09A7 /* ServoPanel.h */,
+				67C33C3522A7EA05001F9944 /* ShaderEffect.cpp */,
+				67C33C3422A7EA05001F9944 /* ShaderEffect.h */,
+				67C33C3622A7EA05001F9944 /* ShaderPanel.cpp */,
+				67C33C3322A7EA04001F9944 /* ShaderPanel.h */,
 				67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */,
 				67FB9D191F4D21EB00983072 /* ShapeEffect.h */,
 				67FB9D181F4D21EB00983072 /* ShapePanel.cpp */,
