@@ -342,4 +342,6 @@ void PicturesPanel::ValidateWindow()
     enable = GIFImage::IsGIF(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
     CheckBox_LoopGIF->Enable(enable);
     CheckBox_SuppressGIFBackground->Enable(enable);
+
+    FilePickerCtrl1->SetToolTip(wxFileName(FilePickerCtrl1->GetFileName()).GetFullName());
 }

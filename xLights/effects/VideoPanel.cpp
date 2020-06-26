@@ -272,6 +272,7 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(1);
         TextCtrl2->SetValue(FORMATTIME(0));
     }
+    FilePicker_Video_Filename->SetToolTip(fn.GetFullName());
 }
 
 void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
