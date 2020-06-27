@@ -982,8 +982,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                     while (start < Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
-                            it2.bufX = it2.bufX * (modBufferWi / x) + modelX;
-                            it2.bufY = it2.bufY * (BufferHt / y);
+                            it2.bufX = (double)it2.bufX * ((double)modBufferWi / (double)x) + (double)modelX;
+                            it2.bufY = (double)it2.bufY * ((double)BufferHt / (double)y);
                         }
                         start++;
                     }
@@ -1012,8 +1012,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                     while (start < Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
-                            it2.bufX = it2.bufX * (BufferWi / x);
-                            it2.bufY = it2.bufY * (modBufferHt / y) + modelY;
+                            it2.bufX = (double)it2.bufX * ((double)BufferWi / (double)x);
+                            it2.bufY = (double)it2.bufY * ((double)modBufferHt / (double)y) + (double)modelY;
                         }
                         start++;
                     }
@@ -1194,8 +1194,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     while (start < Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
                             if (scale) {
-                                it2.bufX = it2.bufX * (BufferWi/bw);
-                                it2.bufY = it2.bufY * (BufferHt/bh);
+                                it2.bufX = (double)it2.bufX * ((double)BufferWi/ (double)bw);
+                                it2.bufY = (double)it2.bufY * ((double)BufferHt/ (double)bh);
                             } else {
                                 it2.bufX += offx;
                                 it2.bufY += offy;
