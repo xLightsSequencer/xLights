@@ -901,36 +901,17 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
+static const std::string EMPTY_STRING("");
+
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     double res = def;
-
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    //bool slider = false;
-    if (SettingsMap.Contains(sn))
-    {
-        res = SettingsMap.GetDouble(sn, def);
-        //slider = true;
-    }
-    else if (SettingsMap.Contains(tn))
-    {
-        res = SettingsMap.GetDouble(tn, def);
-    }
-
-    wxString vn = "VALUECURVE_" + name;
-
-    wxString vc = SettingsMap.Get(vn, "");
-
-    // Temporary logging to try to find why we get a shader crash here
-    xLightsApp::GetFrame()->AddTraceMessage("RenderableEffect::GetValueCurveDouble '" + name + "' '" + vn + "' '" + vc + "'");
-
-    if (vc != "")
-    {
-        bool needsUpgrade = !vc.Contains("RV=TRUE");
-        ValueCurve valc(vc.ToStdString());
-        if (valc.IsActive())
-        {
+    const std::string vn = "VALUECURVE_" + name;
+    const std::string &vc = SettingsMap.Get(vn, EMPTY_STRING);
+    if (vc != EMPTY_STRING) {
+        ValueCurve valc(vc);
+        if (valc.IsActive()) {
+            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
 
@@ -944,45 +925,36 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
                 res = valc.GetOutputValueAtDivided(offset, startMS, endMS);
             //}
 
-            if (needsUpgrade)
-            {
+            if (needsUpgrade) {
                 SettingsMap[vn] = valc.Serialise();
             }
+            return res;
         }
     }
-
+    
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    if (SettingsMap.Contains(sn)) {
+        res = SettingsMap.GetDouble(sn, def);
+    } else if (SettingsMap.Contains(tn)) {
+        res = SettingsMap.GetDouble(tn, def);
+    }
     return res;
 }
 
 int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     int res = def;
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    //bool slider = false;
-    if (SettingsMap.Contains(sn))
-    {
-        res = SettingsMap.GetInt(sn, def);
-        //slider = true;
-    }
-    else if (SettingsMap.Contains(tn))
-    {
-        res = SettingsMap.GetInt(tn, def);
-    }
-
     const std::string vn = "VALUECURVE_" + name;
-    if (SettingsMap.Contains(vn))
-    {
-        wxString vc = SettingsMap.Get(vn, "");
-
-        bool needsUpgrade = !vc.Contains("RV=TRUE");
+    if (SettingsMap.Contains(vn)) {
+        const std::string &vc = SettingsMap.Get(vn, EMPTY_STRING);
 
         ValueCurve valc;
         valc.SetDivisor(divisor);
         valc.SetLimits(min, max);
-        valc.Deserialise(vc.ToStdString());
-        if (valc.IsActive())
-        {
+        valc.Deserialise(vc);
+        if (valc.IsActive()) {
+            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
             // If we ask for an int then we seem to want it undivided
             //if (!slider)
             //{
@@ -993,16 +965,24 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
             //    res = valc.GetOutputValueAtDivided(offset);
             //}
 
-            if (needsUpgrade)
-            {
+            if (needsUpgrade) {
                 // this updates the settings map ... but not the actual settings on the effect ... 
                 // this is a problem as the error will keep occuring next time the sequence is loaded.
                 // To fix it the user needs to click on the offending effect and save and it will go away
                 SettingsMap[vn] = valc.Serialise();
             }
+            return res;
         }
     }
-
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    //bool slider = false;
+    if (SettingsMap.Contains(sn)) {
+        res = SettingsMap.GetInt(sn, def);
+        //slider = true;
+    } else if (SettingsMap.Contains(tn)) {
+        res = SettingsMap.GetInt(tn, def);
+    }
     return res;
 }
 

@@ -96,7 +96,7 @@ class ValueCurve
     static AudioManager* __audioManager;
 
     void RenderType();
-    void SetSerialisedValue(std::string k, std::string s);
+    void SetSerialisedValue(const std::string &k, const std::string &s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
     void ConvertToRealValues(float oldmin, float oldmax);
