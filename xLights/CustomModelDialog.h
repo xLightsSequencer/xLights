@@ -103,6 +103,10 @@ class CustomModelDialog: public wxDialog
 	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS;
 	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS;
 	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS;
+	static const long CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT;
+	static const long CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT;
+	static const long CUSTOMMODELDLGMNU_WIREVERTICALTOP;
+	static const long CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM;
 
     public:
 
@@ -248,6 +252,8 @@ class CustomModelDialog: public wxDialog
         CopyPasteGrid* GetLayerGrid(int layer) const;
         void CopyLayer(bool forward, int layers);
 		void DeleteCells();
+		void WireSelectedHorizontal(long const id);
+		void WireSelectedVertical(long const id);
 
 		DECLARE_EVENT_TABLE()
 };

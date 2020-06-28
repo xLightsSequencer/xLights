@@ -101,6 +101,10 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS = wxNe
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALTOP = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
@@ -1945,6 +1949,16 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         CreateMinimalSubmodelFromLayer(Notebook1->GetSelection() + 1);        
     }
+    else if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT ||
+            id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
+    {
+        WireSelectedHorizontal(id);
+    }
+    else if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP ||
+            id == CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM)
+    {
+        WireSelectedVertical(id);
+    }
 }
 
 void CustomModelDialog::CreateSubmodelFromLayer(int layer)
@@ -2492,6 +2506,23 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWDALL, "Copy Layer Backward All");
     m->Enable(Notebook1->GetSelection() != 0);
 
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0)
+    {
+        wxMenu* sub = new wxMenu();
+        wxMenu* horz = new wxMenu();
+        horz->Append(CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT, "Left -> Right");
+        horz->Append(CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT, "Right -> Left");
+        sub->AppendSubMenu(horz, "Horizontial");
+        wxMenu* vert = new wxMenu();
+        vert->Append(CUSTOMMODELDLGMNU_WIREVERTICALTOP, "Top -> Bottom");
+        vert->Append(CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM, "Bottom -> Top");
+        sub->AppendSubMenu(vert, "Vertical");
+        mnu.AppendSeparator();
+        mnu.AppendSubMenu(sub, "Number Selected");
+
+        wxMenu* horiz = new wxMenu();
+    }
+    
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -2647,6 +2678,78 @@ void CustomModelDialog::DeleteCells()
             if (grid->IsInSelection(i, k)) {
                 _changed = true;
                 grid->SetCellValue(i, k, wxEmptyString);
+            }
+        }
+    }
+    UpdatePreview();
+}
+void CustomModelDialog::WireSelectedHorizontal(long const id)
+{
+    auto grid = GetActiveGrid();
+
+    bool right = true;
+    if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
+    {
+        right = false;
+    }
+
+    for (int i = grid->GetNumberRows(); i >= 0; i--) {
+        if (right) {
+            for (int k = 0; k < grid->GetNumberCols(); k++) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    right = false;
+                }
+            }
+        }
+        else {
+            for (int k = grid->GetNumberCols(); k >= 0; k--) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    right = true;
+                }
+            }
+        }
+    }
+    UpdatePreview();
+}
+
+void CustomModelDialog::WireSelectedVertical(long const id)
+{
+    auto grid = GetActiveGrid();
+
+    bool up = true;
+    if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP)
+    {
+        up = false;
+    }
+    for (int k = 0; k < grid->GetNumberCols(); k++) {
+        if (up) {
+            for (int i = grid->GetNumberRows(); i >= 0; i--) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    up = false;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < grid->GetNumberRows(); i++) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    up = true;
+                }
             }
         }
     }
