@@ -1453,6 +1453,10 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
     if (model_info != nullptr) {
         if (x != 0 || y != 0) return;  //Only render colors for the first pixel
 
+        if (pixels.size() == 1) { //pixel size equals 1 when putting "on" effect at node level
+            pixels[0] = color;
+            return;
+        }
         xlColor c;
         DmxModel* dmx = (DmxModel*)model_info;
         if (dmx->HasColorAbility()) {

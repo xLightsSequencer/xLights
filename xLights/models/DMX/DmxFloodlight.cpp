@@ -285,8 +285,6 @@ void DmxFloodlight::ExportXlightsModel()
     wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
 
-    wxString v = xlights_version_string;
-
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
     f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));

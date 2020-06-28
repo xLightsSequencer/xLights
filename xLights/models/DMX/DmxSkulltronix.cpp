@@ -999,8 +999,6 @@ void DmxSkulltronix::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    f.Write(wxString::Format("name=\"%s\" ", name));
-
     ExportBaseParameters(f);
 
     wxString pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "180");
@@ -1037,9 +1035,6 @@ void DmxSkulltronix::ExportXlightsModel()
     wxString elml = ModelXml->GetAttribute("DmxEyeLRMinLimit", "499");
     wxString elrmxl = ModelXml->GetAttribute("DmxEyeLRMaxLimit", "878");
 
-    wxString v = xlights_version_string;
-
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));
     f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
     f.Write(wxString::Format("DmxStyle=\"%s\" ", s));

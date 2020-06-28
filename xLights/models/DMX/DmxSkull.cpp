@@ -950,8 +950,6 @@ void DmxSkull::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    f.Write(wxString::Format("name=\"%s\" ", name));
-
     ExportBaseParameters(f);
 
     wxString po = ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN]));
@@ -974,9 +972,6 @@ void DmxSkull::ExportXlightsModel()
     wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel", "23");
     wxString bits = ModelXml->GetAttribute("Bits16");
 
-    wxString v = xlights_version_string;
-
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
     f.Write(wxString::Format("DmxNodOrient=\"%s\" ", no));
