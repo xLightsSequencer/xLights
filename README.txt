@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)  Added DMX Skull Model Node Level Support for "On" Effect
    -- bug (scott)  Fixed DMX Skull Model Export
    -- bug (scott)  Better Scaling for "Scaled" Render Buffers
+   -- bug (scott)  Fixed offset in PinWheel CW mode causing two arms
 2020.26 June 23 2020
    -- enh (scott)  Add drop down for accessing buffer presets
    -- enh (scott)  Prevent users opening core xml files as sequences

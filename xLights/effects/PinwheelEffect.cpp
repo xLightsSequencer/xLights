@@ -145,7 +145,7 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
                 angle = (270 - angle) + pos + poffset;
             }
             else {
-                angle = angle - 90 - pos + poffset;
+                angle = angle - 90 - pos - poffset;
             }
 
             if (max_radius != 0)
