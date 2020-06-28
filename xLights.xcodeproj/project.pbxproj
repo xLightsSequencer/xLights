@@ -1445,6 +1445,7 @@
 		67CE7B512111E02D004005BC /* RenderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderCache.h; sourceTree = "<group>"; };
 		67CF20CD1C3D8D71000FCDF7 /* RenderBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBuffer.h; sourceTree = "<group>"; };
 		67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBuffer.cpp; sourceTree = "<group>"; };
+		67CFCBFA24A937770099A1C8 /* xLightsDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xLightsDebug.entitlements; sourceTree = "<group>"; };
 		67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDimmingCurveDialog.h; sourceTree = "<group>"; };
 		67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDimmingCurveDialog.cpp; sourceTree = "<group>"; };
 		67D11C761BEA691900000A7F /* DimmingCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DimmingCurve.h; sourceTree = "<group>"; };
@@ -2453,6 +2454,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67CFCBFA24A937770099A1C8 /* xLightsDebug.entitlements */,
 				67F5E4BE24A0EE3A00DE0FF0 /* xLightsArchive.entitlements */,
 				67F8A28F24788E92004EC222 /* md5.cpp */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
@@ -3805,11 +3807,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xLights/xLightsDebug.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 200260;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";

@@ -29,11 +29,13 @@ static std::set<std::string> ACCESSIBLE_URLS;
 static std::mutex URL_LOCK;
 
 
-static void LoadGroupEntries(wxConfig *config, const wxString &grp) {
+static void LoadGroupEntries(wxConfig *config, const wxString &grp, std::list<std::string> &removes, std::list<std::string> &grpRemoves) {
     wxString ent;
     long index = 0;
     bool cont = config->GetFirstEntry(ent, index);
+    bool hasItem = false;
     while (cont) {
+        hasItem = true;
         wxString f = grp + ent;
         if (wxFileExists(f) || wxDirExists(f)) {
             wxString data = config->Read(ent);
@@ -49,9 +51,15 @@ static void LoadGroupEntries(wxConfig *config, const wxString &grp) {
                                                      relativeToURL:nil
                                                      bookmarkDataIsStale:&isStale
                                                      error:&error];
-            [fileURL startAccessingSecurityScopedResource];
+            bool ok = [fileURL startAccessingSecurityScopedResource];
             [nsdata release];
-            ACCESSIBLE_URLS.insert(f);
+            if (ok) {
+                ACCESSIBLE_URLS.insert(f);
+            } else {
+                removes.push_back(f);
+            }
+        } else {
+            removes.push_back(f);
         }
         cont = config->GetNextEntry(ent, index);
     }
@@ -59,11 +67,15 @@ static void LoadGroupEntries(wxConfig *config, const wxString &grp) {
     ent = "";
     cont = config->GetFirstGroup(ent, index);
     while (cont) {
+        hasItem = true;
         wxString p = config->GetPath();
         config->SetPath(ent + "/");
-        LoadGroupEntries(config, p + "/" + ent + "/");
+        LoadGroupEntries(config, p + "/" + ent + "/", removes, grpRemoves);
         config->SetPath(p);
         cont = config->GetNextGroup(ent, index);
+    }
+    if (!hasItem) {
+        grpRemoves.push_back(grp);
     }
 }
 
@@ -75,8 +87,19 @@ void ObtainAccessToURL(const std::string &path) {
     
     std::unique_lock<std::mutex> lock(URL_LOCK);
     if (ACCESSIBLE_URLS.empty()) {
+        std::list<std::string> removes;
+        std::list<std::string> grpRemoves;
         wxConfig *config = new wxConfig("xLights-Bookmarks");
-        LoadGroupEntries(config, "/");
+        LoadGroupEntries(config, "/", removes, grpRemoves);
+        if (!removes.empty() || !grpRemoves.empty()) {
+            for (auto &a : removes) {
+                config->DeleteEntry(a, true);
+            }
+            for (auto &a : grpRemoves) {
+                config->DeleteGroup(a);
+            }
+            config->Flush();
+        }
         delete config;
     }
     if (ACCESSIBLE_URLS.find(path) != ACCESSIBLE_URLS.end()) {
