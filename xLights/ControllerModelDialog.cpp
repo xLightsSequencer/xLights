@@ -24,6 +24,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/numdlg.h>
 #include <wx/artprov.h>
+#include <wx/config.h>
 
 #include "ControllerModelDialog.h"
 #include "xLightsMain.h"
@@ -848,6 +849,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         logger_base.crit("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
     }
 
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+        CheckBox_HideOtherControllerModels->SetValue(config->ReadBool("ControllerModelHideOtherControllerModels", false));
+
     _autoLayout = _controller->IsAutoLayout();
 
     _title = controller->GetLongDescription();
@@ -873,6 +878,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     }
     else
     {
+        CheckBox_HideOtherControllerModels->SetValue(false);
         CheckBox_HideOtherControllerModels->Enable(false);
     }
 
@@ -2118,5 +2124,7 @@ PortCMObject* ControllerModelDialog::GetControllerPortAtLocation(wxPoint mouse) 
 
 void ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event)
 {
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("ControllerModelHideOtherControllerModels", CheckBox_HideOtherControllerModels->IsChecked());
     ReloadModels();
 }
