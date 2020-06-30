@@ -2879,10 +2879,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     }
     */
 
-    parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
-        if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
+    std::vector<NodeBaseClassPtr> &Nodes = layers[saveLayer]->buffer.Nodes;
+    parallel_for(0, NodeCount, [this, &Nodes, &validLayers, EffectPeriod] (int i) {
+        if (!Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
-            layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
+            Nodes[i]->SetColor(xlBLACK);
         } else {
             // get blend of two effects
             xlColor color;
@@ -2891,7 +2892,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                           validLayers, EffectPeriod);
 
             // set color for physical output
-            layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
+            Nodes[i]->SetColor(color);
         }
     }, blockSize);
 }

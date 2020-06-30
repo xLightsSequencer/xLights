@@ -1210,9 +1210,10 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size())
     {
-        color = pixels[y*BufferWi + x];
+        color = pixels[pidx];
     }
     else
     {
@@ -1221,17 +1222,18 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 }
 
 const xlColor& RenderBuffer::GetPixel(int x, int y) const {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < pixels.size()) {
-        return pixels[y * BufferWi + x];
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size()) {
+        return pixels[pidx];
     }
     return xlBLACK;
 }
 
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
-
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
-        tempbuf[y * BufferWi + x] = color;
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < tempbuf.size()) {
+        tempbuf[pidx] = color;
     }
 }
 

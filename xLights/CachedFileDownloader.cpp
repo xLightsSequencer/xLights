@@ -80,15 +80,21 @@ std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceTyp
     if (forceType != "") type = forceType;
     wxString fn = wxFileName::CreateTempFileName("xl");
     wxRemoveFile(fn);
-    wxString filename = fn.BeforeLast('.') + "." + type;
+    
+    int pidx = fn.Last('.');
+    int sidx = fn.Last('/');
+    wxString filename;
+    if (pidx > sidx) {  //name like /tmp/foo.x1
+        filename = fn.BeforeLast('.') + "." + type;
+    } else { //name like /var/tmp/org.xlights/x1foo
+        filename = fn + "." + type;
+    }
     filename.Replace(",", "");
-    if (fn.BeforeLast('.') == "")
-    {
+    if (fn.BeforeLast('.') == "") {
         filename = fn + "." + type;
     }
 
-    if (DownloadURL(url, filename, prog, low, high))
-    {
+    if (DownloadURL(url, filename, prog, low, high)) {
         return filename.ToStdString();
     }
 

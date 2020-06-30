@@ -135,7 +135,7 @@ public:
         return chanCnt;
     }
     bool IsVisible() const {
-        return Coords.size() > 0;
+        return !Coords.empty();
     }
 
     void SetName(const std::string &n) {

@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- change(dkulp) OSX builds are now all "Sandboxed" applications.  This REQUIRES users to
+                    go into preferences and reset all their preferences, select storage directories,
+                    redownload shader/model caches, etc...
+                    Expect some instability until the sandbox restrictions can all be found and
+                    resolved.
    -- enh (scott)  Added Right Click "Auto" Wiring Options to Custom Model Dialog
    -- enh (scott)  Added DMX Skull Model Node Level Support for "On" Effect
    -- bug (scott)  Fixed DMX Skull Model Export
