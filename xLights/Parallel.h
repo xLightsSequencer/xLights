@@ -25,6 +25,10 @@ public:
     static ParallelJobPool POOL;
     
     int calcSteps(int minStep, int size);
+    
+    
+    std::mutex poolLock;
+    std::condition_variable poolSignal;
 };
 
 

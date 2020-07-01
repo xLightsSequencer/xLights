@@ -339,44 +339,42 @@ public:
         }
     }
 
-    void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false) {
-        statusType = 4;
+    void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
+        statusType = includeStatusMap ? 8 : 4;
         statusMsg = msg;
         statusFrame = frame;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
-    void SetGenericStatus(const char *msg, int frame, bool debugLog = false) {
-        statusType = 6;
+    void SetGenericStatus(const char *msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
+        statusType = includeStatusMap ? 10 : 6;
         statusMsgChars = msg;
         statusFrame = frame;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetGenericStatus(const wxString &msg, int frame, int layer, bool debugLog = false) {
-        statusType = 5;
+    void SetGenericStatus(const wxString &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
+        statusType = includeStatusMap ? 9 : 5;
         statusMsg = msg;
         statusFrame = frame;
         statusLayer = layer;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
-    void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false) {
-        statusType = 7;
+    void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
+        statusType = includeStatusMap ? 11 : 7;
         statusMsgChars = msg;
         statusFrame = frame;
         statusLayer = layer;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
-    wxString PctSafe(const wxString& s)
-    {
+    wxString PctSafe(const wxString& s) {
         wxString res(s);
         res.Replace("%", "%%");
         return res;
     }
 
-    wxString PrintStatusMap()
-    {
+    wxString PrintStatusMap() {
         if (statusMap == nullptr) return "";
         return PctSafe(statusMap->AsString());
     }
@@ -416,7 +414,7 @@ public:
 
     void SetStatus(const char *st, bool debugLog = false) {
         statusMsgChars = st;
-        statusType = 8;
+        statusType = 12;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
@@ -474,7 +472,17 @@ public:
         case 7:
             return wxString::Format(statusMsgChars, name, statusFrame, statusLayer);
         case 8:
+            return wxString::Format(statusMsg, name, statusFrame) + PrintStatusMap();
+        case 9:
+            return wxString::Format(statusMsg, name, statusFrame, statusLayer) + PrintStatusMap();
+        case 10:
+            return wxString::Format(statusMsgChars, name, statusFrame) + PrintStatusMap();
+        case 11:
+            return wxString::Format(statusMsgChars, name, statusFrame, statusLayer) + PrintStatusMap();
+        case 12:
             return statusMsgChars;
+                
+                
         }
         return statusMsg;
     }
@@ -602,6 +610,7 @@ public:
                     std::vector<bool> done;
                     done.resize(rb.pixels.size());
                     rb.CopyNodeColorsToPixels(done);
+                    
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         for (int x = 0; x < rb.BufferWi; x++) {
@@ -695,21 +704,18 @@ public:
         try {
             //for (int layer = 0; layer < numLayers; ++layer) {
             for (int layer = numLayers - 1; layer >= 0; --layer) {
-                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
-                SetStatus(msg);
-                
+                SetGenericStatus("Finding starting effect for %s, startFrame %d, and layer %d ", (int)startFrame, layer, false, true);
                 EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
                 std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
-                SetStatus(msg);
+                SetGenericStatus("Initializing starting effect for %s, startFrame %d, and layer %d ", startFrame, layer, false, true);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
             }
 
             for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
-                SetGenericStatus("%s: Starting frame %d " + PrintStatusMap(), frame, true);
+                SetGenericStatus("%s: Starting frame %d ", frame, true, true);
 
                 if (abort) {
                     break;
@@ -791,7 +797,7 @@ public:
                     FrameDone(frame);
                 }
             }
-            SetGenericStatus("%s: All done - Completed frame %d " + PrintStatusMap(), endFrame, true);
+            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, true);
         } catch ( std::exception &ex) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());

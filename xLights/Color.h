@@ -210,7 +210,10 @@ public:
     void AlphaBlendForgroundOnto(const xlColor &fc) {
         if (fc.alpha == 0) return;
         if (fc.alpha == 255) {
-            *this = fc;
+            red = fc.red;
+            blue = fc.blue;
+            green = fc.green;
+            alpha = 255;
             return;
         }
         float a = fc.alpha;

@@ -42,33 +42,40 @@ ParallelJobPool ParallelJobPool::POOL;
 class ParallelJob : public Job {
     int max;
     std::function<void(int)>& func;
-    int &doneCount;
+    std::atomic_int &doneCount;
     std::atomic_int &iteration;
-    std::condition_variable &signal;
-    std::mutex &mutex;
     const int calcSteps;
+    const int blockSize;
 public:
     ParallelJob(int m, std::function<void(int)>& f,
-                int &dc,
+                std::atomic_int &dc,
                 std::atomic_int &it,
-                std::condition_variable &sig,
-                std::mutex &mut,
-                int cs)
-        : max(m), func(f), iteration(it), doneCount(dc), signal(sig), mutex(mut), calcSteps(cs) {}
+                int cs,
+                int bs)
+        : max(m), func(f), iteration(it), doneCount(dc), calcSteps(cs), blockSize(bs) {}
     virtual ~ParallelJob() {};
     virtual void Process() override {
         try {
             int x;
-            while ((x = iteration.fetch_add(1)) < max) {
-                func(x);
+            if (blockSize > 1) {
+                while ((x = iteration.fetch_add(blockSize, std::memory_order_relaxed)) < max) {
+                    int newM = std::min(x + blockSize, max);
+                    while (x < newM) {
+                        func(x);
+                        x++;
+                    }
+                }
+            } else {
+                while ((x = iteration.fetch_add(1, std::memory_order_relaxed)) < max) {
+                    func(x);
+                }
             }
         } catch (...) {
             //nothing
         }
-        std::unique_lock<std::mutex> lock(mutex);
-        doneCount++;
-        if (doneCount >= calcSteps) {
-            signal.notify_all();
+        int newDoneCount = ++doneCount;
+        if (newDoneCount >= calcSteps) {
+            ParallelJobPool::POOL.poolSignal.notify_all();
         }
     };
     virtual bool DeleteWhenComplete() override { return true; };
@@ -83,17 +90,20 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         }
     } else {
         std::function<void(int)> f(func);
-        int doneCount = 0;
+        std::atomic_int doneCount = 0;
         std::atomic_int iteration(min);
-        std::condition_variable signal;
-        std::mutex mut;
+        
+        // do about 5% at a time, reduces contention on the atomic_int yet keeps unit of
+        // work small enough to allow work stealing for faster cores/threads
+        int blockSize = (max - min) / (calcSteps * 20);
+        if (blockSize < 1) blockSize = 1;
         for (int x = 0; x < calcSteps-1; x++) {
-            ParallelJobPool::POOL.PushJob(new ParallelJob(max, f, doneCount, iteration, signal, mut, calcSteps));
+            ParallelJobPool::POOL.PushJob(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize));
         }
-        ParallelJob(max, f, doneCount, iteration, signal, mut, calcSteps).Process();
-        std::unique_lock<std::mutex> lock(mut);
+        ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize).Process();
+        std::unique_lock<std::mutex> lock(ParallelJobPool::POOL.poolLock);
         while (doneCount < calcSteps) {
-            signal.wait_for(lock, std::chrono::nanoseconds(1000000));
+            ParallelJobPool::POOL.poolSignal.wait_for(lock, std::chrono::nanoseconds(1000000));
         }
     }
 }

@@ -216,6 +216,17 @@ private:
         bool isMasked(int x, int y);
 
         void clear();
+        
+        
+        float outputHueAdjust;
+        float outputSaturationAdjust;
+        float outputValueAdjust;
+        bool  needsHSVAdjust = false;
+        int   outputSparkleCount = 0;
+        int   outputBrightnessAdjust = 0;
+        float outputEffectMixThreshold;
+        
+        void calculateNodeOutputParams(int effectPeriod);
 
     private:
         void createSquareExplodeMask(bool end);
@@ -243,7 +254,7 @@ private:
     void RotateX(LayerInfo* layer, float offset);
     void RotateY(LayerInfo* layer, float offset);
     void RotateZAndZoom(LayerInfo* layer, float offset);
-    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
+    void GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer);
 
     std::string modelName;
     std::string lastBufferType;
