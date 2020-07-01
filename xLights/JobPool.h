@@ -40,11 +40,12 @@ class JobPool
     std::vector<JobPoolWorker*> threads;
     std::deque<Job*> queue;
     std::atomic_int numThreads;
-    std::atomic_int maxNumThreads;
     std::atomic_int idleThreads;
     std::atomic_int inFlight;
     std::string threadNameBase;
-    
+
+    int maxNumThreads;
+    int minNumThreads;
 public:
     JobPool(const std::string &threadNameBase);
     virtual ~JobPool();
@@ -52,7 +53,7 @@ public:
     virtual void PushJob(Job *job);
     int size() const { return (int)threads.size(); }
     int maxSize() const { return maxNumThreads; }
-    virtual void Start(size_t poolSize = 1);
+    virtual void Start(size_t poolSize = 1, size_t minPoolSize = 0);
     virtual void Stop();
     
     virtual std::string GetThreadStatus();

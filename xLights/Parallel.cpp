@@ -15,14 +15,12 @@
 
 #include "JobPool.h"
 
-const static std::string EMPTY_STRING = "";
-
 ParallelJobPool::ParallelJobPool() : JobPool("parallel_tasks") {
-    unsigned c = std::thread::hardware_concurrency();
-    if (c <= 4) {
+    unsigned c = std::thread::hardware_concurrency() - 1; //1 thread is the calling thread
+    if (c < 4) {
         c = 4;
     }
-    Start(c);
+    Start(c, c);
 }
 
 int ParallelJobPool::calcSteps(int minStep, int total) {
@@ -44,12 +42,19 @@ ParallelJobPool ParallelJobPool::POOL;
 class ParallelJob : public Job {
     int max;
     std::function<void(int)>& func;
-    std::atomic_int &doneCount;
+    int &doneCount;
     std::atomic_int &iteration;
+    std::condition_variable &signal;
+    std::mutex &mutex;
+    const int calcSteps;
 public:
     ParallelJob(int m, std::function<void(int)>& f,
-                std::atomic_int &dc, std::atomic_int &it)
-        : max(m), func(f), iteration(it), doneCount(dc) {}
+                int &dc,
+                std::atomic_int &it,
+                std::condition_variable &sig,
+                std::mutex &mut,
+                int cs)
+        : max(m), func(f), iteration(it), doneCount(dc), signal(sig), mutex(mut), calcSteps(cs) {}
     virtual ~ParallelJob() {};
     virtual void Process() override {
         try {
@@ -60,7 +65,11 @@ public:
         } catch (...) {
             //nothing
         }
+        std::unique_lock<std::mutex> lock(mutex);
         doneCount++;
+        if (doneCount >= calcSteps) {
+            signal.notify_all();
+        }
     };
     virtual bool DeleteWhenComplete() override { return true; };
     virtual bool SetThreadName() override { return false; }
@@ -74,14 +83,17 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         }
     } else {
         std::function<void(int)> f(func);
-        std::atomic_int doneCount(0);
+        int doneCount = 0;
         std::atomic_int iteration(min);
+        std::condition_variable signal;
+        std::mutex mut;
         for (int x = 0; x < calcSteps-1; x++) {
-            ParallelJobPool::POOL.PushJob(new ParallelJob(max, f, doneCount, iteration));
+            ParallelJobPool::POOL.PushJob(new ParallelJob(max, f, doneCount, iteration, signal, mut, calcSteps));
         }
-        ParallelJob(max, f, doneCount, iteration).Process();
+        ParallelJob(max, f, doneCount, iteration, signal, mut, calcSteps).Process();
+        std::unique_lock<std::mutex> lock(mut);
         while (doneCount < calcSteps) {
-            std::this_thread::yield();
+            signal.wait_for(lock, std::chrono::nanoseconds(1000000));
         }
     }
 }
