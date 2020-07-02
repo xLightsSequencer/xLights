@@ -1417,7 +1417,7 @@ bool FPP::SetRestartFlag() {
     return false;
 }
 
-bool FPP::Restart(const std::string &mode) {
+bool FPP::Restart(const std::string &mode, bool ifNeeded) {
     std::string val;
     if (mode != "" && mode != curMode) {
         std::string m = "1"; //bridge;
@@ -1431,6 +1431,9 @@ bool FPP::Restart(const std::string &mode) {
         GetURLAsString("/fppxml.php?command=setFPPDmode&mode=" + m, val);
         SetRestartFlag();
         curMode = mode;
+    }
+    if (ifNeeded && !restartNeeded) {
+        return false;
     }
     GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
     restartNeeded = false;

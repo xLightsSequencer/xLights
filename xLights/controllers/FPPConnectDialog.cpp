@@ -672,12 +672,11 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 auto model = FPP::GetModel(inst->pixelControllerType);
                 //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                 auto c = _outputManager->GetControllers(inst->ipAddress);
-                if (c.size() == 1)
-                {
+                if (c.size() == 1) {
                     cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
-                    inst->SetRestartFlag();
                 }
             }
+            inst->Restart("", true);
         }
         row++;
     }

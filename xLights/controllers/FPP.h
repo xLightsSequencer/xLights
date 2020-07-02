@@ -79,7 +79,7 @@ class FPP : public BaseController
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
-    bool Restart(const std::string &mode = "");
+    bool Restart(const std::string &mode = "", bool ifNeeded = false);
     void SetDescription(const std::string &st);
 
     static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true, bool allPlatforms = false);
