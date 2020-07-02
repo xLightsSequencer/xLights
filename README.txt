@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                     Expect some instability until the sandbox restrictions can all be found and
                     resolved.
    -- enh (scott)  Added Right Click "Auto" Wiring Options to Custom Model Dialog
+   -- enh (scott)  Added to Face Effect, Outline 2 uses 4th color pallet
    -- enh (scott)  Added DMX Skull Model Node Level Support for "On" Effect
    -- bug (scott)  Fixed DMX Skull Model Export
    -- bug (scott)  Better Scaling for "Scaled" Render Buffers

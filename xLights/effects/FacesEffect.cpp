@@ -1070,6 +1070,10 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             colors.insert(colors.begin(), color);
         }
 
+        if (buffer.palette.Size() > (2 + colorOffset)) {
+            buffer.palette.GetColor((2 + colorOffset), color); //use forth color for outline 2; user must make sure it matches model node type
+        }
+
         todo.insert(todo.begin(), "FaceOutline2");
         if (customColor) {
             std::string const cname = model_info->faceInfo[definition]["FaceOutline2-Color"];
