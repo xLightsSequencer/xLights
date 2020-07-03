@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="OutputSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="FrameSyncCheckBox" member="yes">
+					<label>Use Frame Sync</label>
+					<handler function="OnFrameSyncCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Force Local IP</label>
+				</object>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+					<label>Duplicate Frames to Suppress</label>
+				</object>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
+					<label>xFade/xSchedule</label>
+				</object>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="ForceLocalIPChoice" member="yes">
+					<content>
+						<item></item>
+					</content>
+					<selection>0</selection>
+					<handler function="OnForceLocalIPChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE2" variable="DuplicateSuppressChoice" member="yes">
+					<content>
+						<item>None</item>
+						<item>10</item>
+						<item>20</item>
+						<item>40</item>
+					</content>
+					<selection>0</selection>
+					<handler function="OnDuplicateSuppressChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE3" variable="xFadexScheduleChoice" member="yes">
+					<content>
+						<item>Disabled</item>
+						<item>Port A</item>
+						<item>Port B</item>
+					</content>
+					<selection>0</selection>
+					<handler function="OnxFadexScheduleChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

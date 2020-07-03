@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Jellydome Standard" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer/Strobe,Color,Rotation" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer/Strobe" s1-Name="closed" s1-Color="#030303" 
+s2="Dimmer/Strobe" s2-Name="0_to_100_pct" s2-Color="#676767" 
+s3="Dimmer/Strobe" s3-Name="strobe_fast_to_slow" s3-Color="#DFDFDF" 
+s4="Dimmer/Strobe" s4-Name="open" s4-Color="#FBFBFB" 
+s5="Color" s5-Name="color_1" s5-Color="#080808" 
+s6="Color" s6-Name="color_2" s6-Color="#191919" 
+s7="Color" s7-Name="color_3" s7-Color="#2A2A2A" 
+s8="Color" s8-Name="color_4" s8-Color="#3B3B3B" 
+s9="Color" s9-Name="color_5" s9-Color="#4C4C4C" 
+s10="Color" s10-Name="color_6" s10-Color="#5D5D5D" 
+s11="Color" s11-Name="color_7" s11-Color="#6E6E6E" 
+s12="Color" s12-Name="color_8" s12-Color="#7F7F7F" 
+s13="Color" s13-Name="color_9" s13-Color="#909090" 
+s14="Color" s14-Name="color_10" s14-Color="#A1A1A1" 
+s15="Color" s15-Name="color_11" s15-Color="#B2B2B2" 
+s16="Color" s16-Name="color_12" s16-Color="#C3C3C3" 
+s17="Color" s17-Name="color_13" s17-Color="#D4D4D4" 
+s18="Color" s18-Name="color_14" s18-Color="#E5E5E5" 
+s19="Color" s19-Name="color_15" s19-Color="#F6F6F6" 
+s20="Rotation" s20-Name="stop" s20-Color="#040404" 
+s21="Rotation" s21-Name="fast_to_slow_cw" s21-Color="#414141" 
+s22="Rotation" s22-Name="slow_to_fast_ccw" s22-Color="#BEBEBE" 
+s23="Rotation" s23-Name="sound_active" s23-Color="#FCFCFC" 
+/>
+</dmxmodel>

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #include <wx/brush.h>
 #include <wx/numdlg.h>
@@ -15,10 +25,11 @@
 #include "NewTimingDialog.h"
 #include "VAMPPluginDialog.h"
 #include "UtilFunctions.h"
+#include "xlGLCanvas.h"
 
 #include <log4cpp/Category.hh>
 
-#define ICON_SPACE 25
+#define ICON_SPACE ScaleWithSystemDPI(25)
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -40,6 +51,8 @@ const long RowHeading::ID_ROW_MNU_DELETE_LAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_UNUSEDLAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
@@ -82,7 +95,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
     DOUBLE_BUFFER(this);
     wxString tooltip;
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXMSW__)
     bool exact = false;
 #else
     bool exact = true;
@@ -110,7 +123,7 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
         if (e != nullptr)
         {
             wxString layers;
-            if (e->GetType() != ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
             {
                 layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
             }
@@ -212,7 +225,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
     {
         bool result;
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
-        if(e->GetType() == ELEMENT_TYPE_MODEL)
+        if(e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
         {
             mSequenceElements->UnSelectAllElements();
             ModelElement *me = dynamic_cast<ModelElement *>(e);
@@ -244,17 +257,17 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 void RowHeading::ToggleExpand(Element* element)
 {
-    if (element->GetType() == ELEMENT_TYPE_MODEL) {
+    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
         me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetModelName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
 
     }
-    else if (element->GetType() == ELEMENT_TYPE_STRAND) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement *se = dynamic_cast<StrandElement *>(element);
         se->ShowNodes(!se->ShowNodes());
 
@@ -262,7 +275,7 @@ void RowHeading::ToggleExpand(Element* element)
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if (element->GetType() == ELEMENT_TYPE_TIMING) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
         if (element->GetEffectLayerCount() > 1) {
             if (element->GetCollapsed()) {
                 element->SetCollapsed(false);
@@ -299,9 +312,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
-    if (element->GetType()==ELEMENT_TYPE_MODEL
-        || element->GetType()==ELEMENT_TYPE_SUBMODEL
-        || element->GetType()==ELEMENT_TYPE_STRAND)
+    if (element->GetType()== ElementType::ELEMENT_TYPE_MODEL
+        || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL
+        || element->GetType()== ElementType::ELEMENT_TYPE_STRAND)
     {
         if (ri->nodeIndex < 0) {
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
@@ -319,11 +332,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
         }
         bool canPromote = false;
         ModelElement *me = dynamic_cast<ModelElement *>(element);
-        if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
+        if (element->GetType()== ElementType::ELEMENT_TYPE_STRAND || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL) {
             me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
         }
         if (me->GetSubModelAndStrandCount() > 0) {
-            if (element->GetType() != ELEMENT_TYPE_SUBMODEL) {
+            if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
                 canPromote = true;
             }
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
@@ -342,16 +355,34 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
             }
         }
+        else
+        {
+            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                if (m->GetDisplayAs() != "ModelGroup")
+                {
+                    mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                }
+            }
+            else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
+            {
+                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+            }
+        }
+
         if (canPromote) {
             mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
         }
         mnuLayer.AppendSeparator();
 
+        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
         wxMenu* rowMenu = new wxMenu();
         wxMenu* modelMenu = new wxMenu();
         modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m!=nullptr && m->GetDisplayAs() != "ModelGroup");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
         rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
         modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
         rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
@@ -435,7 +466,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW)
     {
-        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this);
+        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this, wxGetMousePosition());
 
         if (numtoinsert > 0)
         {
@@ -571,9 +602,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
         bool timing_added = false;
-        xLightsXmlFile* xml_file;
-        xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
         NewTimingDialog dialog(this);
+        OptimiseDialogPosition(&dialog);
         dialog.Fit();
         if(xml_file->GetFrequency() < 40)
         {
@@ -589,57 +620,109 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (xml_file->HasAudioMedia())
         {
             plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
-            for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+            if (plugins.size() == 0)
             {
-                dialog.Choice_New_Fixed_Timing->Append(*it);
+                dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
+            }
+            else
+            {
+                for (const auto& it : plugins)
+                {
+                    dialog.Choice_New_Fixed_Timing->Append(it);
+                }
             }
         }
 
         dialog.Fit();
+        OptimiseDialogPosition(&dialog);
 
         wxString name = "";
         if (dialog.ShowModal() == wxID_OK)
         {
             std::string selected_timing = dialog.GetTiming().ToStdString();
-            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
-            {
-                name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
-                if( name != "" ) {
-                    timing_added = true;
-                }
-            }
-            else if( !xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) )
-            {
-                name = selected_timing;
-                if (selected_timing == "Metronome")
-                {
-                    int base_timing = xml_file->GetFrameMS();
-                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
-                    if (dlg.ShowModal() == wxID_OK)
-                    {
-                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
 
-                        if (ms != dlg.GetValue())
+            if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
+            {
+                DownloadVamp();
+            }
+            else
+            {
+                if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
+                {
+                    name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
+                    if (name != "") {
+                        timing_added = true;
+                    }
+                }
+                else if (selected_timing == "Empty")
+                {
+                    bool first = true;
+                    wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+                    OptimiseDialogPosition(&te);
+                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "")
+                    {
+                        first = false;
+
+                        auto base = selected_timing;
+
+                        int suffix = 2;
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()))
                         {
-                            DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
+                            selected_timing = wxString::Format("%s-%d", base, suffix++);
                         }
-                        wxString ttn = wxString::Format("%dms Metronome", ms);
-                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
+
+                        te.SetValue(selected_timing);
+                        if (te.ShowModal() == wxID_OK)
                         {
-                            xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
-                            timing_added = true;
+                            selected_timing = te.GetValue();
                         }
+                        else
+                        {
+                            selected_timing = "";
+                            break;
+                        }
+                    }
+
+                    if (selected_timing != "")
+                    {
+                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        timing_added = true;
+                    }
+                }
+                else if (!xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()))
+                {
+                    name = selected_timing;
+                    if (selected_timing == "Metronome")
+                    {
+                        int base_timing = xml_file->GetFrameMS();
+                        wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", 10 * base_timing, base_timing, 60000);
+                        OptimiseDialogPosition(&dlg);
+                        if (dlg.ShowModal() == wxID_OK)
+                        {
+                            int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+
+                            if (ms != dlg.GetValue())
+                            {
+                                DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
+                            }
+                            wxString ttn = wxString::Format("%dms Metronome", ms);
+                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
+                            {
+                                xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
+                                timing_added = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        timing_added = true;
                     }
                 }
                 else
                 {
-                    xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
-                    timing_added = true;
+                    DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());
                 }
-            }
-            else
-            {
-                DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());
             }
         }
         dialog.Destroy();
@@ -699,7 +782,6 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (fn.GetExt().Lower() == "xtiming")
         {
             SelectTimingsDialog dlg(this);
-
             for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); i++)
             {
                 TimingElement* te2 = mSequenceElements->GetTimingElement(i);
@@ -709,7 +791,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     dlg.CheckListBox_Timings->Check(i);
                 }
             }
-
+            OptimiseDialogPosition(&dlg);
             if (mSequenceElements->GetNumberOfTimingElements() == 1  || dlg.ShowModal() == wxID_OK)
             {
                 wxArrayInt sel;
@@ -802,6 +884,35 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         playEvent.SetInt(1);
         playEvent.SetString(element->GetModelName());
         wxPostEvent(GetParent(), playEvent);
+    }
+    else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
+        
+        int startFrame = element->GetFirstSelectedEffectStartMS();
+        int endFrame = element->GetLastSelectedEffectEndMS();
+        if (startFrame != -1 && endFrame != -1)
+        {
+            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            startFrame /= xml_file->GetFrameMS();
+            endFrame /= xml_file->GetFrameMS();
+            wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+            playEvent.SetInt(0);
+            playEvent.SetString(element->GetModelName() + wxString::Format("|%d|%d", startFrame, endFrame));
+            wxPostEvent(GetParent(), playEvent);
+        }
+    }
+    else if (id == ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS) {
+        int startFrame = element->GetFirstSelectedEffectStartMS();
+        int endFrame = element->GetLastSelectedEffectEndMS();
+        if (startFrame != -1 && endFrame != -1)
+        {
+            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            startFrame /= xml_file->GetFrameMS();
+            endFrame /= xml_file->GetFrameMS();
+            wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+            playEvent.SetInt(1);
+            playEvent.SetString(element->GetModelName() + wxString::Format("|%d|%d", startFrame, endFrame));
+            wxPostEvent(GetParent(), playEvent);
+        }
     } else if (id == ID_ROW_MNU_PLAY_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_MODEL);
         playEvent.SetString(element->GetModelName());
@@ -903,7 +1014,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 if (ExpandElementIfEffects(e))
                 {
@@ -921,7 +1032,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr)
@@ -954,7 +1065,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_CONVERT_TO_EFFECTS) {
         wxCommandEvent evt(EVT_CONVERT_DATA_TO_EFFECTS);
         evt.SetClientData(element);
-        int i = ((ri->strandIndex << 16) & 0xFFFF0000) + ri->nodeIndex;
+        int i = ((ri->strandIndex << 16) & 0xFFFF0000) + (ri->nodeIndex & 0xFFFF);
         evt.SetInt(i);
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
@@ -992,7 +1103,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 		}
 	}
 
-    if (e->GetType() == ELEMENT_TYPE_MODEL)
+    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
     {
         ModelElement *me = dynamic_cast<ModelElement *>(e);
         Model *m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
@@ -1029,7 +1140,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
             if (hasEffects) me->ShowStrands(true);
         }
     }
-    else if (e->GetType() == ELEMENT_TYPE_STRAND)
+    else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND)
     {
         StrandElement* se = dynamic_cast<StrandElement*>(e);
         hasEffects = se->HasEffects();
@@ -1074,6 +1185,29 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     {
         for( int k = element->GetEffectLayerCount()-1; k > 0; k--)
         {
+            EffectLayer* check_layer = element->GetEffectLayer(k);
+            bool found_locked = false;
+            for (auto&& e : check_layer->GetAllEffects())
+            {
+                if (e->IsLocked())
+                {
+                    found_locked = true;
+                    break;
+                }
+            }
+            if (found_locked)
+            {
+                wxMessageBox("Locked words/phonemes in the way - Can not break down phrases", "Error", wxOK);
+                return;
+            }
+        }
+    }
+
+    // No locked elements in the way now
+    if (element->GetEffectLayerCount() > 1)
+    {
+        for (int k = element->GetEffectLayerCount() - 1; k > 0; k--)
+        {
             element->RemoveEffectLayer(k);
         }
     }
@@ -1092,6 +1226,22 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 {
     if( element->GetEffectLayerCount() > 2 )
     {
+        EffectLayer* phoneme_layer = element->GetEffectLayer(2);
+        bool found_locked = false;
+        for (auto&& e : phoneme_layer->GetAllEffects())
+        {
+            if (e->IsLocked())
+            {
+                found_locked = true;
+                break;
+            }
+        }
+        if (found_locked)
+        {
+            wxMessageBox("Locked phonemes in the way - Can not break down words", "Error", wxOK);
+            return;
+        }
+
         element->RemoveEffectLayer(2);
     }
     EffectLayer* word_layer = element->GetEffectLayer(1);
@@ -1108,7 +1258,7 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ELEMENT_TYPE_TIMING &&
+    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ElementType::ELEMENT_TYPE_TIMING &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsCollapsed = mSequenceElements->GetVisibleRowInformation(row)->Collapsed;
@@ -1122,7 +1272,7 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
-    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ELEMENT_TYPE_TIMING
+    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ElementType::ELEMENT_TYPE_TIMING
         && x < DEFAULT_ROW_HEADING_MARGIN) {
 
         *IsActive = dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(row)->element)->GetActive();
@@ -1153,6 +1303,35 @@ void RowHeading::render( wxPaintEvent& event )
     Draw();
 }
 
+static float ComputeRHFontSize() {
+    // DEFAULT_ROW_HEADING_HEIGHT is either 16, 22, 30, 38, or 54
+    // default size is appropriate for "22", scale others appropriately.
+    // Since there are currently only 5 sizes, this would be better as
+    // a switch statement, but this allows future sizes
+    float fontSize = 15 * DEFAULT_ROW_HEADING_HEIGHT;
+    fontSize /= 22.0f;
+    if (fontSize < 9) {
+        fontSize = 8;
+    }
+    return fontSize;
+}
+#ifdef __WXOSX__
+static void SetFontPixelSize(wxFont &font, float f) {
+    float i = font.GetPixelSize().y;
+    float p = font.GetFractionalPointSize();
+    // map to "points" so we can use the fractional sizing
+    float points = f * p;
+    points /= i;
+    font.SetFractionalPointSize(points);
+}
+#else
+static void SetFontPixelSize(wxFont &font, float f) {
+    wxSize sz(0, (int)(std::round(f * 0.8f)));
+    font.SetPixelSize(sz);
+}
+#endif
+
+
 void RowHeading::Draw()
 {
     wxClientDC dc(this);
@@ -1168,6 +1347,17 @@ void RowHeading::Draw()
     wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
+
+    // If effect labels grow with row size then so should labels.
+    auto font = dc.GetFont();
+    
+    // Note: DEFAULT_ROW_HEADING_HEIGHT is in PIXELS which is independent
+    // of any scaling factor, thus, we need to set the font size in Pixels,
+    // not points which would end up scaling depending on scale factor
+    auto fontSize = ComputeRHFontSize();
+    SetFontPixelSize(font, fontSize);
+    dc.SetFont(font);
+
     int row = 0;
     int endY = 0;
 
@@ -1179,7 +1369,7 @@ void RowHeading::Draw()
         if (rowInfo->submodel) {
             prefix = "  ";
         }
-        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
         {
             layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
         }
@@ -1189,6 +1379,19 @@ void RowHeading::Draw()
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
+
+        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+        if (m != nullptr && m->GetTagColour() != *wxBLACK)
+        {
+            wxBrush tagBrush(m->GetTagColour(), wxBRUSHSTYLE_SOLID);
+            wxPen tagPen(m->GetTagColour());
+            dc.SetBrush(tagBrush);
+            dc.SetPen(tagPen);
+            dc.DrawRectangle(2, startY + 2, DEFAULT_ROW_HEADING_MARGIN - 4, DEFAULT_ROW_HEADING_HEIGHT - 4);
+        }
+
+        dc.SetBrush(brush2);
+        dc.SetPen(penOutline);
         dc.SetTextForeground(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT).asWxColor());
         if(rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0)   // If effect layer = 0
         {
@@ -1232,7 +1435,7 @@ void RowHeading::Draw()
         else        // Draw label
         {
             auto name = rowInfo->element->GetName();
-            if (rowInfo->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+            if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
 
                 // find the parent row so we can work out its type
@@ -1242,7 +1445,7 @@ void RowHeading::Draw()
                 while (!done && parent >= 0)
                 {
                     auto maybeParent = mSequenceElements->GetRowInformationFromRow(parent);
-                    if (maybeParent != nullptr && maybeParent->element->GetType() == ELEMENT_TYPE_MODEL && !maybeParent->submodel)
+                    if (maybeParent != nullptr && maybeParent->element->GetType() == ElementType::ELEMENT_TYPE_MODEL && !maybeParent->submodel)
                     {
                         done = true;
                     }
@@ -1269,7 +1472,7 @@ void RowHeading::Draw()
             dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
-        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if(rowInfo->element->GetEffectLayerCount() > 1
                && rowInfo->layerIndex == 0
@@ -1287,14 +1490,14 @@ void RowHeading::Draw()
                 dc.SetBrush(brush2);
             }
             // draw Model Group icon if necessary
-            Model *m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+            Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr)
             {
                 if (m->GetDisplayAs() == "ModelGroup")
                 {
                     dc.DrawBitmap(model_group_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
-                else if (m->GetStringType().find("Single Color") == 0)
+                else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color")
                 {
                     if (m->GetNodeCount() > 0)
                     {
@@ -1317,14 +1520,14 @@ void RowHeading::Draw()
                         }
                         dc.SetPen(*wxBLACK_PEN);
                         dc.SetBrush(wxBrush(color.asWxColor()));
-                        dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);
+                        dc.DrawRectangle(getWidth() - ScaleWithSystemDPI(21), startY + 5, ScaleWithSystemDPI(12), ScaleWithSystemDPI(12));
                         dc.SetPen(penOutline);
                         dc.SetBrush(brush2);
                     }
                 }
             }
         }
-        else if(rowInfo->element->GetType()==ELEMENT_TYPE_TIMING)
+        else if(rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING)
         {
             if( rowInfo->layerIndex == 0 )
             {
@@ -1363,7 +1566,7 @@ void RowHeading::Draw()
 
 xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info) const
 {
-    if (info->element->GetType() == ELEMENT_TYPE_TIMING)
+    if (info->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         return ColorManager::instance()->GetTimingColor(info->colorIndex);
     }

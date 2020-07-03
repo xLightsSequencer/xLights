@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet ColorBand Pix IP 12 Channel" parm1="40" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Red 2,Green 2,Blue 2,Red 3,Green 3,Blue 3,Red 4,Green 4,Blue 4,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node38" s1-Name="no_function" s1-Color="#070707" 
+s2="Node38" s2-Name="color_macros" s2-Color="#878787" 
+s3="Node40" s3-Name="no_function" s3-Color="#0F0F0F" 
+s4="Node40" s4-Name="pulse_effect_0-100pct_" s4-Color="#2F2F2F" 
+s5="Node40" s5-Name="pulse_effect_100pct-0_" s5-Color="#4F4F4F" 
+s6="Node40" s6-Name="pulse_effect_100pct-0-100pct_" s6-Color="#696969" 
+s7="Node40" s7-Name="chase_program" s7-Color="#797979" 
+s8="Node40" s8-Name="auto_fade_transition" s8-Color="#8F8F8F" 
+s9="Node40" s9-Name="auto_snap_transition_3_colors_" s9-Color="#AFAFAF" 
+s10="Node40" s10-Name="auto_snap_transition_7_colors_" s10-Color="#CFCFCF" 
+s11="Node40" s11-Name="auto_programs" s11-Color="#EFEFEF" 
+/>
+</dmxmodel>

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <algorithm>
 #include <map>
 
@@ -14,6 +24,7 @@
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+#include "outputs/Controller.h"
 #ifndef FPP
     #include "xLightsMain.h"
     #include "ConvertDialog.h"
@@ -21,7 +32,7 @@
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif
-
+#include "xLightsVersion.h"
 #include <log4cpp/Category.hh>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
@@ -83,7 +94,7 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
                                       xLightsFrame* xLightsFrm_,
                                       ConvertDialog* convertDialog_,
                                       ConvertLogDialog* convertLogDialog_,
-                                      wxString* media_filename_,
+                                      std::string* media_filename_,
                                       DataLayer* data_layer_,
                                       wxString out_filename_,
                                       int sequence_interval_,
@@ -543,7 +554,14 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         chindex = 0;
                         for (int z = 0; z < (unit - 1); z++)
                         {
-                            chindex += lorUnitSizes[network][z];
+                            if (lorUnitSizes.size() > network && lorUnitSizes[network].size() > z)
+                            {
+                                chindex += lorUnitSizes[network][z];
+                            }
+                            else
+                            {
+                                params.AppendConvertStatus("Problem resolving channel. Have you got your setup tab right?");
+                            }
                         }
                         chindex += circuit - 1;
                         curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
@@ -937,7 +955,8 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
     for (tmp = 0; tmp < map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
-        int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
+        int orig = params._outputManager->GetControllerIndex(tmp / 2)->GetChannels();
+        //int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
             params.AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
             i = orig;
@@ -1504,21 +1523,16 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
 #ifndef FPP
 void FileConverter::ReadConductorFile(ConvertParameters& params)
 {
-    wxFile f;
-    int i,j,ch;
-    char row[16384];
-    int period=0;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
-
-    long TotChannels=params._outputManager->GetTotalChannels();
-    for (int x = 0; x < TotChannels; x++) {
+    int32_t TotChannels = params._outputManager->GetTotalChannels();
+    for (int32_t x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
     params.seq_data.init(0, 0, params.sequence_interval);
 
-    if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         wxWindow* parent;
         if (params.convertDialog != nullptr)
         {
@@ -1528,31 +1542,35 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
         {
             parent = params.xLightsFrm;
         }
-        wxFileDialog mediaDialog(parent,wxString("Select associated media file, or cancel if this is an animation"));
+        wxFileDialog mediaDialog(parent, wxString("Select associated media file, or cancel if this is an animation"));
         if (mediaDialog.ShowModal() == wxID_OK)
         {
             *params.media_filename = mediaDialog.GetPath();
         }
     }
+
+    wxFile f;
     if (!f.Open(params.inp_filename.c_str()))
     {
-        params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
-    int numPeriods=f.Length()/16384;
 
+    int numPeriods = f.Length() / 16384;
+    int period = 0;
+    char row[16384];
     params.seq_data.init(16384, numPeriods, 50);
-    while (f.Read(row,16384) == 16384)
+    while (f.Read(row, 16384) == 16384)
     {
         wxYield();
-        for (i=0; i < 4096; i++)
+        for (size_t i = 0; i < 4096; i++)
         {
-            for (j=0; j < 4; j++)
+            for (size_t j = 0; j < 4; j++)
             {
-                ch=j * 4096 + i;
+                uint32_t ch = j * 4096 + i;
                 if (ch < params.seq_data.NumChannels())
                 {
-                    params.seq_data[period][ch] = row[i*4+j];
+                    params.seq_data[period][ch] = row[i * 4 + j];
                 }
             }
         }
@@ -1560,13 +1578,13 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     }
     f.Close();
 
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(params.seq_data.NumFrames());
         params.data_layer->SetNumChannels(params.seq_data.NumChannels());
     }
 
-    if( params.channels_off_at_end )
+    if (params.channels_off_at_end)
     {
         ClearLastPeriod(params.seq_data);
     }
@@ -1635,23 +1653,34 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     int periodsRead = 0;
     while (periodsRead < falconPeriods) {
         FSEQFile::FrameData *data = file->getFrame(periodsRead);
-        
+        if (data == nullptr) break;
         
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
-            data->readFrame(&params.seq_data[periodsRead][0]);
+            if (!data->readFrame(&params.seq_data[periodsRead][0], params.seq_data.NumChannels()))
+            {
+                // fseq file corrupt
+                logger_conversion.error("FSEQ file seems to be corrupt.");
+            }
         } else {
-            data->readFrame(tmpBuf);
-            
-            for (int i = 0; i < numChannels; i++) {
-                int new_index = i + channel_offset;
-                if ((new_index < 0) || (new_index >= numChannels)) continue;
-                if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK) {
-                    if (tmpBuf[i] != 0) {
+            if (data->readFrame(tmpBuf, numChannels))
+            {
+                for (int i = 0; i < numChannels; i++) {
+                    int new_index = i + channel_offset;
+                    if ((new_index < 0) || (new_index >= numChannels)) continue;
+                    if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK) {
+                        if (tmpBuf[i] != 0) {
+                            params.seq_data[periodsRead][new_index] = tmpBuf[i];
+                        }
+                    }
+                    else {
                         params.seq_data[periodsRead][new_index] = tmpBuf[i];
                     }
-                } else {
-                    params.seq_data[periodsRead][new_index] = tmpBuf[i];
                 }
+            }
+            else
+            {
+                // fseq file corrupt
+                logger_conversion.error("FSEQ file seems to be corrupt.");
             }
         }
         delete data;
@@ -1670,8 +1699,26 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     logger_conversion.debug("Start fseq write");
     
     
-    const wxUint8 vMajor = params.xLightsFrm->_fseqVersion;
-    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor);
+    const wxUint8 fType = params.xLightsFrm->_fseqVersion;
+    int vMajor = 2;
+    int clevel = 2;
+    FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
+    switch (fType) {
+        case 1:
+            vMajor = 1;
+            break;
+        case 3:
+            ctype = FSEQFile::CompressionType::none;
+            break;
+        case 4:
+            ctype = FSEQFile::CompressionType::zlib;
+            clevel = 1;
+            break;
+        default:
+            break;
+    }
+    
+    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, ctype, clevel);
     if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
         return;
@@ -1695,6 +1742,15 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             file->addVariableHeader(header);
         }
     }
+    FSEQFile::VariableHeader header;
+    header.code[0] = 's';
+    header.code[1] = 'p';
+    std::string ver = "xLights " + wxPlatformInfo::Get().GetOperatingSystemFamilyName() + " " + GetDisplayVersionString();
+    int len = strlen(ver.c_str()) + 1;
+    header.data.resize(len);
+    strcpy((char *)&header.data[0], ver.c_str());
+    file->addVariableHeader(header);
+
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();
     for (int x = 0; x < size; x++) {

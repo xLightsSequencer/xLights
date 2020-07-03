@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 //(*InternalHeaders(VUMeterPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -267,17 +277,26 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Frame Waveform"));
     Choice_VUMeter_Type->Append(_("On"));
     Choice_VUMeter_Type->Append(_("Color On"));
+    Choice_VUMeter_Type->Append(_("Dominant Frequency Colour"));
+    Choice_VUMeter_Type->Append(_("Dominant Frequency Colour Gradient"));
     Choice_VUMeter_Type->Append(_("Intensity Wave"));
     Choice_VUMeter_Type->Append(_("Pulse"));
     Choice_VUMeter_Type->Append(_("Level Bar"));
     Choice_VUMeter_Type->Append(_("Level Color"));
     Choice_VUMeter_Type->Append(_("Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Jump"));
+    Choice_VUMeter_Type->Append(_("Level Jump 100"));
     Choice_VUMeter_Type->Append(_("Level Pulse Color"));
     Choice_VUMeter_Type->Append(_("Level Shape"));
     Choice_VUMeter_Type->Append(_("Timing Event Bar"));
     Choice_VUMeter_Type->Append(_("Timing Event Bars"));
     Choice_VUMeter_Type->Append(_("Timing Event Spike"));
     Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep 2"));
     Choice_VUMeter_Type->Append(_("Timing Event Color"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
@@ -285,6 +304,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
     Choice_VUMeter_Type->Append(_("Note On"));
     Choice_VUMeter_Type->Append(_("Note Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump 100"));
     Choice_VUMeter_Type->Append(_("Note Level Bar"));
 
     Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
@@ -330,11 +351,15 @@ void VUMeterPanel::ValidateWindow()
         type == "Level Bar" ||
         type == "Level Color" ||
         type == "Level Pulse" || 
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
         type == "Level Pulse Color" ||
         type == "Timing Event Jump" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
         type == "Note Level Pulse" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
         type == "Spectrogram Circle Line" ||
         type == "Level Shape")
     {
@@ -351,6 +376,11 @@ void VUMeterPanel::ValidateWindow()
 
     if (type == "Timing Event Spike" ||
         type == "Timing Event Sweep" ||
+        type == "Timing Event Sweep 2" ||
+        type == "Timing Event Timed Sweep" ||
+        type == "Timing Event Timed Sweep 2" ||
+        type == "Timing Event Alternate Timed Sweep" ||
+        type == "Timing Event Alternate Timed Sweep 2" ||
         type == "Pulse" ||
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||
@@ -368,6 +398,8 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (type == "Level Pulse" ||
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
         type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Level Bar" ||
@@ -376,7 +408,12 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Peak" ||
         type == "Spectrogram Line" ||
         type == "Spectrogram Circle Line" ||
-        type == "Note Level Pulse")
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
+        type == "Note Level Pulse" ||
+        type == "Dominant Frequency Colour" ||
+        type == "Dominant Frequency Colour Gradient"
+        )
     {
         Slider_VUMeter_Sensitivity->Enable();
         TextCtrl_VUMeter_Sensitivity->Enable();
@@ -444,7 +481,12 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Peak" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
-        type == "Note Level Pulse")
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
+        type == "Note Level Pulse" ||
+        type == "Dominant Frequency Colour" ||
+        type == "Dominant Frequency Colour Gradient"
+        )
     {
         Slider_VUMeter_EndNote->Enable();
         Slider_VUMeter_StartNote->Enable();

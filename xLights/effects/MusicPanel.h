@@ -1,5 +1,14 @@
-#ifndef MUSICPANEL_H
-#define MUSICPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(MusicPanel)
 #include <wx/panel.h>
@@ -24,6 +33,7 @@ class MusicPanel: public wxPanel
 
 		//(*Declarations(MusicPanel)
 		BulkEditCheckBox* CheckBox_Music_Fade;
+		BulkEditCheckBox* CheckBox_Music_LogarithmicXAxis;
 		BulkEditCheckBox* CheckBox_Music_Scale;
 		BulkEditChoice* Choice_Music_Colour;
 		BulkEditChoice* Choice_Music_Scaling;
@@ -51,6 +61,7 @@ class MusicPanel: public wxPanel
 		xlLockButton* BitmapButton_Music_Colour;
 		xlLockButton* BitmapButton_Music_EndNote;
 		xlLockButton* BitmapButton_Music_Fade;
+		xlLockButton* BitmapButton_Music_LogarithmicXAxis;
 		xlLockButton* BitmapButton_Music_Offset;
 		xlLockButton* BitmapButton_Music_Scale;
 		xlLockButton* BitmapButton_Music_Scaling;
@@ -96,6 +107,8 @@ class MusicPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Colour;
 		static const long ID_CHECKBOX_Music_Fade;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Music_Fade;
+		static const long ID_CHECKBOX_Music_LogarithmicX;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicX;
 		//*)
 
 	public:
@@ -115,5 +128,3 @@ class MusicPanel: public wxPanel
 
 		void ValidateWindow();
 };
-
-#endif

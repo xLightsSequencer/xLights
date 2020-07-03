@@ -1,0 +1,22 @@
+<Vendor Name="WLED">
+	<Controller Name="WLED">
+		<Variant Name="">
+			<!--SupportsPixelPortAllSettings/-->
+			<MaxInputUniverses>9</MaxInputUniverses>
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4500</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+			</InputProtocols>
+		</Variant>	
+	</Controller>
+</Vendor>

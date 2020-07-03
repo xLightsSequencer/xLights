@@ -1,4 +1,14 @@
-//(*InternalHeaders(ColorCurveDialog)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*InternalHeaders(ColorCurveDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -186,7 +196,9 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourDat
 void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    logger_base.info("ColorCurveDialog Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+
+    int count = 0;
 
     wxString filename;
     auto existing = PresetSizer->GetChildren();
@@ -195,9 +207,10 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
     while (cont)
     {
+        count++;
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
-        for (auto it : existing)
+        for (const auto& it : existing)
         {
             if (it->GetWindow()->GetLabel() == fn.GetFullPath())
             {
@@ -208,18 +221,24 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
         }
         if (!found)
         {
-            ColorCurve cc("");
-            LoadXCC(&cc, fn.GetFullPath());
-            long id = wxNewId();
-            wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
-                                                     wxSize(30, 30), wxBU_AUTODRAW|wxNO_BORDER);
-            bmb->SetLabel(fn.GetFullPath());
-            PresetSizer->Add(bmb);
-            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveDialog::OnButtonPresetClick);
+            ColorCurve cc;
+            cc.SetId("Dummy");
+            cc.LoadXCC(fn.GetFullPath());
+            if (cc.IsActive()) // will only be active if it loaded ok
+            {
+                long id = wxNewId();
+                wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
+                    wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
+                bmb->SetLabel(fn.GetFullPath());
+                bmb->SetToolTip(fn.GetFullPath());
+                PresetSizer->Add(bmb);
+                Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ColorCurveDialog::OnButtonPresetClick);
+            }
         }
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {
@@ -767,36 +786,6 @@ void ColorCurveDialog::OnResize(wxSizeEvent& event)
     Refresh();
 }
 
-void ColorCurveDialog::LoadXCC(ColorCurve* cc, const wxString& filename)
-{
-    wxXmlDocument doc(filename);
-
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "colorcurve")
-        {
-            wxString data = root->GetAttribute("data");
-            wxString v = root->GetAttribute("SourceVersion");
-
-            // Add any colorcurve version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            cc->Deserialise(data.ToStdString());
-            cc->SetActive(true);
-        }
-        else
-        {
-            DisplayError("Failure loading color curve file " + filename + ".");
-        }
-    }
-    else
-    {
-        DisplayError("Failure loading color curve file " + filename + ".");
-    }
-}
-
 void ColorCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
 {
     std::string id = _cc->GetId(); // save if because it will be overwritten
@@ -804,7 +793,11 @@ void ColorCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose color curve file"), wxEmptyString, wxEmptyString, wxEmptyString, "Color Curve files (*.xcc)|*.xcc", wxFD_OPEN);
     if (filename.IsEmpty()) return;
 
-    LoadXCC(_cc, filename);
+    _cc->LoadXCC(filename);
+    if (!_cc->IsOk())
+    {
+        DisplayError("Could not load color curve " + filename);
+    }
     _ccp->Reloaded();
     _ccp->Refresh();
     _ccp->ClearUndo();
@@ -824,7 +817,11 @@ void ColorCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     wxString filename = ((wxBitmapButton*)event.GetEventObject())->GetLabel();
 
     std::string id = _cc->GetId(); // save if because it will be overwritten
-    LoadXCC(_cc, filename);
+    _cc->LoadXCC(filename.ToStdString());
+    if (!_cc->IsOk())
+    {
+        DisplayError("Error loading colour curve from " + filename);
+    }
     _ccp->Reloaded();
     _ccp->Refresh();
     _ccp->ClearUndo();
@@ -857,6 +854,8 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     f.Write(" >\n");
     f.Write("</colorcurve>");
     f.Close();
+
+    _exported = true;
 
     _ccp->ClearUndo();
 

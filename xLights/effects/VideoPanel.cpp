@@ -1,6 +1,17 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "VideoPanel.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
+#include "../osxMacUtils.h"
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/artprov.h>
@@ -36,15 +47,19 @@ const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
 const long VideoPanel::ID_CHECKBOX_SynchroniseWithAudio = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_CropLeft = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_CropLeft = wxNewId();
+const long VideoPanel::ID_VALUECURVE_Video_CropLeft = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropLeft = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_CropRight = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_CropRight = wxNewId();
+const long VideoPanel::ID_VALUECURVE_Video_CropRight = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropRight = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_CropTop = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_CropTop = wxNewId();
+const long VideoPanel::ID_VALUECURVE_Video_CropTop = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropTop = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_CropBottom = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_CropBottom = wxNewId();
+const long VideoPanel::ID_VALUECURVE_Video_CropBottom = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropBottom = wxNewId();
 const long VideoPanel::ID_CHECKBOX_Video_TransparentBlack = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_TransparentBlack = wxNewId();
@@ -62,6 +77,9 @@ END_EVENT_TABLE()
 VideoPanel::VideoPanel(wxWindow* parent)
 {
 	//(*Initialize(VideoPanel)
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -71,6 +89,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer9;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -117,7 +136,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Video_Speed = new BulkEditSliderF2(this, IDD_SLIDER_Video_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Speed"));
 	FlexGridSizer8->Add(Slider_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
+	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
 	FlexGridSizer8->Add(BitmapButton_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Video_Speed = new BulkEditTextCtrlF2(this, ID_TEXTCTRL_Video_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Speed"));
 	FlexGridSizer8->Add(TextCtrl_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -132,26 +151,46 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer6->AddGrowableCol(1);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_Video_CropLeft, _("Crop Left"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropLeft"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
 	Slider_Video_CropLeft = new BulkEditSlider(this, IDD_SLIDER_Video_CropLeft, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropLeft"));
-	FlexGridSizer6->Add(Slider_Video_CropLeft, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer9->Add(Slider_Video_CropLeft, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Video_CropLeftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropLeft, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropLeft"));
+	FlexGridSizer9->Add(BitmapButton_Video_CropLeftVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropLeft = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropLeft, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropLeft"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT_Video_CropRight, _("Crop Right"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropRight"));
 	FlexGridSizer6->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer10->AddGrowableCol(0);
 	Slider_Video_CropRight = new BulkEditSlider(this, IDD_SLIDER_Video_CropRight, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropRight"));
-	FlexGridSizer6->Add(Slider_Video_CropRight, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer10->Add(Slider_Video_CropRight, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Video_CropRightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropRight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropRight"));
+	FlexGridSizer10->Add(BitmapButton_Video_CropRightVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropRight = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropRight, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropRight"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT_Video_CropTop, _("Crop Top"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropTop"));
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer11->AddGrowableCol(0);
 	Slider_Video_CropTop = new BulkEditSlider(this, IDD_SLIDER_Video_CropTop, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropTop"));
-	FlexGridSizer6->Add(Slider_Video_CropTop, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer11->Add(Slider_Video_CropTop, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Video_CropTopVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropTop, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropTop"));
+	FlexGridSizer11->Add(BitmapButton_Video_CropTopVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropTop = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropTop, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropTop"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropTop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT_Video_CropBottom, _("Crop Bottom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropBottom"));
 	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer12->AddGrowableCol(0);
 	Slider_Video_CropBottom = new BulkEditSlider(this, IDD_SLIDER_Video_CropBottom, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropBottom"));
-	FlexGridSizer6->Add(Slider_Video_CropBottom, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer12->Add(Slider_Video_CropBottom, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Video_CropBottomVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropBottom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropBottom"));
+	FlexGridSizer12->Add(BitmapButton_Video_CropBottomVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Video_CropBottom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropBottom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropBottom"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropBottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
@@ -175,6 +214,10 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	Connect(ID_CHOICE_Video_DurationTreatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VideoPanel::OnChoice_Video_DurationTreatmentSelect);
 	Connect(ID_VALUECURVE_Video_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
 	Connect(ID_CHECKBOX_SynchroniseWithAudio,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoPanel::OnCheckBox_SynchroniseWithAudioClick);
+	Connect(ID_VALUECURVE_Video_CropLeft,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Video_CropRight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Video_CropTop,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Video_CropBottom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
 	//*)
 
     SetName("ID_PANEL_Video");
@@ -183,6 +226,10 @@ VideoPanel::VideoPanel(wxWindow* parent)
 
     BitmapButton_Video_Speed->GetValue()->SetLimits(VIDEO_SPEED_MIN, VIDEO_SPEED_MAX);
     BitmapButton_Video_Speed->GetValue()->SetDivisor(VIDEO_SPEED_DIVISOR);
+	BitmapButton_Video_CropLeftVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
+	BitmapButton_Video_CropRightVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
+	BitmapButton_Video_CropTopVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
+	BitmapButton_Video_CropBottomVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
 
     Slider_Video_Starttime->SetSupportsBulkEdit(false);
     TextCtrl_Video_Starttime->SetSupportsBulkEdit(false);
@@ -216,6 +263,7 @@ PANEL_EVENT_HANDLERS(VideoPanel)
 void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
     std::unique_lock<std::mutex> locker(lock);
     wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    ObtainAccessToURL(fn.GetFullPath().ToStdString());
     int i = videoTimeCache[fn.GetFullPath().ToStdString()];
     if (i > 0) {
         Slider_Video_Starttime->SetMax(i);
@@ -224,6 +272,7 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(1);
         TextCtrl2->SetValue(FORMATTIME(0));
     }
+    FilePicker_Video_Filename->SetToolTip(fn.GetFullName());
 }
 
 void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)

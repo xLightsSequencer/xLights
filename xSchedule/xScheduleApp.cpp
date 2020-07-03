@@ -1,10 +1,11 @@
 /***************************************************************
- * Name:      xScheduleApp.cpp
- * Purpose:   Code for Application Class
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "xScheduleApp.h"
@@ -30,12 +31,78 @@
 #include <wx/confbase.h>
 #include <wx/snglinst.h>
 
+#ifdef _MSC_VER
+#ifdef _DEBUG
+    #pragma comment(lib, "wxbase31ud.lib")
+    #pragma comment(lib, "wxbase31ud_net.lib")
+    #pragma comment(lib, "wxmsw31ud_core.lib")
+    #pragma comment(lib, "wxscintillad.lib")
+    #pragma comment(lib, "wxregexud.lib")
+    #pragma comment(lib, "wxbase31ud_xml.lib")
+    #pragma comment(lib, "wxtiffd.lib")
+    #pragma comment(lib, "wxjpegd.lib")
+    #pragma comment(lib, "wxpngd.lib")
+    #pragma comment(lib, "wxzlibd.lib")
+    #pragma comment(lib, "wxmsw31ud_qa.lib")
+    #pragma comment(lib, "wxexpatd.lib")
+    #pragma comment(lib, "log4cpplibd.lib")
+    //#pragma comment(lib, "log4cppd.lib")
+    #pragma comment(lib, "portmidid.lib")
+    #pragma comment(lib, "msvcprtd.lib")
+    #pragma comment(lib, "libzstdd_static_VS.lib")
+    #pragma comment(lib, "libltcd.lib")
+#else
+    #pragma comment(lib, "wxbase31u.lib")
+    #pragma comment(lib, "wxbase31u_net.lib")
+    #pragma comment(lib, "wxmsw31u_core.lib")
+    #pragma comment(lib, "wxscintilla.lib")
+    #pragma comment(lib, "wxregexu.lib")
+    #pragma comment(lib, "wxbase31u_xml.lib")
+    #pragma comment(lib, "wxtiff.lib")
+    #pragma comment(lib, "wxjpeg.lib")
+    #pragma comment(lib, "wxpng.lib")
+    #pragma comment(lib, "wxzlib.lib")
+    #pragma comment(lib, "wxmsw31u_qa.lib")
+    #pragma comment(lib, "wxexpat.lib")
+    #pragma comment(lib, "libzstd_static_VS.lib")
+    #pragma comment(lib, "log4cpplib.lib")
+    //#pragma comment(lib, "log4cpp.lib")
+    #pragma comment(lib, "portmidi.lib")
+    #pragma comment(lib, "msvcprt.lib")
+    #pragma comment(lib, "libltc.lib")
+#endif
+#pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "z.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "WS2_32.Lib")
+#pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Rpcrt4.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "winspool.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "ImageHlp.Lib")
+#pragma comment(lib, "avcodec.lib")
+#pragma comment(lib, "avformat.lib")
+#pragma comment(lib, "avutil.lib")
+#pragma comment(lib, "swresample.lib")
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "swscale.lib")
+#endif
+
 IMPLEMENT_APP(xScheduleApp)
 
-std::string DecodeOS(wxOperatingSystemId o)
-{
-    switch (o)
-    {
+std::string DecodeOS(wxOperatingSystemId o)  {
+    switch (o) {
     case wxOS_UNKNOWN:
         return "Call get get operating system failed.";
     case wxOS_MAC_OS:
@@ -162,6 +229,44 @@ void InitialiseLogging(bool fromMain)
             try
             {
                 log4cpp::PropertyConfigurator::configure(initFileName);
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+                wxDateTime now = wxDateTime::Now();
+                int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+                wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+                logger_base.info("Start Time: %s.", (const char*)ts.c_str());
+
+                logger_base.info("Current Working Directory: " + wxGetCwd());
+                logger_base.info("Log4cpp config read from %s.", (const char*)initFileName.c_str());
+
+                auto categories = log4cpp::Category::getCurrentCategories();
+                for (const auto& it : *categories)
+                {
+                    std::string apps = "";
+                    auto appenders = it->getAllAppenders();
+                    for (const auto& it2 : appenders)
+                    {
+                        if (apps != "") apps += ", ";
+                        apps += it2->getName();
+                    }
+
+                    std::string levels = "";
+                    if (it->isAlertEnabled()) levels += "ALERT ";
+                    if (it->isCritEnabled()) levels += "CRIT ";
+                    if (it->isDebugEnabled()) levels += "DEBUG ";
+                    if (it->isEmergEnabled()) levels += "EMERG ";
+                    if (it->isErrorEnabled()) levels += "ERROR ";
+                    if (it->isFatalEnabled()) levels += "FATAL ";
+                    if (it->isInfoEnabled()) levels += "INFO ";
+                    if (it->isNoticeEnabled()) levels += "NOTICE ";
+                    if (it->isWarnEnabled()) levels += "WARN ";
+
+                    logger_base.info("    %s : %s", (const char*)it->getName().c_str(), (const char*)levels.c_str());
+                    if (apps != "")
+                    {
+                        logger_base.info("         " + apps);
+                    }
+                }
             }
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work
@@ -183,6 +288,12 @@ xScheduleFrame *topFrame = nullptr;
 #endif
 
 void handleCrash(void *data) {
+
+    // if we crash while in here we dont want to report again.
+    static bool reentry = false;
+    if (reentry) return;
+    reentry = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
     wxDebugReportCompress *report = new wxDebugReportCompress();
@@ -271,6 +382,8 @@ void handleCrash(void *data) {
     else {
         topFrame->CreateDebugReport(report);
     }
+
+    reentry = false;
 }
 
 #if !(wxUSE_ON_FATAL_EXCEPTION)
@@ -279,6 +392,7 @@ void handleCrash(void *data) {
 LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 {
     handleCrash(ExceptionInfo->ContextRecord);
+	return 0;
 }
 #endif
 
@@ -314,24 +428,24 @@ bool xScheduleApp::OnInit()
 
     wxLog::SetLogLevel(wxLOG_FatalError);
 
-#ifdef _MSC_VER
-    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
-#endif
-
 #if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
+    #if !defined(_DEBUG) || !defined(_MSC_VER)
+        wxHandleFatalExceptions();
+    #endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
+    //curl_global_init(CURL_GLOBAL_SSL);
+
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
+
+#ifdef __WXMSW__
+    logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
+    logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
+#endif
 
     DumpConfig();
 
@@ -345,6 +459,7 @@ bool xScheduleApp::OnInit()
     };
 
     bool parmfound = false;
+    bool wipeSettings = false;
     wxString showDir;
     wxString playlist;
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
@@ -358,14 +473,15 @@ bool xScheduleApp::OnInit()
             parmfound = true;
             logger_base.info("-w: Wiping settings");
             WipeSettings();
+            wipeSettings = true;
         }
         if (parser.Found("s", &showDir)) {
             parmfound = true;
-            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
+            logger_base.info("-s: Show directory set to %s.", (const char*)showDir.c_str());
         }
         if (parser.Found("p", &playlist)) {
             parmfound = true;
-            logger_base.info("-p: Playlist to play %s.", (const char *)playlist.c_str());
+            logger_base.info("-p: Playlist to play %s.", (const char*)playlist.c_str());
         }
         if (!parmfound && parser.GetParamCount() > 0)
         {
@@ -403,11 +519,12 @@ bool xScheduleApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    if ( wxsOK )
+    if (wxsOK)
     {
-    	xScheduleFrame* Frame = new xScheduleFrame(0);
-    	Frame->Show();
-    	SetTopWindow(Frame);
+        xScheduleFrame* Frame = new xScheduleFrame(0, showDir, playlist);
+        Frame->Show();
+        SetTopWindow(Frame);
+        if (wipeSettings) Frame->GetPluginManager().WipeSettings();
     }
     //*)
     return wxsOK;

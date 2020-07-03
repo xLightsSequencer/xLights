@@ -1,10 +1,14 @@
-//
-//  Node.h
-//  xLights
-//
+#pragma once
 
-#ifndef Node_h
-#define Node_h
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <vector>
 #include <string>
@@ -25,10 +29,10 @@ class NodeBaseClass
 
 protected:
     // color values in rgb order
-    uint8_t c[3];
+    uint8_t c[3] = { 0,0,0 };
     // color channel offsets, rgb would be 0,1,2
-    uint8_t offsets[3];
-    unsigned short chanCnt;
+    uint8_t offsets[3] = { 0,1,2 };
+    uint16_t chanCnt = 3;
 
 public:
     // buffer and screen coordinates for displayed nodes
@@ -38,9 +42,9 @@ public:
         float screenX, screenY, screenZ;
     };
 
-    unsigned int ActChan = 0;   // 0 is the first channel
-    unsigned short sparkle;
-    unsigned short StringNum; // node is part of this string (0 is the first string)
+    uint32_t ActChan = 0;   // 0 is the first channel
+    uint16_t sparkle = 0;
+    uint16_t StringNum = 0; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
     std::string *name = nullptr;
     const Model *model = nullptr;
@@ -127,11 +131,11 @@ public:
     }
     virtual const std::string &GetNodeType() const;
 
-    unsigned int GetChanCount() const {
+    uint32_t GetChanCount() const {
         return chanCnt;
     }
     bool IsVisible() const {
-        return Coords.size() > 0;
+        return !Coords.empty();
     }
 
     void SetName(const std::string &n) {
@@ -263,6 +267,7 @@ public:
         return new NodeClassBlue(*this);
     }
 };
+
 class NodeClassCustom : public NodeBaseClass
 {
 public:
@@ -414,8 +419,26 @@ private:
     uint8_t rgbwHandling;
 };
 
+class NodeClassSuperString : public NodeBaseClass
+{
+public:
+    NodeClassSuperString(int StringNumber, size_t NodesPerString, const std::vector<xlColor>& superStringColours, const std::string& n = EMPTY_STR)
+        : NodeBaseClass(StringNumber, NodesPerString, "RGB")
+    {
+        chanCnt = superStringColours.size();
+        SetName(n);
+        _superStringColours = superStringColours;
+    }
+    NodeClassSuperString(const NodeClassSuperString& c) : NodeBaseClass(c), _superStringColours(c._superStringColours) { }
+
+    virtual void SetFromChannels(const unsigned char* buf) override;
+    virtual void GetForChannels(unsigned char* buf) const override;
+    virtual NodeBaseClass* clone() const override {
+        return new NodeClassSuperString(*this);
+    }
+private:
+    std::vector<xlColor> _superStringColours;
+};
+
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
-
-
-#endif /* Node_h */
 

@@ -1,18 +1,28 @@
-#ifndef VENDORMODELDIALOG_H
-#define VENDORMODELDIALOG_H
+#pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*Headers(VendorModelDialog)
-#include <wx/treectrl.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
+#include <wx/hyperlink.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/splitter.h>
+#include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
-#include <wx/hyperlink.h>
-#include <wx/statbmp.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
+#include <wx/treectrl.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -32,6 +42,7 @@ class VendorModelDialog: public wxDialog
 {
     std::list<MVendor*> _vendors;
     std::string _modelFile;
+	std::string _showFolder;
     int _currImage = -1;
     wxImage _vendorImage;
     wxImage _modelImage;
@@ -48,37 +59,40 @@ class VendorModelDialog: public wxDialog
     void LoadModelImage(std::list<wxFileName> imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
     bool DeleteEmptyCategories(wxTreeItemId& parent);
+    bool IsVendorSuppressed(const std::string& vendor);
+    void SuppressVendor(const std::string& vendor, bool suppress);
 
 	public:
 
-		VendorModelDialog(wxWindow* parent, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VendorModelDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VendorModelDialog();
         std::string GetModelFile() const { return _modelFile; }
         bool DlgInit(wxProgressDialog* prog, int low, int high);
         static CachedFileDownloader& GetCache() { return _cache; }
 
 		//(*Declarations(VendorModelDialog)
-		wxTextCtrl* TextCtrl_ModelDetails;
-		wxNotebook* NotebookPanels;
-		wxHyperlinkCtrl* HyperlinkCtrl_Website;
-		wxStaticBitmap* StaticBitmap_VendorImage;
+		wxButton* Button_InsertModel;
+		wxButton* Button_Next;
+		wxButton* Button_Prior;
+		wxCheckBox* CheckBox_DontDownload;
 		wxHyperlinkCtrl* HyperlinkCtrl_Facebook;
-		wxTreeCtrl* TreeCtrl_Navigator;
-		wxStaticText* StaticText2;
-		wxPanel* PanelVendor;
-		wxStaticText* StaticText6;
+		wxHyperlinkCtrl* HyperlinkCtrl_ModelWebLink;
+		wxHyperlinkCtrl* HyperlinkCtrl_Website;
+		wxNotebook* NotebookPanels;
 		wxPanel* ItemImagePanel;
 		wxPanel* Panel1;
-		wxButton* Button_Prior;
-		wxStaticBitmap* StaticBitmap_ModelImage;
 		wxPanel* Panel3;
-		wxButton* Button_Next;
-		wxStaticText* StaticText5;
+		wxPanel* PanelVendor;
 		wxPanel* Panel_Item;
-		wxTextCtrl* TextCtrl_VendorDetails;
-		wxHyperlinkCtrl* HyperlinkCtrl_ModelWebLink;
 		wxSplitterWindow* SplitterWindow1;
-		wxButton* Button_InsertModel;
+		wxStaticBitmap* StaticBitmap_ModelImage;
+		wxStaticBitmap* StaticBitmap_VendorImage;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl_ModelDetails;
+		wxTextCtrl* TextCtrl_VendorDetails;
+		wxTreeCtrl* TreeCtrl_Navigator;
 		//*)
 
 	protected:
@@ -86,6 +100,7 @@ class VendorModelDialog: public wxDialog
 		//(*Identifiers(VendorModelDialog)
 		static const long ID_TREECTRL1;
 		static const long ID_PANEL3;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICBITMAP1;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT8;
@@ -122,9 +137,8 @@ class VendorModelDialog: public wxDialog
 		void OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnCheckBox_DontDownloadClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #include <wx/brush.h>
 
@@ -211,6 +221,7 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating Timeline");
+    logger_base.info("If xLights crashes after this log message then the root cause is almost always a problem between OpenGL and their video drivers.\nWe recommend they download the latest drivers from their card provider ... not from their operating system provider.");
 
     _savedPosition = -1;
     mParent = (wxPanel*)parent;
@@ -393,6 +404,16 @@ void TimeLine::RestorePosition()
 
 void TimeLine::LatchSelectedPositions()
 {
+    if (mSelectedPlayMarkerEndMS != -1)
+    {
+        // if we have selected very few horizontal pixels then assume we were trying to click rather than select
+        if (std::abs(mSelectedPlayMarkerStart - mSelectedPlayMarkerEnd) < 5)
+        {
+            mSelectedPlayMarkerEndMS = -1;
+            mSelectedPlayMarkerEnd = -1;
+        }
+    }
+
     if( mSelectedPlayMarkerEndMS != -1 && mSelectedPlayMarkerStartMS > mSelectedPlayMarkerEndMS )
     {
         std::swap(mSelectedPlayMarkerStart, mSelectedPlayMarkerEnd);
@@ -531,7 +552,7 @@ void TimeLine::SetZoomLevel(int level)
     mZoomLevel = level;
     if( (mZoomMarkerMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
     {
-        float marker_ratio = (double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
+        float marker_ratio = std::abs((double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS));
         int total_ms = GetTotalViewableTimeMS();
         mStartTimeMS = mZoomMarkerMS - marker_ratio * total_ms;
         if( mStartTimeMS < 0 )
@@ -992,18 +1013,16 @@ TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOf
     CurrentTimeMS = currentTime;
 }
 
-int TimeLine::RoundToMultipleOfPeriod(int number,double frequency)
+int TimeLine::RoundToMultipleOfPeriod(int number, double frequency)
 {
-    double period = (double)1/frequency;
-    int i = (int)(((double)number/1000.0)/period);
-    double d = ((double)number/1000.0)/period;
-    if(d-(double)i < .5)
-    {
+    double period = (double)1 / frequency;
+    int i = (int)(((double)number / 1000.0) / period);
+    double d = ((double)number / 1000.0) / period;
+    if (d - (double)i < .5) {
         return (int)(((double)i * period) * 1000.0);
     }
-    else
-    {
-        return (int)(((double)(i+1) * period) * 1000.0);
+    else {
+        return (int)(((double)(i + 1) * period) * 1000.0);
     }
 }
 

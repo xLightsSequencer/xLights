@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
@@ -69,7 +79,6 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
     
     Nodes.clear();
     int minChan = 9999999;
-    int maxChan = -1;
     if(WholeHouseData.length()> 0) {
         wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
         int coordinateCount=wholeHouseDataArr.size();
@@ -77,9 +86,6 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
         // Load first coordinate
         data=wxSplit(wholeHouseDataArr[0],',');
         data[0].ToLong(&actChn);
-        if (actChn > maxChan) {
-            maxChan = actChn;
-        }
         if (actChn < minChan) {
             minChan = actChn;
         }

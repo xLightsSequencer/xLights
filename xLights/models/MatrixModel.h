@@ -1,8 +1,16 @@
-#ifndef MATRIXMODEL_H
-#define MATRIXMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-
 
 class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -21,18 +29,20 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
+    
+        bool isVerticalMatrix() const { return vMatrix; }
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     
         MatrixModel(const ModelManager &manager);
         virtual void InitModel() override;
-    
+        void InitSingleChannelModel();
+
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
     
-        bool vMatrix;
+        bool vMatrix = false;
     private:
 };
-
-#endif // MATRIXMODEL_H

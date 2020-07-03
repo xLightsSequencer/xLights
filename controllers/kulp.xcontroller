@@ -1,0 +1,108 @@
+<Vendor Name="KulpLights">
+	<Controller Name="F32-B">
+		<Variant Name="4 Serial" ID="F32-B-44" Base="FPP:FPPStringCape">
+			<MaxPixelPort>44</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+		</Variant>
+		<Variant Name="8 Serial" ID="F32-B" Base="FPP:FPPStringCape">
+			<MaxPixelPort>40</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+		</Variant>
+		<Variant Name="No Serial" ID="F32-B-48" Base="FPP:FPPStringCape">
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+		</Variant>
+	</Controller>
+	<Controller Name="F40D-PB">
+		<Variant Name="4 Serial" ID="F40D-PB-40" Base="FPP:FPPStringCape">
+			<MaxPixelPort>36</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+		</Variant>
+		<Variant Name="8 Serial" ID="F40D-PB-36" Base="FPP:FPPStringCape">
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+		</Variant>
+		<Variant Name="No Serial" ID="F40D-PB" Base="FPP:FPPStringCape">
+			<MaxPixelPort>40</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<fpp>1</fpp>
+			<fpp1>13,16</fpp1>
+		</Variant>
+	</Controller>
+	<Controller Name="F8-B">
+		<Variant Name="4 Serial" ID="F8-B-16" Base="FPP:FPPStringCape">
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+		</Variant>
+		<Variant Name="8 Serial" ID="F8-B" Base="FPP:FPPStringCape">
+			<MaxPixelPort>12</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+		</Variant>
+		<Variant Name="No Serial" ID="F8-B-20" Base="FPP:FPPStringCape">
+			<MaxPixelPort>20</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+		</Variant>
+		<Variant Name="4 Serial w/Expansion" ID="F8-B-EXP-32" Base="FPP:FPPStringCape">
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<fpp>1</fpp>
+			<fpp1>17,16</fpp1>
+		</Variant>
+		<Variant Name="8 Serial w/Expansion" ID="F8-B-EXP" Base="FPP:FPPStringCape">
+			<MaxPixelPort>28</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+			<fpp>1</fpp>
+			<fpp1>13,16</fpp1>
+		</Variant>
+		<Variant Name="No Serial w/ Expansion" ID="F8-B-EXP-36" Base="FPP:FPPStringCape">
+			<MaxPixelPort>36</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<fpp>1</fpp>
+			<fpp1>21,16</fpp1>
+		</Variant>
+	</Controller>
+    <Controller Name="K16A-B">
+        <Variant Name="No Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="K4-PB">
+        <Variant Name="" ID="K4-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyS4</fppSerialPort1>
+        </Variant>
+    </Controller>
+    <Controller Name="K40D-PB">
+        <Variant Name="" ID="K40D-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>40</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyS4</fppSerialPort1>
+        </Variant>
+    </Controller>
+    <Controller Name="K32A-B">
+        <Variant Name="" ID="K32A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+</Vendor>

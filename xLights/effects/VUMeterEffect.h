@@ -1,5 +1,14 @@
-#ifndef VUMETEREFFECT_H
-#define VUMETEREFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 #include "../RenderBuffer.h"
@@ -21,7 +30,7 @@ public:
     virtual void SetDefaultParameters() override;
     virtual void SetPanelStatus(Model *cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string &version) override;
     virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 protected:
@@ -35,6 +44,7 @@ protected:
     void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars, int gain);
     void RenderWaveformFrame(RenderBuffer &buffer, int bars, int yoffset, int gain, bool frameDetail);
     void RenderTimingEventFrame(RenderBuffer &buffer, int bars, int type, std::string timingtrack, std::list<int> &timingmarks);
+    void RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, int& nCount);
     void RenderOnFrame(RenderBuffer &buffer, int gain);
     void RenderOnColourFrame(RenderBuffer &buffer, int gain);
     void RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
@@ -42,6 +52,7 @@ protected:
     void RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain);
     void RenderIntensityWaveFrame(RenderBuffer &buffer, int bars, int gain);
     void RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain);
+    void RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal);
     void RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain);
     void RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain);
     void RenderLevelShapeFrame(RenderBuffer &buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain);
@@ -50,8 +61,10 @@ protected:
     void RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all);
     void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain);
     void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain);
+    void RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize);
     void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel, int gain);
     void RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain);
+    void RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startNote, int endNote, bool gradient);
 
     void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
     void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
@@ -66,5 +79,3 @@ protected:
 
     inline float ApplyGain(float value, int gain) const;
 };
-
-#endif // VUMETEREFFECT_H

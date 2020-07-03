@@ -1,13 +1,22 @@
-#ifndef PlayListItemOSCPANEL_H
-#define PlayListItemOSCPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemOSCPanel)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(PlayListItemOSCPanel)
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class PlayListItemOSC;
@@ -23,31 +32,31 @@ class PlayListItemOSCPanel: public wxPanel
 		virtual ~PlayListItemOSCPanel();
 
 		//(*Declarations(PlayListItemOSCPanel)
-		wxStaticText* StaticText10;
-		wxStaticText* StaticText9;
-		wxTextCtrl* TextCtrl_P2Value;
-		wxTextCtrl* TextCtrl_OSCName;
-		wxTextCtrl* TextCtrl_Path;
-		wxTextCtrl* TextCtrl_P1Value;
-		wxTextCtrl* TextCtrl_P5Value;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxSpinCtrl* SpinCtrl_Port;
 		wxChoice* Choice_P1Type;
-		wxChoice* Choice_P4Type;
-		wxStaticText* StaticText8;
-		wxTextCtrl* TextCtrl_IPAddress;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_P4Value;
-		wxTextCtrl* TextCtrl_Delay;
-		wxTextCtrl* TextCtrl_P3Value;
 		wxChoice* Choice_P2Type;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
 		wxChoice* Choice_P3Type;
-		wxStaticText* StaticText4;
+		wxChoice* Choice_P4Type;
 		wxChoice* Choice_P5Type;
+		wxSpinCtrl* SpinCtrl_Port;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_IPAddress;
+		wxTextCtrl* TextCtrl_OSCName;
+		wxTextCtrl* TextCtrl_P1Value;
+		wxTextCtrl* TextCtrl_P2Value;
+		wxTextCtrl* TextCtrl_P3Value;
+		wxTextCtrl* TextCtrl_P4Value;
+		wxTextCtrl* TextCtrl_P5Value;
+		wxTextCtrl* TextCtrl_Path;
 		//*)
 
 	protected:
@@ -91,4 +100,3 @@ class PlayListItemOSCPanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

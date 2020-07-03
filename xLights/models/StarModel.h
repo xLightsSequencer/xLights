@@ -1,8 +1,16 @@
-#ifndef STARMODEL_H
-#define STARMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-
 
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -41,5 +49,3 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         // The ratio between the inner and outer radius of the star; default is 2.618034.
         float starRatio;
 };
-
-#endif // STARMODEL_H

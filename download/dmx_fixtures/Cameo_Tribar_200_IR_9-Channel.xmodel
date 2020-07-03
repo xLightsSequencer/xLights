@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Cameo Tribar 200 IR 9-Channel" parm1="14" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red 1,Red 2,Red 3,Green 1,Green 2,Green 3,Blue 1,Blue 2,Blue 3,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="12" DmxGreenChannel="14" DmxBlueChannel="13" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red 2" s1-Name="red" s1-Color="#121212" 
+s2="Red 2" s2-Name="green" s2-Color="#373737" 
+s3="Red 2" s3-Name="blue" s3-Color="#5C5C5C" 
+s4="Red 2" s4-Name="yellow" s4-Color="#818181" 
+s5="Red 2" s5-Name="magenta" s5-Color="#A6A6A6" 
+s6="Red 2" s6-Name="cyan" s6-Color="#CBCBCB" 
+s7="Red 2" s7-Name="white" s7-Color="#EEEEEE" 
+/>
+</dmxmodel>

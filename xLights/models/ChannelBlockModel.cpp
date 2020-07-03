@@ -1,9 +1,20 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
+#include "../OutputModelManager.h"
 
 std::vector<std::string> ChannelBlockModel::LINE_BUFFER_STYLES;
 
@@ -56,10 +67,17 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
     if ("ChannelBlockCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
-        AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        //AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
+        //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        return 0;
     }
     else if (event.GetPropertyName().StartsWith("ChannelProperties."))
     {
@@ -68,8 +86,10 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         xlColor xc = c;
         ModelXml->DeleteAttribute(event.GetPropertyName());
         ModelXml->AddAttribute(event.GetPropertyName(), xc);
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -155,7 +175,6 @@ void ChannelBlockModel::InitModel() {
     StringType = "Single Color Custom";
     customColor = xlWHITE;
     SingleNode = true;
-    pixelSize = 12;
 
     InitChannelBlock();
 
@@ -172,7 +191,7 @@ void ChannelBlockModel::InitModel() {
         for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
             coord->screenY = 0;
             if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset;
+                coord->screenX = (float)coord->bufX + (float)count / (float)num + offset;
                 count++;
             }
             else {

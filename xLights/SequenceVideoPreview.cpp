@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SequenceVideoPreview.h"
 
 //#include "DrawGLUtils.h"
@@ -24,27 +34,22 @@ SequenceVideoPreview::~SequenceVideoPreview()
    deleteTexture();
 }
 
-void SequenceVideoPreview::InitializeGLCanvas()
+void SequenceVideoPreview::InitializeGLContext()
 {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
    wxColour bg = GetBackgroundColour();
    SetCurrentGLContext();
    LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
-   mIsInitialized = true;
 }
 
 void SequenceVideoPreview::paint( wxPaintEvent& evt )
 {
+   if(!IsShownOnScreen()) return;
    if ( !mIsInitialized ) { InitializeGLCanvas(); }
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
 
    wxPaintDC( this );
    SetCurrentGLContext();
-
+   wxColour bg = GetBackgroundColour();
+   LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
    LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
 
    SwapBuffers();

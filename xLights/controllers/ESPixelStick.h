@@ -1,32 +1,44 @@
-#ifndef ESPIXELSTICK_H
-#define ESPIXELSTICK_H
+#pragma once 
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <list>
 #include <string>
+
+#include "BaseController.h"
 #include "WebSocketClient.h"
+#include "ControllerUploadData.h"
 
-class ModelManager;
-class Output;
-class OutputManager;
-
-class ESPixelStick
+class ESPixelStick : public BaseController
 {
+    #pragma region Member Variables
     WebSocketClient _wsClient;
-	std::string _ip;
-    std::string _version;
-    bool _connected;
+    #pragma endregion
+
+    #pragma region Private Functions
     std::string DecodeStringPortProtocol(std::string protocol);
     std::string DecodeSerialPortProtocol(std::string protocol);
     std::string DecodeSerialSpeed(std::string protocol);
-    int GetMaxStringOutputs() const;
-    int GetMaxSerialOutputs() const;
+
     std::string GetFromJSON(std::string section, std::string key, std::string json);
+    #pragma endregion
 
 public:
+    #pragma region Constructors and Destructors
     ESPixelStick(const std::string& ip);
-    bool IsConnected() const { return _connected; };
-    virtual ~ESPixelStick();
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
-};
+    virtual ~ESPixelStick() {}
+    #pragma endregion
 
-#endif
+    #pragma region Getters and Setters
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return false; }
+    #pragma endregion
+};

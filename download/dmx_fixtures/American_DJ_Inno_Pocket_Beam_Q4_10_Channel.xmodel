@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Inno Pocket Beam Q4 10 Channel" parm1="13" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan Movement,Tilt Movement,Green LED,Red LED,Blue LED,White LED,Shutter/Strobe,Master Dimmer,Pan/Tilt Speed,Blackout/Reset,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Pan/Tilt Speed" s1-Name="shutter_closed" s1-Color="#030303" 
+s2="Pan/Tilt Speed" s2-Name="shutter_open" s2-Color="#0B0B0B" 
+s3="Pan/Tilt Speed" s3-Name="strobing_slow-fast" s3-Color="#494949" 
+s4="Pan/Tilt Speed" s4-Name="shutter_slow_open-fast_close" s4-Color="#A0A0A0" 
+s5="Pan/Tilt Speed" s5-Name="shutter_fast_open-slow_close" s5-Color="#D2D2D2" 
+s6="Pan/Tilt Speed" s6-Name="random_strobe" s6-Color="#F3F3F3" 
+s7="Node12" s7-Name="nothing" s7-Color="#222222" 
+s8="Node12" s8-Name="blackout_w_pan_tilt_movement" s8-Color="#4A4A4A" 
+s9="Node12" s9-Name="blackout_w_color_change" s9-Color="#5E5E5E" 
+s10="Node12" s10-Name="reset_all" s10-Color="#CCCCCC" 
+s11="Node12" s11-Name="sound_active" s11-Color="#FCFCFC" 
+s12="Node13" s12-Name="standard" s12-Color="#0A0A0A" 
+s13="Node13" s13-Name="stage" s13-Color="#1E1E1E" 
+s14="Node13" s14-Name="tv" s14-Color="#323232" 
+s15="Node13" s15-Name="architectural" s15-Color="#464646" 
+s16="Node13" s16-Name="theater" s16-Color="#5A5A5A" 
+s17="Node13" s17-Name="default_to_unit_curve_setting" s17-Color="#B2B2B2" 
+/>
+</dmxmodel>

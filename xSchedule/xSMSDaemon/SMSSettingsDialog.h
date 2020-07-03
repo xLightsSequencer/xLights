@@ -8,6 +8,7 @@
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
+#include <wx/statline.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -27,6 +28,7 @@ class SMSSettingsDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_IgnoreOversized;
+		wxCheckBox* CheckBox_Moderation;
 		wxCheckBox* CheckBox_OneWordOnly;
 		wxCheckBox* CheckBox_RejectProfanity;
 		wxCheckBox* CheckBox_UpperCase;
@@ -37,10 +39,16 @@ class SMSSettingsDialog: public wxDialog
 		wxChoice* Choice_SMSService;
 		wxSpinCtrl* SpinCtrl_DisplayDuration;
 		wxSpinCtrl* SpinCtrl_MaxMessageAge;
+		wxSpinCtrl* SpinCtrl_MaxMsgAgeMinsForResponse;
 		wxSpinCtrl* SpinCtrl_MaximumMessageLength;
+		wxSpinCtrl* SpinCtrl_MaximumMessages;
 		wxSpinCtrl* SpinCtrl_RetrieveInterval;
 		wxSpinCtrl* SpinCtrl_TimesToDisplay;
-		wxSpinCtrl* SpinCtrl_xSchedulePort;
+		wxSpinCtrl* SpinCtrl_TimezoneAdjust;
+		wxStaticLine* StaticLine1;
+		wxStaticLine* StaticLine2;
+		wxStaticLine* StaticLine3;
+		wxStaticLine* StaticLine4;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText13;
@@ -49,6 +57,8 @@ class SMSSettingsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
@@ -64,15 +74,11 @@ class SMSSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_TargetMatrix;
 		wxTextCtrl* TextCtrl_Token;
 		wxTextCtrl* TextCtrl_User;
-		wxTextCtrl* TextCtrl_xScheduleIPAddress;
 		//*)
 
 	protected:
 
 		//(*Identifiers(SMSSettingsDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL4;
 		static const long ID_STATICTEXT15;
@@ -89,11 +95,20 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL3;
 		static const long ID_STATICTEXT10;
 		static const long ID_TEXTCTRL5;
+		static const long ID_STATICTEXT17;
+		static const long ID_SPINCTRL8;
+		static const long ID_STATICLINE1;
+		static const long ID_STATICLINE2;
+		static const long ID_CHECKBOX9;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX8;
+		static const long ID_STATICLINE3;
+		static const long ID_STATICLINE4;
+		static const long ID_STATICTEXT1;
+		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX5;
@@ -101,6 +116,8 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_CHECKBOX6;
 		static const long ID_STATICTEXT8;
 		static const long ID_SPINCTRL5;
+		static const long ID_STATICTEXT16;
+		static const long ID_SPINCTRL7;
 		static const long ID_STATICTEXT9;
 		static const long ID_SPINCTRL6;
 		static const long ID_STATICTEXT11;

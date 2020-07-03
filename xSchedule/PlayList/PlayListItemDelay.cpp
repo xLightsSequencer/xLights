@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemDelay.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
@@ -16,6 +26,7 @@ void PlayListItemDelay::Load(wxXmlNode* node)
 
 PlayListItemDelay::PlayListItemDelay() : PlayListItem()
 {
+    _type = "PLIDelay";
     _duration = 50;
     SetName("Delay");
 }
@@ -31,7 +42,7 @@ PlayListItem* PlayListItemDelay::Copy() const
 
 wxXmlNode* PlayListItemDelay::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIDelay");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
    

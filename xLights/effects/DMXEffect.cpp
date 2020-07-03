@@ -1,9 +1,20 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "DMXEffect.h"
 #include "DMXPanel.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../models/ModelGroup.h"
 
 #include "../../include/dmx-16.xpm"
 #include "../../include/dmx-24.xpm"
@@ -230,7 +241,7 @@ bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, SettingsMap &S
         color.red = value;
         color.green = value;
         color.blue = value;
-        buffer.SetPixel(chan-1, 0, color);
+        buffer.SetPixel(chan-1, 0, color, false, false, true);
         return false;
     } else {
         return true;
@@ -272,7 +283,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, SettingsMap &SettingsM
         } else {
             return_val = true;
         }
-        buffer.SetPixel(node-1, 0, color);
+        buffer.SetPixel(node-1, 0, color, false, false, true);
     } else {
         return_val = true;
     }
@@ -296,7 +307,7 @@ void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
 
     xlColor color = xlBLACK;
 
-    if (string_type.find("Single Color") != std::string::npos) {
+    if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
         if( SetDMXSinglColorPixel(1, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
         if( SetDMXSinglColorPixel(2, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
@@ -366,11 +377,17 @@ void DMXEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
-    int num_channels = cls->GetNumChannels();
+    Model* m = cls;
+    if (cls->GetDisplayAs() == "ModelGroup")         {
+        m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
+        if (m == nullptr) m = cls;
+    }
+
+    int num_channels = m->GetNumChannels();
 
     for(int i = 1; i <= 40; ++i) {
         wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
-        std::string name = cls->GetNodeName(i-1);
+        std::string name = m->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
         if( label != nullptr ) {
             if( name == "" ) {

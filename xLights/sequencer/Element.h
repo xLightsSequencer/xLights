@@ -1,5 +1,14 @@
-#ifndef ELEMENT_H
-#define ELEMENT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <vector>
 #include <atomic>
@@ -9,12 +18,12 @@
 #include "EffectLayer.h"
 #include "../effects/EffectManager.h"
 
-enum ElementType
+enum class ElementType
 {
     ELEMENT_TYPE_MODEL,
     ELEMENT_TYPE_SUBMODEL,
     ELEMENT_TYPE_STRAND,
-    ELEMENT_TYPE_TIMING,
+    ELEMENT_TYPE_TIMING
 };
 
 class NetInfoClass;
@@ -22,14 +31,14 @@ class Element;
 class ModelElement;
 class Model;
 class xLightsFrame;
+class SequenceElements;
 
 class ChangeListener {
 public:
+    ChangeListener() {}
+    virtual ~ChangeListener() {}
     virtual void IncrementChangeCount(Element *el) = 0;
 };
-
-class SequenceElements;
-
 
 class Element {
 public:
@@ -45,7 +54,6 @@ public:
     virtual const std::string &GetModelName() const;
     virtual std::string GetFullName() const;
     
-    
     bool GetVisible() const {return mVisible;}
     void SetVisible(bool visible) {mVisible = visible;}
 
@@ -54,13 +62,18 @@ public:
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
     int GetLayerNumberFromIndex(int index);
+    virtual NodeLayer* GetNodeEffectLayer(int index) const = 0;
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
-    bool SelectEffectUsingDescription(std::string description);
-    bool SelectEffectUsingLayerTime(int layer, int time);
+    Effect* SelectEffectUsingDescription(std::string description);
+    virtual bool IsEffectValid(Effect* e) const;
+    Effect* SelectEffectUsingLayerTime(int layer, int time);
 	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
+    int GetSelectedEffectCount() const;
+    int GetFirstSelectedEffectStartMS() const;
+    int GetLastSelectedEffectEndMS() const;
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
@@ -111,16 +124,16 @@ public:
 protected:
     EffectLayer* AddEffectLayerInternal();
 
-    SequenceElements *parent;
+    SequenceElements *parent = nullptr;
 
     std::string mName;
-    int mIndex;
-    bool mVisible;
-    bool mCollapsed;
+    int mIndex = 0;
+    bool mVisible = true;
+    bool mCollapsed = false;
 
     std::vector<EffectLayer*> mEffectLayers;
     std::list<EffectLayer *> mLayersToDelete;
-    ChangeListener *listener;
+    ChangeListener *listener = nullptr;
     volatile int changeCount = 0;
     volatile int dirtyStart = -1;
     volatile int dirtyEnd = -1;
@@ -134,7 +147,7 @@ public:
     TimingElement(SequenceElements *p, const std::string &name);
     virtual ~TimingElement();
     
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_TIMING; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
@@ -149,13 +162,17 @@ public:
 
     std::string GetExport() const;
     std::string GetPapagayoExport(int ms) const;
-    
-private:
-    int mFixed;
-    bool mActive;
-    std::string mViews;
-};
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+    bool HasLyrics(int layer) const;
+    bool GetMasterVisible() const { return _masterVisible; }
+    void SetMasterVisible(bool visible) { _masterVisible = visible; }
 
+private:
+    int mFixed = 0;
+    bool mActive = true;
+    std::string mViews;
+    bool _masterVisible = false;
+};
 
 class SubModelElement : public Element {
 public:
@@ -165,15 +182,16 @@ public:
     ModelElement *GetModelElement() const { return mParentModel;}
     
     virtual const std::string &GetModelName() const override;
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_SUBMODEL; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_SUBMODEL; }
     
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
 
     virtual bool HasEffects() const override;
 
 protected:
-    ModelElement *mParentModel;
+    ModelElement *mParentModel = nullptr;
 };
 
 class StrandElement : public SubModelElement {
@@ -184,7 +202,9 @@ public:
     void InitFromModel(Model &model);
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_STRAND; }
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+    virtual bool IsEffectValid(Effect* e) const override;
 
     int GetStrand() const { return mStrand; }
     
@@ -208,11 +228,9 @@ public:
     virtual void CleanupAfterRender() override;
 
 private:
-    int mStrand;
-
+    int mStrand = 0;
     bool mShowNodes = false;
     std::vector<NodeLayer*> mNodeLayers;
-    
 };
 
 class ModelElement : public Element
@@ -223,7 +241,7 @@ class ModelElement : public Element
         virtual ~ModelElement();
     
         void Init(Model &cls);
-        virtual ElementType GetType() const override { return ELEMENT_TYPE_MODEL; }
+        virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_MODEL; }
 
         bool GetSelected();
         void SetSelected(bool selected);
@@ -239,14 +257,15 @@ class ModelElement : public Element
         void RemoveSubModel(const std::string &name);
         void RemoveAllSubModels();
         void AddSubModel(SubModelElement* sme);
-    
+
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
-    
+        virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
-        int GetWaitCount();
-        void IncWaitCount();
-        void DecWaitCount();
+        int GetWaitCount() const { return waitCount; }
+        void IncWaitCount() { waitCount++; }
+        void DecWaitCount() { waitCount--; }
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;
@@ -257,11 +276,9 @@ class ModelElement : public Element
     protected:
     private:
         bool mStrandsVisible = false;
-        bool mSelected;
+        bool mSelected = false;
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
         std::atomic_int waitCount;
 };
-
-#endif // ELEMENT_H
 

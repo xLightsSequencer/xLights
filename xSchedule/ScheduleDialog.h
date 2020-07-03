@@ -1,18 +1,27 @@
-#ifndef SCHEDULEDIALOG_H
-#define SCHEDULEDIALOG_H
+#pragma once
 
-//(*Headers(ScheduleDialog)
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ScheduleDialog)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/datectrl.h>
+ #include <wx/dateevt.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class Schedule;
 
@@ -33,6 +42,7 @@ class ScheduleDialog: public wxDialog
 		wxCheckBox* CheckBox_EveryYear;
 		wxCheckBox* CheckBox_Fri;
 		wxCheckBox* CheckBox_GracefullyInterrupt;
+		wxCheckBox* CheckBox_HardStop;
 		wxCheckBox* CheckBox_Loop;
 		wxCheckBox* CheckBox_Mon;
 		wxCheckBox* CheckBox_Sat;
@@ -47,6 +57,8 @@ class ScheduleDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_MaxLoops;
 		wxSpinCtrl* SpinCtrl_NthDay;
 		wxSpinCtrl* SpinCtrl_NthDayOffset;
+		wxSpinCtrl* SpinCtrl_OffOffsetMins;
+		wxSpinCtrl* SpinCtrl_OnOffsetMins;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
@@ -67,6 +79,8 @@ class ScheduleDialog: public wxDialog
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
 		wxStaticText* StaticText_NextDay;
+		wxStaticText* StaticText_OffOffsetMins;
+		wxStaticText* StaticText_OnOffsetMins;
 		wxTextCtrl* TextCtrl_Name;
 		wxTextCtrl* TextCtrl_OffTime;
 		wxTextCtrl* TextCtrl_OnTime;
@@ -105,9 +119,14 @@ class ScheduleDialog: public wxDialog
 		static const long ID_STATICTEXT18;
 		static const long ID_STATICTEXT12;
 		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT20;
+		static const long ID_SPINCTRL5;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT21;
+		static const long ID_SPINCTRL6;
 		static const long ID_CHECKBOX12;
+		static const long ID_CHECKBOX13;
 		static const long ID_STATICTEXT19;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX9;
@@ -142,4 +161,3 @@ class ScheduleDialog: public wxDialog
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

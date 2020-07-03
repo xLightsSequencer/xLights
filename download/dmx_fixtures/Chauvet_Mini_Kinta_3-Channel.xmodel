@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet Mini Kinta 3-Channel" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Control/Operating Mode,Strobe,Motor Rotation" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Control/Operating Mode" s1-Name="no_function" s1-Color="#020202" 
+s2="Control/Operating Mode" s2-Name="red" s2-Color="#0D0D0D" 
+s3="Control/Operating Mode" s3-Name="green" s3-Color="#1C1C1C" 
+s4="Control/Operating Mode" s4-Name="blue" s4-Color="#2B2B2B" 
+s5="Control/Operating Mode" s5-Name="white" s5-Color="#3A3A3A" 
+s6="Control/Operating Mode" s6-Name="red_green" s6-Color="#494949" 
+s7="Control/Operating Mode" s7-Name="red_blue" s7-Color="#585858" 
+s8="Control/Operating Mode" s8-Name="red_white" s8-Color="#676767" 
+s9="Control/Operating Mode" s9-Name="green_blue" s9-Color="#767676" 
+s10="Control/Operating Mode" s10-Name="green_white" s10-Color="#858585" 
+s11="Control/Operating Mode" s11-Name="blue_white" s11-Color="#949494" 
+s12="Control/Operating Mode" s12-Name="red_green_blue" s12-Color="#A3A3A3" 
+s13="Control/Operating Mode" s13-Name="red_green_white" s13-Color="#B2B2B2" 
+s14="Control/Operating Mode" s14-Name="green_blue_white" s14-Color="#C1C1C1" 
+s15="Control/Operating Mode" s15-Name="red_green_blue_white" s15-Color="#D0D0D0" 
+s16="Control/Operating Mode" s16-Name="automatic_4_color_chase_" s16-Color="#DFDFDF" 
+s17="Control/Operating Mode" s17-Name="automatic_7_color_chase_" s17-Color="#F3F3F3" 
+s18="Strobe" s18-Name="no_strobe" s18-Color="#020202" 
+s19="Strobe" s19-Name="slow-gt_fast" s19-Color="#828282" 
+s20="Motor Rotation" s20-Name="no_function" s20-Color="#000000" 
+s21="Motor Rotation" s21-Name="motor_indexing" s21-Color="#404040" 
+s22="Motor Rotation" s22-Name="motor_speed_bi-directional_" s22-Color="#BFBFBF" 
+/>
+</dmxmodel>

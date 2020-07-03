@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Pro-Lights StudioCOBFC 3 channel" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node5" s1-Name="no_function" s1-Color="#050505" 
+s2="Node5" s2-Name="slow_to_fast" s2-Color="#858585" 
+s3="Node6" s3-Name="strobe_no_function_speed_slow_to_fast_" s3-Color="#050505" 
+s4="Node6" s4-Name="strobe_slow_to_fast_speed_slow_to_fast_" s4-Color="#858585" 
+s5="Node7" s5-Name="no_function" s5-Color="#070707" 
+s6="Node7" s6-Name="color_macros_overrides_ch_1-3_" s6-Color="#878787" 
+s7="Node8" s7-Name="rgb_mode" s7-Color="#050505" 
+s8="Node8" s8-Name="pulse_effect_0-100pct" s8-Color="#1E1E1E" 
+s9="Node8" s9-Name="pulse_effect_100-0pct" s9-Color="#464646" 
+s10="Node8" s10-Name="pulse_effect_100-0-100pct" s10-Color="#6E6E6E" 
+s11="Node8" s11-Name="auto_fade_transition" s11-Color="#969696" 
+s12="Node8" s12-Name="auto_snap_transition_3_colors_" s12-Color="#BEBEBE" 
+s13="Node8" s13-Name="auto_snap_transition_7_colors_" s13-Color="#E9E9E9" 
+s14="Node9" s14-Name="preset_dimmer_speed_from_display_menu" s14-Color="#191919" 
+s15="Node9" s15-Name="dimmer_speed_mode_off" s15-Color="#4C4C4C" 
+s16="Node9" s16-Name="dimmer_speed_mode1_fast_speed_" s16-Color="#7F7F7F" 
+s17="Node9" s17-Name="dimmer_speed_mode2_middle_speed_" s17-Color="#B2B2B2" 
+s18="Node9" s18-Name="dimmer_speed_mode3_slow_speed_" s18-Color="#E5E5E5" 
+/>
+</dmxmodel>

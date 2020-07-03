@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Ayra TDC Agaricus 8 Channel" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red Dimmer,Green dimmer,Blue dimmer,Strobe,RGB color mixation,Motor,Sound Controlled" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer" s1-Name="black_out" s1-Color="#000000" 
+s2="Dimmer" s2-Name="dimmer" s2-Color="#808080" 
+s3="Red Dimmer" s3-Name="black_out" s3-Color="#000000" 
+s4="Red Dimmer" s4-Name="red_dimmer" s4-Color="#808080" 
+s5="Green dimmer" s5-Name="black_out" s5-Color="#000000" 
+s6="Green dimmer" s6-Name="green_dimmer" s6-Color="#808080" 
+s7="Blue dimmer" s7-Name="black_out" s7-Color="#000000" 
+s8="Blue dimmer" s8-Name="blue_dimmer" s8-Color="#808080" 
+s9="Strobe" s9-Name="black_out" s9-Color="#070707" 
+s10="Strobe" s10-Name="strobe_slow_to_fast" s10-Color="#878787" 
+s11="RGB color mixation" s11-Name="black_out" s11-Color="#000000" 
+s12="RGB color mixation" s12-Name="rgb_color_mixation" s12-Color="#808080" 
+s13="Motor" s13-Name="adjust_motor" s13-Color="#3F3F3F" 
+s14="Motor" s14-Name="motor_move_forward_and_back_slow_to_fast" s14-Color="#BFBFBF" 
+s15="Sound Controlled" s15-Name="sound_off" s15-Color="#3F3F3F" 
+s16="Sound Controlled" s16-Name="sound_on" s16-Color="#BFBFBF" 
+/>
+</dmxmodel>

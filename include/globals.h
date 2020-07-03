@@ -1,5 +1,14 @@
-#ifndef XLIGHTS_GLOBALS_H_INCLUDED_
-#define XLIGHTS_GLOBALS_H_INCLUDED_
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 // not needed, now it si defined in xLightsMain.h, line 242
 // #define XLIGHTS_VERSION "4.0.4"
@@ -24,5 +33,3 @@
 
 #define XLIGHTS_DESCRIPTION "Use xLights to control you holiday light display"
 #define XLIGHTS_LICENSE "xLights Copyright 2010-2013 Matt Brown\nNutcracker Copyright 2012-2013 Sean Meighan\n\nThis file is part of xLights.\n\nxLights is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. xLights is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with xLights.  If not, see <http://www.gnu.org/licenses/>.\n\nxLights website is http://xlights.org\n\nAcknowledgements\n\nxLights relies on several open-source libraries: wxWidgets, libav, sdl, log4cpp, box2d and irrXML.\n\nCode for serial port communication was inspired by the ctb library written by Joachim Buermann. Code for base64 encoding and decoding was written by Rene Nyffenegger."
-
-#endif

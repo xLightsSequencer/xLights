@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Martin JEM K1 Hazer Mode 1" parm1="2" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Haze Density,Fan Speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Haze Density" s1-Name="standby" s1-Color="#090909" 
+s2="Haze Density" s2-Name="proportional_output_level_control" s2-Color="#777777" 
+s3="Haze Density" s3-Name="prime" s3-Color="#EDEDED" 
+s4="Fan Speed" s4-Name="0-100pct_heaters_on" s4-Color="#6D6D6D" 
+s5="Fan Speed" s5-Name="auto_fan_mode" s5-Color="#E8E8E8" 
+s6="Fan Speed" s6-Name="machine_shutdown_heaters_off" s6-Color="#FAFAFA" 
+/>
+</dmxmodel>

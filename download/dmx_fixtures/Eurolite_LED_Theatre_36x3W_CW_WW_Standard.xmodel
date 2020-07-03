@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Eurolite LED Theatre 36x3W CW/WW Standard" parm1="5" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Cold White,Warm White,Dimmer,Shutter / Strobe,Color temperature" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Color temperature" s1-Name="nothing" s1-Color="#000000" 
+s2="Color temperature" s2-Name="color_temperature_1" s2-Color="#080808" 
+s3="Color temperature" s3-Name="color_temperature_2" s3-Color="#171717" 
+s4="Color temperature" s4-Name="color_temperature_3" s4-Color="#262626" 
+s5="Color temperature" s5-Name="color_temperature_4" s5-Color="#353535" 
+s6="Color temperature" s6-Name="color_temperature_5" s6-Color="#444444" 
+s7="Color temperature" s7-Name="color_temperature_6" s7-Color="#535353" 
+s8="Color temperature" s8-Name="color_temperature_7" s8-Color="#626262" 
+s9="Color temperature" s9-Name="color_temperature_8" s9-Color="#717171" 
+s10="Color temperature" s10-Name="color_temperature_9" s10-Color="#808080" 
+s11="Color temperature" s11-Name="color_temperature_10" s11-Color="#8F8F8F" 
+s12="Color temperature" s12-Name="color_temperature_11" s12-Color="#9E9E9E" 
+s13="Color temperature" s13-Name="color_temperature_12" s13-Color="#ADADAD" 
+s14="Color temperature" s14-Name="color_temperature_13" s14-Color="#BCBCBC" 
+s15="Color temperature" s15-Name="color_temperature_14" s15-Color="#CBCBCB" 
+s16="Color temperature" s16-Name="color_temperature_15" s16-Color="#DADADA" 
+s17="Color temperature" s17-Name="color_temperature_16" s17-Color="#E9E9E9" 
+s18="Color temperature" s18-Name="color_temperature_17" s18-Color="#F8F8F8" 
+/>
+</dmxmodel>

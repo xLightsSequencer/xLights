@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/artprov.h>
@@ -18,6 +28,7 @@
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
+#include "models/ModelGroup.h"
 
 #include <log4cpp/Category.hh>
 
@@ -34,6 +45,7 @@ BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 	EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
 	EVT_PAINT(ModelPreview::render)
     EVT_SYS_COLOUR_CHANGED(ModelPreview::OnSysColourChanged)
+    EVT_LEFT_DCLICK(ModelPreview::mouseLeftDClick)
 END_EVENT_TABLE()
 
 const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
@@ -85,11 +97,14 @@ void ModelPreview::SaveCurrentCameraPosition()
 void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
     if (!event.IsGestureStart()) {
         float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
-        SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+        SetZoomDelta(delta);
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     }
@@ -102,9 +117,12 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED || currentModel != "&---none---&") {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     } else if (m_wheel_down) {
@@ -113,45 +131,73 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         if (!is_3d) {
             new_y *= -1.0f;
         }
-        // account for grid rotation
-        float angleX = glm::radians(GetCameraRotationX());
-        float angleY = glm::radians(GetCameraRotationY());
-        float delta_x = 0.0f;
-        float delta_y = 0.0f;
-        float delta_z = 0.0f;
-        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
-        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
-        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
-        if( top_view ) {
-            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
-            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
-        } else if( bottom_view ) {
-            delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
-            delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
-        } else {
-            delta_x = new_x * std::cos(angleY);
-            delta_y = new_y;
-            delta_z = new_x * std::sin(angleY);
-            if( !upside_down_view && is_3d) {
-                delta_y *= -1.0f;
-            }
+        if (!is_3d) {
+            SetPan(new_x / GetZoom(), new_y / GetZoom(), 0.0f);
         }
-        delta_x *= GetZoom() * 2.0f;
-        delta_y *= GetZoom() * 2.0f;
-        delta_z *= GetZoom() * 2.0f;
-        SetPan(delta_x, delta_y, delta_z);
+        else {
+            // account for grid rotation
+            float angleX = glm::radians(GetCameraRotationX());
+            float angleY = glm::radians(GetCameraRotationY());
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            float delta_z = 0.0f;
+            bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+            bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+            bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+            if (top_view) {
+                delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            }
+            else if (bottom_view) {
+                delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+                delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            }
+            else {
+                delta_x = new_x * std::cos(angleY);
+                delta_y = new_y;
+                delta_z = new_x * std::sin(angleY);
+                if (!upside_down_view && is_3d) {
+                    delta_y *= -1.0f;
+                }
+            }
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            delta_z *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, delta_z);
+        }
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED || currentModel != "&---none---&") {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     }
     Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
-    if (model != nullptr) {
-        wxString tip = model->GetNodeNear(this, event.GetPosition());
+    if (model != nullptr && !is_3d) {
+        double x = event.GetPosition().x;
+        double y = event.GetPosition().y;
+
+        int w, h;
+        GetSize(&w, &h);
+
+        x -= camera2d->GetPanX() * camera2d->GetZoom();
+        y += camera2d->GetPanY() * camera2d->GetZoom();
+
+        x -= (double)w / 2.0;
+        y -= (double)h / 2.0;
+
+        x /= camera2d->GetZoom();
+        y /= camera2d->GetZoom();
+
+        x += (double)w / 2.0;
+        y += (double)h / 2.0;
+
+        wxString tip = model->GetNodeNear(this, wxPoint(x,y));
         SetToolTip(tip);
     }
 
@@ -169,6 +215,31 @@ void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
 	event.Skip(); // continue the event
 }
 
+void ModelPreview::mouseLeftDClick(wxMouseEvent& event)
+{
+    wxTopLevelWindow* tlw = dynamic_cast<wxTopLevelWindow*>(GetParent()->GetParent());
+
+    if (tlw==nullptr)
+    {
+        tlw = dynamic_cast<wxTopLevelWindow*>(GetParent());
+    }
+
+    if (tlw != nullptr)
+    {
+        if (tlw->IsMaximized())
+        {
+            tlw->Restore();
+        }
+        else {
+            tlw->Maximize();
+        }
+    }
+    else
+    {
+
+    }
+}
+
 void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
 	m_mouse_down = false;
 	SetCameraView(0, 0, true);
@@ -183,6 +254,16 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
+
+ModelGroup* ModelPreview::GetSelectedModelGroup()
+{
+    if (xlights != nullptr)
+    {
+        return xlights->GetSelectedModelGroup();
+    }
+    return nullptr;
+}
+
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
@@ -229,11 +310,42 @@ const std::vector<Model*> &ModelPreview::GetModels() {
     }
     return tmpModelList;
 }
-void ModelPreview::SetModel(const Model* model) {
+
+// Checks that all models in the preview are valid
+bool ModelPreview::ValidateModels(const ModelManager& mm)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    for (const auto& it : GetModels())
+    {
+        bool found = false;
+        for (auto it2 : mm)
+        {
+            if (it2.second == it)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            // pointer to a non-existent model found ... not good
+            wxASSERT(false);
+            logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+void ModelPreview::SetModel(const Model* model, bool wiring, bool highlightFirst) {
     if (model) {
+        _wiring = wiring;
+        _highlightFirst = highlightFirst;
         this->xlights = model->GetModelManager().GetXLightsFrame();
         currentModel = model->GetName();
     } else {
+        _wiring = false;
+        _highlightFirst = false;
         currentModel = "";
     }
 }
@@ -243,38 +355,44 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
         return;
     }
-    bool fromTrackPad = IsMouseEventFromTouchpad();
-    if (!fromTrackPad || event.ControlDown()) {
-        SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
-    } else {
-        float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-        float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-        if (is_3d) {
-            if (event.ShiftDown()) {
-                SetPan(delta_x, delta_y, 0.0f);
-            } else {
-                SetCameraView(delta_x, delta_y, false);
-                SetCameraView(0, 0, true);
+    if (!m_wheel_down) {
+        bool fromTrackPad = IsMouseEventFromTouchpad();
+        if (!fromTrackPad || event.ControlDown()) {
+            float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+            if (fromTrackPad) {
+                float f = event.GetWheelRotation();
+                delta = -f / 100.0f;
             }
-        } else {
-            // account for grid rotation
-            float angle = glm::radians(GetCameraRotationY());
-            float new_x = delta_x;
-            float new_y = delta_y;
-            delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-            delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-            delta_x *= GetZoom() * 2.0f;
-            delta_y *= GetZoom() * 2.0f;
-            SetPan(delta_x, delta_y, 0.0f);
-            m_last_mouse_x = event.GetX();
-            m_last_mouse_y = event.GetY();
+            SetZoomDelta(delta);
+        }
+        else {
+            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            if (is_3d) {
+                if (event.ShiftDown()) {
+                    SetPan(delta_x, delta_y, 0.0f);
+                } else {
+                    SetCameraView(delta_x, delta_y, false);
+                    SetCameraView(0, 0, true);
+                }
+            } else {
+                if (!fromTrackPad) {
+                    delta_x *= GetZoom() * 2.0f;
+                    delta_y *= GetZoom() * 2.0f;
+                }
+                SetPan(delta_x, delta_y, 0.0f);
+                m_last_mouse_x = event.GetX();
+                m_last_mouse_y = event.GetY();
+            }
         }
     }
-
     if (xlights != nullptr) {
-        if(xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+        if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
             Refresh();
             Update();
+            if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+            }
         }
     }
     event.ResumePropagation(1);
@@ -306,7 +424,14 @@ void ModelPreview::render(wxPaintEvent& event)
     } else {
         Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
         if (model != nullptr) {
-            model->DisplayEffectOnWindow(this, 2);
+            if (is_3d)
+            {
+                RenderModel(model, _wiring, _highlightFirst);
+            }
+            else
+            {
+                model->DisplayEffectOnWindow(this, 2);
+            }
         } else {
             if (!StartDrawing(mPointSize, true)) return;
             EndDrawing();
@@ -314,50 +439,180 @@ void ModelPreview::render(wxPaintEvent& event)
     }
 }
 
-void ModelPreview::Render()
+void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelSelected)
 {
-    const std::vector<Model*> &models = GetModels();
-    if (!models.empty()) {
-        bool isModelSelected = false;
-        for (auto m : models) {
-            if (m->Selected || m->GroupSelected) {
-                isModelSelected = true;
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
+    bool group = false;
+    const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+    const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
+    const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+    for (auto m : models) {
+        if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+
+            if (m->GroupSelected) {
+                group = true;
             }
-        }
-        const xlColor *defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-        const xlColor *selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-        const xlColor *overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
-        for (auto m : models) {
-            const xlColor *color = defColor;
+
+            const xlColor* color = defColor;
             if (m->Selected || m->GroupSelected) {
                 color = selColor;
-            } else if (m->Overlapping && isModelSelected) {
+            }
+            else if (m->Overlapping && isModelSelected) {
                 color = overlapColor;
             }
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
-            if (is_3d) {
-                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
-            } else {
-                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
-                // FIXME:  Delete when not needed for debugging
-                //if ((*PreviewModels)[i]->Highlighted) {
-                //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                //}
+
+            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected && !m->Selected)
+            {
+                // we dont display submodels if they are not selected
+            }
+            else
+            {
+                if (is_3d) {
+                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
+                }
+                else {
+                    float mix = 999999;
+                    float max = -999999;
+                    float miy = 999999;
+                    float may = -999999;
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                    if (color == selColor)
+                    {
+                        if (mix < minx) minx = mix;
+                        if (miy < miny) miny = miy;
+                        if (max > maxx) maxx = max;
+                        if (may > maxy) maxy = may;
+                    }
+                    // FIXME:  Delete when not needed for debugging
+                    //if ((*PreviewModels)[i]->Highlighted) {
+                    //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
+                    //}
+                }
+
+                // Because submodels are not always in the list (but sometimes are) I am going to have to go looing for selected submodels
+                if (allowSelected) {
+                    color = selColor;
+                    for (auto& sm : m->GetSubModels())
+                    {
+                        if (sm->GroupSelected) {
+                            group = true;
+                        }
+
+                        if (sm->GroupSelected || sm->Selected)
+                        {
+                            float mix = 999999;
+                            float max = -999999;
+                            float miy = 999999;
+                            float may = -999999;
+                            if (is_3d) {
+                                sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
+                            }
+                            else {
+                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                            }
+                            if (color == selColor)
+                            {
+                                if (mix < minx) minx = mix;
+                                if (miy < miny) miny = miy;
+                                if (max > maxx) maxx = max;
+                                if (may > maxy) maxy = may;
+                            }
+                        }
+                    }
+                }
             }
         }
+        else
+        {
+            wxASSERT(false); // why did we get here
+        }
     }
+
+    auto mg = GetSelectedModelGroup();
+    if (minx != 999999 && !Is3D() && mg != nullptr)
+    {
+        int offx = 0;
+        int offy = 0;
+        offx = mg->GetXCentreOffset();
+        offy = mg->GetYCentreOffset();
+
+        DrawGroupCentre((minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0, (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0);
+    }
+}
+
+void ModelPreview::DrawGroupCentre(float x, float y)
+{
+    solidAccumulator.AddVertex(x - 20, y, xlREDTRANSLUCENT);
+    solidAccumulator.AddVertex(x + 20, y, xlREDTRANSLUCENT);
+    solidAccumulator.Finish(GL_LINES);
+    solidAccumulator.AddVertex(x, y - 20, xlREDTRANSLUCENT);
+    solidAccumulator.AddVertex(x, y + 20, xlREDTRANSLUCENT);
+    solidAccumulator.Finish(GL_LINES);
+}
+
+void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)
+{
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
+
+    const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+
+    if (StartDrawing(mPointSize)) {
+        if (is_3d) {
+            int oldpixelSize = m->GetPixelSize();
+            if (oldpixelSize < 5) m->SetPixelSize(5);
+            m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, defColor, false, wiring, highlightFirst, highlightpixel);
+            m->SetPixelSize(oldpixelSize);
+        }
+        else {
+            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, defColor, false);
+        }
+        EndDrawing();
+    }
+}
+
+void ModelPreview::Render()
+{
+    const std::vector<Model*>& models = GetModels();
+    if (!models.empty()) {
+        bool isModelSelected = false;
+        for (auto& m : models) {
+            if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+                if (m->Selected || m->GroupSelected) {
+                    isModelSelected = true;
+                    break;
+                }
+            }
+            else
+            {
+                wxASSERT(false); // why did we get here
+            }
+        }
+        RenderModels(models, isModelSelected);
+    }
+
     // draw all the view objects
-    if (is_3d) {
-        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject *view_object = it->second;
+    if (is_3d && xlights != nullptr) {
+        for (const auto& it : xlights->AllObjects) {
+            ViewObject* view_object = it.second;
             view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
         }
     }
 }
 
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
     if (StartDrawing(mPointSize)) {
         const std::vector<Model*> &models = GetModels();
         for (auto m : models) {
@@ -367,14 +622,14 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                 m->SetNodeChannelValues(n, &data[start]);
             }
             if (is_3d)
-                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true);
             else
-                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false);
         }
         // draw all the view objects
         if (is_3d) {
-            for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-                ViewObject *view_object = it->second;
+            for (const auto& it : xlights->AllObjects) {
+                ViewObject *view_object = it.second;
                 view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
             }
         }
@@ -383,42 +638,49 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 }
 
 void ModelPreview::rightClick(wxMouseEvent& event) {
-    if (allowPreviewChange && xlights != nullptr) {
-        wxMenu mnu;
-        mnu.Append(0x2001, "Reset");
-        wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
-        item->Check(is_3d);
-        mnu.AppendSeparator();
-        mnu.Append(1, "House Preview");
-        int index = 2;
-        for (auto a : xlights->LayoutGroups) {
-            mnu.Append(index++, a->GetName());
-        }
-        // ViewPoint menus
-        mnu.AppendSeparator();
-        if (is_3d) {
-            if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-                wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
-                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
-                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+    if (xlights != nullptr)
+    {
+        if (currentLayoutGroup != "")
+        {
+            wxMenu mnu;
+            mnu.Append(0x2001, "Reset");
+            if (allowPreviewChange) {
+                wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
+                item->Check(is_3d);
+                mnu.AppendSeparator();
+                mnu.Append(1, "House Preview");
+                int index = 2;
+                for (auto a : xlights->LayoutGroups) {
+                    mnu.Append(index++, a->GetName());
                 }
-                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-                mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
-            }
-        } else {
-            if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-                wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
-                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
-                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                // ViewPoint menus
+                mnu.AppendSeparator();
+                if (is_3d) {
+                    if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+                        wxMenu* mnuViewPoint = new wxMenu();
+                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
+                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                        }
+                        mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+                        mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+                    }
                 }
-                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-                mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+                else {
+                    if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+                        wxMenu* mnuViewPoint = new wxMenu();
+                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
+                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                        }
+                        mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+                        mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+                    }
+                }
             }
+            mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+            PopupMenu(&mnu);
         }
-        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-        PopupMenu(&mnu);
     }
 }
 
@@ -435,12 +697,13 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness(), xlights->LayoutGroups[id - 1]->GetBackgroundAlpha());
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
         }
+    } else {
+        //if xlights isn't set, just return as there is nothing we can do (shouldn't ever happen)
+        return;
     }
-    if (id == 0x2000)
-    {
+    if (id == 0x2000) {
         Reset();
-    }
-    else if (id == 0x1000) {
+    } else if (id == 0x1000) {
         is_3d = !is_3d;
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
@@ -472,6 +735,8 @@ void ModelPreview::Reset()
     if (is_3d)
     {
         camera3d->Reset();
+        SetCameraPos(0, 0, false, true);
+        SetCameraView(0, 0, false, true);
     }
     else
     {
@@ -488,12 +753,18 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
-    
+
+    _cameraView_latched_x = camera3d->GetAngleX();
+    _cameraView_latched_y = camera3d->GetAngleY();
+
+    _cameraPos_latched_x = camera3d->GetPosX();
+    _cameraPos_latched_y = camera3d->GetPosY();
+
     if (!allowSelected) {
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
         Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
     }
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
 }
@@ -507,10 +778,16 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
-    
+
+    _cameraView_latched_x = camera3d->GetAngleX();
+    _cameraView_latched_y = camera3d->GetAngleY();
+
+    _cameraPos_latched_x = camera3d->GetPosX();
+    _cameraPos_latched_y = camera3d->GetPosY();
+
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
     Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
 }
@@ -583,6 +860,10 @@ static inline wxColor GetBackgroundColor() {
 }
 void ModelPreview::InitializeGLCanvas()
 {
+    mIsInitialized = true;
+}
+void ModelPreview::InitializeGLContext()
+{
     SetCurrentGLContext();
 
     if (allowSelected) {
@@ -593,9 +874,8 @@ void ModelPreview::InitializeGLCanvas()
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    mIsInitialized = true;
 }
+
 void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
     if (mIsInitialized) {
         SetCurrentGLContext();
@@ -700,67 +980,71 @@ void ModelPreview::SetActive(bool show) {
 
 void ModelPreview::SetCameraView(int camerax, int cameray, bool latch, bool reset)
 {
-	static int last_offsetx = 0;
-	static int last_offsety = 0;
-	static int latched_x = camera3d->GetAngleX();
-	static int latched_y = camera3d->GetAngleY();
-
 	if( reset ) {
-        last_offsetx = 0;
-        last_offsety = 0;
-        latched_x = camera3d->GetAngleX();
-        latched_y = camera3d->GetAngleY();
+        _cameraView_last_offsetx = 0;
+        _cameraView_last_offsety = 0;
+        _cameraView_latched_x = camera3d->GetAngleX();
+        _cameraView_latched_y = camera3d->GetAngleY();
 	} else {
         if (latch) {
-            camera3d->SetAngleX(latched_x + last_offsetx);
-            camera3d->SetAngleY(latched_y + last_offsety);
-            latched_x = camera3d->GetAngleX();
-            latched_y = camera3d->GetAngleY();
-            last_offsetx = 0;
-            last_offsety = 0;
+            camera3d->SetAngleX(_cameraView_latched_x + _cameraView_last_offsetx);
+            camera3d->SetAngleY(_cameraView_latched_y + _cameraView_last_offsety);
+            _cameraView_latched_x = camera3d->GetAngleX();
+            _cameraView_latched_y = camera3d->GetAngleY();
+            _cameraView_last_offsetx = 0;
+            _cameraView_last_offsety = 0;
         }
         else {
-            camera3d->SetAngleX(latched_x + cameray / 2);
-            camera3d->SetAngleY(latched_y + camerax / 2);
-            last_offsetx = cameray / 2;
-            last_offsety = camerax / 2;
+            camera3d->SetAngleX(_cameraView_latched_x + cameray / 2);
+            camera3d->SetAngleY(_cameraView_latched_y + camerax / 2);
+            _cameraView_last_offsetx = cameray / 2;
+            _cameraView_last_offsety = camerax / 2;
         }
 	}
 }
 
 void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset)
 {
-	static int last_offsetx = 0;
-	static int last_offsety = 0;
-	static int latched_x = camera3d->GetPosX();
-	static int latched_y = camera3d->GetPosY();
-
 	if( reset ) {
-        last_offsetx = 0;
-        last_offsety = 0;
-        latched_x = camera3d->GetPosX();
-        latched_y = camera3d->GetPosY();
+        _cameraPos_last_offsetx = 0;
+        _cameraPos_last_offsety = 0;
+        _cameraPos_latched_x = camera3d->GetPosX();
+        _cameraPos_latched_y = camera3d->GetPosY();
 	} else {
         if (latch) {
-            camera3d->SetPosX(latched_x + last_offsetx);
-            camera3d->SetPosY(latched_y + last_offsety);
-            latched_x = camera3d->GetPosX();
-            latched_y = camera3d->GetPosY();
+            camera3d->SetPosX(_cameraPos_latched_x + _cameraPos_last_offsetx);
+            camera3d->SetPosY(_cameraPos_latched_y + _cameraPos_last_offsety);
+            _cameraPos_latched_x = camera3d->GetPosX();
+            _cameraPos_latched_y = camera3d->GetPosY();
         }
         else {
-            camera3d->SetPosX(latched_x + camerax);
-            camera3d->SetPosY(latched_y + cameraz);
-            last_offsetx = camerax;
-            last_offsety = cameraz;
+            camera3d->SetPosX(_cameraPos_latched_x + camerax);
+            camera3d->SetPosY(_cameraPos_latched_y + cameraz);
+            _cameraPos_last_offsetx = camerax;
+            _cameraPos_last_offsety = cameraz;
         }
 	}
+}
+
+float ModelPreview::GetCameraZoomForHandles() const
+{
+    if (is_3d) {
+        return camera3d->GetZoom();
+    }
+    return 1.0;
+}
+
+int ModelPreview::GetHandleScale() const
+{
+    return xlights->GetModelHandleScale();
 }
 
 void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {
-        camera3d->SetZoom( camera3d->GetZoom() * (1.0f + delta));
-    } else {
+        camera3d->SetZoom(camera3d->GetZoom() * (1.0f + delta));
+    }
+    else {
         camera2d->SetZoom(camera2d->GetZoom() * (1.0f - delta));
         camera2d->SetZoomCorrX(((mWindowWidth * camera2d->GetZoom()) - mWindowWidth) / 2.0f);
         camera2d->SetZoomCorrY(((mWindowHeight * camera2d->GetZoom()) - mWindowHeight) / 2.0f);
@@ -848,6 +1132,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         // FIXME: transparent background does not draw correctly when depth testing enabled
         // enables depth testing to draw things in proper order
         glEnable(GL_DEPTH_TEST);
+        LOG_GL_ERRORV(glClearColor(0, 0, 0, 0));   // background color
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         glDepthFunc(GL_LESS);
 
@@ -864,6 +1149,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                               (const char *)mBackgroundImage.c_str(),
                               (const char *)GetName().c_str());
             image = new Image(mBackgroundImage);
+            logger_base.debug("    Loaded.");
             sprite = new xLightsDrawable(image);
         }
         float scaleh = 1.0;
@@ -918,7 +1204,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
         switch (renderOrder) {
             // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
@@ -928,12 +1213,14 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             // 2 is the 2019.04 order, floods are OK, no transparent windows
             case 0:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 1:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
@@ -941,22 +1228,26 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             case 2:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 3:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 4:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 5:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
@@ -968,14 +1259,12 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         DrawGLUtils::Draw(transparentAccumulator);
     }
     DrawGLUtils::PopMatrix();
-    if (swapBuffers)
-    {
-        logger_opengl.debug("About to swap buffers in ModelPreview::EndDrawing.");
+    if (swapBuffers) {
         LOG_GL_ERRORV(SwapBuffers());
-        logger_opengl.debug("Done swapping buffers in ModelPreview::EndDrawing.");
     }
     solidViewObjectAccumulator.Reset();
     transparentViewObjectAccumulator.Reset();
+    linesAccumulator3d.Reset();
     solidAccumulator3d.Reset();
     transparentAccumulator3d.Reset();
     solidAccumulator.Reset();

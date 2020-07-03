@@ -1,14 +1,25 @@
-#ifndef BULKEDITCONTROLS_H
-#define BULKEDITCONTROLS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/slider.h>
 #include <wx/textctrl.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/fontpicker.h>
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
 #include <wx/filepicker.h>
+#include <wx/clrpicker.h>
 
 class wxStaticText;
 
@@ -27,17 +38,68 @@ protected:
     long ID_SLIDER_BULKEDIT;
     BESLIDERTYPE _type;
     bool _supportsBulkEdit;
+    int _default;
 
     public:
 
     BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
     virtual ~BulkEditSlider() {}
     void OnRightDown(wxMouseEvent& event);
+    void OnDClick(wxMouseEvent& event);
     void OnSliderPopup(wxCommandEvent &event);
     void OnSlider_SliderUpdated(wxScrollEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
     void BulkEdit();
+};
+
+class BulkEditFontPicker : public wxFontPickerCtrl
+{
+protected:
+    long ID_FONTPICKER_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditFontPicker(wxWindow* parent,
+        wxWindowID id,
+        const wxFont& initial = wxNullFont,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFNTP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFontPickerCtrlNameStr);
+        virtual ~BulkEditFontPicker() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnFontPickerPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    std::string GetValue() const;
+};
+
+class BulkEditColourPickerCtrl : public wxColourPickerCtrl
+{
+protected:
+    long ID_COLOURPICKER_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditColourPickerCtrl(wxWindow* parent,
+        wxWindowID id,
+        const wxColour& initial = *wxBLACK,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFNTP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFontPickerCtrlNameStr);
+    virtual ~BulkEditColourPickerCtrl() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnColourPickerPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    wxColour GetValue() const;
+    std::string GetStringValue() const;
 };
 
 class BulkEditSliderF1 : public BulkEditSlider
@@ -147,7 +209,7 @@ public:
     BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxChoiceNameStr);
     virtual ~BulkEditChoice() {}
     void OnRightDown(wxMouseEvent& event);
-    void OnChoicePopup(wxCommandEvent &event);
+    virtual void OnChoicePopup(wxCommandEvent &event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
@@ -224,4 +286,3 @@ BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::s
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
 bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement = false);
 
-#endif

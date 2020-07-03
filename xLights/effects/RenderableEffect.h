@@ -1,5 +1,14 @@
-#ifndef RENDERABLEEFFECT_H
-#define RENDERABLEEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/bitmap.h>
 #include <string>
@@ -38,10 +47,10 @@ class RenderableEffect
         virtual const wxBitmap &GetEffectIcon(int size, bool exact = false) const;
         virtual int GetId() const { return id; }
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
-        virtual std::list<std::string> GetFacesUsed(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const { return false; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const { return false; }
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
+        virtual std::list<std::string> GetFacesUsed(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }
         virtual bool CanRenderPartialTimeInterval() const { return false; }
@@ -59,7 +68,7 @@ class RenderableEffect
         virtual bool SupportsRenderCache(const SettingsMap& settings) const;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) = 0;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect *effect) { }
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) { std::list<std::string> res; return res; };
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) { std::list<std::string> res; return res; };
 
         virtual bool CanBeRandom() {return true;}
 
@@ -85,6 +94,9 @@ class RenderableEffect
 
         double GetValueCurveDouble(const std::string & name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
         int GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
+        EffectLayer* GetTiming(const std::string& timingtrack) const;
+        Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
+        std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
         virtual void RemoveDefaults(const std::string &version, Effect *effect);
@@ -114,5 +126,3 @@ class RenderableEffect
         wxBitmap icon64e;
     private:
 };
-
-#endif // RENDERABLEEFFECT_H

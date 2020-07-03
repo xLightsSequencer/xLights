@@ -1,5 +1,14 @@
-#ifndef EffectTimingDialog_H
-#define EffectTimingDialog_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(EffectTimingDialog)
 #include <wx/button.h>
@@ -19,7 +28,12 @@ class StepSpinCtrl : public wxSpinCtrl
     int _lastValue;
     wxWindow* _parent;
 public:
-    
+
+    void OnKillFocus(wxFocusEvent& event) {
+        wxPostEvent(_parent, event);
+        event.Skip();
+    }
+
     void OnSpin(wxSpinEvent& event) {
         int delta = GetValue() - _lastValue;
 
@@ -57,6 +71,10 @@ public:
                 v = (value / _step) * _step;
                 wxSpinCtrl::SetValue(v);
             }
+            else {
+                v = (int)((float)value / (float)_step + 0.5) * _step;
+                wxSpinCtrl::SetValue(v);
+            }
         }
         else
         {
@@ -83,6 +101,7 @@ public:
         _lastDir = 0;
         _step = 50;
         Bind(wxEVT_SPINCTRL, &StepSpinCtrl::OnSpin, this);
+        Bind(wxEVT_KILL_FOCUS, &StepSpinCtrl::OnKillFocus, this);
     }
     virtual ~StepSpinCtrl() {}
     void SetStep(int step) { _step = step; }
@@ -139,7 +158,12 @@ class EffectTimingDialog: public wxDialog
         EffectLayer* _effectLayer;
         int _effectId;
 
-        void ValidateWindow();
-};
+        void OnSpinCtrl_StartTimeLoseFocus(wxFocusEvent& event);
+        void OnSpinCtrl_DurationLoseFocus(wxFocusEvent& event);
+        void OnSpinCtrl_EndTimeLoseFocus(wxFocusEvent& event);
 
-#endif
+        void ValidateWindow();
+        void StartTimeChange();
+        void DurationChange();
+        void EndTimeChange();
+};

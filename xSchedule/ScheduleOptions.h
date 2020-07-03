@@ -1,5 +1,15 @@
-#ifndef SCHEDULEOPTIONS_H
-#define SCHEDULEOPTIONS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <string>
 #include <vector>
@@ -154,25 +164,26 @@ public:
 
 class ScheduleOptions
 {
-    bool _advancedMode;
-	bool _sync;
-    int _changeCount;
-    int _lastSavedChangeCount;
-    bool _sendOffWhenNotRunning;
-    bool _sendBackgroundWhenNotRunning;
-    bool _webAPIOnly;
-    int _port;
+    bool _advancedMode = false;
+	bool _sync = false;
+    int _changeCount = 0;
+    int _lastSavedChangeCount = 0;
+    bool _sendOffWhenNotRunning = false;
+    bool _sendBackgroundWhenNotRunning = false;
+    bool _webAPIOnly = false;
+    int _port = 80;
     int _remoteLatency = 0;
     int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
     std::string _crashBehaviour;
-    int _passwordTimeout;
+    int _passwordTimeout = 0;
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
     std::list<VirtualMatrix*> _virtualMatrices;
     std::list<std::string> _fppRemotes;
     std::string _audioDevice;
+    std::string _inputAudioDevice;
     OSCOptions* _oscOptions;
     TestOptions* _testOptions;
     std::list<EventBase*> _events;
@@ -180,14 +191,22 @@ class ScheduleOptions
     std::string _city;
     std::string _MIDITimecodeDevice;
     TIMECODEFORMAT _MIDITimecodeFormat;
-    size_t _MIDITimecodeOffset;
+    size_t _MIDITimecodeOffset = 0;
     std::list<ExtraIP*> _extraIPs;
     bool _parallelTransmission;
     bool _remoteAllOff;
+    bool _keepScreenOn;
     bool _retryOutputOpen;
     bool _suppressAudioOnRemotes;
+    bool _hardwareAcceleratedVideo;
+    bool _lateStartingScheduleUsesTime;
+    int _SMPTEMode;
 
     public:
+
+        static int EncodeSMPTEMode(const std::string& mode);
+        static wxArrayString GetSPMTEModes();
+        static std::string DecodeSMPTEMode(int mode);
 
         bool IsDirty() const;
         void ClearDirty();
@@ -212,17 +231,25 @@ class ScheduleOptions
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
         void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
+        void SetKeepScreenOn(bool keepScreenOn) { if (_keepScreenOn != keepScreenOn) { _keepScreenOn = keepScreenOn; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
+        void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
         void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         bool IsParallelTransmission() const { return _parallelTransmission; }
         bool IsRemoteAllOff() const { return _remoteAllOff; }
+        bool IsKeepScreenOn() const { return _keepScreenOn; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
+        int GetSMPTEMode() const { return _SMPTEMode; }
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
+        void SetHardwareAcceleratedVideo(bool hardwareAcceleratedVideo) { if (_hardwareAcceleratedVideo != hardwareAcceleratedVideo) { _hardwareAcceleratedVideo = hardwareAcceleratedVideo; _changeCount++; } }
+        bool IsHardwareAcceleratedVideo() const { return _hardwareAcceleratedVideo; }
+        void SetLateStartingScheduleUsesTime(bool lateStartingScheduleUsesTime) { if (_lateStartingScheduleUsesTime != lateStartingScheduleUsesTime) { _lateStartingScheduleUsesTime = lateStartingScheduleUsesTime; _changeCount++; } }
+        bool IsLateStartingScheduleUsesTime() const { return _lateStartingScheduleUsesTime; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
         TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }
@@ -236,10 +263,12 @@ class ScheduleOptions
         void SetFPPRemotes(std::list<std::string> remotes) { _fppRemotes = remotes; _changeCount++; } 
         std::string GetWWWRoot() const { return _wwwRoot; }
         std::string GetAudioDevice() const { return _audioDevice; }
+        std::string GetInputAudioDevice() const { return _inputAudioDevice; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void SetDirty() { _changeCount++; }
         void SetAudioDevice(const std::string& audioDevice);
+        void SetInputAudioDevice(const std::string& inputAudioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager);
         bool GetAPIOnly() const { return _webAPIOnly; }
         int GetRemoteLatency() const { return _remoteLatency; }
@@ -257,4 +286,3 @@ class ScheduleOptions
         TestOptions* GetTestOptions() const { return _testOptions; }
 };
 
-#endif

@@ -1,5 +1,14 @@
-#ifndef CACHEDFILEDOWNLOADER_H
-#define CACHEDFILEDOWNLOADER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <list>
@@ -25,17 +34,17 @@ class FileCacheItem
 
 public:
     FileCacheItem(wxXmlNode* n);
-    FileCacheItem(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog, int low, int high);
+    FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     void Save(wxFile& f);
     virtual ~FileCacheItem() {}
-    void Download(wxProgressDialog* prog, int low, int high);
+    void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     bool Exists() const { return wxFile::Exists(_fileName); }
     void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
     bool operator==(const wxURI& url) const;
     static bool DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
-    std::string DownloadURLToTemp(wxURI url, wxProgressDialog* prog, int low, int high);
+    std::string DownloadURLToTemp(wxURI url, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     void PurgeIfAged() const;
     bool ShouldSave() { PurgeIfAged();  return Exists() && (_cacheFor == CACHETIME_DAY || _cacheFor == CACHETIME_LONG); }
 };
@@ -62,11 +71,9 @@ public:
     void ClearCache();
     void Save() { SaveCache(); }
     // retrieve a file from cache … if not present filename will be “”
-    std::string GetFile(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    std::string GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     int size();
     
     
     static CachedFileDownloader& GetDefaultCache();
 };
-
-#endif

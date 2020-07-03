@@ -22,42 +22,36 @@ enum SerialLineState
 
 
 #pragma region Constructors and Destructors
-SerialPort::SerialPort()
-{
+SerialPort::SerialPort() {
     _devName = "";
-    _callback = -1;
     memset( &_ov, 0, sizeof( OVERLAPPED ) );
     _fd = INVALID_HANDLE_VALUE;
     _rtsdtr_state = LinestateNull;
 }
 
-SerialPort::~SerialPort()
-{
+SerialPort::~SerialPort() {
     Close();
 }
-#pragma endregion Constructors and Destructors
+#pragma endregion
 
 #pragma region Start and Stop
-int SerialPort::Close()
-{
-    if (_fd != INVALID_HANDLE_VALUE)
-    {
+int SerialPort::Close() {
+
+    if (_fd != INVALID_HANDLE_VALUE) {
         //FlushFileBuffers(_fd);
         CloseHandle(_ov.hEvent);
         CloseHandle(_fd);
         _fd = INVALID_HANDLE_VALUE;
     }
-
     return 0;
 }
 
 // return 0 on success, negative value on error
-int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol)
-{
+int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol) {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (strlen(protocol) != 3)
-    {
+    if (strlen(protocol) != 3) {
         logger_base.error("Illegal protocol %s -> returning -1.", protocol);
         return -1;
     }
@@ -72,8 +66,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
 
     _devName = devName;
 
-    if(_fd == INVALID_HANDLE_VALUE)
-    {
+    if(_fd == INVALID_HANDLE_VALUE) {
         logger_base.error("File creation failed opening serial port %s -> returning -1.", devName.c_str());
         return -1;
     }
@@ -134,8 +127,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     dcb.XoffLim = (SERIALPORT_BUFSIZE >> 2);
 
     // parity settings
-    switch( protocol[1] )
-    {
+    switch( protocol[1] ) {
     case 'O':
         dcb.Parity = ODDPARITY;
         break;
@@ -154,13 +146,10 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
         dcb.StopBits = ONE5STOPBITS; //-DJ
     else
         dcb.StopBits = ONESTOPBIT;
-    // stopbits
 
     // wordlen, valid values are 5,6,7,8
     dcb.ByteSize = protocol[0] - '0';
-
-    if (!SetCommState(_fd, &dcb))
-    {
+    if (!SetCommState(_fd, &dcb)) {
         logger_base.error("Failed to set Comm State DevName: %s BaudRate: %d Protocol: %s -> returning -2.", (const char*) devName.c_str(), baudRate, protocol);
         return -2;
     }
@@ -173,24 +162,16 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
                             TRUE,  // BOOL fInitialState
                             NULL); // LPTSTR lpszEventName
 
-    if (_ov.hEvent == INVALID_HANDLE_VALUE)
-    {
+    if (_ov.hEvent == INVALID_HANDLE_VALUE) {
         logger_base.error("Failed to create event for overlapped I/O DevName: %s -> returning -3.", (const char *) devName.c_str());
         return -3;
     }
 
     COMMTIMEOUTS cto = {MAXDWORD,0,0,0,0};
-    if (!SetCommTimeouts(_fd, &cto))
-    {
+    if (!SetCommTimeouts(_fd, &cto)) {
         logger_base.info("Failed to set Comm timeouts DevName %s -> returning -5.", (const char *) devName.c_str());
         return -5;
     }
-
-    // Leaving this here as part of my EDM transmitter experiments ... if not corrected by 2019 then feel free to remove it
-    //if (flowcontrol)
-    //{
-    //    SetCommMask(_fd, EV_RXCHAR | EV_TXEMPTY);
-    //}
 
     // for a better performance with win95/98 I increased the internal
     // buffer to SERIALPORT_BUFSIZE (normal size is 1024, but this can
@@ -200,22 +181,20 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     return 0;
 }
 
-bool SerialPort::IsOpen()
-{
+bool SerialPort::IsOpen() {
     return (_fd != INVALID_HANDLE_VALUE);
 }
-#pragma endregion Start and Stop
+#pragma endregion 
 
 #pragma region Read and Write
-int SerialPort::AvailableToRead()
-{
+int SerialPort::AvailableToRead() {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    COMSTAT comStat;
-    DWORD   dwErrors;
 
     // Get and clear current errors on the port.
-    if (!ClearCommError(_fd, &dwErrors, &comStat))
-    {
+    COMSTAT comStat;
+    DWORD   dwErrors;
+    if (!ClearCommError(_fd, &dwErrors, &comStat)) {
         logger_base.error("Failed to clear Comm error.");
 
         // Report error in ClearCommError.
@@ -225,15 +204,14 @@ int SerialPort::AvailableToRead()
     return comStat.cbInQue;
 }
 
-int SerialPort::WaitingToWrite()
-{
+int SerialPort::WaitingToWrite() {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    // Get and clear current errors on the port.
     COMSTAT comStat;
     DWORD   dwErrors;
-
-    // Get and clear current errors on the port.
-    if (!ClearCommError(_fd, &dwErrors, &comStat))
-    {
+    if (!ClearCommError(_fd, &dwErrors, &comStat)) {
         logger_base.error("Failed to clear Comm error.");
         // Report error in ClearCommError.
         return 0;
@@ -242,84 +220,75 @@ int SerialPort::WaitingToWrite()
     return comStat.cbOutQue;
 }
 
-int SerialPort::Read(char* buf, size_t len)
-{
+int SerialPort::Read(char* buf, size_t len) {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     DWORD read;
-    if (!ReadFile(_fd, buf, len, &read, &_ov))
-    {
+    if (!ReadFile(_fd, buf, len, &read, &_ov)) {
         // if we use a asynchrone reading, ReadFile always gives FALSE
         // ERROR_IO_PENDING means ok, other values show an error
-        if(GetLastError() != ERROR_IO_PENDING)
-        {
+        if(GetLastError() != ERROR_IO_PENDING) {
             logger_base.error("Error reading from serial port %d.", GetLastError());
             // oops..., error in communication
             return -1;
         }
     }
-    else
-    {
+    else {
         // ok, we have read all wanted bytes
         return (int)read;
     }
     return 0;
 }
 
-void SerialPort::SetDTR(bool state)
-{
-    if (state)
-    {
+void SerialPort::SetDTR(bool state) {
+    if (state) {
         EscapeCommFunction(_fd, SETDTR);
     }
-    else
-    {
+    else {
         EscapeCommFunction(_fd, CLRDTR);
     }
 }
 
-void SerialPort::SetRTS(bool state)
-{
-    if (state)
-    {
+void SerialPort::SetRTS(bool state) {
+    if (state) {
         EscapeCommFunction(_fd, SETRTS);
     }
-    else
-    {
+    else {
         EscapeCommFunction(_fd, CLRRTS);
     }
 }
 
-int SerialPort::Write(char* buf, size_t len)
-{
+int SerialPort::Write(char* buf, size_t len) {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     DWORD write;
-    if (!WriteFile(_fd, buf, len, &write, &_ov))
-    {
-        if(GetLastError() != ERROR_IO_PENDING)
-        {
+    if (!WriteFile(_fd, buf, len, &write, &_ov)) {
+        if(GetLastError() != ERROR_IO_PENDING) {
             logger_base.error("Error writing to serial port %d.", GetLastError());
             return -1;
         }
     }
+
+    // This makes this function synchronous which is not desirable
     //FlushFileBuffers(_fd);
 
     return write;
 }
 
-int SerialPort::SendBreak()
-{
+int SerialPort::SendBreak() {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!SetCommBreak(_fd))
-    {
+    if (!SetCommBreak(_fd)) {
         logger_base.error("Error setting commport break.");
         return -1;
     }
 
     wxMilliSleep(1);
 
-    if (!ClearCommBreak(_fd))
-    {
+    if (!ClearCommBreak(_fd)) {
         logger_base.error("Error clearing commport break.");
         return -1;
     }
@@ -328,17 +297,17 @@ int SerialPort::SendBreak()
     return 0;
 }
 
-int SerialPort::Purge()
-{
+int SerialPort::Purge() {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     logger_base.debug("Purging commport");
 
-    if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0)
-    {
+    if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0) {
         logger_base.error("Error purging commport 0x%lx.", (long)GetLastError());
         return -1;
     }
 
     return 0;
 }
-#pragma endregion Read and Write
+#pragma endregion 

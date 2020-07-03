@@ -1,8 +1,19 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "RenderableEffect.h"
 #include "../sequencer/Effect.h"
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
 #include "../UtilFunctions.h"
+#include "../sequencer/SequenceElements.h"
 
 #include <wx/fontpicker.h>
 #include <wx/filepicker.h>
@@ -16,6 +27,10 @@
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
+
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
+#include "../osxMacUtils.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -138,10 +153,9 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
 {
     wxString s;
-    wxWindowList &ChildList = ParentWin->GetChildren();
-    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    for (const auto& it : ParentWin->GetChildren())
     {
-        wxWindow *ChildWin = *it;
+        wxWindow *ChildWin = it;
         if (!ChildWin->IsEnabled()) {
             continue;
         }
@@ -185,9 +199,10 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
             wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
             s+=AttrName + "=" + checkedVal + ",";
         }
-        else if (ChildName.StartsWith("ID_FILEPICKER"))
+        else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER"))
         {
             wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
+            ObtainAccessToURL(ctrl->GetFileName().GetFullPath());
             s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
         }
         else if (ChildName.StartsWith("ID_FONTPICKER"))
@@ -243,7 +258,7 @@ std::string RenderableEffect::GetEffectString() {
 
 bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
-    for (auto it : settings)
+    for (const auto& it : settings)
     {
         // we want to cache blur because of compute cost
         if (Contains(it.first, "SLIDER_Blur") ||
@@ -253,7 +268,7 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
         }
         
         // we want to cache rotations because of compute cost
-        if (Contains(it.first, "Rotation"))
+        if (Contains(it.first, "VALUECURVE_Rotations"))
         {
             return true;
         }
@@ -262,151 +277,146 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2018.50", version);
+    return IsVersionOlder("2019.61", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
-    if (IsVersionOlder("4.2.20", version)) {
-        // almost all of the settings from older 4.x series need adjustment for speed things
-        AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
-    }
-    if (IsVersionOlder("2016.36", version) && removeDefaults) {
-        RemoveDefaults(version, effect);
-    }
-    if (IsVersionOlder("2016.50", version))
-    {
-        // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
-        SettingsMap& sm = effect->GetSettings();
-        if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
-            sm.Get("T_CHOICE_Out_Transition_Type", "") == "Circle Explode")
-        {
-            if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
-            {
-                sm.erase("T_CHECKBOX_Out_Transition_Reverse");
-            }
-            else
-            {
-                sm["T_CHECKBOX_Out_Transition_Reverse"] = "1";
-            }
-        }
-    }
 
-    if (IsVersionOlder("2017.24", version))
+    if (IsVersionOlder("2019.61", version))
     {
         SettingsMap& sm = effect->GetSettings();
 
         wxString rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
-        if (rzRotations != "")
+        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE"))
         {
-            ValueCurve vc(rzRotations.ToStdString());
-            if (vc.IsActive())
-            {
-                vc.SetLimits(0, 200);
-                vc.SetDivisor(10);
-                sm["B_VALUECURVE_Rotations"] = vc.Serialise();
-            }
+            ValueCurve vc;
+            vc.SetLimits(0, 200);
+            vc.SetDivisor(10);
+            vc.Deserialise(rzRotations);
+            sm["B_VALUECURVE_Rotations"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
         }
 
         wxString rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
-        if (rzZoom != "")
+        if (rzZoom.Contains("VALUECURVE") && !rzZoom.Contains("RV=TRUE"))
         {
             ValueCurve vc;
             vc.SetLimits(0, 30);
             vc.SetDivisor(10);
-            vc.Deserialise(rzZoom.ToStdString(), false);
-            vc.FixScale(10); // This seems to be required because of some anomally in the way I stored this compared to all other value curves with divisors
-            if (vc.IsActive())
-            {
-                sm["B_VALUECURVE_Zoom"] = vc.Serialise();
-            }
+            vc.Deserialise(rzZoom);
+            sm["B_VALUECURVE_Zoom"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
         }
-    }
 
-    if (IsVersionOlder("2018.12", version))
-    {
-        SettingsMap& sm = effect->GetSettings();
-        wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
-
-        if (layerMethod == "Canvas")
+        if (IsVersionOlder("2018.50", version))
         {
-            sm["T_CHOICE_LayerMethod"] = "Effect 1";
-            sm["T_CHECKBOX_Canvas"] = "1";
-        }
-    }
+            // Try to fix value curve issues
+            for (auto s : sm)
+            {
+                wxString f(s.first);
+                if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
+                {
+                    ValueCurve vc(s.second);
+                    sm[s.first] = vc.Serialise();
+                }
 
-    if (IsVersionOlder("2018.50", version))
-    {
-        SettingsMap& sm = effect->GetSettings();
-
-        // Try to fix value curve issues
-        for (auto s : sm)
-        {
-            wxString f(s.first);
-            if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
-            {
-                ValueCurve vc(s.second);
-                sm[s.first] = vc.Serialise();
+                wxString v(s.second);
+                if (v.Contains("ID_VALUECURVE_Blur"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(BLUR_MIN, BLUR_MAX);
+                    vc.SetDivisor(1);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
+                    vc.SetDivisor(1);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+                    vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
             }
 
-            wxString v(s.second);
-            if (v.Contains("ID_VALUECURVE_Blur"))
+            if (IsVersionOlder("2018.12", version))
             {
-                ValueCurve vc;
-                vc.SetLimits(BLUR_MIN, BLUR_MAX);
-                vc.SetDivisor(1);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
-                vc.SetDivisor(1);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
-                vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
+                wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
+
+                if (layerMethod == "Canvas")
+                {
+                    sm["T_CHOICE_LayerMethod"] = "Effect 1";
+                    sm["T_CHECKBOX_Canvas"] = "1";
+                }
+
+                if (IsVersionOlder("2016.50", version))
+                {
+                    // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
+                    if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
+                        sm.Get("T_CHOICE_Out_Transition_Type", "") == "Circle Explode")
+                    {
+                        if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
+                        {
+                            sm.erase("T_CHECKBOX_Out_Transition_Reverse");
+                        }
+                        else
+                        {
+                            sm["T_CHECKBOX_Out_Transition_Reverse"] = "1";
+                        }
+                    }
+
+                    if (IsVersionOlder("2016.36", version) && removeDefaults) {
+                        RemoveDefaults(version, effect);
+
+                        if (IsVersionOlder("4.2.20", version)) {
+                            // almost all of the settings from older 4.x series need adjustment for speed things
+                            AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
+                        }
+                    }
+                }
             }
         }
     }
@@ -891,31 +901,17 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
+static const std::string EMPTY_STRING("");
+
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     double res = def;
-
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    //bool slider = false;
-    if (SettingsMap.Contains(sn))
-    {
-        res = SettingsMap.GetDouble(sn, def);
-        //slider = true;
-    }
-    else if (SettingsMap.Contains(tn))
-    {
-        res = SettingsMap.GetDouble(tn, def);
-    }
-
-    wxString vn = "VALUECURVE_" + name;
-    wxString vc = SettingsMap.Get(vn, "");
-    if (vc != "")
-    {
-        bool needsUpgrade = !vc.Contains("RV=TRUE");
-        ValueCurve valc(vc.ToStdString());
-        if (valc.IsActive())
-        {
+    const std::string vn = "VALUECURVE_" + name;
+    const std::string &vc = SettingsMap.Get(vn, EMPTY_STRING);
+    if (vc != EMPTY_STRING) {
+        ValueCurve valc(vc);
+        if (valc.IsActive()) {
+            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
 
@@ -929,45 +925,36 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
                 res = valc.GetOutputValueAtDivided(offset, startMS, endMS);
             //}
 
-            if (needsUpgrade)
-            {
+            if (needsUpgrade) {
                 SettingsMap[vn] = valc.Serialise();
             }
+            return res;
         }
     }
-
+    
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    if (SettingsMap.Contains(sn)) {
+        res = SettingsMap.GetDouble(sn, def);
+    } else if (SettingsMap.Contains(tn)) {
+        res = SettingsMap.GetDouble(tn, def);
+    }
     return res;
 }
 
 int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     int res = def;
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    //bool slider = false;
-    if (SettingsMap.Contains(sn))
-    {
-        res = SettingsMap.GetInt(sn, def);
-        //slider = true;
-    }
-    else if (SettingsMap.Contains(tn))
-    {
-        res = SettingsMap.GetInt(tn, def);
-    }
-
     const std::string vn = "VALUECURVE_" + name;
-    if (SettingsMap.Contains(vn))
-    {
-        wxString vc = SettingsMap.Get(vn, "");
-
-        bool needsUpgrade = !vc.Contains("RV=TRUE");
+    if (SettingsMap.Contains(vn)) {
+        const std::string &vc = SettingsMap.Get(vn, EMPTY_STRING);
 
         ValueCurve valc;
         valc.SetDivisor(divisor);
         valc.SetLimits(min, max);
-        valc.Deserialise(vc.ToStdString());
-        if (valc.IsActive())
-        {
+        valc.Deserialise(vc);
+        if (valc.IsActive()) {
+            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
             // If we ask for an int then we seem to want it undivided
             //if (!slider)
             //{
@@ -978,15 +965,77 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
             //    res = valc.GetOutputValueAtDivided(offset);
             //}
 
-            if (needsUpgrade)
-            {
+            if (needsUpgrade) {
                 // this updates the settings map ... but not the actual settings on the effect ... 
                 // this is a problem as the error will keep occuring next time the sequence is loaded.
                 // To fix it the user needs to click on the offending effect and save and it will go away
                 SettingsMap[vn] = valc.Serialise();
             }
+            return res;
+        }
+    }
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    //bool slider = false;
+    if (SettingsMap.Contains(sn)) {
+        res = SettingsMap.GetInt(sn, def);
+        //slider = true;
+    } else if (SettingsMap.Contains(tn)) {
+        res = SettingsMap.GetInt(tn, def);
+    }
+    return res;
+}
+
+EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
+{
+    if (timingtrack == "") return nullptr;
+
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
+        {
+            return e->GetEffectLayer(0);
+            break;
+        }
+    }
+    return nullptr;
+}
+
+std::string RenderableEffect::GetTimingTracks(const int max, const int equals) const
+{
+    std::string timingtracks = "";
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && (max < 1 || e->GetEffectLayerCount() <= max) && (equals == 0 || e->GetEffectLayerCount() == equals))
+        {
+            if (timingtracks != "")
+            {
+                timingtracks += "|";
+            }
+            timingtracks += e->GetName();
+        }
+    }
+    return timingtracks;
+}
+
+Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const
+{
+    EffectLayer* el = GetTiming(timingtrack);
+
+    if (el == nullptr) return nullptr;
+
+    int currentMS = buffer.curPeriod * buffer.frameTimeInMs;
+    for (int j = 0; j < el->GetEffectCount(); j++)
+    {
+        if (el->GetEffect(j)->GetStartTimeMS() <= currentMS &&
+            el->GetEffect(j)->GetEndTimeMS() > currentMS)
+        {
+            return el->GetEffect(j);
         }
     }
 
-    return res;
+    return nullptr;
 }
+

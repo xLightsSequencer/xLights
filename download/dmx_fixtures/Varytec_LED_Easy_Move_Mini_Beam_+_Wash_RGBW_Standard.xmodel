@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Varytec LED Easy Move Mini Beam + Wash RGBW Standard" parm1="19" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Speed,RED led1/led3,GREEN led1/led3,BLUE led1/led3,WHITE led1/led3,RED led2/led4,GREEN led2/led4,BLUE led2/led4,WHITE led2/led4,Zoom,Strobe,Dimmer,Colour Macros,Colour temp presets,Automatic Programs" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Speed" s1-Name="speed_pan_tilt_fast-slow" s1-Color="#707070" 
+s2="Speed" s2-Name="no_function" s2-Color="#E6E6E6" 
+s3="Speed" s3-Name="highest_speed" s3-Color="#F5F5F5" 
+s4="Strobe" s4-Name="no_function" s4-Color="#080808" 
+s5="Strobe" s5-Name="strobe" s5-Color="#888888" 
+s6="Colour Macros" s6-Name="no_function" s6-Color="#1B1B1B" 
+s7="Colour Macros" s7-Name="red" s7-Color="#414141" 
+s8="Colour Macros" s8-Name="green" s8-Color="#555555" 
+s9="Colour Macros" s9-Name="blue_1" s9-Color="#696969" 
+s10="Colour Macros" s10-Name="white" s10-Color="#7D7D7D" 
+s11="Colour Macros" s11-Name="pink" s11-Color="#919191" 
+s12="Colour Macros" s12-Name="orange_1" s12-Color="#A5A5A5" 
+s13="Colour Macros" s13-Name="blue_2" s13-Color="#B9B9B9" 
+s14="Colour Macros" s14-Name="blue_3" s14-Color="#CDCDCD" 
+s15="Colour Macros" s15-Name="orange_2" s15-Color="#EBEBEB" 
+s16="Colour temp presets" s16-Name="no_function" s16-Color="#1B1B1B" 
+s17="Colour temp presets" s17-Name="different_presets" s17-Color="#9B9B9B" 
+s18="Automatic Programs" s18-Name="no_function" s18-Color="#252525" 
+s19="Automatic Programs" s19-Name="automatic_programs" s19-Color="#A5A5A5" 
+/>
+</dmxmodel>

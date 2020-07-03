@@ -1,5 +1,14 @@
-#ifndef EFFECT_H
-#define EFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/wx.h"
 
@@ -7,7 +16,7 @@
 #include <string>
 #include <mutex>
 
-#include "ColorCurve.h" // This needs to be here
+#include "../ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
 #include "../DrawGLUtils.h"
 #include "../Color.h"
@@ -30,23 +39,24 @@ wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 // An effect represents a generic effect
 class Effect
 {
-    int mID;
-    short mEffectIndex;
+    int mID = 0;
+    short mEffectIndex = -1;
     std::string *mName;
-    int mStartTime;
-    int mEndTime;
-    int mSelected;
-    bool mTagged;
-    bool mProtected;
-    EffectLayer* mParentLayer;
-    xlColor mColorMask;
+    int mStartTime = 0;
+    int mEndTime = 0;
+    int mSelected = 0;
+    bool mTagged = false;
+    bool mProtected = false;
+    EffectLayer* mParentLayer = nullptr;
+    xlColor mColorMask = xlBLACK;
     mutable std::recursive_mutex settingsLock;
     SettingsMap mSettings;
     SettingsMap mPaletteMap;
     xlColorVector mColors;
     xlColorCurveVector mCC;
     DrawGLUtils::xlDisplayList background;
-    RenderCacheItem *mCache;
+    RenderCacheItem *mCache = nullptr;
+    wxLongLong _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor
     Effect(const Effect &e) {}
@@ -59,6 +69,9 @@ public:
 
     int GetID() const { return mID; }
     void SetID(int i) { mID = i; }
+
+    bool IsTimeToDelete() const;
+    void SetTimeToDelete();
 
     int GetEffectIndex() const { return mEffectIndex; }
     void SetEffectIndex(int effectIndex);
@@ -73,7 +86,7 @@ public:
     void SetStartTimeMS(int startTimeMS);
     int GetEndTimeMS() const { return mEndTime; }
     void SetEndTimeMS(int endTimeMS);
-    bool OverlapsWith(int startTimeMS, int EndTimeMS);
+    bool OverlapsWith(int startTimeMS, int EndTimeMS) const;
 
     void ConvertTo(int effectIndex);
 
@@ -102,6 +115,7 @@ public:
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
     void FixBuffer(const Model* m);
+    bool IsPersistent() const;
 
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }
@@ -132,7 +146,7 @@ public:
         return &mColorMask;
     }
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
-    
+
     //gets the cached frame.   Returns true if the frame was filled into the buffer
     bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
@@ -140,5 +154,3 @@ public:
 };
 
 bool operator<(const Effect &e1, const Effect &e2);
-
-#endif // EFFECT_H

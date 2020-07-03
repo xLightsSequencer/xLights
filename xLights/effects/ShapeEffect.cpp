@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "ShapeEffect.h"
 #include "ShapePanel.h"
 
@@ -27,7 +37,7 @@ ShapeEffect::~ShapeEffect()
     //dtor
 }
 
-std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -74,7 +84,7 @@ void ShapeEffect::SetPanelTimingTracks() const
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             if (timingtracks != "") timingtracks += "|";
             timingtracks += e->GetName();
@@ -103,7 +113,8 @@ wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_SNOWFLAKE  10
 #define RENDER_SHAPE_CRUCIFIX   11
 #define RENDER_SHAPE_PRESENT    12
-#define RENDER_SHAPE_EMOJI      13
+#define RENDER_SHAPE_ELLIPSE    13
+#define RENDER_SHAPE_EMOJI      14
 
 void ShapeEffect::SetDefaultParameters() {
     ShapePanel *sp = (ShapePanel*)panel;
@@ -309,13 +320,17 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     {
         return RENDER_SHAPE_PRESENT;
     }
+	else if (shape == "Ellipse")
+	{
+		return RENDER_SHAPE_ELLIPSE;
+	}
     // this must be the last as we dont want to randomly select it
     else if (shape == "Emoji")
     {
         return RENDER_SHAPE_EMOJI;
     }
 
-    return rand01() * 13; // exclude emoji
+    return rand01() * 14; // exclude emoji
 }
 
 void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -354,10 +369,10 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = *(pf->cbegin());
             }
         }
     }
@@ -445,7 +460,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
             {
                 Element* e = mSequenceElements->GetElement(l);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 {
                     if (e->GetName() == timing)
                     {
@@ -564,7 +579,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         context->Clear();
     }
 
-    for (auto& it : _shapes)
+    for (const auto& it : _shapes)
     {
         // if location is not random then update it to whatever the current location is
         // as it may be value curve controlled
@@ -620,13 +635,13 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             Drawpolygon(buffer, it->_centre.x, it->_centre.y, it->_size, 8, color, thickness, rotation + 22.5);
             break;
         case RENDER_SHAPE_TREE:
-            Drawtree(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness);
+            Drawtree(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
         case RENDER_SHAPE_CRUCIFIX:
-            Drawcrucifix(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness);
+            Drawcrucifix(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
         case RENDER_SHAPE_PRESENT:
-            Drawpresent(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness);
+            Drawpresent(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
         case RENDER_SHAPE_EMOJI:
             Drawemoji(buffer, it->_centre.x, it->_centre.y, it->_size, color, emoji, _font);
@@ -638,8 +653,11 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             Drawsnowflake(buffer, it->_centre.x, it->_centre.y, it->_size, 3, color, rotation + 30);
             break;
         case RENDER_SHAPE_HEART:
-            Drawheart(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness);
+            Drawheart(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
+		case RENDER_SHAPE_ELLIPSE:
+			Drawellipse(buffer, it->_centre.x, it->_centre.y, it->_size, points, color, thickness, rotation);
+			break;
         default:
             wxASSERT(false);
             break;
@@ -697,6 +715,40 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius
         }
         radius -= interpolation;
     }
+}
+
+void ShapeEffect::Drawellipse(RenderBuffer &buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation) const
+{
+	double interpolation = 0.75;
+	double t = (double)thickness - 1.0 + interpolation;
+	for (double i = 0; i < t; i += interpolation)
+	{
+		if (radius >= 0)
+		{
+			for (double degrees = 0.0; degrees < 360.0; degrees += 1.0)
+			{
+				double radian = (degrees) * (M_PI / 180.0);
+				double scaleMul = ((double)multipler/10.0);
+				double x = radius * cos(radian);
+				double y = (radius * scaleMul) * sin(radian);
+
+				//now rotation
+				double radRot = (rotation) * (M_PI / 180.0);
+				double rx = (x * cos(radRot)) - (y * sin(radRot));
+				double ry = (y * cos(radRot)) + (x * sin(radRot));
+
+				int xx = std::round(rx) + xc;
+				int yy = std::round(ry) + yc;
+
+				buffer.SetPixel(xx, yy, color);
+			}
+		}
+		else
+		{
+			break;
+		}
+		radius -= interpolation;
+	}
 }
 
 void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation) const
@@ -817,7 +869,7 @@ void ShapeEffect::Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double rad
     }
 }
 
-void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
 {
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
@@ -833,8 +885,20 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
         {
             if (r >= 0)
             {
-                buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y1 * r / 2.0) + yc, color);
-                buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y2 * r / 2.0) + yc, color);
+				double xx1 = std::round(x * r / 2.0);
+				double yy1 = std::round(y1 * r / 2.0);
+
+				double xx2 = std::round(x * r / 2.0);
+				double yy2 = std::round(y2 * r / 2.0);
+				//now rotation
+				double radRot = (rotation) * (M_PI / 180.0);
+				double rx1 = (xx1 * cos(radRot)) - (yy1 * sin(radRot));
+				double ry1 = (yy1 * cos(radRot)) + (xx1 * sin(radRot));
+				double rx2 = (xx2 * cos(radRot)) - (yy2 * sin(radRot));
+				double ry2 = (yy2 * cos(radRot)) + (xx2 * sin(radRot));
+
+                buffer.SetPixel(rx1 + xc, ry1 + yc, color);
+                buffer.SetPixel(rx2 + xc, ry2 + yc, color);
             }
             else
             {
@@ -845,7 +909,7 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
     }
 }
 
-void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
 {
     struct line
     {
@@ -889,7 +953,14 @@ void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, 
                 int y1 = std::round(((double)points[j].start.y - 4.0) / 11.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 4.0) / 11.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 4.0) / 11.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+
+				//now rotation
+				double radRot = (rotation) * (M_PI / 180.0);
+				double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
+				double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
+				double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
+				double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
+                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
             }
         }
         else
@@ -900,7 +971,7 @@ void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, 
     }
 }
 
-void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
 {
     struct line
     {
@@ -942,7 +1013,14 @@ void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radi
                 int y1 = std::round(((double)points[j].start.y - 6.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 2.5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 6.5) / 10.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+
+				//now rotation
+				double radRot = (rotation) * (M_PI / 180.0);
+				double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
+				double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
+				double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
+				double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
+                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
             }
         }
         else
@@ -953,7 +1031,7 @@ void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radi
     }
 }
 
-void ShapeEffect::Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+void ShapeEffect::Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
 {
     struct line
     {
@@ -992,7 +1070,15 @@ void ShapeEffect::Drawpresent(RenderBuffer &buffer, int xc, int yc, double radiu
                 int y1 = std::round(((double)points[j].start.y - 5.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 5.5) / 10.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+
+				//now rotation
+				double radRot = (rotation) * (M_PI / 180.0);
+				double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
+				double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
+				double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
+				double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
+
+                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
             }
         }
         else
@@ -1014,7 +1100,7 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     fi.Light(font.GetWeight() == wxFONTWEIGHT_LIGHT);
     fi.AntiAliased(font.IsAntiAliased());
     fi.Encoding(font.GetEncoding());
-    
+
     context->SetFont(fi, color);
 
     wxUniChar ch = emoji;

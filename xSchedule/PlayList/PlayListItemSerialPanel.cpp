@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemSerialPanel.h"
 #include "PlayListDialog.h"
 #include "PlayListItemSerial.h"
@@ -115,5 +125,6 @@ void PlayListItemSerialPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemSerialPanel::OnTextCtrl_SerialNameText(wxCommandEvent& event)
 {
     _serial->SetName(TextCtrl_SerialName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }

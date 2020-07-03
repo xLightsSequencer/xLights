@@ -1,5 +1,14 @@
-#ifndef EFFECTSPANEL_H
-#define EFFECTSPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(EffectsPanel)
 #include <wx/choicebk.h>
@@ -25,16 +34,15 @@ public:
     EffectsPanel(wxWindow *parent, EffectManager *effects);
     virtual ~EffectsPanel();
 
-    //void SetDefaultPalette();
-    void SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name);
+    void SetDefaultEffectValues(const wxString &name);
     void SetEffectPanelStatus(Model *cls, const wxString &name);
-    //void SetButtonColor(wxButton* btn, const wxColour* c);
     void SetSequenceElements(SequenceElements *els);
     void SetEffectType(int effectId);
     
     wxString GetRandomEffectString(int effidx);
-    bool isRandom_();
-    bool WantOverlayBkg(); //selectable clear canvas before render -DJ
+    bool isRandom_() const;
+    bool WantOverlayBkg() const; //selectable clear canvas before render -DJ
+    wxWindow* GetSelectedPanel() const;
 
     //(*Declarations(EffectsPanel)
     wxChoicebook* EffectChoicebook;
@@ -56,17 +64,15 @@ private:
 
     void OnRightDownChoice(wxMouseEvent& event);
     void OnChoicePopup(wxCommandEvent& event);
-    int GetRandomSliderValue(wxSlider* slider);
+    int GetRandomSliderValue(wxSlider* slider) const;
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
-    wxWindow* GetWindowPanel(wxWindow* w);
+    wxWindow* GetWindowPanel(wxWindow* w) const;
 
     //add lock/unlock/random state flags -DJ
     //these could be used to make fields read-only, but initially they are just used for partially random effects
-    bool isRandom_(wxControl* ctl, const char*debug);
+    bool isRandom_(wxControl* ctl, const char*debug) const;
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
     void setlock(wxButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
 };
-
-#endif

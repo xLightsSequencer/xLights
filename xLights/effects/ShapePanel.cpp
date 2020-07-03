@@ -1,6 +1,17 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "ShapePanel.h"
 #include "EffectPanelUtils.h"
 #include "ShapeEffect.h"
+#include "../CharMapDialog.h"
 
 //(*InternalHeaders(ShapePanel)
 #include <wx/artprov.h>
@@ -153,6 +164,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer57->Add(StaticText69, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Shape_ObjectToDraw = new BulkEditChoice(this, ID_CHOICE_Shape_ObjectToDraw, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Shape_ObjectToDraw"));
     Choice_Shape_ObjectToDraw->SetSelection( Choice_Shape_ObjectToDraw->Append(_("Circle")) );
+    Choice_Shape_ObjectToDraw->Append(_("Ellipse"));
     Choice_Shape_ObjectToDraw->Append(_("Triangle"));
     Choice_Shape_ObjectToDraw->Append(_("Square"));
     Choice_Shape_ObjectToDraw->Append(_("Pentagon"));
@@ -175,7 +187,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer8->AddGrowableCol(1);
     FlexGridSizer8->AddGrowableRow(0);
     wxFont PickerFont_1(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
-    FontPickerCtrl_Font = new wxFontPickerCtrl(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
+    FontPickerCtrl_Font = new BulkEditFontPicker(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
     wxFont FontPickerCtrl_FontFont(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
     FontPickerCtrl_Font->SetFont(FontPickerCtrl_FontFont);
     FlexGridSizer8->Add(FontPickerCtrl_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -183,7 +195,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     SpinCtrl_CharCode->SetValue(_T("127876"));
     FlexGridSizer8->Add(SpinCtrl_CharCode, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
-    StaticText10 = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText10 = new ClickableStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer57->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -300,7 +312,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer57->Add(TextCtrl_Shape_CentreY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT_Shape_Points, _("Points"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Points"));
     FlexGridSizer57->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Shape_Points = new BulkEditSlider(this, ID_SLIDER_Shape_Points, 5, 4, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Points"));
+    Slider_Shape_Points = new BulkEditSlider(this, ID_SLIDER_Shape_Points, 5, 2, 9, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Points"));
     FlexGridSizer57->Add(Slider_Shape_Points, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Shape_Points = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Points, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Points"));
     TextCtrl_Shape_Points->SetMaxLength(1);
@@ -466,7 +478,20 @@ ShapePanel::ShapePanel(wxWindow* parent)
         wxASSERT(false);
     }
 
+    Connect(ID_STATICTEXT2, wxEVT_COMMAND_LEFT_DCLICK, (wxObjectEventFunction)& ShapePanel::OnShowCharMap);
     Connect(ID_STATICTEXT2, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ShapePanel::EmojiMenu);
+
+    ValidateWindow();
+}
+
+
+void ShapePanel::OnShowCharMap(wxCommandEvent& event)
+{
+    CharMapDialog dlg(this, FontPickerCtrl_Font->GetSelectedFont(), SpinCtrl_CharCode->GetValue());
+
+    dlg.ShowModal();
+
+    SpinCtrl_CharCode->SetValue(dlg.GetCharCode());
 
     ValidateWindow();
 }
@@ -487,7 +512,8 @@ PANEL_EVENT_HANDLERS(ShapePanel)
 
 void ShapePanel::ValidateWindow()
 {
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Star")
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
     {
         Slider_Shape_Points->Enable();
         TextCtrl_Shape_Points->Enable();
@@ -497,6 +523,14 @@ void ShapePanel::ValidateWindow()
         Slider_Shape_Points->Disable();
         TextCtrl_Shape_Points->Disable();
     }
+	if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
+	{
+		StaticText1->SetLabel("Ratio");
+	}
+	else
+	{
+		StaticText1->SetLabel("Points");
+	}
 
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
     {
@@ -527,23 +561,20 @@ void ShapePanel::ValidateWindow()
         TextCtrl_Shape_Thickness->Enable();
     }
 
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Square" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Triangle" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Pentagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Hexagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Octagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Candy Cane" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" )
     {
-        Slider_Shape_Rotation->Enable();
-        TextCtrl_Shape_Rotation->Enable();
-        BitmapButton_Shape_RotationVC->Enable();
+		Slider_Shape_Rotation->Disable();
+		TextCtrl_Shape_Rotation->Disable();
+		BitmapButton_Shape_RotationVC->Disable();
     }
     else
     {
-        Slider_Shape_Rotation->Disable();
-        TextCtrl_Shape_Rotation->Disable();
-        BitmapButton_Shape_RotationVC->Disable();
+		Slider_Shape_Rotation->Enable();
+		TextCtrl_Shape_Rotation->Enable();
+		BitmapButton_Shape_RotationVC->Enable();
     }
 
     if (CheckBox_Shapes_RandomMovement->IsChecked())
@@ -658,7 +689,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it : timingtracks)
+    for (const auto& it : timingtracks)
     {
         bool found = false;
         for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
@@ -699,7 +730,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 void ShapePanel::EmojiMenu(wxContextMenuEvent& event)
 {
     wxMenu mnuEmoji;
-    for (auto it : _emojis)
+    for (const auto& it : _emojis)
     {
         mnuEmoji.Append(wxNewId(), it->GetName());
     }
@@ -712,7 +743,7 @@ void ShapePanel::OnPopupEmoji(wxCommandEvent& event)
     wxMenu* eo = (wxMenu*)event.GetEventObject();
     auto item = eo->GetLabelText(event.GetId());
 
-    for (auto it : _emojis)
+    for (const auto& it : _emojis)
     {
         if (it->GetName() == item)
         {

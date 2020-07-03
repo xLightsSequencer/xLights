@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet Slim Par Pro VW 3-Channel" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Warm White,Cool White,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node4" s1-Name="no_function" s1-Color="#040404" 
+s2="Node4" s2-Name="0-20hz_slow_to_fast" s2-Color="#848484" 
+s3="Node5" s3-Name="no_function" s3-Color="#191919" 
+s4="Node5" s4-Name="1" s4-Color="#4C4C4C" 
+s5="Node5" s5-Name="2" s5-Color="#7F7F7F" 
+s6="Node5" s6-Name="3" s6-Color="#B2B2B2" 
+s7="Node5" s7-Name="4" s7-Color="#E5E5E5" 
+s8="Node5" s8-Name="5" s8-Color="#FFFFFF" 
+s9="Node7" s9-Name="default" s9-Color="#191919" 
+s10="Node7" s10-Name="linear" s10-Color="#4C4C4C" 
+s11="Node7" s11-Name="non-linear_1" s11-Color="#7F7F7F" 
+s12="Node7" s12-Name="non-linear_2" s12-Color="#B2B2B2" 
+s13="Node7" s13-Name="non-linear_3" s13-Color="#E5E5E5" 
+/>
+</dmxmodel>

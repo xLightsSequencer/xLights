@@ -10,3 +10,4 @@ Debug/
 .vs/
 .objs*/
 Release/
+/log.txt

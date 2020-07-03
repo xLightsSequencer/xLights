@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemImagePanel.h"
 #include "PlayListItemImage.h"
 #include "VideoWindowPositionDialog.h"
@@ -127,7 +137,8 @@ void PlayListItemImagePanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 void PlayListItemImagePanel::OnFilePickerCtrl_ImageFileFileChanged(wxFileDirPickerEvent& event)
 {
     _image->SetImageFile(FilePickerCtrl_ImageFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemImagePanel::OnTextCtrl_DelayText(wxCommandEvent& event)

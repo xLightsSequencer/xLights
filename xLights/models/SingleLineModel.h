@@ -1,8 +1,16 @@
-#ifndef SINGLELINEMODEL_H
-#define SINGLELINEMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-
 
 class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
@@ -17,9 +25,9 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
     
         void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-
+        
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
@@ -30,5 +38,3 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 
     private:
 };
-
-#endif // SINGLELINEMODEL_H

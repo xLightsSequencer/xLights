@@ -1,5 +1,14 @@
-#ifndef BARSEFFECT_H
-#define BARSEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -21,7 +30,7 @@ class BarsEffect : public RenderableEffect
         virtual ~BarsEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
@@ -29,5 +38,3 @@ class BarsEffect : public RenderableEffect
         void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer &buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
     private:
 };
-
-#endif // BARSEFFECT_H

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/gifdecod.h>
@@ -39,27 +49,46 @@ PicturesEffect::~PicturesEffect()
     //dtor
 }
 
-std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
+    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res;
 
-    wxString PictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
+    wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
 
-    if (PictureFilename == "" || !wxFile::Exists(PictureFilename))
+    if (pictureFilename == "" || !wxFile::Exists(pictureFilename))
     {
-        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     else
     {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, PictureFilename.ToStdString()))
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString()))
         {
-            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        int imageCount = wxImage::GetImageCount(PictureFilename);
+        int imageCount = wxImage::GetImageCount(pictureFilename);
         if (imageCount <= 0)
         {
-            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
+        if (!renderCache)
+        {
+            wxImage i;
+            i.LoadFile(pictureFilename);
+            if (i.IsOk())
+            {
+                int ih = i.GetHeight();
+                int iw = i.GetWidth();
+
+#define IMAGESIZETHRESHOLD 10
+                if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi())
+                {
+                    float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
+                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", pictureFilename, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
         }
     }
     return res;
@@ -394,7 +423,7 @@ void PicturesEffect::SetDefaultParameters() {
     pp->ValidateWindow();
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
@@ -458,16 +487,17 @@ void PicturesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
     );
 }
 
-void PicturesEffect::Render(RenderBuffer &buffer,
-    const std::string & dirstr, const std::string &NewPictureName2,
+void PicturesEffect::Render(RenderBuffer& buffer,
+    const std::string& dirstr, const std::string& NewPictureName2,
     float movementSpeed, float frameRateAdj,
     int xc_adj, int yc_adj,
     int xce_adj, int yce_adj,
     int start_scale, int end_scale, const std::string& scale_to_fit,
-    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground, 
-    bool transparentBlack, int transparentBlackLevel) {
+    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground,
+    bool transparentBlack, int transparentBlackLevel)
+{
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
@@ -477,165 +507,175 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int curPeriod = buffer.curPeriod;
     int curEffStartPer = buffer.curEffStartPer;
     int scale_image = false;
+    bool noImageFile = false;
 
-    wxFile f;
-    if (NewPictureName2.length() == 0) return;
+    PicturesRenderCache* cache = GetCache(buffer);
+    wxImage& image = cache->image;
+    wxImage& rawimage = cache->rawimage;
 
-    //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
-    //  we have a bunch of jpg files made by ffmpeg
-    //  movie files can be converted into jpg frames by this command
-    //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
-
-    PicturesRenderCache *cache = GetCache(buffer);
-    wxImage &image = cache->image;
-    wxImage &rawimage = cache->rawimage;
-    GIFImage*& gifImage = cache->gifImage;
-    std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
-    int &frame = cache->frame;
-
-    wxString sPicture = NewPictureName2;
-
-    wxFileName fn(NewPictureName2);
-    wxString extension = fn.GetExt();
-    wxString suffix = "";
-    if (fn.GetName().Length() >= 2)
-    {
-        suffix = fn.GetName().Right(2);
+    if (NewPictureName2.length() == 0) {
+        noImageFile = true;
     }
+    else {
+        //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
+        //  we have a bunch of jpg files made by ffmpeg
+        //  movie files can be converted into jpg frames by this command
+        //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-    if (suffix == "-1") {// do we have a movie file?
-        //    yes
-        wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
-        wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
-        if (!wxFileExists(sTmpPicture)) {
-            // not a movie file as frame 2 does not exist
+        wxFile f;
+        GIFImage*& gifImage = cache->gifImage;
+        std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
+        int& frame = cache->frame;
+
+        wxString sPicture = NewPictureName2;
+
+        wxFileName fn(NewPictureName2);
+        wxString extension = fn.GetExt();
+        wxString suffix = "";
+        if (fn.GetName().Length() >= 2) {
+            suffix = fn.GetName().Right(2);
         }
-        else
-        {
 
-            //  build the next filename. the frame counter is incrementing through all frames
-            if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
-                buffer.needToInit = false;
-                cache->maxmovieframes = 1;
-                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                for (frame = 1; frame <= 9999; frame++)
-                {
-                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                    if (wxFileExists(sPicture)) {
-                        cache->maxmovieframes = frame;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                frame = 1;
+        if (suffix == "-1") {// do we have a movie file?
+            //    yes
+            wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
+            wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
+            if (!wxFileExists(sTmpPicture)) {
+                // not a movie file as frame 2 does not exist
             }
             else {
-                frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+
+                //  build the next filename. the frame counter is incrementing through all frames
+                if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
+                    buffer.needToInit = false;
+                    cache->maxmovieframes = 1;
+                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                    for (frame = 1; frame <= 9999; frame++) {
+                        sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                        if (wxFileExists(sPicture)) {
+                            cache->maxmovieframes = frame;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    frame = 1;
+                }
+                else {
+                    frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+                }
+                if (frame > cache->maxmovieframes) {
+                    return;
+                }
+                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
             }
-            if (frame > cache->maxmovieframes) {
-                return;
+        }
+
+        wxString NewPictureName = sPicture;
+
+        if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
+        {
+            LoadPixelsFromTextFile(buffer, f, NewPictureName);
+            int idx = curPeriod - curEffStartPer;
+            if (idx < PixelsByFrame.size()) //TODO: wrap?
+                for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
+                    SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
+                }
+            return;
+        }
+
+        if (NewPictureName != cache->PictureName || buffer.needToInit) {
+            buffer.needToInit = false;
+            scale_image = true;
+
+            if (!wxFile::Exists(NewPictureName)) {
+                noImageFile = true;
             }
-            sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+            else {
+                wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+
+                // There seems to be a bug on linux where this function crashes occasionally
+#ifdef LINUX
+                logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
+#endif
+                cache->imageCount = wxImage::GetImageCount(NewPictureName);
+                if (cache->imageCount <= 0) {
+                    logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
+
+                    // override it to 1
+                    cache->imageCount = 1;
+                }
+
+                if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
+                    logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                    image.Create(5, 5, true);
+                }
+
+                rawimage = image;
+                cache->PictureName = NewPictureName;
+
+                if (cache->imageCount > 1) {
+#ifdef DEBUG_GIF
+                    logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
+#endif
+                    if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
+                        delete gifImage;
+                        gifImage = nullptr;
+                    }
+                    gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
+
+                    if (!gifImage->IsOk()) {
+                        delete gifImage;
+                        gifImage = nullptr;
+                        noImageFile = true;
+                    }
+
+                    if (!noImageFile) {
+                        image = gifImage->GetFrame(0);
+                        rawimage = image;
+                    }
+            }
+        }
+
+            if (!noImageFile && !image.IsOk()) {
+                noImageFile = true;
+            }
+    }
+
+        if (!noImageFile && cache->imageCount > 1) {
+
+            //animated Gif,
+            scale_image = true;
+
+            if (loopGIF) {
+                image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
+            }
+            else {
+                int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
+                image = gifImage->GetFrame(ii);
+            }
+
+            rawimage = image;
+
+            if (!rawimage.IsOk()) {
+                noImageFile = true;
+            }
         }
     }
 
-    wxString NewPictureName = sPicture;
-
-    if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
-    {
-        LoadPixelsFromTextFile(buffer, f, NewPictureName);
-        int idx = curPeriod - curEffStartPer;
-        if (idx < PixelsByFrame.size()) //TODO: wrap?
-            for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it)
-            {
-                SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
+    if (noImageFile) {
+        for (int x = 0; x < BufferWi; x++) {
+            for (int y = 0; y < BufferHt; y++) {
+                buffer.SetPixel(x, y, xlRED);
             }
+        }
         return;
     }
 
-    if (NewPictureName != cache->PictureName || buffer.needToInit)
-    {
-        buffer.needToInit = false;
-        scale_image = true;
-
-        wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-
-        // There seems to be a bug on linux where this function crashes occasionally
-#ifdef LINUX
-        logger_base.debug("About to count images in bitmap %s.", (const char *)NewPictureName.c_str());
-#endif
-        cache->imageCount = wxImage::GetImageCount(NewPictureName);
-        if (cache->imageCount <= 0)
-        {
-            logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char *)NewPictureName.c_str(), cache->imageCount);
-
-            // override it to 1
-            cache->imageCount = 1;
-        }
-
-        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0))
-        {
-            logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
-            image.Create(5, 5, true);
-        }
-
-        rawimage = image;
-        cache->PictureName = NewPictureName;
-
-        if (cache->imageCount > 1)
-        {
-#ifdef DEBUG_GIF
-            logger_base.debug("Preparing GIF file for reading: %s", (const char *)NewPictureName.c_str());
-#endif
-            if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName)
-            {
-                delete gifImage;
-                gifImage = nullptr;
-            }
-            gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
-
-            if (!gifImage->IsOk())
-            {
-                delete gifImage;
-                gifImage = nullptr;
-                return;
-            }
-
-            image = gifImage->GetFrame(0);
-            rawimage = image;
-        }
-
-        if (!image.IsOk())
-            return;
-    }
-
-    if (cache->imageCount > 1) {
-
-        //animated Gif,
-        scale_image = true;
-
-        if (loopGIF)
-        {
-            image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
-        }
-        else
-        {
-            int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
-            image = gifImage->GetFrame(ii);
-        }
-
-        rawimage = image;
-
-        if (!rawimage.IsOk())
-            return;
-    }
-
-    if (scale_to_fit == "No Scaling" && (start_scale != end_scale))
-    {
+    if (scale_to_fit == "No Scaling" && (start_scale != end_scale)) {
         image = rawimage;
         scale_image = true;
     }
@@ -645,8 +685,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
     int xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
 
-    if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght))
-    {
+    if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght)) {
         image = rawimage;
         image.Rescale(BufferWi, BufferHt);
         imgwidth = image.GetWidth();
@@ -654,8 +693,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
     }
-    else if (scale_to_fit == "Scale Keep Aspect Ratio")
-    {
+    else if (scale_to_fit == "Scale Keep Aspect Ratio") {
         image = rawimage;
         float xr = (float)BufferWi / (float)image.GetWidth();
         float yr = (float)BufferHt / (float)image.GetHeight();
@@ -666,14 +704,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
     }
-    else
-    {
-        if ((start_scale != 100 || end_scale != 100) && scale_image)
-        {
+    else {
+        if ((start_scale != 100 || end_scale != 100) && scale_image) {
             int delta_scale = end_scale - start_scale;
             int current_scale = start_scale + delta_scale * position;
-            imgwidth = (image.GetWidth()*current_scale) / 100;
-            imght = (image.GetHeight()*current_scale) / 100;
+            imgwidth = (image.GetWidth() * current_scale) / 100;
+            imght = (image.GetHeight() * current_scale) / 100;
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
             image.Rescale(imgwidth, imght);
@@ -719,7 +755,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         break;
     case RENDER_PICTURE_WIGGLE: //wiggle left-right -DJ
         if (position >= 0.5) {
-            xoffset += BufferWi * ((1.0 - position)*2.0 - 0.5);
+            xoffset += BufferWi * ((1.0 - position) * 2.0 - 0.5);
         }
         else {
             xoffset += BufferWi * (position * 2.0 - 0.5);
@@ -742,30 +778,27 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         yoffset_adj = std::round(position * double(yce_adj - yc_adj)) + yc_adj;
     }
     if (!pixelOffsets) {
-        xoffset_adj = (xoffset_adj*BufferWi) / 100.0; // xc_adj is from -100 to 100
-        yoffset_adj = (yoffset_adj*BufferHt) / 100.0; // yc_adj is from -100 to 100
+        xoffset_adj = (xoffset_adj * BufferWi) / 100.0; // xc_adj is from -100 to 100
+        yoffset_adj = (yoffset_adj * BufferHt) / 100.0; // yc_adj is from -100 to 100
     }
     // copy image to buffer
     xlColor c;
     bool hasAlpha = image.HasAlpha();
 
-    int calc_position_wi = (imgwidth + BufferWi)*position;
-    int calc_position_ht = (imght + BufferHt)*position;
+    int calc_position_wi = (imgwidth + BufferWi) * position;
+    int calc_position_ht = (imght + BufferHt) * position;
 
-    for (int x = 0; x < imgwidth; x++)
-    {
-        for (int y = 0; y < imght; y++)
-        {
-            if (!image.IsTransparent(x, y))
-            {
+    for (int x = 0; x < imgwidth; x++) {
+        for (int y = 0; y < imght; y++) {
+            if (!image.IsTransparent(x, y)) {
                 unsigned char alpha = hasAlpha ? image.GetAlpha(x, y) : 255;
                 c.Set(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), alpha);
                 if (!buffer.allowAlpha && alpha < 64) {
                     //almost transparent, but this mix doesn't support transparent unless it's black;
                     c = xlBLACK;
                 }
-                switch (dir)
-                {
+
+                switch (dir) {
                 case RENDER_PICTURE_LEFT: //0:
                     SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // left
@@ -798,7 +831,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     break;
                 case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
                     //TODO: use rescale or resize?
-                    SetTransparentBlackPixel(buffer ,(x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, transparentBlack, transparentBlackLevel); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    SetTransparentBlackPixel(buffer, (x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, transparentBlack, transparentBlackLevel); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
                 case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
                     SetTransparentBlackPixel(buffer, BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
@@ -827,14 +860,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 break;
                 case RENDER_PICTURE_TILE_LEFT: // 21
                 {
-                    int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + imght) / imght;
+                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
                     int startx = xoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
                     int starty = yoffset_adj - imght;
-                    for (int xx = 0; xx < xmult; ++xx)
-                    {
-                        for (int yy = 0; yy < ymult; ++yy)
-                        {
+                    for (int xx = 0; xx < xmult; ++xx) {
+                        for (int yy = 0; yy < ymult; ++yy) {
                             SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
                                 c, false, transparentBlack, transparentBlackLevel);
                         }
@@ -843,14 +874,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 break;
                 case RENDER_PICTURE_TILE_RIGHT: // 22
                 {
-                    int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + imght) / imght;
+                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
                     int startx = xoffset_adj - imgwidth + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
                     int starty = yoffset_adj - imght;
-                    for (int xx = 0; xx < xmult; ++xx)
-                    {
-                        for (int yy = 0; yy < ymult; ++yy)
-                        {
+                    for (int xx = 0; xx < xmult; ++xx) {
+                        for (int yy = 0; yy < ymult; ++yy) {
                             SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
                                 c, false, transparentBlack, transparentBlackLevel);
                         }
@@ -859,14 +888,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 break;
                 case RENDER_PICTURE_TILE_DOWN: // 23
                 {
-                    int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + imght) / imght;
+                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
                     int startx = xoffset_adj - imgwidth;
                     int starty = yoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
-                    for (int xx = 0; xx < xmult; ++xx)
-                    {
-                        for (int yy = 0; yy < ymult; ++yy)
-                        {
+                    for (int xx = 0; xx < xmult; ++xx) {
+                        for (int yy = 0; yy < ymult; ++yy) {
                             SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
                                 c, false, transparentBlack, transparentBlackLevel);
                         }
@@ -875,14 +902,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 break;
                 case RENDER_PICTURE_TILE_UP: // 24
                 {
-                    int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + imght) / imght;
+                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
                     int startx = xoffset_adj - imgwidth;
                     int starty = yoffset_adj - imght + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
-                    for (int xx = 0; xx < xmult; ++xx)
-                    {
-                        for (int yy = 0; yy < ymult; ++yy)
-                        {
+                    for (int xx = 0; xx < xmult; ++xx) {
+                        for (int yy = 0; yy < ymult; ++yy) {
                             SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
                                 c, false, transparentBlack, transparentBlackLevel);
                         }
@@ -901,16 +926,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     }
 
     // add shimmer effect which just randomly turns off pixels
-    if (shimmer)
-    {
+    if (shimmer) {
         c = xlBLACK;
         xlColor color;
-        for (int x = 0; x < BufferWi; x++)
-        {
-            for (int y = 0; y < BufferHt; y++)
-            {
-                if (rand01() > 0.5)
-                {
+        for (int x = 0; x < BufferWi; x++) {
+            for (int y = 0; y < BufferHt; y++) {
+                if (rand01() > 0.5) {
                     buffer.GetPixel(x, y, color);
                     if (color != xlBLACK) {
                         buffer.ProcessPixel(x, y, c, false);

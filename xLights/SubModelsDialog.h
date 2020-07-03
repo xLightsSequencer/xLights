@@ -1,5 +1,14 @@
-#ifndef SUBMODELSDIALOG_H
-#define SUBMODELSDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <map>
 #include <vector>
@@ -81,6 +90,7 @@ class SubModelsDialog : public wxDialog
     Model *model;
     ModelPreview *modelPreview;
     SubBufferPanel *subBufferPanel;
+    bool _isMatrix = false;
 
 public:
     std::vector<SubModelInfo*> _subModels;
@@ -104,6 +114,7 @@ public:
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
     wxButton* Button_Sub_Import;
+    wxButton* Button_importCustom;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -133,6 +144,7 @@ protected:
     static const long ID_BUTTON5;
     static const long ID_BUTTON_COPY_MODEL;
     static const long ID_BUTTON_SUB_IMPORT;
+    static const long ID_BUTTON9;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -161,11 +173,14 @@ protected:
     SubModelInfo *GetSubModelInfo(const wxString &str);
     bool IsItemSelected(wxListCtrl* ctrl, int item) const;
 
-    void AddSubModelToList(SubModelInfo *submodel, int index = -1, bool load = false);
+    //void AddSubModelToList(SubModelInfo *submodel, int index = -1, bool load = false);
     void MoveSelectedModelsTo(int indexTo);
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
+    void ImportCustomModel(std::string filename);
+    void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
+    void ApplySubmodelName();
     void PopulateList();
     void ValidateWindow();
     void Select(const wxString &name);
@@ -213,7 +228,10 @@ private:
     void OnButton_Draw_ModelClick(wxCommandEvent& event);
     void OnNodesGridLabelLeftDClick(wxGridEvent& event);
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
+    void OnButton_importCustomClick(wxCommandEvent& event);
     //*)
+
+    void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
 
     wxWindow* _parent;
     xLightsFrame* xlights;
@@ -223,5 +241,3 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
-#endif

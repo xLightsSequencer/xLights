@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/txtstrm.h>
 #include <wx/wfstream.h>
 #include <wx/filename.h>
@@ -9,10 +19,10 @@
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 
-void PhonemeDictionary::LoadDictionaries(const wxString &showDir, wxWindow* parent)
+void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* parent)
 {
-	if (phoneme_dict.size() > 0)
-		return;
+    if (phoneme_dict.size() > 0)
+        return;
 
     LoadDictionary("user_dictionary", showDir, parent);
     LoadDictionary("standard_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
@@ -31,18 +41,18 @@ void PhonemeDictionary::LoadDictionaries(const wxString &showDir, wxWindow* pare
     wxFileInputStream input(phonemeFile.GetFullPath());
     wxTextInputStream text(input, " \t", wxConvAuto(wxFONTENCODING_UTF8));
 
-	while(input.IsOk() && !input.Eof()) {
+    while (input.IsOk() && !input.Eof()) {
         wxString line = text.ReadLine();
         line = line.Trim();
         if (line.Length() == 0 || line.Left(1) == "#" || line.Left(2) == ";;")
             continue; // skip comments
 
-		wxArrayString strList = wxSplit(line,' ');
+        wxArrayString strList = wxSplit(line, ' ');
         if (strList.size() > 1) {
             if (strList[0] == ".")
                 phonemes.push_back(strList[1]);
             else
-				phoneme_map.insert( std::pair<wxString, wxString>(strList[0], strList[1]));
+                phoneme_map.insert(std::pair<wxString, wxString>(strList[0], strList[1]));
         }
     }
 }
@@ -89,8 +99,9 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
 
 		wxArrayString strList = wxSplit(line,' ');
 		if (strList.size() > 1) {
-			if (phoneme_dict.find(strList[0]) == phoneme_dict.end())
-				phoneme_dict.emplace(std::pair<wxString, wxArrayString>(strList[0], strList));
+			//if (phoneme_dict.find(strList[0]) == phoneme_dict.end())
+			//	phoneme_dict.emplace(std::pair<wxString, wxArrayString>(strList[0], strList));
+            phoneme_dict[strList[0]] = strList;
 		}
         linenum++;
         if (linenum % 1000 == 0)
@@ -112,6 +123,27 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
     word.Replace("%", "");
     word.Replace("^", "");
     word.Replace("*", "");
+    word.Replace(",", "");
+    word.Replace("!", "");
+    word.Replace("&", "");
+    word.Replace("-", "");
+    word.Replace("_", "");
+    word.Replace("+", "");
+    word.Replace("=", "");
+    word.Replace("[", "");
+    word.Replace("]", "");
+    word.Replace("{", "");
+    word.Replace("}", "");
+    word.Replace("\"", "");
+    word.Replace(":", "");
+    word.Replace(";", "");
+    word.Replace(".", "");
+    word.Replace("<", "");
+    word.Replace(">", "");
+    word.Replace("/", "");
+    word.Replace("?", "");
+    word.Replace("`", "");
+    word.Replace("\t", " ");
 
     phonemes.Clear();
 

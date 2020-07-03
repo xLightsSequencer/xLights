@@ -41,11 +41,11 @@
 #error You have included headers from both vamp-sdk and vamp-hostsdk in the same source file. Please include only vamp-sdk headers in plugin code, and only vamp-hostsdk headers in host code.
 #else
 
-#define _VAMP_IN_HOSTSDK
+#define _VAMP_IN_HOSTSDK 1
 
-#define VAMP_SDK_VERSION "2.6"
+#define VAMP_SDK_VERSION "2.8"
 #define VAMP_SDK_MAJOR_VERSION 2
-#define VAMP_SDK_MINOR_VERSION 6
+#define VAMP_SDK_MINOR_VERSION 8
 
 #ifdef _VAMP_NO_HOST_NAMESPACE
 #define _VAMP_SDK_HOSTSPACE_BEGIN(h)

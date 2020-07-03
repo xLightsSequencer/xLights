@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -69,6 +79,7 @@ const long SeqSettingsDialog::ID_PANEL1 = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_New_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
+const long SeqSettingsDialog::ID_CHOICE1 = wxNewId();
 const long SeqSettingsDialog::ID_TREECTRL_Data_Layers = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Import = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Delete = wxNewId();
@@ -130,7 +141,7 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, std::string& media_dir, const wxString& warning, bool wizard_active_)
 	: xml_file(file_to_handle_),
 	media_directory(media_dir),
 	xLightsParent((xLightsFrame*)parent),
@@ -162,6 +173,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	//(*Initialize(SeqSettingsDialog)
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -174,6 +186,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
 	wxFlexGridSizer* FlexGridSizer_Timing_Page;
 	wxGridBagSizer* GridBagSizer1;
+	wxStaticText* StaticText2;
 	wxStaticText* StaticText_Xml_Seq_Timing;
 
 	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -218,11 +231,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer10->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Hash = new wxTextCtrl(PanelInfo, ID_TEXTCTRL1, _("N/A"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText_Xml_Total_Length = new wxStaticText(PanelInfo, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
@@ -306,6 +319,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Panel_DataLayers = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText2 = new wxStaticText(Panel_DataLayers, wxID_ANY, _("Render Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	RenderModeChoice = new wxChoice(Panel_DataLayers, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	RenderModeChoice->SetSelection( RenderModeChoice->Append(_("Erase")) );
+	RenderModeChoice->Append(_("Canvas"));
+	FlexGridSizer12->Add(RenderModeChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TreeCtrl_Data_Layers = new wxTreeCtrl(Panel_DataLayers, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxDLG_UNIT(Panel_DataLayers,wxSize(300,100)), wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
 	wxTreeItemId TreeCtrl_Data_Layers_Item1 = TreeCtrl_Data_Layers->AddRoot(_T("Layers to Render"));
 	FlexGridSizer9->Add(TreeCtrl_Data_Layers, 1, wxALL|wxEXPAND, 5);
@@ -378,6 +399,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnRenderModeChoiceSelect);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_END_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit);
@@ -391,6 +413,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
+
+    Button_Close->SetDefault();
 
 	if (wizard_active)
 	{
@@ -467,6 +491,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
         TreeCtrl_Data_Layers->AppendItem(branch, wxString::Format("Channel Offset: %d", layer->GetChannelOffset()));
     }
     TreeCtrl_Data_Layers->Expand(root);
+    
+    RenderModeChoice->SetStringSelection(xml_file->GetRenderMode());
 
     UpdateDataLayer();
     needs_render = false;
@@ -843,9 +869,16 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (xml_file->HasAudioMedia())
 	{
         plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
-		for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
-		{
-            dialog.Choice_New_Fixed_Timing->Append(*it);
+        if (plugins.size() == 0)
+        {
+            dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
+        }
+        else
+        {
+            for (const auto& it : plugins)
+            {
+                dialog.Choice_New_Fixed_Timing->Append(it);
+            }
         }
     }
 
@@ -854,45 +887,52 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         std::string selected_timing = dialog.GetTiming().ToStdString();
-        if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
-		{
-            wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
-            if (name != "") {
-                AddTimingCell(name);
-            }
-        }
-        else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
         {
-            if (selected_timing == "Metronome")
+            DownloadVamp();
+        }
+        else
+        {
+            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
             {
-                int base_timing = xml_file->GetFrameMS();
-                wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
-                if (dlg.ShowModal() == wxID_OK)
+                wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
+                if (name != "") {
+                    AddTimingCell(name);
+                }
+            }
+            else if (!xml_file->TimingAlreadyExists(selected_timing, xLightsParent))
+            {
+                if (selected_timing == "Metronome")
                 {
-                    int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+                    int base_timing = xml_file->GetFrameMS();
+                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                    if (dlg.ShowModal() == wxID_OK)
+                    {
+                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
 
-                    if (ms != dlg.GetValue())
-                    {
-                        wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
-                        wxMessageBox(msg);
+                        if (ms != dlg.GetValue())
+                        {
+                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
+                            wxMessageBox(msg);
+                        }
+                        wxString ttn = wxString::Format("%dms Metronome", ms);
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                        {
+                            xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
+                            AddTimingCell(ttn);
+                        }
                     }
-                    wxString ttn = wxString::Format("%dms Metronome", ms);
-                    if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
-                    {
-                        xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
-                        AddTimingCell(ttn);
-                    }
+                }
+                else
+                {
+                    xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+                    AddTimingCell(selected_timing);
                 }
             }
             else
             {
-                xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
-                AddTimingCell(selected_timing);
+                DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
             }
-        }
-        else
-        {
-            DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
         }
     }
     dialog.Destroy();
@@ -1004,7 +1044,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
 
         }
 
-        wxString media_filename;
+        std::string media_filename;
         ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
                                       new_data_layer->GetSequenceData(),                        // sequence data object
                                       xLightsParent->GetOutputManager(),                        // global network info
@@ -1093,7 +1133,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
     DataLayer* layer = data->GetLayer();
     Button_Close->Enable(false);
-    wxString media_filename;
+    std::string media_filename;
     wxFileName full_name(layer->GetSource());
     ConvertParameters conv_params(layer->GetSource(),                                       // input filename
                                   layer->GetSequenceData(),                                 // sequence data object
@@ -1296,7 +1336,6 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
                 xml_file->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
             }
             TreeCtrl_Data_Layers->SetItemText(itemId, wxString::Format("Data: %s", xml_file->GetRenderMode()));
-            xLightsParent->UpdateRenderMode();
         }
     }
 
@@ -1353,11 +1392,19 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
     if (wxDir::Exists(media_directory))
     {
         OpenDialog.SetDirectory(media_directory);
     }
+	if (!xml_file->GetMediaFile().empty())
+	{
+		OpenDialog.SetFilename(wxFileName(xml_file->GetMediaFile()).GetFullName());
+	}
+	if (!TextCtrl_Xml_Media_File->GetValue().empty())
+	{
+		OpenDialog.SetPath(TextCtrl_Xml_Media_File->GetValue());
+	}
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         wxString fDir = OpenDialog.GetDirectory();
@@ -1545,6 +1592,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
 
         TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
         xml_file->SetSequenceTiming(dialog.GetTiming());
+        xLightsParent->SetSequenceTiming(wxAtoi(dialog.GetTiming()));
         xLightsParent->SaveSequence();
         wxString name = xml_file->GetFullPath();
         xLightsParent->CloseSequence();
@@ -1570,4 +1618,10 @@ void SeqSettingsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     {
         DisplayError("Nothing available for this song.", this);
     }
+}
+
+void SeqSettingsDialog::OnRenderModeChoiceSelect(wxCommandEvent& event)
+{
+    xml_file->SetRenderMode(RenderModeChoice->GetStringSelection());
+    UpdateDataLayer();
 }

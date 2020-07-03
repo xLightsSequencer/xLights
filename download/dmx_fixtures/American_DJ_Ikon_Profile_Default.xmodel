@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Ikon Profile Default" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Strobing/Shutter,Master Dimmer,Dimmer Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobing/Shutter" s1-Name="closed" s1-Color="#030303" 
+s2="Strobing/Shutter" s2-Name="open" s2-Color="#0B0B0B" 
+s3="Strobing/Shutter" s3-Name="strobe_slow-fast" s3-Color="#494949" 
+s4="Strobing/Shutter" s4-Name="fast_close-slow_open" s4-Color="#A0A0A0" 
+s5="Strobing/Shutter" s5-Name="slow_close-fast_open" s5-Color="#D2D2D2" 
+s6="Strobing/Shutter" s6-Name="random_strobe" s6-Color="#F3F3F3" 
+s7="Dimmer Mode" s7-Name="standard" s7-Color="#0A0A0A" 
+s8="Dimmer Mode" s8-Name="stage" s8-Color="#1E1E1E" 
+s9="Dimmer Mode" s9-Name="tv" s9-Color="#323232" 
+s10="Dimmer Mode" s10-Name="architectural" s10-Color="#464646" 
+s11="Dimmer Mode" s11-Name="theatre" s11-Color="#5A5A5A" 
+s12="Dimmer Mode" s12-Name="default_dimmer_setting" s12-Color="#B2B2B2" 
+/>
+</dmxmodel>

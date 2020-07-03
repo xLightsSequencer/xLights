@@ -1,9 +1,20 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 
 #include "FacesEffect.h"
 #include "FacesPanel.h"
 #include "../models/Model.h"
 #include "../models/SubModel.h"
+#include "../models/ModelGroup.h"
 #include "../sequencer/SequenceElements.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -63,8 +74,50 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
-std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::string FacesEffect::GetEffectString()
 {
+    FacesPanel* p = (FacesPanel*)panel;
+    std::stringstream ret;
+
+    if (p->CheckBox_Faces_Outline->GetValue()) {
+        ret << "E_CHECKBOX_Faces_Outline=1,";
+    }
+
+    if (p->CheckBox_SuppressWhenNotSinging->GetValue()) {
+        ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
+    }
+
+    if (p->CheckBox_TransparentBlack->GetValue()) {
+        ret << "E_CHECKBOX_Faces_TransparentBlack=1,";
+        ret << "E_TEXTCTRL_Faces_TransparentBlack=";
+        ret << p->TextCtrl_Faces_TransparentBlack->GetValue().ToStdString();
+        ret << ",";
+    }
+
+    ret << "E_CHOICE_Faces_Eyes=";
+    ret << p->Choice_Faces_Eyes->GetStringSelection().ToStdString();
+    ret << ",";
+
+    ret << "E_CHOICE_Faces_FaceDefinition=";
+    ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
+    ret << ",";
+    
+    if (p->RadioButton1->GetValue())         {
+        ret << "E_CHOICE_Faces_Phoneme=";
+        ret << p->Choice_Faces_Phoneme->GetStringSelection().ToStdString();
+        ret << ",";
+    }
+    else         {
+        ret << "E_CHOICE_Faces_TimingTrack=";
+        ret << p->Choice_Faces_TimingTrack->GetStringSelection().ToStdString();
+        ret << ",";
+    }
+    return ret.str();
+}
+
+std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
+{
+    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res;
 
     wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
@@ -143,6 +196,24 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                     {
                         res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
+
+                    if (wxFileExists(picture))
+                    {
+                        wxImage i;
+                        i.LoadFile(picture);
+                        if (i.IsOk())
+                        {
+                            int ih = i.GetHeight();
+                            int iw = i.GetWidth();
+
+#define IMAGESIZETHRESHOLD 10
+                            if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi())
+                            {
+                                float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
+                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", picture, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -156,6 +227,10 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     {
         res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
+    else if (timing != "" && GetTiming(timing) == nullptr)
+    {
+        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
 
     return res;
 }
@@ -166,23 +241,34 @@ void FacesEffect::SetPanelStatus(Model *cls) {
 
     fp->Choice_Faces_TimingTrack->Clear();
     fp->Face_FaceDefinitonChoice->Clear();
-    if (mSequenceElements == nullptr) {
-        return;
+    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|'))
+    {
+        fp->Choice_Faces_TimingTrack->Append(it);
     }
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
-            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
-            fp->Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
-        }
-    }
+
     bool addRender = true;
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); ++it) {
-            if (it->first != "")
-            {
-                fp->Face_FaceDefinitonChoice->Append(it->first);
-                if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
-                    addRender = false;
+
+        Model* m = cls;
+
+        if (cls->GetDisplayAs() == "ModelGroup")
+        {
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+        else if (cls->GetDisplayAs() == "SubModel")
+        {
+            m = ((SubModel*)cls)->GetParent();
+        }
+
+        if (m != nullptr)
+        {
+            for (auto& it : m->faceInfo) {
+                if (it.first != "")
+                {
+                    fp->Face_FaceDefinitonChoice->Append(it.first);
+                    if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
+                        addRender = false;
+                    }
                 }
             }
         }
@@ -197,7 +283,7 @@ void FacesEffect::SetPanelStatus(Model *cls) {
     fp->Face_FaceDefinitonChoice->SetSelection(0);
 }
 
-std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap)
+std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap) const 
 {
     std::list<std::string> res;
     auto face = SettingsMap.Get("E_CHOICE_Faces_FaceDefinition", "Default");
@@ -290,7 +376,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
         {"(off)", 10}
     };
 
-    std::map<wxString, int>::const_iterator it = phonemeMap.find(Phoneme);
+    wxString pp = Phoneme;
+    std::string p = pp.BeforeFirst('-');
+    bool shimmer = pp.Lower().EndsWith("-shimmer");
+
+    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
         PhonemeInt = it->second;
@@ -300,12 +390,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     int Wt = buffer.BufferWi;
 
     drawoutline(buffer, PhonemeInt, outline, eyes, buffer.BufferHt, buffer.BufferWi);
-    mouth(buffer, PhonemeInt, Ht,  Wt); // draw a mouth syllable
+    mouth(buffer, PhonemeInt, Ht,  Wt, shimmer); // draw a mouth syllable
 }
 
 //TODO: add params for eyes, outline
-void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme, int BufferHt, int BufferWi)
+void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme, int BufferHt, int BufferWi, bool shimmer)
 {
+    if (shimmer)
+    {
+        // dont draw every third frame
+        if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) return;
+    }
+
     /*
      FacesPhoneme.Add("AI");     0
      FacesPhoneme.Add("E");      1
@@ -727,7 +823,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     if (cache->nodeNameCache.empty()) {
-        for (int x = 0; x < model_info->GetNodeCount(); x++) {
+        for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
             cache->nodeNameCache[model_info->GetNodeName(x, true)] = x;
         }
     }
@@ -897,13 +993,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     bool customColor = found ? model_info->faceInfo[definition]["CustomColors"] == "1" : false;
 
+    wxString pp = phoneme;
+    std::string p = pp.BeforeFirst('-');
+    bool shimmer = pp.Lower().EndsWith("-shimmer");
+
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
-    if (phoneme != "(off)") {
-        todo.push_back("Mouth-" + phoneme);
+    if (p != "(off)") {
+
+        todo.push_back("Mouth-" + p);
         colorOffset = 1;
         if (customColor) {
-            std::string cname = model_info->faceInfo[definition]["Mouth-" + phoneme + "-Color"];
+            std::string cname = model_info->faceInfo[definition]["Mouth-" + p + "-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
             }
@@ -968,6 +1069,24 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         else {
             colors.insert(colors.begin(), color);
         }
+
+        if (buffer.palette.Size() > (2 + colorOffset)) {
+            buffer.palette.GetColor((2 + colorOffset), color); //use forth color for outline 2; user must make sure it matches model node type
+        }
+
+        todo.insert(todo.begin(), "FaceOutline2");
+        if (customColor) {
+            std::string const cname = model_info->faceInfo[definition]["FaceOutline2-Color"];
+            if (cname == "") {
+                colors.insert(colors.begin(), xlWHITE);
+            }
+            else {
+                colors.insert(colors.begin(), xlColor(cname));
+            }
+        }
+        else {
+            colors.insert(colors.begin(), color);
+        }
     }
 
     if (type == 2) {
@@ -983,7 +1102,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if (eyes == "(off)") {
             e = "Closed";
         }
-        std::string key = "Mouth-" + phoneme + "-Eyes";
+        std::string key = "Mouth-" + p + "-Eyes";
         std::string picture = "";
         if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end())
         {
@@ -1030,6 +1149,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
     for (size_t t = 0; t < todo.size(); t++) {
+
+        if (shimmer && StartsWith(todo[t], "Mouth-"))
+        {
+            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) continue;
+        }
         std::string channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) {

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "ListenerOSC.h"
 #include "ListenerManager.h"
 #include "../../xLights/outputs/IPOutput.h"
@@ -35,6 +45,9 @@ void ListenerOSC::Stop()
         {
             _stop = true;
             _thread->Stop();
+            _thread->Delete();
+            delete _thread;
+            _thread = nullptr;
         }
     }
 }

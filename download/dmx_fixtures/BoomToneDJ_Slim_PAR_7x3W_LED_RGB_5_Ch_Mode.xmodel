@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="BoomToneDJ Slim PAR 7x3W LED RGB 5 Ch Mode" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Dimmer,Strobe,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="dimmer_mode" s1-Color="#030303" 
+s2="Strobe" s2-Name="strobe_slow_gt_fast_" s2-Color="#242424" 
+s3="Strobe" s3-Name="none" s3-Color="#434343" 
+s4="Strobe" s4-Name="pulse_strobe_slow_gt_fast_" s4-Color="#636363" 
+s5="Strobe" s5-Name="strobe_fadding_in_slow_gt_fast_" s5-Color="#A2A2A2" 
+s6="Strobe" s6-Name="strobe_fadding_out_slow_gt_fast_" s6-Color="#E1E1E1" 
+s7="Node6" s7-Name="dimmer_mode_if_ch7_gt_eq_60_program_running_speed_from_slow_to_fast_" s7-Color="#030303" 
+s8="Node6" s8-Name="strobe_slow_gt_fast_" s8-Color="#242424" 
+s9="Node6" s9-Name="none" s9-Color="#434343" 
+s10="Node6" s10-Name="pulse_strobe_slow_gt_fast_" s10-Color="#636363" 
+s11="Node6" s11-Name="strobe_fadding_in_slow_gt_fast_" s11-Color="#A2A2A2" 
+s12="Node6" s12-Name="strobe_fadding_out_slow_gt_fast_" s12-Color="#E1E1E1" 
+s13="Node8" s13-Name="dimmer_mode" s13-Color="#1D1D1D" 
+s14="Node8" s14-Name="static_color_mode" s14-Color="#595959" 
+s15="Node8" s15-Name="hop_change_mode" s15-Color="#959595" 
+s16="Node8" s16-Name="gradual_change_mode" s16-Color="#D1D1D1" 
+s17="Node8" s17-Name="sound_active_mode" s17-Color="#F7F7F7" 
+/>
+</dmxmodel>

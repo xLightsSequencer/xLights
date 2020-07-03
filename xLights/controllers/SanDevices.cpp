@@ -1,71 +1,138 @@
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SanDevices.h"
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../models/ModelManager.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
+#include "UtilFunctions.h"
+
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
 #include <wx/xml/xml.h>
-#include "models/Model.h"
-#include <log4cpp/Category.hh>
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "models/ModelManager.h"
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
+#include <wx/progdlg.h>
 
+#include <log4cpp/Category.hh>
+
+#pragma region Dumps
+void SanDevicesOutput::Dump() const {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    Group %d Output %d Port %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %d ColorOrder %c Nulls %d Brightness %c Chase %d firstZig %d thenEvery %d",
+        group,
+        output,
+        stringport,
+        universe,
+        startChannel,
+        pixels,
+        groupCount,
+        reverse,
+        colorOrder,
+        nullPixel,
+        brightness,
+        chase,
+        firstZig,
+        thenEvery
+        );
+}
+
+void SanDevicesProtocol::Dump() const {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    Group %d Protocol %c Timing %c",
+        getGroup(),
+        getProtocol(),
+        getTiming());
+}
+
+void SanDevicesOutputV4::Dump() const {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    Group %d outputSize %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %d,%d,%d,%d ColorOrder %d Nulls %d,%d,%d,%d ZigZag %d",
+        group,
+        outputSize,
+        universe,
+        startChannel,
+        pixels,
+        groupCount,
+        reverse[0],
+        reverse[1],
+        reverse[2],
+        reverse[3],
+        colorOrder,
+        nullPixel[0],
+        nullPixel[1],
+        nullPixel[2],
+        nullPixel[3],
+        zigzag
+    );
+}
+#pragma endregion
+
+#pragma region MyHTTPStream
 class MyHTTPStream : public wxSocketInputStream
 {
 public:
-    wxHTTP * m_http;
-    size_t m_httpsize;
-    unsigned long m_read_bytes;
+    wxHTTP * m_http = nullptr;
+    size_t m_httpsize = 0;
+    unsigned long m_read_bytes = 0;
 
-    MyHTTPStream(wxHTTP *http) : wxSocketInputStream(*http)
-    {
+    MyHTTPStream(wxHTTP *http) : wxSocketInputStream(*http) {
+
         m_http = http;
-        m_httpsize = 0;
-        m_read_bytes = 0;
     }
 
     size_t GetSize() const wxOVERRIDE { return m_httpsize; }
     virtual ~MyHTTPStream(void) { m_http->Abort(); }
 
 protected:
-    size_t OnSysRead(void *buffer, size_t bufsize) wxOVERRIDE;
+    size_t OnSysRead(void *buffer, size_t bufsize) wxOVERRIDE {
+
+        if (m_read_bytes >= m_httpsize) {
+            m_lasterror = wxSTREAM_EOF;
+            return 0;
+        }
+
+        size_t ret = wxSocketInputStream::OnSysRead(buffer, bufsize);
+        m_read_bytes += ret;
+
+        if (m_httpsize == (size_t)-1 && m_lasterror == wxSTREAM_READ_ERROR) {
+            // if m_httpsize is (size_t) -1 this means read until connection closed
+            // which is equivalent to getting a READ_ERROR, for clients however this
+            // must be translated into EOF, as it is the expected way of signalling
+            // end end of the content
+            m_lasterror = wxSTREAM_EOF;
+        }
+
+        return ret;
+    }
 
     wxDECLARE_NO_COPY_CLASS(MyHTTPStream);
 };
+#pragma endregion
 
-size_t MyHTTPStream::OnSysRead(void *buffer, size_t bufsize)
-{
-    if (m_read_bytes >= m_httpsize)
-    {
-        m_lasterror = wxSTREAM_EOF;
-        return 0;
-    }
+#pragma region SimpleHTTP
+wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startResult) {
 
-    size_t ret = wxSocketInputStream::OnSysRead(buffer, bufsize);
-    m_read_bytes += ret;
-
-    if (m_httpsize == (size_t)-1 && m_lasterror == wxSTREAM_READ_ERROR)
-    {
-        // if m_httpsize is (size_t) -1 this means read until connection closed
-        // which is equivalent to getting a READ_ERROR, for clients however this
-        // must be translated into EOF, as it is the expected way of signalling
-        // end end of the content
-        m_lasterror = wxSTREAM_EOF;
-    }
-
-    return ret;
-}
-
-wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startResult)
-{
     MyHTTPStream *inp_stream;
-
     wxString new_path;
 
     m_lastError = wxPROTO_CONNERR;  // all following returns share this type of error
-    if (!m_addr)
-        return nullptr;
+    if (!m_addr) return nullptr;
 
     // We set m_connected back to false so wxSocketBase will know what to do.
 #ifdef __WXMAC__
@@ -75,8 +142,7 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     if (!wxSocketClient::IsConnected())
         return nullptr;
 #else
-    if (!wxProtocol::Connect(*m_addr))
-        return nullptr;
+    if (!wxProtocol::Connect(*m_addr)) return nullptr;
 #endif
 
     // Use the user-specified method if any or determine the method to use
@@ -85,8 +151,7 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     if (method.empty())
         method = m_postBuffer.IsEmpty() ? wxS("GET") : wxS("POST");
 
-    if (!MyBuildRequest(path, method, startResult))
-        return nullptr;
+    if (!MyBuildRequest(path, method, startResult)) return nullptr;
 
     inp_stream = new MyHTTPStream(this);
 
@@ -102,13 +167,12 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     return inp_stream;
 }
 
-bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult)
-{
+bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult) {
+
     startResult = "";
 
     // Use the data in the post buffer, if any.
-    if (!m_postBuffer.IsEmpty())
-    {
+    if (!m_postBuffer.IsEmpty()) {
         wxString len;
         len << m_postBuffer.GetDataLen();
 
@@ -149,8 +213,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 
     wxString tmp_str;
     int i = 0;
-    while (tmp_str == "" && i++ < 10)
-    {
+    while (tmp_str == "" && i++ < 10) {
         m_lastError = ReadLine(this, tmp_str);
 
         // return only if error and no data
@@ -163,7 +226,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 
     if (!tmp_str.Contains(wxT("HTTP/"))) {
         m_lastError = wxPROTO_NOERR;
-        SetHeader(wxT("Content-Length"), wxString::Format("%i", (long)tmp_str.Length()));
+        SetHeader(wxT("Content-Length"), wxString::Format("%d", (int)tmp_str.Length()));
         SetHeader(wxT("Content-Type"), wxT("text/html"));
         startResult = tmp_str;
 
@@ -179,8 +242,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 
     m_http_response = wxAtoi(tmp_str2);
 
-    switch (tmp_str2[0u].GetValue())
-    {
+    switch (tmp_str2[0u].GetValue()) {
     case wxT('1'):
         /* INFORMATION / SUCCESS */
         break;
@@ -204,117 +266,335 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 
     return ret_value;
 }
+#pragma endregion
 
-SanDevices::SanDevices(const std::string& ip)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _ip = ip;
+#pragma region Private Functions
+bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
 
-    _http.SetMethod("GET");
-    _connected = _http.Connect(_ip);
-    _eVersion = FirmwareVersion::Unknown;
+    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
 
-    if (_connected)
-    {
-        //Loop For Version 5, we may have to switch web pages first and then scrap data
-        for (int i = 0; i < 2; i++)
-        {
-            std::string page = GetURL("/");
-            if (page != "")
-            {
-                static wxRegEx modelregex("(Controller Model )([^ ]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (modelregex.Matches(wxString(page)))
-                {
-                    _model = modelregex.GetMatch(wxString(page), 2).ToStdString();
-                    logger_base.error("Connected to SanDevices controller model %s.", (const char *)_model.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
+    // Get universes based on IP
+    std::list<Output*> outputs = controller->GetOutputs();
+
+    progress.Update(0, "Scanning models");
+    logger_base.info("Scanning models.");
+
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+
+    //first check rules
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(rules, check);
+
+    logger_base.debug(check);
+
+    cud.Dump();
+
+    if (!success) {
+        DisplayError("SanDevices Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
+    //get current config Page
+    const std::string page = _page;
+
+    if (page.empty()) return false;
+
+    progress.Update(30, "Reading Protocol Data from Controller.");
+    logger_base.info("Reading Protocol Data from Controller.");
+
+    _connected = ParseV4Webpage(_page);
+    if (!_connected) {
+        DisplayError("Unable to Parse Webpage.", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
+    progress.Update(50, "Figuring Out Protocol and Output Information.");
+    logger_base.info("Figuring Out Protocol and Output Information.");
+    const int totalOutputGroups = GetNumberOfOutputGroups();
+    const int outputPerGroups = GetOutputsPerGroup();
+
+    //loop to setup protocol setting and string outputs
+    for (int i = 1; i <= totalOutputGroups; i++) {
+        bool first = true;
+        SanDevicesOutputV4* newPort = FindPortDataV4(i);
+        for (int j = 1; j <= outputPerGroups; j++) {
+            const int outputNumber = EncodeXlightsOutput(i, j);
+            if (cud.HasPixelPort(outputNumber)) {
+                UDControllerPort* port = cud.GetControllerPixelPort(outputNumber);
+                if (first) {
+                    UpdatePortDataV4(newPort, port);
+                    first = false;
                 }
-                static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (versionregex.Matches(wxString(page)))
-                {
-                    _version = versionregex.GetMatch(wxString(page), 2).ToStdString();
-                    logger_base.error("                                 version %s.", (const char *)_version.c_str());
-                    _eVersion = FirmwareVersion::Four;
-                    break;
-                }
-                static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (version5regex.Matches(wxString(page)))
-                {
-                    _version = version5regex.GetMatch(wxString(page), 2).ToStdString();
-                    logger_base.error("                                 version %s.", (const char *)_version.c_str());
-                    _eVersion = FirmwareVersion::Five;
-                    break;
-                }
 
-                //Switch Pages from Version 5 Firmware
-                GetURL("/H?");
+                const char protocol = EncodeStringPortProtocolV4(port->GetProtocol());
+
+                if (newPort->protocol != protocol) {
+                    logger_base.warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    return false;
+                }
+                if (newPort->pixels != port->Pixels()) {
+                    logger_base.warn("SanDevices Outputs Upload: All The Pixel Lengths must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    wxMessageBox(wxString::Format("All The Pixel Lengths must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    return false;
+                }
+                UpdateSubPortDataV4(newPort, j, port);
             }
-            else
-            {
-                _http.Close();
-                _connected = false;
-                logger_base.error("Error connecting to SanDevices controller on %s.", (const char *)_ip.c_str());
-                break;
+        }
+        if (first) {
+            newPort->outputSize = 0;
+            newPort->upload = true;
+        }
+    }
+    int p = 60;
+    logger_base.info("Sending Output Data to Controller.");
+    //spam the controller with web requests
+    for (const auto& outputD : _outputDataV4) {
+        progress.Update(p, "Sending Output Data to Controller.");
+        outputD->Dump();
+        if (outputD->upload) {
+            const std::string url = GenerateOutputURLV4(outputD);
+            SDGetURL(url);
+            wxMilliSleep(2000);
+        }
+        p += 10;
+    }
+    return true;
+}
+
+bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+
+    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
+
+    //bool success = true;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
+    // Get universes based on IP
+    std::list<Output*> outputs = controller->GetOutputs();
+
+    progress.Update(0, "Scanning models");
+    logger_base.info("Scanning models.");
+
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+
+    //first check rules
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    const bool success = cud.Check(rules, check);
+
+    logger_base.debug(check);
+
+    cud.Dump();
+    if (!success) {
+        DisplayError("SanDevices Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    //get current config Page
+    const std::string page = _page;
+
+    if (page.empty()) return false;
+
+    progress.Update(10, "Reading Protocol Data from Controller.");
+    logger_base.info("Reading Protocol Data from Controller.");
+
+    _connected = ParseV5MainWebpage(_page);
+    if (!_connected) {
+        DisplayError("Unable to Parse Main Webpage.", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
+    const int totalOutputGroups = GetNumberOfOutputGroups();
+    const int outputPerGroups = GetOutputsPerGroup();
+
+    progress.Update(20, "Figuring Out Protocol Information.");
+    logger_base.info("Figuring Out Protocol Information.");
+    //loop to setup protocol setting
+    for (int i = 1; i <= totalOutputGroups; i++) {
+        SanDevicesProtocol* firstPort = nullptr;
+        for (int j = 1; j <= outputPerGroups; j++) {
+            const int outputNumber = EncodeXlightsOutput(i, j);
+            if (cud.HasPixelPort(outputNumber)) {
+                UDControllerPort* port = cud.GetControllerPixelPort(outputNumber);
+                if (firstPort == nullptr) {
+                    firstPort = new SanDevicesProtocol(i, EncodeStringPortProtocolV5(port->GetProtocol()));
+                }
+                SanDevicesProtocol* newPort = new SanDevicesProtocol(i, EncodeStringPortProtocolV5(port->GetProtocol()));
+                if (newPort->getProtocol() != firstPort->getProtocol()) {
+                    delete newPort;
+                    logger_base.warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    return false;
+                }
+                delete newPort;
+                if (_protocolData[i - 1]->getProtocol() != firstPort->getProtocol()) {
+                    _protocolData[i - 1]->setProtocol(firstPort->getProtocol());
+                }
             }
         }
     }
-    else
-    {
-        logger_base.error("Error connecting to SanDevices controller on %s.", (const char *)_ip.c_str());
+
+    progress.Update(30, "Sending Protocol Data to Controller.");
+    logger_base.info("Sending Protocol Data to Controller.");
+
+    for (const auto& proro : _protocolData) {
+        proro->Dump();
+        if (proro->shouldUpload()) {
+            const std::string url = GenerateProtocolURLV5(proro);
+            SDGetURL(url);
+            wxMilliSleep(3000);
+        }
     }
-}
 
-int SanDevices::GetOutputsPerPort() const
-{
-    if (FirmwareVersion::Four == _eVersion && _model == "E682")
-    {
-        return 4;
+    progress.Update(50, "Getting Output Data from Controller.");
+    logger_base.info("Getting Output Data from Controller.");
+
+    const std::string page2 = SDGetURL("/H?");
+    wxMilliSleep(3000);
+
+    if (page2.empty()) {
+        logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
+        wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
+        return false;
     }
 
-    return 1;
-}
-
-int SanDevices::GetMaxStringOutputs() const
-{
-    if (FirmwareVersion::Five == _eVersion && _model == "E682")
-    {
-        return 16;
+    _connected = ParseV5OutputWebpage(page2);
+    if (!_connected) {
+        DisplayError("Unable to Parse Main Webpage.", parent);
+        progress.Update(100, "Aborting.");
+        return false;
     }
-    return 4;
+
+    progress.Update(60, "Figuring Out Output Information.");
+    logger_base.info("Figuring Out Output Information.");
+    //loop to setup string outputs
+    for (int i = 1; i <= totalOutputGroups; i++) {
+        for (int j = 1; j <= outputPerGroups; j++) {
+            const int outputNumber = EncodeXlightsOutput(i, j);
+            if (cud.HasPixelPort(outputNumber)) {
+                UDControllerPort* port = cud.GetControllerPixelPort(outputNumber);
+                UpdatePortDataV5(i, j, port);
+            }
+            else {
+                SanDevicesOutput* sd = FindPortDataV5(i, j);
+                if (sd != nullptr) {
+                    sd->pixels = 0;
+                    sd->upload = true;
+                }
+            }
+        }
+    }
+    logger_base.info("Sending Output Data to Controller.");
+    int p = 66;
+    //spam the controller with web requests
+    for (const auto& outputD : _outputData) {
+        p += 2;
+        progress.Update(p, "Sending Output Data to Controller.");
+        outputD->Dump();
+        if (outputD->upload) {
+            const std::string url = GenerateOutputURLV5(outputD);
+            SDGetURL(url);
+            wxMilliSleep(3000);
+        }
+    }
+    return true;
 }
 
-int SanDevices::GetMaxSerialOutputs() const
-{
-    return 4;
+bool SanDevices::ParseV4Webpage(const std::string& page) {
+
+    //1-1 thru 1-4
+    _outputDataV4.clear();
+    _universes.clear();
+
+    int fieldStart = 65;//char of 'A'
+    const wxString p(page);
+    const int start = p.find(" Universe");
+    for (int i = 0; i < 12; i++) {
+        // extact the universes
+        const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
+        _universes.push_back(univers);
+    }
+
+    for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
+        SanDevicesOutputV4* group = ExtractOutputDataV4(page, i);
+        group->Dump();
+        _outputDataV4.push_back(group);
+    }
+    if (_outputDataV4.size() == 4 && _universes.size() == 12) return true;
+    wxASSERT(false);
+    return true;
 }
 
-SanDevices::~SanDevices()
-{
-    _http.Close();
+bool SanDevices::ParseV5MainWebpage(const std::string& page) {
+
+    //1-1 thru 1-4
+    _protocolData.clear();
+    _universes.clear();
+
+    int fieldStart = 65;//char of 'A'
+    const wxString p(page);
+    const int start = p.find(" Universe");
+    for (int i = 0; i < 12; i++) {
+        // extact the universes
+        const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
+        _universes.push_back(univers);
+    }
+
+    for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
+        SanDevicesProtocol* group = ExtractProtocalDataV5(page, i);
+        group->Dump();
+        _protocolData.push_back(group);
+    }
+    if (_protocolData.size() == 4 && _universes.size() == 12) return true;
+    wxASSERT(false);
+    return true;
 }
 
-std::string SanDevices::GetURL(const std::string& url, bool logresult)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
+
+    _outputData.clear();
+    for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
+        for (int j = 1; j <= GetOutputsPerGroup(); j++) {
+            SanDevicesOutput* group = ExtractOutputDataV5(page, i, j);
+            group->Dump();
+            _outputData.push_back(group);
+        }
+    }
+    if (_outputData.size() == GetMaxStringOutputs()) return true;
+    wxASSERT(false);
+    return true;
+}
+
+std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
 
     _http.SetMethod("GET");
     wxString startResult;
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url), startResult);
-    logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetResponse());
+    wxInputStream* httpStream = _http.GetInputStream(_baseUrl + url, startResult);
+    logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetResponse());
 
-    if (_http.GetError() == wxPROTO_NOERR)
-    {
+    if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        if (logresult)
-        {
-            logger_base.debug("Response from SanDevices '%s'.", (const char *)res.c_str());
+        if (logresult) {
+            logger_base.debug("Response from SanDevices '%s'.", (const char*)res.c_str());
         }
     }
-    else
-    {
-        logger_base.error("Unable to connect to SanDevices %s '%s' : %d.", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetError());
+    else {
+        logger_base.error("Unable to connect to SanDevices %s '%s' : %d.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }
@@ -322,203 +602,66 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
     return (startResult + res).ToStdString();
 }
 
-char SanDevices::EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected)
-{
-    char res = 'A';
+void SanDevices::ResetStringOutputs() {
 
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
-    {
-        if ((*it)->GetUniverse() == universe)
-        {
-            return res;
-        }
-        ++res;
-    }
-
-    return res;
+    SDGetURL("/4?A=0");
+    SDGetURL("/5?A=0");
+    SDGetURL("/6?A=0");
+    SDGetURL("/7?A=0");
 }
 
-bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string page = GetURL("/");
+inline int SanDevices::GetOutputsPerGroup() const {
 
-    if (page == "") return false;
-
-    //Check Correct Page from Version 5 Firmware
-    if (FirmwareVersion::Five == _eVersion)
-    {
-        if (page.find("<H3>System Information: </H3>") == std::string::npos)
-        {
-            logger_base.error("SanDevices Outputs Upload: SanDevices wouldn't switch web pages.");
-            return false;
-        }
-    }
-
-    // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
-
-    int t = -1;
-
-    auto o = outputs.front();
-
-    if (o->GetType() == "E131")
-    {
-        if (o->GetIP() == "MULTICAST")
-        {
-            t = 0;
-        }
-        else
-        {
-            t = 1;
-        }
-    }
-    else if (o->GetType() == "ArtNet")
-    {
-        t = 2;
-    }
-
-    // set the right input type
-    wxString request = "/";
-    if (FirmwareVersion::Five == _eVersion)
-        request += "B?";
-    else
-        request += "1?";
-    request += "A=" + ExtractFromPage(page, "A", "input") +
-        "&B=" + ExtractFromPage(page, "B", "input") +
-        "&C=" + ExtractFromPage(page, "C", "input") +
-        "&D=" + ExtractFromPage(page, "D", "input");
-    if (FirmwareVersion::Five == _eVersion)
-    {
-        request += "&N=" + ExtractFromPage(page, "N", "input") +
-            "&O=" + ExtractFromPage(page, "O", "input") +
-            "&P=" + ExtractFromPage(page, "P", "input") +
-            "&Q=" + ExtractFromPage(page, "Q", "input") +
-            "&I=" + ExtractFromPage(page, "I", "inputText");
-        t += 65; //convert int to char
-        request += std::string(wxString::Format("&E=%c", t).c_str());
-    }
-    else
-        request += std::string(wxString::Format("&E=%i", t).c_str());
-    request += "&F=" + ExtractFromPage(page, "F", "input");
-    if (FirmwareVersion::Five == _eVersion)
-        request += "&H=" + ExtractFromPage(page, "H", "select");// += "&H=A"; //impossible to extract correctly because the are two fields called "H"
-    else
-        request += "&H=" + ExtractFromPage(page, "H", "input");
-    request += "&G=" + ExtractFromPage(page, "G", "input");
-
-    if (FirmwareVersion::Five == _eVersion)
-    {
-        request += "&J=" + ExtractFromPage(page, "J", "input") +
-            "&K=" + ExtractFromPage(page, "K", "input");
-    }
-
-    GetURL(request.ToStdString());
-
-    request = "";
-    wxString requestUnvSize = "/I?";
-    int output = 65;
-
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
-    {
-        if (request != "")
-        {
-            request += "&";
-            requestUnvSize += "&";
-        }
-        else
-        {
-            if (FirmwareVersion::Five == _eVersion)
-                request = "/D?";
-            else
-                request = "/3?";
-        }
-        requestUnvSize += wxString::Format("%c=%c", output, DecodeUniverseSize((*it)->GetChannels()));
-        request += wxString::Format("%c=%i", output++, (*it)->GetUniverse());
-    }
-
-    if (0 == t)//multicast
-    {
-        if (output > 71)
-        {
-            logger_base.error("SanDevices Inputs Upload: More Than 6 Universes are assigned to One Controller, 6 is the MAX in Multicast Mode.");
-            return false;
-        }
-    }
-    else//unicast or artnet
-    {
-        if (output > 77)
-        {
-            logger_base.error("SanDevices Inputs Upload: More Than 12 Universes are assigned to One Controller, 12 is the MAX for Sandevices.");
-            return false;
-        }
-    }
-
-    if (FirmwareVersion::Five == _eVersion)
-        GetURL(requestUnvSize.ToStdString());
-
-    return (GetURL(request.ToStdString()) != "");
+    if (IsE682()) return 4;
+    return 1;
 }
 
-std::string SanDevices::ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start)
-{
-    wxString p = wxString(page).Mid(start);
+std::string SanDevices::ExtractFromPage(const std::string& page, const std::string& parameter, const std::string& type, int start) {
 
-    if (type == "input")
-    {
-        wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'";
+    const wxString p = wxString(page).Mid(start);
+    if (type == "input") {
+        const wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'";
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p)))
-        {
-            std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
+        if (inputregex.Matches(wxString(p))) {
+            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
+            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
             return res;
         }
     }
-    if (type == "inputText")
-    {
-        wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')(\\w+)(\\s+)?\\'";
+    else if (type == "inputText") {
+        const wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')(\\w+)(\\s+)?\\'";
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p)))
-        {
-            std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
+        if (inputregex.Matches(wxString(p))) {
+            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
+            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
             return res;
         }
     }
-    else if (type == "select")
-    {
-        wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z0-9])\\'selected";
+    else if (type == "select") {
+        const wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z0-9])\\'selected";
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p)))
-        {
-            std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
+        if (inputregex.Matches(wxString(p))) {
+            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
+            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
             return res;
         }
     }
-    else if (type == "selectLetter")
-    {
-        wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z])\\'selected";
+    else if (type == "selectLetter") {
+        const wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z])\\'selected";
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p)))
-        {
-            std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
+        if (inputregex.Matches(wxString(p))) {
+            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
+            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
             return res;
         }
     }
-    else if (type == "checkbox")
-    {
-        wxString regex = "(\\<input type=\\'checkbox\\' name=\\'" + parameter + "\\' value=\\'[0-9]\\')([^\\>]*)\\>";
+    else if (type == "checkbox") {
+        const wxString regex = "(\\<input type=\\'checkbox\\' name=\\'" + parameter + "\\' value=\\'[0-9]\\')([^\\>]*)\\>";
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p)))
-        {
-            std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            std::string res = inputregex.GetMatch(wxString(p), 2).Trim().Trim(false).ToStdString();
-            if (res == "checked")
-            {
+        if (inputregex.Matches(wxString(p))) {
+            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
+            const std::string res = inputregex.GetMatch(wxString(p), 2).Trim().Trim(false).ToStdString();
+            if (res == "checked") {
                 return "1";
             }
             return "0";
@@ -528,258 +671,404 @@ std::string SanDevices::ExtractFromPage(const std::string page, const std::strin
     return "";
 }
 
-bool SanDevicescompare_startchannel(const Model* first, const Model* second)
-{
-    int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-    int secondmodelstart = second->GetNumberFromChannelString(second->ModelStartChannel);
+int SanDevices::ExtractIntFromPage(const std::string& page, const std::string& parameter, const std::string& type, int defaultValue, int start) {
 
-    return firstmodelstart < secondmodelstart;
+    const std::string value = ExtractFromPage(page, parameter, type, start);
+    if (!value.empty()) {
+        return wxAtoi(value);
+    }
+    return defaultValue;
 }
 
-bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
-{
-    //ResetStringOutputs(); // this shouldnt be used normally
+char SanDevices::ExtractCharFromPage(const std::string& page, const std::string& parameter, const std::string& type, char defaultValue, int start) {
 
-    bool success = true;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
-    // build a list of models on this controller
-    std::list<Model*> models;
-    std::list<std::string> protocolsused;
-    std::list<Model*> warnedmodels;
-    int maxport = 0;
-
-    // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
-
-    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
-    {
-        // this universe is sent to the SanDevices
-
-        // find all the models in this range
-        for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
-        {
-            if (it->second->GetDisplayAs() != "ModelGroup")
-            {
-                int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                int modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
-                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
-                {
-                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
-                    //    (const char *)it->first.c_str(), modelstart, modelend,
-                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
-                    if (!it->second->IsControllerConnectionValid())
-                    {
-                        // only warn if we have not already warned
-                        if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
-                        {
-                            warnedmodels.push_back(it->second);
-                            logger_base.warn("SanDevices Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.", "Model Ignored");
-                        }
-                    }
-                    else
-                    {
-                        // model uses channels in this universe
-
-                        // check we dont already have this model in our list
-                        if (std::find(models.begin(), models.end(), it->second) == models.end())
-                        {
-                            logger_base.debug("SanDevices Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
-                            models.push_back(it->second);
-                            if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
-                            {
-                                protocolsused.push_back(it->second->GetProtocol());
-                            }
-                            if (it->second->GetPort() > maxport)
-                            {
-                                maxport = it->second->GetPort();
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    const std::string value = ExtractFromPage(page, parameter, type, start);
+    if (!value.empty()) {
+        return value[0];
     }
-
-
-    // sort the models by start channel
-    models.sort(SanDevicescompare_startchannel);
-
-    //Switch Pages from Version 5 Firmware
-    if (FirmwareVersion::Five == _eVersion)
-        GetURL("/H?");
-
-    // get the current config before I start
-    std::string page = GetURL("/");
-    if (page == "")
-    {
-        logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
-        wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
-        return false;
-    }
-
-    //Check Correct Page from Version 5 Firmware
-    if (FirmwareVersion::Five == _eVersion)
-    {
-        if (page.find("<H3>Output Configuration:</H3>") == std::string::npos)
-        {
-            logger_base.error("SanDevices Outputs Upload: SanDevices wouldn't switch web pages.");
-            wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
-            return false;
-        }
-    }
-
-    // for each protocol
-    for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
-    {
-        //std::string sendmessage;
-
-        bool portdone[100];
-        memset(&portdone, 0x00, sizeof(portdone)); // all false
-
-        // for each port ... this is the max of any port type but it should be ok
-        for (int i = 1; i <= maxport; i++)
-        {
-            // find the first and last
-            Model* first = nullptr;
-            Model* last = nullptr;
-            int highestend = 0;
-            long loweststart = 999999999;
-
-            for (auto model = models.begin(); model != models.end(); ++model)
-            {
-                if ((*model)->GetProtocol() == *protocol && (*model)->GetPort() == i)
-                {
-                    int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
-                    int modelend = modelstart + (*model)->GetChanCount() - 1;
-                    if (modelstart < loweststart)
-                    {
-                        loweststart = modelstart;
-                        first = *model;
-                    }
-                    if (modelend > highestend)
-                    {
-                        highestend = modelend;
-                        last = *model;
-                    }
-                }
-            }
-
-            if (first != nullptr)
-            {
-                int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-                int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
-                int numstrings = first->GetNumPhysicalStrings();
-                int outputsPerPort = GetOutputsPerPort();
-                int outputsUsed = 1;
-                int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
-
-                if (numstrings > 1 && outputsPerPort > 1)
-                {
-                    if (numstrings <= outputsPerPort)
-                    {
-                        outputsUsed = numstrings;
-                        channelsperstring = numstrings * channelsperstring;
-                        numstrings = 1;
-                        portend = portstart + channelsperstring - 1;
-                    }
-                    else
-                    {
-                        int ons = numstrings;
-                        numstrings = std::ceil(numstrings / outputsPerPort);
-                        outputsUsed = ons / numstrings;
-                        channelsperstring = outputsUsed * channelsperstring;
-                    }
-                }
-
-                // upload it
-                if (DecodeStringPortProtocol(*protocol) >= 0)
-                {
-                    if (first == last && numstrings > 1)
-                    {
-                        for (int j = 0; j < numstrings; j++)
-                        {
-                            int outputPort = i + j;
-                            if (portdone[outputPort])
-                            {
-                                logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort);
-                                wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort));
-                                success = false;
-                            }
-                            else
-                            {
-                                portdone[outputPort] = true;
-                                //if (sendmessage != "") sendmessage = sendmessage + "&";
-                                long startChannel;
-                                Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-                                if (FirmwareVersion::Five == _eVersion)
-                                    success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
-                                else
-                                    success = UploadStringPort(page, outputPort, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (portdone[i])
-                        {
-                            logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
-                            success = false;
-                        }
-                        else
-                        {
-                            portdone[i] = true;
-                            long startChannel;
-                            Output* output = outputManager->GetOutput(portstart, startChannel);
-                            wxASSERT(channelsperstring == portend - portstart + 1);
-                            if (FirmwareVersion::Five == _eVersion)
-                                success = UploadStringPortFirmwareFive(page, i, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
-                            else
-                                success = UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
-                        }
-                    }
-                }
-                else
-                {
-                    logger_base.warn("SanDevices Outputs Upload: Controller %s protocol %s not supported by this controller.",
-                        (const char *)_ip.c_str(), (const char *)protocol->c_str());
-                    wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
-                    success = false;
-                }
-            }
-            else
-            {
-                // nothing on this port ... ignore it
-            }
-        }
-
-        // disable the other ports
-        for (int i = 1; i <= GetMaxStringOutputs(); i++)
-        {
-            if (!portdone[i])
-            {
-                if (FirmwareVersion::Five == _eVersion)
-                {
-                    if (_model == "E682")
-                        GetURL(wxString::Format("/%c?A=0", 'J' + i).ToStdString());
-                    else
-                        GetURL(wxString::Format("/%c?A=0", 'J' + (((i - 1) * 4) + 1)).ToStdString());//skip every four letters for E6804
-                }
-                else
-                    GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());
-            }
-        }
-    }
-    return success;
+    return defaultValue;
 }
 
-char SanDevices::DecodeStringPortProtocol(std::string protocol)
-{
-    if (FirmwareVersion::Five == _eVersion)
-        return DecodeStringPortProtocolFive(protocol);
+bool SanDevices::ExtractBoolFromPage(const std::string& page, const std::string& parameter, const std::string& type, bool defaultValue, int start) {
+
+    const std::string value = ExtractFromPage(page, parameter, type, start);
+    if (!value.empty()) {
+        return value == "1";
+    }
+    return defaultValue;
+}
+
+SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, int group) {
+
+    const wxString p(page);
+    int start = p.find("Output Group Configuration:");
+
+    const std::string tofind = "<td>" + wxString::Format("%i-1 thru %i-4", group, group) + "</td>";
+
+    start = p.find(tofind, start);
+
+    // extact the Protocol
+    const char proto = ExtractCharFromPage(page, "E", "select", 'A', start);
+
+    // extact the timing
+    const char timming = ExtractCharFromPage(page, "K", "select", 'A', start);
+
+    return new SanDevicesProtocol(group, proto, timming);
+}
+
+SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int group, int port) {
+
+    const wxString p(page);
+    std::string tofind;
+
+    if (IsE682()) {
+        tofind = "<td>" + wxString::Format("%i-%i", group, port) + "</td>";
+    }
+    else {
+        tofind = "<td>" + wxString::Format("%i", group) + "</td>";
+    }
+    const int start = p.find(tofind);
+
+    SanDevicesOutput* output = new SanDevicesOutput(group, port, EncodeXlightsOutput(group, port));
+
+    // extact the pixel
+    output->pixels = ExtractIntFromPage(page, "A", "input", 0, start);
+
+    output->colorOrder = ExtractCharFromPage(page, "E", "select", 'A', start);
+    output->universe = ExtractCharFromPage(page, "Z", "select", 'A', start);
+
+    output->startChannel = ExtractIntFromPage(page, "G", "input", 1, start);
+
+    output->reverse = ExtractBoolFromPage(page, "N", "checkbox", false, start);
+    output->nullPixel = ExtractIntFromPage(page, "H", "input", 0, start);
+
+    output->groupCount = ExtractIntFromPage(page, "B", "input", 1, start);
+
+    output->chase = ExtractBoolFromPage(page, "F", "checkbox", false, start);
+    output->firstZig = ExtractIntFromPage(page, "I", "input", 0, start);
+    output->thenEvery = ExtractIntFromPage(page, "J", "input", 0, start);
+
+    output->brightness = ExtractCharFromPage(page, "D", "selectLetter", 'A', start);
+
+    return output;
+}
+
+SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int group) {
+
+    const wxString p(page);
+    int start = p.find("Output Configuration:");
+
+    std::string tofind;
+
+    if (IsE682()) {
+        tofind = "<td>" + wxString::Format("%i-1 to %i-4", group, group) + "</td>";
+    }
+    else {
+        tofind = "<td>" + wxString::Format("%i", group) + "</td>";
+    }
+    start = p.find(tofind, start);
+
+    SanDevicesOutputV4* output = new SanDevicesOutputV4(group);
+
+    if (IsE682()) {
+        output->outputSize = ExtractIntFromPage(page, "A", "input", 0, start);
+    }
+    else {
+        output->outputSize = ExtractIntFromPage(page, "A", "checkbox", 0, start);
+    }
+
+    output->protocol = ExtractCharFromPage(page, "B", "select", 'A', start);
+
+    // extact the pixel
+    output->pixels = ExtractIntFromPage(page, "C", "input", 0, start);
+    output->groupCount = ExtractIntFromPage(page, "D", "input", 1, start);
+
+    output->colorOrder = ExtractIntFromPage(page, "E", "select", 0, start);
+    output->universe = ExtractCharFromPage(page, "F", "select", 'A', start);
+
+    output->startChannel = ExtractIntFromPage(page, "G", "input", 1, start);
+    if (IsE682()) {
+        output->reverse[0] = ExtractBoolFromPage(page, "H", "checkbox", false, start);
+        output->reverse[1] = ExtractBoolFromPage(page, "I", "checkbox", false, start);
+        output->reverse[2] = ExtractBoolFromPage(page, "J", "checkbox", false, start);
+        output->reverse[3] = ExtractBoolFromPage(page, "K", "checkbox", false, start);
+    }
+    else {
+        output->reverse[0] = ExtractIntFromPage(page, "H", "checkbox", 0, start);
+    }
+    output->zigzag = ExtractIntFromPage(page, "L", "input", 0, start);
+    if (IsE682()) {
+        output->nullPixel[0] = ExtractIntFromPage(page, "M", "input", 0, start);
+        output->nullPixel[1] = ExtractIntFromPage(page, "N", "input", 0, start);
+        output->nullPixel[2] = ExtractIntFromPage(page, "O", "input", 0, start);
+        output->nullPixel[3] = ExtractIntFromPage(page, "P", "input", 0, start);
+    }
+    else {
+        output->nullPixel[0] = ExtractIntFromPage(page, "M", "checkbox", 0, start);
+    }
+
+    return output;
+}
+
+void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* stringData) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    SanDevicesOutput* sd = FindPortDataV5(group, output);
+    if (sd != nullptr) {
+        if (stringData->GetPort() != sd->stringport) {
+            logger_base.warn("SanDevices Outputs Upload: Error %d outputs. Attempt to upload to output %d.", stringData->GetPort(), sd->stringport);
+        }
+        const char newUniv = EncodeUniverse(stringData->GetUniverse());
+        if (newUniv != sd->universe)
+            sd->upload = true;
+        sd->universe = newUniv;
+
+        const int startChan = stringData->GetUniverseStartChannel();
+        if (startChan != sd->startChannel)
+            sd->upload = true;
+        sd->startChannel = startChan;
+
+        const int pixels = stringData->Pixels();
+        if (pixels != sd->pixels)
+            sd->upload = true;
+        sd->pixels = pixels;
+
+        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        if (nullPix != -1) {
+            if (nullPix != sd->nullPixel)
+                sd->upload = true;
+            sd->nullPixel = nullPix;
+        }
+        const int groupCount = stringData->GetFirstModel()->GetGroupCount(-1);
+        if (groupCount != -1) {
+            if (groupCount != sd->groupCount)
+                sd->upload = true;
+            sd->groupCount = groupCount;
+        }
+        const int brightness = stringData->GetFirstModel()->GetBrightness(-1);
+        if (brightness != -1) {
+            const char brightn = EncodeBrightness(brightness);
+
+            sd->upload = true;
+            sd->brightness = brightn;
+        }
+
+        const std::string colorOrder = stringData->GetFirstModel()->GetColourOrder("unknown");
+        if (colorOrder != "unknown") {
+            const char co = EncodeColorOrderV5(colorOrder);
+            if (co != sd->colorOrder)
+                sd->upload = true;
+            sd->colorOrder = co;
+        }
+
+        const std::string direction = stringData->GetFirstModel()->GetDirection("unknown");
+        if (direction != "unknown") {
+            const bool rev = EncodeDirection(direction);
+            if (rev != sd->reverse)
+                sd->upload = true;
+            sd->reverse = rev;
+        }
+    }
+}
+
+SanDevicesOutput* SanDevices::FindPortDataV5(int group, int output) {
+    for (const auto& sd : _outputData) {
+        if (sd->group == group && sd->output == output) {
+            return sd;
+        }
+    }
+    wxASSERT(false);
+    return nullptr;
+}
+
+void SanDevices::UpdatePortDataV4(SanDevicesOutputV4* pd, UDControllerPort* stringData) const {
+
+    if (pd != nullptr) {
+        const char protocol = EncodeStringPortProtocolV4(stringData->GetProtocol());
+        if (protocol != pd->protocol)
+            pd->upload = true;
+        pd->protocol = protocol;
+
+        const char newUniv = EncodeUniverse(stringData->GetUniverse());
+        if (newUniv != pd->universe)
+            pd->upload = true;
+        pd->universe = newUniv;
+
+        const int startChan = stringData->GetUniverseStartChannel();
+        if (startChan != pd->startChannel)
+            pd->upload = true;
+        pd->startChannel = startChan;
+
+        const int pixels = stringData->Pixels();
+        if (pixels != pd->pixels)
+            pd->upload = true;
+        pd->pixels = pixels;
+
+        const int groupCount = stringData->GetFirstModel()->GetGroupCount(-1);
+        if (groupCount != -1) {
+            if (groupCount != pd->groupCount)
+                pd->upload = true;
+            pd->groupCount = groupCount;
+        }
+
+        const std::string colorOrder = stringData->GetFirstModel()->GetColourOrder("unknown");
+        if (colorOrder != "unknown") {
+            const char co = EncodeColorOrderV4(colorOrder);
+            if (co != pd->colorOrder)
+                pd->upload = true;
+            pd->colorOrder = co;
+        }
+    }
+}
+
+void SanDevices::UpdateSubPortDataV4(SanDevicesOutputV4* pd, int subport, UDControllerPort* stringData) const {
+
+    if (pd != nullptr) {
+        if (subport != pd->outputSize) pd->upload = true;
+        pd->outputSize = subport;
+
+        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        if (nullPix != -1) {
+            if (nullPix != pd->nullPixel[subport - 1]) pd->upload = true;
+            pd->nullPixel[subport - 1] = nullPix;
+        }
+
+        const std::string direction = stringData->GetFirstModel()->GetDirection("unknown");
+        if (direction != "unknown") {
+            const bool rev = EncodeDirection(direction);
+            if (rev != pd->reverse[subport - 1])
+                pd->upload = true;
+            pd->reverse[subport - 1] = rev;
+        }
+    }
+}
+
+SanDevicesOutputV4* SanDevices::FindPortDataV4(int group) {
+
+    for (const auto& sd : _outputDataV4) {
+        if (sd->group == group) {
+            return sd;
+        }
+    }
+    wxASSERT(false);
+    return nullptr;
+}
+
+std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
+
+    // extract reverse
+    std::string rev;
+    if (outputData->reverse) //if check add to request, based on my testing firmware will check if present reguardless of value
+        rev = "&N=1";
+
+    // extract null pixels
+    std::string null;
+    if (outputData->nullPixel != 0)//Only Add to Request if it currently exists
+        null = wxString::Format("&H=%i", outputData->nullPixel);
+
+    // extract chase
+    std::string chase;
+    if (outputData->chase) //if check add to request, based on my testing firmware will check if present reguardless of value
+        chase = "&F=1";
+    else
+        chase = "";
+
+    const int controlPort = EncodeControllerPortV5(outputData->group, outputData->output);
+
+    //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
+    const wxString request = wxString::Format("/%c?A=%d&E=%c&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
+        controlPort + 'J',
+        outputData->pixels,
+        outputData->colorOrder,
+        outputData->universe,
+        outputData->startChannel,
+        rev,
+        null,
+        outputData->groupCount,
+        chase,
+        outputData->firstZig,
+        outputData->thenEvery,
+        outputData->brightness);
+    return request;
+}
+
+std::string SanDevices::GenerateProtocolURLV5(SanDevicesProtocol* protocolData) {
+
+    //K?E=A&K=A
+    //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
+    const wxString request = wxString::Format("/%c?E=%c&K=%c",
+        protocolData->getGroup() + 'J',
+        protocolData->getProtocol(),
+        protocolData->getTiming());
+    return request;
+}
+
+std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
+
+    std::string output;
+    if (outputData->outputSize != 0) {
+        output = wxString::Format("A=%d&", outputData->outputSize);
+    }
+
+    // extract reverse
+    std::string rev;
+    if (outputData->reverse[0]) rev += "&H=1";
+    if (IsE682()) {
+        if (outputData->reverse[1]) rev += "&I=1";
+        if (outputData->reverse[2]) rev += "&J=1";
+        if (outputData->reverse[3]) rev += "&K=1";
+    }
+
+    // extract null pixels
+    std::string null;
+    if (outputData->nullPixel[0]) {
+        rev += "&M=1";
+    }
+    else {
+        rev += "&M=0";
+    }
+    if (IsE682()) {
+        if (outputData->nullPixel[1]) {
+            rev += "&N=1";
+        }
+        else {
+            rev += "&N=0";
+        }
+        if (outputData->nullPixel[2]) {
+            rev += "&O=1";
+        }
+        else {
+            rev += "&O=0";
+        }
+        if (outputData->nullPixel[3]) {
+            rev += "&P=1";
+        }
+        else {
+            rev += "&P=0";
+        }
+    }
+
+    //e682 v4
+    //http://192.168.1.206/4?A=2&B=B&C=100&D=1&E=0&F=A&G=1&L=0&M=0&N=0&O=0&P=0
+    const wxString request = wxString::Format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
+        outputData->group + 3,
+        output,
+        outputData->protocol,
+        outputData->pixels,
+        outputData->groupCount,
+        outputData->colorOrder,
+        outputData->universe,
+        outputData->startChannel,
+        null,
+        outputData->zigzag,
+        rev);
+    return request;
+}
+#pragma endregion
+
+#pragma region Encode and Decode
+char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
 
     wxString p(protocol);
     p = p.Lower();
@@ -791,12 +1080,13 @@ char SanDevices::DecodeStringPortProtocol(std::string protocol)
     if (p == "lpd6803") return 'A';
     if (p == "gece") return 'C';
     if (p == "dmx") return 'K';
-
+    if (p == "renard") return 'L';
+    wxASSERT(false);
     return -1;
 }
 
-char SanDevices::DecodeStringPortProtocolFive(std::string protocol)
-{
+char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
+
     wxString p(protocol);
     p = p.Lower();
 
@@ -804,185 +1094,367 @@ char SanDevices::DecodeStringPortProtocolFive(std::string protocol)
     if (p == "tm18xx") return 'D';
     if (p == "ws2801") return 'C';
     if (p == "lpd6803") return 'B';
+    if (p == "apa102") return 'G';
+    if (p == "lpd8806") return 'E';
     if (p == "gece") return 'O';
     if (p == "dmx") return 'K';
     if (p == "renard") return 'N';
-
+    wxASSERT(false);
     return -1;
 }
 
-char SanDevices::DecodeSerialPortProtocolFive(std::string protocol)
-{
+char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
+
     wxString p(protocol);
     p = p.Lower();
 
     if (p == "dmx") return 'K';
     if (p == "renard") return 'N';
-
+    wxASSERT(false);
     return -1;
 }
 
-char SanDevices::DecodeUniverseSize(int universesize)
-{
+char SanDevices::EncodeUniverseSize(int universesize) const {
+
     if (universesize == 510) return 'A';
     if (universesize == 512) return 'B';
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxASSERT(false);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size %i", universesize);
     return 'A';
 }
 
-bool SanDevices::UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
 
-    if (output > GetMaxStringOutputs())
-    {
-        logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
-        wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
+    wxString c(colorOrder);
+    c = c.Lower();
+
+    if (c == "rgb") return 0;
+    if (c == "rbg") return 1;
+    if (c == "grb") return 2;
+    if (c == "gbr") return 3;
+    if (c == "brg") return 4;
+    if (c == "bgr") return 5;
+    wxASSERT(false);
+    return 0;
+}
+
+char SanDevices::EncodeColorOrderV5(const std::string& colorOrder) const {
+
+    wxString c(colorOrder);
+    c = c.Lower();
+
+    if (c == "rgb") return 'A';
+    if (c == "rbg") return 'B';
+    if (c == "grb") return 'C';
+    if (c == "gbr") return 'D';
+    if (c == "brg") return 'E';
+    if (c == "bgr") return 'F';
+    wxASSERT(false);
+    return 'A';
+}
+
+char SanDevices::EncodeBrightness(int brightness) const {
+
+    if (brightness < 19) return 'D';
+    if (brightness < 38) return 'C';
+    if (brightness < 75) return 'B';
+    return 'A';
+}
+
+inline bool SanDevices::EncodeDirection(const std::string& direction) const {
+
+    return direction == "Reverse";
+}
+
+char SanDevices::EncodeUniverse(int universe) const {
+
+    char res = 'A';
+
+    for (const auto& uni : _universes) {
+        if (uni == universe) {
+            return res;
+        }
+        ++res;
+    }
+    return res;
+}
+
+SanDevices::SanDeviceModel SanDevices::DecodeControllerType(const std::string& modelName) const {
+
+    if (modelName == "E682")
+        return SanDeviceModel::E682;
+    if (modelName == "E6804")
+        return SanDeviceModel::E6804;
+    wxASSERT(false);
+    return SanDeviceModel::Unknown;
+}
+
+inline std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
+
+    return { ((output - 1) / 4) + 1, ((output - 1) % 4) + 1 };
+}
+
+inline int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
+
+    return ((group - 1) * GetOutputsPerGroup()) + subport;
+}
+
+inline int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
+
+    return ((group - 1) * 4) + subport;
+}
+#pragma endregion
+
+#pragma region Constructors and Destructors
+SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _http.SetMethod("GET");
+    if (_fppProxy != "") {
+        _connected = _http.Connect(_fppProxy);
+    }
+    else {
+        _connected = _http.Connect(_ip);
+    }
+    _firmware = FirmwareVersion::Unknown;
+
+    if (_connected) {
+        //Loop For Version 5, we may have to switch web pages first and then scrap data
+        for (int i = 0; i < 2; i++) {
+            _page = SDGetURL("/");
+            if (!_page.empty()) {
+                static wxRegEx modelregex("(Controller Model )(E\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (modelregex.Matches(wxString(_page))) {
+                    _sdmodel = DecodeControllerType(modelregex.GetMatch(wxString(_page), 2).ToStdString());
+                    logger_base.error("Connected to SanDevices controller model %s.", (const char*)GetModel().c_str());
+                }
+                static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (versionregex.Matches(wxString(_page))) {
+                    _firmware = FirmwareVersion::Four;
+                    _version = versionregex.GetMatch(wxString(_page), 2).ToStdString();
+                    logger_base.error("                                 firmware %d.", static_cast<int>(_firmware));
+                    logger_base.error("                                 version %s.", (const char*)_version.c_str());
+                    break;
+                }
+                static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (version5regex.Matches(wxString(_page))) {
+                    _firmware = FirmwareVersion::Five;
+                    _version = version5regex.GetMatch(wxString(_page), 2).ToStdString();
+                    logger_base.error("                                 firmware %d.", static_cast<int>(_firmware));
+                    logger_base.error("                                 version %s.", (const char*)_version.c_str());
+                    break;
+                }
+
+                //Switch Pages from Version 5 Firmware
+                SDGetURL("/H?");
+            }
+            else {
+                _http.Close();
+                _connected = false;
+                logger_base.error("Error connecting to SanDevices controller on %s.", (const char*)_ip.c_str());
+                break;
+            }
+        }
+    }
+    else {
+        logger_base.error("Error connecting to SanDevices controller on %s.", (const char*)_ip.c_str());
+    }
+
+    if (_connected) {
+        _model = wxString::Format("E%d", _sdmodel);
+    }
+}
+
+SanDevices::~SanDevices() {
+
+    _http.Close();
+
+    for (const auto& it : _outputData) {
+        delete it;
+    }
+    _outputData.clear();
+
+    for (const auto& it : _protocolData) {
+        delete it;
+    }
+    _protocolData.clear();
+
+    for (const auto& it : _outputDataV4) {
+        delete it;
+    }
+    _outputDataV4.clear();
+}
+#pragma endregion
+
+#pragma region Getters and Setters
+bool SanDevices::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    const std::string page = _page;
+
+    if (page.empty()) return false;
+
+    //Check Correct Page from Version 5 Firmware
+    if (IsFirmware5()) {
+        if (page.find("<H3>System Information: </H3>") == std::string::npos) {
+            logger_base.error("SanDevices Outputs Upload: SanDevices wouldn't switch web pages.");
+            return false;
+        }
+    }
+
+    // Get universes based on IP
+    std::list<Output*> outputs = controller->GetOutputs();
+
+    if (outputs.size() > 12) {
+        DisplayError(wxString::Format("Attempt to upload %d universes to SanDevices controller but only 12 are supported.", outputs.size()).ToStdString());
         return false;
     }
 
-    wxString p(page);
-    int start = p.find("Output Configuration");
+    //dont make http requests if setting are already right
+    bool upload = true;
 
-    std::string tofind = "";
+    int t = -1;
 
-    if (_model == "E682")
-    {
-        tofind = "<td>" + wxString::Format("%i-1 to %i-4", output, output) + "</td>";
+    auto o = outputs.front();
+
+    if (o->GetType() == OUTPUT_E131) {
+        if (o->GetIP() == "MULTICAST") {
+            t = 0;
+        }
+        else {
+            t = 1;
+        }
     }
-    else
-    {
-        tofind = "<td>" + wxString::Format("%i", output) + "</td>";
+    else if (o->GetType() == OUTPUT_ARTNET) {
+        t = 2;
     }
-    start = p.find(tofind, start);
 
-    // extract the group size
-    std::string gs = ExtractFromPage(page, "D", "input", start);
-
-    // extact the colour order
-    std::string co = ExtractFromPage(page, "E", "select", start);
-
-    // extract reverse
-    std::string rev = ExtractFromPage(page, "H", "checkbox", start);
-
-    // extract zig zag every
-    std::string zz = ExtractFromPage(page, "L", "input", start);
-
-    // extract null pixels
-    std::string n = ExtractFromPage(page, "M", "input", start);
-
-    std::string a = ExtractFromPage(page, "A", "checkbox", start);
-
-    wxString request = wxString::Format("/%d?A=%d&B=%c&C=%d&D=%s&E=%s&F=%c&G=%d&H=%s&L=%s&M=%s",
-        output + 3,
-        outputsUsed,
-        protocol,
-        pixels,
-        gs,
-        co,
-        universe,
-        portstartchannel,
-        rev,
-        zz,
-        n);
-    return (GetURL(request.ToStdString()) != "");
-}
-
-bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (output > GetMaxStringOutputs())
-    {
-        logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
-        wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
+    if ((t == 2 || t == 0) && outputs.size() > 7) {
+        DisplayError(wxString::Format("Attempt to upload %d universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()).ToStdString());
         return false;
     }
 
-    wxString p(page);
-    int start = p.find("Output Configuration");
-
-    std::string tofind = "";
-
-    if (_model == "E682")
-    {
-        std::pair<int, int> ports = DecodeOutputPort(output);
-        tofind = "<td>" + wxString::Format("%i-%i", ports.first, ports.second) + "</td>";
+    // set the right input type
+    wxString request = "/";
+    if (IsFirmware5()) {
+        request += "B?";
     }
-    else
-    {
-        tofind = "<td>" + wxString::Format("%i", output) + "</td>";
-        output = ((output - 1) * 4) + 1; //Skip every four letters for E6804
+    else {
+        request += "1?";
     }
-    start = p.find(tofind, start);
 
-    // extact the colour order
-    std::string co = ExtractFromPage(page, "E", "select", start);
-    if(co != "") //Only Add to Request if it currently exists
-        co = wxString::Format("&E=%s",co);
+    request += "A=" + ExtractFromPage(page, "A", "input") +
+        "&B=" + ExtractFromPage(page, "B", "input") +
+        "&C=" + ExtractFromPage(page, "C", "input") +
+        "&D=" + ExtractFromPage(page, "D", "input");
 
-    // extract reverse
-    std::string rev = ExtractFromPage(page, "N", "checkbox", start);
-    if (rev == "1") //if check add to request, based on my testing firmware will check if present reguardless of value
-        rev = "&N=1";
-    else
-        rev = "";
+    if (IsFirmware5()) {
+        request += "&N=" + ExtractFromPage(page, "N", "input") +
+            "&O=" + ExtractFromPage(page, "O", "input") +
+            "&P=" + ExtractFromPage(page, "P", "input") +
+            "&Q=" + ExtractFromPage(page, "Q", "input") +
+            "&I=++++++++++++++++";
+        //"&I=" + ExtractFromPage(page, "I", "inputText");
+        //I=+++++++++++++++++
+        t += 65; //convert int to char
+        const wxString currentReceiveMode = ExtractFromPage(page, "E", "select");
+        const wxString newReceiveMode = wxString::Format("%c", t);
+        if (currentReceiveMode == newReceiveMode) {
+            upload = false;
+        }
+        request += std::string(wxString::Format("&E=%c", t).c_str());
+    }
+    else {
+        request += std::string(wxString::Format("&E=%i", t).c_str());
+    }
+    request += "&F=" + ExtractFromPage(page, "F", "input");
 
-    // extract null pixels
-    std::string n = ExtractFromPage(page, "H", "input", start);
-    if (n != "")//Only Add to Request if it currently exists
-        n = wxString::Format("&H=%s", n);
+    if (IsFirmware5()) {
+        request += "&H=" + ExtractFromPage(page, "H", "select");// += "&H=A"; //impossible to extract correctly because the are two fields called "H"
+    }
+    else {
+        request += "&H=" + ExtractFromPage(page, "H", "input");
+    }
+    request += "&G=" + ExtractFromPage(page, "G", "input");
 
-    // extract the group size
-    std::string gs = ExtractFromPage(page, "B", "input", start);
+    if (IsFirmware5()) {
+        request += "&J=" + ExtractFromPage(page, "J", "input") +
+            "&K=" + ExtractFromPage(page, "K", "input");
+    }
 
-    // extract chase
-    std::string chase = ExtractFromPage(page, "F", "checkbox", start);
-    if (chase == "1") //if check add to request, based on my testing firmware will check if present reguardless of value
-        chase = "&F=1";
-    else
-        chase = "";
+    if (upload) {
+        SDGetURL(request.ToStdString());
+        wxMilliSleep(1000);
+    }
+    upload = true;
 
-    // extract first zig zag 
-    std::string zz = ExtractFromPage(page, "I", "input", start);
+    request = "";
+    wxString requestUnvSize = "/I?";
+    int output = 65;
 
-    // extract then zig zag every
-    std::string tzz = ExtractFromPage(page, "J", "input", start);
+    for (const auto& it : outputs)
+    {
+        if (!request.empty()) {
+            request += "&";
+            requestUnvSize += "&";
+        }
+        else {
+            if (IsFirmware5()) {
+                request = "/D?";
+            }
+            else {
+                request = "/3?";
+            }
+        }
+        if (IsFirmware5()) {
+            if (it->GetChannels() != 510 && it->GetChannels() != 512) {
+                DisplayError(wxString::Format("Attempt to upload a universe of size %d to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()).ToStdString());
+                return false;
+            }
+            requestUnvSize += wxString::Format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
+        }
+        else {
+            if (it->GetChannels() != 510) {
+                DisplayError(wxString::Format("Attempt to upload a universe of size %d to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()).ToStdString());
+                return false;
+            }
+        }
+        request += wxString::Format("%c=%i", output++, it->GetUniverse());
+    }
 
-    // extact the intensatiy
-    std::string intens = ExtractFromPage(page, "D", "select", start);
+    if (0 == t) { //multicast
+        if (output > 72) {
+            logger_base.error("SanDevices Inputs Upload: More Than 7 Universes are assigned to One Controller, 7 is the MAX in Multicast Mode.");
+            return false;
+        }
+    }
+    else { //unicast or artnet
+        if (output > 77) {
+            logger_base.error("SanDevices Inputs Upload: More Than 12 Universes are assigned to One Controller, 12 is the MAX for Sandevices.");
+            return false;
+        }
+    }
 
-    //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    wxString request = wxString::Format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%s%s&I=%s&J=%s&D=%s",
-        output + 'J',
-        pixels,
-        co,
-        universe,
-        portstartchannel,
-        rev,
-        n,
-        gs,
-        chase,
-        zz,
-        tzz,
-        intens);
-    return (GetURL(request.ToStdString()) != "");
+    if (IsFirmware5()) {
+        SDGetURL(requestUnvSize.ToStdString());
+        wxMilliSleep(1000);
+    }
+
+    return (SDGetURL(request.ToStdString()) != "");
 }
 
-void SanDevices::ResetStringOutputs()
-{
-    GetURL("/4?A=0");
-    GetURL("/5?A=0");
-    GetURL("/6?A=0");
-    GetURL("/7?A=0");
-}
+bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
 
-std::pair<int, int > SanDevices::DecodeOutputPort(const int output)
-{
-    int port = ((output - 1) / 4) + 1;
-    int subport = ((output - 1) % 4) + 1;
+    if (IsFirmware5()) {
+        return SetOutputsV5(allmodels, outputManager, controller, parent);
+    }
 
-    return std::pair<int, int>(port, subport);
+    if (IsFirmware4()) {
+        return SetOutputsV4(allmodels, outputManager, controller, parent);
+    }
+    wxASSERT(false);
+    return false;
 }
+#pragma endregion 

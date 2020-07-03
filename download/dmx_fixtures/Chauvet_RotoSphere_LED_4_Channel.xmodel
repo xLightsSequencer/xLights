@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet RotoSphere LED 4 Channel" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Motor Rotation,Colors,Strobe,Modes" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Motor Rotation" s1-Name="no_function" s1-Color="#040404" 
+s2="Motor Rotation" s2-Name="counter_clockwise_rotation_slow_to_fast_" s2-Color="#444444" 
+s3="Motor Rotation" s3-Name="clockwise_rotation_slow_to_fast_" s3-Color="#C4C4C4" 
+s4="Colors" s4-Name="no_function" s4-Color="#0F0F0F" 
+s5="Colors" s5-Name="red" s5-Color="#2F2F2F" 
+s6="Colors" s6-Name="green" s6-Color="#4F4F4F" 
+s7="Colors" s7-Name="blue" s7-Color="#6F6F6F" 
+s8="Colors" s8-Name="red_green" s8-Color="#8F8F8F" 
+s9="Colors" s9-Name="red_blue" s9-Color="#AFAFAF" 
+s10="Colors" s10-Name="green_blue" s10-Color="#CFCFCF" 
+s11="Colors" s11-Name="red_green_blue" s11-Color="#EFEFEF" 
+s12="Strobe" s12-Name="no_function" s12-Color="#040404" 
+s13="Strobe" s13-Name="strobe_effect_slow_to_fast_" s13-Color="#848484" 
+s14="Modes" s14-Name="no_function" s14-Color="#050505" 
+s15="Modes" s15-Name="automatic_programs" s15-Color="#828282" 
+s16="Modes" s16-Name="sound-activated_mode" s16-Color="#FCFCFC" 
+/>
+</dmxmodel>

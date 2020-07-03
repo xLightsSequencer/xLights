@@ -1,25 +1,13 @@
+
 /***************************************************************
- * Name:      RgbEffects.cpp
- * Purpose:   Implements RGB effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-12-23
- * Copyright: 2012 by Matt Brown
- * License:
-     This file is part of xLights.
-
-    xLights is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    xLights is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with xLights.  If not, see <http://www.gnu.org/licenses/>.
-**************************************************************/
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <cmath>
 #ifdef _MSC_VER
@@ -33,6 +21,8 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
+#include "models/DMX/DmxModel.h"
+#include "models/DMX/DmxColorAbility.h"
 
 #include <log4cpp/Category.hh>
 
@@ -265,8 +255,6 @@ inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     gc = nullptr;
     dc = nullptr;
     unshare(nullBitmap);
@@ -322,8 +310,6 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
 }
 
 DrawingContext::~DrawingContext() {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
     if (gc != nullptr) {
         delete gc;
     }
@@ -467,7 +453,6 @@ bool TextDrawingContext::AllowAlphaChannel() {
 }
 
 wxImage *DrawingContext::FlushAndGetImage() {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (gc != nullptr) {
         gc->Flush();
         delete gc;
@@ -643,6 +628,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
     fadeinsteps = 0;
     fadeoutsteps = 0;
     allowAlpha = false;
+    dmx_buffer = false;
     needToInit = true;
     _nodeBuffer = false;
     frameTimeInMs = 50;
@@ -654,6 +640,8 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 
 RenderBuffer::~RenderBuffer()
 {    
+    if (_isCopy) Forget();
+
     //dtor
     if (_textDrawingContext != nullptr) {
         TextDrawingContext::ReleaseContext(_textDrawingContext);
@@ -661,8 +649,9 @@ RenderBuffer::~RenderBuffer()
     if (_pathDrawingContext != nullptr) {
         PathDrawingContext::ReleaseContext(_pathDrawingContext);
     }
-    for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {
-        delete i->second;
+    for (auto& it : infoCache) {
+        delete it.second;
+        it.second = nullptr;
     }
 }
 
@@ -710,7 +699,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     }
     size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
-    wxASSERT(NumPixels < 500000);
+    //wxASSERT(NumPixels < 500000);
+    
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");
@@ -793,7 +783,7 @@ float RenderBuffer::cos(float rad)
 }
 
 // generates a random number between num1 and num2 inclusive
-double RenderBuffer::RandomRange(double num1, double num2)
+double RenderBuffer::RandomRange(double num1, double num2) const
 {
     double hi,lo;
     if (num1 < num2)
@@ -809,7 +799,7 @@ double RenderBuffer::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RenderBuffer::Color2HSV(const xlColor& color, HSVValue& hsv)
+void RenderBuffer::Color2HSV(const xlColor& color, HSVValue& hsv) const
 {
     color.toHSV(hsv);
 }
@@ -825,7 +815,7 @@ void RenderBuffer::SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSV
 // return a value between c1 and c2
 uint8_t RenderBuffer::ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
 {
-    return c1 + floor(ratio*(c2-c1)+0.5);
+    return c1 + floor(ratio * (c2 - c1) + 0.5);
 }
 
 void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color)
@@ -845,14 +835,22 @@ void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, flo
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
-HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
+inline uint8_t SumUInt8(uint8_t c1, uint8_t c2)
+{
+    int x = c1;
+    x += c2;
+    if (x > 255) x = 255;
+    return x;
+}
+
+HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2) const
 {
     xlColor rgb;
     xlColor rgb1(hsv1);
     xlColor rgb2(hsv2);
-    rgb.red = rgb1.red + rgb2.red;
-    rgb.green = rgb1.green + rgb2.green;
-    rgb.blue = rgb1.blue + rgb2.blue;
+    rgb.red = SumUInt8(rgb1.red, rgb2.red);
+    rgb.green = SumUInt8(rgb1.green, rgb2.green);
+    rgb.blue = SumUInt8(rgb1.blue, rgb2.blue);
     return rgb.asHSV();
 }
 // 0 <= n < 1
@@ -876,8 +874,13 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha, bool dmx_ignore)
 {
+    if (!dmx_ignore && dmx_buffer) {
+        SetPixelDMXModel(x, y, color);
+        return;
+    }
+        
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -896,11 +899,13 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        if (color.alpha == 0)
-        {
+        // if you do this sparkles dont work when 100% transparent on effect ... so dont do it
+        //if (color.alpha == 0)
+        //{
             // transparent ... dont do anything
-        }
-        else if (useAlpha && color.Alpha() != 255)
+        //}
+        //else 
+        if (useAlpha && color.Alpha() != 255)
         {
             xlColor pnew = color;
             xlColor pold = pixels[y*BufferWi + x];
@@ -948,6 +953,11 @@ void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
 {
+    if (dmx_buffer) {
+        SetPixelDMXModel(x, y, xlColor(hsv));
+        return;
+    }
+
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -967,10 +977,11 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
         pixels[y*BufferWi+x] = hsv;
     }
 }
-void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color) {
+
+void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore) {
     if (nodeNum < Nodes.size()) {
         for (auto &a : Nodes[nodeNum]->Coords) {
-            SetPixel(a.bufX, a.bufY, color);
+            SetPixel(a.bufX, a.bufY, color, false, false, dmx_ignore);
         }
     }
 }
@@ -1136,25 +1147,29 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
 {
     HSVValue hsv(rgb);
     xlColor color(rgb);
-    int r = radius;
-    if (allowAlpha) {
-        while(r >= 0)
-        {
-            color.alpha = (double)rgb.alpha * (1.0 - (double)(r) / (double)radius);
-            DrawCircle(x0, y0, r, color, wrap);
-            r--;
-        }
-    } else {
-        double full_brightness = hsv.value;
-        while(r >= 0)
-        {
-            hsv.value = full_brightness * (1.0 - (double)(r) / (double)radius);
-            if( hsv.value > 0.0 )
-            {
-                color = hsv;
-                DrawCircle(x0, y0, r, color, wrap);
+
+    double full_brightness = hsv.value;
+
+    for (int x = -radius; x < radius; ++x) {
+        for (int y = -radius; y < radius; ++y) {
+            double d = std::sqrt(x * x + y * y);
+            if (d <= radius) {
+                if (allowAlpha) {
+                    double alpha = (double)rgb.alpha - ((double)rgb.alpha * d) / double(radius);
+                    if (alpha > 0.0) {
+                        color.alpha = alpha;
+                        SetPixel(x + x0, y + y0, color, wrap, false);
+                    }
+                }
+                else {
+                    double alpha = full_brightness - (full_brightness * d) / (double)radius;
+                    if (alpha > 0.0) {
+                        hsv.value = alpha;
+                        color = hsv;
+                        SetPixel(x + x0, y + y0, color, wrap);
+                    }
+                }
             }
-            r--;
         }
     }
 }
@@ -1195,9 +1210,10 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size())
     {
-        color = pixels[y*BufferWi + x];
+        color = pixels[pidx];
     }
     else
     {
@@ -1205,65 +1221,67 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
     }
 }
 
-const xlColor &RenderBuffer::GetPixel(int x, int y) const {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
-    {
-        return pixels[y*BufferWi+x];
+const xlColor& RenderBuffer::GetPixel(int x, int y) const {
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size()) {
+        return pixels[pidx];
     }
     return xlBLACK;
 }
 
 // 0,0 is lower left
-void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        tempbuf[y*BufferWi+x]=color;
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < tempbuf.size()) {
+        tempbuf[pidx] = color;
     }
 }
 
-void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha)
-{
-    xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) {
 
+    xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
     SetTempPixel(x, y, c);
 }
 
 // 0,0 is lower left
-void RenderBuffer::GetTempPixel(int x, int y, xlColor &color)
+void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        color=tempbuf[y*BufferWi+x];
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        color = tempbuf[y * BufferWi + x];
     }
 }
-const xlColor &RenderBuffer::GetTempPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        return tempbuf[y*BufferWi+x];
+
+const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
 }
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        return tempbuf[y*BufferWi+x];
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
 }
 
 void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)
 {
-    if (ResetState)
-    {
+    if (ResetState) {
         needToInit = true;
     }
     curPeriod = period;
     cur_model = model_name;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
+    dmx_buffer = false;
+    Model* m = GetModel();
+    if (m != nullptr) {
+        if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
+            dmx_buffer = true;
+        }
+    }
 }
 
 void RenderBuffer::ClearTempBuf()
@@ -1274,28 +1292,29 @@ void RenderBuffer::ClearTempBuf()
     }
 }
 
-float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
+float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
     }
-    float periods = curEffEndPer-curEffStartPer +  1; //inclusive
+    float periods = curEffEndPer - curEffStartPer + 1; //inclusive
     float periodsPerCycle = periods / cycles;
     if (periodsPerCycle <= 1.0) {
         return 0.0f;
     }
-    float retval = (float)(curPeriod-curEffStartPer);
+    float retval = (float)(curPeriod - curEffStartPer);
     while (retval >= periodsPerCycle) {
         retval -= periodsPerCycle;
     }
     retval /= (periodsPerCycle - 1);
     return retval > 1.0f ? 1.0f : retval;
 }
-float RenderBuffer::GetEffectTimeIntervalPosition()
+
+float RenderBuffer::GetEffectTimeIntervalPosition() const
 {
     if (curEffEndPer == curEffStartPer) {
         return 0.0;
     }
-    return (float)(curPeriod-curEffStartPer)/(float)(curEffEndPer-curEffStartPer);
+    return (float)(curPeriod - curEffStartPer) / (float)(curEffEndPer - curEffStartPer);
 }
 
 void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
@@ -1304,8 +1323,7 @@ void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
     curEffEndPer = (endMsec - 1) / frameTimeInMs;
 }
 
-void RenderBuffer::GetEffectPeriods( int& start, int& endp)
-{
+void RenderBuffer::GetEffectPeriods(int& start, int& endp) const {
     start = curEffStartPer;
     endp = curEffEndPer;
 }
@@ -1394,28 +1412,90 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     }
 }
 
-// create a copy of the buffer suitable only for copying out pixel data
+// create a copy of the buffer suitable only for copying out pixel data and fake rendering
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
-    frame = nullptr;
-    curPeriod = 0;
-    curEffStartPer = 0;
-    curEffEndPer = 0;
-    frameTimeInMs = 0;
-    isTransformed = false;
-    fadeinsteps = 0;
-    fadeoutsteps = 0;
-    needToInit = true;
-    tempInt = 0;
-    tempInt2 = 0;
+    _isCopy = true;
+    frame = buffer.frame;
+    curPeriod = buffer.curPeriod;
+    curEffStartPer = buffer.curEffStartPer;
+    curEffEndPer = buffer.curEffEndPer;
+    frameTimeInMs = buffer.frameTimeInMs;
+    isTransformed = buffer.isTransformed;
+    fadeinsteps = buffer.fadeinsteps;
+    fadeoutsteps = buffer.fadeoutsteps;
+    needToInit = buffer.needToInit;
+    tempInt = buffer.tempInt;
+    tempInt2 = buffer.tempInt2;
     allowAlpha = buffer.allowAlpha;
+    dmx_buffer = buffer.dmx_buffer;
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     ModelBufferHt = buffer.ModelBufferHt;
     ModelBufferWi = buffer.ModelBufferWi;
+    infoCache = buffer.infoCache;
 
     pixels = buffer.pixels;
+    _textDrawingContext = buffer._textDrawingContext;
+    _pathDrawingContext = buffer._pathDrawingContext;
+}
+
+void RenderBuffer::Forget()
+{
+    // Forget some stuff as this is a fake render buffer and we dont want it destroyed
+    infoCache.clear();
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
+}
+
+void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
+{
+    Model* model_info = GetModel();
+    if (model_info != nullptr) {
+        if (x != 0 || y != 0) return;  //Only render colors for the first pixel
+
+        if (pixels.size() == 1) { //pixel size equals 1 when putting "on" effect at node level
+            pixels[0] = color;
+            return;
+        }
+        xlColor c;
+        DmxModel* dmx = (DmxModel*)model_info;
+        if (dmx->HasColorAbility()) {
+            DmxColorAbility* dmx_color = dmx->GetColorAbility();
+
+            int white_channel = dmx_color->GetWhiteChannel();
+            if (white_channel > 0 && color.red == color.green && color.red == color.blue)
+            {
+                c.red = color.red;
+                c.green = color.red;
+                c.blue = color.red;
+                if (pixels.size() > white_channel - 1) pixels[white_channel - 1] = c;
+            }
+            else
+            {
+                int red_channel = dmx_color->GetRedChannel();
+                int grn_channel = dmx_color->GetGreenChannel();
+                int blu_channel = dmx_color->GetBlueChannel();
+                if (red_channel != 0) {
+                    c.red = color.red;
+                    c.green = color.red;
+                    c.blue = color.red;
+                    if (pixels.size() > red_channel - 1) pixels[red_channel - 1] = c;
+                }
+                if (grn_channel != 0) {
+                    c.red = color.green;
+                    c.green = color.green;
+                    c.blue = color.green;
+                    if (pixels.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
+                }
+                if (blu_channel != 0) {
+                    c.red = color.blue;
+                    c.green = color.blue;
+                    c.blue = color.blue;
+                    if (pixels.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
+                }
+            }
+        }
+    }
 }

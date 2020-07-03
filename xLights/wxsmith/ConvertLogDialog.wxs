@@ -13,7 +13,7 @@
 					<size>584,401</size>
 					<style>wxTE_MULTILINE|wxTE_READONLY</style>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

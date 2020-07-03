@@ -1,10 +1,20 @@
-#ifndef COLORPANEL_H
-#define COLORPANEL_H
+#pragma once
 
-//(*Headers(ColorPanel)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ColorPanel)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/clrpicker.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
@@ -77,8 +87,12 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
+		BulkEditCheckBox* CheckBox_EnableChromakey;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
+		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaColour;
+		BulkEditColourPickerCtrl* ColourPickerCtrl_SparklesColour;
 		BulkEditSlider* Slider_Brightness;
+		BulkEditSlider* Slider_ChromaSensitivity;
 		BulkEditSlider* Slider_Color_HueAdjust;
 		BulkEditSlider* Slider_Color_SaturationAdjust;
 		BulkEditSlider* Slider_Color_ValueAdjust;
@@ -97,6 +111,7 @@ public:
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
 		wxCheckBox* CheckBox_ResetColorPanel;
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxPanel* Panel_Sizer;
 		wxScrolledWindow* ColorScrollWindow;
@@ -107,6 +122,7 @@ public:
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		xlLockButton* BitmapButton_Brightness;
 		xlLockButton* BitmapButton_Contrast;
 		xlLockButton* BitmapButton_MusicSparkles;
@@ -125,12 +141,17 @@ public:
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON2;
 		static const long ID_CHECKBOX_ResetColorPanel;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_ChromaSensitivity;
+		static const long ID_COLOURPICKERCTRL_ChromaColour;
+		static const long ID_CHECKBOX_Chroma;
 		static const long ID_STATICTEXT_SparkleFrequency;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long ID_VALUECURVE_SparkleFrequency;
 		static const long IDD_TEXTCTRL_SparkleFrequency;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
 		static const long ID_CHECKBOX_MusicSparkles;
+		static const long ID_COLOURPICKERCTRL_SparklesColour;
 		static const long ID_BITMAPBUTTON_MusicSparkles;
 		static const long ID_STATICTEXT_Brightness;
 		static const long ID_SLIDER_Brightness;
@@ -173,6 +194,7 @@ public:
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
+		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);
@@ -190,5 +212,3 @@ public:
 		DECLARE_EVENT_TABLE()
 
 };
-
-#endif

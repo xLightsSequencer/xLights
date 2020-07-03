@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <sstream>
 
 #include "../../include/kaleidoscope-64.xpm"
@@ -32,7 +42,7 @@ wxPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
     return new KaleidoscopePanel(parent);
 }
 
-std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 

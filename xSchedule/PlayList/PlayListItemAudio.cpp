@@ -1,10 +1,22 @@
-#include "PlayListItemAudio.h"
-#include "wx/xml/xml.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <wx/xml/xml.h>
 #include <wx/notebook.h>
+
+#include "PlayListItemAudio.h"
 #include "PlayListItemAudioPanel.h"
 #include "../../xLights/AudioManager.h"
-#include <log4cpp/Category.hh>
 #include "../../xLights/UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
@@ -103,6 +115,7 @@ void PlayListItemAudio::LoadFiles()
 
 PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 {
+    _type = "PLIAudio";
     _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
@@ -140,7 +153,7 @@ PlayListItem* PlayListItemAudio::Copy() const
 
 wxXmlNode* PlayListItemAudio::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAudio");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("AudioFile", _audioFile);
     if (_fastStartAudio)
@@ -165,15 +178,23 @@ void PlayListItemAudio::Configure(wxNotebook* notebook)
 
 std::string PlayListItemAudio::GetNameNoTime() const
 {
-    wxFileName fn(_audioFile);
-    if (fn.GetName() == "")
+    // only recalc the name if the underlying file name has changed
+    if (_audioFile != _lastNameFile)
     {
-        return "Audio";
+        _lastNameFile = _audioFile;
+
+        wxFileName fn(_audioFile);
+        if (fn.GetName() == "")
+        {
+            _lastName = "Audio";
+        }
+        else
+        {
+            _lastName = fn.GetName().ToStdString();
+        }
     }
-    else
-    {
-        return fn.GetName().ToStdString();
-    }
+
+    return _lastName;
 }
 
 void PlayListItemAudio::SetAudioFile(const std::string& audioFile)

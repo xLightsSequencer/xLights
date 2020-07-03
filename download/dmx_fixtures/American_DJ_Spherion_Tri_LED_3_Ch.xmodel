@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Spherion Tri LED 3 Ch" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Rotation,Shutter,Color Macros," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="3" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Rotation" s1-Name="blackout" s1-Color="#030303" 
+s2="Rotation" s2-Name="show_1" s2-Color="#1B1B1B" 
+s3="Rotation" s3-Name="show_2" s3-Color="#434343" 
+s4="Rotation" s4-Name="show_3" s4-Color="#6B6B6B" 
+s5="Rotation" s5-Name="show_4" s5-Color="#939393" 
+s6="Rotation" s6-Name="show_5" s6-Color="#BBBBBB" 
+s7="Rotation" s7-Name="show_6" s7-Color="#E3E3E3" 
+s8="Rotation" s8-Name="sound_active" s8-Color="#FBFBFB" 
+s9="Shutter" s9-Name="stop" s9-Color="#040404" 
+s10="Shutter" s10-Name="clockwise_fast_gt_slow_" s10-Color="#3D3D3D" 
+s11="Shutter" s11-Name="counter_clockwise_fast_gt_slow_" s11-Color="#C1C1C1" 
+s12="Shutter" s12-Name="sound_active" s12-Color="#FBFBFB" 
+s13="Color Macros" s13-Name="off" s13-Color="#030303" 
+s14="Color Macros" s14-Name="dimmer_0pct_gt_100pct_" s14-Color="#676767" 
+s15="Color Macros" s15-Name="strobe_fast_gt_slow_" s15-Color="#DFDFDF" 
+s16="Color Macros" s16-Name="on" s16-Color="#FBFBFB" 
+s17="Node4" s17-Name="color_1" s17-Color="#171717" 
+s18="Node4" s18-Name="color_2" s18-Color="#424242" 
+s19="Node4" s19-Name="color_3" s19-Color="#696969" 
+s20="Node4" s20-Name="color_4" s20-Color="#909090" 
+s21="Node4" s21-Name="color_5" s21-Color="#B7B7B7" 
+s22="Node4" s22-Name="color_6" s22-Color="#DDDDDD" 
+s23="Node4" s23-Name="color_7" s23-Color="#F8F8F8" 
+/>
+</dmxmodel>

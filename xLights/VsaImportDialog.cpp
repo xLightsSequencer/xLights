@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*InternalHeaders(VsaImportDialog)
 #include <wx/font.h>
 #include <wx/intl.h>
@@ -144,7 +154,7 @@ void VsaImportDialog::Init(VSAFile* file, bool allModels) {
         }
     } else {
         for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-            if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+            if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 modelNames.push_back(mSequenceElements->GetElement(i)->GetName());
             }
         }

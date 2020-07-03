@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -29,7 +39,7 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
-    for (auto it : textures) {
+    for (const auto& it : textures) {
         if (it.second != nullptr) {
             delete it.second;
         }
@@ -86,20 +96,28 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _objFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
-        SetFromXml(ModelXml);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::ObjFile");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::ObjFile");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::ObjFile");
+        return 0;
     } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::Brightness");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::Brightness");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::Brightness");
+        return 0;
     } else if ("MeshOnly" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
         if (mesh_only) {
             ModelXml->AddAttribute("MeshOnly", "1");
         }
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::MeshOnly");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::MeshOnly");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::MeshOnly");
+        return 0;
     } else if ("Diffuse" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Diffuse");
         diffuse_colors = event.GetValue().GetBool();
@@ -107,7 +125,10 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             ModelXml->AddAttribute("Diffuse", "1");
         }
         uncacheDisplayObjects();
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::Diffuse");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::Diffuse");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::Diffuse");
+        return 0;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);
@@ -371,14 +392,15 @@ void MeshObject::loadObject() {
     if (wxFileExists(_objFile)) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        logger_base.debug("Loading mesh model %s file %s.",
+        logger_base.debug("Loading mesh model '%s' file '%s'.",
                           (const char *)GetName().c_str(),
                           (const char *)_objFile.c_str());
         wxFileName fn(_objFile);
         std::string base_path = fn.GetPath();
         std::string err;
         tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
-        
+        logger_base.debug("    Loaded.");
+
         // Append `default` material
         materials.push_back(tinyobj::material_t());
         
@@ -448,7 +470,7 @@ void MeshObject::loadObject() {
 
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if( !active ) { return; }
+    if( !IsActive() ) { return; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
@@ -456,18 +478,15 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
         loadObject();
     }
 
-    GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
+    GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
     
     if (obj_loaded) {
         glm::mat4 m = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(m, GetObjectScreenLocation().GetScaleMatrix());
-        glm::vec3 rot = GetObjectScreenLocation().GetRotation();
-        glm::mat4 RotateX = glm::rotate(m, glm::radians((float)-rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 RotateY = glm::rotate(m, glm::radians((float)-rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 RotateZ = glm::rotate(m, glm::radians((float)rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::quat rotate_quat = GetObjectScreenLocation().GetRotationQuat();
         glm::mat4 translationMatrix = glm::translate(m, GetObjectScreenLocation().GetWorldPosition());
-        m = translationMatrix * RotateX * RotateY * RotateZ * scalingMatrix;
-        
+        m = translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
+
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();
             // Loop over shapes
@@ -657,7 +676,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
             }
 
             // process any edge lines
-            if (lines.size() > 0) {
+            if (lines.size() > 0 && attrib.vertices.size() > 0) {
                 for (size_t l = 0; l < lines.size() / 2; l++) {
                     float v[2][3];
                     for (int k = 0; k < 3; k++) {
@@ -677,6 +696,6 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
     }
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3);
+        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }

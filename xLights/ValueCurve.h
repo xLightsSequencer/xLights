@@ -1,5 +1,14 @@
-#ifndef VALUECURVE_H
-#define VALUECURVE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/position.h>
 #include <string>
@@ -87,7 +96,7 @@ class ValueCurve
     static AudioManager* __audioManager;
 
     void RenderType();
-    void SetSerialisedValue(std::string k, std::string s);
+    void SetSerialisedValue(const std::string &k, const std::string &s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
     void ConvertToRealValues(float oldmin, float oldmax);
@@ -100,7 +109,7 @@ public:
     static void SetAudio(AudioManager* am) { __audioManager = am; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
 
-    ValueCurve() { _divisor = 1; SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; }
+    ValueCurve() { _divisor = 1; _min = MINVOIDF; _max = MAXVOIDF; SetDefault(); }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
@@ -164,5 +173,3 @@ public:
     void Reverse();
     void Flip();
 };
-
-#endif

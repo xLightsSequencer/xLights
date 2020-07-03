@@ -1,5 +1,14 @@
-#ifndef OPENDMXOUTPUT_H
-#define OPENDMXOUTPUT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "SerialOutput.h"
 
@@ -12,7 +21,7 @@
 
 #pragma region Open DMX Constants
 #define OPENDMX_MAX_CHANNELS 512
-#pragma region Open DMX Constants
+#pragma region 
 
 class OpenDMXOutput : public SerialOutput
 {
@@ -27,29 +36,28 @@ public:
     OpenDMXOutput(SerialOutput* output);
     OpenDMXOutput();
     virtual ~OpenDMXOutput() override {};
-    #pragma endregion Constructors and Destructors
+    #pragma endregion 
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_OPENDMX; }
+
     virtual int GetMaxChannels() const override { return OPENDMX_MAX_CHANNELS; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= OPENDMX_MAX_CHANNELS; }
-    virtual std::string GetSetupHelp() const override;
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= OPENDMX_MAX_CHANNELS; }
+
     virtual bool AllowsBaudRateSetting() const override { return false; }
-    #pragma endregion Getters and Setters
+    #pragma endregion 
 
     #pragma region Start and Stop
     virtual bool Open() override;
-    #pragma endregion Start and Stop
+    #pragma endregion 
     
     #pragma region Frame Handling
     virtual void EndFrame(int suppressFrames) override;
-    #pragma endregion Frame Handling
+    #pragma endregion 
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char data[], long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char data[], size_t size) override;
     virtual void AllOff() override;
-    #pragma endregion Data Setting
+    #pragma endregion 
 };
-
- #endif

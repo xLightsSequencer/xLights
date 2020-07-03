@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Cameo Flash Bar 150 20 Channel" parm1="20" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Master Dimmer,Strobe,Duration,Auto Programs,Auto Speed / Sound Sensitivity,Light Control LED 1,Light Control LED 2,Light Control LED 3,Light Control LED 4,Light Control LED 5,Light Control LED 6,Light Control LED 7,Light Control LED 8,Light Control LED 9,Light Control LED 10,Light Control LED 11,Light Control LED 12,Light Control LED 13,Light Control LED 14,Light Control LED 15" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Master Dimmer" s1-Name="auto_programs_off" s1-Color="#020202" 
+s2="Master Dimmer" s2-Name="auto_program_1" s2-Color="#1E1E1E" 
+s3="Master Dimmer" s3-Name="auto_program_2" s3-Color="#4F4F4F" 
+s4="Master Dimmer" s4-Name="auto_program_3" s4-Color="#808080" 
+s5="Master Dimmer" s5-Name="auto_program_4" s5-Color="#B1B1B1" 
+s6="Master Dimmer" s6-Name="auto_program_5" s6-Color="#E4E4E4" 
+s7="Duration" s7-Name="strobe_off" s7-Color="#020202" 
+s8="Duration" s8-Name="strobe_speed_slow_to_fast_" s8-Color="#828282" 
+/>
+</dmxmodel>

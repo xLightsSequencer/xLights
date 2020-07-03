@@ -1,5 +1,15 @@
-#ifndef SCHEDULEMANAGER_H
-#define SCHEDULEMANAGER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <string>
 #include <wx/wx.h>
@@ -18,7 +28,7 @@ class OutputManager;
 class RunningSchedule;
 class PlayListStep;
 class OutputProcess;
-class Xyzzy;
+class XyzzyBase;
 class PlayListItem;
 class xScheduleFrame;
 class Pinger;
@@ -63,37 +73,38 @@ class ScheduleManager
     int _mode = (int)SYNCMODE::STANDALONE;
     REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
     bool _testMode = false;
-    int _manualOTL;
+    int _manualOTL = 0;
     std::string _showDir;
-    int _lastSavedChangeCount;
-    int _changeCount;
+    int _lastSavedChangeCount = 0;
+    int _changeCount = 0;
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
-    uint8_t* _buffer;
-    wxUint32 _startTime;
-    PlayList* _immediatePlay;
-    PlayList* _backgroundPlayList;
+    uint8_t* _buffer = nullptr;
+    wxUint32 _startTime = 0;
+    PlayList* _immediatePlay = nullptr;
+    PlayList* _backgroundPlayList = nullptr;
     std::list<PlayList*> _eventPlayLists;
+    int _overrideMS = 0;
     std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
-    PlayList* _queuedSongs;
+    PlayList* _queuedSongs = nullptr;
     std::list<RunningSchedule*> _activeSchedules;
     wxThreadIdType _mainThread;
-    int _brightness;
-    int _lastBrightness;
+    int _brightness = 0;
+    int _lastBrightness = 0;
     uint8_t _brightnessArray[256];
-    wxMidiOutDevice* _midiMaster;
-    wxDatagramSocket* _fppSyncMaster;
-    wxDatagramSocket* _artNetSyncMaster;
-    wxDatagramSocket* _fppSyncMasterUnicast;
+    wxMidiOutDevice* _midiMaster = nullptr;
+    wxDatagramSocket* _fppSyncMaster = nullptr;
+    wxDatagramSocket* _artNetSyncMaster = nullptr;
+    wxDatagramSocket* _fppSyncMasterUnicast = nullptr;
     std::list<OutputProcess*> _outputProcessing;
-    ListenerManager* _listenerManager;
-    Xyzzy* _xyzzy;
+    ListenerManager* _listenerManager = nullptr;
+    XyzzyBase* _xyzzy = nullptr;
     wxDateTime _lastXyzzyCommand;
-    int _timerAdjustment;
-    bool _webRequestToggle;
-    Pinger* _pinger;
+    int _timerAdjustment = 0;
+    bool _webRequestToggle = false;
+    Pinger* _pinger = nullptr;
     std::unique_ptr<SyncManager> _syncManager = nullptr;
 
     void DisableRemoteOutputs();
@@ -134,6 +145,7 @@ class ScheduleManager
         void SetBackgroundPlayList(PlayList* playlist);
         OutputManager* GetOutputManager() const { return _outputManager; }
         int GetNonStoppedCount() const;
+        void GetNextScheduledPlayList(PlayList** p, Schedule** s);
         RunningSchedule* GetRunningSchedule() const;
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
@@ -166,16 +178,17 @@ class ScheduleManager
         int GetBrightness() const { return _brightness; }
         void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }
         void SetBrightness(int brightness) { if (brightness < 0) _brightness = 0; else if (brightness > 100) _brightness = 100; else _brightness = brightness; }
-        int Frame(bool outputframe); // called when a frame needs to be displayed ... returns desired frame rate
+        int Frame(bool outputframe, xScheduleFrame* frame); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() { _changeCount++; };
         void OutputProcessingChanged() { _changeCount++; };
-        bool Action(const wxString label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
-        bool Action(const wxString command, const wxString parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
-        bool Query(const wxString command, const wxString parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference);
+        bool Action(const wxString& label, PlayList* selplaylist, PlayListStep* selplayliststep, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, PlayListStep* selplayliststep, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference);
+        bool IsQuery(const wxString& command);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain = false);
         bool StoreData(const wxString& key, const wxString& data, wxString& msg) const;
@@ -207,7 +220,7 @@ class ScheduleManager
         int Sync(const std::string& filename, long ms);
         int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
+        bool IsFPPRemoteOrMaster() const;
         bool IsTest() const;
-        void SetTestMode(bool test) { _testMode = test; }
+        void SetTestMode(bool test) { _testMode = test; if (!test) AllOff(); }
 };
-#endif

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="High_End_Systems Xspot Xtreme 38 Channels" parm1="38" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan Coarse,Pan Fine,Tillt Coarse,Tilt Fine,Lamp Function,Shutter Fuctions,Dim,Frost,Focus Function,Focus,Zoom,MSpeed,Macro,Control,Static Color Function,Static Color Position ,Mix Color Fuction,Red,Green,Blue,Color Temp Orange,Color Temp Blue,Gobo 1 Function,Gobo 1 Position,Gobo 1 Rotate Function,Gobo 1 Rotate Coarse,Gobo 1 Rotate Fine,Effects Function,Effects Position,Effects Rotate Fumction,,,Gobo 2 Function,Gobo 2 position,Gobo 2 Rotate Function,Gobo 2 Rotate Coarse,Gobo 2 Rotate Fine,Iris" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="18" DmxGreenChannel="19" DmxBlueChannel="20" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Lamp Function" s1-Name="normal_shutter_functions" s1-Color="#0F0F0F" 
+s2="Lamp Function" s2-Name="lamp_assisted_strobes_boosts_the_lamp_above
+700_watts_for_periodic_and_random_strobes_set
+in_shutter_channel_6_" s2-Color="#2F2F2F" 
+s3="Lamp Function" s3-Name="lamp_effects_boosts_the_lamp_above_700_watts
+for_boost_to_white_boost_to_black_or_lightning
+effects_set_in_shutter_channel_6" s3-Color="#4F4F4F" 
+s4="Lamp Function" s4-Name="dual_dimming_adds_electronic_dimming_to_the
+mechanical_dimming_set_in_the_dim_channel_7_
+_0pct_100pct_" s4-Color="#6F6F6F" 
+s5="Lamp Function" s5-Name="electronic_dimming_only_lamp_output_varies
+from_a_minimum_700w_does_not_go_to_black" s5-Color="#8F8F8F" 
+s6="Lamp Function" s6-Name="reserved" s6-Color="#AFAFAF" 
+s7="Lamp Function" s7-Name="normal_shutter_fuctions" s7-Color="#EFEFEF" 
+s8="Shutter Fuctions" s8-Name="close" s8-Color="#0B0B0B" 
+s9="Shutter Fuctions" s9-Name="see_manual" s9-Color="#8B8B8B" 
+s10="Frost" s10-Name="open_no_frost_" s10-Color="#000000" 
+s11="Frost" s11-Name="variable_frost_open_to_close_" s11-Color="#404040" 
+s12="Frost" s12-Name="full_frost" s12-Color="#838383" 
+s13="Frost" s13-Name="periodic_frost_strobe" s13-Color="#8F8F8F" 
+s14="Frost" s14-Name="random_frost_strobe" s14-Color="#9F9F9F" 
+s15="Frost" s15-Name="ramp_open_snap_shut" s15-Color="#AFAFAF" 
+s16="Frost" s16-Name="snap_open_ramp_shut" s16-Color="#BFBFBF" 
+s17="Frost" s17-Name="ramp_open_ramp_shut" s17-Color="#CFCFCF" 
+s18="Frost" s18-Name="random_ramp_snap" s18-Color="#DFDFDF" 
+s19="Frost" s19-Name="random_snap_ramp" s19-Color="#EFEFEF" 
+s20="Focus Function" s20-Name="zoomtrack" s20-Color="#0F0F0F" 
+s21="Focus Function" s21-Name="manual_focus" s21-Color="#2F2F2F" 
+s22="Focus Function" s22-Name="reserved" s22-Color="#9F9F9F" 
+s23="Macro" s23-Name="macro_off" s23-Color="#020202" 
+s24="Macro" s24-Name="pan_sweep_from_small_to_large_angle" s24-Color="#222222" 
+s25="Macro" s25-Name="tilt_sweep_from_small_to_large_angle" s25-Color="#5E5E5E" 
+s26="Macro" s26-Name="clockwise_circle_from_small_to_large" s26-Color="#8F8F8F" 
+s27="Macro" s27-Name="counterclockwise_circle_from_small_to_large" s27-Color="#B5B5B5" 
+s28="Macro" s28-Name="reserved" s28-Color="#E3E3E3" 
+s29="Control" s29-Name="safe" s29-Color="#040404" 
+s30="Control" s30-Name="pan_and_tilt_mspeed_off" s30-Color="#0E0E0E" 
+s31="Control" s31-Name="display_off" s31-Color="#181818" 
+s32="Control" s32-Name="display_dim" s32-Color="#222222" 
+s33="Control" s33-Name="display_bright" s33-Color="#2C2C2C" 
+s34="Control" s34-Name="home_all" s34-Color="#404040" 
+s35="Control" s35-Name="lamp_on" s35-Color="#545454" 
+s36="Control" s36-Name="lamp_off" s36-Color="#5E5E5E" 
+s37="Control" s37-Name="shutdown" s37-Color="#7D7D7D" 
+s38="Control" s38-Name="reserved" s38-Color="#8C8C8C" 
+s39="Control" s39-Name="home_pan_tilt" s39-Color="#A4A4A4" 
+s40="Control" s40-Name="home_color_system" s40-Color="#AEAEAE" 
+/>
+</dmxmodel>

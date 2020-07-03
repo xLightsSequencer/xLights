@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "TextEffect.h"
 
 #include <mutex>
@@ -36,14 +46,15 @@ TextEffect::~TextEffect()
     //dtor
 }
 
-std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
     wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
     wxString text = settings.Get("E_TEXTCTRL_Text", "");
+    wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
-    if (text == "" && textFilename == "")
+    if (text == "" && textFilename == "" && lyricTrack == "")
     {
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -64,7 +75,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-std::list<std::string> TextEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> TextEffect::GetFileReferences(const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;    
     wxString textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
@@ -291,6 +302,7 @@ void TextEffect::SetDefaultParameters() {
     SetTextValue(tp->TextCtrl_Text, "");
     tp->FilePickerCtrl1->SetFileName(wxFileName(""));
     SetChoiceValue(tp->Choice_Text_Dir, "none");
+    tp->Choice_LyricTrack->SetSelection(-1);
     SetSliderValue(tp->Slider_Text_Speed, 10);
     SetChoiceValue(tp->Choice_Text_Effect, "normal");
     SetChoiceValue(tp->Choice_Text_Count, "none");
@@ -300,6 +312,58 @@ void TextEffect::SetDefaultParameters() {
     SetSliderValue(tp->Slider_Text_YStart, 0);
     SetSliderValue(tp->Slider_Text_XEnd, 0);
     SetSliderValue(tp->Slider_Text_YEnd, 0);
+}
+
+void TextEffect::SetPanelStatus(Model* cls)
+{
+    TextPanel* tp = static_cast<TextPanel*>(panel);
+    if (tp == nullptr)
+    {
+        return;
+    }
+
+    tp->Choice_LyricTrack->Clear();
+    if (mSequenceElements == nullptr)
+    {
+        tp->ValidateWindow();
+        return;
+    }
+
+    // Load the names of the timing tracks
+    tp->Choice_LyricTrack->Append("");
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+        {
+            TimingElement* te = dynamic_cast<TimingElement*>(e);
+            auto n = e->GetName();
+            if (e->GetEffectLayerCount() > 1)
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+                if (te->HasLyrics(1)) {
+                    tp->Choice_LyricTrack->Append(n + " - Words");
+                }
+            }
+            else
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+            }
+        }
+    }
+
+    // Select the first one
+    if (tp->Choice_LyricTrack->GetCount() > 0)
+    {
+        tp->Choice_LyricTrack->Select(0);
+    }
+
+    // Validate the window (includes enabling and disabling controls)
+    tp->ValidateWindow();
 }
 
 //formatting notes:
@@ -409,26 +473,72 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
+    wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (wxFile::Exists(filename))
+    if (text == "")
     {
-        wxTextFile f(filename);
-        f.Open();
-        int i = 0;
-        text = f.GetFirstLine() + "\n";
-        while (!f.Eof() && i < MAXTEXTLINES)
+        if (wxFile::Exists(filename))
         {
-            text += f.GetNextLine() + "\n";
-            i++;
-        }
-        if (text != "")
-        {
-            while (text.Last() == '\n')
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
             {
-                text = text.BeforeLast('\n');
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
             }
         }
-        f.Close();
     }
 
     if (text != "") {
@@ -571,7 +681,7 @@ struct CachedTextInfoHasher {
         for (auto a : t.color) {
             h1 ^= a.GetRGB() << 3;
         }
-        h1 ^= (t.rect.x << 8) + (t.rect.y << 16);
+        h1 ^= (std::abs(t.rect.x) << 8) + (std::abs(t.rect.y) << 16);
         return h1;
     }
 };
@@ -580,8 +690,8 @@ class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() : timer_countdown(0), synced_textsize(wxSize(0,0)) {};
     virtual ~TextRenderCache() {
-        for (auto it = textCache.begin(); it != textCache.end(); ++it) {
-            delete it->second;
+        for (const auto& it : textCache) {
+            delete it.second;
         }
     };
     int timer_countdown;
@@ -826,7 +936,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             msg.clear();
             for(i=0; i<tempmsg.length(); i++)
             {
-                msg = msg + Line.GetChar(tempmsg.length()-i-1) + "\n";
+                msg = msg + tempmsg.GetChar(tempmsg.length()-i-1) + "\n";
             }
             break;
         case 2:
@@ -1041,12 +1151,13 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             dc->DrawText(msg, 0, OffsetTop, TextRotation);
             break; // static
     }
+
     return buffer.GetTextDrawingContext()->FlushAndGetImage();
 }
 
 void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const
 {
-    long tempLong,longsecs;
+    long longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
     int minutes,seconds;
 
@@ -1065,6 +1176,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 // countdown seconds
                 if (state == 0)
                 {
+                    long tempLong;
                     if (!Line.ToLong(&tempLong)) tempLong = 0;
                     GetCache(buffer, id)->timer_countdown = buffer.curPeriod + tempLong*framesPerSec + framesPerSec - 1;  // capture 0 period
                 }
@@ -1284,25 +1396,72 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 
     wxString text = settings["TEXTCTRL_Text"];
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
-    if (wxFile::Exists(filename))
+    wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
+
+    if (text == "")
     {
-        wxTextFile f(filename);
-        f.Open();
-        int i = 0;
-        text = f.GetFirstLine() + "\n";
-        while (!f.Eof() && i < MAXTEXTLINES)
+        if (wxFile::Exists(filename))
         {
-            text += f.GetNextLine() + "\n";
-            i++;
-        }
-        if (text != "")
-        {
-            while (text.Last() == '\n')
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
             {
-                text = text.BeforeLast('\n');
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
             }
         }
-        f.Close();
     }
 
     wxString msg = text;

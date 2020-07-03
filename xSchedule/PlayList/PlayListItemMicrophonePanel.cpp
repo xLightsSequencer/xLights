@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemMicrophonePanel.h"
 #include "PlayListItemMicrophone.h"
 #include "PlayListDialog.h"
@@ -24,6 +34,8 @@ const long PlayListItemMicrophonePanel::ID_TEXTCTRL4 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_SPINCTRL4 = wxNewId();
+const long PlayListItemMicrophonePanel::ID_STATICTEXT4 = wxNewId();
+const long PlayListItemMicrophonePanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT7 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_TEXTCTRL2 = wxNewId();
 //*)
@@ -76,8 +88,13 @@ PlayListItemMicrophonePanel::PlayListItemMicrophonePanel(wxWindow* parent, Outpu
 	SpinCtrl_Channels = new wxSpinCtrl(this, ID_SPINCTRL4, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 100, _T("ID_SPINCTRL4"));
 	SpinCtrl_Channels->SetValue(_T("100"));
 	FlexGridSizer1->Add(SpinCtrl_Channels, 1, wxALL|wxEXPAND, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
+	SpinCtrl_Priority->SetValue(_T("5"));
+	FlexGridSizer1->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL2, _("60.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
@@ -102,6 +119,7 @@ PlayListItemMicrophonePanel::PlayListItemMicrophonePanel(wxWindow* parent, Outpu
     SpinCtrl_Channels->SetValue(_microphone->GetPixels());
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)_microphone->GetDurationMS() / 1000));
     Choice_BlendMode->SetSelection(_microphone->GetBlendMode());
+	SpinCtrl_Priority->SetValue(_microphone->GetPriority());
 
     ValidateWindow();
 }
@@ -117,12 +135,14 @@ PlayListItemMicrophonePanel::~PlayListItemMicrophonePanel()
     _microphone->SetPixels(SpinCtrl_Channels->GetValue());
     _microphone->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _microphone->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
+	_microphone->SetPriority(SpinCtrl_Priority->GetValue());
 }
 
 void PlayListItemMicrophonePanel::OnTextCtrl_NameText(wxCommandEvent& event)
 {
     _microphone->SetName(TextCtrl_Name->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemMicrophonePanel::OnChoice_ModeSelect(wxCommandEvent& event)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Eurolite LED PST-15W QCL 8 ch" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,Macro colours,Strobe Speed,Color Effect,Master dimmer," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe Speed" s1-Name="no_function" s1-Color="#000000" 
+s2="Strobe Speed" s2-Name="set_music_trigger_mode" s2-Color="#050505" 
+s3="Strobe Speed" s3-Name="set_strobe_mode" s3-Color="#858585" 
+s4="Master dimmer" s4-Name="no_function" s4-Color="#0F0F0F" 
+s5="Master dimmer" s5-Name="transition_0-gt_100_pct" s5-Color="#2F2F2F" 
+s6="Master dimmer" s6-Name="transition_100-gt_0pct" s6-Color="#4F4F4F" 
+s7="Master dimmer" s7-Name="transition_100-gt_0-gt_100pct" s7-Color="#6F6F6F" 
+s8="Master dimmer" s8-Name="transition" s8-Color="#8F8F8F" 
+s9="Master dimmer" s9-Name="colour_change" s9-Color="#BFBFBF" 
+s10="Master dimmer" s10-Name="set_music_trigger_mode" s10-Color="#EFEFEF" 
+s11="Node9" s11-Name="no_function" s11-Color="#040404" 
+s12="Node9" s12-Name="macro_colours" s12-Color="#848484" 
+/>
+</dmxmodel>

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "xlGridCanvasMorph.h"
 #include "../../BitmapCache.h"
 #include "../../DrawGLUtils.h"
@@ -14,6 +24,7 @@ BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
     EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
     EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
     EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
+    EVT_LEFT_DCLICK(xlGridCanvasMorph::mouseLeftDClick)
 END_EVENT_TABLE()
 
 #define CORNER_NOT_SELECTED     0
@@ -298,6 +309,70 @@ void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
     }
 }
 
+void xlGridCanvasMorph::CalcDistanceTo(float targetX, float targetY, float* distance)
+{
+    distance[0] = sqrt((x1a - targetX) * (x1a - targetX) + (y1a - targetY) * (y1a - targetY));
+    distance[1] = sqrt((x2a - targetX) * (x2a - targetX) + (y2a - targetY) * (y2a - targetY));
+    distance[2] = sqrt((x1b - targetX) * (x1b - targetX) + (y1b - targetY) * (y1b - targetY));
+    distance[3] = sqrt((x2b - targetX) * (x2b - targetX) + (y2b - targetY) * (y2b - targetY));
+}
+
+void xlGridCanvasMorph::ProcessNearest(int targetX, int targetY, bool* done)
+{
+    float distanceTo[4];
+    CalcDistanceTo(targetX, targetY, distanceTo);
+
+    int least = -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (least == -1 && done[i] == false)
+        {
+            least = i;
+        }
+        else if (done[i] == false)
+        {
+            if (distanceTo[i] < distanceTo[least])
+            {
+                least = i;
+            }
+        }
+    }
+    switch (least)
+    {
+    case 0:
+        x1a = targetX;
+        y1a = targetY;
+        break;
+    case 1:
+        x2a = targetX;
+        y2a = targetY;
+        break;
+    case 2:
+        x1b = targetX;
+        y1b = targetY;
+        break;
+    case 3:
+        x2b = targetX;
+        y2b = targetY;
+        break;
+    }
+    done[least] = true;
+}
+
+void xlGridCanvasMorph::mouseLeftDClick(wxMouseEvent& event)
+{
+    bool done[4] = { false,false,false,false };
+
+    ProcessNearest(0, 0, done);
+    ProcessNearest(0, mRows * mCellSize, done);
+    ProcessNearest(mColumns * mCellSize, 0, done);
+    ProcessNearest(mColumns * mCellSize, mRows * mCellSize, done);
+    mSelectedCorner = CORNER_ALL_SELECTED;
+    StoreUpdatedMorphPositions();
+    mSelectedCorner = CORNER_NOT_SELECTED;
+    Refresh(false);
+}
+
 void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
 {
     SetTooltip(-1, -1);
@@ -500,47 +575,37 @@ void xlGridCanvasMorph::SetTooltip(int x, int y)
 void xlGridCanvasMorph::CreateCornerTextures()
 {
     wxString tooltip;
-    for( int i = 0; i < 6; i++ )
-    {
+    for (int i = 0; i < 6; i++) {
         DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetCornerIcon(i, tooltip, 64, true),
                                            BitmapCache::GetCornerIcon(i, tooltip, 32, true),
                                            BitmapCache::GetCornerIcon(i, tooltip, 16, true),
                                            &mCornerTextures[i]);
     }
 }
-
-void xlGridCanvasMorph::InitializeGLCanvas()
+void xlGridCanvasMorph::InitializeGLContext()
 {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
     SetCurrentGLContext();
-
+    
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glEnable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+}
+
+void xlGridCanvasMorph::InitializeGLCanvas()
+{
     CreateCornerTextures();
     mIsInitialized = true;
 }
 
 void xlGridCanvasMorph::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+    InitializeGLContext();
 
-
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-
-    if( mEffect != nullptr )
-    {
-
+    if( mEffect != nullptr ) {
         DrawBaseGrid();
         DrawMorphEffect();
     }

@@ -1,5 +1,14 @@
-#ifndef XLIGHTSIMPORTCHANNELMAPDIALOG_H
-#define XLIGHTSIMPORTCHANNELMAPDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 // need to do these manually due to issues with wxSmith
 #include <wx/treelist.h>
@@ -324,7 +333,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     void OnBeginDrag(wxDataViewEvent& event);
     void Unmap(const wxDataViewItem& item);
-    void Map(const wxDataViewItem& item, const std::string& mapping);
+    void Map(const wxDataViewItem& item, const wxString& mapping);
     void OnKeyDown(wxKeyEvent& event);
     void SetCCROn();
     void SetCCROff();
@@ -336,6 +345,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     bool _dirty;
     wxFileName _filename;
+    wxString _mappingFile = "mapping";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
@@ -356,8 +366,10 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_AutoMap;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
+		wxFlexGridSizer* FlexGridSizer11;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
@@ -381,6 +393,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         std::vector<std::string> ccrNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
+        std::map<std::string, bool> timingTrackAlreadyExists;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:
@@ -388,6 +401,7 @@ protected:
 		//(*Identifiers(xLightsImportChannelMapDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX11;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
@@ -399,6 +413,9 @@ protected:
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		//*)
+
+        static const long ID_MNU_SELECTALL;
+        static const long ID_MNU_SELECTNONE;
 
 	private:
         wxString FindTab(wxString &line);
@@ -418,9 +435,9 @@ protected:
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		//*)
 
+        void RightClickTimingTracks(wxContextMenuEvent& event);
+        void OnPopupTimingTracks(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

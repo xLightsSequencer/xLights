@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "Element.h"
 #include "../models/Model.h"
 #include <list>
@@ -25,6 +35,7 @@ Element::~Element() {
         mLayersToDelete.pop_front();
     }
     mEffectLayers.clear();
+    listener = nullptr; // dont delete it ... as it was a passed in sequence elements pointer ... but explicitly forget it so someone doesnt delete it later
 }
 
 void Element::CleanupAfterRender() {
@@ -46,6 +57,7 @@ const std::string &Element::GetName() const
 {
     return mName;
 }
+
 void Element::SetName(const std::string &name)
 {
     mName = name;
@@ -67,6 +79,17 @@ bool Element::HasEffects() const {
     return false;
 }
 
+
+bool TimingElement::HasLyrics(int layer) const
+{
+    if (mEffectLayers.size() > layer) {
+        for (const auto& it : mEffectLayers[layer]->GetAllEffects()) {
+            if (it->GetEffectName() != "") return true;
+        }
+    }
+    return false;
+}
+
 std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) const {
 	std::vector<int> returnList;
 	for (size_t x = 0; x < mEffectLayers.size(); x++) {
@@ -76,6 +99,40 @@ std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) con
 	}
 
 	return returnList;
+}
+
+int Element::GetSelectedEffectCount() const {
+    int count = 0;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        count += mEffectLayers[x]->GetSelectedEffectCount();
+    }
+    return count;
+}
+
+int Element::GetFirstSelectedEffectStartMS() const
+{
+    long startMS = -1;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        auto start = mEffectLayers[x]->GetFirstSelectedEffectStartMS();
+        if (start != -1 && (startMS == -1 || start < startMS))
+        {
+            startMS = start;
+        }
+    }
+    return startMS;
+}
+
+int Element::GetLastSelectedEffectEndMS() const
+{
+    long endMS = -1;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        auto end = mEffectLayers[x]->GetLastSelectedEffectEndMS();
+        if (end != -1 && (endMS == -1 || end > endMS))
+        {
+            endMS = end;
+        }
+    }
+    return endMS;
 }
 
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
@@ -134,8 +191,6 @@ EffectLayer* Element::AddEffectLayerInternal()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
@@ -166,7 +221,7 @@ bool Element::operator<(const Element& e) const
     }
     else
     {
-        if (myType == ELEMENT_TYPE_TIMING) return true;
+        if (myType == ElementType::ELEMENT_TYPE_TIMING) return true;
     }
 
     return false;
@@ -315,6 +370,13 @@ EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
     return nullptr;
 }
 
+NodeLayer* StrandElement::GetNodeEffectLayer(int index) const
+{
+    if ( index < GetNodeLayerCount())
+        return GetNodeLayer(index);
+    return nullptr;
+}
+
 bool StrandElement::HasEffects() const
 {
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
@@ -381,17 +443,19 @@ void ModelElement::CleanupAfterRender() {
     Element::CleanupAfterRender();
 }
 
-int ModelElement::GetWaitCount() {
-    return waitCount;
+NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
+{
+    int startStrand = 0;
+    for (int s = 0; s < GetStrandCount(); s++)
+    {
+        if (index < startStrand + GetStrand(s)->GetNodeLayerCount())
+        {
+            return GetStrand(s)->GetNodeEffectLayer(index - startStrand);
+        }
+        startStrand += GetStrand(s)->GetNodeLayerCount();
+    }
+    return nullptr;
 }
-void ModelElement::IncWaitCount() {
-    waitCount++;
-}
-void ModelElement::DecWaitCount() {
-    waitCount--;
-}
-
-
 
 std::list<Effect*> GetEffectsBetween(EffectLayer* layer, int start, int end)
 {
@@ -483,13 +547,13 @@ std::string  TimingElement::GetPapagayoExport(int fps) const
         res += "\t\t" + std::string(wxString::Format("%d", l1->GetEffect(i)->GetEndTimeMS() / ms).c_str()) + "\n";
         std::list<Effect*> words = GetEffectsBetween(l2, l1->GetEffect(i)->GetStartTimeMS(), l1->GetEffect(i)->GetEndTimeMS());
         res += "\t\t" + std::string(wxString::Format("%d", words.size()).c_str()) + "\n";
-        for (auto w = words.begin(); w != words.end(); w++)
+        for (const auto& w : words)
         {
-            std::list<Effect*> ph = GetEffectsBetween(l3, (*w)->GetStartTimeMS(), (*w)->GetEndTimeMS());
-            res += "\t\t\t" + (*w)->GetEffectName() + " " + std::string(wxString::Format("%d", (*w)->GetStartTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", (*w)->GetEndTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", ph.size()).c_str()) + "\n";
-            for (auto p = ph.begin(); p != ph.end(); p++)
+            std::list<Effect*> ph = GetEffectsBetween(l3, w->GetStartTimeMS(), w->GetEndTimeMS());
+            res += "\t\t\t" + w->GetEffectName() + " " + std::string(wxString::Format("%d", w->GetStartTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", w->GetEndTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", ph.size()).c_str()) + "\n";
+            for (const auto& p : ph)
             {
-                res += "\t\t\t\t" + std::string(wxString::Format("%d", (*p)->GetStartTimeMS() / ms).c_str()) + " " + (*p)->GetEffectName() + "\n";
+                res += "\t\t\t\t" + std::string(wxString::Format("%d", p->GetStartTimeMS() / ms).c_str()) + " " + p->GetEffectName() + "\n";
             }
         }
     }
@@ -501,14 +565,14 @@ std::string TimingElement::GetExport() const
 {
     std::string res = "";
 
-    for (auto l = mEffectLayers.begin(); l != mEffectLayers.end(); ++l)
+    for (const auto& l : mEffectLayers)
     {
         res += "   <EffectLayer>\n";
-        for (int i = 0; i < (*l)->GetEffectCount(); i++)
+        for (int i = 0; i < l->GetEffectCount(); i++)
         {
-            res += "      <Effect label=\""+(*l)->GetEffect(i)->GetEffectName()+
-                              "\" starttime=\"" + std::string(wxString::Format("%d",(*l)->GetEffect(i)->GetStartTimeMS()))+
-                              "\" endtime=\"" + std::string(wxString::Format("%d", (*l)->GetEffect(i)->GetEndTimeMS())) + 
+            res += "      <Effect label=\"" + l->GetEffect(i)->GetEffectName()+
+                              "\" starttime=\"" + std::string(wxString::Format("%d",l->GetEffect(i)->GetStartTimeMS()))+
+                              "\" endtime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetEndTimeMS())) + 
                               "\" />\n";
         }
         res += "   </EffectLayer>\n";
@@ -534,13 +598,17 @@ void ModelElement::Init(Model &model) {
         //no strands for a whole house model
         return;
     }
-    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); ++sm) {
+    for (const auto& sm : model.GetSubModels()) {
         bool found = false;
-        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); ++sm2) {
-            found |= ((*sm2)->GetName() == (*sm)->Name());
+        for (const auto& sm2 : mSubModels) {
+            if (sm2->GetName() == sm->Name())
+            {
+                found = true;
+                break;
+            }
         }
         if (!found) {
-            mSubModels.push_back(new SubModelElement(this, (*sm)->Name()));
+            mSubModels.push_back(new SubModelElement(this, sm->Name()));
         }
     }
     int ns = model.GetNumStrands();
@@ -618,15 +686,16 @@ void ModelElement::AddSubModel(SubModelElement* sme) {
     mSubModels.push_back(sme);
 }
 
-SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
-    for (auto a = mSubModels.begin(); a != mSubModels.end(); ++a) {
-        if (name == (*a)->GetName()) {
-            return *a;
+SubModelElement* ModelElement::GetSubModel(const std::string& name, bool create)
+{
+    for (const auto& a : mSubModels) {
+        if (name == a->GetName()) {
+            return a;
         }
     }
-    for (auto a = mStrands.begin(); a != mStrands.end(); ++a) {
-        if (name == (*a)->GetName()) {
-            return *a;
+    for (const auto& a : mStrands) {
+        if (name == a->GetName()) {
+            return a;
         }
     }
     if (create) {
@@ -639,10 +708,8 @@ SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create)
 std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFileReferences(em));
         }
@@ -653,10 +720,8 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFacesUsed(em));
         }
@@ -667,10 +732,8 @@ std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 {
     bool rc = false;
-    if (GetType() != ELEMENT_TYPE_TIMING)
-    {
-        for (int j = 0; j < GetEffectLayerCount(); j++)
-        {
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        for (int j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             rc = el->CleanupFileLocations(frame, em) || rc;
         }
@@ -678,28 +741,55 @@ bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
     return rc;
 }
 
-bool Element::SelectEffectUsingDescription(std::string description)
+Effect* Element::SelectEffectUsingDescription(std::string description)
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++)
-    {
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
-        if (el->SelectEffectUsingDescription(description))
-        {
+        Effect* e = el->SelectEffectUsingDescription(description);
+        if (e != nullptr) {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
+bool StrandElement::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e)) {
+            return true;
+        }
+    }
+
+    for (int j = 0; j < GetNodeLayerCount(); j++) {
+        if (GetNodeEffectLayer(j)->IsEffectValid(e)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Element::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++) {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e)) {
             return true;
         }
     }
     return false;
 }
 
-bool Element::SelectEffectUsingLayerTime(int layer, int time)
+Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
-    if (layer < GetEffectLayerCount())
-    {
+    if (layer < GetEffectLayerCount()) {
         EffectLayer* el = GetEffectLayer(layer);
-        if (el->SelectEffectUsingTime(time))
-        {
-            return true;
+        Effect* e = el->SelectEffectUsingTime(time);
+        if (e != nullptr) {
+            return e;
         }
     }
-    return false;
+    return nullptr;
 }

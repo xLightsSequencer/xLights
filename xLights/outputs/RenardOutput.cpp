@@ -60,8 +60,10 @@ void RenardOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void RenardOutput::SetOneChannel(long channel, unsigned char data)
+void RenardOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
+    if (!_enabled) return;
+
     uint8_t RenIntensity;
 
     switch (data)
@@ -86,6 +88,8 @@ void RenardOutput::SetOneChannel(long channel, unsigned char data)
 
 void RenardOutput::AllOff()
 {
+    if (!_enabled) return;
+
     for (int i = 0; i < _channels; i++)
     {
         SetOneChannel(i + 2, 0x00);
@@ -94,8 +98,8 @@ void RenardOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string RenardOutput::GetSetupHelp() const
-{
-    return "Renard controllers connected to a serial port or \na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud.";
-}
+//std::string RenardOutput::GetSetupHelp() const {
+
+//    return "Renard controllers connected to a serial port or \na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud.";
+//}
 #pragma endregion Getters and Setters

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Futurelight EYE-18 Mode 1" parm1="11" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Tilt,Pan/tilt speed,Rainbow,Red,Green,Blue,Shutter,Lamp switch, reset, programs,Pan fine,Tilt fine" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="2" DmxShutterChannel="8" DmxRedChannel="5" DmxGreenChannel="6" DmxBlueChannel="7" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Pan/tilt speed" s1-Name="vector_mode_speed" s1-Color="#707070" 
+s2="Pan/tilt speed" s2-Name="bo_with_pan_tilt" s2-Color="#E6E6E6" 
+s3="Pan/tilt speed" s3-Name="no_function" s3-Color="#F0F0F0" 
+s4="Rainbow" s4-Name="no_function" s4-Color="#030303" 
+s5="Rainbow" s5-Name="rainbow_speed" s5-Color="#727272" 
+s6="Rainbow" s6-Name="crossfading_colour_speed" s6-Color="#EEEEEE" 
+s7="Shutter" s7-Name="shutter_open" s7-Color="#1F1F1F" 
+s8="Shutter" s8-Name="strobe_speed" s8-Color="#4F4F4F" 
+s9="Shutter" s9-Name="pulse_sequence" s9-Color="#8F8F8F" 
+s10="Shutter" s10-Name="random_strobe_speed" s10-Color="#CFCFCF" 
+s11="Lamp switch, reset, programs" s11-Name="no_function" s11-Color="#272727" 
+s12="Lamp switch, reset, programs" s12-Name="reset" s12-Color="#575757" 
+s13="Lamp switch, reset, programs" s13-Name="internal_program_1" s13-Color="#676767" 
+s14="Lamp switch, reset, programs" s14-Name="internal_program_2" s14-Color="#777777" 
+s15="Lamp switch, reset, programs" s15-Name="internal_program_3" s15-Color="#878787" 
+s16="Lamp switch, reset, programs" s16-Name="internal_program_4" s16-Color="#979797" 
+s17="Lamp switch, reset, programs" s17-Name="internal_program_5" s17-Color="#A7A7A7" 
+s18="Lamp switch, reset, programs" s18-Name="internal_program_6" s18-Color="#B7B7B7" 
+s19="Lamp switch, reset, programs" s19-Name="internal_program_7" s19-Color="#C7C7C7" 
+s20="Lamp switch, reset, programs" s20-Name="internal_program_8" s20-Color="#D7D7D7" 
+/>
+</dmxmodel>

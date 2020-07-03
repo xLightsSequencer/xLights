@@ -1,7 +1,14 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
-
-#include "wx/wx.h"
-
+#include <wx/wx.h>
 
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
@@ -16,12 +23,16 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
 #include <wx/graphics.h>
 #include <wx/dcgraph.h>
 #include "Image_Loader.h"
+#include "xlGLCanvas.h"
 
 #include <map>
 #include "Image.h"
@@ -32,13 +43,22 @@ const double PI  =3.141592653589793238463;
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 
-#define DO_LOG_GL_MSG(a, ...) logger_opengl.debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) static_logger_opengl->debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+
+static bool isDebugEnabled = false;
+static bool isTraceDebugEnabled = false;
+static log4cpp::Category *static_logger_opengl = nullptr;
+static log4cpp::Category *static_logger_opengl_trace = nullptr;
+void DrawGLUtils::SetupDebugLogging() {
+    if (!static_logger_opengl) {
+        static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
+        static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+        isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
+        isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
+    }
+}
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
         if (er || isTraceDebugEnabled) {
@@ -51,9 +71,9 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             }
             if (isTraceDebugEnabled) {
                 if (msg) {
-                    logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
+                    static_logger_opengl_trace->debug("%s/%d - %s:   %X", f2, line, msg, er);
                 } else {
-                    logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
+                    static_logger_opengl_trace->debug("%s/%d:   %X", f2, line, er);
                 }
             }
             if (er) {
@@ -321,8 +341,6 @@ public:
         glGetFloatv(GL_MODELVIEW_MATRIX, glm::value_ptr(curMatrix));
         glm::mat4 mat = curMatrix * matrix;
         LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(mat)));
-        float bri = brightness;
-        bri /= 100.0f;
 
         if (wf) {
             if (!transparent) {
@@ -575,10 +593,14 @@ public:
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
-    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        float min = 1.0f;
+        if (zDepth < 24) {
+            min = 50.0f;
+        }
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 10000.0f);
         LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(m)));
 
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
@@ -676,10 +698,11 @@ void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, i
     x2 = bottomright_x;
     y2 = topleft_y;
 
+    int depth = win.GetZDepth();
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
     LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
 	LOG_GL_ERRORV(glScissor(0, 0, x2 - x, y2 - y));
-    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y);
+    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y, depth);
 	LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
@@ -955,7 +978,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulato
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];
@@ -975,7 +998,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else  {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];
@@ -986,7 +1009,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
         }
     }
     int i = count * 4;
-    for (int x = 0; x < va.count; x++) {
+    for (unsigned int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
         colors[i++] = c.Green();
         colors[i++] = c.Blue();
@@ -1001,7 +1024,7 @@ void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int 
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];
@@ -1030,7 +1053,7 @@ void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
-        tvertices = (float*)malloc(sizeof(float)*max * 2);
+        tvertices = (float*)malloc(sizeof(float)*_max * 2);
     }
 }
 
@@ -1214,9 +1237,10 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         AddVertex(cx, cy, cz, center);
     }
 }
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float ocy, float ocz, float radius,
                                                                const xlColor &center, const xlColor &edge,
-                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction) {
+                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -1245,13 +1269,12 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
     float x = radius;//we start at angle = 0
     float y = 0;
     
-    
     for(int ii = 0; ii < num_segments; ii++) {
         tx = x + ocx;
         ty = y + ocy;
         tz = ocz;
         translateFunction(tx, ty, tz);
-        AddVertex(tx, ty, tz, edge);
+        AddVertex(tx, ty, tz, edge, replace);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
@@ -1267,11 +1290,12 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
         ty = y + ocy;
         tz = ocz;
         translateFunction(tx, ty, tz);
-        AddVertex(tx, ty, tz, edge);
-        AddVertex(cx, cy, cz, center);
+        AddVertex(tx, ty, tz, edge, replace);
+        AddVertex(cx, cy, cz, center, replace);
     }
 }
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
+
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth)
 {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -1284,34 +1308,36 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
 
     float x = radius;//we start at angle = 0
     float y = 0;
+    float z = depth * radius;
 
-    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-cx, -cy, -cz));
     glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(cx, cy, cz));
+    glm::mat4 RotationMatrix = glm::toMat4(rotation);
 
     for (int ii = 0; ii < num_segments; ii++) {
-        glm::vec4 position = glm::vec4(x + cx, y + cy, cz, 1.0f);
-        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        glm::vec4 position = glm::vec4(x + cx, y + cy, z + cz, 1.0f);
+        position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
         float tx = -y;
         float ty = x;
+        //float tz = -z;
 
         //add the tangential vector
         x += tx * tangetial_factor;
         y += ty * tangetial_factor;
+        //z += tz * tangetial_factor;
         x *= radial_factor;
         y *= radial_factor;
-        position = glm::vec4(x + cx, y + cy, cz, 1.0f);
-        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        //z *= radial_factor;
+        position = glm::vec4(x + cx, y + cy, z + cz, 1.0f);
+        position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         AddVertex(cx, cy, cz, center);
     }
 }
-
 
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,
@@ -1328,18 +1354,17 @@ void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
     }
 }
 
-static void addMipMap(const wxImage &l_Image, int &level) {
-    if (l_Image.IsOk() == true)
-    {
+static void addMipMap(const wxImage& l_Image, int& level)
+{
+    if (l_Image.IsOk() == true) {
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                                   0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
+            0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
         int err = glGetError();
         if (err == GL_NO_ERROR) {
             level++;
         }
-        else
-        {
-            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        else {
+            static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error glTexImage2D: %d", err);
         }
     }
@@ -1659,13 +1684,16 @@ public:
     }
 
     void Populate(float x, float yBase, const std::string &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
+
+        if (widths.size() == 0) return;
+
         va.PreAlloc(6 * text.size());
         va.id = currentCache->GetTextureId(fontIdx);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase, x+3, yBase, 1);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase - (float(maxH) + 2) / factor, x+3, yBase - (float(maxH) + 2) / factor, 1);
         for (int idx = 0; idx < text.size(); idx++) {
             char ch = text[idx];
-            if (ch < ' ' && ch > '~') {
+            if (ch < ' ' || ch > '~') {
                 ch = '?';
             }
             if (ch == ' ') {
@@ -1819,7 +1847,7 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
         vat.forceColor = true;
         vat.color = va.color;
     }
-    for (int x = 0; x < va.count; x++) {
+    for (size_t x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);
     }
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -1943,7 +1971,7 @@ void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_p
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
-void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator& va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);

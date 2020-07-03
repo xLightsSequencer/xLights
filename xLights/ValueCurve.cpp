@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #include <wx/string.h>
 #include <wx/msgdlg.h>
@@ -1250,13 +1260,18 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         float oldmin = _min;
         float oldmax = _max;
 
-        wxArrayString v = wxSplit(wxString(s.c_str()), '|');
-        for (auto vs = v.begin(); vs != v.end(); ++vs)
-        {
-            wxArrayString v1 = wxSplit(*vs, '=');
-            if (v1.size() == 2)
-            {
-                SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
+        std::string parse = s;
+        while (!parse.empty()) {
+            size_t idx = parse.find('|');
+            std::string vs = (idx != std::string::npos) ? parse.substr(0, idx) : parse;
+            if (idx != std::string::npos) {
+                parse.erase(0, idx + 1);
+            } else {
+                parse.clear();
+            }
+            idx = vs.find('=');
+            if (idx != std::string::npos) {
+                SetSerialisedValue(vs.substr(0, idx), vs.substr(idx + 1));
             }
         }
 
@@ -1356,7 +1371,7 @@ std::string ValueCurve::Serialise()
         }
         if (_timeOffset != 0)
         {
-            res += "TO=" + std::string(wxString::Format("%d", _timeOffset).c_str()) + "|";
+            res += "TO=" + std::to_string(_timeOffset) + "|";
         }
         if (_wrap)
         {
@@ -1404,7 +1419,7 @@ void ValueCurve::LoadXVC(const std::string& fn)
         if (root->GetName() == "valuecurve")
         {
             wxString data = root->GetAttribute("data");
-            wxString v = root->GetAttribute("SourceVersion");
+            //wxString v = root->GetAttribute("SourceVersion");
 
             // Add any valuecurve version conversion logic here
             // Source version will be the program version that created the custom model
@@ -1474,73 +1489,55 @@ void ValueCurve::SaveXVC(const std::string& filename)
     SetId(id);
 }
 
-void ValueCurve::SetSerialisedValue(std::string k, std::string s)
+void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
 {
-    wxString kk = wxString(k.c_str());
-    if (kk == "Id")
-    {
+    if (k == "Id") {
         _id = s;
-    }
-    else if (kk == "Active")
-    {
-        if (s == "FALSE")
-        {
+    } else if (k == "Active") {
+        if (s == "FALSE") {
             _active = false;
-        }
-        else
-        {
+        } else {
             // it should already be true
             wxASSERT(_active == true);
         }
-    }
-    else if (kk == "Type")
-    {
+    } else if (k == "Type") {
         _type = s;
     }
-    else if (kk == "Min")
-    {
-        _min = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "Max")
-    {
-        _max = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "P1")
-    {
-        _parameter1 = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "TO")
-    {
-        _timeOffset = wxAtoi(wxString(s.c_str()));
-    }
-    else if (kk == "WRAP")
-    {
+    else if (k == "Min") {
+        _min = std::strtof(s.c_str(), nullptr);
+    } else if (k == "Max") {
+        _max = std::strtof(s.c_str(), nullptr);
+    } else if (k == "P1") {
+        _parameter1 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "TO") {
+        _timeOffset = std::strtol(s.c_str(), nullptr, 10);
+    } else if (k == "WRAP") {
         _wrap = true;
-    }
-    else if (kk == "RV")
-    {
+    } else if (k == "RV") {
         _realValues = true;
-    }
-    else if (kk == "P2")
-    {
-        _parameter2 = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "P3")
-    {
-        _parameter3 = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "P4")
-    {
-        _parameter4 = wxAtof(wxString(s.c_str()));
-    }
-    else if (kk == "Values")
-    {
-        wxArrayString points = wxSplit(s, ';');
-
-        for (auto p = points.begin(); p != points.end(); ++p)
-        {
-            wxArrayString xy = wxSplit(*p, ':');
-            _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
+    } else if (k == "P2") {
+        _parameter2 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "P3") {
+        _parameter3 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "P4") {
+        _parameter4 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "Values") {
+        std::string parse = s;
+        while (!parse.empty()) {
+            size_t idx = parse.find(';');
+            std::string vs = (idx != std::string::npos) ? parse.substr(0, idx) : parse;
+            if (idx != std::string::npos) {
+                parse.erase(0, idx + 1);
+            } else {
+                parse.clear();
+            }
+            idx = vs.find(':');
+            if (idx != std::string::npos) {
+                float x = std::strtof(s.substr(0, idx).c_str(), nullptr);
+                float y = std::strtof(s.substr(idx).c_str(), nullptr);
+                
+                _values.push_back(vcSortablePoint(x, y, false));
+            }
         }
     }
 

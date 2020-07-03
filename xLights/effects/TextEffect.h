@@ -1,5 +1,14 @@
-#ifndef TEXTEFFECT_H
-#define TEXTEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -15,6 +24,7 @@ class TextEffect : public RenderableEffect
         virtual ~TextEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void SetPanelStatus(Model* cls) override;
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override {return false;};
 #endif
@@ -23,9 +33,9 @@ class TextEffect : public RenderableEffect
 
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const override;
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
 
     protected:
@@ -48,5 +58,3 @@ class TextEffect : public RenderableEffect
                          int PreOffsetLeft, int PreOffsetTop ) const;
         FontManager& font_mgr;
 };
-
-#endif // TEXTEFFECT_H

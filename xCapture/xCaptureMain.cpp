@@ -96,6 +96,7 @@ const long xCaptureFrame::ID_BUTTON5 = wxNewId();
 const long xCaptureFrame::ID_STATICTEXT9 = wxNewId();
 const long xCaptureFrame::ID_CHOICE1 = wxNewId();
 const long xCaptureFrame::ID_SPINCTRL1 = wxNewId();
+const long xCaptureFrame::ID_CHECKBOX1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON8 = wxNewId();
 const long xCaptureFrame::ID_BUTTON2 = wxNewId();
@@ -162,12 +163,12 @@ void xCaptureFrame::StashPacket(long type, wxByte* packet, int len)
 
     if (!_capturing) return;
 
-    for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+    for (const auto& it : _capturedData)
     {
-        if ((*it)->_protocol == type && (*it)->_universe == universe)
+        if (it->_protocol == type && it->_universe == universe)
         {
             _capturedPackets++;
-            (*it)->AddPacket(type, packet, len);
+            it->AddPacket(type, packet, len);
             return;
         }
     }
@@ -251,6 +252,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
 
     Create(parent, id, _("xLights Capture"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -338,6 +340,12 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     SpinCtrl_ManualTime->SetValue(_T("50"));
     FlexGridSizer7->Add(SpinCtrl_ManualTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer8->AddGrowableCol(0);
+    CheckBox_FillInMissingFrames = new wxCheckBox(this, ID_CHECKBOX1, _("Fill in missing frames with prior frame data"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_FillInMissingFrames->SetValue(false);
+    FlexGridSizer8->Add(CheckBox_FillInMissingFrames, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
     Button_StartStop = new wxButton(this, ID_BUTTON1, _("Start Capture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer2->Add(Button_StartStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -449,11 +457,11 @@ void xCaptureFrame::LoadState()
 
     wxString state = config->Read(_("xcState"), "");
     wxArrayString items = wxSplit(state, ',');
-    for (auto it = items.begin(); it != items.end(); ++it)
+    for (const auto& it : items)
     {
-        if (*it != "")
+        if (it != "")
         {
-            wxArrayString pr = wxSplit(*it, '=');
+            wxArrayString pr = wxSplit(it, '=');
             if (pr[0].StartsWith("ID_TEXTCTRL"))
             {
                 wxTextCtrl* win = (wxTextCtrl*)FindWindowByName(pr[0], this);
@@ -475,11 +483,11 @@ void xCaptureFrame::LoadState()
                 if (pr[1] != "")
                 {
                     wxArrayString rows = wxSplit(pr[1], '|');
-                    for (auto it2 = rows.begin(); it2 != rows.end(); ++it2)
+                    for (const auto& it2 : rows)
                     {
-                        if (*it2 != "")
+                        if (it2 != "")
                         {
-                            wxArrayString values = wxSplit(*it2, ':');
+                            wxArrayString values = wxSplit(it2, ':');
                             long id = win->InsertItem(win->GetItemCount(), values[0]);
                             win->SetItem(id, 1, values[1]);
                         }
@@ -527,32 +535,39 @@ void xCaptureFrame::SaveState()
 
     wxString state;
     auto windows = GetChildren();
-    for (auto it = windows.begin(); it != windows.end(); ++it)
+    for (const auto& it : windows)
     {
-        if ((*it)->GetName().StartsWith("ID_TEXTCTRL"))
+        if (it->GetName().StartsWith("ID_TEXTCTRL"))
         {
-            state += (*it)->GetName() + "=" + ((wxTextCtrl*)(*it))->GetValue() + ",";
+            state += it->GetName() + "=" + ((wxTextCtrl*)it)->GetValue() + ",";
         }
-        else if ((*it)->GetName().StartsWith("ID_CHECKBOX"))
+        else if (it->GetName().StartsWith("ID_CHECKBOX"))
         {
-            state += (*it)->GetName() + "=" + (((wxCheckBox*)(*it))->GetValue() ? "TRUE," : "FALSE,");
+            state += it->GetName() + "=" + (((wxCheckBox*)it)->GetValue() ? "TRUE," : "FALSE,");
         }
-        else if ((*it)->GetName().StartsWith("ID_SPINCTRL"))
+        else if (it->GetName().StartsWith("ID_SPINCTRL"))
         {
-            state += (*it)->GetName() + "=" + wxString::Format("%d,", ((wxSpinCtrl*)(*it))->GetValue());
+            state += it->GetName() + "=" + wxString::Format("%d,", ((wxSpinCtrl*)it)->GetValue());
         }
-        else if ((*it)->GetName().StartsWith("ID_LISTVIEW"))
+        else if (it->GetName().StartsWith("ID_LISTVIEW"))
         {
             wxString lv;
-            for (int i = 0; i < ((wxListView*)(*it))->GetItemCount(); i++)
+            for (int i = 0; i < ((wxListView*)it)->GetItemCount(); i++)
             {
-                lv += ((wxListView*)(*it))->GetItemText(i, 0) + ":" + ((wxListView*)(*it))->GetItemText(i, 1) + "|";
+                lv += ((wxListView*)it)->GetItemText(i, 0) + ":" + ((wxListView*)it)->GetItemText(i, 1) + "|";
             }
-            state += (*it)->GetName() + "=" + lv + ",";
+            state += it->GetName() + "=" + lv + ",";
         }
     }
     config->Write(_("xcState"), state);
     config->Flush();
+}
+
+void xCaptureFrame::FillInMissingFrames(int frameTime)
+{
+    for (auto& it : _capturedData)         {
+        it->FillInMissingFrames(frameTime);
+    }
 }
 
 // close not required sockets
@@ -650,6 +665,16 @@ PacketData::PacketData(long type, wxByte* packet, int len)
     }
 }
 
+// Duplicate a packet but update its sequence number and time
+PacketData::PacketData(PacketData& pd, int seq, int time)
+{
+    _seq = seq;
+    _length = pd._length;
+    _pdata = (wxByte*)malloc(_length);
+    memcpy(_pdata, pd._pdata, _length);
+    _frameTimeMS = time;
+}
+
 Collector::~Collector()
 {
     while (_packets.size() > 0)
@@ -742,6 +767,56 @@ bool Collector::operator<(const Collector& c) const
     }
 
     return _universe < c._universe;
+}
+
+void Collector::DuplicateLastPacket(std::list<PacketData*>& newPackets, int startSeq, int endSeq, int timegap)
+{
+    int frameTime = timegap / (endSeq - startSeq + 1);
+    int time = newPackets.back()->_frameTimeMS + frameTime;
+    for (int i = startSeq; i <= endSeq; i++)         {
+        newPackets.push_back(new PacketData(*newPackets.back(), i, time));
+        time += frameTime;
+    }
+}
+
+void Collector::FillInMissingFrames(int frameTime)
+{
+    std::list<PacketData*> newPackets;
+
+    int lastSeq = -1;
+
+    for (const auto& it : _packets)         {
+
+        if (lastSeq != -1) {
+            int timeGap = (int)(it->_timeStamp - newPackets.back()->_timeStamp).GetMilliseconds().ToLong();
+            if (frameTime == -1) {
+                if (it->_seq > lastSeq + 1) {
+                    DuplicateLastPacket(newPackets, lastSeq + 1, it->_seq - 1, timeGap);
+                }
+                else if (lastSeq == 255 && it->_seq > 0) {
+                    DuplicateLastPacket(newPackets, 0, it->_seq - 1, timeGap);
+                }
+                else if (it->_seq < lastSeq && !(it->_seq == 0 && lastSeq == 255)) {
+                    int timeGap1 = timeGap * (255 - (lastSeq + 1) + 1) / (255 - (lastSeq + 1) + 1 + it->_seq);
+                    int timeGap2 = timeGap * (it->_seq) / (255 - (lastSeq + 1) + 1 + it->_seq);
+                    DuplicateLastPacket(newPackets, lastSeq + 1, 255, timeGap1);
+                    DuplicateLastPacket(newPackets, 0, it->_seq - 1, timeGap2);
+                }
+            }
+            else                 {
+                // allow for 5ms variance
+                if (timeGap > frameTime + 5)                     {
+                    int missingFrames = (timeGap + frameTime / 2) / frameTime;
+                    // This wont generate sequence numbers that make sense but hey it still fills in the gap
+                    DuplicateLastPacket(newPackets, 0, missingFrames, missingFrames * frameTime);
+                }
+            }
+        }
+        newPackets.push_back(it);
+        lastSeq = it->_seq;
+    }
+
+    _packets = newPackets;
 }
 
 void xCaptureFrame::ValidateWindow()
@@ -1075,13 +1150,25 @@ void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
         UpdateCaptureDesc();
 
         logger_base.debug("Capture stopped.");
-        for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+
+        if (CheckBox_FillInMissingFrames->GetValue()) {
+            int frameTime = -1;
+            if (Choice_Timing->GetStringSelection() == "Manual") {
+                frameTime = SpinCtrl_ManualTime->GetValue();
+            }
+            else if (Choice_Timing->GetStringSelection() != "xCapture Detected (rounded to nearest 5ms)") {
+                frameTime = wxAtoi(Choice_Timing->GetStringSelection());
+            }
+            FillInMissingFrames(frameTime);
+        }
+
+        for (const auto& it : _capturedData)
         {
             logger_base.debug("    Protocol %s, Universe %d, Size %d, Frames %d",
-                (*it)->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
-                (*it)->_universe,
-                (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_length : 0,
-                (int)(*it)->_packets.size()
+                it->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
+                it->_universe,
+                it->_packets.size() > 0 ? it->_packets.front()->_length : 0,
+                (int)it->_packets.size()
             );
         }
     }
@@ -1129,15 +1216,15 @@ void xCaptureFrame::OnButton_SaveClick(wxCommandEvent& event)
         log += wxString::Format("Frames: %d\n", frames);
 
         log += wxString::Format("Channel Structure Start:\n");
-        for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+        for (const auto& it : _capturedData)
         {
-            (*it)->CalculateFrames(startTime, frameMS);
+            it->CalculateFrames(startTime, frameMS);
 
             log += wxString::Format("Channel %ld, Protocol %s, Universe %d, Size %d, Frames %d, StartFrameMS %dms, EndFrameMS %dms\n",
-                (*it)->_startChannel, (*it)->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
-                (*it)->_universe, (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_length : 0,
-                (int)(*it)->_packets.size(), (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_frameTimeMS : -1,
-                (*it)->_packets.size() > 0 ? (*it)->_packets.back()->_frameTimeMS : -1);
+                it->_startChannel, it->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
+                it->_universe, it->_packets.size() > 0 ? it->_packets.front()->_length : 0,
+                (int)it->_packets.size(), it->_packets.size() > 0 ? it->_packets.front()->_frameTimeMS : -1,
+                it->_packets.size() > 0 ? it->_packets.back()->_frameTimeMS : -1);
         }
         log += wxString::Format("Channel Structure End!\n");
 
@@ -1160,12 +1247,12 @@ void xCaptureFrame::OnButton_SaveClick(wxCommandEvent& event)
 long xCaptureFrame::GetChannelsPerFrame()
 {
     long size = 0;
-    for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+    for (const auto& it : _capturedData)
     {
-        (*it)->_startChannel = size + 1;
-        if ((*it)->_packets.size() > 0)
+        it->_startChannel = size + 1;
+        if (it->_packets.size() > 0)
         {
-            size += (*it)->_packets.front()->_length;
+            size += it->_packets.front()->_length;
         }
     }
 
@@ -1175,13 +1262,13 @@ long xCaptureFrame::GetChannelsPerFrame()
 wxDateTime xCaptureFrame::GetStartTime()
 {
     wxDateTime startTime = wxDateTime::Now();
-    for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+    for (const auto& it : _capturedData)
     {
-        if ((*it)->_packets.size() > 0)
+        if (it->_packets.size() > 0)
         {
-            if ((*it)->_packets.front()->_timeStamp < startTime)
+            if (it->_packets.front()->_timeStamp < startTime)
             {
-                startTime = (*it)->_packets.front()->_timeStamp;
+                startTime = it->_packets.front()->_timeStamp;
             }
         }
     }
@@ -1429,16 +1516,16 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
 
         for (int i = 0; i < frames; i++)
         {
-            for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+            for (const auto& it : _capturedData)
             {
-                PacketData* p = (*it)->GetPacket(i * frameMS);
+                PacketData* p = it->GetPacket(i * frameMS);
                 if (p != nullptr)
                 {
-                    memcpy(buf + (*it)->_startChannel - 1, p->_pdata, p->_length);
+                    memcpy(buf + it->_startChannel - 1, p->_pdata, p->_length);
                 }
                 else
                 {
-                    logger_base.debug("   No data found uni %d ch %ld ", (*it)->_universe, (*it)->_startChannel);
+                    logger_base.debug("   No data found uni %d ch %ld ", it->_universe, it->_startChannel);
                 }
             }
             f.Write(buf, stepSize);
@@ -1549,17 +1636,17 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
         for (int i = 0; i < frames; i++)
         {
             //logger_base.debug("Writing frame %d %dms", i + 1, i * frameMS);
-            for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+            for (const auto& it : _capturedData)
             {
-                PacketData* p = (*it)->GetPacket(i * frameMS);
+                PacketData* p = it->GetPacket(i * frameMS);
                 if (p != nullptr)
                 {
                     //logger_base.debug("   Adding data uni %d ch %ld time %dms len %d seq %d time %d.%03d", (*it)->_universe, (*it)->_startChannel, p->_frameTimeMS, p->_length, p->_seq, p->_timeStamp.GetSecond(), p->_timeStamp.GetMillisecond());
-                    memcpy(buf + (*it)->_startChannel - 1, p->_pdata, p->_length);
+                    memcpy(buf + it->_startChannel - 1, p->_pdata, p->_length);
                 }
                 else
                 {
-                    logger_base.debug("   No data found uni %d ch %ld ", (*it)->_universe, (*it)->_startChannel);
+                    logger_base.debug("   No data found uni %d ch %ld ", it->_universe, it->_startChannel);
                 }
             }
             f.Write(buf, frameSize);
@@ -1577,9 +1664,9 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
 int xCaptureFrame::GetFrames()
 {
     int frames = 0;
-    for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+    for (const auto& it : _capturedData)
     {
-        frames = std::max(frames, (int)(*it)->_packets.size());
+        frames = std::max(frames, (int)it->_packets.size());
     }
     return frames;
 }
@@ -1600,15 +1687,15 @@ void xCaptureFrame::OnButton_AnalyseClick(wxCommandEvent& event)
     log += wxString::Format("Frames: %d\n", frames);
 
     log += wxString::Format("Channel Structure Start:\n");
-    for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+    for (const auto& it : _capturedData)
     {
-        (*it)->CalculateFrames(startTime, frameMS);
+        it->CalculateFrames(startTime, frameMS);
 
         log += wxString::Format("Channel %ld, Protocol %s, Universe %d, Size %d, Frames %d, StartFrameMS %dms, EndFrameMS %dms\n",
-            (*it)->_startChannel, (*it)->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
-            (*it)->_universe, (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_length : 0,
-            (int)(*it)->_packets.size(), (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_frameTimeMS : -1,
-            (*it)->_packets.size() > 0 ? (*it)->_packets.back()->_frameTimeMS : -1);
+            it->_startChannel, it->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
+            it->_universe, it->_packets.size() > 0 ? it->_packets.front()->_length : 0,
+            (int)it->_packets.size(), it->_packets.size() > 0 ? it->_packets.front()->_frameTimeMS : -1,
+            it->_packets.size() > 0 ? it->_packets.back()->_frameTimeMS : -1);
     }
     log += wxString::Format("Channel Structure End!\n");
 

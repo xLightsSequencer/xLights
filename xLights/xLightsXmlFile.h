@@ -1,11 +1,21 @@
-#ifndef XLIGHTSXMLFILE_H
-#define XLIGHTSXMLFILE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include "sequencer/SequenceElements.h"
 #include "DataLayer.h"
 #include "AudioManager.h"
+#include "Vixen3.h"
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
@@ -95,15 +105,17 @@ class xLightsXmlFile : public wxFileName
         void SetTimingSectionName(const std::string & section, const std::string & name);
         bool TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent);
         wxArrayString GetTimingList() const { return timing_list; }
-        wxArrayString GetTimingList(SequenceElements& seq_elements);
+        wxArrayString GetTimingList(const SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent);
         void ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void ProcessSRT(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
         wxString UniqueTimingName(xLightsFrame* xLightsParent, wxString name) const;
         void UpdateVersion();
         void UpdateVersion(const std::string &version);
@@ -127,6 +139,8 @@ class xLightsXmlFile : public wxFileName
 
         int GetLastView() const;
 
+        wxXmlNode* GetPalettesNode() const;
+
         // static methods
         static void FixVersionDifferences(const wxString& filename);
         static void FixEffectPresets(wxXmlNode* effects_node);
@@ -138,17 +152,17 @@ class xLightsXmlFile : public wxFileName
         wxArrayString header_info;
         wxArrayString timing_list;
         wxString version_string;
-        double seq_duration;
+        double seq_duration = 0;
         wxString media_file;
         wxString seq_type;
         wxString seq_timing;
         wxString image_dir;
-        bool supports_model_blending;
-        bool is_open;
-        bool was_converted;
-        bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data
+        bool supports_model_blending = false;
+        bool is_open = false;
+        bool was_converted = false;
+        bool sequence_loaded = false;  // flag to indicate the sequencer has been loaded with this xml data
         DataLayerSet mDataLayers;
-		AudioManager* audio;
+		AudioManager* audio = nullptr;
 
         void CreateNew();
         bool LoadSequence(const wxString& ShowDir, bool ignore_audio=false);
@@ -195,5 +209,3 @@ class xLightsXmlFile : public wxFileName
                           StringIntMap &effectStrings,
                           wxXmlNode* effectDB_Node);
 };
-
-#endif // XLIGHTSXMLFILE_H

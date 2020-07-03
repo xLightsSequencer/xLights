@@ -1,28 +1,14 @@
+#pragma once
+
 /***************************************************************
- * Name:      PixelBuffer.h
- * Purpose:   Implements pixel buffer and effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-10-21
- * Copyright: 2012 by Matt Brown
- * License:
-     This file is part of xLights.
-
-    xLights is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    xLights is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with xLights.  If not, see <http://www.gnu.org/licenses/>.
-**************************************************************/
-
-#ifndef PIXELBUFFER_H
-#define PIXELBUFFER_H
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/xml/xml.h>
 
@@ -31,6 +17,7 @@
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
 #include "RenderUtils.h"
+#include "Color.h"
 
 #define BLUR_MIN 1
 #define BLUR_MAX 15
@@ -128,7 +115,8 @@ private:
             BufferHt = BufferWi = 0;
             persistent = false;
             usingModelBuffers = false;
-
+            freezeAfterFrame = 10000;
+            suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
             inTransitionReverse = outTransitionReverse = false;
@@ -173,6 +161,8 @@ private:
         ValueCurve PivotPointYValueCurve;
         ValueCurve XPivotValueCurve;
         ValueCurve YPivotValueCurve;
+        ValueCurve InTransitionAdjustValueCurve;
+        ValueCurve OutTransitionAdjustValueCurve;
         int sparkle_count;
         bool use_music_sparkle_count;
         float music_sparkle_count_factor;
@@ -197,8 +187,8 @@ private:
         MixTypes mixType;
         float effectMixThreshold;
         bool effectMixVaries;
-        bool canvas;
-        bool persistent;
+        bool canvas = false;
+        bool persistent = false;
         int fadeInSteps;
         int fadeOutSteps;
         std::string inTransitionType;
@@ -213,14 +203,31 @@ private:
         float outMaskFactor;
         bool usingModelBuffers;
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+        bool isChromaKey = false;
+        xlColor chromaKeyColour = xlBLACK;
+        xlColor sparklesColour = xlWHITE;
+        int chromaSensitivity = 1;
+        int freezeAfterFrame = 99999;
+        int suppressUntil = 0;
 
         std::vector<uint8_t> mask;
-        void calculateMask(bool isFirstFrame);
+        void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
-        
+
         void clear();
         
+        
+        float outputHueAdjust;
+        float outputSaturationAdjust;
+        float outputValueAdjust;
+        bool  needsHSVAdjust = false;
+        int   outputSparkleCount = 0;
+        int   outputBrightnessAdjust = 0;
+        float outputEffectMixThreshold;
+        
+        void calculateNodeOutputParams(int effectPeriod);
+
     private:
         void createSquareExplodeMask(bool end);
         void createCircleExplodeMask(bool end);
@@ -247,7 +254,7 @@ private:
     void RotateX(LayerInfo* layer, float offset);
     void RotateY(LayerInfo* layer, float offset);
     void RotateZAndZoom(LayerInfo* layer, float offset);
-    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
+    void GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer);
 
     std::string modelName;
     std::string lastBufferType;
@@ -268,6 +275,7 @@ public:
     int GetChanCountPerNode() const;
     MixTypes GetMixType(int layer) const;
     bool IsCanvasMix(int layer) const;
+    int GetFrameTimeInMS() const { return frameTimeInMs; }
 
     bool IsVariableSubBuffer(int layer) const;
     void PrepareVariableSubBuffer(int EffectPeriod, int layer);
@@ -282,27 +290,28 @@ public:
     RenderBuffer &BufferForLayer(int i, int idx);
     int BufferCountForLayer(int i);
     void MergeBuffersForLayer(int i);
-    
-    
+
+    int GetLayerCount() const;
     void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);
 
     void Clear(int which);
-    
+
     void SetLayerSettings(int layer, const SettingsMap &settings);
     bool IsPersistent(int layer);
-    
+    int GetFreezeFrame(int layer);
+    int GetSuppressUntil(int layer);
+
     void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
-    void SetColors(int layer, const unsigned char *fdata);    
+    void SetColors(int layer, const unsigned char *fdata);
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
 };
-typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 
-#endif // PIXELBUFFER_H
+typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

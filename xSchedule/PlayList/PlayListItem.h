@@ -1,5 +1,14 @@
-#ifndef PLAYLISTITEM_H
-#define PLAYLISTITEM_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <list>
@@ -15,6 +24,7 @@ protected:
 
     #pragma region Member Variables
     wxUint32 _id;
+    std::string _type;
     int _lastSavedChangeCount;
     int _changeCount;
     std::string _name;
@@ -34,10 +44,9 @@ protected:
     bool IsSuppressAudioOnSlaves() const;
     std::string ReplaceTags(const std::string s) const;
 
-protected:
-    static std::string GetTagHint();
-
     public:
+
+    static std::string GetTagHint();
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);
@@ -47,6 +56,7 @@ protected:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    std::string GetType() const { return _type; }
     bool GetRestOfStep() const { return _restOfStep; }
     void SetRestOfStep(bool restOfStep) { if (_restOfStep != restOfStep) { _restOfStep = restOfStep; _changeCount++; } }
     virtual bool HasIP() const { return false; }
@@ -55,6 +65,7 @@ protected:
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    void SetDirty() { _changeCount++; }
     std::string GetName() const;
     std::string GetRawName() const { return _name; }
     virtual std::string GetNameNoTime() const;
@@ -97,4 +108,3 @@ protected:
     virtual void Configure(wxNotebook* notebook) = 0;
     #pragma endregion UI
 };
-#endif

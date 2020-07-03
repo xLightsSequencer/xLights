@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "ScheduleOptions.h"
 
 #include <wx/xml/xml.h>
@@ -11,12 +21,14 @@
 #include "CommandManager.h"
 #include "events/EventBase.h"
 #include "events/EventARTNet.h"
+#include "events/EventARTNetTrigger.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
 #include "events/EventPing.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
+#include "events/EventMQTT.h"
 #include "events/EventState.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
@@ -34,6 +46,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _MIDITimecodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0")));
     _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
     _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
+    _SMPTEMode = wxAtoi(node->GetAttribute("SMPTEMode", "3"));
     _remoteAcceptableJitter = wxAtoi(node->GetAttribute("RemoteAcceptableJitter", "20"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
@@ -41,9 +54,12 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
     _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
+    _keepScreenOn = node->GetAttribute("KeepScreenOn", "FALSE") == "TRUE";
     _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
     _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
+    _hardwareAcceleratedVideo = node->GetAttribute("HardwareAcceleratedVideo", "TRUE") == "TRUE";
+    _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
 #else
@@ -54,6 +70,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _crashBehaviour = node->GetAttribute("CrashBehaviour", "Prompt user");
     _artNetTimeCodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1")));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
+    _inputAudioDevice = node->GetAttribute("InputAudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
     _city = node->GetAttribute("City", "Sydney");
@@ -101,6 +118,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 {
                     _events.push_back(new EventMIDI(n2));
                 }
+                else if (n2->GetName() == "EventMQTT")
+                {
+                    _events.push_back(new EventMQTT(n2));
+                }
                 else if (n2->GetName() == "EventState")
                 {
                     _events.push_back(new EventState(n2));
@@ -120,6 +141,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 else if (n2->GetName() == "EventARTNet")
                 {
                     _events.push_back(new EventARTNet(n2));
+                }
+                else if (n2->GetName() == "EventARTNetTrigger")
+                {
+                    _events.push_back(new EventARTNetTrigger(n2));
                 }
                 else
                 {
@@ -154,6 +179,15 @@ void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
     }
 }
 
+void ScheduleOptions::SetInputAudioDevice(const std::string& audioDevice)
+{
+    if (_inputAudioDevice != audioDevice) {
+        _inputAudioDevice = audioDevice;
+        AudioManager::SetInputAudioDevice(_inputAudioDevice);
+        _changeCount++;
+    }
+}
+
 void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager)
 {
     UserButton* b = new UserButton();
@@ -163,6 +197,51 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
     b->SetHotkey(hotkey);
     b->SetColor(color);
     _buttons.push_back(b);
+}
+
+int ScheduleOptions::EncodeSMPTEMode(const std::string& mode)
+{
+    if (mode == "24 FPS")
+    {
+        return 0;
+    }
+    else if (mode == "25 FPS")
+    {
+        return 1;
+    }
+    else if (mode == "29.97 FPS")
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+
+wxArrayString ScheduleOptions::GetSPMTEModes()
+{
+    wxArrayString res;
+    res.push_back("24 FPS");
+    res.push_back("25 FPS");
+    res.push_back("29.97 FPS");
+    res.push_back("30 FPS");
+    return res;
+}
+
+std::string ScheduleOptions::DecodeSMPTEMode(int mode)
+{
+    switch (mode)
+    {
+    case 0:
+        return "24 FPS";
+    case 1:
+        return "25 FPS";
+    case 2:
+        return "29.97 FPS";
+    default:
+        return "30 FPS";
+    }
 }
 
 ScheduleOptions::ScheduleOptions()
@@ -175,6 +254,9 @@ ScheduleOptions::ScheduleOptions()
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
     _audioDevice = "";
+    _inputAudioDevice = "";
+    _hardwareAcceleratedVideo = true;
+    _lateStartingScheduleUsesTime = false;
 #ifdef __WXMSW__
     _port = 80;
 #else
@@ -189,6 +271,7 @@ ScheduleOptions::ScheduleOptions()
     _sendOffWhenNotRunning = false;
     _parallelTransmission = false;
     _remoteAllOff = true;
+    _keepScreenOn = false;
     _retryOutputOpen = false;
     _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
@@ -197,6 +280,7 @@ ScheduleOptions::ScheduleOptions()
     _MIDITimecodeDevice = "";
     _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
+    _SMPTEMode = 3;
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -221,6 +305,7 @@ wxXmlNode* ScheduleOptions::Save()
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Options");
 
     res->AddAttribute("AudioDevice", _audioDevice);
+    res->AddAttribute("InputAudioDevice", _inputAudioDevice);
     res->AddAttribute("WWWRoot", _wwwRoot);
     res->AddAttribute("CrashBehaviour", _crashBehaviour);
     res->AddAttribute("MIDITimecodeDevice", _MIDITimecodeDevice);
@@ -230,6 +315,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("City", _city);
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
+    res->AddAttribute("SMPTEMode", wxString::Format("%d", _SMPTEMode));
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");
@@ -243,6 +329,18 @@ wxXmlNode* ScheduleOptions::Save()
     if (_advancedMode)
     {
         res->AddAttribute("AdvancedMode", "TRUE");
+    }
+    if (_lateStartingScheduleUsesTime)
+    {
+        res->AddAttribute("LateStartingScheduleUsesTime", "TRUE");
+    }
+    if (_hardwareAcceleratedVideo)
+    {
+        res->AddAttribute("HardwareAcceleratedVideo", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("HardwareAcceleratedVideo", "FALSE");
     }
 
     if (IsSendOffWhenNotRunning())
@@ -277,6 +375,15 @@ wxXmlNode* ScheduleOptions::Save()
     else
     {
         res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
+    }
+
+    if (IsKeepScreenOn())
+    {
+        res->AddAttribute("KeepScreenOn", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("KeepScreenOn", "FALSE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));

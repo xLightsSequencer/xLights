@@ -1,7 +1,17 @@
-//(*InternalHeaders(xLightsImportChannelMapDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*InternalHeaders(xLightsImportChannelMapDialog)
+ #include <wx/intl.h>
+ #include <wx/string.h>
+ //*)
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
@@ -67,6 +77,7 @@ public:
 
 class ColorRenderer : public wxDataViewCustomRenderer
 {
+    static wxColourData _colorData;
     wxColor _color;
 
 public:
@@ -77,12 +88,12 @@ public:
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
     {
-        wxColourData data;
-        data.SetColour(_color);
-        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &data);
+        _colorData.SetColour(_color);
+        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &_colorData);
 
         if (dlg.ShowModal() == wxID_OK)
         {
+            _colorData = dlg.GetColourData();
             _color = dlg.GetColourData().GetColour();
             model->SetValue(wxVariant(_color.GetAsString()), item, col);
         }
@@ -123,6 +134,9 @@ public:
         return false;
     }
 };
+
+wxColourData ColorRenderer::_colorData;
+
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
@@ -404,6 +418,7 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 //(*IdInit(xLightsImportChannelMapDialog)
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX11 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
@@ -416,12 +431,15 @@ const long xLightsImportChannelMapDialog::ID_PANEL2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
+const long xLightsImportChannelMapDialog::ID_MNU_SELECTALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_SELECTNONE = wxNewId();
+
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//(*EventTable(xLightsImportChannelMapDialog)
 	//*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id,const wxPoint& pos,const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     TreeListCtrl_Mapping = nullptr;
     _dataModel = nullptr;
@@ -433,86 +451,94 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     _filename = filename;
     _dragItem = wxDataViewItem(nullptr);
 
-	//(*Initialize(xLightsImportChannelMapDialog)
-	wxButton* Button01;
-	wxButton* Button02;
-	wxFlexGridSizer* FlexGridSizer2;
+    //(*Initialize(xLightsImportChannelMapDialog)
+    wxButton* Button01;
+    wxButton* Button02;
+    wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
-	OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
-	OldSizer->AddGrowableCol(0);
-	OldSizer->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetSashGravity(0.5);
-	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	Sizer1->AddGrowableCol(0);
-	Sizer1->AddGrowableRow(3);
-	Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TimeAdjustSpinCtrl = new wxSpinCtrl(Panel1, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 600000, 0, _T("ID_SPINCTRL1"));
-	TimeAdjustSpinCtrl->SetValue(_T("0"));
-	Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	CheckBox_MapCCRStrand = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	CheckBox_MapCCRStrand->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
-	TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
-	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
-	Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
-	SizerMap = new wxFlexGridSizer(1, 1, 0, 0);
-	SizerMap->AddGrowableCol(0);
-	SizerMap->AddGrowableRow(0);
-	Sizer1->Add(SizerMap, 0, wxEXPAND, 0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 7, 0, 0);
-	FlexGridSizer2->AddGrowableCol(2);
-	Button_Ok = new wxButton(Panel1, ID_BUTTON3, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer2->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
-	Panel1->SetSizer(Sizer1);
-	Sizer1->Fit(Panel1);
-	Sizer1->SetSizeHints(Panel1);
-	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	Sizer2->AddGrowableCol(0);
-	Sizer2->AddGrowableRow(0);
-	ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
-	Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
-	Panel2->SetSizer(Sizer2);
-	Sizer2->Fit(Panel2);
-	Sizer2->SetSizeHints(Panel2);
-	SplitterWindow1->SplitVertically(Panel1, Panel2);
-	OldSizer->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	SetSizer(OldSizer);
-	OldSizer->Fit(this);
-	OldSizer->SetSizeHints(this);
+    Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+    OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    OldSizer->AddGrowableCol(0);
+    OldSizer->AddGrowableRow(0);
+    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindow1->SetMinSize(wxSize(10,10));
+    SplitterWindow1->SetSashGravity(0.5);
+    Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+    Sizer1->AddGrowableCol(0);
+    Sizer1->AddGrowableRow(4);
+    Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TimeAdjustSpinCtrl = new wxSpinCtrl(Panel1, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 600000, 0, _T("ID_SPINCTRL1"));
+    TimeAdjustSpinCtrl->SetValue(_T("0"));
+    Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    CheckBox_MapCCRStrand = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_MapCCRStrand->SetValue(false);
+    FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer11->AddGrowableCol(0);
+    CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
+    CheckBox_EraseExistingEffects->SetValue(false);
+    FlexGridSizer11->Add(CheckBox_EraseExistingEffects, 1, wxALL|wxEXPAND, 5);
+    Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
+    TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
+    TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+    TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
+    Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
+    SizerMap = new wxFlexGridSizer(1, 1, 0, 0);
+    SizerMap->AddGrowableCol(0);
+    SizerMap->AddGrowableRow(0);
+    Sizer1->Add(SizerMap, 0, wxEXPAND, 0);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 7, 0, 0);
+    FlexGridSizer2->AddGrowableCol(2);
+    Button_Ok = new wxButton(Panel1, ID_BUTTON3, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    FlexGridSizer2->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
+    Panel1->SetSizer(Sizer1);
+    Sizer1->Fit(Panel1);
+    Sizer1->SetSizeHints(Panel1);
+    Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+    Sizer2->AddGrowableCol(0);
+    Sizer2->AddGrowableRow(0);
+    ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
+    Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
+    Panel2->SetSizer(Sizer2);
+    Sizer2->Fit(Panel2);
+    Sizer2->SetSizeHints(Panel2);
+    SplitterWindow1->SplitVertically(Panel1, Panel2);
+    OldSizer->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    SetSizer(OldSizer);
+    OldSizer->Fit(this);
+    OldSizer->SetSizeHints(this);
 
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
-	//*)
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
+    //*)
+
+    Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
 
     SetSize(800, 600);
 
@@ -533,10 +559,42 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     Connect(wxID_ANY, EVT_MDDROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDrop);
 
-    MDTextDropTarget *mdt = new MDTextDropTarget(this, ListCtrl_Available, "Remove");
+    MDTextDropTarget* mdt = new MDTextDropTarget(this, ListCtrl_Available, "Remove");
     ListCtrl_Available->SetDropTarget(mdt);
 
     _dirty = false;
+
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsImportDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
+
+    EnsureWindowHeaderIsOnScreen(this);
+}
+
+void xLightsImportChannelMapDialog::RightClickTimingTracks(wxContextMenuEvent& event)
+{
+    wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_SELECTALL, "Select All");
+    mnuLayer.Append(ID_MNU_SELECTNONE, "Select None");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupTimingTracks, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
+{
+    for (int i = 0; i < TimingTrackListBox->GetCount(); i++)
+    {
+        TimingTrackListBox->Check(i, event.GetId() == ID_MNU_SELECTALL);
+    }
 }
 
 xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
@@ -562,17 +620,8 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
         delete _stashedMappings.front();
         _stashedMappings.pop_front();
     }
-}
 
-int CountChar(wxString& line, char c)
-{
-    int count = 0;
-    for (size_t x = 0; x < line.size(); x++) {
-        if (line[x] == c) {
-            count++;
-        }
-    }
-    return count;
+    SaveWindowPosition("xLightsImportDialogPosition", this);
 }
 
 bool xLightsImportChannelMapDialog::InitImport() {
@@ -598,8 +647,11 @@ bool xLightsImportChannelMapDialog::InitImport() {
     }
     else
     {
-        for (auto it = timingTracks.begin(); it != timingTracks.end(); ++it) {
-            TimingTrackListBox->Append(*it);
+        for (const auto& it : timingTracks) {
+            int item = TimingTrackListBox->Append(it);
+            if (!timingTrackAlreadyExists[it]) {
+                TimingTrackListBox->Check(item, true);
+            }
         }
     }
 
@@ -643,7 +695,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     int ms = 0;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
-        if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             Element* e = mSequenceElements->GetElement(i);
 
             Model *m = xlights->GetModel(e->GetName());
@@ -777,9 +829,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         {
             auto modelNames = grp->ModelNames();
 
-            for (auto it = modelNames.begin(); it != modelNames.end(); ++it)
+            for (const auto& it : modelNames)
             {
-                if (std::find(it->begin(), it->end(), '/') != it->end())
+                if (std::find(it.begin(), it.end(), '/') != it.end())
                 {
                     // this is a submodel ... dont add it
 
@@ -789,8 +841,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
                 }
                 else
                 {
-                    Model* mdl = grp->GetModel(*it);
-                    AddModel(mdl, ms);
+                    Model* mdl = grp->GetModel(it);
+                    if (mdl != nullptr)
+                    {
+                        AddModel(mdl, ms);
+                    }
                 }
             }
         }
@@ -829,7 +884,7 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
     }
 }
 
-void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const std::string& mapping)
+void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const wxString& mapping)
 {
     _dirty = true;
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
@@ -986,6 +1041,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
+        _mappingFile = dlg.GetPath();
         _dataModel->ClearMapping();
 
         for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it)
@@ -1040,7 +1096,12 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
                 mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
                 ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
-                mel->Init(*xlights->GetModel(model.ToStdString()));
+                if (mel != nullptr) {
+                    mel->Init(*xlights->GetModel(model.ToStdString()));
+                }
+                else {
+                    logger_base.warn("Strange ... load mapping returned null model for " + model);
+                }
                 modelEl = mel;
             }
 
@@ -1137,7 +1198,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, "mapping", "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
@@ -1648,14 +1709,12 @@ void xLightsImportChannelMapDialog::MarkUsed()
     // go through each tree row where mapping is not blank
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i)
     {
-        bool found = false;
         auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "")
         {
             if (std::find(used.begin(), used.end(), model->_mapping) == used.end())
             {
                 used.push_back(model->_mapping.ToStdString());
-                found = true;
             }
         }
 
@@ -1667,7 +1726,6 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 if (std::find(used.begin(), used.end(), strand->_mapping) == used.end())
                 {
                     used.push_back(strand->_mapping.ToStdString());
-                    found = true;
                 }
             }
 
@@ -1679,7 +1737,6 @@ void xLightsImportChannelMapDialog::MarkUsed()
                     if (std::find(used.begin(), used.end(), node->_mapping) == used.end())
                     {
                         used.push_back(node->_mapping.ToStdString());
-                        found = true;
                     }
                 }
             }

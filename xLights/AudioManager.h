@@ -1,16 +1,32 @@
-#ifndef AUDIOMANAGER_H
-#define AUDIOMANAGER_H
+#pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <memory>
 #include <string>
 #include <list>
 #include <shared_mutex>
+#include <vector>
+#include <future>
 
 extern "C"
 {
+#include <libavformat/avformat.h> // for AVSampleFormat
+
     struct AVFormatContext;
     struct AVCodecContext;
     struct AVStream;
     struct AVFrame;
+    struct AVPacket;
+    struct SwrContext;
 }
 
 extern "C"
@@ -20,14 +36,23 @@ extern "C"
 }
 
 #include "vamp-hostsdk/PluginLoader.h"
-#include "JobPool.h"
 #include <wx/progdlg.h>
 
 class AudioManager;
 
+enum class AUDIOSAMPLETYPE
+{
+    RAW,
+    BASS,
+    TREBLE,
+    CUSTOM,
+    ALTO,
+    NONVOCALS
+};
+
 class xLightsVamp
 {
-	Vamp::HostExt::PluginLoader *_loader;
+	Vamp::HostExt::PluginLoader *_loader = nullptr;
 	std::map<std::string, Vamp::Plugin *> _plugins;
 	std::vector<Vamp::Plugin *> _loadedPlugins;
 	std::map<std::string, Vamp::Plugin *> _allplugins;
@@ -108,13 +133,13 @@ class SDL
     SDLSTATE _state;
     std::list<AudioData*> _audioData;
     std::mutex _audio_Lock;
-    float _playbackrate;
+    float _playbackrate = 1.0f;
     SDL_AudioSpec _wanted_spec;
     SDL_AudioSpec _wanted_inputspec;
-    int _initialisedRate;
+    int _initialisedRate = 44100;
     std::string _device;
     std::string _inputDevice;
-    int _listeners;
+    int _listeners = 0;
 
     void Reopen();
     AudioData* GetData(int id);
@@ -141,57 +166,71 @@ public:
     void Pause(int id, bool pause);
     bool HasAudio(int id);
     static std::list<std::string> GetAudioDevices();
+    static std::list<std::string> GetInputAudioDevices();
     bool AudioDeviceChanged();
-    bool OpenAudioDevice(const std::string device);
-    bool OpenInputAudioDevice(const std::string device);
-    void SetAudioDevice(const std::string device);
+    bool OpenAudioDevice(const std::string& device);
+    bool OpenInputAudioDevice(const std::string& device);
+    void SetAudioDevice(const std::string& device);
+    void SetInputAudioDevice(const std::string& inputDevice);
     bool CloseAudioDevice();
     bool CloseInputAudioDevice();
     int GetInputMax(int ms);
+	std::vector<float> GetOutputSpectrum(int ms);
+    int GetInputAudio(uint8_t* buffer, int bufsize);
     void PurgeAllButInputAudio(int ms);
-    std::list<float> GetInputSpectrum(int ms);
+    std::vector<float> GetInputSpectrum(int ms);
     void PurgeInput();
     void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
-    void StartListening();
+    void StartListening(const std::string& inputDevice = "");
     void StopListening();
+    bool IsListening();
+};
+
+struct FilteredAudioData
+{
+    AUDIOSAMPLETYPE type;
+    int lowNote = 0;
+    int highNote = 127;
+    float* data = nullptr;
+    int16_t *pcmdata = nullptr;
 };
 
 class AudioManager
 {
-	JobPool _jobPool;
-	Job* _job;
     std::shared_timed_mutex _mutex;
-    Job* _jobAudioLoad;
     std::shared_timed_mutex _mutexAudioLoad;
-    long _loadedData;
+    long _loadedData = 0;
     std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
-	long _rate;
-	int _channels;
-    long _trackSize;
-	int _bits;
-	int _extra;
+	long _rate = 44100;
+	int _channels = 0;
+    long _trackSize = 0;
+	int _bits = 0;
+	int _extra = 0;
 	std::string _resultMessage;
-	int _state;
+	int _state = 0;
 	float *_data[2]; // audio data
-	Uint8* _pcmdata;
-	long _pcmdatasize;
+	Uint8* _pcmdata = nullptr;
+	long _pcmdatasize = 0;
 	std::string _title;
 	std::string _artist;
 	std::string _album;
-	int _intervalMS;
-	long _lengthMS;
-	bool _frameDataPrepared;
-	float _bigmax;
-	float _bigspread;
-	float _bigmin;
-	float _bigspectogrammax;
+	int _intervalMS = 50;
+	long _lengthMS = 0;
+	bool _frameDataPrepared = false;
+	float _bigmax = 0;
+	float _bigspread = 0;
+	float _bigmin = 0;
+	float _bigspectogrammax = 0;
 	MEDIAPLAYINGSTATE _media_state;
-	bool _polyphonicTranscriptionDone;
-    int _sdlid;
-    bool _ok;
+	bool _polyphonicTranscriptionDone = false;
+    std::vector<FilteredAudioData*> _filtered;
+    int _sdlid = 0;
+    bool _ok = false;
     std::string _hash;
+    std::future<void> _prepFrameData;
+    std::future<void> _loadingAudio;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -205,15 +244,25 @@ class AudioManager
 	int decodesamplerateindex(int samplerateindex, int version) const;
     static int decodesideinfosize(int version, int mono);
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const;
-    void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+
+    void LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx,
+                             bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx,
+                                    int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
     void SetLoadedData(long pos);
 
+    static bool WriteAudioFrame( AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false );
+
 public:
+    static double MidiToFrequency(int midi);
+    static std::string MidiToNote(int midi);
     bool IsOk() const { return _ok; }
     static size_t GetAudioFileLength(std::string filename);
 	void Seek(long pos) const;
 	void Pause();
 	void Play();
+    bool IsPlaying() const;
     void Play(long posms, long lenms);
     void Stop();
     void AbsoluteStop();
@@ -229,8 +278,10 @@ public:
     int GetVolume() const;
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
-    static void SetAudioDevice(const std::string device);
+    static void SetAudioDevice(const std::string& device);
     static std::list<std::string> GetAudioDevices();
+    static void SetInputAudioDevice(const std::string& device);
+    static std::list<std::string> GetInputAudioDevices();
     long GetTrackSize() const { return _trackSize; };
 	long GetRate() const { return _rate; };
 	int GetChannels() const { return _channels; };
@@ -244,25 +295,88 @@ public:
 	long LengthMS() const { return _lengthMS; };
 	float GetRightData(long offset);
 	float GetLeftData(long offset);
-    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum);
+    void SwitchTo(AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
+    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
 	float* GetRightDataPtr(long offset);
 	float* GetLeftDataPtr(long offset);
 	void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
-	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
-	std::list<float>* GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms);
+	const std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
+	const std::list<float>* GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
+
+    void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
-    
-    static bool WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false);
-    static bool CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate);
+
+    static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
+    bool WriteCurrentAudio( const std::string& path, long bitrate );
 
     bool AudioDeviceChanged();
 
     static SDL* GetSDL();
 };
 
-#endif
+struct AudioParams
+{
+   int            channelCount;
+   AVSampleFormat sampleFormat;
+   int            sampleRate;
+   int            bytesPerSample;
+
+   AudioParams()
+    : channelCount(0), sampleFormat( AV_SAMPLE_FMT_NONE ), sampleRate( 0 ), bytesPerSample( 0 ) {}
+   AudioParams( int i_cc, AVSampleFormat i_sf, int i_sampleRate, int i_bytesPerSample )
+    : channelCount( i_cc ), sampleFormat( i_sf ), sampleRate( i_sampleRate ), bytesPerSample( i_bytesPerSample ) {}
+};
+
+class AudioReaderDecoder;
+enum class AudioReaderDecoderInitState
+{
+    Ok, NoInit,
+    FormatContextAllocFails, OpenFails, NoAudioStream, FindStreamInfoFails, CodecContextAllocFails, CodecOpenFails, FrameAllocFails, PacketAllocFails
+};
+
+class AudioResampler;
+enum class AudioResamplerInitState
+{
+   Ok, NoInit, InitFails, OutputInitFails
+};
+
+class AudioLoader
+{
+public:
+    AudioLoader( const std::string& path, bool forceLittleEndian=false );
+    virtual ~AudioLoader();
+
+    enum State { Ok, NoInit, ReaderDecoderInitFails, ResamplerInitFails, LoadAudioFails };
+
+    bool loadAudioData();
+
+    State state() const { return _state; }
+    bool readerDecoderInitState( AudioReaderDecoderInitState& state ) const;
+    bool resamplerInitState( AudioResamplerInitState& state ) const;
+
+    // 16-bit stereo interleaved audio samples
+    const std::vector<int16_t> & processedAudio() const { return _processedAudio; }
+
+protected:
+    void processDecodedAudio( const AVFrame* );
+    void copyResampledAudio( int sampleCount );
+    void flushResampleBuffer();
+
+    const std::string                   _path;
+    const bool                          _forceLittleEndian;
+    State                               _state;
+    std::unique_ptr<AudioReaderDecoder> _readerDecoder;
+    std::unique_ptr<AudioResampler>     _resampler;
+    std::vector<int16_t>                _processedAudio;
+    std::unique_ptr<uint8_t[]>          _resampleBuff;
+    int                                 _numInResampleBuffer;
+    int                                 _resampleBufferSampleCapacity;
+    AudioParams                         _inputParams;
+    AudioParams                         _resamplerInputParams;
+    int                                 _primingAdjustment;
+};

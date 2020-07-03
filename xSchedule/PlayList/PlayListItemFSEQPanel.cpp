@@ -1,6 +1,16 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemFSEQPanel.h"
-#include "PlayListItemFSEQ.h"
 #include "PlayListDialog.h"
+#include "PlayListItemFSEQ.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"
@@ -59,7 +69,8 @@ public:
 
 class AudioFilePickerCtrl : public wxFilePickerCtrl
 {
-#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg|All Files|*.*"
+    // *.mid; excluded as ffmpeg wont read them
+#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv|All Files|*.*"
 
 public:
     AudioFilePickerCtrl(wxWindow *parent,
@@ -240,7 +251,8 @@ void PlayListItemFSEQPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemFSEQPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     _fseq->SetFSEQFileName(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 
     if (!CheckBox_OverrideAudio->GetValue())
     {

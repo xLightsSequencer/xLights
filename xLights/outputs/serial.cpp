@@ -1,20 +1,19 @@
-// Author:      Joachim Buermann (adapted for xLights by Matt Brown)
+// Author:      Joachim Buermann (adapted for xLights)
 // Copyright:   (c) 2010 Joachim Buermann
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "serial.h"
+
 #include <log4cpp/Category.hh>
-
-#pragma region Callback 
-void SerialPort::SetCallback(int cb)
-{
-    _callback = cb;
-}
-
-int SerialPort::GetCallback()
-{
-    return _callback;
-}
-#pragma endregion Callback 
 
 #ifdef __WXMSW__
 # include "serial_win32.cpp"

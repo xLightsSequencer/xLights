@@ -1,6 +1,14 @@
+#pragma once
 
-#ifndef XLIGHTS_COLOR_H
-#define XLIGHTS_COLOR_H
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/colour.h>
 #include <vector>
@@ -170,6 +178,12 @@ public:
         return xlColor(0, 0, 0, 0);
     }
 
+    xlColor ApplyBrightness(float b)
+    {
+        wxASSERT(b >= 0.0 && b <= 1.0);
+        return xlColor(b * red, b * green, b * blue);
+    }
+
     int Brightness() const;
 
     uint32_t GetRGB(bool BBGGRR = true) const
@@ -196,7 +210,10 @@ public:
     void AlphaBlendForgroundOnto(const xlColor &fc) {
         if (fc.alpha == 0) return;
         if (fc.alpha == 255) {
-            *this = fc;
+            red = fc.red;
+            blue = fc.blue;
+            green = fc.green;
+            alpha = 255;
             return;
         }
         float a = fc.alpha;
@@ -254,7 +271,4 @@ enum ColorDisplayMode
     MODE_GREEN,
     MODE_BLUE
 };
-
-#endif
-
 

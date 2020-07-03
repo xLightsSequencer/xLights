@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <locale>
 
 #include "Curl.h"
 
@@ -16,47 +15,56 @@
 
 class Twilio : public SMSService
 {
-	const std::string TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json";
+	const std::string TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{user}/Messages.json";
 
     public:
 
-        Twilio() : SMSService() {}
+        Twilio(const SMSDaemonOptions& options) : SMSService(options) {}
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) const override
+        virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
             if (number == "TEST") return false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = TWILIO_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
 
             std::vector<Curl::Var> vars;
             vars.push_back(Curl::Var("To", number));
-            vars.push_back(Curl::Var("From", _myNumber));
+            vars.push_back(Curl::Var("From", GetPhone()));
             vars.push_back(Curl::Var("Body", message));
 
-            std::string res = Curl::HTTPSPost(url, vars, _sid, _token);
-            logger_base.debug("%s", (const char*)url.c_str());
+            logger_base.debug("Sending SMS to:'%s' from:'%s' body:'%s'.",
+                              (const char*)number.c_str(),
+                              (const char*)GetPhone().c_str(),
+                              (const char*)message.c_str());
+            std::string res = Curl::HTTPSPost(url, vars, sid, token);
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return true;
 		}
 
         virtual std::string GetServiceName() const override { return "Twilio"; }
-        virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
+        virtual bool RetrieveMessages() override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
             std::string url = TWILIO_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
 
-            std::string res = Curl::HTTPSGet(url, _sid, _token);
-            logger_base.debug("%s", (const char*)url.c_str());
+            logger_base.debug("Retrieving messages.");
+            std::string res = Curl::HTTPSGet(url, sid, token);
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 
             // construct the JSON root object
@@ -77,6 +85,8 @@ class Twilio : public SMSService
             }
             else
             {
+                Retrieved();
+
                 wxJSONValue defaultValue = wxString("");
                 wxJSONValue msgs = root.Get("messages", defaultValue);
 
@@ -93,10 +103,11 @@ class Twilio : public SMSService
                             wxString::const_iterator end;
                             //"Sat, 10 Jun 2017 14:03:59 +0000"
                             msg._timestamp.ParseFormat(timestamp, "%a, %d %b %Y %H:%M:%S ", &end);
+                            msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("body", defaultValue).AsString().ToStdString();
 
-                            if (AddMessage(msg, options))
+                            if (AddMessage(msg))
                             {
                                 added = true;
                             }

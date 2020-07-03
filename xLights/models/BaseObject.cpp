@@ -1,10 +1,23 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 BaseObject::BaseObject()
-: ModelXml(nullptr), changeCount(0)
+: ModelXml(nullptr), changeCount(0), _active(true)
 {
     //ctor
 }
@@ -19,15 +32,29 @@ wxXmlNode* BaseObject::GetModelXml() const {
 }
 
 void BaseObject::SetLayoutGroup(const std::string &grp) {
-    layout_group = grp;
-    ModelXml->DeleteAttribute("LayoutGroup");
-    ModelXml->AddAttribute("LayoutGroup", grp);
-    IncrementChangeCount();
+    if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
+    {
+        layout_group = grp;
+        ModelXml->DeleteAttribute("LayoutGroup");
+        ModelXml->AddAttribute("LayoutGroup", grp);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
+    }
 }
 
-void BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+void BaseObject::EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable)
 {
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (grid->GetProperty("ModelLayoutGroup") != nullptr)
+    {
+        grid->GetProperty("ModelLayoutGroup")->Enable(enable);
+    }
+}
+
+glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+{
+    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -35,6 +62,7 @@ void BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPr
         SetFromXml(ModelXml);
     }
     IncrementChangeCount();
+    return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
 
 void BaseObject::SelectHandle(int handle) {
@@ -50,6 +78,11 @@ void BaseObject::Lock(bool lock)
         GetModelXml()->AddAttribute("Locked", "1");
     }
     IncrementChangeCount();
+}
+
+void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
+{
+    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
 }
 
 void BaseObject::SetTop(float y) {
@@ -106,18 +139,27 @@ void BaseObject::SetBack(float z) {
     IncrementChangeCount();
 }
 
-void BaseObject::SetWidth(float w) {
+void BaseObject::SetWidth(float w, bool ignoreLock) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMWidth(w);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
-void BaseObject::SetHeight(float h) {
+void BaseObject::SetDepth(float d, bool ignoreLock) {
+    
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    GetBaseObjectScreenLocation().SetMDepth(d);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetHeight(float h, bool ignoreLock) {
+
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMHeight(h);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -143,17 +185,18 @@ void BaseObject::SetVcenterPos(float pos) {
     IncrementChangeCount();
 }
 
-bool BaseObject::Scale(float f) {
-    if (GetBaseObjectScreenLocation().IsLocked()) return false;
-    
-    bool b = GetBaseObjectScreenLocation().Scale(f);
+void BaseObject::SetDcenterPos(float pos) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetDcenterPos(pos);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
-    return b;
 }
+
 bool BaseObject::Rotate(int axis, float factor) {
     if (GetBaseObjectScreenLocation().IsLocked()) return false;
-    
+
     bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
@@ -184,12 +227,16 @@ float BaseObject::GetBack() {
     return GetBaseObjectScreenLocation().GetBack();
 }
 
-float BaseObject::GetWidth() {
+float BaseObject::GetWidth() const {
     return GetBaseObjectScreenLocation().GetMWidth();
 }
 
-float BaseObject::GetHeight() {
+float BaseObject::GetHeight() const {
     return GetBaseObjectScreenLocation().GetMHeight();
+}
+
+float BaseObject::GetDepth() const {
+    return GetBaseObjectScreenLocation().GetMDepth();
 }
 
 float BaseObject::GetHcenterPos() {
@@ -200,11 +247,53 @@ float BaseObject::GetVcenterPos() {
     return GetBaseObjectScreenLocation().GetVcenterPos();
 }
 
-void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
+float BaseObject::GetDcenterPos() {
+    return GetBaseObjectScreenLocation().GetDcenterPos();
+}
 
+void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
 	if (GetBaseObjectScreenLocation().IsLocked()) return;
 
 	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
 	GetBaseObjectScreenLocation().Write(ModelXml);
 	IncrementChangeCount();
 }
+
+void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().RotateAboutPoint(position, angle);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
+}
+
+bool BaseObject::Scale(const glm::vec3& factor)
+{
+    bool return_value = false;
+    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+
+    return_value = GetBaseObjectScreenLocation().Scale(factor);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    return return_value;
+}
+
+bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
+    return  GetBaseObjectScreenLocation().IsContained(preview, x1, y1, x2, y2);
+}
+
+void BaseObject::SetActive(bool active) {
+	_active = active; 
+    ModelXml->DeleteAttribute("Active");
+    if (active) {
+        ModelXml->AddAttribute("Active", "1");
+    }
+    else
+    {
+        ModelXml->AddAttribute("Active", "0");
+    }
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BaseObject::SetActive");
+    AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BaseObject::SetActive");
+}
+

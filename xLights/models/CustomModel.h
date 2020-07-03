@@ -1,5 +1,14 @@
-#ifndef CUSTOMMODEL_H
-#define CUSTOMMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
 
@@ -8,6 +17,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
         CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
+
+        void UpdateModel(int width, int height, int depth, const std::string& modelData);
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
@@ -52,7 +63,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void ExportXlightsModel() override;
 
         virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
-        virtual std::string GetNodeName(size_t x, bool def = false) const override;
+        virtual std::string GetNodeName(int x, bool def = false) const override;
         virtual std::list<std::string> CheckModelSettings() override;
         virtual int NodesPerString(int string) const override;
 
@@ -75,5 +86,3 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _strings;
         std::vector<int> stringStartNodes;
 };
-
-#endif // CUSTOMMODEL_H

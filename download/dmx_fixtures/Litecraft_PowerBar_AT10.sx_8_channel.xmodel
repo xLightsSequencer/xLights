@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Litecraft PowerBar AT10.sx 8 channel" parm1="80" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,Colour Macro,Strobe,Mode selection,Dimmer,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="3" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="6" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="no_macro" s1-Color="#060606" 
+s2="Red" s2-Name="preprogrammed_colours" s2-Color="#868686" 
+s3="Mode selection" s3-Name="no_strobe" s3-Color="#060606" 
+s4="Mode selection" s4-Name="strobe_16_speeds" s4-Color="#868686" 
+s5="Dimmer" s5-Name="no_function" s5-Color="#0C0C0C" 
+s6="Dimmer" s6-Name="automatic_dimming_upwards" s6-Color="#252525" 
+s7="Dimmer" s7-Name="automatic_dimming_downwards" s7-Color="#3E3E3E" 
+s8="Dimmer" s8-Name="automatic_dimming_up_downwards" s8-Color="#575757" 
+s9="Dimmer" s9-Name="automatic_color_mix_mode" s9-Color="#707070" 
+s10="Dimmer" s10-Name="random_playback_3_colours" s10-Color="#898989" 
+s11="Dimmer" s11-Name="random_playback_7_colours" s11-Color="#A2A2A2" 
+s12="Dimmer" s12-Name="program_1" s12-Color="#BBBBBB" 
+s13="Dimmer" s13-Name="program_2" s13-Color="#D4D4D4" 
+s14="Dimmer" s14-Name="program_3" s14-Color="#EDEDED" 
+s15="Dimmer" s15-Name="audio_mode" s15-Color="#FDFDFD" 
+/>
+</dmxmodel>

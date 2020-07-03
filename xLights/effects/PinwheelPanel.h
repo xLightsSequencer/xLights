@@ -1,5 +1,14 @@
-#ifndef PINWHEELPANEL_H
-#define PINWHEELPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(PinwheelPanel)
 #include <wx/panel.h>
@@ -30,17 +39,20 @@ class PinwheelPanel: public wxPanel
 		BulkEditSlider* Slider_PinwheelYC;
 		BulkEditSlider* Slider_Pinwheel_ArmSize;
 		BulkEditSlider* Slider_Pinwheel_Arms;
+		BulkEditSlider* Slider_Pinwheel_Offset;
 		BulkEditSlider* Slider_Pinwheel_Speed;
 		BulkEditSlider* Slider_Pinwheel_Thickness;
 		BulkEditSlider* Slider_Pinwheel_Twist;
+		BulkEditValueCurveButton* BitmapButton_PinwheelXCVC;
+		BulkEditValueCurveButton* BitmapButton_PinwheelYCVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
+		BulkEditValueCurveButton* BitmapButton_Pinwheel_OffsetVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_TwistVC;
-		ValueCurveButton* BitmapButton_PinwheelXCVC;
-		ValueCurveButton* BitmapButton_PinwheelYCVC;
 		wxStaticText* StaticText184;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText63;
 		wxStaticText* StaticText74;
 		wxStaticText* StaticText75;
@@ -51,6 +63,7 @@ class PinwheelPanel: public wxPanel
 		wxStaticText* StaticText84;
 		xlLockButton* BitmapButton_Pinwheel3D;
 		xlLockButton* BitmapButton_PinwheelNumberArms;
+		xlLockButton* BitmapButton_PinwheelOffset;
 		xlLockButton* BitmapButton_PinwheelRotation;
 		xlLockButton* BitmapButton_PinwheelSpeed;
 		xlLockButton* BitmapButton_PinwheelThickness;
@@ -85,6 +98,11 @@ class PinwheelPanel: public wxPanel
 		static const long ID_VALUECURVE_Pinwheel_Speed;
 		static const long IDD_TEXTCTRL_Pinwheel_Speed;
 		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed;
+		static const long ID_STATICTEXT_Pinwheel_Offset;
+		static const long ID_SLIDER_Pinwheel_Offset;
+		static const long ID_VALUECURVE_Pinwheel_Offset;
+		static const long IDD_TEXTCTRL_Pinwheel_Offset;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Offset;
 		static const long ID_STATICTEXT_Pinwheel_Style;
 		static const long ID_CHOICE_Pinwheel_Style;
 		static const long ID_STATICTEXT78;
@@ -113,5 +131,3 @@ class PinwheelPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

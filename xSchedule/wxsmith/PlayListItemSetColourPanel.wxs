@@ -47,6 +47,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_FadeToBlack" member="yes">
+					<label>Fade to black</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_LimitNodes" member="yes">
 					<label>Limit Nodes</label>
 					<handler function="OnCheckBox_LimitChannelsClick" entry="EVT_CHECKBOX" />

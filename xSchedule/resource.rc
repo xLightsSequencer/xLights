@@ -1,3 +1,4 @@
 APP_ICON ICON "../include/xschedule.ico"
+MAINICON ICON "../include/xschedule.ico"
 
 #include "wx/msw/wx.rc"

@@ -1,14 +1,25 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 #include <wx/tokenzr.h>
 #include <wx/config.h>
 #include <wx/uri.h>
 
+#include "LOREdit.h"
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
 #include "FileConverter.h"
 #include "DataLayer.h"
-#include "models/DmxModel.h"
+#include "models/DMX/DmxModel.h"
 #include "VSAFile.h"
 #include "LMSImportChannelMapDialog.h"
 #include "xLightsImportChannelMapDialog.h"
@@ -36,8 +47,10 @@
 #include "effects/MeteorsEffect.h"
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
+#include "Vixen3.h"
 
 #include "osxMacUtils.h"
+
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
@@ -150,7 +163,7 @@ void xLightsFrame::NewSequence()
     MenuItem_PurgeRenderCache->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
-    if (max >= 999999) {
+    if (max >= 1999999) {
         size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
         m *= max;
         m /= 1024; // ->kb
@@ -215,24 +228,33 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    bool loaded_xml = false;
     bool loaded_fseq = false;
     wxString filename;
-    wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
+    wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
-        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     } else {
         filename = passed_filename;
     }
     if ( !filename.empty() )
     {
+        if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains("xlights_keybindings.xml" )) {
+            wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
+            return;
+        }
+
         // close any open sequences
         if (!CloseSequence()) {
             return;
         }
 
+        if (wxFileName(filename).GetExt().Lower() == "xbkp")
+        {
+            wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xml file overwriting any existing sequence .xml file", "Warning");
+        }
+
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (!_renderMode)
+        if (!_renderMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
         {
             wxFileName fn(filename);
             wxFileName xx = fn;
@@ -280,7 +302,13 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         SetPanelSequencerLabel(selected_file.GetName().ToStdString());
 
         wxFileName xml_file = selected_file;
-        xml_file.SetExt("xml");
+        if (xml_file.GetExt() != "xml") {
+            xml_file.SetExt("xsq");
+            // maybe the filename has not changed
+            if (!xml_file.Exists()) {
+                xml_file.SetExt("xml");
+            }
+        }
         wxFileName media_file;
 
         wxFileName fseq_file = selected_file;
@@ -291,6 +319,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
 		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
 		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+            ObtainAccessToURL(fseqDirectory);
 			fseq_file.SetPath(fseqDirectory);
 			if (!fseq_file.FileExists()) {
 				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
@@ -321,7 +350,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             {
                 plog->Show(true);
             }
-            wxString mf;
+            std::string mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
                                           &_outputManager,                              // global network info
@@ -359,7 +388,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         // open the xml file so we can see if it has media
         CurrentSeqXmlFile->Open(GetShowDirectory());
 
-        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -436,6 +465,31 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
+		// search for missing media file in the show directory one folder deep
+		if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable())
+		{
+			wxFileName detect_audio(CurrentSeqXmlFile->GetMediaFile());
+			wxDir audDirectory;
+			wxString audFile;
+			audDirectory.Open(GetShowDirectory());
+			bool fcont = audDirectory.GetFirst(&audFile, wxEmptyString, wxDIR_DIRS);
+			while (fcont)
+			{
+				if (audFile != "Backup")
+				{
+					// search directory
+					detect_audio.SetPath(GetShowDirectory() + wxFileName::GetPathSeparator() + audFile);
+					if (detect_audio.FileExists())
+					{
+						media_file = detect_audio;
+						ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+						break;
+					}
+				}
+				fcont = audDirectory.GetNext(&audFile);
+			}
+		}
+
         // if fseq or xseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia()
            && wxFileName(media_file).Exists()
@@ -478,7 +532,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
-        loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
+        bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
         if (numChan >= 999999) {
@@ -488,7 +542,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             m /= 1024; // ->mb
 
             DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                          " a very large amount of memory used (%lu MB).", numChan, m), 
+                                          " a very large amount of memory used (%lu MB).", numChan, (unsigned long)m), 
                          this);
         }
 
@@ -534,7 +588,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         if( loaded_fseq )
         {
-            UpdatePreview();
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
         }
         else if( !loaded_xml )
         {
@@ -556,7 +610,7 @@ bool xLightsFrame::CloseSequence()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Closing sequence.");
 
-    if (CurrentSeqXmlFile != nullptr && _autoSavePerspecive)
+    if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr)
     {
         // save perspective on this machine so we can restore it next time
         wxConfigBase* config = wxConfigBase::Get();
@@ -614,14 +668,14 @@ bool xLightsFrame::CloseSequence()
     AbortRender();
 
     _renderCache.CleanupCache(&mSequenceElements);
-    _renderCache.SetSequence(fseqDirectory.ToStdString(), "");
+    _renderCache.SetSequence(renderCacheDirectory, "");
 
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
     sequenceVideoPanel->SetMediaPath("");
     xlightsFilename = "";
-    mediaFilename.Clear();
+    mediaFilename = "";
     previewLoaded = false;
     previewPlaying = false;
     playType = 0;
@@ -1004,14 +1058,17 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString filters;
+    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa");
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
     filters.push_back("LOR S5(*.loredit)|*.loredit");
-    filters.push_back("xLights Sequence (*.xml)|*.xml");
+    filters.push_back("xLights Sequence (*.xsq)|*.xsq");
+    filters.push_back("Old xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
     filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
+    filters.push_back("Vixen 3.x Sequence(*.tim)|*.tim");
     filters.push_back("LSP 2.x Sequence(*.msq)|*.msq");
     filters.push_back("VSA Files(*.vsa)|*.vsa");
 
@@ -1067,8 +1124,11 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         if (ext == "lms" || ext == "las") {
             ImportLMS(fn);
         }
-        else if (ext == "lpe" || ext == "loredit") {
+        else if (ext == "lpe") {
             ImportLPE(fn);
+        }
+        else if (ext == "loredit") {
+            ImportS5(fn);
         }
         else if (ext == "hlsidata") {
             ImportHLS(fn);
@@ -1076,10 +1136,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         else if (ext == "sup") {
             ImportSuperStar(fn);
         }
+        else if (ext == "tim") {
+            ImportVixen3(fn);
+        }
         else if (ext == "vix") {
             ImportVix(fn);
         }
-        else if (ext == "xml") {
+        else if (ext == "xml" || ext == "xsq") {
             ImportXLights(fn);
         }
         else if (ext == "msq") {
@@ -1094,7 +1157,10 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped) {
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting) {
+
+    if (eraseExisting) target->DeleteAllEffects();
+
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
@@ -1112,7 +1178,7 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
 void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
     std::map<std::string, EffectLayer *> &layerMap,
     SequenceElements &seqEl,
-    std::vector<EffectLayer *> &mapped) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
@@ -1123,7 +1189,7 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
-        MapXLightsEffects(target, src, mapped);
+        MapXLightsEffects(target, src, mapped, eraseExisting);
     }
     else {
         printf("Source strand %s doesn't exist\n", name.c_str());
@@ -1135,7 +1201,7 @@ void MapXLightsEffects(Element *target,
     SequenceElements &seqEl,
     std::map<std::string, Element *> &elementMap,
     std::map<std::string, EffectLayer *> &layerMap,
-    std::vector<EffectLayer *> &mapped) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND)
@@ -1152,7 +1218,7 @@ void MapXLightsEffects(Element *target,
     Element *el = elementMap[name];
 
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src, mapped);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting);
         return;
     }
 
@@ -1170,7 +1236,7 @@ void MapXLightsEffects(Element *target,
         target->AddEffectLayer();
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); x++) {
-        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped);
+        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting);
     }
 }
 
@@ -1217,11 +1283,12 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
     std::vector<std::string> timingTrackNames;
+    std::map<std::string, bool> timingTrackAlreadyExists;
     std::map<std::string, TimingElement*> timingTracks;
 
-    for (auto it : elements) {
+    for (const auto& it : elements) {
         Element *e = it;
-        if (e->GetType() == ELEMENT_TYPE_MODEL)
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
         {
             ModelElement *el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
@@ -1262,7 +1329,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     }
                 }
             }
-        } else if (e->GetType() == ELEMENT_TYPE_TIMING) {
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement *tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
                 bool hasEffects = false;
@@ -1272,6 +1339,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if (hasEffects) {
                     timingTrackNames.push_back(tel->GetName());
                     timingTracks[tel->GetName()] = tel;
+
+                    // we want to know which timing tracks exist so we can preselect the ones which are not already present
+                    timingTrackAlreadyExists[tel->GetName()] = (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr);
                 }
             }
         }
@@ -1279,6 +1349,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
+    dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
     bool ok = dlg.InitImport();
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
@@ -1288,11 +1359,24 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
-            TimingElement *target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
-            char cnt = '1';
-            while (target == nullptr) {
-                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+            TimingElement* target = nullptr;
+            if (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr)
+            {
+                if (mSequenceElements.GetTimingElement(tel->GetName())->GetEffectLayer(0)->GetEffectCount() == 0)
+                {
+                    target = mSequenceElements.GetTimingElement(tel->GetName());
+                }
             }
+
+            if (target == nullptr)
+            {
+                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                char cnt = '1';
+                while (target == nullptr) {
+                    target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                }
+            }
+
             for (int l = 0; l < tel->GetEffectLayerCount(); ++l) {
                 EffectLayer *src = tel->GetEffectLayer(l);
                 while (l >= target->GetEffectLayerCount()) {
@@ -1300,7 +1384,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 }
                 EffectLayer *dst = target->GetEffectLayer(l);
                 std::vector<EffectLayer *> mapped2;
-                MapXLightsEffects(dst, src, mapped2);
+                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
     }
@@ -1311,7 +1395,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();++x) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -1327,7 +1411,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
             else
             {
-                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -1348,7 +1432,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 {
                     SubModelElement *ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -1369,7 +1453,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped);
+                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -1380,8 +1464,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     }
 
     if (clearSrc) {
-        for (auto it = mapped.begin(); it != mapped.end(); ++it) {
-            (*it)->RemoveAllEffects(nullptr);
+        for (const auto& it : mapped) {
+            it->RemoveAllEffects(nullptr);
         }
     }
 }
@@ -1415,6 +1499,7 @@ void MapToStrandName(const std::string &name, std::vector<std::string> &strands)
         }
     }
 }
+
 void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
     for (wxXmlNode* chani=chand->GetChildren(); chani!=nullptr; chani=chani->GetNext()) {
         if ("IlluminationData" == chani->GetName()) {
@@ -1434,8 +1519,9 @@ void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
         }
     }
 }
+
 void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNode* tuniv, int frames, int frameTime,
-                              const wxString &cn, wxColor color, Model &mc, bool byStrand) {
+                              const wxString &cn, wxColor color, Model &mc, bool byStrand, bool eraseExisting) {
     if (cn == "") {
         return;
     }
@@ -1511,8 +1597,9 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
             colors[x] = hsv;
         }
     }
-    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
+
 std::string FindHLSStrandName(const std::string &ccrName, int node, const std::vector<std::string> &channelNames) {
     std::string r = ccrName + wxString::Format("P%03d", node).ToStdString();
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
@@ -1559,7 +1646,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
                               const std::string & channelName,
                               const std::vector<std::string> &channels,
                               wxColor color,
-                              Model &mc) {
+                              Model &mc, bool eraseExisting) {
     if (channelName == "") {
         return;
     }
@@ -1592,7 +1679,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
             colors[x] = hsv;
         }
     }
-    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
 
 // xml
@@ -1839,7 +1926,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -1860,7 +1947,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     m->_mapping.ToStdString(),
                     unsortedChannels,
                     m->_color,
-                    *mc);
+                    *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -1885,7 +1972,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                             VixSeqData, frameTime, numFrames,
                             s->_mapping.ToStdString(),
                             unsortedChannels,
-                            s->_color, *mc);
+                            s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -1910,7 +1997,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                                     VixSeqData, frameTime, numFrames,
                                     ns->_mapping.ToStdString(),
                                     unsortedChannels,
-                                    ns->_color, *mc);
+                                    ns->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -2015,7 +2102,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -2024,7 +2111,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                  totalUniverses, frames, frameTime,
                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                 *mc, dlg.MapByStrand->GetValue());
+                                 *mc, dlg.MapByStrand->GetValue(), false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
         row++;
 
         if (!dlg.MapByStrand->GetValue()) {
@@ -2036,7 +2123,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                          totalUniverses, frames, frameTime,
                                          dlg.ChannelMapGrid->GetCellValue(row, 3),
                                          dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                         *mc, false);
+                                         *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                 row++;
             }
         }
@@ -2050,7 +2137,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                              totalUniverses, frames, frameTime,
                                              dlg.ChannelMapGrid->GetCellValue(row, 3),
                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                             *mc, false);
+                                             *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                 } else {
                     std::string ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString();
                     for (int n = 0; n < se->GetNodeLayerCount(); n++) {
@@ -2062,7 +2149,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                                  totalUniverses, frames, frameTime,
                                                  nm,
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                                 *mc, true);
+                                                 *mc, true, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
 
 
 
@@ -2077,7 +2164,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                                  totalUniverses, frames, frameTime,
                                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                                 *mc, false);
+                                                 *mc, false, false /*dlg.CheckBox_EraseExisting()->GetValue()*/);
                     }
                     row++;
                 }
@@ -2114,6 +2201,20 @@ void xLightsFrame::ImportLPE(const wxFileName &filename) {
 
     if (!input_xml.Load(fin))  return;
     ImportLPE(input_xml, filename);
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+
+void xLightsFrame::ImportS5(const wxFileName &filename) {
+    wxStopWatch sw; // start a stopwatch timer
+
+    wxFileName xml_file(filename);
+    wxXmlDocument input_xml;
+    wxString xml_doc = xml_file.GetFullPath();
+    wxFileInputStream fin(xml_doc);
+
+    if (!input_xml.Load(fin))  return;
+    ImportS5(input_xml, filename);
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
@@ -2157,7 +2258,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     SuperStarImportDialog dlg(this);
 
     for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+        if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
 
             ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
@@ -2203,7 +2304,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     Element* model = nullptr;
 
     for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== ELEMENT_TYPE_MODEL) {
+        if(mSequenceElements.GetElement(i)->GetType()== ElementType::ELEMENT_TYPE_MODEL) {
             model = mSequenceElements.GetElement(i);
             if( model->GetName() == model_name ) {
                 model_found = true;
@@ -2228,12 +2329,12 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-        bool average_colors = dlg.CheckBox_AverageColors->GetValue();
+        wxString blend = dlg.Choice_LayerBlend->GetStringSelection();
         Model *cls = GetModel(model->GetFullName());
         int bw, bh;
         cls->GetBufferSize("Default", "2D", "None", bw, bh);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -2524,10 +2625,13 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
     }
 }
 
-bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc) {
+bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc, bool eraseExisting) {
     if ("" == nm) {
         return false;
     }
+
+    if (eraseExisting) layer->DeleteAllEffects();
+
     wxXmlNode *channel = nullptr;
     wxXmlNode *rchannel = nullptr;
     wxXmlNode *gchannel = nullptr;
@@ -2535,8 +2639,11 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); channel == nullptr && e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "channels") {
             for (wxXmlNode* chan = e->GetChildren(); channel == nullptr && chan != nullptr; chan = chan->GetNext()) {
+                std::string unit = chan->GetAttribute("unit");
+                std::string circuit = chan->GetAttribute("circuit");
+                std::string dedupname = chan->GetAttribute("name") + "_Unit_" + unit + "_Circuit_" + circuit;
                 if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
-                    && nm == chan->GetAttribute("name")) {
+                    && (nm == chan->GetAttribute("name") || nm == dedupname)) {
                     channel = chan;
                     if (chan->GetName() == "rgbChannel"
                         && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
@@ -2559,7 +2666,7 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     return true;
 }
 
-void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     wxString ccrName = m->_mapping;
 
@@ -2586,13 +2693,13 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
             MapChannelInformation(effectManager,
                 layer, input_xml,
                 nm, m->_color,
-                *mc);
+                *mc, eraseExisting);
             node++;
         }
     }
 }
 
-void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     int node = 0;
     wxString ccrName = s->_mapping;
@@ -2615,12 +2722,12 @@ void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* s
         MapChannelInformation(effectManager,
             layer, input_xml,
             nm, s->_color,
-            *mc);
+            *mc, eraseExisting);
         node++;
     }
 }
 
-void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     if (mc->GetDisplayAs() == "ModelGroup")
     {
@@ -2628,13 +2735,13 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
         int node = 0;
         for (auto it = mg->Models().begin(); it != mg->Models().end(); ++it)
         {
-            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager);
+            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager, eraseExisting);
         }
     }
     else
     {
         int node = 0;
-        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager);
+        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager, eraseExisting);
     }
 }
 
@@ -2656,6 +2763,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         dlg.channelColors[name] = xlBLACK;
                     } else {
                         std::string color = chan->GetAttribute("color").ToStdString();
+                        std::string unit = chan->GetAttribute("unit").ToStdString();
+                        std::string circuit = chan->GetAttribute("circuit").ToStdString();
+                        if (std::find(begin(dlg.channelNames), end(dlg.channelNames), name) != end(dlg.channelNames)) {
+                            name += "_Unit_" + unit + "_Circuit_" + circuit;
+                        }
                         dlg.channelColors[name] = GetColor(color);
                     }
 
@@ -2766,7 +2878,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         Model *mc = GetModel(modelName);
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -2785,14 +2897,14 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
                 else
                 {
                     MapChannelInformation(effectManager,
                         model->GetEffectLayer(0), input_xml,
                         m->_mapping,
-                        m->_color, *mc);
+                        m->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
             }
         }
@@ -2815,7 +2927,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end())
                     {
                         StrandElement *se = model->GetStrand(str);
-                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager);
+                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                     else
                     {
@@ -2824,7 +2936,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             MapChannelInformation(effectManager,
                                 ste->GetEffectLayer(0), input_xml,
                                 s->_mapping,
-                                s->_color, *mc);
+                                s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                     }
                 }
@@ -2849,7 +2961,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                 MapChannelInformation(effectManager,
                                     nl, input_xml,
                                     ns->_mapping,
-                                    ns->_color, *mc);
+                                    ns->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -2865,10 +2977,19 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 bool LPEHasEffects(const wxXmlDocument& input_xml, const wxString& model, int layer, bool left)
 {
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     if (name == model)
                     {
                         for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext())
@@ -3018,28 +3139,48 @@ std::string ExtractLPEPallette(const wxArrayString& ps)
 {
     std::string palette;
 
+    int cnum = 0;
     wxArrayString c = wxSplit(ps[1], ';');
     for (int i = 0; i < c.size(); i++)
     {
-        wxArrayString cc = wxSplit(c[i], ',');
+        wxString n = wxString::Format("%d", cnum + 1);
 
-        if (cc.size() == 3)
+        wxArrayString cc = wxSplit(c[i], ',');
+        if (cc.size() == 2)
+        {
+            wxString c1 = cc[0].substr(2); // drop transparency
+            wxString active = cc[1];
+
+            palette += ",C_BUTTON_Palette" + n + "=#" + c1;
+            if (active == "1")
+            {
+                palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+            }
+            cnum++;
+        }
+        else if (cc.size() == 3)
         {
             wxString c1 = cc[0].substr(2); // drop transparency
             wxString c2 = cc[1].substr(2); // drop transparency
             wxString active = cc[2];
 
-            palette += ",C_BUTTON_Palette" + wxString::Format("%d", i + 1) + "=#" + c1;
-            if (active == "1")
+            if (c1 == c2)
             {
-                palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", i + 1) + "=" + active;
+                palette += ",C_BUTTON_Palette" + n + "=#" + c1;
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
             }
-
-            if (c1 != c2)
+            else
             {
-                // we dont handle these
-                //wxASSERT(false);
+                palette += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
             }
+            cnum++;
         }
         else
         {
@@ -3742,15 +3883,26 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
     return settings;
 }
 
-void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const wxXmlDocument& input_xml, const wxString& model, bool left, int frequency)
+void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const wxXmlDocument& input_xml, const wxString& model, bool left, int frequency, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (eraseExisting) layer->DeleteAllEffects();
+
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     if (name == model)
                     {
                         for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext())
@@ -3889,7 +4041,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     }
 }
 
-void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxXmlDocument& input_xml, const wxString& mapping, int frequency)
+void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxXmlDocument& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -3898,7 +4050,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     {
         logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
+        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 0, false))
     {
@@ -3909,7 +4061,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
+        MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 1, true))
     {
@@ -3920,7 +4072,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
+        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
     if (LPEHasEffects(input_xml, mapping, 1, false))
     {
@@ -3931,8 +4083,446 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         }
         logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
+        MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
+}
+
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset, bool eraseExisting)
+{
+    if (el == nullptr) return;
+
+    if (eraseExisting) el->DeleteAllEffects();
+
+    auto st = lorEdit.GetSequencingType(model);
+
+    if (st == loreditType::CHANNELS)
+    {
+        auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(model, layer, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (nl == nullptr) return;
+
+    if (eraseExisting) nl->DeleteAllEffects();
+
+    auto st = lorEdit.GetSequencingType(mapping);
+
+    if (st == loreditType::CHANNELS)
+    {
+        auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (nl == nullptr) return;
+
+    if (eraseExisting) nl->DeleteAllEffects();
+
+    auto st = lorEdit.GetSequencingType(mapping);
+
+    if (st == loreditType::CHANNELS)
+    {
+        auto effects = lorEdit.GetChannelEffects(mapping, node, nodes, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
+
+        for (const auto& it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+
+    if (st == loreditType::CHANNELS)
+    {
+        if (m->GetNodeCount() == 1)
+        {
+            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+        }
+        else
+        {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1)
+            {
+                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+            }
+            else
+            {
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++)
+                {
+                    NodeLayer* nl = model->GetNodeEffectLayer(i);
+                    if (nl != nullptr)
+                    {
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++)
+        {
+            if (model->GetEffectLayerCount() < i + 1)
+            {
+                model->AddEffectLayer();
+            }
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = se->GetSequenceElements()->GetXLightsFrame()->AllModels[se->GetModelName()];
+
+    if (st == loreditType::CHANNELS)
+    {
+        if (se->GetNodeLayerCount() == 1)
+        {
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
+        }
+        else
+        {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1)
+            {
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
+            }
+            else
+            {
+                int nodes = se->GetNodeLayerCount();
+                for (int i = 0; i < nodes; i++)
+                {
+                    NodeLayer* nl = se->GetNodeEffectLayer(i);
+                    if (nl != nullptr)
+                    {
+                        MapS5ChannelEffects(effectManager, i, nl, nodes, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++)
+        {
+            if (se->GetEffectLayerCount() < i + 1)
+            {
+                se->AddEffectLayer();
+            }
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (dynamic_cast<StrandElement*>(se) != nullptr)
+    {
+        return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset, eraseExisting);
+    }
+
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = se->GetSequenceElements()->GetXLightsFrame()->AllModels[se->GetModelName()];
+
+    if (st == loreditType::CHANNELS)
+    {
+        if (m->GetNodeCount() == 1)
+        {
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+        }
+        else
+        {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1)
+            {
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+            }
+            else
+            {
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++)
+                {
+                    NodeLayer* nl = se->GetNodeEffectLayer(i);
+                    if (nl != nullptr)
+                    {
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++)
+        {
+            if (se->GetEffectLayerCount() < i + 1)
+            {
+                se->AddEffectLayer();
+            }
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    DisplayWarning(
+        "WARNING: As at this release S5 import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
+        - which effect\n\
+        - which setting you had to fine tune\n\
+        - what it was when it was converted\n\
+        - what you changed it to.\n", this);
+
+    LOREdit lorEdit(input_xml, CurrentSeqXmlFile->GetFrequency());
+
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false, false);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+
+    dlg.timingTracks = lorEdit.GetTimingTracks();
+    dlg.channelNames = lorEdit.GetModelsWithEffects();
+
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+
+    dlg.InitImport();
+
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
+        return false;
+    }
+
+    logger_base.debug("Importing S5 effects from %s.", (const char *)filename.GetFullPath().c_str());
+
+    int offset = dlg.TimeAdjustSpinCtrl->GetValue();
+
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
+
+            auto timings = lorEdit.GetTimings(name, offset);
+
+            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
+            char cnt = '1';
+            while (target == nullptr) {
+                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+            }
+            if (target->GetEffectLayerCount() == 0)
+            {
+                target->AddEffectLayer();
+            }
+
+            EffectLayer *targetLayer = target->GetEffectLayer(0);
+
+            for (auto t : timings)
+            {
+                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
+    {
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
+        ModelElement* model = nullptr;
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
+            }
+        }
+        if (model != nullptr) {
+            Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+
+            if (m->_mapping != "") {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
+                }
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                }
+                else
+                {
+                    MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                }
+            }
+
+            int str = 0;
+            for (size_t j = 0; j < m->GetChildCount(); j++)
+            {
+                xLightsImportModelNode* s = m->GetNthChild(j);
+
+                if ("" != s->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement* ste = model->GetSubModel(str);
+                        if (ste != nullptr) {
+                            MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                        }
+                    }
+                }
+                for (size_t n = 0; n < s->GetChildCount(); n++) {
+                    xLightsImportModelNode* ns = s->GetNthChild(n);
+                    if ("" != ns->_mapping) {
+                        if (model == nullptr) {
+                            model = AddModel(GetModel(modelName), mSequenceElements);
+                        }
+                        if (model == nullptr)
+                        {
+                            logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                        }
+                        else
+                        {
+                            SubModelElement* ste = model->GetSubModel(str);
+                            StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                            if (stre != nullptr) {
+                                NodeLayer* nl = stre->GetNodeLayer(n, true);
+                                if (nl != nullptr) {
+                                    auto st = lorEdit.GetSequencingType(ns->_mapping);
+                                    if (st == loreditType::CHANNELS) {
+                                        MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                    }
+                                    else if (st == loreditType::TRACKS) {
+                                        // no layers so we just map the first
+                                        MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                str++;
+            }
+        }
+    }
+
+    logger_base.debug("    Importing S5 effects done.");
+
+    return true;
 }
 
 bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filename)
@@ -3953,10 +4543,19 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     std::map<std::string, wxXmlNode*> timingTracks;
 
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     dlg.channelNames.push_back(name);
                     dlg.channelColors[name] = xlBLACK;
                 }
@@ -3986,7 +4585,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -4003,7 +4602,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
             }
             else
             {
-                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency());
+                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
         }
 
@@ -4024,7 +4623,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                 {
                         SubModelElement *ste = model->GetSubModel(str);
                         if (ste != nullptr) {
-                            MapLPEEffects(effectManager, ste, input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency());
+                            MapLPEEffects(effectManager, ste, input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                 }
             }
@@ -4045,7 +4644,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapLPE(effectManager, 0, nl, input_xml, ns->_mapping, true, CurrentSeqXmlFile->GetFrequency());
+                                MapLPE(effectManager, 0, nl, input_xml, ns->_mapping, true, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }
@@ -4056,6 +4655,217 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     }
 
     logger_base.debug("    Importing LPE effects done.");
+
+    return true;
+}
+
+void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, const Vixen3& vixen, const wxString& model, bool left, long offset, int frameMS, bool eraseExisting)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (eraseExisting) layer->DeleteAllEffects();
+
+    auto effects = vixen.GetEffects(model.ToStdString());
+
+    for (const auto& it : effects)
+    {
+        long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
+        long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
+
+        if (!layer->HasEffectsInTimeRange(s, e))
+        {
+            // now we need to create the effect
+            std::string newpalette = it.GetPalette();
+            std::string newsettings = it.GetSettings();
+            std::string type = it.GetXLightsType();
+            if (type != "")
+            {
+                if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0)
+                {
+                    logger_base.debug("Vixen 3 import %s -> %s is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
+                }
+                else
+                {
+                    layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS, bool eraseExisting)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // TODO need to handle multiple layers
+    int layer = 0;
+    logger_base.debug("Creating effects on model %s layer %d from %s",
+        (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
+    MapVixen3(effectManager, 0, model->GetEffectLayer(layer), vixen, mapping, true, offset, frameMS, eraseExisting);
+}
+
+bool xLightsFrame::ImportVixen3(const wxFileName &filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxMessageBox(
+"WARNING: As at this release Vixen3 import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
+        - which effect\n\
+        - which setting you had to fine tune\n\
+        - what it was when it was converted\n\
+        - what you changed it to.\n\n\n\
+AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTINGS RIGHT!");
+
+    Vixen3 vixen(filename.GetFullPath().ToStdString());
+
+    if (!vixen.IsSystemFound())
+    {
+        wxMessageBox("SystemConfig.xml could not be found. Import impossible.");
+        return false;
+    }
+
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+
+    auto models = vixen.GetModelsWithEffects();
+    for (auto it: models)
+    {
+        auto effects = vixen.GetEffects(it);
+
+        if (effects.front().type == "Data")
+        {
+            dlg.timingTracks.push_back(it);
+        }
+        else
+        {
+            dlg.channelNames.push_back(it);
+        }
+    }
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    auto timings = vixen.GetTimings();
+    for (const auto& it : timings)
+    {
+        dlg.timingTracks.push_back(it);
+    }
+
+    dlg.InitImport();
+
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
+        return false;
+    }
+
+    logger_base.debug("Importing Vixen 3 effects from %s.", (const char *)filename.GetFullPath().c_str());
+
+    int offset = dlg.TimeAdjustSpinCtrl->GetValue();
+
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
+
+            if (vixen.GetTimingType(name) == "Phrase")
+            {
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
+                }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+            }
+            else
+            {
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
+                }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+            }
+        }
+    }
+
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
+    {
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
+        ModelElement* model = nullptr;
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
+            }
+        }
+
+        if (m->_mapping != "") {
+            if (model == nullptr) {
+                model = AddModel(GetModel(modelName), mSequenceElements);
+            }
+            if (model == nullptr)
+            {
+                logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+            }
+            else
+            {
+                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
+            }
+        }
+
+        int str = 0;
+        for (size_t j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
+
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
+                }
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+                }
+                else
+                {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        if (ste != nullptr) {
+                            MapVixen3Effects(effectManager, ste, vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
+                        }
+                }
+            }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
+                            }
+                        }
+                    }
+                }
+            }
+            str++;
+        }
+    }
+
+    logger_base.debug("    Importing Vixen 3 effects done.");
 
     return true;
 }
@@ -4239,8 +5049,8 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
 }
 
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size,
-                                   int x_offset, int y_offset, bool average_colors,
-                                   int imageResizeType, const wxSize &modelSize)
+                                   int x_offset, int y_offset,
+                                   int imageResizeType, const wxSize &modelSize, const wxString& layerBlend)
 {
     double num_rows = 1.0;
     double num_columns = 1.0;
@@ -4253,8 +5063,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     std::string imagePfx;
     std::vector<bool> reserved;
     std::string blend_string = "";
-    if (average_colors) {
-        blend_string = ",T_CHOICE_LayerMethod=Average";
+    if (layerBlend != "Normal") {
+        blend_string = ",T_CHOICE_LayerMethod=" + layerBlend +",";
     }
     for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if ("imageActions" == e->GetName()) {
@@ -4410,19 +5220,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
-                if( color != xlBLACK ) {
-                    if( average_colors ) {
-                        settings += blend_string;
-                        settings += ",";
-                    } else {
-                        settings += ",T_CHOICE_LayerMethod=1 reveals 2,";
-                    }
-                } else {
-                    if( average_colors ) {
-                        settings += blend_string;
-                        settings += ",";
-                    }
-                }
+                settings += blend_string;
                 while( model->GetEffectLayerCount() < layer_index )
                 {
                     model->AddEffectLayer();
@@ -4921,7 +5719,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_SLIDER_Text_XEnd=" + wxString::Format("%d", xEnd).ToStdString() + ","
                         + "E_SLIDER_Text_YEnd=" + wxString::Format("%d", yEnd).ToStdString();
                     if( mask == "positiveMask" ) {
-                        settings += ",T_CHOICE_LayerMethod=Normal";
+                        if (blend_string != "")
+                        {
+                            settings += blend_string;
+                        }
                     } else if( mask == "negativeMask" ) {
                         settings += ",T_CHOICE_LayerMethod=1 is Mask";
                     } else {
@@ -4939,6 +5740,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
                     //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
 
+                    wxString name = element->GetAttribute("name");
                     int idx = wxAtoi(element->GetAttribute("imageIndex"));
                     int startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
                     int endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
@@ -4983,6 +5785,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             "E_SLIDER_PicturesXC=" + wxString::Format("%d", x).ToStdString()
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString()
                             + ",E_CHOICE_Scaling=No Scaling"
+                            + ",X_Effect_Description=" + name
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
@@ -5006,6 +5809,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX)).ToStdString()
                             + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY)).ToStdString()
                             + ",E_CHOICE_Scaling=No Scaling"
+                            + ",X_Effect_Description=" + name
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
@@ -5216,7 +6020,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -5270,8 +6074,20 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 }
 
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
-    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
+    const std::vector< VSAFile::vsaEventRecord >& events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Importing servo data for " + name);
+
+    if (min_limit == max_limit) {
+        logger_base.error("ImportServoData cannot have min limit and max limit equal. Aborting import as it would crash.");
+        return;
+    }
+    if (layer == nullptr) {
+        logger_base.crit("ImportServoData cannot have null layer to import onto - this is going to crash.");
+    }
+
     float last_pos = -1.0;
     int last_time = 0;
     bool warn = true;
@@ -5287,22 +6103,36 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         }
         settings += "E_CHOICE_Channel=" + name + ",";
         settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
-        float start_pos = (events[i].start_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        float start_pos = (((float)events[i].start_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
         settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
-        float end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        float end_pos = (((float)events[i].end_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
         if (start_pos < 0.0) {
             if (warn) {
-                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos < 0%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
                 warn = false;
             }
             start_pos = 0.0;
         }
+        else if (start_pos > 100.0)             {
+            if (warn) {
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos > 100%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
+                warn = false;
+            }
+            start_pos = 100.0;
+        }
         if (end_pos > 100.0) {
             if (warn) {
-                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. end_pos > 100%% : %.2f min/max %d/%d", name, end_pos, min_limit, max_limit).ToStdString());
                 warn = false;
             }
             end_pos = 100.0;
+        }
+        else if (end_pos < 0.0) {
+            if (warn) {
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. end_pos < 0%% : %.2f min/max %d/%d", name, end_pos, min_limit, max_limit).ToStdString());
+                warn = false;
+            }
+            end_pos = 0.0;
         }
         settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
@@ -5325,8 +6155,8 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         last_time = events[i].end_time * timing;
 
         // check for filling to end of sequence
-        if( i == events.size() - 1) {
-            if( last_time < sequence_end_time ) {
+        if (i == events.size() - 1) {
+            if (last_time < sequence_end_time) {
                 std::string settings3;
                 if (is_16bit) {
                     settings3 += "E_CHECKBOX_16bit=1,";
@@ -5340,10 +6170,13 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
         }
     }
+    logger_base.debug("Importing servo data done.");
 }
 
-void xLightsFrame::ImportVsa(const wxFileName &filename) {
+void xLightsFrame::ImportVsa(const wxFileName& filename)
+{
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw; // start a stopwatch timer
 
     VsaImportDialog dlg(this);
@@ -5356,47 +6189,57 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
         return;
     }
 
-    const std::vector< VSAFile::vsaTrackRecord > &tracks = vsa.GetTrackInfo();
-    const std::vector< std::vector< VSAFile::vsaEventRecord > > &events = vsa.GetEventInfo();
+    const std::vector< VSAFile::vsaTrackRecord >& tracks = vsa.GetTrackInfo();
+    const std::vector< std::vector< VSAFile::vsaEventRecord > >& events = vsa.GetEventInfo();
     const uint32_t vsa_timing = vsa.GetTiming();
 
-    for( int m = 0; m < dlg.selectedModels.size(); ++m ) {
+    for (int m = 0; m < dlg.selectedModels.size(); ++m) {
         std::string modelName = dlg.selectedModels[m];
-        if( modelName != "" ) {
-            ModelElement * model = nullptr;
-            for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-                if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+        if (modelName != "") {
+            ModelElement* model = nullptr;
+            for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
+                if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                     && modelName == mSequenceElements.GetElement(i)->GetName()) {
                     model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
                     break;
                 }
             }
 
-            if( model != nullptr ) {
+            if (model != nullptr) {
                 EffectLayer* layer;
                 int layer_number = dlg.selectedLayers[m];
-                while( model->GetEffectLayerCount() < layer_number+1 ) {
+                while (model->GetEffectLayerCount() < layer_number + 1) {
                     model->AddEffectLayer();
                 }
 
                 layer = model->GetEffectLayer(layer_number);
-                if( layer != nullptr && dlg.selectedChannels[m] != "" ) {
-                    bool is_16bit = true;
-                    int idx = dlg.trackIndex[m];
-                    switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
-                    {
-                    case VSAFile::DMX_DIMMER:
-                    case VSAFile::DMX_RELAY:
-                        is_16bit = false;
-                    default:
-                        break;
+                if (layer != nullptr && dlg.selectedChannels[m] != "") {
+                    if (m < dlg.trackIndex.size()) {
+                        bool is_16bit = true;
+                        int idx = dlg.trackIndex[m];
+                        if (idx < events.size()) {
+                            switch ((VSAFile::vsaControllers)(tracks[idx].controller)) {
+                            case VSAFile::MINISSC_SERVO:
+                            case VSAFile::DMX_DIMMER:
+                            case VSAFile::DMX_RELAY:
+                                is_16bit = false;
+                            default:
+                                break;
+                            }
+                            ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit);
+                        }
+                        else {
+                            logger_base.error("ImportVSA: idx exceeds available events.");
+                        }
                     }
-                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit );
+                    else {
+                        logger_base.error("ImportVSA: m exceeds available tracks.");
+                    }
                 }
             }
         }
     }
 
-    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }

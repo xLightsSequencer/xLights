@@ -5,7 +5,6 @@
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
-    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginBufferingAdapter.cpp" />
@@ -25,7 +24,6 @@
     <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
-    <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
@@ -67,17 +65,11 @@
     <ClCompile Include="AddReverseDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="ColourOrderDialog.cpp">
       <Filter>OutputProcessing</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\DDPDialog.cpp">
-      <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp">
       <Filter>Outputs</Filter>
@@ -92,9 +84,6 @@
       <Filter>OutputProcessing</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\E131Dialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\E131Output.cpp">
@@ -175,9 +164,6 @@
     <ClCompile Include="events\ListenerFPP.cpp">
       <Filter>Events</Filter>
     </ClCompile>
-    <ClCompile Include="events\ListenerFPPUnicast.cpp">
-      <Filter>Events</Filter>
-    </ClCompile>
     <ClCompile Include="events\ListenerLor.cpp">
       <Filter>Events</Filter>
     </ClCompile>
@@ -196,13 +182,7 @@
     <ClCompile Include="..\xLights\outputs\LorController.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\LorOptimisedDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp">
@@ -215,9 +195,6 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp">
@@ -269,9 +246,6 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="PlayList\PlayListItem.cpp">
-      <Filter>PlayList</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayList\PlayListItemAllOff.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp">
@@ -412,9 +386,6 @@
     <ClCompile Include="ThreeToFourDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -458,6 +429,9 @@
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
     <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItemFade.cpp">
       <Filter>PlayList</Filter>
@@ -486,6 +460,87 @@
     <ClCompile Include="SyncFPP.cpp" />
     <ClCompile Include="SyncMIDI.cpp" />
     <ClCompile Include="RemoteModeConfigDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDIPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMIDI.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="EventARTNetTriggerPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="events\EventARTNetTrigger.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginManager.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPluginPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemPlugin.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAllOff.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMQTT.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMQTTPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="events\ListenerMQTT.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="events\EventMQTT.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EventMQTTPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="events\ListenerCSVFPP.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerEthernet.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerNull.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerSerial.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
+    <ClCompile Include="events\ListenerSMPTE.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="SyncSMPTE.cpp" />
+    <ClCompile Include="..\xLights\outputs\OPCOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemColourOrgan.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemColourOrganPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayerFrame.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayerWindow.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -502,7 +557,6 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="MyTreeItemData.h" />
     <ClInclude Include="OptionsDialog.h" />
-    <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
@@ -542,9 +596,6 @@
     </ClInclude>
     <ClInclude Include="ColourOrderDialog.h">
       <Filter>OutputProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\outputs\DDPDialog.h">
-      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\DDPOutput.h">
       <Filter>Outputs</Filter>
@@ -642,9 +693,6 @@
     <ClInclude Include="events\ListenerFPP.h">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="events\ListenerFPPUnicast.h">
-      <Filter>Events</Filter>
-    </ClInclude>
     <ClInclude Include="events\ListenerLor.h">
       <Filter>Events</Filter>
     </ClInclude>
@@ -663,13 +711,7 @@
     <ClInclude Include="..\xLights\outputs\LorController.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\outputs\LorControllerDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="..\xLights\outputs\LorControllers.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\outputs\LorOptimisedDialog.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h">
@@ -733,9 +775,6 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItem.h">
-      <Filter>PlayList</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayList\PlayListItemAllOff.h">
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h">
@@ -922,6 +961,9 @@
     <ClInclude Include="PlayList\PlayListItemMicrophone.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
     <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="PlayList\PlayListItemFadePanel.h">
       <Filter>PlayList</Filter>
@@ -949,9 +991,90 @@
     <ClInclude Include="SyncMIDI.h" />
     <ClInclude Include="SyncArtNet.h" />
     <ClInclude Include="RemoteModeConfigDialog.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
+    <ClInclude Include="PlayList\PlayListItemMIDIPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMIDI.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="EventARTNetTriggerPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\EventARTNetTrigger.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginManager.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
+    <ClInclude Include="PlayList\PlayListItemPluginPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemPlugin.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAllOff.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMQTTPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMQTT.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="events\ListenerMQTT.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\EventMQTT.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EventMQTTPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\ListenerCSVFPP.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="xSMSDaemon\Curl.h" />
+    <ClInclude Include="..\xLights\SpecialOptions.h" />
+    <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Controller.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerEthernet.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerNull.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerSerial.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
+    <ClInclude Include="events\ListenerSMPTE.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncSMPTE.h" />
+    <ClInclude Include="..\xLights\outputs\OPCOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemColourOrgan.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemColourOrganPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayerFrame.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayerWindow.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">
@@ -969,5 +1092,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="API Documentation.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
   </ItemGroup>
 </Project>

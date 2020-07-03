@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Varytec LED Hellball 3 6 Channel" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Strobe,Red,Green,Blue,Motor Speed,Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="strobe_off" s1-Color="#020202" 
+s2="Strobe" s2-Name="strobe_fast_to_slow_" s2-Color="#828282" 
+s3="Motor Speed" s3-Name="manual_positon" s3-Color="#3F3F3F" 
+s4="Motor Speed" s4-Name="forward_backward_slow_to_fast_" s4-Color="#BFBFBF" 
+s5="Mode" s5-Name="dmx" s5-Color="#020202" 
+s6="Mode" s6-Name="built_in_programs" s6-Color="#808080" 
+s7="Mode" s7-Name="sound_to_light" s7-Color="#FDFDFD" 
+/>
+</dmxmodel>

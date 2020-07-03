@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -11,6 +21,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
@@ -52,6 +63,7 @@ void TreeModel::InitModel() {
     perspective =  wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
     screenLocation.SetPerspective2D(perspective);
     SetTreeCoord(degrees);
+    InitSingleChannelModel();
     DisplayAs = "Tree";
 }
 
@@ -237,18 +249,20 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         switch (event.GetPropertyValue().GetLong()) {
             case 0:
                 ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? (int)degrees : 180));
+                treeType = 0;
                 break;
             case 1:
                 ModelXml->AddAttribute("DisplayAs", "Tree Flat");
+                treeType = 1;
                 break;
             case 2:
                 ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
+                treeType = 2;
                 break;
             default:
                 wxASSERT(false);
                 break;
         }
-        SetFromXml(ModelXml, zeroBased);
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
@@ -256,44 +270,63 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeStyle");
+        return 0;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        return 0;
     } else if (event.GetPropertyName() == "TreeRotation") {
         ModelXml->DeleteAttribute("TreeRotation");
         ModelXml->AddAttribute("TreeRotation", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeRotation");
+        return 0;
     } else if (event.GetPropertyName() == "TreeSpiralRotations") {
         ModelXml->DeleteAttribute("TreeSpiralRotations");
         ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        return 0;
     } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
         ModelXml->DeleteAttribute("TreeBottomTopRatio");
         ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        return 0;
     } else if (event.GetPropertyName() == "TreePerspective") {
         ModelXml->DeleteAttribute("TreePerspective");
         ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble()/10.0)));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
+        return 0;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
 
-static wxPGChoices TREE_STYLES;
+static const char* TREE_STYLES_VALUES[] = { 
+        "Round",
+        "Flat",
+        "Ribbon"
+};
+static wxPGChoices TREE_STYLES(wxArrayString(3, TREE_STYLES_VALUES));
 
 void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    if (TREE_STYLES.GetCount() == 0) {
-        TREE_STYLES.Add("Round");
-        TREE_STYLES.Add("Flat");
-        TREE_STYLES.Add("Ribbon");
-    }
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
@@ -311,8 +344,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
 
     p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
-    p->SetAttribute("Min", "-20");
-    p->SetAttribute("Max", "20");
+    p->SetAttribute("Min", "-200");
+    p->SetAttribute("Max", "200");
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
@@ -397,6 +430,10 @@ void TreeModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
     f.Write("</treemodel>");
     f.Close();
 }
@@ -476,9 +513,14 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 {
                     AddFace(n);
                 }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
+                }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::ImportXlightsModel");
         }
         else
         {

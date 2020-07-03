@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="beamZ BT310 LED FlatPAR 12x8W 4-1 DMX IR 10 Channel" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Amber,Dimming,Strobe,Mode,Speed," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#040404" 
+s2="Strobe" s2-Name="strobe_from_slow_to_fast" s2-Color="#848484" 
+s3="Mode" s3-Name="no_function" s3-Color="#040404" 
+s4="Mode" s4-Name="auto" s4-Color="#686868" 
+s5="Mode" s5-Name="sound" s5-Color="#E3E3E3" 
+s6="Node9" s6-Name="no_function" s6-Color="#040404" 
+s7="Node9" s7-Name="red" s7-Color="#131313" 
+s8="Node9" s8-Name="green" s8-Color="#272727" 
+s9="Node9" s9-Name="blue_" s9-Color="#3B3B3B" 
+s10="Node9" s10-Name="amber" s10-Color="#4F4F4F" 
+s11="Node9" s11-Name="red_green" s11-Color="#636363" 
+s12="Node9" s12-Name="red_blue" s12-Color="#777777" 
+s13="Node9" s13-Name="red_amber" s13-Color="#8B8B8B" 
+s14="Node9" s14-Name="green_blue" s14-Color="#9F9F9F" 
+s15="Node9" s15-Name="green_amber" s15-Color="#B3B3B3" 
+s16="Node9" s16-Name="blue_amber" s16-Color="#C7C7C7" 
+s17="Node9" s17-Name="red_green_blue" s17-Color="#D6D6D6" 
+s18="Node9" s18-Name="red_green_amber" s18-Color="#E0E0E0" 
+s19="Node9" s19-Name="red_blue_amber" s19-Color="#EAEAEA" 
+s20="Node9" s20-Name="green_blue_amber" s20-Color="#F4F4F4" 
+s21="Node9" s21-Name="red_green_blue_amber" s21-Color="#FCFCFC" 
+/>
+</dmxmodel>

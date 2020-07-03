@@ -1,11 +1,20 @@
-#ifndef MYTREEITEMDATA_H
-#define MYTREEITEMDATA_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/treebase.h>
 
 class MyTreeItemData : public wxTreeItemData
 {
-    void* _data;
+    void* _data = nullptr;
 
 public:
     MyTreeItemData(void* data) { _data = data; }
@@ -13,4 +22,3 @@ public:
     void SetData(void* data) { _data = data; }
 };
 
-#endif

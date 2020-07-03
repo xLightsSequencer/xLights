@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Par 38 Pro 7 Channel" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Color Macro,Strobe Speed,Color Changes,Dimmer" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Color Macro" s1-Name="nothing" s1-Color="#030303" 
+s2="Color Macro" s2-Name="color_macros" s2-Color="#838383" 
+s3="Strobe Speed" s3-Name="nothing" s3-Color="#0F0F0F" 
+s4="Strobe Speed" s4-Name="dim-gt_bright" s4-Color="#2F2F2F" 
+s5="Strobe Speed" s5-Name="bright-gt_dim" s5-Color="#4F4F4F" 
+s6="Strobe Speed" s6-Name="dim-gt_bright-gt_dim" s6-Color="#6F6F6F" 
+s7="Strobe Speed" s7-Name="rgb_color_mixing" s7-Color="#8F8F8F" 
+s8="Strobe Speed" s8-Name="3_color_change" s8-Color="#AFAFAF" 
+s9="Strobe Speed" s9-Name="7_color_change" s9-Color="#CFCFCF" 
+s10="Strobe Speed" s10-Name="sound_active_mode" s10-Color="#EFEFEF" 
+s11="Color Changes" s11-Name="black_out" s11-Color="#070707" 
+s12="Color Changes" s12-Name="speed_slow-gt_fast" s12-Color="#878787" 
+/>
+</dmxmodel>

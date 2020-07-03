@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Starway MaxKolor 18 16 Bit" parm1="11" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Macros,Red,Green,Blue,Strobe/Macro Speed,Dimmer,Pan,Tilt,Pan/Tilt Speed,Pan Fine,Tilt Fine" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="7" DmxTiltChannel="8" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Macros" s1-Name="rgb_mode" s1-Color="#0C0C0C" 
+s2="Macros" s2-Name="macro_1" s2-Color="#252525" 
+s3="Macros" s3-Name="macro_2" s3-Color="#3E3E3E" 
+s4="Macros" s4-Name="macro_3" s4-Color="#575757" 
+s5="Macros" s5-Name="macro_4" s5-Color="#707070" 
+s6="Macros" s6-Name="macro_5" s6-Color="#898989" 
+s7="Macros" s7-Name="macro_6" s7-Color="#A2A2A2" 
+s8="Macros" s8-Name="macro_7" s8-Color="#BBBBBB" 
+s9="Macros" s9-Name="macro_8" s9-Color="#D4D4D4" 
+s10="Macros" s10-Name="macro_9" s10-Color="#F0F0F0" 
+s11="Strobe/Macro Speed" s11-Name="none_macro_speed" s11-Color="#070707" 
+s12="Strobe/Macro Speed" s12-Name="fast_to_slow_macro_speed" s12-Color="#878787" 
+/>
+</dmxmodel>

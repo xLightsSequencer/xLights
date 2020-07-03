@@ -104,6 +104,20 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_UseMediaPlayer" member="yes">
+					<label>Use Media Player</label>
+					<handler function="OnCheckBox_UseMediaPlayerClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
 					<label>Fade In MS:</label>

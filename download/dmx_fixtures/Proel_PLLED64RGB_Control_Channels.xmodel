@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Proel PLLED64RGB Control Channels" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Master Dimmer,Red,Green,Blue,Strobe,Macro Colour" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Macro Colour" s1-Name="no_function" s1-Color="#070707" 
+s2="Macro Colour" s2-Name="sequence_r-g-b-rg-g" s2-Color="#171717" 
+s3="Macro Colour" s3-Name="sequence_g-gb-b-rb-r" s3-Color="#272727" 
+s4="Macro Colour" s4-Name="sequence_r-b-g-rg-g" s4-Color="#373737" 
+s5="Macro Colour" s5-Name="sequence_r-g-gb-rbg-g" s5-Color="#474747" 
+s6="Macro Colour" s6-Name="sequence_b-bg-rgb-rg-g" s6-Color="#575757" 
+s7="Macro Colour" s7-Name="strobe_colours" s7-Color="#676767" 
+s8="Macro Colour" s8-Name="color_fade" s8-Color="#777777" 
+s9="Macro Colour" s9-Name="colour_change" s9-Color="#878787" 
+s10="Macro Colour" s10-Name="colour_change_strobe" s10-Color="#979797" 
+s11="Macro Colour" s11-Name="colour_fade_fast_in_slow_out" s11-Color="#A7A7A7" 
+s12="Macro Colour" s12-Name="colour_fade_slow_in_fast_out" s12-Color="#B7B7B7" 
+s13="Macro Colour" s13-Name="colour_fade_slow_in_slow_out" s13-Color="#C7C7C7" 
+s14="Macro Colour" s14-Name="colour_macros" s14-Color="#D7D7D7" 
+s15="Macro Colour" s15-Name="sound_mode_1" s15-Color="#E7E7E7" 
+s16="Macro Colour" s16-Name="sound_mode_2" s16-Color="#F7F7F7" 
+/>
+</dmxmodel>

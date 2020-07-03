@@ -1,5 +1,14 @@
-#ifndef VIEWOBJECT_H
-#define VIEWOBJECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
@@ -13,13 +22,19 @@ public:
     ViewObject(const ObjectManager &manager);
     virtual ~ViewObject();
 
-    virtual void AddProperties(wxPropertyGridInterface *grid) override;
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased=false) override;
     void UpdateXmlWithScale() override;
     virtual void InitModel() = 0;
+
+    void ReloadModelXml() override {
+        GetBaseObjectScreenLocation().Reload();
+        SetFromXml(ModelXml, false);
+    }
 
     bool GetIs3dOnly() { return only_3d; }
 
@@ -29,7 +44,6 @@ public:
     virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) {};
 
 protected:
-    bool active;
 
 private:
     bool only_3d;
@@ -55,5 +69,3 @@ protected:
     virtual ~ObjectWithScreenLocation() {}
     ScreenLocation screenLocation;
 };
-
-#endif // VIEWOBJECT_H

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemOSCPanel.h"
 #include "PlayListDialog.h"
 #include "PlayListItemOSC.h"
@@ -45,12 +55,12 @@ PlayListItemOSCPanel::PlayListItemOSCPanel(wxWindow* parent, PlayListItemOSC* os
     _osc = osc;
 
 	//(*Initialize(PlayListItemOSCPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -182,11 +192,11 @@ PlayListItemOSCPanel::~PlayListItemOSCPanel()
     _osc->SetIPAddress(TextCtrl_IPAddress->GetValue().ToStdString());
     _osc->SetPath(TextCtrl_Path->GetValue().ToStdString());
     _osc->SetPort(SpinCtrl_Port->GetValue());
-    _osc->SetType(0, Choice_P1Type->GetStringSelection().ToStdString());
-    _osc->SetType(1, Choice_P2Type->GetStringSelection().ToStdString());
-    _osc->SetType(2, Choice_P3Type->GetStringSelection().ToStdString());
-    _osc->SetType(3, Choice_P4Type->GetStringSelection().ToStdString());
-    _osc->SetType(4, Choice_P5Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(0, Choice_P1Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(1, Choice_P2Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(2, Choice_P3Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(3, Choice_P4Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(4, Choice_P5Type->GetStringSelection().ToStdString());
     _osc->SetValue(0, TextCtrl_P1Value->GetValue().ToStdString());
     _osc->SetValue(1, TextCtrl_P2Value->GetValue().ToStdString());
     _osc->SetValue(2, TextCtrl_P3Value->GetValue().ToStdString());
@@ -202,7 +212,8 @@ void PlayListItemOSCPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemOSCPanel::OnTextCtrl_RunProcessNameText(wxCommandEvent& event)
 {
     _osc->SetName(TextCtrl_OSCName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemOSCPanel::OnChoice_TypeSelect(wxCommandEvent& event)

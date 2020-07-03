@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "FireworksEffect.h"
 #include "FireworksPanel.h"
 
@@ -25,7 +35,7 @@ FireworksEffect::~FireworksEffect()
     //dtor
 }
 
-std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -182,7 +192,7 @@ public:
 
     bool AllGone() const
     {
-        for (auto it : _particles)
+        for (const auto& it : _particles)
         {
             if (!it.Done()) return false;
         }
@@ -289,17 +299,7 @@ void FireworksEffect::SetPanelTimingTracks() const
     }
 
     // Load the names of the timing tracks
-    std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "") timingtracks += "|";
-            timingtracks += e->GetName();
-        }
-    }
-
+    std::string timingtracks = GetTimingTracks(1);
     wxCommandEvent event(EVT_SETTIMINGTRACKS);
     event.SetString(timingtracks);
     wxPostEvent(fp, event);
@@ -335,7 +335,7 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
 
 void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    
+
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
     int particleCount = GetValueCurveInt("Fireworks_Count", 50, SettingsMap, offset, FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", 2.0, SettingsMap, offset, FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -359,10 +359,10 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
         }
     }
@@ -372,13 +372,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         cache = new FireworksRenderCache();
         buffer.infoCache[id] = cache;
     }
-    
+
     auto& sinceLastTriggered = cache->_sinceLastTriggered;
     auto& fireworks = cache->_fireworks;
     auto& firePeriods = cache->_firePeriods;
 
     size_t colorcnt = buffer.GetColorCount();
-    
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         SetPanelTimingTracks();
@@ -405,7 +405,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             if (sinceLastTriggered == 0 || sinceLastTriggered > REPEATTRIGGER)
             {
                 auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
-                int colourIndex = rand() % colorcnt; 
+                int colourIndex = rand() % colorcnt;
                 fireworks.push_back(Firework(particleCount,
                     location.first, location.second,
                     xVelocity, yVelocity,
@@ -429,7 +429,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             sinceLastTriggered = 0;
         }
     }
-    
+
     if (useTiming)
     {
         if (mSequenceElements == nullptr)
@@ -439,28 +439,15 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         else
         {
             // Load the names of the timing tracks
-            Element* t = nullptr;
-            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
-            {
-                Element* e = mSequenceElements->GetElement(l);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-                {
-                    if (e->GetName() == timing)
-                    {
-                        t = e;
-                        break;
-                    }
-                }
-            }
+            EffectLayer* el = GetTiming(timing);
 
-            if (t == nullptr)
+            if (el == nullptr)
             {
                 // timing track not found ... this shouldnt happen
             }
             else
             {
                 sinceLastTriggered = 0;
-                EffectLayer* el = t->GetEffectLayer(0);
                 for (int j = 0; j < el->GetEffectCount(); j++)
                 {
                     if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||
@@ -485,7 +472,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
 
     if (!useTiming && !useMusic && firePeriods.size() > 0)
     {
-        for (auto it : firePeriods)
+        for (const auto& it : firePeriods)
         {
             if (it == buffer.curPeriod)
             {

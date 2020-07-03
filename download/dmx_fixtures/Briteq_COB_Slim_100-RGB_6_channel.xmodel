@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Briteq COB Slim 100-RGB 6 channel" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Master dimmer,Strobe,Mode 2,Red,Green,Blue," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="master_dimmer_0pct-100pct_full_open_" s1-Color="#5F5F5F" 
+s2="Red" s2-Name="sound_control_7_colors_" s2-Color="#C3C3C3" 
+s3="Red" s3-Name="strobe_slow_to_fast" s3-Color="#E0E0E0" 
+s4="Red" s4-Name="master_dimmer_full_open" s4-Color="#FBFBFB" 
+s5="Blue" s5-Name="no_strobe_open_" s5-Color="#030303" 
+s6="Blue" s6-Name="random_strobe" s6-Color="#161616" 
+s7="Blue" s7-Name="sound_strobe" s7-Color="#343434" 
+s8="Blue" s8-Name="strobe_slow-fast" s8-Color="#A1A1A1" 
+s9="Node7" s9-Name="no_function_" s9-Color="#030303" 
+s10="Node7" s10-Name="color_fade_effect_very_slow_to_fast_" s10-Color="#7F7F7F" 
+s11="Node7" s11-Name="sound_chase" s11-Color="#FBFBFB" 
+/>
+</dmxmodel>

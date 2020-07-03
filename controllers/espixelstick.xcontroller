@@ -1,0 +1,26 @@
+<Vendor Name="ESPixelStick">
+	<Controller Name="ESPixelStick">
+		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>8</MaxInputUniverses>
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4080</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>gece</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>ddp</Protocol>
+				<Protocol>zcpp</Protocol>
+			</InputProtocols>
+		</Variant>	
+	</Controller>
+</Vendor>

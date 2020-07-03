@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -51,7 +61,7 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
+    grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
 
     p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
     p->SetAttribute("UseCheckbox", true);
@@ -62,19 +72,28 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         line_spacing = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridLineSpacing");
         ModelXml->AddAttribute("GridLineSpacing", wxString::Format("%d", line_spacing));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
+        return 0;
     }
     else if ("GridWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridWidth");
         ModelXml->AddAttribute("GridWidth", wxString::Format("%d", width));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridWidth");
+        return 0;
     }
     else if ("GridHeight" == event.GetPropertyName()) {
         height = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridHeight");
         ModelXml->AddAttribute("GridHeight", wxString::Format("%d", height));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridHeight");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridHeight");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridHeight");
+        return 0;
     }
     else if ("GridColor" == event.GetPropertyName()) {
         wxPGProperty *p = grid->GetPropertyByName("GridColor");
@@ -83,14 +102,20 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         gridColor = c;
         ModelXml->DeleteAttribute("GridColor");
         ModelXml->AddAttribute("GridColor", gridColor);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridColor");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridColor");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridColor");
+        return 0;
     } else if (event.GetPropertyName() == "GridAxis") {
         ModelXml->DeleteAttribute("GridAxis");
         hasAxis = event.GetValue().GetBool();
         if (hasAxis) {
             ModelXml->AddAttribute("GridAxis", "1");
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridAxis");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridAxis");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridAxis");
+        return 0;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);
@@ -98,7 +123,7 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
 
 void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if( !active ) { return; }
+    if (!IsActive()) { return; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
@@ -185,13 +210,10 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
         va3.AddVertex(sx, sy, sz, yaxis);
 	}
 
-    va3.Finish(GL_LINES);
-
-    GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
+    va3.Finish(GL_LINES, GL_LINE_SMOOTH);
+    GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);  // FIXME: Modify to only call this when position changes
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3);
+        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
-
 }
-

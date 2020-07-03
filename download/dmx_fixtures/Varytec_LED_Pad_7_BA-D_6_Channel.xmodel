@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Varytec LED Pad 7 BA-D 6 Channel" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Dimmer For Red,Dimmer For Green,Dimmer For Blue,Speed,Macros" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Macros" s1-Name="no_function" s1-Color="#070707" 
+s2="Macros" s2-Name="scene_with_r-g-b-rg-g" s2-Color="#171717" 
+s3="Macros" s3-Name="scene_with_g-gb-b-rb-r" s3-Color="#272727" 
+s4="Macros" s4-Name="scene_with_r-b-g-rg-g" s4-Color="#373737" 
+s5="Macros" s5-Name="scene_with_r-g-gb-rgb-g" s5-Color="#474747" 
+s6="Macros" s6-Name="scene_with_b-bg-rgb-rg-g" s6-Color="#575757" 
+s7="Macros" s7-Name="colour_continuous_strobe" s7-Color="#676767" 
+s8="Macros" s8-Name="gradient" s8-Color="#777777" 
+s9="Macros" s9-Name="colour_swap" s9-Color="#878787" 
+s10="Macros" s10-Name="colour_change_and_strobe" s10-Color="#979797" 
+s11="Macros" s11-Name="colour_ramp_down" s11-Color="#A7A7A7" 
+s12="Macros" s12-Name="colour_ramp_in" s12-Color="#B7B7B7" 
+s13="Macros" s13-Name="colour_triangular" s13-Color="#C7C7C7" 
+s14="Macros" s14-Name="colour_glide" s14-Color="#D7D7D7" 
+s15="Macros" s15-Name="sound_1" s15-Color="#E7E7E7" 
+s16="Macros" s16-Name="sound_2" s16-Color="#F7F7F7" 
+/>
+</dmxmodel>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet COREpar 80 8-CH" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Color Macros,Strobe/Speed/Sound Sensivity,Programs,Dimmer,Dimmer Speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Color Macros" s1-Name="no_function" s1-Color="#070707" 
+s2="Color Macros" s2-Name="color_macros" s2-Color="#878787" 
+s3="Strobe/Speed/Sound Sensivity" s3-Name="no_function_slow_to_fast_off" s3-Color="#050505" 
+s4="Strobe/Speed/Sound Sensivity" s4-Name="no_function_slow_to_fast_control_the_sound_sensitivity_level" s4-Color="#0D0D0D" 
+s5="Strobe/Speed/Sound Sensivity" s5-Name="slow_to_fast_slow_to_fast_control_the_sound_sensitivity_level" s5-Color="#878787" 
+s6="Programs" s6-Name="no_function" s6-Color="#0F0F0F" 
+s7="Programs" s7-Name="pulse_effect_0-100pct" s7-Color="#2F2F2F" 
+s8="Programs" s8-Name="pulse_effect_100pct-0" s8-Color="#4F4F4F" 
+s9="Programs" s9-Name="pulse_effect_100pct-0-100pct" s9-Color="#6F6F6F" 
+s10="Programs" s10-Name="auto_fade_transition" s10-Color="#8F8F8F" 
+s11="Programs" s11-Name="auto_snap_transition_7_colors_" s11-Color="#AFAFAF" 
+s12="Programs" s12-Name="auto_snap_transition_18_colors_" s12-Color="#CFCFCF" 
+s13="Programs" s13-Name="sound-active_mode" s13-Color="#EFEFEF" 
+s14="Dimmer Speed" s14-Name="default_set_from_menu" s14-Color="#191919" 
+s15="Dimmer Speed" s15-Name="dimmer_speed_mode_off" s15-Color="#4C4C4C" 
+s16="Dimmer Speed" s16-Name="mode_1_fast_" s16-Color="#7F7F7F" 
+s17="Dimmer Speed" s17-Name="mode_2_medium_" s17-Color="#B2B2B2" 
+s18="Dimmer Speed" s18-Name="mode_3_slow_" s18-Color="#E5E5E5" 
+/>
+</dmxmodel>

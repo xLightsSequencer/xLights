@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="ETEC LED PAR 64 18x15W RGBWA Zoom ARC.1" parm1="16" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,Amber,Zoom,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node8" s1-Name="no_function" s1-Color="#040404" 
+s2="Node8" s2-Name="colour_macros" s2-Color="#848484" 
+s3="Node9" s3-Name="no_function" s3-Color="#040404" 
+s4="Node9" s4-Name="strobe_speed" s4-Color="#848484" 
+s5="Node10" s5-Name="no_function" s5-Color="#040404" 
+s6="Node10" s6-Name="hsv_effect" s6-Color="#363636" 
+s7="Node10" s7-Name="3_colors_pure_color" s7-Color="#6D6D6D" 
+s8="Node10" s8-Name="7_colors_pure_color" s8-Color="#818181" 
+s9="Node10" s9-Name="7_colors_diffuse_color" s9-Color="#959595" 
+s10="Node10" s10-Name="dmx_control_vanishing_strobe_colors" s10-Color="#A9A9A9" 
+s11="Node10" s11-Name="7_color_strobe" s11-Color="#BDBDBD" 
+s12="Node10" s12-Name="7_additional_color_strobe" s12-Color="#D1D1D1" 
+s13="Node10" s13-Name="7_water_course_colors" s13-Color="#E5E5E5" 
+s14="Node10" s14-Name="sound_to_light_mode" s14-Color="#F7F7F7" 
+s15="Node13" s15-Name="whole_id_address_controlled" s15-Color="#000000" 
+s16="Node13" s16-Name="same_id_address_controlled" s16-Color="#808080" 
+/>
+</dmxmodel>

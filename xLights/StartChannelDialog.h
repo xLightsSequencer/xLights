@@ -1,5 +1,14 @@
-#ifndef STARTCHANNELDIALOG_H
-#define STARTCHANNELDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(StartChannelDialog)
 #include <wx/button.h>
@@ -14,6 +23,8 @@
 
 #include <string>
 #include <map>
+
+class Model;
 class ModelManager;
 class OutputManager;
 
@@ -28,33 +39,32 @@ class StartChannelDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_FromThisPreviewOnly;
+		wxChoice* ChoiceController;
 		wxChoice* ModelChoice;
-		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
 		wxChoice* universeChoice;
+		wxRadioButton* ControllerButton;
 		wxRadioButton* ModelButton;
 		wxRadioButton* NoneButton;
-		wxRadioButton* OutputButton;
 		wxRadioButton* StartModelButton;
 		wxRadioButton* UniverseButton;
 		wxSpinCtrl* StartChannel;
 		//*)
-    
-        void Set(const wxString &start, const ModelManager &models, const std::string& preview);
+
+        void Set(const wxString &start, const ModelManager &models, const std::string& preview, Model* model);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
-        void UpdateModels();
-        OutputManager* _outputManager;
+        void UpdateModels(Model* model);
+        OutputManager* _outputManager = nullptr;
         std::map<std::string, std::string> _modelsPreview;
         std::string _preview;
+        Model* _model = nullptr;
 
 	protected:
 
 		//(*Identifiers(StartChannelDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_RADIOBUTTON1;
-		static const long ID_RADIOBUTTON2;
-		static const long ID_CHOICE2;
 		static const long ID_RADIOBUTTON5;
 		static const long ID_CHOICE3;
 		static const long ID_CHOICE4;
@@ -62,6 +72,8 @@ class StartChannelDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON4;
+		static const long ID_RADIOBUTTON6;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -78,5 +90,3 @@ class StartChannelDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

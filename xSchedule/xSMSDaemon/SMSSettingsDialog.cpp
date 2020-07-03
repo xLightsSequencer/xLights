@@ -9,9 +9,6 @@
 #include "../../xLights/UtilFunctions.h"
 
 //(*IdInit(SMSSettingsDialog)
-const long SMSSettingsDialog::ID_STATICTEXT1 = wxNewId();
-const long SMSSettingsDialog::ID_TEXTCTRL1 = wxNewId();
-const long SMSSettingsDialog::ID_SPINCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT7 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT15 = wxNewId();
@@ -28,11 +25,20 @@ const long SMSSettingsDialog::ID_STATICTEXT5 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT10 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL5 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT17 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL8 = wxNewId();
+const long SMSSettingsDialog::ID_STATICLINE1 = wxNewId();
+const long SMSSettingsDialog::ID_STATICLINE2 = wxNewId();
+const long SMSSettingsDialog::ID_CHECKBOX9 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX7 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX2 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX4 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX8 = wxNewId();
+const long SMSSettingsDialog::ID_STATICLINE3 = wxNewId();
+const long SMSSettingsDialog::ID_STATICLINE4 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT1 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT6 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL3 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX5 = wxNewId();
@@ -40,6 +46,8 @@ const long SMSSettingsDialog::ID_CHECKBOX3 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX6 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT8 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL5 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT16 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL7 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT9 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL6 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT11 = wxNewId();
@@ -65,7 +73,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -75,16 +82,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("xSchedule IP Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	TextCtrl_xScheduleIPAddress = new wxTextCtrl(this, ID_TEXTCTRL1, _("127.0.0.1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer4->Add(TextCtrl_xScheduleIPAddress, 1, wxALL|wxEXPAND, 2);
-	SpinCtrl_xSchedulePort = new wxSpinCtrl(this, ID_SPINCTRL4, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 80, _T("ID_SPINCTRL4"));
-	SpinCtrl_xSchedulePort->SetValue(_T("80"));
-	FlexGridSizer4->Add(SpinCtrl_xSchedulePort, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Target text item(s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer3->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_TargetMatrix = new wxTextCtrl(this, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL4"));
@@ -119,26 +116,42 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer3->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Phone = new wxTextCtrl(this, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
 	FlexGridSizer3->Add(TextCtrl_Phone, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT17, _("Timezone Adjust (mins)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT17"));
+	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_TimezoneAdjust = new wxSpinCtrl(this, ID_SPINCTRL8, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -780, 780, 0, _T("ID_SPINCTRL8"));
+	SpinCtrl_TimezoneAdjust->SetValue(_T("0"));
+	FlexGridSizer3->Add(SpinCtrl_TimezoneAdjust, 1, wxALL|wxEXPAND, 5);
+	StaticLine1 = new wxStaticLine(this, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
+	FlexGridSizer3->Add(StaticLine1, 1, wxALL|wxEXPAND, 0);
+	StaticLine2 = new wxStaticLine(this, ID_STATICLINE2, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE2"));
+	FlexGridSizer3->Add(StaticLine2, 1, wxALL|wxEXPAND, 0);
+	CheckBox_Moderation = new wxCheckBox(this, ID_CHECKBOX9, _("Manual message moderation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	CheckBox_Moderation->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_Moderation, 1, wxALL|wxEXPAND, 2);
 	CheckBox_UsePurgoMalum = new wxCheckBox(this, ID_CHECKBOX1, _("Use PurgoMalum online profanity filter"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_UsePurgoMalum->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UsePurgoMalum, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_RejectProfanity = new wxCheckBox(this, ID_CHECKBOX7, _("Reject messages containing profanity"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_RejectProfanity->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_RejectProfanity, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_UseLocalBlacklist = new wxCheckBox(this, ID_CHECKBOX2, _("Use local blacklist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_UseLocalBlacklist->SetValue(true);
 	FlexGridSizer3->Add(CheckBox_UseLocalBlacklist, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_UseLocalWhitelist = new wxCheckBox(this, ID_CHECKBOX4, _("Use local whitelist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_UseLocalWhitelist->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UseLocalWhitelist, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_UsePhoneBlacklist = new wxCheckBox(this, ID_CHECKBOX8, _("Use phone blacklist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_UsePhoneBlacklist->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UsePhoneBlacklist, 1, wxALL|wxEXPAND, 2);
+	StaticLine3 = new wxStaticLine(this, ID_STATICLINE3, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE3"));
+	FlexGridSizer3->Add(StaticLine3, 1, wxALL|wxEXPAND, 0);
+	StaticLine4 = new wxStaticLine(this, ID_STATICLINE4, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE4"));
+	FlexGridSizer3->Add(StaticLine4, 1, wxALL|wxEXPAND, 0);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Maximum Messages Per Phone Number"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_MaximumMessages = new wxSpinCtrl(this, ID_SPINCTRL4, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL4"));
+	SpinCtrl_MaximumMessages->SetValue(_T("0"));
+	FlexGridSizer3->Add(SpinCtrl_MaximumMessages, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Maximum Message Length"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer3->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_MaximumMessageLength = new wxSpinCtrl(this, ID_SPINCTRL3, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 10, 1000, 100, _T("ID_SPINCTRL3"));
@@ -161,6 +174,11 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	SpinCtrl_MaxMessageAge = new wxSpinCtrl(this, ID_SPINCTRL5, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 0, 3600, 10, _T("ID_SPINCTRL5"));
 	SpinCtrl_MaxMessageAge->SetValue(_T("10"));
 	FlexGridSizer3->Add(SpinCtrl_MaxMessageAge, 1, wxALL|wxEXPAND, 2);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT16, _("Maximum Message Age For Response (mins)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_MaxMsgAgeMinsForResponse = new wxSpinCtrl(this, ID_SPINCTRL7, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 0, 1440, 10, _T("ID_SPINCTRL7"));
+	SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(_T("10"));
+	FlexGridSizer3->Add(SpinCtrl_MaxMsgAgeMinsForResponse, 1, wxALL|wxEXPAND, 2);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Times To Display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer3->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_TimesToDisplay = new wxSpinCtrl(this, ID_SPINCTRL6, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 30, 0, _T("ID_SPINCTRL6"));
@@ -189,7 +207,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_xScheduleIPAddressText);
 	Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TargetMatrixText);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SMSSettingsDialog::OnChoice_SMSServiceSelect);
 	Connect(ID_TEXTCTRL7,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_UserText);
@@ -206,25 +223,27 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     Choice_SMSService->AppendString("Bandwidth");
     Choice_SMSService->AppendString("Twilio");
     Choice_SMSService->AppendString("Voip.ms");
+    Choice_SMSService->AppendString("Test");
     Choice_SMSService->SetSelection(0);
 
-    TextCtrl_xScheduleIPAddress->SetValue(options->GetXScheduleIP());
     TextCtrl_TargetMatrix->SetValue(options->GetTextItem());
     TextCtrl_User->SetValue(options->GetUser());
     TextCtrl_SID->SetValue(options->GetSID());
     TextCtrl_Token->SetValue(options->GetToken());
     TextCtrl_Phone->SetValue(options->GetPhone());
-    TextCtrl_DefaultMessage->SetValue(options->GetDefaultMessage());
+    TextCtrl_DefaultMessage->SetValue(options->GetUnderlyingDefaultMessage());
     TextCtrl_SuccessMessage->SetValue(options->GetSuccessMessage());
     TextCtrl_RejectMessage->SetValue(options->GetRejectMessage());
     Choice_SMSService->SetStringSelection(options->GetSMSService());
 
+    SpinCtrl_TimezoneAdjust->SetValue(options->GetTimezoneAdjust());
     SpinCtrl_RetrieveInterval->SetValue(options->GetRetrieveInterval());
     SpinCtrl_DisplayDuration->SetValue(options->GetDisplayDuration());
     SpinCtrl_MaximumMessageLength->SetValue(options->GetMaxMessageLength());
     SpinCtrl_MaxMessageAge->SetValue(options->GetMaxMessageAge());
+    SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(options->GetMaxMsgAgeMinsForResponse());
     SpinCtrl_TimesToDisplay->SetValue(options->GetMaxTimesToDisplay());
-    SpinCtrl_xSchedulePort->SetValue(options->GetXSchedulePort());
+    SpinCtrl_MaximumMessages->SetValue(options->GetMaximumMessagesPerPhone());
 
     CheckBox_UsePurgoMalum->SetValue(options->GetUsePurgoMalum());
     CheckBox_RejectProfanity->SetValue(options->GetRejectProfanity());
@@ -233,6 +252,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     CheckBox_UsePhoneBlacklist->SetValue(options->GetUsePhoneBlacklist());
     CheckBox_UseLocalBlacklist->SetValue(options->GetUseLocalBlacklist());
     CheckBox_UseLocalWhitelist->SetValue(options->GetUseLocalWhitelist());
+    CheckBox_Moderation->SetValue(options->GetManualModeration());
     CheckBox_UpperCase->SetValue(options->GetUpperCase());
 
     ValidateWindow();
@@ -247,7 +267,6 @@ SMSSettingsDialog::~SMSSettingsDialog()
 
 void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    _options->SetXScheduleIP(TextCtrl_xScheduleIPAddress->GetValue().ToStdString());
     _options->SetTextItem(TextCtrl_TargetMatrix->GetValue().ToStdString());
     _options->SetUser(TextCtrl_User->GetValue().ToStdString());
     _options->SetSID(TextCtrl_SID->GetValue().ToStdString());
@@ -262,8 +281,10 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetDisplayDuration(SpinCtrl_DisplayDuration->GetValue());
     _options->SetMaxMessageLength(SpinCtrl_MaximumMessageLength->GetValue());
     _options->SetMaxMessageAge(SpinCtrl_MaxMessageAge->GetValue());
+    _options->SetMaxMsgAgeMinsForResponse(SpinCtrl_MaxMsgAgeMinsForResponse->GetValue());
     _options->SetMaxTimesToDisplay(SpinCtrl_TimesToDisplay->GetValue());
-    _options->SetXSchedulePort(SpinCtrl_xSchedulePort->GetValue());
+    _options->SetMaximumMessagesPerPhone(SpinCtrl_MaximumMessages->GetValue());
+    _options->SetTimezoneAdjust(SpinCtrl_TimezoneAdjust->GetValue());
 
     _options->SetUsePurgoMalum(CheckBox_UsePurgoMalum->GetValue());
     _options->SetRejectProfanity(CheckBox_RejectProfanity->GetValue());
@@ -273,6 +294,7 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetAcceptOneWordOnly(CheckBox_OneWordOnly->GetValue());
     _options->SetIgnoreOversizedMessages(CheckBox_IgnoreOversized->GetValue());
     _options->SetUpperCase(CheckBox_UpperCase->GetValue());
+    _options->SetManualModeration(CheckBox_Moderation->GetValue());
 
     EndDialog(wxID_OK);
 }
@@ -314,8 +336,7 @@ void SMSSettingsDialog::ValidateWindow()
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
-            TextCtrl_Token->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_Token->GetValue() == "")
         {
             Button_Ok->Disable();
         }
@@ -334,8 +355,7 @@ void SMSSettingsDialog::ValidateWindow()
         TextCtrl_User->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
-            TextCtrl_SID->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_SID->GetValue() == "")
         {
             Button_Ok->Disable();
         }
@@ -346,16 +366,16 @@ void SMSSettingsDialog::ValidateWindow()
     }
     else if (Choice_SMSService->GetStringSelection() == "Twilio")
     {
-        StaticText_User->SetLabel("UNUSED");
-        StaticText_SID->SetLabel("SID");
+        StaticText_User->SetLabel("Account SID");
+        StaticText_SID->SetLabel("API Key SID");
         StaticText_Token->SetLabel("Auth Token");
 
-        TextCtrl_User->Disable();
+        TextCtrl_User->Enable();
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "" ||
-            TextCtrl_SID->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_User->GetValue() == "" ||
+            TextCtrl_SID->GetValue() == "")
         {
             Button_Ok->Disable();
         }
@@ -363,6 +383,17 @@ void SMSSettingsDialog::ValidateWindow()
         {
             Button_Ok->Enable();
         }
+    }
+    else if (Choice_SMSService->GetStringSelection() == "Test")
+    {
+        StaticText_User->SetLabel("N/A");
+        StaticText_SID->SetLabel("N/A");
+        StaticText_Token->SetLabel("N/A");
+
+        TextCtrl_User->Disable();
+        TextCtrl_Token->Disable();
+        TextCtrl_SID->Disable();
+        Button_Ok->Enable();
     }
 
     if (CheckBox_UsePurgoMalum->GetValue())

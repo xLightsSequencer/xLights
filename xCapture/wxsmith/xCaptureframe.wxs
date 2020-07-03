@@ -295,6 +295,23 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_FillInMissingFrames" member="yes">
+							<label>Fill in missing frames with prior frame data</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>4</cols>
 					<object class="sizeritem">

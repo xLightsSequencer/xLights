@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "GlediatorEffect.h"
 #include "GlediatorPanel.h"
 
@@ -134,7 +144,7 @@ GlediatorEffect::~GlediatorEffect()
     //dtor
 }
 
-std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -232,7 +242,7 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
     }
 }
 
-std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap) const 
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"]);

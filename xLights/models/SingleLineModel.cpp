@@ -1,8 +1,17 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SingleLineModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
-
 
 #include "ModelScreenLocation.h"
 
@@ -94,25 +103,26 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 void SingleLineModel::InitModel() {
     InitLine();
 
-
-    for (auto node = Nodes.begin(); node != Nodes.end(); ++node) {
-        int count = 0;
-        int num = node->get()->Coords.size();
-        float offset = 0.0;
-        if (num == 1) {
-            offset = 0.5;
-        } else {
-            offset = (float)1 / (float)num / 2.0;
-        }
-        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
-            coord->screenY = 0;
-            if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset ;
-                count++;
-            } else {
-                coord->screenX = coord->bufX + offset ;
+    if ( Nodes.size() > 0 && (BufferWi > 1 || Nodes.front()->Coords.size() > 1))
+    {
+        int lightcount = BufferWi * Nodes.front()->Coords.size();
+        float bulbOffset = BufferWi / (lightcount - 1.0);
+        float currentX = 0;
+        for (auto& n : Nodes)
+        {
+            for (auto& c : n->Coords)
+            {
+                c.screenY = 0;
+                c.screenX = currentX;
+                currentX += bulbOffset;
             }
         }
+    }
+    else if (Nodes.size() > 0)
+    {
+        // 1 node 1 light
+        Nodes.front()->Coords.front().screenY = 0.0;
+        Nodes.front()->Coords.front().screenX = 0.5;
     }
     screenLocation.SetRenderSize(BufferWi, 1);
 }
@@ -129,32 +139,36 @@ void SingleLineModel::InitLine() {
     int chan = 0;
     int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
+    if (!IsLtoR) {
+        ChanIncr = -ChanIncr;
+    }
 
     int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
         if (Nodes[n]->StringNum != LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
+            if (!IsLtoR) {
+                chan += NodesPerString(LastStringNum) * GetNodeChannelCount(StringType);
+                chan += ChanIncr;
+            }
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
         Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
+            Nodes[n]->Coords[c].bufX=idx;
             Nodes[n]->Coords[c].bufY=0;
         }
         idx++;
     }
 }
 
-static wxPGChoices LEFT_RIGHT;
+static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
+static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (LEFT_RIGHT.GetCount() == 0) {
-        LEFT_RIGHT.Add("Green Square");
-        LEFT_RIGHT.Add("Blue Square");
-    }
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
@@ -184,23 +198,40 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
     if ("SingleLineCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
+        return 0;
     } else if ("SingleLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
+        return 0;
     } else if ("SingleLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
+        return 0;
     } else if ("SingleLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);

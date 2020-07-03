@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SequenceVideoPanel.h"
 #include "VideoReader.h"
 
@@ -48,7 +58,7 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
     }
     else
     {
-        _videoReader.reset(new VideoReader(path, 0, 0, false, true));
+        _videoReader.reset(new VideoReader(path, 0, 0, false, true, false));
         if (_videoReader->IsValid())
         {
             _isValidVideo = true;

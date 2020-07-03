@@ -1,12 +1,23 @@
-#ifndef PLAYLISTITEMVIDEO_H
-#define PLAYLISTITEMVIDEO_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <string>
 
 #include "PlayListItem.h"
-#include <string>
 
 class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
+class PlayerFrame;
 class VideoReader;
 class CachedVideoReader;
 
@@ -18,17 +29,19 @@ protected:
     std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;
-    bool _suppressVirtualMatrix;
-    bool _topMost;
-    bool _cacheVideo;
-    bool _loopVideo;
-    VideoReader* _videoReader;
-    CachedVideoReader* _cachedVideoReader;
-    size_t _durationMS;
-    PlayerWindow* _window;
+    bool _suppressVirtualMatrix = false;
+    bool _topMost = false;
+    bool _cacheVideo = false;
+    bool _loopVideo = false;
+    VideoReader* _videoReader = nullptr;
+    CachedVideoReader* _cachedVideoReader = nullptr;
+    size_t _durationMS = 0;
+    PlayerWindow* _window = nullptr;
+    PlayerFrame* _frame = nullptr;
+    int _fadeInMS = 0;
+    int _fadeOutMS = 0;
+    bool _useMediaPlayer = false;
     #pragma endregion Member Variables
-    int _fadeInMS;
-    int _fadeOutMS;
 
     void OpenFiles(bool doCache);
     void CloseFiles();
@@ -66,6 +79,8 @@ public:
     void SetFadeInMS(const int fadeInMS) { if (_fadeInMS != fadeInMS) { _fadeInMS = fadeInMS; _changeCount++; } }
     int GetFadeOutMS() const { return _fadeOutMS; }
     void SetFadeOutMS(const int fadeOutMS) { if (_fadeOutMS != fadeOutMS) { _fadeOutMS = fadeOutMS; _changeCount++; } }
+    bool GetUseMediaPlayer() const { return _useMediaPlayer; }
+    void SetUseMediaPlayer(bool useMediaPlayer) { if (_useMediaPlayer != useMediaPlayer) { _useMediaPlayer = useMediaPlayer; _changeCount++; } }
 #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -76,10 +91,10 @@ public:
     virtual void Stop() override;
     virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Suspend(bool suspend) override;
+    virtual void Pause(bool pause) override;
     #pragma endregion Playing
 
 #pragma region UI
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };
-#endif

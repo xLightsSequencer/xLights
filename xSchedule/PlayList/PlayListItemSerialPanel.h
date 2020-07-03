@@ -1,12 +1,21 @@
-#ifndef PLAYLISTITEMSERIALPANEL_H
-#define PLAYLISTITEMSERIALPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemSerialPanel)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(PlayListItemSerialPanel)
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class PlayListItemSerial;
@@ -21,18 +30,18 @@ class PlayListItemSerialPanel: public wxPanel
 		virtual ~PlayListItemSerialPanel();
 
 		//(*Declarations(PlayListItemSerialPanel)
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxChoice* Choice_Speed;
-		wxTextCtrl* TextCtrl_SerialName;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Delay;
 		wxChoice* Choice_CommPort;
-		wxStaticText* StaticText5;
 		wxChoice* Choice_Configuration;
-		wxTextCtrl* TextCtrl_Data;
+		wxChoice* Choice_Speed;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl_Data;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_SerialName;
 		//*)
 
 	protected:
@@ -62,4 +71,3 @@ class PlayListItemSerialPanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

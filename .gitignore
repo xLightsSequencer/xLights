@@ -1,10 +1,13 @@
+build
 bin/xCapture
 bin/xFade
 bin/xLights
 bin/xSchedule
+bin/xSMSDaemon
 bin/*.dll
 bin/*.exe
 bin/*.map
+bin/*.so
 bin64/xLights
 bin64/xSchedule
 bin64/*.dll
@@ -16,7 +19,6 @@ thumbs.db
 *cscope*
 xcuserdata
 xcshareddata
-build
 .DS_Store
 *.tlog
 *.idb
@@ -33,7 +35,10 @@ xLights/xLights_l4cpp.log
 .objs_debug
 .objs
 wxWidgets*
+log4cpp*
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
 *.opensdf
 *.cbp.mak.orig
+._*
+xLights/xlights_build_version.h

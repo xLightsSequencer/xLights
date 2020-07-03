@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "FireworksPanel.h"
 #include "EffectPanelUtils.h"
 #include "../sequencer/Effect.h"
@@ -344,10 +354,10 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 
     // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
     bool removed = false;
-    for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
+    for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
-        for (auto it : timingtracks)
+        for (const auto& it : timingtracks)
         {
             if (it == Choice_TimingTrack->GetString(i))
             {
@@ -364,10 +374,10 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it : timingtracks)
+    for (const auto& it : timingtracks)
     {
         bool found = false;
-        for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
         {
             if (it == Choice_TimingTrack->GetString(i))
             {

@@ -1,10 +1,11 @@
 /***************************************************************
- * Name:      xLightsApp.cpp
- * Purpose:   Code for Application Class
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-11-03
- * Copyright: Matt Brown ()
- * License:
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*AppHeaders
@@ -19,11 +20,14 @@
 #include <time.h>       /* time */
 #include <thread>
 #include <iomanip>
+#include <curl/curl.h>
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
+#include "TraceLog.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -37,6 +41,80 @@
 #include <execinfo.h>
 #else
 #include "MSWStackWalk.h"
+#endif
+
+#ifdef _MSC_VER
+#ifdef _DEBUG
+    #pragma comment(lib, "wxbase31ud.lib")
+    #pragma comment(lib, "wxbase31ud_net.lib")
+    #pragma comment(lib, "wxmsw31ud_core.lib")
+    #pragma comment(lib, "wxscintillad.lib")
+    #pragma comment(lib, "wxregexud.lib")
+    #pragma comment(lib, "wxbase31ud_xml.lib")
+    #pragma comment(lib, "wxtiffd.lib")
+    #pragma comment(lib, "wxjpegd.lib")
+    #pragma comment(lib, "wxpngd.lib")
+    #pragma comment(lib, "wxmsw31ud_aui.lib")
+    #pragma comment(lib, "wxmsw31ud_gl.lib")
+    #pragma comment(lib, "wxzlibd.lib")
+    #pragma comment(lib, "wxmsw31ud_qa.lib")
+    #pragma comment(lib, "wxmsw31ud_html.lib")
+    #pragma comment(lib, "wxmsw31ud_propgrid.lib")
+    #pragma comment(lib, "wxexpatd.lib")
+    #pragma comment(lib, "log4cppLIBd.lib")
+    #pragma comment(lib, "msvcprtd.lib")
+    #pragma comment(lib, "liquidfund.lib")
+    #pragma comment(lib, "libzstdd_static_VS.lib")
+#else   
+    #pragma comment(lib, "wxbase31u.lib")
+    #pragma comment(lib, "wxbase31u_net.lib")
+    #pragma comment(lib, "wxmsw31u_core.lib")
+    #pragma comment(lib, "wxscintilla.lib")
+    #pragma comment(lib, "wxregexu.lib")
+    #pragma comment(lib, "wxbase31u_xml.lib")
+    #pragma comment(lib, "wxtiff.lib")
+    #pragma comment(lib, "wxjpeg.lib")
+    #pragma comment(lib, "wxpng.lib")
+    #pragma comment(lib, "wxmsw31u_aui.lib")
+    #pragma comment(lib, "wxmsw31u_gl.lib")
+    #pragma comment(lib, "wxzlib.lib")
+    #pragma comment(lib, "wxmsw31u_qa.lib")
+    #pragma comment(lib, "wxmsw31u_html.lib")
+    #pragma comment(lib, "wxmsw31u_propgrid.lib")
+    #pragma comment(lib, "wxexpat.lib")
+    #pragma comment(lib, "log4cppLIB.lib")
+    #pragma comment(lib, "msvcprt.lib")
+    #pragma comment(lib, "liquidfun.lib")
+    #pragma comment(lib, "libzstd_static_VS.lib")
+#endif
+#pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "z.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "WS2_32.Lib")
+#pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Rpcrt4.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "winspool.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "ImageHlp.Lib")
+#pragma comment(lib, "avcodec.lib")
+#pragma comment(lib, "avformat.lib")
+#pragma comment(lib, "avutil.lib")
+#pragma comment(lib, "swresample.lib")
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "swscale.lib")
+#pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "z.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;
@@ -70,6 +148,14 @@ void InitialiseLogging(bool fromMain)
         }
 #endif
 
+#ifdef _MSC_VER
+        if (!wxFile::Exists(initFileName)) {
+            wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+            wxString appPath(f.GetPath());
+            initFileName = appPath + "\\" + initFileName;
+        }
+#endif
+
         if (!wxFile::Exists(initFileName))
         {
 #ifdef _MSC_VER
@@ -84,7 +170,7 @@ void InitialiseLogging(bool fromMain)
                 log4cpp::PropertyConfigurator::configure(initFileName);
 				static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-                wxDateTime now = wxDateTime::Now();    
+                wxDateTime now = wxDateTime::Now();
                 int millis = wxGetUTCTimeMillis().GetLo() % 1000;
                 wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
                 logger_base.info("Start Time: %s.", (const char *)ts.c_str());
@@ -109,6 +195,7 @@ void InitialiseLogging(bool fromMain)
 
 					logger_base.info("    %s : %s", (const char *)(*it)->getName().c_str(), (const char *)levels.c_str());
 				}
+                delete categories;
 			}
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work
@@ -163,7 +250,11 @@ std::string DecodeOS(wxOperatingSystemId o)
 void DumpConfig()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef MAC_APP_STORE
+    logger_base.info("Version: " + std::string(xlights_version_string.c_str()) + " - App Store");
+#else
     logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
+#endif
     logger_base.info("Bits: " + std::string(GetBitness().c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
     logger_base.info("Machine configuration:");
@@ -230,6 +321,8 @@ int main(int argc, char **argv)
     XInitThreads();
 #endif
     wxDISABLE_DEBUG_SUPPORT();
+    
+    curl_global_init(CURL_GLOBAL_DEFAULT);
 
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
@@ -249,13 +342,13 @@ xLightsFrame *topFrame = nullptr;
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
-    
+
     if (inCrashHandler) {
         //need to ignore any crashes in the crash handler
         return;
     }
     inCrashHandler = true;
-    
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
@@ -304,7 +397,8 @@ void handleCrash(void *data) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
-    wxString trace = wxString::Format("xLights version %s\n\n", GetDisplayVersionString());
+    wxString trace = wxString::Format("xLights version %s\n", GetDisplayVersionString());
+    trace += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n\n";
 
 #ifndef __WXMSW__
     void* callstack[128];
@@ -322,19 +416,21 @@ void handleCrash(void *data) {
     if (wxThread::IsMain()) {
         trace += wxString::Format("\nCrashed thread the Main Thread\n");
     } else {
-        
+
         std::stringstream ret;
         ret << std::showbase // show the 0x prefix
             << std::internal // fill between the prefix and the number
             << std::setfill('0') << std::setw(10)
             << std::hex << std::this_thread::get_id();
-        
+
         std::string id = ret.str();
         trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
     }
     //These will be added on the main thread
     //trace += topFrame->GetThreadStatusReport();
     //trace += ParallelJobPool::POOL.GetThreadStatus();
+
+    trace += "\n<email>"+ topFrame->_userEmail +"</email>\n";
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 
@@ -368,14 +464,16 @@ void handleCrash(void *data) {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
 
-    if (!wxThread::IsMain() && topFrame != nullptr) 
+    std::list<std::string> trc;
+    TraceLog::GetTraceMessages(trc);
+    if (!wxThread::IsMain() && topFrame != nullptr)
     {
-        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
+        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
         wxSleep(600000);
-    } 
+    }
     else if (topFrame != nullptr)
     {
-        topFrame->CreateDebugReport(report);
+        topFrame->CreateDebugReport(report, trc);
     }
     else
     {
@@ -383,12 +481,25 @@ void handleCrash(void *data) {
         logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char *)report->GetCompressedFileName().c_str());
     }
 }
-
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
+void xLightsFrame::PushTraceContext() {
+    TraceLog::PushTraceContext();
+}
+void xLightsFrame::PopTraceContext() {
+    TraceLog::PopTraceContext();
+}
 
-void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+void xLightsFrame::AddTraceMessage(const std::string &trc) {
+    TraceLog::AddTraceMessage(trc);
+}
+
+void xLightsFrame::ClearTraceMessages() {
+    TraceLog::ClearTraceMessages();
+}
+
+void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static bool inHere = false;
@@ -404,6 +515,20 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     status += topFrame->GetThreadStatusReport();
     status += "\nParallel Job Pool:\n";
     status += ParallelJobPool::POOL.GetThreadStatus();
+    if (!trc.empty()) {
+        status += "\nCrashed thread traces:\n";
+        for (auto &a : trc) {
+            status += a;
+            status += "\n";
+        }
+    }
+    status += "\nMain thread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
+    for (auto &a : traceMessages) {
+        status += a;
+        status += "\n";
+    }
 
     wxFileName fileName(report->GetDirectory(), "backtrace.txt");
     wxFile file(fileName.GetFullPath(),  wxFile::write_append);
@@ -434,9 +559,37 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
 LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 {
     handleCrash(ExceptionInfo->ContextRecord);
+    return 0;
 }
 #endif
 
+#ifdef __WXOSX__
+void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (fileNames.empty()) {
+        return;
+    }
+    wxString fileName = fileNames[0];
+    logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
+    ObtainAccessToURL(fileName);
+    
+    wxString showDir = wxPathOnly(fileName);
+    while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
+        auto old = showDir;
+        showDir = wxPathOnly(showDir);
+        if (showDir == old) showDir = "";
+    }
+    if (showDir != "" && showDir != __frame->showDirectory) {
+        ObtainAccessToURL(showDir);
+        __frame->SetDir(showDir, false);
+    }
+    if (__frame) {
+        __frame->OpenSequence(fileName, nullptr);
+    } else {
+        logger_base.info("       No xLightsFrame");
+    }
+}
+#endif
 
 bool xLightsApp::OnInit()
 {
@@ -444,8 +597,9 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
+    wxTheApp->SetAppName("xLights");
     DumpConfig();
-
+    
     int id = (int)wxThread::GetCurrentId();
     logger_base.info("Main thread id: 0x%X or %i", id, id);
 
@@ -459,12 +613,15 @@ bool xLightsApp::OnInit()
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
+#ifndef MAC_APP_STORE
+    #if !defined(_DEBUG) || !defined(_MSC_VER)
+        wxHandleFatalExceptions();
+    #endif
+#endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
-//    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here
@@ -533,6 +690,8 @@ bool xLightsApp::OnInit()
             wxExecute(cmdlineM, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
+       // Set App Name for when running via appimage
+       SetAppName(wxT("xLights"));
 #endif
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
@@ -615,9 +774,8 @@ bool xLightsApp::OnInit()
     if (wxsOK)
     {
     	xLightsFrame* Frame = new xLightsFrame(nullptr);
-        if (Frame->CurrentDir == "")
-        {
-            return false;
+        if (Frame->CurrentDir == "") {
+            logger_base.info("Show directory not set");
         }
     	Frame->Show();
     	SetTopWindow(Frame);
@@ -651,7 +809,6 @@ bool xLightsApp::OnInit()
     return wxsOK;
 }
 
-
 void xLightsApp::OnFatalException() {
     handleCrash(nullptr);
 }
@@ -663,6 +820,15 @@ void xLightsApp::WipeSettings()
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
+}
+
+bool xLightsApp::ProcessIdle() {
+    uint64_t now = wxGetLocalTimeMillis().GetValue();
+    if (now > _nextIdleTime) {
+        _nextIdleTime = now + 100;
+        return wxApp::ProcessIdle();
+    }
+    return false;
 }
 
 //global flags from command line:

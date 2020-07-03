@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Star-Lights LED 3W Mini Moving Head 13 channels" parm1="13" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Tilt,Pan fine 16 bit,Tilt fine 16 bit,XY-Speed,Flash,Dimmer,Color Mixing,Color Mixing Speed,Red,Green,Blue,Reset Channel" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="2" DmxShutterChannel="0" DmxRedChannel="10" DmxGreenChannel="11" DmxBlueChannel="12" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Flash" s1-Name="off" s1-Color="#030303" 
+s2="Flash" s2-Name="flash_from_fast_to_slow" s2-Color="#6F6F6F" 
+s3="Flash" s3-Name="semi_on" s3-Color="#EFEFEF" 
+s4="Flash" s4-Name="on" s4-Color="#FBFBFB" 
+s5="Reset Channel" s5-Name="without_reposition" s5-Color="#7B7B7B" 
+s6="Reset Channel" s6-Name="hold_for_5_seconds_to_reset" s6-Color="#FBFBFB" 
+/>
+</dmxmodel>

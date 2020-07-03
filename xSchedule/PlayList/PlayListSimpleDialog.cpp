@@ -1,5 +1,15 @@
-#include "PlayListSimpleDialog.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
+#include "PlayListSimpleDialog.h"
+#include "PlayListDialog.h"
 #include "PlayList.h"
 #include "PlayListStep.h"
 #include "PlayListItem.h"
@@ -9,7 +19,8 @@
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemAudio.h"
-#include "../xLights/osxMacUtils.h"
+#include "../../xLights/osxMacUtils.h"
+#include "../../xLights/UtilFunctions.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
@@ -24,11 +35,14 @@
 #include <wx/string.h>
 //*)
 
+#include <log4cpp/Category.hh>
+
 //(*IdInit(PlayListSimpleDialog)
 const long PlayListSimpleDialog::ID_TREECTRL1 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON3 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON4 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON5 = wxNewId();
+const long PlayListSimpleDialog::ID_BUTTON7 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON6 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON1 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON2 = wxNewId();
@@ -41,22 +55,24 @@ const long PlayListSimpleDialog::ID_SPLITTERWINDOW1 = wxNewId();
 BEGIN_EVENT_TABLE(PlayListSimpleDialog,wxDialog)
 	//(*EventTable(PlayListSimpleDialog)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_UPDATEITEMNAME, PlayListSimpleDialog::UpdateItemName)
 END_EVENT_TABLE()
 
 
 PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
     _playlist = playlist;
 
 	//(*Initialize(PlayListSimpleDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
 
-	Create(parent, id, _("Play List"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, id, _("Play List - Simple"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -64,7 +80,6 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -80,6 +95,8 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
 	BoxSizer1->Add(Button_FSEQVideo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_AddAudio = new wxButton(Panel1, ID_BUTTON5, _("Add Audio Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
 	BoxSizer1->Add(Button_AddAudio, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Clone = new wxButton(Panel1, ID_BUTTON7, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	BoxSizer1->Add(Button_Clone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Delete = new wxButton(Panel1, ID_BUTTON6, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -103,7 +120,7 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer4->Fit(Panel2);
 	FlexGridSizer4->SetSizeHints(Panel2);
 	SplitterWindow1->SplitVertically(Panel1, Panel2);
-	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FileDialog1 = new wxFileDialog(this, _("Select files"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 	FlexGridSizer1->Fit(this);
@@ -117,6 +134,7 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_AddFSEQClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_FSEQVideoClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_AddAudioClick);
+	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_CloneClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_DeleteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListSimpleDialog::OnButton_CancelClick);
@@ -131,6 +149,7 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
     h = config->ReadLong(_("xsPLWindowPosH"), 600);
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
+    EnsureWindowHeaderIsOnScreen(this);
 
     // save the current state in case the user cancels
     _savedState = new PlayList(*playlist);
@@ -175,7 +194,7 @@ void PlayListSimpleDialog::SwapPage(wxNotebookPage* newpage, const std::string& 
     if (newpage == nullptr && Notebook1->GetPageCount() == 0) {
         return;
     }
-    
+
     WINDOW_LOCKER(Panel2, lockPanel);
     WINDOW_LOCKER(Notebook1, lockNotebook);
 
@@ -208,17 +227,17 @@ void PlayListSimpleDialog::PopulateTree(PlayList* selplaylist, PlayListStep* sel
     if (selstep == nullptr) select = id;
 
     auto steps = _playlist->GetSteps();
-    for (auto it = steps.begin(); it != steps.end(); ++it)
+    for (const auto & it : steps)
     {
-        wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
-        TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
+        wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), it->GetName(_playlist));
+        TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(it));
 
-        if ( selstep != nullptr && (*it)->GetId() == selstep->GetId())
+        if ( selstep != nullptr && it->GetId() == selstep->GetId())
         {
             select = step;
         }
         // size_t ms;
-        // PlayListItem* ts = (*it)->GetTimeSource(ms);
+        // PlayListItem* ts = it->GetTimeSource(ms);
     }
 
     if (select == nullptr) select = TreeCtrl_PlayList->GetRootItem();
@@ -442,7 +461,8 @@ void PlayListSimpleDialog::DeleteSelectedItem()
     wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
     if (treeitem.IsOk() && !IsPlayList(treeitem))
     {
-        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
+        if (wxMessageBox(wxString::Format("Are you sure you want to delete '%s'?", TreeCtrl_PlayList->GetItemText(treeitem)),
+            "Are you sure?", wxYES_NO) == wxYES)
         {
             SwapPage(nullptr);
             wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
@@ -486,10 +506,12 @@ void PlayListSimpleDialog::ValidateWindow()
     if (IsPlayListStep(treeitem))
     {
         Button_Delete->Enable();
+        Button_Clone->Enable();
     }
     else
     {
         Button_Delete->Enable(false);
+        Button_Clone->Enable(false);
     }
 }
 
@@ -523,13 +545,14 @@ void PlayListSimpleDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 void PlayListSimpleDialog::UpdateTree()
 {
     wxTreeItemId root = TreeCtrl_PlayList->GetRootItem();
-    TreeCtrl_PlayList->SetItemText(root, ((PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(root))->GetData())->GetName());
+    PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(root))->GetData();
+    TreeCtrl_PlayList->SetItemText(root, pl->GetName());
 
     wxTreeItemIdValue tid;
     for (wxTreeItemId it = TreeCtrl_PlayList->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayList->GetNextChild(root, tid))
     {
         PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(it))->GetData();
-        TreeCtrl_PlayList->SetItemText(it, pls->GetName());
+        TreeCtrl_PlayList->SetItemText(it, pls->GetName(pl));
     }
     ValidateWindow();
 }
@@ -616,6 +639,22 @@ void PlayListSimpleDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayL
         playlist->AddStep(pls, 0);
     }
     pls->AddItem(newitem);
+}
+
+void PlayListSimpleDialog::Clone()
+{
+    wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+    if (treeitem.IsOk())
+    {
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        if (step != nullptr)
+        {
+            PlayListStep* pls = new PlayListStep(*step);
+            pls->SetDirty();
+            _playlist->AddStep(pls, GetPos(treeitem) + 1);
+            PopulateTree(_playlist, step);
+        }
+    }
 }
 
 void PlayListSimpleDialog::OnButton_AddFSEQClick(wxCommandEvent& event)
@@ -730,4 +769,9 @@ void PlayListSimpleDialog::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
     PopulateTree(_playlist, nullptr);
+}
+
+void PlayListSimpleDialog::OnButton_CloneClick(wxCommandEvent& event)
+{
+    Clone();
 }

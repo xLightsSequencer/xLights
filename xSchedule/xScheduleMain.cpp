@@ -1,10 +1,11 @@
 /***************************************************************
- * Name:      xScheduleMain.cpp
- * Purpose:   Code for Application Frame
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
 #define ZERO 0
@@ -21,6 +22,7 @@
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/file.h>
+#include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/mimetype.h>
 #include <wx/bitmap.h>
@@ -59,6 +61,11 @@
 #include "City.h"
 #include "events/ListenerManager.h"
 #include "ExtraIPsDialog.h"
+#include "SyncFPP.h"
+#include "../xLights/VideoReader.h"
+#include "../xLights/SpecialOptions.h"
+#include "../xLights/outputs/Output.h"
+#include "RemoteModeConfigDialog.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -93,7 +100,6 @@
 #include "../include/no_web_icon.xpm"
 
 #include <log4cpp/Category.hh>
-#include "RemoteModeConfigDialog.h"
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 
@@ -139,6 +145,7 @@ const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON2 = wxNewId();
+const long xScheduleFrame::ID_BUTTON5 = wxNewId();
 const long xScheduleFrame::ID_BUTTON3 = wxNewId();
 const long xScheduleFrame::ID_BUTTON4 = wxNewId();
 const long xScheduleFrame::ID_PANEL6 = wxNewId();
@@ -174,21 +181,24 @@ const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
+const long xScheduleFrame::ID_MNU_RESETWINDOWS = wxNewId();
 const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
-const long xScheduleFrame::ID_MENUITEM_SMS = wxNewId();
 const long xScheduleFrame::ID_MNU_TEST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_FPP_MULTICAST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_FPP_UNICASTCSVMASTER = wxNewId();
 const long xScheduleFrame::IDM_MNU_ARTNETMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODE_MASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_MASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_FPPCSVREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_SMPTE = wxNewId();
 const long xScheduleFrame::ID_MNU_REMOTECONFIGURE = wxNewId();
 const long xScheduleFrame::ID_MNU_REMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
@@ -368,7 +378,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webIconDisplayed = false;
     _slowDisplayed = false;
     _lastSlow = 0;
-    _smsDaemon = nullptr;
 
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -440,6 +449,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BoxSizer1->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Edit = new wxButton(Panel6, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     BoxSizer1->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Clone = new wxButton(Panel6, ID_BUTTON5, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(Button_Clone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Delete = new wxButton(Panel6, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Schedule = new wxButton(Panel6, ID_BUTTON4, _("Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
@@ -541,10 +552,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ToolsMenu->Append(MenuItem_WebInterface);
     MenuItem_ImportxLights = new wxMenuItem(ToolsMenu, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
     ToolsMenu->Append(MenuItem_ImportxLights);
+    MenuItem_ResetWindowLocations = new wxMenuItem(ToolsMenu, ID_MNU_RESETWINDOWS, _("Reset Window Locations"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_ResetWindowLocations);
     MenuItem_Crash = new wxMenuItem(ToolsMenu, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
     ToolsMenu->Append(MenuItem_Crash);
-    SMSMenuItem = new wxMenuItem(ToolsMenu, ID_MENUITEM_SMS, _("SMS"), wxEmptyString, wxITEM_NORMAL);
-    ToolsMenu->Append(SMSMenuItem);
     MenuBar1->Append(ToolsMenu, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_ModeTest = new wxMenuItem(Menu4, ID_MNU_TEST, _("Test"), wxEmptyString, wxITEM_CHECK);
@@ -552,8 +563,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem3 = new wxMenu();
     MenuItem_ModeFPPBroadcastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_BROADCASTMASTER, _("FPP Broadcast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPBroadcastMaster);
+    MenuItem_ModeFPPMulticastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_MULTICAST, _("FPP Multicast"), wxEmptyString, wxITEM_CHECK);
+    MenuItem3->Append(MenuItem_ModeFPPMulticastMaster);
     MenuItem_ModeFPPUnicastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_UNICASTMASTER, _("FPP Unicast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPUnicastMaster);
+    MenuItem_ModeFPPUnicastCSVMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_UNICASTCSVMASTER, _("FPP Unicast CSV"), wxEmptyString, wxITEM_CHECK);
+    MenuItem3->Append(MenuItem_ModeFPPUnicastCSVMaster);
     MenuItem_ModeArtNetMaster = new wxMenuItem(MenuItem3, IDM_MNU_ARTNETMASTER, _("ARTNet Timecode"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeArtNetMaster);
     MenuItem_ModeOSCMaster = new wxMenuItem(MenuItem3, ID_MNU_OSCMASTER, _("OSC"), wxEmptyString, wxITEM_CHECK);
@@ -564,16 +579,18 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu6 = new wxMenu();
     MenuItem_ModeRemoteDisabled = new wxMenuItem(Menu6, ID_MNU_MODENORMAL, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeRemoteDisabled);
-    MenuItem_ModeFPPBroadcastRemote = new wxMenuItem(Menu6, ID_MNU_FPPREMOTE, _("FPP Broadcast"), wxEmptyString, wxITEM_RADIO);
-    Menu6->Append(MenuItem_ModeFPPBroadcastRemote);
-    MenuItem_ModeFPPUnicastRemote = new wxMenuItem(Menu6, ID_MNU_FPPUNICASTREMOTE, _("FPP Unicast"), wxEmptyString, wxITEM_RADIO);
-    Menu6->Append(MenuItem_ModeFPPUnicastRemote);
+    MenuItem_ModeFPPRemote = new wxMenuItem(Menu6, ID_MNU_FPPREMOTE, _("FPP"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_ModeFPPRemote);
+    MenuItem_ModeFPPCSVRemote = new wxMenuItem(Menu6, ID_MNU_FPPCSVREMOTE, _("FPP CSV"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_ModeFPPCSVRemote);
     MenuItem_ModeArtNetSlave = new wxMenuItem(Menu6, ID_MNU_ARTNETTIMECODESLAVE, _("ARTNet Timecode"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeArtNetSlave);
     MenuItem_ModeOSCRemote = new wxMenuItem(Menu6, ID_MNU_OSCREMOTE, _("OSC"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeOSCRemote);
     MenuItem_ModeMIDISlave = new wxMenuItem(Menu6, MNU_MIDITIMECODEREMOTE, _("MIDI Timecode"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeMIDISlave);
+    MenuItem_SMPTE = new wxMenuItem(Menu6, ID_MNU_SMPTE, _("SMPTE LTC"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_SMPTE);
     MenuItem_RemoteLatency = new wxMenuItem(Menu6, ID_MNU_REMOTECONFIGURE, _("Configure"), wxEmptyString, wxITEM_NORMAL);
     Menu6->Append(MenuItem_RemoteLatency);
     Menu4->Append(ID_MNU_REMOTE, _("Remote"), Menu6, wxEmptyString);
@@ -586,6 +603,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem_ConfigureTest = new wxMenuItem(Menu4, ID_MNU_CONFIGURE_TEST, _("Configure Test"), wxEmptyString, wxITEM_NORMAL);
     Menu4->Append(MenuItem_ConfigureTest);
     MenuBar1->Append(Menu4, _("&Modes"));
+    Menu_Plugins = new wxMenu();
+    MenuBar1->Append(Menu_Plugins, _("Plugins"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
     Menu2->Append(MenuItem2);
@@ -622,6 +641,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_AddClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_CloneClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_ScheduleClick);
     Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemActivated);
@@ -642,20 +662,23 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
+    Connect(ID_MNU_RESETWINDOWS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
-    Connect(ID_MENUITEM_SMS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnSMSMenuItemSelected);
     Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
     Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
+    Connect(ID_MNU_FPP_MULTICAST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected);
     Connect(ID_MNU_FPP_UNICASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
+    Connect(ID_MNU_FPP_UNICASTCSVMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected);
     Connect(IDM_MNU_ARTNETMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected);
     Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
     Connect(MNU_MIDITIMECODE_MASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
-    Connect(ID_MNU_FPPUNICASTREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected);
+    Connect(ID_MNU_FPPCSVREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected);
     Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
     Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
     Connect(MNU_MIDITIMECODEREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
+    Connect(ID_MNU_SMPTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SMPTESelected);
     Connect(ID_MNU_REMOTECONFIGURE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
@@ -664,8 +687,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xScheduleFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
+
+    Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemSelected);
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
@@ -680,6 +706,19 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
+
+    wxString userEmail;
+    wxConfig* xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
+    {
+        xlconfig->Read("xLightsUserEmail", &userEmail, "");
+        if (userEmail != "noone@nowhere.xlights.org" && userEmail != "") logger_base.debug("User email address: <email>%s</email>", (const char*)userEmail.c_str());
+        delete xlconfig;
+        xlconfig = nullptr;
+    }
+
+    _timer.SetName("xSchedule frame timer");
+    _timerSchedule.SetName("xSchedule schedule timer");
 
     SetTitle("xLights Scheduler " + GetDisplayVersionString());
 
@@ -715,14 +754,20 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
+    EnsureWindowHeaderIsOnScreen(this);
 
     logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
 
     ListView_Running->AppendColumn("Step");
-    ListView_Running->AppendColumn("Duration");
+    ListView_Running->AppendColumn("Offset", wxLIST_FORMAT_RIGHT);
+    ListView_Running->AppendColumn("Duration", wxLIST_FORMAT_RIGHT);
     ListView_Running->AppendColumn("");
 
     ListView_Ping->AppendColumn("Controller");
+    ListView_Ping->AppendColumn("Failures", wxLIST_FORMAT_RIGHT);
+    ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    if (ListView_Ping->GetColumnWidth(1) > 80)
+        ListView_Ping->SetColumnWidth(1, 80);
 
     _otlon = wxBitmap(xs_otlon);
     _otloff = wxBitmap(xs_otloff);
@@ -763,14 +808,21 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
+    while (!wxDir::Exists(_showDir))
+    {
+        SelectShowFolder();
+    }
+
     logger_base.debug("Loading schedule.");
     LoadSchedule();
 
     if (__schedule == nullptr)
     {
-        logger_base.error("Error loading schedule.");
+        logger_base.error("Error loading schedule. Closing xSchedule.");
         Close();
     }
+
+    VideoReader::InitHWAcceleration();
 
     __schedule->GetListenerManager()->ProcessPacket("State", "Startup");
 
@@ -823,19 +875,60 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
-#ifndef __WXOSX__
-    SMSMenuItem->GetMenu()->Remove(SMSMenuItem);
+#ifdef __WXOSX__
+    Menu6->Remove(MenuItem_SMPTE);
 #endif
 
     RemoteWarning();
 
     UpdateUI(true);
-    ValidateWindow();
+
+    _pluginManager.Initialise(_showDir);
+
+    for (auto it : _pluginManager.GetPlugins())
+    {
+        wxMenuItem* mi = Menu_Plugins->Append(_pluginManager.GetId(it), _pluginManager.GetMenuLabel(it), nullptr);
+        mi->SetCheckable(true);
+        Connect(_pluginManager.GetId(it), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& xScheduleFrame::OnPluginMenu);
+        if (config->ReadBool(_("Plugin") + it, false))
+        {
+            if (_pluginManager.StartPlugin(it, _showDir, GetOurURL()))
+            {
+                mi->Check(true);
+            }
+        }
+    }
 }
 
 void xScheduleFrame::LoadSchedule()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxASSERT(wxThread::IsMain());
+
+    // reset our special options
+    SpecialOptions::StashShowDir(_showDir);
+    SpecialOptions::GetOption("", "");
+
+    if (_f != nullptr)
+    {
+        wxLog::SetActiveTarget(nullptr);
+        fclose(_f);
+		_f = nullptr;
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Error);
+    }
+
+    if (SpecialOptions::GetOption("wxLogging", "false") == "true")
+    {
+        _f = fopen("log.txt", "w");
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Debug);
+        wxLog::SetActiveTarget(new wxLogStderr(_f));
+    }
+	else
+	{
+        wxLog::SetActiveTarget(new wxLogStderr());
+	}
+
     logger_base.debug("Loading schedule.");
 
     if (_pinger != nullptr)
@@ -846,6 +939,10 @@ void xScheduleFrame::LoadSchedule()
     }
     ListView_Ping->ClearAll();
     ListView_Ping->AppendColumn("Controller");
+    ListView_Ping->AppendColumn("Failures", wxLIST_FORMAT_RIGHT);
+    ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    if (ListView_Ping->GetColumnWidth(1) > 80)
+        ListView_Ping->SetColumnWidth(1, 80);
 
     if (__schedule != nullptr)
     {
@@ -908,45 +1005,58 @@ void xScheduleFrame::LoadSchedule()
 
 void xScheduleFrame::AddIPs()
 {
-    _pinger->RemoveNonOutputIPs();
-
-    auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
-    for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
+    if (_pinger != nullptr)
     {
-        _pinger->AddIP(*it, "FPPRemote");
-    }
+        //_pinger->RemoveNonOutputIPs();
 
-    if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
-    {
-        _pinger->AddIP(__schedule->GetOptions()->GetOSCOptions()->GetIPAddress(), "OSCTarget");
-    }
-
-    auto plis = __schedule->GetPlayListIps();
-    for (auto it = plis.begin(); it != plis.end(); ++it)
-    {
-        if ((*it)->GetTitle() == "OSC")
+        auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
+        for (const auto& it : fppremotes)
         {
-            PlayListItemOSC* osc = (PlayListItemOSC*)*it;
-            _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
+            _pinger->AddIP(it, "FPPRemote");
         }
-    }
 
-    auto extras = __schedule->GetOptions()->GetExtraIPs();
-    for (auto it : *extras)
-    {
-        _pinger->AddIP(it->GetIP(), it->GetDescription());
+        if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
+        {
+            _pinger->AddIP(__schedule->GetOptions()->GetOSCOptions()->GetIPAddress(), "OSCTarget");
+        }
+
+        auto plis = __schedule->GetPlayListIps();
+        for (const auto& it : plis)
+        {
+            if (it->GetTitle() == "OSC")
+            {
+                PlayListItemOSC* osc = (PlayListItemOSC*)it;
+                _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
+            }
+        }
+
+        auto extras = __schedule->GetOptions()->GetExtraIPs();
+        for (auto it : *extras)
+        {
+            _pinger->AddIP(it->GetIP(), it->GetDescription());
+        }
     }
 }
 
 xScheduleFrame::~xScheduleFrame()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame destructor start.");
+
+    // stop the timers immediately
+    _timer.Stop();
+    _timerSchedule.Stop();
+
+    // give them plenty of time to stop
+    wxMilliSleep(100);
+
+    _pluginManager.StopPlugins();
+    _pluginManager.Uninitialise();
+
     if (_pinger != nullptr)
     {
         delete _pinger;
         _pinger = nullptr;
-    }
-    if (_smsDaemon) {
-        delete _smsDaemon;
     }
 
     int x, y;
@@ -956,11 +1066,14 @@ xScheduleFrame::~xScheduleFrame()
     GetSize(&w, &h);
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write(_("xsWindowPosX"), x);
-    config->Write(_("xsWindowPosY"), y);
-    config->Write(_("xsWindowPosW"), w);
-    config->Write(_("xsWindowPosH"), h);
-    config->Flush();
+    if (config != nullptr)
+    {
+        config->Write(_("xsWindowPosX"), x);
+        config->Write(_("xsWindowPosY"), y);
+        config->Write(_("xsWindowPosW"), w);
+        config->Write(_("xsWindowPosH"), h);
+        config->Flush();
+    }
 
     //(*Destroy(xScheduleFrame)
     //*)
@@ -976,10 +1089,20 @@ xScheduleFrame::~xScheduleFrame()
         delete __schedule;
         __schedule = nullptr;
     }
+
+    if (_f != nullptr)
+    {
+        fclose(_f);
+    }
+
+    logger_base.debug("xScheduleFrame destructor end.");
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("OnQuit called.");
+
     if (__schedule->IsDirty())
     {
         if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
@@ -1100,7 +1223,6 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         __schedule->AddPlayList(newpl);
     }
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::DeleteSelectedItem()
@@ -1108,7 +1230,8 @@ void xScheduleFrame::DeleteSelectedItem()
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (treeitem.IsOk() && (IsPlayList(treeitem) || IsSchedule(treeitem)))
     {
-        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
+        if (wxMessageBox(wxString::Format("Are you sure you want to delete '%s'?", TreeCtrl_PlayListsSchedules->GetItemText(treeitem)),
+            "Are you sure?", wxYES_NO) == wxYES)
         {
             wxTreeItemId parent = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
             if (IsPlayList(treeitem))
@@ -1135,7 +1258,6 @@ void xScheduleFrame::DeleteSelectedItem()
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::DoPaste()
@@ -1231,23 +1353,32 @@ void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
 {
     __schedule->Save();
     UpdateUI();
-    ValidateWindow();
 }
 
-void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
+bool xScheduleFrame::SelectShowFolder()
 {
     DirDialog1->SetPath(_showDir);
-
     if (DirDialog1->ShowModal() == wxID_OK)
     {
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
+        return true;
+    }
+    return false;
+}
+
+void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
+{
+    if (SelectShowFolder())
+    {
+        _pluginManager.Uninitialise();
         _timerSchedule.Stop();
         _timer.Stop();
         LoadSchedule();
         wxASSERT(__schedule != nullptr);
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
+        _pluginManager.Initialise(_showDir);
     }
     ValidateWindow();
 }
@@ -1366,7 +1497,6 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 {
     EditSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
@@ -1377,10 +1507,19 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
-    static long long lastms = 0;
+    static long long lastms = wxGetLocalTimeMillis().GetValue() - 25;
     long long now = wxGetLocalTimeMillis().GetValue();
-    logger_frame.info("Timer: Start frame %d", (int)(now - lastms));
-    if (now - lastms > _timer.GetInterval() * 4)
+    int elapsed = (int)(now - lastms);
+
+    if (elapsed < _timer.GetInterval() / 2)
+    {
+        // this is premature ... maybe it is a backed up timer event ... lets skip it
+        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/4 frame time %dms", elapsed, _timer.GetInterval() / 2);
+        return;
+    }
+
+    logger_frame.info("Timer: Start frame %d", elapsed);
+    if (elapsed > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
@@ -1392,7 +1531,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     wxDateTime frameStart = wxDateTime::UNow();
 
-    int rate = __schedule->Frame(_timerOutputFrame);
+    int rate = __schedule->Frame(_timerOutputFrame, this);
 
 #ifndef WEBOVERLOAD
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
@@ -1410,11 +1549,11 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     wxDateTime frameEnd = wxDateTime::UNow();
     long ms = (frameEnd - frameStart).GetMilliseconds().ToLong();
 
-    if (ms > _timer.GetInterval() / 2)
+    if (ms > _timer.GetInterval())
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
-        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval() / 2);
+        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval());
     }
     else
     {
@@ -1429,6 +1568,8 @@ void xScheduleFrame::UpdateSchedule()
 {
     if (__schedule == nullptr) return;
 
+    wxASSERT(wxThread::IsMain());
+
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     wxStopWatch sw;
     logger_frame.debug("Updating the schedule.");
@@ -1439,46 +1580,67 @@ void xScheduleFrame::UpdateSchedule()
 
     logger_frame.debug("Schedule checked %ldms", sw.Time());
 
+    PlayList* nextpl = nullptr;
+    Schedule* nextsch = nullptr;
+    __schedule->GetNextScheduledPlayList(&nextpl, &nextsch);
+
     // highlight the state of all schedule items in the tree
     wxTreeItemIdValue tid;
     auto root = TreeCtrl_PlayListsSchedules->GetRootItem();
-    for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
+    if (root.IsOk())
     {
-        //PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it))->GetData();
-
-        wxTreeItemIdValue tid2;
-        for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))
+        for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
         {
-            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
-
-            TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
-
-            if (__schedule->IsScheduleActive(schedule))
+            wxTreeItemIdValue tid2;
+            for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))
             {
-                RunningSchedule* rs = __schedule->GetRunningSchedule();
-                if (rs != nullptr && rs->GetPlayList()->IsRunning() &&rs->GetSchedule()->GetId() == schedule->GetId())
+                Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
+
+                TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
+
+                if (__schedule->IsScheduleActive(schedule))
                 {
-                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
-                }
-                else
-                {
-                    RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
-                    wxASSERT(r != nullptr);
-                    if (r == nullptr || r->IsStopped())
+                    RunningSchedule* rs = __schedule->GetRunningSchedule();
+                    if (rs != nullptr && rs->GetPlayList()->IsRunning() && rs->GetSchedule()->GetId() == schedule->GetId())
                     {
-                        // stopped
-                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
+                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
                     }
                     else
                     {
-                        // waiting
-                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                        RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
+                        wxASSERT(r != nullptr);
+                        if (r == nullptr || r->IsStopped())
+                        {
+                            // stopped
+                            TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
+                        }
+                        else
+                        {
+                            // waiting
+                            TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                        }
                     }
                 }
-            }
-            else
-            {
-                TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, *wxWHITE);
+                else
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                }
+
+                if (nextsch != nullptr)
+                {
+                    if (schedule->GetId() == nextsch->GetId())
+                    {
+                        TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, *wxBLUE);
+                    }
+                    else
+                    {
+                        TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                    }
+                }
+                else
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                }
             }
         }
     }
@@ -1505,8 +1667,6 @@ void xScheduleFrame::UpdateSchedule()
 
     logger_frame.debug("    UI updated %ldms", sw.Time());
 
-    ValidateWindow();
-
     TreeCtrl_PlayListsSchedules->Thaw();
     TreeCtrl_PlayListsSchedules->Refresh();
 
@@ -1515,6 +1675,10 @@ void xScheduleFrame::UpdateSchedule()
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
+    if (__schedule->IsFPPRemoteOrMaster())
+    {
+        SyncFPP::Ping(__schedule->IsSlave());
+    }
     UpdateSchedule();
 }
 
@@ -1532,11 +1696,13 @@ void xScheduleFrame::ValidateWindow()
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem) || IsSchedule(treeitem))
     {
+        Button_Clone->Enable();
         Button_Delete->Enable();
         Button_Edit->Enable();
     }
     else
     {
+        Button_Clone->Enable(false);
         Button_Delete->Enable(false);
         Button_Edit->Enable(false);
     }
@@ -1568,9 +1734,12 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (oldport != __schedule->GetOptions()->GetWebServerPort())
+        if (oldport != __schedule->GetOptions()->GetWebServerPort() || _webServer == nullptr)
         {
-            delete _webServer;
+            if (_webServer != nullptr)
+            {
+                delete _webServer;
+            }
             _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
                 __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
         }
@@ -1586,6 +1755,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
         __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
 
+        VideoReader::SetHardwareAcceleratedVideo(__schedule->GetOptions()->IsHardwareAcceleratedVideo());
+
         __schedule->OptionsChanged();
 
         CreateButtons();
@@ -1594,7 +1765,6 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     AddIPs();
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
@@ -1611,11 +1781,11 @@ void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
 void xScheduleFrame::CreateButtons()
 {
     auto buttons = Panel1->GetChildren();
-    for (auto it = buttons.begin(); it != buttons.end(); ++it)
+    for (auto it : buttons)
     {
-        Disconnect((*it)->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
-        FlexGridSizer4->Detach(*it);
-        delete *it;
+        Disconnect(it->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
+        FlexGridSizer4->Detach(it);
+        delete it;
     }
 
     auto bs = __schedule->GetOptions()->GetButtons();
@@ -1638,12 +1808,12 @@ void xScheduleFrame::CreateButtons()
     if (bs.size() % 5 != 0) rows++;
     FlexGridSizer4->SetRows(rows);
 
-    for (auto it = bs.begin(); it != bs.end(); ++it)
+    for (auto it : bs)
     {
         // only show not hidden buttons
-        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand((*it)->GetCommand()) != nullptr)
+        if (!wxString(it->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand(it->GetCommand()) != nullptr)
         {
-            CreateButton((*it)->GetLabel(), (*it)->GetColor());
+            CreateButton(it->GetLabel(), it->GetColor());
         }
     }
 
@@ -1668,9 +1838,9 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
 
     if (a.Count() == 2)
     {
-        size_t rate;
+        size_t rate = 0;
         wxString msg;
-        __schedule->Action(a[0], a[1], "", nullptr, nullptr, rate, msg);
+        __schedule->Action(a[0], a[1], "", nullptr, nullptr, nullptr, rate, msg);
         if (msg != "")
         {
             SetTempMessage(msg);
@@ -1714,10 +1884,20 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    PlayListStep* step = nullptr;
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
 
     size_t rate = _timer.GetInterval();
     wxString msg = "";
-    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel(), playlist, schedule, rate, msg);
+    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel(), playlist, step, schedule, rate, msg);
 
     CorrectTimer(rate);
 
@@ -1729,6 +1909,31 @@ void xScheduleFrame::SetTempMessage(const std::string& msg)
 {
     _statusSetAt = wxDateTime::Now();
     StatusBar1->SetStatusText(msg);
+}
+
+// returns the name of the plugin associated with the given web folder or blank if not running
+std::string xScheduleFrame::GetWebPluginRequest(const std::string& request)
+{
+    for (auto it : _pluginManager.GetPlugins())
+    {
+        if (wxString(_pluginManager.GetVirtualWebFolder(it)).Lower() == request)
+        {
+            return it;
+        }
+    }
+    return "";
+}
+
+void xScheduleFrame::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
+{
+    _pluginManager.ManipulateBuffer(buffer, bufferSize);
+}
+
+wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
+{
+    std::wstring res;
+    _pluginManager.HandleWeb(plugin.ToStdString(), command.ToStdString(), parameters, data, reference, res);
+    return wxString(res);
 }
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
@@ -1777,7 +1982,7 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     else
     {
         logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
-        wxMessageBox(_("Unable to show log file."), _("Error"));
+        wxMessageBox(wxString::Format("Unable to show log file '%s'.", fn.c_str()), _("Error"));
     }
 }
 
@@ -1801,11 +2006,11 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
 
         int lastx = 0;
         int lasty = 0;
-        for (auto it = buttons.begin(); it != buttons.end(); ++it)
+        for (auto it : buttons)
         {
             int x, y, w, h;
-            (*it)->GetPosition(&x, &y);
-            (*it)->GetSize(&w, &h);
+            it->GetPosition(&x, &y);
+            it->GetSize(&w, &h);
 
             if ((x < lastx && y == lasty) || x+w > pw - 10)
             {
@@ -1827,17 +2032,22 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
     Layout();
 }
 
+void xScheduleFrame::OnListView_RunningItemSelected(wxListEvent& event)
+{
+    UpdateUI(false);
+}
+
 void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
 {
     int selected = ListView_Running->GetFirstSelected();
 
     PlayList* p = __schedule->GetRunningPlayList();
 
-    if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
+    if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetId() != ListView_Running->GetItemData(selected))
     {
-        size_t rate;
+        size_t rate = 0;
         wxString msg;
-        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0), "", p, nullptr, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", PlayListStep::GetStepNameWithId((int)ListView_Running->GetItemData(selected)), "", p, nullptr, nullptr, rate, msg);
     }
 }
 
@@ -1855,6 +2065,8 @@ std::string FormatTime(size_t timems, bool ms = false)
 
 void xScheduleFrame::UpdateStatus(bool force)
 {
+    wxASSERT(wxThread::IsMain());
+
     wxStopWatch sw;
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("            Update Status");
@@ -1908,14 +2120,16 @@ void xScheduleFrame::UpdateStatus(bool force)
 
             ListView_Running->DeleteAllItems();
 
-            auto steps = p->GetSteps();
-
             int i = 0;
-            for (auto it = steps.begin(); it != steps.end(); ++it)
+            for (const auto& it : p->GetSteps())
             {
-                ListView_Running->InsertItem(i, (*it)->GetNameNoTime());
-                ListView_Running->SetItem(i, 1, FormatTime((*it)->GetLengthMS()));
-                i++;
+                if (!it->GetEveryStep()) {
+                    ListView_Running->InsertItem(i, it->GetNameNoTime());
+                    ListView_Running->SetItem(i, 1, it->GetStartTime(p));
+                    ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
+                    ListView_Running->SetItemData(i, it->GetId());
+                    i++;
+                }
             }
         }
 
@@ -1935,24 +2149,24 @@ void xScheduleFrame::UpdateStatus(bool force)
         {
             for (int i = 0; i < ListView_Running->GetItemCount(); i++)
             {
-                if (!currenthighlighted && ListView_Running->GetItemText(i, 0) == step->GetNameNoTime())
+                if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId())
                 {
                     currenthighlighted = true;
-                    ListView_Running->SetItem(i, 2, step->GetStatus());
+                    ListView_Running->SetItem(i, 3, step->GetStatus());
                     ListView_Running->SetItemBackgroundColour(i, wxColor(146,244,155));
                 }
                 else
                 {
-                    if (next != nullptr && !nexthighlighted && next->GetNameNoTime() == ListView_Running->GetItemText(i,0))
+                    if (next != nullptr && !nexthighlighted && next->GetId() == ListView_Running->GetItemData(i))
                     {
                         nexthighlighted = true;
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244,241,146));
                     }
                     else
                     {
-                        ListView_Running->SetItemBackgroundColour(i, *wxWHITE);
+                        ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     }
-                    ListView_Running->SetItem(i, 2, "");
+                    ListView_Running->SetItem(i, 3, "");
                 }
             }
         }
@@ -1964,8 +2178,11 @@ void xScheduleFrame::UpdateStatus(bool force)
         if (ListView_Running->GetColumnWidth(1) < 80)
             ListView_Running->SetColumnWidth(1, 80);
         ListView_Running->SetColumnWidth(2, wxLIST_AUTOSIZE);
-        if (ListView_Running->GetColumnWidth(2) < 250)
-            ListView_Running->SetColumnWidth(2, 250);
+        if (ListView_Running->GetColumnWidth(2) < 80)
+            ListView_Running->SetColumnWidth(2, 80);
+        ListView_Running->SetColumnWidth(3, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(3) < 250)
+            ListView_Running->SetColumnWidth(3, 250);
     }
 
     ListView_Running->Thaw();
@@ -2180,6 +2397,17 @@ void xScheduleFrame::UpdateStatus(bool force)
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
 
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    PlayListStep* step = nullptr;
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
+
     auto buttons = Panel1->GetChildren();
     for (auto it = buttons.begin(); it != buttons.end(); ++it)
     {
@@ -2191,7 +2419,7 @@ void xScheduleFrame::UpdateStatus(bool force)
             wxString parameters = b->GetParameters();
             Command* c = b->GetCommandObj();
             wxString msg;
-            if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
+            if (c != nullptr && c->IsValid(parameters, playlist, step, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
             {
                 (*it)->Enable();
             }
@@ -2393,10 +2621,20 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             {
                 schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             }
+            if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+            PlayListStep* step = nullptr;
+            if (playlist != nullptr) {
+                int selected = ListView_Running->GetFirstSelected();
+                int stepid = (int)ListView_Running->GetItemData(selected);
+                if (selected >= 0 && stepid >= 0) {
+                    step = playlist->GetStep(stepid);
+                }
+            }
 
             size_t rate = _timer.GetInterval();
             wxString msg = "";
-            __schedule->Action((*it)->GetLabel(), playlist, schedule, rate, msg);
+            __schedule->Action((*it)->GetLabel(), playlist, step, schedule, rate, msg);
 
             CorrectTimer(rate);
 
@@ -2417,6 +2655,34 @@ void xScheduleFrame::CorrectTimer(int rate)
         logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
 
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+    }
+}
+
+std::string xScheduleFrame::GetOurURL() const
+{
+    return "http://127.0.0.1:" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort());
+}
+
+void xScheduleFrame::OnPluginMenu(wxCommandEvent& event)
+{
+    std::string plugin = _pluginManager.GetPluginFromId(event.GetId());
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (((wxMenu*)event.GetEventObject())->IsChecked(event.GetId()))
+    {
+        if (!_pluginManager.StartPlugin(plugin, _showDir, GetOurURL()))
+        {
+            ((wxMenu*)event.GetEventObject())->Check(event.GetId(), false);
+            config->Write(_("Plugin") + plugin, false);
+        }
+        else
+        {
+            config->Write(_("Plugin") + plugin, true);
+        }
+    }
+    else {
+        _pluginManager.StopPlugin(plugin);
+        config->Write(_("Plugin") + plugin, false);
     }
 }
 
@@ -2480,6 +2746,11 @@ void xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& eve
     UIToMode();
 }
 
+void xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     UIToMode();
@@ -2497,6 +2768,20 @@ void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& eve
 
 void xScheduleFrame::OnMenuItem_TestSelected(wxCommandEvent& event)
 {
+    static int mode = (int)SYNCMODE::STANDALONE;
+    static REMOTEMODE remoteMode = REMOTEMODE::DISABLED;
+
+    if (event.IsChecked())
+    {
+        __schedule->GetMode(mode, remoteMode);
+    }
+    else
+    {
+        __schedule->SetMode(mode, remoteMode);
+        __schedule->SetTestMode(false);
+        ModeToUI();
+    }
+
     UIToMode();
 }
 
@@ -2569,14 +2854,17 @@ void xScheduleFrame::ModeToUI()
         MenuItem_ModeOSCMaster->Check(false);
         MenuItem_ModeFPPBroadcastMaster->Check(false);
         MenuItem_ModeFPPUnicastMaster->Check(false);
+        MenuItem_ModeFPPUnicastCSVMaster->Check(false);
+        MenuItem_ModeFPPMulticastMaster->Check(false);
         MenuItem_ModeMIDIMaster->Check(false);
 
         MenuItem_ModeRemoteDisabled->Check();
-        MenuItem_ModeFPPUnicastRemote->Check(false);
-        MenuItem_ModeFPPBroadcastRemote->Check(false);
+        MenuItem_ModeFPPRemote->Check(false);
+        MenuItem_ModeFPPCSVRemote->Check(false);
         MenuItem_ModeOSCRemote->Check(false);
         MenuItem_ModeArtNetSlave->Check(false);
         MenuItem_ModeMIDISlave->Check(false);
+        MenuItem_SMPTE->Check(false);
     }
     else
     {
@@ -2600,6 +2888,15 @@ void xScheduleFrame::ModeToUI()
             MenuItem_ModeFPPBroadcastMaster->Check(false);
         }
 
+        if (mode & static_cast<int>(SYNCMODE::FPPMULTICASTMASTER))
+        {
+            MenuItem_ModeFPPMulticastMaster->Check();
+        }
+        else
+        {
+            MenuItem_ModeFPPMulticastMaster->Check(false);
+        }
+
         if (mode & static_cast<int>(SYNCMODE::FPPUNICASTMASTER))
         {
             MenuItem_ModeFPPUnicastMaster->Check();
@@ -2607,6 +2904,15 @@ void xScheduleFrame::ModeToUI()
         else
         {
             MenuItem_ModeFPPUnicastMaster->Check(false);
+        }
+
+        if (mode & static_cast<int>(SYNCMODE::FPPUNICASTCSVMASTER))
+        {
+            MenuItem_ModeFPPUnicastCSVMaster->Check();
+        }
+        else
+        {
+            MenuItem_ModeFPPUnicastCSVMaster->Check(false);
         }
 
         if (mode & static_cast<int>(SYNCMODE::OSCMASTER))
@@ -2644,15 +2950,20 @@ void xScheduleFrame::ModeToUI()
             if (BitmapButton_IsScheduled->GetToolTipText() != "MIDI remote.")
                 BitmapButton_IsScheduled->SetToolTip("MIDI remote.");
             break;
-        case REMOTEMODE::FPPBROADCASTSLAVE:
-            MenuItem_ModeFPPBroadcastRemote->Check(true);
+        case REMOTEMODE::FPPSLAVE:
+            MenuItem_ModeFPPRemote->Check(true);
             if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
                 BitmapButton_IsScheduled->SetToolTip("FPP remote.");
             break;
-        case REMOTEMODE::FPPUNICASTSLAVE:
-            MenuItem_ModeFPPUnicastRemote->Check(true);
-            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
-                BitmapButton_IsScheduled->SetToolTip("FPP remote.");
+        case REMOTEMODE::SMPTESLAVE:
+            MenuItem_SMPTE->Check(true);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "SMPTE LTC remote.")
+                BitmapButton_IsScheduled->SetToolTip("SMPTE LTC remote.");
+            break;
+        case REMOTEMODE::FPPCSVSLAVE:
+            MenuItem_ModeFPPCSVRemote->Check(true);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP CSV remote.")
+                BitmapButton_IsScheduled->SetToolTip("FPP CSV remote.");
             break;
         default:
             MenuItem_ModeRemoteDisabled->Check(true);
@@ -2670,7 +2981,9 @@ void xScheduleFrame::UIToMode()
     int mode = (int)SYNCMODE::STANDALONE;
     mode |= MenuItem_ModeArtNetMaster->IsChecked() ? (int)SYNCMODE::ARTNETMASTER : 0;
     mode |= MenuItem_ModeFPPBroadcastMaster->IsChecked() ? (int)SYNCMODE::FPPBROADCASTMASTER : 0;
+    mode |= MenuItem_ModeFPPMulticastMaster->IsChecked() ? (int)SYNCMODE::FPPMULTICASTMASTER : 0;
     mode |= MenuItem_ModeFPPUnicastMaster->IsChecked() ? (int)SYNCMODE::FPPUNICASTMASTER : 0;
+    mode |= MenuItem_ModeFPPUnicastCSVMaster->IsChecked() ? (int)SYNCMODE::FPPUNICASTCSVMASTER : 0;
     mode |= MenuItem_ModeOSCMaster->IsChecked() ? (int)SYNCMODE::OSCMASTER : 0;
     mode |= MenuItem_ModeMIDIMaster->IsChecked() ? (int)SYNCMODE::MIDIMASTER : 0;
 
@@ -2686,13 +2999,17 @@ void xScheduleFrame::UIToMode()
     {
         __schedule->SetMode(mode, REMOTEMODE::ARTNETSLAVE);
     }
-    else if (MenuItem_ModeFPPBroadcastRemote->IsChecked())
+    else if (MenuItem_ModeFPPRemote->IsChecked())
     {
-        __schedule->SetMode(mode, REMOTEMODE::FPPBROADCASTSLAVE);
+        __schedule->SetMode(mode, REMOTEMODE::FPPSLAVE);
     }
-    else if (MenuItem_ModeFPPUnicastRemote->IsChecked())
+    else if (MenuItem_ModeFPPCSVRemote->IsChecked())
     {
-        __schedule->SetMode(mode, REMOTEMODE::FPPUNICASTSLAVE);
+        __schedule->SetMode(mode, REMOTEMODE::FPPCSVSLAVE);
+    }
+    else if (MenuItem_SMPTE->IsChecked())
+    {
+        __schedule->SetMode(mode, REMOTEMODE::SMPTESLAVE);
     }
     else
     {
@@ -2731,7 +3048,6 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 {
     AddPlayList();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::AddPlayList(bool forceadvanced)
@@ -2755,21 +3071,18 @@ void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
 {
     AddPlayList();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
 {
     EditSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::EditSelectedItem(bool forceadvanced)
@@ -2807,7 +3120,6 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 // This is called when anything interesting happens in schedule manager
@@ -2858,10 +3170,15 @@ void xScheduleFrame::DoStop(wxCommandEvent& event)
 
 void xScheduleFrame::DoAction(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     ActionMessageData* amd = (ActionMessageData*)event.GetClientData();
+
+    logger_base.debug("    Thread switched command = %s", (const char*)amd->_command.c_str());
 
     PlayList* playlist = nullptr;
     Schedule* schedule = nullptr;
+    PlayListStep* step = nullptr;
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem))
@@ -2873,17 +3190,28 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
 
     size_t rate = _timer.GetInterval();
     wxString msg = "";
 
-    __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, schedule, rate, msg);
+    __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, step, schedule, rate, msg);
 
     delete amd;
 }
 
 void xScheduleFrame::UpdateUI(bool force)
 {
+    wxASSERT(wxThread::IsMain());
+
     wxStopWatch sw;
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("        Update UI");
@@ -2975,50 +3303,56 @@ void xScheduleFrame::UpdateUI(bool force)
 
     if (_pinger != nullptr)
     {
+        ListView_Ping->Freeze();
         auto pingresults = _pinger->GetPingers();
-        for (auto it = pingresults.begin(); it != pingresults.end(); ++it)
-        {
+        for (auto it : pingresults) {
             // find it in the list
             int item = -1;
-            for (int i = 0; i < ListView_Ping->GetItemCount(); i++)
-            {
-                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
-                {
+            for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                if (ListView_Ping->GetItemText(i) == it->GetName()) {
                     item = i;
                     break;
                 }
             }
+
+            wxASSERT(ListView_Ping->GetColumnCount() == 2);
+
             // if not there ... add it
-            if (item == -1)
-            {
+            if (item == -1) {
                 item = ListView_Ping->GetItemCount();
-                ListView_Ping->InsertItem(ListView_Ping->GetItemCount(), (*it)->GetName());
+                item = ListView_Ping->InsertItem(item, it->GetName());
+                ListView_Ping->SetItem(item, 1, "");
                 ListView_Ping->SetColumnWidth(0, wxLIST_AUTOSIZE);
             }
 
             // update the colour
-            if (item >= 0)
-            {
-                switch ((*it)->GetPingResult())
-                {
-                case PING_OK:
-                case PING_OPEN:
-                case PING_OPENED:
-                case PING_WEBOK:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+            if (item >= 0) {
+                if (it->GetFailCount() == 0) {
+                    ListView_Ping->SetItem(item, 1, "");
+                }
+                else {
+                    ListView_Ping->SetItem(item, 1, wxString::Format("%d", it->GetFailCount()));
+                }
+
+                switch (it->GetPingResult()) {
+                case Output::PINGSTATE::PING_OK:
+                case Output::PINGSTATE::PING_OPEN:
+                case Output::PINGSTATE::PING_OPENED:
+                case Output::PINGSTATE::PING_WEBOK:
                     ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
-                case PING_ALLFAILED:
-                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                case Output::PINGSTATE::PING_ALLFAILED:
                     ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
                     break;
-                case PING_UNAVAILABLE:
+                case Output::PINGSTATE::PING_UNAVAILABLE:
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
                     break;
-                case PING_UNKNOWN:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                case Output::PINGSTATE::PING_UNKNOWN:
                     ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 }
             }
@@ -3028,9 +3362,9 @@ void xScheduleFrame::UpdateUI(bool force)
         for (int i = 0; i < ListView_Ping->GetItemCount(); i ++)
         {
             bool found = false;
-            for (auto it = pingresults.begin(); !found && it != pingresults.end(); ++it)
+            for (auto it : pingresults)
             {
-                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
+                if (ListView_Ping->GetItemText(i) == it->GetName())
                 {
                     found = true;
                 }
@@ -3041,6 +3375,7 @@ void xScheduleFrame::UpdateUI(bool force)
                 i--;
             }
         }
+        ListView_Ping->Thaw();
     }
 
     logger_frame.debug("        Updated ping status %ldms", sw.Time());
@@ -3115,7 +3450,6 @@ void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)
@@ -3125,7 +3459,6 @@ void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)
         __schedule->ImportxLightsSchedule(FileDialog1->GetPath().ToStdString());
         UpdateTree();
         UpdateUI();
-        ValidateWindow();
     }
 }
 
@@ -3155,28 +3488,30 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::SendStatus()
 {
-    if (_webServer != nullptr && __schedule != nullptr)
+    if (__schedule != nullptr)
     {
-        if (_webServer->IsSomeoneListening())
-        {
-            wxString result;
-            if (__schedule->IsXyzzy())
-            {
-                __schedule->DoXyzzy("q", "", result, "");
-            }
-            else
-            {
-                wxString msg;
-                __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
-            }
+        wxString msg;
+        wxString result;
+        __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
 
-            _webServer->SendMessageToAllWebSockets(result);
+        if (_webServer != nullptr)
+        {
+            if (_webServer->IsSomeoneListening())
+            {
+                if (__schedule->IsXyzzy())
+                {
+                    __schedule->DoXyzzy("q", "", result, "");
+                }
+
+                _webServer->SendMessageToAllWebSockets(result);
+            }
         }
+
+        _pluginManager.NotifyStatus(result.ToStdString());
     }
 }
 
@@ -3223,7 +3558,6 @@ void xScheduleFrame::OnPingPopup(wxCommandEvent &event)
         dlg.ShowModal();
         AddIPs();
         UpdateUI();
-        ValidateWindow();
     }
 }
 
@@ -3266,16 +3600,70 @@ void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }
-
-#ifdef __WXOSX__
-#include "xSMSDaemon/xSMSDaemonMain.h"
-void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event)
+void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
 {
-    if (!_smsDaemon) {
-        _smsDaemon = new xSMSDaemonFrame(this);
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (treeitem.IsOk())
+    {
+        if (IsPlayList(treeitem))
+        {
+            PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            PlayList* newpl = new PlayList(*playlist, true);
+            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
+            TreeCtrl_PlayListsSchedules->Expand(newitem);
+            TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+            __schedule->AddPlayList(newpl);
+        }
+        else if (IsSchedule(treeitem))
+        {
+            wxTreeItemId plid = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
+            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            if (plid.IsOk())
+            {
+                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(plid))->GetData();
+                Schedule* newSchedule = new Schedule(*schedule, true);
+                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
+                TreeCtrl_PlayListsSchedules->Expand(plid);
+                TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+                playlist->AddSchedule(newSchedule);
+            }
+        }
+        UpdateSchedule();
+        UpdateUI();
     }
-    _smsDaemon->Show();
 }
-#else
-void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event) {}
-#endif
+
+void xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
+void xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
+void xScheduleFrame::OnClose(wxCloseEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSchedule frame close.");
+    Destroy();
+}
+
+void xScheduleFrame::OnMenuItem_SMPTESelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
+void xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->DeleteEntry(_("xsPLWindowPosX"));
+    config->DeleteEntry(_("xsPLWindowPosY"));
+    config->DeleteEntry(_("xsPLWindowPosW"));
+    config->DeleteEntry(_("xsPLWindowPosH"));
+    config->DeleteEntry(_("xsWindowPosX"));
+    config->DeleteEntry(_("xsWindowPosY"));
+    config->DeleteEntry(_("xsWindowPosW"));
+    config->DeleteEntry(_("xsWindowPosH"));
+}

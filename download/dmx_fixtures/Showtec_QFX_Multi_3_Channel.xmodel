@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Showtec QFX Multi 3 Channel" parm1="47" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Built-in Programs,No function 2,No function 3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Built-in Programs" s1-Name="blackout" s1-Color="#040404" 
+s2="Built-in Programs" s2-Name="auto_par
+_" s2-Color="#141414" 
+s3="Built-in Programs" s3-Name="auto_laser
+_" s3-Color="#303030" 
+s4="Built-in Programs" s4-Name="auto_flash_led
+_" s4-Color="#505050" 
+s5="Built-in Programs" s5-Name="auto_mix
+_" s5-Color="#6F6F6F" 
+s6="Built-in Programs" s6-Name="sound_par
+_" s6-Color="#8F8F8F" 
+s7="Built-in Programs" s7-Name="sound_laser
+_" s7-Color="#AFAFAF" 
+s8="Built-in Programs" s8-Name="sound_flash_led
+_" s8-Color="#CFCFCF" 
+s9="Built-in Programs" s9-Name="sound_mix
+_" s9-Color="#EFEFEF" 
+s10="Node5" s10-Name="brightness_of_all_lights" s10-Color="#5F5F5F" 
+s11="Node5" s11-Name="sound_strobe" s11-Color="#C4C4C4" 
+s12="Node5" s12-Name="strobe_effect_slow_to_fast_0-18hz_" s12-Color="#E1E1E1" 
+s13="Node5" s13-Name="full_on" s13-Color="#FCFCFC" 
+s14="Node6" s14-Name="stop" s14-Color="#020202" 
+s15="Node6" s15-Name="rotate_clockwise_slow_to_fast_" s15-Color="#424242" 
+s16="Node6" s16-Name="rotate_counterclockwise_slow_to_fast_" s16-Color="#C2C2C2" 
+s17="Node7" s17-Name="nothing" s17-Color="#000000" 
+s18="Node8" s18-Name="closed" s18-Color="#020202" 
+s19="Node8" s19-Name="open" s19-Color="#070707" 
+s20="Node8" s20-Name="strobe_pct" s20-Color="#848484" 
+s21="Node9" s21-Name="blackout" s21-Color="#020202" 
+s22="Node9" s22-Name="full_on" s22-Color="#070707" 
+s23="Node9" s23-Name="strobe_effect_slow_to_fast_0-18hz_" s23-Color="#848484" 
+s24="Node10" s24-Name="blackout" s24-Color="#020202" 
+s25="Node10" s25-Name="full_on" s25-Color="#070707" 
+s26="Node10" s26-Name="strobe_effect_slow_to_fast_0-18hz_" s26-Color="#848484" 
+s27="Node11" s27-Name="blackout" s27-Color="#020202" 
+s28="Node11" s28-Name="full_on" s28-Color="#070707" 
+s29="Node11" s29-Name="strobe_effect_slow_to_fast_0-18hz_" s29-Color="#848484" 
+s30="Node12" s30-Name="stop" s30-Color="#020202" 
+s31="Node12" s31-Name="rotate_clockwise_from_slow_to_fast" s31-Color="#424242" 
+s32="Node12" s32-Name="rotate_counterclockwise_from_slow_to_fast" s32-Color="#C2C2C2" 
+s33="Node25" s33-Name="blackout" s33-Color="#040404" 
+s34="Node25" s34-Name="strobe_effect_slow_to_fast_0-18hz_" s34-Color="#848484" 
+s35="Node26" s35-Name="blackout" s35-Color="#040404" 
+s36="Node26" s36-Name="strobe_effect_slow_to_fast_0-18hz_" s36-Color="#848484" 
+s37="Node27" s37-Name="blackout" s37-Color="#040404" 
+s38="Node27" s38-Name="strobe_effect_slow_to_fast_0-18hz_" s38-Color="#848484" 
+s39="Node28" s39-Name="blackout" s39-Color="#040404" 
+s40="Node28" s40-Name="strobe_effect_slow_to_fast_0-18hz_" s40-Color="#848484" 
+/>
+</dmxmodel>

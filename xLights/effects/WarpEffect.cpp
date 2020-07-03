@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/checkbox.h>
 
 #include <sstream>
@@ -172,7 +182,7 @@ namespace
    {
       float wave = RenderBuffer::sin( speed * PI * len + time );
       wave = ( wave + 1.0 ) * 0.5;
-      wave -= 0.3;
+      wave -= 0.3f;
       wave *= wave * wave;
       return wave;
    }
@@ -307,14 +317,14 @@ namespace
    }
 
    const float dropletExpandSpeed = 1.5;
-   const float dropletHeightFactor = 0.3;
+   const float dropletHeightFactor = 0.3f;
    const float dropletRipple = /*80.0*/60.0; // possible progress
 
    float getDropletHeight( const Vec2D& uv, const Vec2D& dropletPosition, float time )
    {
       float decayRate = 0.5; // smaller = faster drops
       float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
-      float dropletStrengthBias = 0.6;
+      float dropletStrengthBias = 0.6f;
       float dropFraction = time / decayRate;
       float dummy;
       dropFraction = std::modf( dropFraction, &dummy );
@@ -488,7 +498,7 @@ void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool
     }
 }
 
-std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res; 
     

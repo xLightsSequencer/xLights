@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemTextPanel.h"
 #include "PlayListItemText.h"
 
@@ -43,6 +53,10 @@ const long PlayListItemTextPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemTextPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemTextPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemTextPanel::ID_STATICTEXT15 = wxNewId();
+const long PlayListItemTextPanel::ID_TEXTCTRL5 = wxNewId();
+const long PlayListItemTextPanel::ID_STATICTEXT16 = wxNewId();
+const long PlayListItemTextPanel::ID_TEXTCTRL6 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemTextPanel,wxPanel)
@@ -138,7 +152,14 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText14 = new wxStaticText(this, ID_STATICTEXT15, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+	FlexGridSizer1->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL5, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+	FlexGridSizer1->Add(TextCtrl_Delay, 1, wxALL|wxEXPAND, 5);
+	StaticText15 = new wxStaticText(this, ID_STATICTEXT16, _("Parameter 1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer1->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Parameter1 = new wxTextCtrl(this, ID_TEXTCTRL6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL6"));
+	FlexGridSizer1->Add(TextCtrl_Parameter1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -159,12 +180,13 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     TextCtrl_Name->SetValue(text->GetRawName());
     TextCtrl_Text->SetValue(text->GetText());
     TextCtrl_Format->SetValue(text->GetFormat());
+    TextCtrl_Parameter1->SetValue(text->GetParameter1());
     SpinCtrl_Speed->SetValue(text->GetSpeed());
     FontPickerCtrl1->SetSelectedFont(*text->GetFont());
     FontPickerCtrl1->SetSelectedColour(text->GetColour());
     Choice_Orientation->SetStringSelection(text->GetOrientation());
     Choice_Movement->SetStringSelection(text->GetMovement());
-    Choice_Type->SetStringSelection(text->GetType());
+    Choice_Type->SetStringSelection(text->GetTextType());
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDuration() / 1000.0));
     Choice_BlendMode->SetSelection(text->GetBlendMode());
     Choice_Matrices->SetStringSelection(text->GetMatrix());
@@ -172,6 +194,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     SpinCtrl_Y->SetValue(_text->GetY());
     SpinCtrl_Priority->SetValue(_text->GetPriority());
     CheckBox_RenderWhenBlank->SetValue(_text->GetRenderWhenBlank());
+    TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDelay() / 1000.0));
 
     ValidateWindow();
 }
@@ -183,12 +206,13 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
 
     _text->SetText(TextCtrl_Text->GetValue().ToStdString());
     _text->SetFormat(TextCtrl_Format->GetValue().ToStdString());
+    _text->SetParameter1(TextCtrl_Parameter1->GetValue().ToStdString());
     _text->SetSpeed(SpinCtrl_Speed->GetValue());
     _text->SetFont(new wxFont(FontPickerCtrl1->GetSelectedFont()));
     _text->SetColour(FontPickerCtrl1->GetSelectedColour());
     _text->SetOrientation(Choice_Orientation->GetStringSelection().ToStdString());
     _text->SetMovement(Choice_Movement->GetStringSelection().ToStdString());
-    _text->SetType(Choice_Type->GetStringSelection().ToStdString());
+    _text->SetTextType(Choice_Type->GetStringSelection().ToStdString());
     _text->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _text->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _text->SetMatrix(Choice_Matrices->GetStringSelection().ToStdString());
@@ -197,6 +221,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetName(TextCtrl_Name->GetValue().ToStdString());
     _text->SetPriority(SpinCtrl_Priority->GetValue());
     _text->SetRenderWhenBlank(CheckBox_RenderWhenBlank->GetValue());
+    _text->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
 }
 
 void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)
@@ -228,5 +253,6 @@ void PlayListItemTextPanel::ValidateWindow()
 void PlayListItemTextPanel::OnTextCtrl_NameText(wxCommandEvent& event)
 {
     _text->SetName(TextCtrl_Name->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }

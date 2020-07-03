@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "NoteImportDialog.h"
 
 //(*InternalHeaders(NoteImportDialog)
@@ -220,7 +230,7 @@ bool NoteImportDialog::IsTimingUnique(wxString name) const
     for (int i = 0; i < num_elements; ++i)
     {
         Element* element = _sequenceElements.GetElement(i);
-        if (element->GetType() == ELEMENT_TYPE_TIMING)
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             if (element->GetName() == name)
             {
@@ -425,7 +435,7 @@ void NoteImportDialog::OnButton_Piano_FileClick(wxCommandEvent& event)
     }
     else if (notes == "Music XML File")
     {
-        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl|All Files|*.*");
+        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl;*.musicxml|All Files|*.*");
     }
     if (FileDialog1->ShowModal() == wxID_OK)
     {

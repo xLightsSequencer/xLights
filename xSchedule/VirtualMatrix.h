@@ -1,5 +1,14 @@
-#ifndef VIRTUALMATRIX_H
-#define VIRTUALMATRIX_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <wx/wx.h>
@@ -8,7 +17,7 @@
 class wxXmlNode;
 class OutputManager;
 
-typedef enum {VM_NORMAL, VM_90, VM_270 } VMROTATION;
+typedef enum {VM_NORMAL, VM_90, VM_270, VM_FLIP_HORIZONTAL, VM_FLIP_VERTICAL } VMROTATION;
 
 class VirtualMatrix 
 {
@@ -44,6 +53,7 @@ public:
         VirtualMatrix(OutputManager* outputManager);
         virtual ~VirtualMatrix() {}
         void Frame(uint8_t*buffer, size_t size);
+        void AllOff();
         void Start();
         void Stop();
         void Suppress(bool suppress);
@@ -76,4 +86,3 @@ public:
         void SetSize(const wxSize size) { if (size != _size) { _size = size; _changeCount++; } }
 };
 
-#endif

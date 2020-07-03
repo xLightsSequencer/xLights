@@ -1,164 +1,140 @@
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "IPOutput.h"
 
+#include <wx/socket.h>
 #include <wx/xml/xml.h>
 #include <wx/regex.h>
-#include <wx/socket.h>
-#include <log4cpp/Category.hh>
 #include <wx/protocol/http.h>
 
+// This must be below the wx includes
 #ifdef __WXMSW__
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 #endif
 
+#include "../UtilFunctions.h"
+#include "../xSchedule/xSMSDaemon/Curl.h"
+
+#include <log4cpp/Category.hh>
+
 std::string IPOutput::__localIP = "";
 
+#pragma region Private Functions
+void IPOutput::Save(wxXmlNode* node) {
+
+    if (_ip != "") {
+        node->AddAttribute("ComPort", _ip);
+    }
+    node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
+
+    Output::Save(node);
+}
+#pragma endregion
+
 #pragma region Constructors and Destructors
-IPOutput::IPOutput(wxXmlNode* node) : Output(node)
-{
+IPOutput::IPOutput(wxXmlNode* node) : Output(node) {
+
     _ip = node->GetAttribute("ComPort", "").ToStdString();
+    _resolvedIp = ResolveIP(_ip);
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
-IPOutput::IPOutput() : Output()
-{
+IPOutput::IPOutput() : Output() {
     _universe = 0;
     _ip = "";
+    _resolvedIp = "";
 }
-#pragma endregion Constructors and Destructors
 
-#pragma region Static Functions
-std::string IPOutput::CleanupIP(const std::string &ip)
-{
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (int y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
-    }
-    if (hasChar || !hasDot) {
-        //hostname, not ip, don't mangle it
-        return ip;
-    }
-    wxString IpAddr(ip.c_str());
-    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
-    if (leadingzero1.Matches(IpAddr))
-    {
-        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
-        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
-        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
-    }
-    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
-    while (leadingzero2.Matches(IpAddr)) // need to do it several times because the results overlap
-    {
-        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
-        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
-        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
-    }
-    return IpAddr.ToStdString();
-}
-#pragma endregion Static Functions
+wxXmlNode* IPOutput::Save() {
 
-wxXmlNode* IPOutput::Save()
-{
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     Save(node);
 
     return node;
 }
+#pragma endregion 
 
-PINGSTATE IPOutput::Ping() const
-{
-    return IPOutput::Ping(GetIP());
-}
+#pragma region Static Functions
+Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy) {
 
-PINGSTATE IPOutput::Ping(const std::string ip)
-{
 #ifdef __WXMSW__
-    unsigned long ipaddr = inet_addr(ip.c_str());
-    if (ipaddr == INADDR_NONE) {
-        return PINGSTATE::PING_ALLFAILED;
-    }
-
-    HANDLE hIcmpFile = IcmpCreateFile();
-    if (hIcmpFile == INVALID_HANDLE_VALUE) {
-        return PINGSTATE::PING_ALLFAILED;
-    }
-
-    char SendData[32] = "Data Buffer";
-    uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
-    void* ReplyBuffer = malloc(ReplySize);
-    if (ReplyBuffer == nullptr) {
-        IcmpCloseHandle(hIcmpFile);
-        return PINGSTATE::PING_ALLFAILED;
-    }
-
-    uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
-    if (dwRetVal != 0) {
-        IcmpCloseHandle(hIcmpFile);
-        free(ReplyBuffer);
-        return PINGSTATE::PING_OK;
-    }
-    else
-    {
-        IcmpCloseHandle(hIcmpFile);
-        free(ReplyBuffer);
-        return PINGSTATE::PING_ALLFAILED;
-    }
-#else
-
-    wxHTTP http;
-    //http.SetMethod("GET");
-    http.SetTimeout(2);
-    bool connected = false;
-    connected = http.Connect(ip, false);
-
-    if (connected)
-    {
-        wxInputStream *httpStream = http.GetInputStream("/");
-        if (http.GetError() == wxPROTO_NOERR)
-        {
-            return PINGSTATE::PING_WEBOK;
+    if (proxy == "") {
+        unsigned long ipaddr = inet_addr(ip.c_str());
+        //unsigned long ipaddr = 0;
+        //inet_pton(AF_INET, ip.c_str(), &ipaddr);
+        if (ipaddr == INADDR_NONE) {
+            return Output::PINGSTATE::PING_ALLFAILED;
         }
-        wxDELETE(httpStream);
-        http.Close();
-    }
 
-    return PINGSTATE::PING_UNAVAILABLE;
+        HANDLE hIcmpFile = IcmpCreateFile();
+        if (hIcmpFile == INVALID_HANDLE_VALUE) {
+            return Output::PINGSTATE::PING_ALLFAILED;
+        }
+
+        char SendData[32] = "Data Buffer";
+        uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
+        ICMP_ECHO_REPLY* ReplyBuffer = (ICMP_ECHO_REPLY*)malloc(ReplySize);
+        if (ReplyBuffer == nullptr) {
+            IcmpCloseHandle(hIcmpFile);
+            return Output::PINGSTATE::PING_ALLFAILED;
+        }
+
+        uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
+        if (dwRetVal != 0 && ReplyBuffer->Status == 0) {
+            IcmpCloseHandle(hIcmpFile);
+            free(ReplyBuffer);
+            return Output::PINGSTATE::PING_OK;
+        }
+        else {
+            IcmpCloseHandle(hIcmpFile);
+            free(ReplyBuffer);
+            return Output::PINGSTATE::PING_ALLFAILED;
+        }
+    }
+    else {
+#endif
+        std::string url = "http://";
+        if (proxy != "") {
+            url += proxy + "/proxy/";
+        }
+        url += ip + "/";
+        if (Curl::HTTPSGet(url, "", "", 2) != "") {
+            return Output::PINGSTATE::PING_WEBOK;
+        }
+        else {
+            return Output::PINGSTATE::PING_ALLFAILED;
+        }
+#ifdef __WXMSW__
+    }
 #endif
 }
+#pragma endregion 
 
-void IPOutput::Save(wxXmlNode* node)
-{
-    if (_ip != "")
-    {
-        node->AddAttribute("ComPort", _ip);
-    }
+#pragma region Getters and Setters
+void IPOutput::SetIP(const std::string& ip) {
 
-    node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
-
-    Output::Save(node);
+    Output::SetIP(ip);
+    _resolvedIp = ResolveIP(_ip);
 }
-
-std::string IPOutput::GetPingDescription() const
-{
-    return GetIP() + " " + GetDescription();
-}
+#pragma endregion 
 
 #pragma region Operators
-bool IPOutput::operator==(const IPOutput& output) const
-{
+bool IPOutput::operator==(const IPOutput& output) const {
+
     if (GetType() != output.GetType()) return false;
 
-    return _universe == output.GetUniverse() && _ip == output.GetIP();
+    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
 }
-#pragma endregion Operators
-
+#pragma endregion 

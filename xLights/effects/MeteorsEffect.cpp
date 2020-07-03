@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "MeteorsEffect.h"
 #include "MeteorsPanel.h"
 
@@ -27,7 +37,7 @@ MeteorsEffect::~MeteorsEffect()
     //dtor
 }
 
-std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -172,9 +182,9 @@ void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false)) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr) {
-                f = *pf->begin();
+                f = *pf->cbegin();
             }
         }
         Count = (float)Count * f;

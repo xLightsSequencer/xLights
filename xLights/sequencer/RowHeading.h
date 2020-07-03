@@ -1,5 +1,15 @@
-#ifndef ROWHEADING_H
-#define ROWHEADING_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "wx/window.h"
 #include <wx/xml/xml.h>
 #include "SequenceElements.h"
@@ -61,9 +71,9 @@ private:
     wxBitmap papagayox_icon;
     wxBitmap model_group_icon;
 
-    int mSelectedRow;
-    SequenceElements* mSequenceElements;
-    bool mCanPaste;
+    int mSelectedRow = -1;
+    SequenceElements* mSequenceElements = nullptr;
+    bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
 
@@ -77,6 +87,8 @@ private:
     static const long ID_ROW_MNU_PLAY_MODEL;
     static const long ID_ROW_MNU_EXPORT_MODEL;
     static const long ID_ROW_MNU_EXPORT_RENDERED_MODEL;
+    static const long ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS;
+    static const long ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS;
     static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
     static const long ID_ROW_MNU_TOGGLE_STRANDS;
     static const long ID_ROW_MNU_SHOW_EFFECTS;
@@ -106,5 +118,3 @@ private:
     static const long ID_ROW_MNU_BREAKDOWN_TIMING_WORDS;
 
 };
-
-#endif // ROWHEADING_H

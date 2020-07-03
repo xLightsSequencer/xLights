@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -11,6 +21,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
@@ -25,9 +36,14 @@ SphereModel::~SphereModel()
 }
 
 void SphereModel::InitModel() {
+    _startLatitude = wxAtof(ModelXml->GetAttribute("StartLatitude", "-86"));
+    _endLatitude = wxAtof(ModelXml->GetAttribute("EndLatitude", "86"));
+    _sphereDegrees = wxAtoi(ModelXml->GetAttribute("Degrees", "360"));
+
     InitVMatrix(0);
     screenLocation.SetPerspective2D(0.1f);
     SetSphereCoord();
+    InitSingleChannelModel();
     DisplayAs = "Sphere";
 }
 
@@ -42,7 +58,6 @@ void SphereModel::SetSphereCoord() {
     double RenderWi = (double)RenderHt / 1.8;
 
     double Hradians = toRadians(360);
-    double Vradians = toRadians(180);
     double Hradius = RenderWi / 2.0;
     double Vradius = RenderHt / 2.0;
 
@@ -51,15 +66,16 @@ void SphereModel::SetSphereCoord() {
     //    (float)RenderWi, (float)RenderHt,
     //    (float)Hradius, (float)Vradius);
 
-    double HStartAngle = Hradians / 4.0 + 0.003;
-    double HAngleIncr = -Hradians / (double)BufferWi;
+    double remove = toRadians((360.0 - _sphereDegrees));
+    double fudge = toRadians((360.0 - _sphereDegrees) / (double)BufferWi);
+    double HStartAngle = Hradians / 4.0 + 0.003 - remove / 2.0;
+    double HAngleIncr = (-Hradians + remove - fudge) / (double)BufferWi;
 
     //logger_base.debug("Horizontal Start %d: +%f x %d",
     //    (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
 
-    double VStartAngle = -Vradians;
-    double VAngleIncr = Vradians / ((double)BufferHt + 1.0);
-    VStartAngle += VAngleIncr;
+    double VStartAngle = toRadians(_startLatitude-90);
+    double VAngleIncr = (toRadians(-1 * _startLatitude) + toRadians(_endLatitude)) / (BufferHt-1);
 
     //logger_base.debug("Vertical Start %d: +%f x %d",
     //    (int)toDegrees(VStartAngle), (float)toDegrees(VAngleIncr), BufferHt);
@@ -89,10 +105,53 @@ void SphereModel::SetSphereCoord() {
 }
 
 int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if (event.GetPropertyName() == "StartLatitude") {
+        ModelXml->DeleteAttribute("StartLatitude");
+        ModelXml->AddAttribute("StartLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::StartLatitude");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::StartLatitude");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::StartLatitude");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::StartLatitude");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "EndLatitude") {
+        ModelXml->DeleteAttribute("EndLatitude");
+        ModelXml->AddAttribute("EndLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::EndLatitude");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::EndLatitude");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::EndLatitude");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::EndLatitude");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "Degrees") {
+        ModelXml->DeleteAttribute("Degrees");
+        ModelXml->AddAttribute("Degrees", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::Degrees");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::Degrees");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::Degrees");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::Degrees");
+        return 0;
+    }
+
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
 
 void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
+
+    wxPGProperty* p = grid->Append(new wxIntProperty("Degrees", "Degrees", _sphereDegrees));
+    p->SetAttribute("Min", "45");
+    p->SetAttribute("Max", "360");
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxIntProperty("Southern Latitude", "StartLatitude", _startLatitude));
+    p->SetAttribute("Min", "-89");
+    p->SetAttribute("Max", "-1");
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("Northern Latitude", "EndLatitude", _endLatitude));
+    p->SetAttribute("Min", "1");
+    p->SetAttribute("Max", "89");
+    p->SetEditor("SpinCtrl");
 }
 
 void SphereModel::ExportXlightsModel()
@@ -117,6 +176,9 @@ void SphereModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
+    wxString sl = ModelXml->GetAttribute("StartLatitude", "-86");
+    wxString el = ModelXml->GetAttribute("EndLatitude", "86");
+    wxString d = ModelXml->GetAttribute("Degrees");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<spheremodel \n");
@@ -132,6 +194,9 @@ void SphereModel::ExportXlightsModel()
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StartSide=\"%s\" ", ss));
     f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("Degrees=\"%s\" ", d));
+    f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
+    f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
@@ -150,6 +215,10 @@ void SphereModel::ExportXlightsModel()
     if (submodel != "")
     {
         f.Write(submodel);
+    }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
     }
     f.Write("</spheremodel>");
     f.Close();
@@ -176,6 +245,9 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString a = root->GetAttribute("Antialias");
             wxString ss = root->GetAttribute("StartSide");
             wxString dir = root->GetAttribute("Dir");
+            wxString sl = root->GetAttribute("StartLatitude", "-86");
+            wxString el = root->GetAttribute("EndLatitude", "86");
+            wxString d = root->GetAttribute("Degrees", "360");
             wxString sn = root->GetAttribute("StrandNames");
             wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");
@@ -203,6 +275,9 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             SetProperty("PixelCount", pc);
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
+            SetProperty("StartLatitude", sl);
+            SetProperty("EndLatitude", el);
+            SetProperty("Degrees", d);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
@@ -222,9 +297,14 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 {
                     AddFace(n);
                 }
+                else if (n->GetName() == "modelGroup") {
+                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
+                }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::ImportXlightsModel");
         }
         else
         {
@@ -345,6 +425,9 @@ void SphereModel::ExportAsCustomXModel() const {
     wxString pc = ModelXml->GetAttribute("PixelCount");
     wxString pt = ModelXml->GetAttribute("PixelType");
     wxString psp = ModelXml->GetAttribute("PixelSpacing");
+    wxString sl = ModelXml->GetAttribute("StartLatitude");
+    wxString el = ModelXml->GetAttribute("EndLatitude");
+    wxString dg = ModelXml->GetAttribute("Degrees");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -360,6 +443,9 @@ void SphereModel::ExportAsCustomXModel() const {
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
+    f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
+    f.Write(wxString::Format("Degrees=\"%s\" ", dg));
     if (pc != "")
         f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
     if (pt != "")

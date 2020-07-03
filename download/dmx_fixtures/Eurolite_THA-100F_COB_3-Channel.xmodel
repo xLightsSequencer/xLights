@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Eurolite THA-100F COB 3-Channel" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Strobe,Dimmer Curve" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#000000" 
+s2="Strobe" s2-Name="strobe-effect_with_increasing_speed" s2-Color="#808080" 
+s3="Dimmer Curve" s3-Name="inverse_square_dimmer_curve_response_characteristics_of_led" s3-Color="#070707" 
+s4="Dimmer Curve" s4-Name="linear_dimmer_curve_response_characteristics_of_halogen_lamp" s4-Color="#1E1E1E" 
+s5="Dimmer Curve" s5-Name="square_dimmer_curve_response_characteristics_of_halogen_lamp" s5-Color="#3C3C3C" 
+s6="Dimmer Curve" s6-Name="inverse_square_dimmer_curve_response_characteristics_of_halogen_lamp" s6-Color="#5A5A5A" 
+s7="Dimmer Curve" s7-Name="s-shaped_dimmer_curve_response_characteristics_of_halogen_lamp" s7-Color="#787878" 
+s8="Dimmer Curve" s8-Name="linear_dimmer_curve_response_characteristics_of_led" s8-Color="#969696" 
+s9="Dimmer Curve" s9-Name="square_dimmer_curve_response_characteristics_of_led" s9-Color="#B4B4B4" 
+s10="Dimmer Curve" s10-Name="s-shaped_dimmer_curve_response_characteristics_of_led" s10-Color="#F0F0F0" 
+/>
+</dmxmodel>

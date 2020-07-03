@@ -2,6 +2,7 @@
 
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include <wx/filename.h>
 #include "../../xLights/UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -17,7 +18,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
-        options += "/";
+        options += wxFileName::GetPathSeparator();
     }
     options += "xSMSDaemon.xSMSDaemon";
 
@@ -29,7 +30,6 @@ void SMSDaemonOptions::Load(const std::string& showDir)
         {
             logger_base.debug("Options loaded from %s.", (const char *)options.c_str());
             auto n = doc.GetRoot();
-            _xScheduleIP = n->GetAttribute("xScheduleIP", "127.0.0.1");
             _textItem = n->GetAttribute("TextItem", "");
             _user = n->GetAttribute("User", "");
             _sid = n->GetAttribute("SID", "");
@@ -48,8 +48,9 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _displayDuration = wxAtoi(n->GetAttribute("DisplayDuration", "30"));
             _maximiumMessageLength = wxAtoi(n->GetAttribute("MaxMsgLen", "100"));
             _maximiumTimesToDisplay = wxAtoi(n->GetAttribute("MaxDisplays", "0"));
+            _maxMsgAgeMinsForResponse = wxAtoi(n->GetAttribute("MaxMsgAgeMinsForResponse", "10"));
             _maximiumMessageAge = wxAtoi(n->GetAttribute("MaxMsgAge", "10"));
-            _xSchedulePort = wxAtoi(n->GetAttribute("xSchedulePort", "80"));
+            _timezoneAdjust = wxAtoi(n->GetAttribute("TimezoneAdjust", "0"));
 
             _rejectProfanity = n->GetAttribute("RejectProfanity", "TRUE") == "TRUE";
             _usePurgoMalum = n->GetAttribute("UsePurgoMalum", "FALSE") == "TRUE";
@@ -57,6 +58,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _useLocalBlacklist = n->GetAttribute("UseLocalBlacklist", "FALSE") == "TRUE";
             _useLocalWhitelist = n->GetAttribute("UseLocalWhitelist", "FALSE") == "TRUE";
             _acceptOneWordOnly = n->GetAttribute("AcceptOneWordOnly", "FALSE") == "TRUE";
+            _manualModeration = n->GetAttribute("ManualModeration", "FALSE") == "TRUE";
             _ignoreOversizedMessages = n->GetAttribute("IgnoreOversizedMessages", "FALSE") == "TRUE";
             _upperCase = n->GetAttribute("UpperCase", "FALSE") == "TRUE";
         }
@@ -77,7 +79,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
-        options += "/";
+        options += wxFileName::GetPathSeparator();
     }
     options += "xSMSDaemon.xSMSDaemon";
 
@@ -85,14 +87,18 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "SMSDaemon");
 
-    node->AddAttribute("xScheduleIP", _xScheduleIP);
     node->AddAttribute("TextItem", _textItem);
     node->AddAttribute("User", _user);
     node->AddAttribute("SID", _sid);
     node->AddAttribute("Token", _token);
     node->AddAttribute("Phone", _phone);
     node->AddAttribute("SMSService", _smsService);
-    node->AddAttribute("DefaultMessage", _defaultMessage);
+    wxString def = _defaultMessage;
+    if (def.StartsWith('\b'))
+    {
+        def = def.substr(1);
+    }
+    node->AddAttribute("DefaultMessage", def);
     node->AddAttribute("SuccessMessage", _successMessage);
     node->AddAttribute("RejectMessage", _rejectMessage);
 
@@ -100,8 +106,9 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("DisplayDuration", wxString::Format("%d", _displayDuration));
     node->AddAttribute("MaxMsgLen", wxString::Format("%d", _maximiumMessageLength));
     node->AddAttribute("MaxMsgAge", wxString::Format("%d", _maximiumMessageAge));
+    node->AddAttribute("TimezoneAdjust", wxString::Format("%d", _timezoneAdjust));
     node->AddAttribute("MaxDisplays", wxString::Format("%d", _maximiumTimesToDisplay));
-    node->AddAttribute("xSchedulePort", wxString::Format("%d", _xSchedulePort));
+    node->AddAttribute("MaxMsgAgeMinsForResponse", wxString::Format("%d", _maxMsgAgeMinsForResponse));
 
     if (!_rejectProfanity) node->AddAttribute("RejectProfanity", "FALSE");
     if (_usePurgoMalum) node->AddAttribute("UsePurgoMalum", "TRUE");
@@ -109,6 +116,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     if (_useLocalBlacklist) node->AddAttribute("UseLocalBlacklist", "TRUE");
     if (_useLocalWhitelist) node->AddAttribute("UseLocalWhitelist", "TRUE");
     if (_acceptOneWordOnly) node->AddAttribute("AcceptOneWordOnly", "TRUE");
+    if (_manualModeration) node->AddAttribute("ManualModeration", "TRUE");
     if (_ignoreOversizedMessages) node->AddAttribute("IgnoreOversizedMessages", "TRUE");
     if (_upperCase) node->AddAttribute("UpperCase", "TRUE");
 
@@ -120,8 +128,6 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 
 bool SMSDaemonOptions::IsValid() const
 {
-    if (!IsIPValid(_xScheduleIP)) return false;
-
     if (_smsService == "Bandwidth")
     {
         if (_sid == "" || _token == "" || _textItem == "" || _user == "") return false;
@@ -131,6 +137,19 @@ bool SMSDaemonOptions::IsValid() const
         if (_sid == "" || _textItem == "" || _user == "") return false;
     }
     return true;
+}
+
+void SMSDaemonOptions::SetDefaultMessage(std::string defaultMessage) 
+{ 
+    wxString def = defaultMessage;
+    if (def.StartsWith('\b'))
+    {
+        def = def.substr(1);
+    }
+    if (def != _defaultMessage) 
+    { 
+        _defaultMessage = def; _changeCount++; 
+    } 
 }
 
 bool SMSDaemonOptions::IsDirty() const

@@ -1,5 +1,14 @@
-#ifndef PLAYLISTITEMFILE_H
-#define PLAYLISTITEMFILE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "PlayListItem.h"
 #include <string>
@@ -14,7 +23,8 @@ protected:
     std::string _content;
     std::string _fileName;
     bool _started;
-    #pragma endregion Member Variables
+    bool _append;
+    #pragma endregion 
 
     std::string FileReplaceTags(const std::string s);
 
@@ -25,17 +35,19 @@ public:
     PlayListItemFile();
     virtual ~PlayListItemFile() {};
     virtual PlayListItem* Copy() const override;
-    #pragma endregion Constructors and Destructors
+    #pragma endregion 
 
     #pragma region Getters and Setters
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
     void SetContent(const std::string& content) { if (_content != content) { _content = content; _changeCount++; } }
+    void SetAppend(bool append) { if (_append != append) { _append = append; _changeCount++; } }
     void SetFileName(const std::string& fileName) { if (_fileName != fileName) { _fileName = fileName; _changeCount++; } }
     std::string GetContent() const { return _content; }
+    bool GetAppend() const { return _append; }
     std::string GetFileName() const { return _fileName; }
     virtual std::string GetTitle() const override;
-    #pragma endregion Getters and Setters
+    #pragma endregion 
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
@@ -43,10 +55,9 @@ public:
     #pragma region Playing
     virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
-    #pragma endregion Playing
+    #pragma endregion 
 
     #pragma region UI
     virtual void Configure(wxNotebook* notebook) override;
-#pragma endregion UI
+#pragma endregion
 };
-#endif

@@ -1,13 +1,37 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/filename.h>
 #include <wx/config.h>
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 #include <wx/dir.h>
 #include <wx/socket.h>
+#include <wx/mimetype.h>
+#include <wx/display.h>
 
 #include "UtilFunctions.h"
+#include "xLightsVersion.h"
+
+#ifdef __WXMSW__
+#include <psapi.h>
+#include <iphlpapi.h>
+#else
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+#endif
 
 #include <log4cpp/Category.hh>
+
+static std::map<std::string, std::string> __resolvedIPMap;
 
 void DisplayError(const std::string& err, wxWindow* win)
 {
@@ -145,6 +169,37 @@ bool IsFileInShowDir(const wxString& showDir, const std::string filename)
     return fixedFile.StartsWith(showDir);
 }
 
+wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
+{
+    wxArrayString res;
+
+    wxString w;
+    for (const auto it : s)
+    {
+        bool delim = false;
+        for (auto it2 : delimiters)
+        {
+            if (it == it2)
+            {
+                delim = true;
+                break;
+            }
+        }
+        if (delim)
+        {
+            res.Add(w);
+            w = "";
+        }
+        else
+        {
+            w += it;
+        }
+    }
+    res.Add(w);
+
+    return res;
+}
+
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -179,19 +234,24 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 		return file;
 	}
 
+    logger_base.debug("File not found ... attempting to fix location : " + file);
+
 #ifndef __WXMSW__
     wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fn3(sd, fnUnix.GetFullName());
+    //logger_base.debug("                   trying location : " + fn3.GetFullPath());
     if (fn3.Exists()) {
+        logger_base.debug("File location fixed: " + file + " -> " + fn3.GetFullPath());
         return fn3.GetFullPath();
     }
 #endif
     wxFileName fnWin(file, wxPATH_WIN);
     wxFileName fn4(sd, fnWin.GetFullName());
+    //logger_base.debug("                   trying location : " + fn4.GetFullPath());
     if (fn4.Exists()) {
+        logger_base.debug("File location fixed: " + file + " -> " + fn4.GetFullPath());
         return fn4.GetFullPath();
     }
-
 
     wxString sdlc = sd;
     sdlc.LowerCase();
@@ -202,7 +262,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     wxString fname;
     wxString ext;
     wxFileName::SplitPath(sd, &path, &fname, &ext);
-    wxArrayString parts = wxSplit(path, '\\', 0);
+    //wxArrayString parts = wxSplit(path, '\\', 0);
     if (fname == "")
     {
         // no subdirectory
@@ -226,10 +286,13 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnWin.GetFullName();
+        //logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
+            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
         }
     }
+
 #ifndef __WXMSW__
     newLoc = sd;
     appending = false;
@@ -244,12 +307,13 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnUnix.GetFullName();
+        //logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
+            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
         }
     }
 #endif
-
 
     if (flc.Contains(sflc))
     {
@@ -261,12 +325,14 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         }
         wxFileName sdFn =  wxFileName::DirName(sd);
 
+        //logger_base.debug("                   trying location : " + relative);
         if (wxFileExists(relative))
         {
             logger_base.debug("File location fixed: " + file + " -> " + relative);
             return relative;
         }
     }
+
 #ifndef __WXMSW__
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
@@ -350,6 +416,151 @@ std::string XmlSafe(const std::string& s)
     }
 
     return res;
+}
+
+std::string EscapeCSV(const std::string& s)
+{
+    std::string res = "";
+    for (auto c : s)
+    {
+        if (c == '\"')
+        {
+            res += "\"\"";
+        }
+        else
+        {
+            res += c;
+        }
+    }
+
+    return res;
+}
+
+wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back())
+                {
+                    return n->GetAttribute(attribute);
+                }
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return def;
+}
+
+wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back())
+                {
+                    if (n->GetChildren() != nullptr) return n->GetChildren()->GetContent();
+                    return def;
+                }
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return def;
+}
+
+std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
+{
+    std::list<std::string> res;
+
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    if (curr != nullptr)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == listNodeName && n->GetChildren() != nullptr)
+            {
+                res.push_back(n->GetChildren()->GetContent());
+            }
+        }
+    }
+
+    return res;
+}
+
+bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back()) return true;
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return false;
+}
+
+void DownloadVamp()
+{
+    wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
+#ifdef __WXMSW__
+    if (GetBitness() == "64bit")
+    {
+        ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin64.exe");
+    }
+    else
+    {
+        ::wxLaunchDefaultBrowser("http://xlights.org/downloads/Vamp_Plugin32.exe");
+    }
+#elif defined __WXOSX__
+    // I hope this is right - need a digitally signed version
+    ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/qm-vamp-plugins-1.7.1.dmg");
+#else
+    // I hope this is right
+    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/107/qm-vamp-plugins-1.7-amd64-linux.tar.gz");
+#endif // __WXMSW__
 }
 
 inline bool is_base64(unsigned char c)
@@ -440,7 +651,19 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
     return false;
 }
 
-void SaveWindowPosition(const std::string tag, wxWindow* window)
+void SaveInt(const std::string& tag, int value)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(tag, value);
+}
+
+int LoadInt(const std::string& tag, int defaultValue)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->ReadLong(tag, defaultValue);
+}
+
+void SaveWindowPosition(const std::string& tag, wxWindow* window)
 {
     wxConfigBase* config = wxConfigBase::Get();
     if (window != nullptr)
@@ -455,7 +678,7 @@ void SaveWindowPosition(const std::string tag, wxWindow* window)
     }
 }
 
-void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
+void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
 {
     wxConfigBase* config = wxConfigBase::Get();
 
@@ -589,6 +812,100 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #endif
 }
 
+bool IsExcessiveMemoryUsage(double physicalMultiplier)
+{
+#if defined(__WXMSW__) && defined(__WIN64__)
+    ULONGLONG physical;
+    if (GetPhysicallyInstalledSystemMemory(&physical) != 0)
+    {
+        PROCESS_MEMORY_COUNTERS_EX mc;
+        if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0)
+        {
+            // if we are using more ram than the machine has times the multiplier
+            if (mc.PagefileUsage / 1024 > physicalMultiplier * physical)
+            {
+                return true;
+            }
+        }
+    }
+#else
+    // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
+    //void* test = malloc(200 * 1024 * 1024);
+    //if (test == nullptr)
+    //{
+    //    return true;
+    //}
+    //free(test);
+#endif
+    return false;
+}
+
+std::list<std::string> GetLocalIPs()
+{
+    std::list<std::string> res;
+
+#ifdef __WXMSW__
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+    PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
+    if (pAdapterInfo == nullptr) {
+        logger_base.error("Error getting adapter info.");
+        return res;
+    }
+
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *)malloc(ulOutBufLen);
+        if (pAdapterInfo == nullptr) {
+            logger_base.error("Error getting adapter info.");
+            return res;
+        }
+    }
+
+    PIP_ADAPTER_INFO pAdapter = nullptr;
+    DWORD dwRetVal = 0;
+
+    if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+        pAdapter = pAdapterInfo;
+        while (pAdapter) {
+
+            auto ip = &pAdapter->IpAddressList;
+            while (ip != nullptr)
+            {
+                if (wxString(ip->IpAddress.String) != "0.0.0.0")
+                {
+                    res.push_back(std::string(ip->IpAddress.String));
+                }
+                ip = ip->Next;
+            }
+
+            pAdapter = pAdapter->Next;
+        }
+    }
+    free(pAdapterInfo);
+#else
+    struct ifaddrs *interfaces, *tmp;
+    getifaddrs(&interfaces);
+    tmp = interfaces;
+    //loop through all the interfaces
+    while (tmp) {
+        if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
+            struct sockaddr_in * address = (struct sockaddr_in *)tmp->ifa_addr;
+            std::string ip = inet_ntoa(address->sin_addr);
+            if (ip != "0.0.0.0") {
+                res.push_back(ip);
+            }
+        } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+            //LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
+        }
+        tmp = tmp->ifa_next;
+    }
+    freeifaddrs(interfaces);
+#endif   
+
+    return res;
+}
+
 bool DeleteDirectory(std::string directory)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -652,6 +969,26 @@ std::string Ordinal(int i)
     }
 }
 
+bool IsEmailValid(const std::string& email)
+{
+    wxString e = wxString(email).Trim(false).Trim(true);
+    if (e == "")
+    {
+        return false;
+    }
+    else
+    {
+        //static wxRegEx regxEmail("^[a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]+@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9-\\.]*$");
+        static wxRegEx regxEmail("^([a-zA-Z][a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]*@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9\\=\\.]+)$");
+
+        if (regxEmail.Matches(e))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool IsIPValid(const std::string &ip)
 {
     wxString ips = wxString(ip).Trim(false).Trim(true);
@@ -678,6 +1015,8 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
         return true;
     }
 
+    if (ip == "") return false;
+
     bool hasChar = false;
     bool hasDot = false;
     //hostnames need at least one char in it if fully qualified
@@ -703,10 +1042,104 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
     return false;
 }
 
+std::string CleanupIP(const std::string& ip)
+{
+    bool hasChar = false;
+    bool hasDot = false;
+    //hostnames need at least one char in it if fully qualified
+    //if not fully qualified (no .), then the hostname only COULD be just numeric
+    for (int y = 0; y < ip.length(); y++) {
+        char x = ip[y];
+        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
+            hasChar = true;
+        }
+        if (x == '.') {
+            hasDot = true;
+        }
+    }
+    if (hasChar || !hasDot) {
+        //hostname, not ip, don't mangle it
+        return ip;
+    }
+    wxString IpAddr(ip.c_str());
+    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+    if (leadingzero1.Matches(IpAddr)) {
+        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+    }
+    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+    while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
+        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+    }
+    return IpAddr.ToStdString();
+}
+
+std::string ResolveIP(const std::string& ip)
+{
+        if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "") {
+            return ip;
+        }
+        const std::string& resolvedIp = __resolvedIPMap[ip];
+        if (resolvedIp == "") {
+            wxIPV4address add;
+            add.Hostname(ip);
+            std::string r = add.IPAddress();
+            if (r == "0.0.0.0") {
+                r = ip;
+            }
+            __resolvedIPMap[ip] = r;
+            return __resolvedIPMap[ip];
+        }
+        return resolvedIp;
+}
+
 int GetxFadePort(int xfp)
 {
     if (xfp == 0) return 0;
     return xfp + 49912;
+}
+
+void EnsureWindowHeaderIsOnScreen(wxWindow* win)
+{
+    int headerHeight = wxSystemSettings::GetMetric(wxSystemMetric::wxSYS_CAPTION_Y, win);
+    wxSize size = win->GetSize();
+    wxPoint pos = win->GetPosition();
+
+    if (wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y + headerHeight)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y + headerHeight)) < 0) {
+        
+        // window header is not on screen
+        win->Move(0, 0);
+    }
+}
+
+void OptimiseDialogPosition(wxDialog* dlg)
+{
+    wxPoint pos = wxGetMousePosition();
+    wxSize sz = dlg->GetSize();
+    pos.x -= sz.GetWidth() / 2;
+    pos.y -= sz.GetHeight() / 2;
+
+    // ensure it is on a single screen
+    int d = wxDisplay::GetFromPoint(wxGetMousePosition());
+    if (d < 0) d = 0;
+    wxDisplay display(d);
+    if (display.IsOk())
+    {
+        wxRect displayRect = display.GetClientArea();
+        if (pos.y < displayRect.GetTop()) pos.y = displayRect.GetTop();
+        if (pos.y + sz.GetHeight() > displayRect.GetBottom()) pos.y = displayRect.GetBottom() - sz.GetHeight();
+        if (pos.x < displayRect.GetLeft()) pos.x = displayRect.GetLeft();
+        if (pos.x + sz.GetWidth() > displayRect.GetRight()) pos.x = displayRect.GetRight() - sz.GetWidth();
+    }
+
+    dlg->SetPosition(pos);
+    EnsureWindowHeaderIsOnScreen(dlg);
 }
 
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
@@ -739,5 +1172,92 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
     {
         logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
         return "ERROR_UNABLE_TO_CONNECT";
+    }
+}
+
+void ViewTempFile(const wxString& content, const wxString& name,  const wxString& type)
+{
+	wxFile f;
+	const wxString filename = wxFileName::CreateTempFileName(name) + "." + type;
+
+	f.Open(filename, wxFile::write);
+	if (!f.IsOpened())
+	{
+		DisplayError("Unable to create " + filename + " file. skip.");
+		return;
+	}
+
+	if (f.IsOpened())
+	{
+		f.Write(content);
+
+		f.Close();
+
+		wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(type);
+		if (ft != nullptr)
+		{
+			const wxString command = ft->GetOpenCommand(filename);
+
+			if (command.IsEmpty())
+			{
+				DisplayError(wxString::Format("Unable to show " + name + " file '%s'.", filename).ToStdString());
+			}
+			else
+			{
+				wxUnsetEnv("LD_PRELOAD");
+				wxExecute(command);
+			}
+			delete ft;
+		}
+	}
+}
+
+void CheckMemoryUsage(const std::string& reason, bool onchangeOnly)
+{
+#if defined(TURN_THIS_OFF) && defined(__WXMSW__)
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static long lastPrivate = 0;
+    static long lastWorking = 0;
+    PROCESS_MEMORY_COUNTERS_EX memoryCounters;
+    memoryCounters.cb = sizeof(memoryCounters);
+    ::GetProcessMemoryInfo(::GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&memoryCounters, sizeof(memoryCounters));
+    long privateMem = (long)(memoryCounters.PrivateUsage / 1024);
+    long workingMem = (long)(memoryCounters.WorkingSetSize / 1024);
+    if (!onchangeOnly || privateMem != lastPrivate)
+    {
+        logger_base.debug("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
+            (const char*)reason.c_str(),
+            privateMem,
+            privateMem - lastPrivate,
+            workingMem,
+            workingMem - lastWorking
+        );
+    }
+    lastPrivate = privateMem;
+    lastWorking = workingMem;
+#endif
+}
+
+bool IsxLights()
+{
+    // Allows functions common to multiple xLights programs to know if they are running in xLights itself
+    return wxTheApp->GetAppName().Lower() == "xlights";
+}
+
+void CleanupIpAddress(wxString& IpAddr)
+{
+    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+    if (leadingzero1.Matches(IpAddr))
+    {
+        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+    }
+    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+    while (leadingzero2.Matches(IpAddr)) // need to do it several times because the results overlap
+    {
+        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
     }
 }

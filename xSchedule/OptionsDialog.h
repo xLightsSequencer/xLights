@@ -1,7 +1,16 @@
-#ifndef OPTIONSDIALOG_H
-#define OPTIONSDIALOG_H
+#pragma once
 
-//(*Headers(OptionsDialog)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(OptionsDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -43,6 +52,9 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
+		wxCheckBox* CheckBox_HWAcceleratedVideo;
+		wxCheckBox* CheckBox_KeepScreenOn;
+		wxCheckBox* CheckBox_LastStartingSequenceUsesTime;
 		wxCheckBox* CheckBox_MultithreadedTransmission;
 		wxCheckBox* CheckBox_RemoteAllOff;
 		wxCheckBox* CheckBox_RetryOpen;
@@ -51,13 +63,19 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_SimpleMode;
 		wxCheckBox* CheckBox_SuppressAudioOnRemotes;
 		wxCheckBox* CheckBox_Sync;
+		wxChoice* Choice1;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
+		wxChoice* Choice_InputAudioDevice;
 		wxChoice* Choice_Location;
 		wxChoice* Choice_OnCrash;
+		wxChoice* Choice_SMPTEFrameRate;
 		wxListView* ListView_Buttons;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
 		wxSpinCtrl* SpinCtrl_WebServerPort;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -82,6 +100,9 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX8;
 		static const long ID_CHECKBOX9;
+		static const long ID_CHECKBOX10;
+		static const long ID_CHECKBOX11;
+		static const long ID_CHECKBOX12;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;
@@ -89,10 +110,6 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON9;
-		static const long ID_STATICTEXT7;
-		static const long ID_CHOICE1;
-		static const long ID_STATICTEXT8;
-		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
@@ -102,10 +119,20 @@ class OptionsDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL2;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE3;
+		static const long ID_STATICTEXT7;
+		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT12;
+		static const long ID_CHOICE7;
+		static const long ID_STATICTEXT11;
+		static const long ID_CHOICE6;
+		static const long ID_STATICTEXT8;
+		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT9;
 		static const long ID_CHOICE4;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE3;
+		static const long ID_STATICTEXT10;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -129,5 +156,3 @@ class OptionsDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

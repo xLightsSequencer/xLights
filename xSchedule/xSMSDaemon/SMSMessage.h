@@ -18,8 +18,10 @@ class SMSMessage
     static std::set<std::string> _phoneBlacklist;
     static std::set<std::string> _blacklist;
     static std::set<std::string> _whitelist;
-    
+    static int __nextId;
+
     public:
+    int _id;
     wxDateTime _timestamp;
 	std::string _rawMessage;
 	std::string _message;
@@ -28,12 +30,29 @@ class SMSMessage
     int _displayCount = 0;
     bool _displayed = false;
     bool _filtered = false;
+    bool _moderatedOk = false;
+    int _moderatedOkCount = 0;
+
+    SMSMessage()
+    {
+        _id = __nextId++;
+    }
 
     bool Censored() const
     {
         return _filtered || _rawMessage == "" || _message != "";
     }
 
+    bool IsModeratedOk() const { return _moderatedOk; }
+    void SetModeratedOk(bool moderatedOk) 
+    { 
+        _moderatedOk = moderatedOk; 
+        if (_moderatedOk)
+        {
+            _moderatedOkCount++;
+        }
+    }
+    int IsFirstModeratedOk() const { return _moderatedOkCount == 1 && _moderatedOk; }
     void Censor(bool reject)
     {
         if (reject)
@@ -52,7 +71,6 @@ class SMSMessage
         else
         {
             wxURI url("https://www.purgomalum.com/service/xml?text=" + _rawMessage);
-
             auto msg = Curl::HTTPSGet(url.BuildURI().ToStdString());
 
             wxRegEx regex("result>([^<]*)<\\/result");
@@ -71,10 +89,38 @@ class SMSMessage
         return wxString::Format("Age %d mins, Displayed %d", GetAgeMins(), _displayCount);
     }
 
+    void Display()
+    {
+        _displayCount++;
+        _displayed = true;
+    }
+
+    wxString GetUIMessage() const
+    {
+        if (_wmessage != "")
+        {
+            return wxString(_from) + ": " + wxString(_wmessage);
+        }
+        else
+        {
+            return _from + ": " + _message;
+        }
+    }
+
+    int GetId() const
+    {
+        return _id;
+    }
+
     int GetAgeMins() const
     {
         wxTimeSpan age = wxDateTime::Now().MakeGMT() - _timestamp;
         return age.GetDays() * 24 * 60 + age.GetHours() * 60 + age.GetMinutes();
+    }
+
+    bool operator==(const int i) const
+    {
+        return _id == i;
     }
 
 	bool operator==(const SMSMessage& other) const
@@ -157,6 +203,7 @@ class SMSMessage
 
     bool PassesBlacklist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadBlackList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.)([]\\/<>-_*&^%$#~`\"?"));
@@ -165,6 +212,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_blacklist.find(token.ToStdString()) != _blacklist.end())
             {
+                logger_base.debug("Blacklist failed on '%s'", (const char*)token.c_str());
                 return false;
             }
         }
@@ -173,13 +221,20 @@ class SMSMessage
 
     bool PassesPhoneBlacklist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadPhoneBlackList();
 
-        return _phoneBlacklist.find(_from) == _phoneBlacklist.end();
+        if (_phoneBlacklist.find(_from) == _phoneBlacklist.end())
+        {
+            return true;
+        }
+        logger_base.debug("Phone blacklist failed on '%s'", (const char*)_from.c_str());
+        return false;
     }
 
     bool PassesWhitelist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadWhiteList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.!|)([]\\/<>-_*&^%$#@~`\"?"));
@@ -188,6 +243,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_whitelist.find(token.ToStdString()) == _whitelist.end())
             {
+                logger_base.debug("Whitelist failed on '%s'", (const char*)token.c_str());
                 return false;
             }
         }

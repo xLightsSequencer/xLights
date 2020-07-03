@@ -1,5 +1,14 @@
-#ifndef SHAPEPANEL_H
-#define SHAPEPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(ShapePanel)
 #include <wx/panel.h>
@@ -20,6 +29,7 @@ class wxTextCtrl;
 #include <list>
 
 class Emoji;
+class ClickableStaticText;
 
 class ShapePanel: public wxPanel
 {
@@ -33,6 +43,7 @@ class ShapePanel: public wxPanel
         void SetTimingTracks(wxCommandEvent& event);
         void EmojiMenu(wxContextMenuEvent& event);
         void OnPopupEmoji(wxCommandEvent& event);
+        void OnShowCharMap(wxCommandEvent& event);
 
 		//(*Declarations(ShapePanel)
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
@@ -44,6 +55,7 @@ class ShapePanel: public wxPanel
 		BulkEditCheckBox* CheckBox_Shapes_RandomMovement;
 		BulkEditChoice* Choice_Shape_ObjectToDraw;
 		BulkEditChoice* Choice_Shape_TimingTrack;
+		BulkEditFontPicker* FontPickerCtrl_Font;
 		BulkEditSlider* Slider_Shape_CentreX;
 		BulkEditSlider* Slider_Shape_CentreY;
 		BulkEditSlider* Slider_Shape_Count;
@@ -75,8 +87,7 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Direction;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Velocity;
-		wxFontPickerCtrl* FontPickerCtrl_Font;
-		wxStaticText* StaticText10;
+		ClickableStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
@@ -178,5 +189,3 @@ class ShapePanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

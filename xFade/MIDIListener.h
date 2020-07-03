@@ -1,6 +1,7 @@
 #ifndef MIDILISTENER_H
 #define MISLISTENER_H
 
+#include <atomic>
 #include <string>
 #include <wx/wx.h>
 
@@ -10,7 +11,7 @@ class wxMidiInDevice;
 
 class ListenerThread : public wxThread
 {
-    bool _stop;
+    std::atomic<bool> _stop;
     wxWindow* _target;
 	wxWindow* _stashTarget;
     bool _running;
@@ -42,6 +43,7 @@ public:
 class MIDIListener 
 {
 	ListenerThread* _thread;
+    int _deviceId = -1;
 
     bool IsValidDeviceId(int deviceId);
 
@@ -52,6 +54,8 @@ class MIDIListener
         void SetTempWindow(wxWindow* win);
         void ClearTempWindow();
         bool IsOk() const;
-		void SetDeviceId(int id, wxWindow* win);
+        int GetDeviceId() const {
+            return _deviceId;
+        }
 };
 #endif

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Equinox Party Par LED PAR 56 6 Channel" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Colour Macros,Strobe,Dimmer/Program Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Colour Macros" s1-Name="blackout" s1-Color="#040404" 
+s2="Colour Macros" s2-Name="colour_macro" s2-Color="#838383" 
+s3="Strobe" s3-Name="blackout" s3-Color="#070707" 
+s4="Strobe" s4-Name="strobe" s4-Color="#878787" 
+s5="Dimmer/Program Mode" s5-Name="blackout" s5-Color="#0F0F0F" 
+s6="Dimmer/Program Mode" s6-Name="dimming_32_dim_63_bright_" s6-Color="#2F2F2F" 
+s7="Dimmer/Program Mode" s7-Name="dimming_64_bright_96_dim_" s7-Color="#4F4F4F" 
+s8="Dimmer/Program Mode" s8-Name="dimming_96_dim_112_bright_127_dim_" s8-Color="#6F6F6F" 
+s9="Dimmer/Program Mode" s9-Name="colour_mixing" s9-Color="#8F8F8F" 
+s10="Dimmer/Program Mode" s10-Name="3_colour_change" s10-Color="#AFAFAF" 
+s11="Dimmer/Program Mode" s11-Name="7_colour_change" s11-Color="#CFCFCF" 
+s12="Dimmer/Program Mode" s12-Name="sound_active_sensitivity_adjustment_knob_" s12-Color="#EFEFEF" 
+/>
+</dmxmodel>

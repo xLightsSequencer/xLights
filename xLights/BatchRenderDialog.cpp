@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "BatchRenderDialog.h"
 
 //(*InternalHeaders(BatchRenderDialog)
@@ -23,6 +33,11 @@ const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
 const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
 const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
 //*)
+
+const long BatchRenderDialog::ID_MNU_SELECTALL = wxNewId();
+const long BatchRenderDialog::ID_MNU_SELECTNONE = wxNewId();
+const long BatchRenderDialog::ID_MNU_SELECTHIGH = wxNewId();
+const long BatchRenderDialog::ID_MNU_DESELECTHIGH = wxNewId();
 
 BEGIN_EVENT_TABLE(BatchRenderDialog,wxDialog)
 	//(*EventTable(BatchRenderDialog)
@@ -55,7 +70,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FolderChoice = new wxChoice(this, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer2->Add(FolderChoice, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
+	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
 	FlexGridSizer1->Add(SequenceList, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -85,8 +100,10 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 void BatchRenderDialog::OnPreviewRightDown(wxMouseEvent& event)
 {
     wxMenu mnu;
-    mnu.Append(1, "Select All");
-    mnu.Append(2, "Select None");
+    mnu.Append(ID_MNU_SELECTALL, "Select All");
+    mnu.Append(ID_MNU_SELECTNONE, "Select None");
+    mnu.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
+    mnu.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BatchRenderDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -94,8 +111,16 @@ void BatchRenderDialog::OnPreviewRightDown(wxMouseEvent& event)
 
 void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
 {
-    for (int x = 0; x < SequenceList->GetCount(); x++) {
-        SequenceList->Check(x, event.GetId() == 1);
+    if (event.GetId() == ID_MNU_SELECTALL || event.GetId() == ID_MNU_SELECTNONE ) {
+        for (size_t x = 0; x < SequenceList->GetCount(); x++) {
+            SequenceList->Check(x, event.GetId() == ID_MNU_SELECTALL);
+        }
+    } else if (event.GetId() == ID_MNU_SELECTHIGH || event.GetId() == ID_MNU_DESELECTHIGH ) {
+        for (size_t x = 0; x < SequenceList->GetCount(); x++) {
+            if (SequenceList->IsSelected(x)) {
+                SequenceList->Check(x, event.GetId() == ID_MNU_SELECTHIGH);
+            }
+        }
     }
     ValidateWindow();
 }
@@ -103,7 +128,7 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
 wxArrayString BatchRenderDialog::GetFileList()
 {
     wxArrayString lst;
-    for (int x = 0; x < SequenceList->GetCount(); x++) {
+    for (size_t x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
             lst.push_back(SequenceList->GetString(x));
         }
@@ -115,14 +140,14 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    wxDir::GetAllFiles(folder, &files, "*.xml");
+    wxDir::GetAllFiles(folder, &files, "*.x*");
     files.Sort();
-    for (int x = 0; x < files.size(); x++) {
+    for (size_t x = 0; x < files.size(); x++) {
         wxString name = files[x].SubString(folder.length(), files[x].size());
         if (name[0] == '/' || name[0] == '\\') {
             name = name.SubString(1, name.size());
         }
-        if (!name.Contains("xlights_")) {
+        if (!name.Contains("xlights_") && (name.Lower().EndsWith("xsq")|| name.Lower().EndsWith("xml"))) {
             allFiles.push_back(name);
         }
     }
@@ -133,8 +158,7 @@ void BatchRenderDialog::GetFolderList(const wxString& folder)
     FolderChoice->Append("");
     wxArrayString subfolders;
     wxDir dir(folder);
-    if (!dir.IsOpened())
-    {
+    if (!dir.IsOpened()) {
         return;
     }
     wxString strFile;
@@ -142,13 +166,11 @@ void BatchRenderDialog::GetFolderList(const wxString& folder)
     if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS))
         subfolders.Add(strFile);
 
-    while (dir.GetNext(&strFile))
-    {
+    while (dir.GetNext(&strFile)) {
         subfolders.Add(strFile);
     }
     subfolders.Sort();
-    for (const auto& subfolder: subfolders)
-    {
+    for (const auto& subfolder: subfolders) {
         if(subfolder.StartsWith("Backup/") && subfolder.StartsWith("Backup\\"))
             continue;
         if (subfolder.StartsWith("."))
@@ -163,19 +185,16 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
     GetSeqList(showDir);
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
+    if (config != nullptr) {
         int filterSelect = -1;
         wxString folderSelect = "";
         config->Read("BatchRendererFilterSelection", &filterSelect);
         config->Read("BatchRendererFolderSelection", &folderSelect);
-        if (filterSelect != wxNOT_FOUND)
-        {
+        if (filterSelect != wxNOT_FOUND) {
             FilterChoice->SetSelection(filterSelect);
         }
         int ifoldSelect = FolderChoice->FindString(folderSelect);
-        if(ifoldSelect != wxNOT_FOUND)
-        {
+        if(ifoldSelect != wxNOT_FOUND) {
             FolderChoice->SetSelection(ifoldSelect);
         }
 
@@ -187,15 +206,12 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
         wxString itcsv = "";
         config->Read("BatchRendererItemList", &itcsv, "");
 
-        if (!itcsv.IsEmpty())
-        {
+        if (!itcsv.IsEmpty()) {
             wxArrayString items = wxSplit(itcsv, ',');
 
-            for (auto it = items.begin(); it != items.end(); ++it)
-            {
-                int index = SequenceList->FindString(*it);
-                if (index != wxNOT_FOUND)
-                {
+            for (const auto& it : items) {
+                int index = SequenceList->FindString(it);
+                if (index != wxNOT_FOUND) {
                     SequenceList->Check(index, true);
                 }
             }
@@ -220,13 +236,12 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
     SequenceList->Clear();
 
     int type = FilterChoice->GetSelection();
-    for (auto a = allFiles.begin(); a != allFiles.end(); ++a) {
-        const wxString name = *a;
+    for (const auto& a : allFiles) {
+        const wxString name = a;
         switch (type) {
         case 0:
             FolderChoice->Enable();
-            if (isFileInFolder(name))
-            {
+            if (isFileInFolder(name)) {
                 SequenceList->Append(name);
             }
             break;
@@ -245,11 +260,10 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
         }
     }
 
-    for (auto it = filelist.begin(); it != filelist.end(); ++it)
+    for (const auto& it : filelist)
     {
-        int index = SequenceList->FindString(*it);
-        if (index != wxNOT_FOUND)
-        {
+        int index = SequenceList->FindString(it);
+        if (index != wxNOT_FOUND) {
             SequenceList->Check(index, true);
         }
     }
@@ -268,12 +282,10 @@ void BatchRenderDialog::ValidateWindow()
 {
     wxArrayInt sel;
     SequenceList->GetCheckedItems(sel);
-    if (sel.size() == 0)
-    {
+    if (sel.size() == 0) {
         Button_Ok->Enable(false);
     }
-    else
-    {
+    else {
         Button_Ok->Enable(true);
     }
 }
@@ -281,10 +293,9 @@ void BatchRenderDialog::ValidateWindow()
 void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     wxString selected = "";
-    for (int x = 0; x < SequenceList->GetCount(); x++) {
+    for (size_t x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
-            if (selected != "")
-            {
+            if (selected != "") {
                 selected += ",";
             }
             selected += SequenceList->GetString(x);
@@ -292,8 +303,7 @@ void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
     }
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
+    if (config != nullptr) {
         config->Write("BatchRendererItemList", selected);
         config->Write("BatchRendererFilterSelection", FilterChoice->GetSelection());
         config->Write("BatchRendererFolderSelection", FolderChoice->GetString(FolderChoice->GetSelection()));

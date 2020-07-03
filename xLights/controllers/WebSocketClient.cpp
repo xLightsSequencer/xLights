@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "WebSocketClient.h"
 #include <log4cpp/Category.hh>
 
@@ -111,7 +121,7 @@ std::string WebSocketClient::Receive()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     unsigned char buffer[4096];
     _socket.Peek(buffer, sizeof(buffer));
-    int read = _socket.LastCount();
+    auto read = _socket.LastCount();
     if (read >= 2)
     {
         bool fin = (buffer[0] & 0x80) == 0x80;

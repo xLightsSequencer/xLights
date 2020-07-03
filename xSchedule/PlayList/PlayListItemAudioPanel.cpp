@@ -1,6 +1,17 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemAudioPanel.h"
 #include "PlayListItemAudio.h"
 #include "PlayListDialog.h"
+#include "PlayListSimpleDialog.h"
 
 //(*InternalHeaders(PlayListItemAudioPanel)
 #include <wx/intl.h>
@@ -126,7 +137,8 @@ void PlayListItemAudioPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemAudioPanel::OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event)
 {
    _audio->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+   wxCommandEvent e(EVT_UPDATEITEMNAME);
+   wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemAudioPanel::ValidateWindow()

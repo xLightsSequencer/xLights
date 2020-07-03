@@ -1,29 +1,43 @@
-#ifndef LORCONTROLLERS_H
-#define LORCONTROLLERS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <list>
+
 #include <wx/xml/xml.h>
 
 #include "LorController.h"
 
 class LorControllers
 {
+    #pragma region Member Variables
     std::list<LorController*> _controllers;
-    int _changeCount;
-    int _lastSavedChangeCount;
+    bool _dirty = false;
+    #pragma endregion
 
 public:
-    LorControllers();
+
+    #pragma region Construtors and Destructors
+    LorControllers() { _dirty = true; }
     LorControllers(wxXmlNode* node);
-    virtual ~LorControllers();
-
+    virtual ~LorControllers() {}
     void Save(wxXmlNode* node);
+    #pragma endregion
 
-    std::list<LorController*>* GetControllers() { return &_controllers; }
-    void SetDirty() { _changeCount++; }
-    bool IsDirty() const;
+    #pragma region Getters and Setters
+    std::list<LorController*>& GetControllers() { return _controllers; }
+
     int GetTotalChannels() const;
-    void ClearDirty();
-};
 
-#endif // LORCONTROLLERS_H
+    bool IsDirty() const;
+    void ClearDirty();
+    #pragma endregion
+};

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stairville MH-360 Default" parm1="13" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Pan/Tilt Speed,Special,Dimmer,Strobe,Red,Green,Blue,Color/Chase/Fade,Chase/Fade Speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="0" DmxRedChannel="9" DmxGreenChannel="10" DmxBlueChannel="11" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Special" s1-Name="no_function" s1-Color="#222222" 
+s2="Special" s2-Name="enable_blackout_while_pan_or_tilt_move" s2-Color="#4A4A4A" 
+s3="Special" s3-Name="disable_blackout_while_pan_or_tilt_move" s3-Color="#545454" 
+s4="Special" s4-Name="reset" s4-Color="#CCCCCC" 
+s5="Special" s5-Name="stand-alone" s5-Color="#F7F7F7" 
+s6="Strobe" s6-Name="no_function" s6-Color="#070707" 
+s7="Strobe" s7-Name="fast_strobe-gt_slow_strobe" s7-Color="#494949" 
+s8="Strobe" s8-Name="fast_close-gt_slow_open" s8-Color="#A0A0A0" 
+s9="Strobe" s9-Name="slow_close-gt_fast_open" s9-Color="#D2D2D2" 
+s10="Strobe" s10-Name="strobe" s10-Color="#F3F3F3" 
+s11="Color/Chase/Fade" s11-Name="no_function" s11-Color="#030303" 
+s12="Color/Chase/Fade" s12-Name="color_1" s12-Color="#434343" 
+s13="Color/Chase/Fade" s13-Name="chase" s13-Color="#BFBFBF" 
+s14="Color/Chase/Fade" s14-Name="color_fades" s14-Color="#DFDFDF" 
+/>
+</dmxmodel>

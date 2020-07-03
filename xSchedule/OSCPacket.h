@@ -1,5 +1,14 @@
-#ifndef OSCPACKET_H
-#define OSCPACKET_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 
@@ -15,14 +24,14 @@ typedef enum
 
 class OSCPacket
 {
-    uint8_t* _buffer;
-    int _buffsize;
-    bool _isSync;
-    bool _isOk;
+    uint8_t* _buffer = nullptr;
+    int _buffsize = 0;
+    bool _isSync = false;
+    bool _isOk = false;
     std::string _stepName;
     std::string _timingName;
-    int _ms;
-    float _progress;
+    int _ms = 0;
+    float _progress = 0;
     std::string _path;
 
     std::string GetTypeChar(OSCTYPE type);
@@ -50,5 +59,3 @@ public:
     std::string GetP2() const;
     std::string GetP3() const;
 };
-
-#endif 

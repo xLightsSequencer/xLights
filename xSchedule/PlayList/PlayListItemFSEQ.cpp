@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemFSEQ.h"
 #include "wx/xml/xml.h"
 #include <wx/notebook.h>
@@ -62,7 +72,9 @@ std::string PlayListItemFSEQ::GetAudioFilename()
     {
         if (_fseqFile != nullptr)
         {
-            return _fseqFile->getMediaFilename();
+            auto audio = _fseqFile->getMediaFilename();
+            audio = FixFile("", audio);
+            return audio;
         }
         else
         {
@@ -177,7 +189,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
 {
     if (_fseqFile != nullptr)
     {
-        return _fseqFile->getMaxChannel() + 1;
+        return _fseqFile->getMaxChannel(); // +1;
     }
     else
     {
@@ -185,7 +197,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
         {
             std::unique_ptr<FSEQFile> fseqFile(FSEQFile::openFSEQFile(_fseqFileName));
             if (fseqFile) {
-                long ch = fseqFile->getMaxChannel() + 1;
+                long ch = fseqFile->getMaxChannel(); // +1;
                 return ch;
             }
         }
@@ -195,6 +207,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
 
 PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIFSEQ";
     _outputManager = outputManager;
     _cachedAudioFilename = "";
     _fastStartAudio = false;
@@ -238,7 +251,7 @@ PlayListItem* PlayListItemFSEQ::Copy() const
 
 wxXmlNode* PlayListItemFSEQ::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFSEQ");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
@@ -495,7 +508,7 @@ void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
                 if (data != nullptr)
                 {
                     std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
-                    data->readFrame(&buf[0]);
+                    data->readFrame(&buf[0], buf.size());
                     size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
                     if (_channels > 0) channelsPerFrame = std::min(_channels, (size_t)_fseqFile->getMaxChannel() + 1);
                     if (_channels > 0) {

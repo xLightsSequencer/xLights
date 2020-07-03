@@ -26,7 +26,7 @@ public:
         FrameData(uint32_t f) : frame(f) {};
         virtual ~FrameData() {};
         
-        virtual void readFrame(uint8_t *data) = 0;
+        virtual bool readFrame(uint8_t *data, uint32_t maxChannels) = 0;
         
         uint32_t frame;
     };
@@ -52,7 +52,7 @@ public:
     static FSEQFile* createFSEQFile(const std::string &fn,
                                     int version,
                                     CompressionType ct = CompressionType::zstd,
-                                    int level = 10);
+                                    int level = -99);
     //utility methods
     static std::string getMediaFilename(const std::string &fn);
     std::string getMediaFilename() const;
@@ -86,6 +86,10 @@ public:
     uint32_t      getChannelCount() const  { return m_seqChannelCount; }
     int           getVersionMajor() const { return m_seqVersionMajor; }
     int           getVersionMinor() const { return m_seqVersionMinor; }
+    uint64_t      getUniqueId() const { return m_uniqueId; }
+    const std::string& getFilename() const { return m_filename; }
+    
+    
     virtual uint32_t getMaxChannel() const = 0;
     const std::vector<VariableHeader> &getVariableHeaders() const { return m_variableHeaders;}
 

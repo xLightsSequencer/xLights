@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "VirtualMatrix.h"
 #include <wx/string.h>
 #include <wx/xml/xml.h>
@@ -130,6 +140,12 @@ VMROTATION VirtualMatrix::EncodeRotation(const std::string rotation)
     {
         return VMROTATION::VM_90;
     }
+    else if (wxString(rotation).Lower() == "flip vertical") {
+        return VMROTATION::VM_FLIP_VERTICAL;
+    }
+    else if (wxString(rotation).Lower() == "flip horizontal") {
+        return VMROTATION::VM_FLIP_HORIZONTAL;
+    }
     else
     {
         return VMROTATION::VM_270;
@@ -145,6 +161,12 @@ std::string VirtualMatrix::DecodeRotation(VMROTATION rotation)
     else if (rotation == VMROTATION::VM_90)
     {
         return "90 CW";
+    }
+    else if (rotation == VMROTATION::VM_FLIP_HORIZONTAL) {
+        return "Flip Horizontal";
+    }
+    else if (rotation == VMROTATION::VM_FLIP_VERTICAL) {
+        return "Flip Vertical";
     }
     else
     {
@@ -287,6 +309,37 @@ std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality, in
     return "Normal";
 }
 
+void VirtualMatrix::AllOff()
+{
+    if (!_image.IsOk()) return;
+    if (_window == nullptr) return;
+
+    _image.Clear();
+
+    if (_rotation == VMROTATION::VM_NORMAL)
+    {
+        _window->SetImage(_image);
+    }
+    else if (_rotation == VMROTATION::VM_FLIP_HORIZONTAL) {
+        wxImage rot = _image.Mirror(true);
+        _window->SetImage(rot);
+    }
+    else if (_rotation == VMROTATION::VM_FLIP_VERTICAL) {
+        wxImage rot = _image.Mirror(false);
+        _window->SetImage(rot);
+    }
+    else if (_rotation == VMROTATION::VM_90)
+    {
+        wxImage rot = _image.Rotate90();
+        _window->SetImage(rot);
+    }
+    else
+    {
+        wxImage rot = _image.Rotate90(false);
+        _window->SetImage(rot);
+    }
+}
+
 void VirtualMatrix::Frame(uint8_t*buffer, size_t size)
 {
     if (!_image.IsOk()) return;
@@ -316,6 +369,14 @@ void VirtualMatrix::Frame(uint8_t*buffer, size_t size)
     if (_rotation == VMROTATION::VM_NORMAL)
     {
         _window->SetImage(_image);
+    }
+    else if (_rotation == VMROTATION::VM_FLIP_HORIZONTAL) {
+        wxImage rot = _image.Mirror(true);
+        _window->SetImage(rot);
+    }
+    else if (_rotation == VMROTATION::VM_FLIP_VERTICAL) {
+        wxImage rot = _image.Mirror(false);
+        _window->SetImage(rot);
     }
     else if (_rotation == VMROTATION::VM_90)
     {

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 
@@ -10,7 +20,7 @@
 
 PlayListItemOSC::PlayListItemOSC(wxXmlNode* node) : PlayListItem(node)
 {
-	_ip = "";
+    _ip = "";
 	_path = "";
 	_port = 0;
     _started = false;
@@ -37,6 +47,7 @@ void PlayListItemOSC::Load(wxXmlNode* node)
 
 PlayListItemOSC::PlayListItemOSC() : PlayListItem()
 {
+    _type = "PLIOSC";
 	_ip = "";
 	_path = "";
 	_port = 0;
@@ -68,7 +79,7 @@ PlayListItem* PlayListItemOSC::Copy() const
 
 wxXmlNode* PlayListItemOSC::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIOSC");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Path", _path);
     node->AddAttribute("IP", _ip);

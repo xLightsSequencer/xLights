@@ -1,5 +1,14 @@
-#ifndef LISTENERBASE_H
-#define LISTENERBASE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <wx/wx.h>
@@ -33,9 +42,9 @@ class ListenerBase
 
 class ListenerThread : public wxThread
 {
-    bool _stop;
-    ListenerBase* _listener;
-    bool _running;
+    bool _stop = false;
+    ListenerBase* _listener = nullptr;
+    bool _running = false;;
 
 public:
     ListenerThread(ListenerBase* listener);
@@ -52,4 +61,3 @@ public:
 
     virtual void* Entry() override;
 };
-#endif

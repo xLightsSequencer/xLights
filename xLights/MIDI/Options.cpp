@@ -379,7 +379,7 @@ int Options::define(const string& aDefinition) {
        otype[0] != OPTION_BOOLEAN_TYPE &&
        otype[0] != OPTION_CHAR_TYPE ) {
       cerr << "Error: unknown option type \'" << otype[0]
-           << "\' in defintion: " << aDefinition << endl;
+           << "\' in definition: " << aDefinition << endl;
       exit(1);
    }
 
@@ -953,7 +953,6 @@ void Options::process(int error_check, int suppress) {
 void Options::xverify(int error_check, int suppress) {
    options_error_check = error_check;
    int gargp = 1;
-   int optionend = 0;
 
    if (suppress) {
       suppressQ = 1;
@@ -974,7 +973,7 @@ void Options::xverify(int error_check, int suppress) {
    int oldgargp;
    int position = 0;
    int running = 0;
-   while (gargp < oargc && optionend == 0) {
+   while (gargp < oargc) {
       if (optionQ(oargv[gargp], gargp)) {
          oldgargp = gargp;
          gargp = storeOption(gargp, position, running);
@@ -983,9 +982,7 @@ void Options::xverify(int error_check, int suppress) {
             position = 0;
          }
       } else {
-         if (oargv[gargp].size() == 2 && oargv[gargp][0] == getFlag() &&
-            oargv[gargp][2] == getFlag() ) {
-               optionend = 1;
+         if (oargv[gargp].size() == 2 && oargv[gargp][0] == getFlag() && oargv[gargp][2] == getFlag()) {
             gargp++;
             break;
          } else {                          // this is an argument

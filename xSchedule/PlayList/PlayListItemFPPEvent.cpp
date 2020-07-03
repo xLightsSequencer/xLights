@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemFPPEvent.h"
 #include "PlayListItemFPPEventPanel.h"
 #include "PlayList.h"
@@ -9,13 +19,111 @@
 #include "../Control.h"
 #include <wx/protocol/http.h>
 #include "../../xLights/UtilFunctions.h"
+#include "../xSMSDaemon/Curl.h"
+
+class FPPEventThread : public wxThread
+{
+    std::string _ip;
+    std::string _eventString;
+
+public:
+    FPPEventThread(const std::string& ip, const std::string& eventString) : 
+        _ip(ip), _eventString(eventString) { }
+
+    virtual void* Entry() override
+    {
+        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("PlayListFPPEvent in thread.");
+
+        if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
+        {
+#ifdef EXTREME_FPPEVENT_LOGGING
+            logger_base.debug("   Getting URL");
+#endif
+            std::string url = "http://" + _ip + "/fppxml.php?command=triggerEvent&id=" + _eventString;
+            logger_base.debug("FPP Event sent %s%s", (const char*)_ip.c_str(), (const char*)url.c_str());
+            auto res = Curl::HTTPSGet(url, "", "", 1);
+            logger_base.info("CURL GET: %s", (const char*)res.c_str());
+        }
+        else
+        {
+            // I am pretty sure this no longer works in FPP ... at least I dont seem to be able to make it work
+
+            // Open the socket
+            wxIPV4address localaddr;
+            if (IPOutput::GetLocalIP() == "")
+            {
+                localaddr.AnyAddress();
+            }
+            else
+            {
+                localaddr.Hostname(IPOutput::GetLocalIP());
+            }
+
+            wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+            if (socket == nullptr)
+            {
+                logger_base.error("Error opening datagram for FPP Event send. %s", (const char*)localaddr.IPAddress().c_str());
+            }
+            else if (!socket->IsOk())
+            {
+                logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+                delete socket;
+                socket = nullptr;
+            }
+            else if (socket->Error())
+            {
+                logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+                delete socket;
+                socket = nullptr;
+            }
+            else
+            {
+                logger_base.info("FPP Event send datagram opened successfully.");
+            }
+
+            if (socket != nullptr)
+            {
+                wxIPV4address remoteAddr;
+                //remoteAddr.BroadcastAddress();
+                remoteAddr.Hostname("255.255.255.255");
+                remoteAddr.Service(FPP_CTRL_PORT);
+
+                wxASSERT(sizeof(ControlPkt) == 7); // ensure data is packed correctly
+
+                int dbufsize = sizeof(ControlPkt) + _eventString.size() + 1;
+                unsigned char* dbuffer = (unsigned char*)malloc(dbufsize);
+                memset(dbuffer, 0x00, dbufsize);
+
+                if (dbuffer != nullptr)
+                {
+                    ControlPkt* cp = (ControlPkt*)dbuffer;
+                    strncpy(cp->fppd, "FPPD", 4);
+                    cp->pktType = CTRL_PKT_EVENT;
+                    cp->extraDataLen = dbufsize - sizeof(ControlPkt) - 1;
+                    strcpy((char*)(dbuffer + sizeof(ControlPkt)), _eventString.c_str());
+
+                    socket->SendTo(remoteAddr, dbuffer, dbufsize - 1);
+                    logger_base.info("FPP Event broadcast %s.", (const char*)_eventString.c_str());
+
+                    free(dbuffer);
+                }
+
+                logger_base.info("FPP Event send datagram closed.");
+                socket->Close();
+                delete socket;
+            }
+        }
+
+        logger_base.debug("PlayListFPPEvent thread done.");
+
+        return nullptr;
+    }
+};
 
 PlayListItemFPPEvent::PlayListItemFPPEvent(wxXmlNode* node) : PlayListItem(node)
 {
-    _started = false;
-    _major = 1;
-    _minor = 1;
-    _ip = "";
     PlayListItemFPPEvent::Load(node);
 }
 
@@ -29,10 +137,7 @@ void PlayListItemFPPEvent::Load(wxXmlNode* node)
 
 PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
 {
-    _started = false;
-    _major = 1;
-    _minor = 1;
-    _ip = "";
+    _type = "PLIFPPEVENT";
 }
 
 PlayListItem* PlayListItemFPPEvent::Copy() const
@@ -49,7 +154,7 @@ PlayListItem* PlayListItemFPPEvent::Copy() const
 
 wxXmlNode* PlayListItemFPPEvent::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFPPEVENT");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Major", wxString::Format("%d", _major));
     node->AddAttribute("Minor", wxString::Format("%d", _minor));
@@ -94,115 +199,14 @@ void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
-#ifdef EXTREME_FPPEVENT_LOGGING
-        logger_base.debug("FPP Event");
-#endif
         _started = true;
 
         std::string eventstring = GetEventString();
         logger_base.debug("FPP Event IP '%s' Event String '%s'", (const char*)_ip.c_str(), (const char*)eventstring.c_str());
 
-        if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
-        {
-#ifdef EXTREME_FPPEVENT_LOGGING
-            logger_base.debug("   Getting URL");
-#endif
-            wxHTTP http;
-            http.SetTimeout(1);
-            // http.SetMethod("GET"); dont set method ... it will default to get
-#ifdef EXTREME_FPPEVENT_LOGGING
-            logger_base.debug("   Connecting to '%s'", (const char*)_ip.c_str());
-#endif
-            if (http.Connect(_ip))
-            {
-#ifdef EXTREME_FPPEVENT_LOGGING
-                logger_base.debug("   Connected");
-#endif
-                wxString page = "/fppxml.php?command=triggerEvent&id=" + eventstring;
-                logger_base.debug("FPP Event sent %s%s", (const char*)_ip.c_str(), (const char*)page.c_str());
-                wxInputStream *httpStream = http.GetInputStream(page);
-#ifdef EXTREME_FPPEVENT_LOGGING
-                logger_base.debug("   Page retrieved");
-#endif
-                wxDELETE(httpStream);
-#ifdef EXTREME_FPPEVENT_LOGGING
-                logger_base.debug("   Page deleted");
-#endif
-            }
-            else
-            {
-                logger_base.warn("FPP Event %s not sent because we could not connect to %s.", (const char *)eventstring.c_str(), (const char*)_ip.c_str());
-            }
-        }
-        else
-        {
-            // I am pretty sure this no longer works in FPP ... at least I dont seem to be able to make it work
-
-            // Open the socket
-            wxIPV4address localaddr;
-            if (IPOutput::GetLocalIP() == "")
-            {
-                localaddr.AnyAddress();
-            }
-            else
-            {
-                localaddr.Hostname(IPOutput::GetLocalIP());
-            }
-
-            wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-            if (socket == nullptr)
-            {
-                logger_base.error("Error opening datagram for FPP Event send. %s", (const char *)localaddr.IPAddress().c_str());
-            }
-            else if (!socket->IsOk())
-            {
-                logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-                delete socket;
-                socket = nullptr;
-            }
-            else if (socket->Error())
-            {
-                logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
-                delete socket;
-                socket = nullptr;
-            }
-            else
-            {
-                logger_base.info("FPP Event send datagram opened successfully.");
-            }
-
-            if (socket != nullptr)
-            {
-                wxIPV4address remoteAddr;
-                //remoteAddr.BroadcastAddress();
-                remoteAddr.Hostname("255.255.255.255");
-                remoteAddr.Service(FPP_CTRL_PORT);
-
-                wxASSERT(sizeof(ControlPkt) == 7); // ensure data is packed correctly
-
-                int dbufsize = sizeof(ControlPkt) + eventstring.size() + 1;
-                unsigned char* dbuffer = (unsigned char*)malloc(dbufsize);
-                memset(dbuffer, 0x00, dbufsize);
-
-                if (dbuffer != nullptr)
-                {
-                    ControlPkt* cp = (ControlPkt*)dbuffer;
-                    strncpy(cp->fppd, "FPPD", 4);
-                    cp->pktType = CTRL_PKT_EVENT;
-                    cp->extraDataLen = dbufsize - sizeof(ControlPkt) - 1;
-                    strcpy((char*)(dbuffer + sizeof(ControlPkt)), eventstring.c_str());
-
-                    socket->SendTo(remoteAddr, dbuffer, dbufsize - 1);
-                    logger_base.info("FPP Event broadcast %s.", (const char *)eventstring.c_str());
-
-                    free(dbuffer);
-                }
-
-                logger_base.info("FPP Event send datagram closed.");
-                socket->Close();
-                delete socket;
-            }
-        }
+        FPPEventThread* thread = new FPPEventThread(_ip, eventstring);
+        thread->Run();
+        wxMicroSleep(1); // encourage the thread to run        }
     }
 }
 

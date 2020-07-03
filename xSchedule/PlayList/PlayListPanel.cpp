@@ -1,7 +1,18 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListPanel.h"
 
 #include "PlayList.h"
 #include "PlayListDialog.h"
+#include "PlayListSimpleDialog.h"
 
 //(*InternalHeaders(PlayListPanel)
 #include <wx/intl.h>
@@ -77,5 +88,7 @@ PlayListPanel::~PlayListPanel()
 void PlayListPanel::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
 {
     _playlist->SetName(TextCtrl_PlayListName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    auto label = GetParent()->GetParent()->GetParent()->GetParent()->GetLabel();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }

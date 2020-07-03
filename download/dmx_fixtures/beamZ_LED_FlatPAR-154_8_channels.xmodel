@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="beamZ LED FlatPAR-154 8 channels" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,Strobe,Color control,Color / Sound control,Speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="4" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#070707" 
+s2="Strobe" s2-Name="single_colour_strobe" s2-Color="#1D1D1D" 
+s3="Color control" s3-Name="no_function" s3-Color="#000000" 
+s4="Color control" s4-Name="blue_color" s4-Color="#0A0A0A" 
+s5="Color control" s5-Name="white_color" s5-Color="#1D1D1D" 
+s6="Color control" s6-Name="red_white_color" s6-Color="#313131" 
+s7="Color control" s7-Name="blue_green_white_color" s7-Color="#454545" 
+s8="Color control" s8-Name="color_change_1" s8-Color="#595959" 
+s9="Color control" s9-Name="color_change_2" s9-Color="#6D6D6D" 
+s10="Color control" s10-Name="all_bright" s10-Color="#818181" 
+s11="Color control" s11-Name="multicolor_auto_1" s11-Color="#959595" 
+s12="Color control" s12-Name="multicolor_auto_2" s12-Color="#A9A9A9" 
+s13="Color control" s13-Name="sound_1" s13-Color="#BDBDBD" 
+s14="Color control" s14-Name="sound_2" s14-Color="#D1D1D1" 
+s15="Color control" s15-Name="sound_3" s15-Color="#E5E5E5" 
+s16="Color control" s16-Name="sound_4" s16-Color="#F7F7F7" 
+s17="Color / Sound control" s17-Name="no_function" s17-Color="#686868" 
+s18="Color / Sound control" s18-Name="red_color" s18-Color="#D8D8D8" 
+s19="Color / Sound control" s19-Name="green_color" s19-Color="#EFEFEF" 
+/>
+</dmxmodel>

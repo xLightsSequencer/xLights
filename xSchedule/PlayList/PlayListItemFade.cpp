@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemFade.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
@@ -26,6 +36,7 @@ void PlayListItemFade::Load(wxXmlNode* node)
 
 PlayListItemFade::PlayListItemFade(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIFade";
     _outputManager = outputManager;
     _sc = 0;
     _channels = 0;
@@ -60,7 +71,7 @@ size_t PlayListItemFade::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemFade::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFade");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("StartChannel", _startChannel);

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "StatePanel.h"
 #include "EffectPanelUtils.h"
 #include <list>
@@ -117,10 +127,15 @@ void StatePanel::UpdateStateList()
         std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
 
         Choice_State_State->Append("<ALL>");
-        for (auto it = states.begin(); it != states.end(); ++it)
+        if (selected == "<ALL>")
         {
-            int item = Choice_State_State->Append(*it);
-            if (*it == selected)
+            Choice_State_State->SetSelection(0);
+        }
+
+        for (const auto& it : states)
+        {
+            int item = Choice_State_State->Append(it);
+            if (it == selected)
             {
                 Choice_State_State->SetSelection(item);
             }

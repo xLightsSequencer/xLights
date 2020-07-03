@@ -1,5 +1,14 @@
-#ifndef VALUECURVEBUTTON_H
-#define VALUECURVEBUTTON_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/bmpbuttn.h>
 #include "ValueCurve.h"
@@ -10,7 +19,6 @@ class ValueCurveButton :
     public wxBitmapButton
 {
     ValueCurve* _vc;
-    void NotifyChange();
     void RenderNewBitmap();
 
 public:
@@ -30,8 +38,7 @@ public:
     void SetActive(bool active);
     void UpdateState();
     void UpdateBitmap();
+    void NotifyChange();
 
     static wxBitmap disabledBitmap;
 };
-
-#endif

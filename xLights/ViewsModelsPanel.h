@@ -1,5 +1,14 @@
-#ifndef VIEWSMODELSPANEL_H
-#define VIEWSMODELSPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/dnd.h>
 
@@ -58,7 +67,6 @@ class ViewsModelsPanel: public wxPanel
     int _sortOrder = 0;
     std::list<std::string> _undo;
 
-    void RemoveModelFromLists(const std::string& modelName);
     void PopulateViews();
     void SortNonModels();
     void PopulateModels(const std::string& selectModels = "");
@@ -85,7 +93,7 @@ class ViewsModelsPanel: public wxPanel
     void SelectUsedModels();
     void SelectAllModels();
     void SortModelsByName();
-    void SortModelsByNameGM();
+    void SortModelsByNameGM(bool sortGroupsBySize = false);
     void SortModelsByType();
     void SortModelsUnderThisGroup(int groupIndex);
     void SortModelsBubbleUpGroups();
@@ -114,6 +122,7 @@ class ViewsModelsPanel: public wxPanel
         void OnViewSelect(wxCommandEvent& event);
         void OnListCtrlItemCheck(wxCommandEvent& event);
         void UpdateModelsForSelectedView();
+        void RemoveModelFromLists(const std::string& modelName);
 
 		//(*Declarations(ViewsModelsPanel)
 		wxButton* ButtonClone;
@@ -127,6 +136,7 @@ class ViewsModelsPanel: public wxPanel
 		wxButton* Button_MoveUp;
 		wxButton* Button_RemoveAll;
 		wxButton* Button_RemoveSelected;
+		wxButton* Button_Top;
 		wxCheckedListCtrl* ListCtrlModels;
 		wxCheckedListCtrl* ListCtrlViews;
 		wxListCtrl* ListCtrlNonModels;
@@ -142,6 +152,7 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
+		static const long ID_BUTTON_TOP;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON1;
@@ -171,6 +182,7 @@ class ViewsModelsPanel: public wxPanel
         static const long ID_MODELS_SORTBYTYPE;
         static const long ID_MODELS_SORTMODELSUNDERTHISGROUP;
         static const long ID_MODELS_BUBBLEUPGROUPS;
+        static const long ID_MODELS_SORTBYNAMEGMSIZE;
 
 	private:
 
@@ -198,6 +210,9 @@ class ViewsModelsPanel: public wxPanel
 		void OnButton_MoveUpClick(wxCommandEvent& event);
 		void OnButton_MakeMasterClick(wxCommandEvent& event);
 		void OnListCtrlNonModelsColumnClick(wxListEvent& event);
+		void OnListCtrlNonModelsItemActivated(wxListEvent& event);
+		void OnListCtrlModelsItemActivated(wxListEvent& event);
+		void OnButton_TopClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);
@@ -205,5 +220,3 @@ class ViewsModelsPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

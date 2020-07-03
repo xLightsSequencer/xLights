@@ -1,16 +1,29 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayList.h"
 #include "PlayListDialog.h"
 #include "PlayListStep.h"
 #include "PlayListItem.h"
 #include "../Schedule.h"
 
-#include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 #include "PlayListSimpleDialog.h"
 #include "../xScheduleMain.h"
 #include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
+#include "../../xLights/UtilFunctions.h"
+
+#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 int __playlistid = 0;
 
@@ -604,6 +617,10 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
             it->Frame(buffer, size, outputframe);
         }
     }
+    else
+    {
+        return true;
+    }
 
     return false;
 }
@@ -825,9 +842,10 @@ size_t PlayList::GetLengthMS()
     size_t length = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
-        {
-            length += (*it)->GetLengthMS();
+        for (const auto& it : _steps) {
+            if (!it->GetEveryStep()) {
+                length += it->GetLengthMS();
+            }
         }
     }
 
@@ -1030,21 +1048,27 @@ void PlayList::RestartCurrentStep()
     }
 }
 
-bool PlayList::JumpToStep(const std::string& step)
+bool PlayList::JumpToStep(PlayListStep* pls)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
-
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (pls != nullptr)
+    {
+        logger_base.debug("PlayList: JumpToStep %s", (const char*)pls->GetNameNoTime().c_str());
+    }
+    else
+    {
+        logger_base.debug("PlayList: JumpToStep but step not found");
+    }
     bool success = true;
 
     _lastLoop = false;
     _loopStep = false;
     _forceNextStep = "";
 
-    if (_currentStep != nullptr && wxString(_currentStep->GetNameNoTime()).Lower() == wxString(step).Lower())
+    if (_currentStep != nullptr && _currentStep == pls)
     {
         _currentStep->Restart();
-        for (auto it: _everySteps)
+        for (auto it : _everySteps)
         {
             it->Restart();
         }
@@ -1054,25 +1078,47 @@ bool PlayList::JumpToStep(const std::string& step)
     if (_currentStep != nullptr)
     {
         _currentStep->Stop();
-        for (auto it: _everySteps)
+        for (auto it : _everySteps)
         {
             it->Stop();
         }
     }
 
-    _currentStep = GetStep(step);
+    _currentStep = pls;
     if (_currentStep == nullptr)
     {
         return false;
     }
 
     _currentStep->Start(-1);
-    for (auto it: _everySteps)
+    for (auto it : _everySteps)
     {
         it->Start(-1);
     }
 
     return success;
+}
+
+bool PlayList::JumpToStep(const std::string& step)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    PlayListStep* pls = nullptr;
+
+    int stepid = PlayListStep::GetStepIdFromName(step);
+
+    if (stepid >= 0)
+    {
+        logger_base.debug("PlayList: JumpToStep id=%d", stepid);
+        pls = GetStep(stepid);
+    }
+    else
+    {
+        logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
+        pls = GetStep(step);
+    }
+
+    return JumpToStep(pls);
 }
 
 bool PlayList::JumpToEndStepsAtEndOfCurrentStep()
@@ -1089,9 +1135,21 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+
+        int id = PlayListStep::GetStepIdFromName(step);
+        if (id >= 0)
         {
-            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(step).Lower()) return (*it);
+            for (const auto& it : _steps)
+            {
+                if (it->GetId() == id) return it;
+            }
+        }
+        else
+        {
+            for (const auto& it : _steps)
+            {
+                if (wxString(it->GetNameNoTime()).Lower() == wxString(step).Lower()) return it;
+            }
         }
     }
 
@@ -1102,9 +1160,9 @@ PlayListStep* PlayList::GetStep(wxUint32 step)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetId() == step) return (*it);
+            if (it->GetId() == step) return it;
         }
     }
 
@@ -1117,19 +1175,19 @@ bool PlayList::SupportsRandom()
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if (_steps.front()->GetId() == (*it)->GetId() && _firstOnlyOnce)
+            if (_steps.front()->GetId() == it->GetId() && _firstOnlyOnce)
             {
                 count--;
             }
-            else if (_steps.back()->GetId() == (*it)->GetId() && _lastOnlyOnce)
+            else if (_steps.back()->GetId() == it->GetId() && _lastOnlyOnce)
             {
                 count--;
             }
             else
             {
-                if ((*it)->GetExcludeFromRandom())
+                if (it->GetExcludeFromRandom())
                 {
                     count--;
                 }
@@ -1141,6 +1199,26 @@ bool PlayList::SupportsRandom()
     return (count > 3);
 }
 
+void PlayList::SetPosition(long secs)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    long len = GetLengthMS();
+    if (len == 0) return;
+    long plpos = secs * 1000 % len;
+    long plspos = 0;
+    PlayListStep* pls = GetStepAtTime(plpos, plspos);
+    JumpToStep(pls);
+    if (pls != nullptr)
+    {
+        pls->Advance(plspos / 1000);
+        logger_base.debug("PlayList::SetPosition %lds %s:%lds", secs, (const char*)pls->GetNameNoTime().c_str(), plspos / 1000);
+    }
+    else
+    {
+        logger_base.debug("PlayList::SetPosition failed because could not determine step.");
+    }
+}
+
 PlayListStep* PlayList::GetRandomStep()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1149,9 +1227,9 @@ PlayListStep* PlayList::GetRandomStep()
         int actualsteps = _steps.size();
         if (_firstOnlyOnce) actualsteps--;
         if (_lastOnlyOnce) actualsteps--;
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetExcludeFromRandom())
+            if (it->GetExcludeFromRandom())
             {
                 actualsteps--;
             }
@@ -1274,14 +1352,15 @@ PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it : _steps)
+        for (const auto& it : _steps)
         {
-            if (at + it->GetLengthMS() > ms)
-            {
-                newMS = ms - at;
-                return it;
+            if (!it->GetEveryStep()) {
+                if (at + it->GetLengthMS() > ms) {
+                    newMS = ms - at;
+                    return it;
+                }
+                at += it->GetLengthMS();
             }
-            at += it->GetLengthMS();
         }
     }
 
@@ -1294,16 +1373,16 @@ size_t PlayList::GetPosition()
     size_t pos = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it) == GetRunningStep())
-            {
-                pos += (*it)->GetPosition();
-                break;
-            }
-            else
-            {
-                pos += (*it)->GetLengthMS();
+            if (!it->GetEveryStep()) {
+                if (it == GetRunningStep()) {
+                    pos += it->GetPosition();
+                    break;
+                }
+                else {
+                    pos += it->GetLengthMS();
+                }
             }
         }
     }
@@ -1322,11 +1401,25 @@ std::string PlayList::GetName()
     return GetNameNoTime() + duration;
 }
 
+std::string PlayList::GetStepStartTime(PlayListStep* step) const
+{
+    long ms = 0;
+    for (const auto& it : _steps)
+    {
+        if (it == step) break;
+        if (!it->GetEveryStep()) {
+            ms += it->GetLengthMS();
+        }
+    }
+
+	return FORMATTIME(ms);
+}
+
 bool PlayList::IsSimple()
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it : _steps)
+        for (const auto& it : _steps)
         {
             if (!it->IsSimple())
             {
@@ -1334,7 +1427,7 @@ bool PlayList::IsSimple()
             }
         }
 
-        for (auto it: _everySteps)
+        for (const auto& it: _everySteps)
         {
             if (!it->IsSimple())
             {
@@ -1350,9 +1443,9 @@ Schedule* PlayList::GetSchedule(int id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (const auto& it : _schedules)
         {
-            if ((*it)->GetId() == id) return *it;
+            if (it->GetId() == id) return it;
         }
     }
 
@@ -1363,9 +1456,9 @@ Schedule* PlayList::GetSchedule(const std::string& name)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (const auto& it : _schedules)
         {
-            if (wxString((*it)->GetName()).Lower() == wxString(name).Lower()) return *it;
+            if (wxString(it->GetName()).Lower() == wxString(name).Lower()) return it;
         }
     }
 
@@ -1386,17 +1479,17 @@ void PlayList::RemoveEmptySteps()
             logger_base.warn("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetItems().size() == 0)
+            if (it->GetItems().size() == 0)
             {
-                toremove.push_back(*it);
+                toremove.push_back(it);
             }
         }
 
-        for (auto it = toremove.begin(); it != toremove.end(); ++it)
+        for (const auto& it : toremove)
         {
-            _steps.remove(*it);
+            _steps.remove(it);
         }
     }
 }
@@ -1411,7 +1504,7 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
 
         if (ti == nullptr)
         {
-            for (auto it: _everySteps)
+            for (const auto& it : _everySteps)
             {
                 ti = it->GetTextItem(name);
                 if (ti != nullptr) break;
@@ -1471,7 +1564,7 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it: _steps)
+        for (const auto& it : _steps)
         {
             if (it->IsRunningFSEQ(fseqFile))
             {
@@ -1487,12 +1580,12 @@ PlayListStep* PlayList::GetStepWithTimingName(const std::string timingName)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
             size_t ms;
-            if ((*it)->GetTimeSource(ms) != nullptr && (*it)->GetTimeSource(ms)->GetNameNoTime() == timingName)
+            if (it->GetTimeSource(ms) != nullptr && it->GetTimeSource(ms)->GetNameNoTime() == timingName)
             {
-                return *it;
+                return it;
             }
         }
     }
@@ -1506,9 +1599,9 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            pli = (*it)->FindRunProcessNamed(item);
+            pli = it->FindRunProcessNamed(item);
 
             if (pli != nullptr) break;
         }
@@ -1521,11 +1614,11 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetItem(id) != nullptr)
+            if (it->GetItem(id) != nullptr)
             {
-                return *it;
+                return it;
             }
         }
     }
@@ -1535,37 +1628,53 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 
 std::string PlayList::GetNextScheduledTime()
 {
-    wxDateTime nextdt = wxDateTime(static_cast<time_t>(0));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Getting next scheduled time for playlist.");
+    const wxDateTime nullDate = wxDateTime(static_cast<time_t>(0));
+    wxDateTime nextdt = nullDate;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (const auto& it : _schedules)
         {
-            wxDateTime dt = (*it)->GetNextTriggerDateTime();
+            wxDateTime dt = it->GetNextTriggerDateTime();
+            //logger_base.debug("   Is it " + dt.Format("%Y-%m-%d %H:%M").ToStdString());
 
-            if (dt != wxDateTime(static_cast<time_t>(0)))
+            if (dt != nullDate)
             {
-                if (nextdt == wxDateTime(static_cast<time_t>(0)))
+                if (nextdt == nullDate)
                 {
+                    //logger_base.debug("      This is the first date we found so we will take it.");
                     nextdt = dt;
                 }
                 else
                 {
                     if (dt < nextdt)
                     {
+                        //logger_base.debug("      It is earlier so this is our best candidate so far.");
                         nextdt = dt;
+                    }
+                    else
+                    {
+                        //logger_base.debug("      Date is NOT a better candidate.");
                     }
                 }
             }
+            //else
+            //{
+                //logger_base.debug("      Date is invalid.");
+            //}
         }
     }
 
-    if (nextdt == wxDateTime(static_cast<time_t>(0)))
+    if (nextdt == nullDate)
     {
+        //logger_base.debug("No good date found.");
         return "";
     }
     else
     {
+        //logger_base.debug("Our earliest date was " + nextdt.Format("%Y-%m-%d %H:%M").ToStdString());
         return nextdt.Format("%Y-%m-%d %H:%M").ToStdString();
     }
 }
@@ -1574,9 +1683,9 @@ PlayListItem* PlayList::GetItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            auto i = (*it)->GetItem(id);
+            auto i = it->GetItem(id);
             if (i != nullptr) return i;
         }
     }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Cameo Thunder Wash 100 W 1-CH" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Strobe A,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node2" s1-Name="shutter_open_react_to_dimmer_ch1_" s1-Color="#020202" 
+s2="Node2" s2-Name="shutter_closed" s2-Color="#080808" 
+s3="Node2" s3-Name="pulse_random_slow…fast" s3-Color="#161616" 
+s4="Node2" s4-Name="ramp_up_random_slow…fast" s4-Color="#2D2D2D" 
+s5="Node2" s5-Name="ramp_down_random_slow…fast" s5-Color="#444444" 
+s6="Node2" s6-Name="random_strobe_slow…fast" s6-Color="#5B5B5B" 
+s7="Node2" s7-Name="strobe_break_effect_5…1s_very_short_flash_" s7-Color="#737373" 
+s8="Node2" s8-Name="strobe_0…30hz" s8-Color="#BDBDBD" 
+s9="Node2" s9-Name="shutter_open" s9-Color="#FDFDFD" 
+s10="Node3" s10-Name="sound_control_off_mic_sensitivity_" s10-Color="#020202" 
+s11="Node3" s11-Name="sound_control_on_low-gt_high_mic_sensitivity_" s11-Color="#828282" 
+s12="Node5" s12-Name="shutter_open" s12-Color="#020202" 
+s13="Node5" s13-Name="shutter_closed" s13-Color="#080808" 
+s14="Node5" s14-Name="strobe_0…30hz" s14-Color="#828282" 
+s15="Node6" s15-Name="shutter_closed" s15-Color="#050505" 
+s16="Node6" s16-Name="strobe_0…30hz" s16-Color="#858585" 
+s17="Node7" s17-Name="no_function" s17-Color="#050505" 
+s18="Node7" s18-Name="strobe_programs_alternating_segments_" s18-Color="#858585" 
+/>
+</dmxmodel>

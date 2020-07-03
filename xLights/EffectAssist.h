@@ -1,5 +1,14 @@
-#ifndef EFFECTASSIST_H
-#define EFFECTASSIST_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(EffectAssist)
 #include <wx/panel.h>
@@ -24,6 +33,7 @@ class EffectAssist: public wxPanel
 		//*)
 
         void SetPanel(AssistPanel* panel_);
+        AssistPanel* GetPanel() const { return mAssistPanel; }
         void ForceRefresh();
 
         AssistPanel * GetDefaultAssistPanel();
@@ -48,5 +58,3 @@ class EffectAssist: public wxPanel
 		DECLARE_EVENT_TABLE()
 
 };
-
-#endif

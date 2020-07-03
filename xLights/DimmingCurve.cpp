@@ -1,12 +1,21 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "DimmingCurve.h"
 
 #include <wx/file.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
-
+#include <wx/xml/xml.h>
 
 #include <cmath>
-
 
 class BaseDimmingCurve : public DimmingCurve {
 public:
@@ -282,6 +291,15 @@ DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {
     while (dc != nullptr) {
         wxString name = dc->GetName();
         if ("all" == name) {
+            if (red != nullptr) {
+                delete red;
+            }
+            if (green) {
+                delete green;
+            }
+            if (blue) {
+                delete blue;
+            }
             return createCurve(dc);
         } else if ("red" == dc->GetName()) {
             red = createCurve(dc, 0);

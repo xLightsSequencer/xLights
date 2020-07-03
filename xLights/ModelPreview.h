@@ -1,5 +1,14 @@
-#ifndef MODELPREVIEW_H
-#define MODELPREVIEW_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <memory>
 
@@ -10,12 +19,14 @@
 #include "Color.h"
 #include "xlGLCanvas.h"
 #include "ViewpointMgr.h"
+#include "models/ModelManager.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Model;
+class ModelGroup;
 class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
@@ -23,6 +34,15 @@ class xlVertex3Accumulator;
 
 class ModelPreview : public xlGLCanvas
 {
+    int _cameraView_last_offsetx = 0;
+    int _cameraView_last_offsety = 0;
+    int _cameraView_latched_x = 0;
+    int _cameraView_latched_y = 0;
+
+    int _cameraPos_last_offsetx = 0;
+    int _cameraPos_last_offsety = 0;
+    int _cameraPos_latched_x = 0;
+    int _cameraPos_latched_y = 0;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -65,28 +85,36 @@ public:
 	void SetCameraView(int camerax, int cameray, bool latch, bool reset = false);
 	void SetCameraPos(int camerax, int cameray, bool latch, bool reset = false);
     void SetZoomDelta(float delta);
+    float GetCameraZoomForHandles() const;
+    int GetHandleScale() const;
 
+    void DrawGroupCentre(float x, float y);
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
+    void RenderModels(const std::vector<Model*>& models, bool selected);
+    void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
     double calcPixelSize(double i);
 
-    void SetModel(const Model* model);
+    void SetModel(const Model* model, bool wiring = false, bool highlightFirst = false);
     void SetActiveLayoutGroup(const std::string &grp = "Default") {
         currentLayoutGroup = grp;
         Refresh();
     }
     const std::vector<Model*> &GetModels();
+    ModelGroup* GetSelectedModelGroup();
+    bool ValidateModels(const ModelManager& mm);
     void SetAdditionalModel(Model *m) {
         additionalModel = m;
         Refresh();
     }
-
+    Model* GetAdditionalModel() const { return additionalModel; }
 
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive() const;
     float GetZoom() const { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    double GetCurrentScaleFactor() const { return std::max((float)virtualWidth / (float)mWindowWidth, (float)virtualHeight / (float)mWindowHeight); }
     float GetCameraRotationY() const { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
     float GetCameraRotationX() const { return (is_3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
     void SetPan(float deltax, float deltay, float deltaz);
@@ -103,11 +131,13 @@ public:
     void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
+    bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
     void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
-    
+
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
     virtual void InitializeGLCanvas() override;
+    virtual void InitializeGLContext() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
@@ -122,6 +152,7 @@ private:
 	void SetOrigin();
 	void mouseMoved(wxMouseEvent& event);
 	void mouseLeftDown(wxMouseEvent& event);
+	void mouseLeftDClick(wxMouseEvent& event);
 	void mouseLeftUp(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
     void mouseMiddleDown(wxMouseEvent& event);
@@ -129,9 +160,9 @@ private:
     //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
-    
+
     void OnZoomGesture(wxZoomGestureEvent& event);
-    
+
     void OnPopup(wxCommandEvent& event);
 	void drawGrid(float size, float step);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
@@ -165,7 +196,10 @@ private:
     DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
     DrawGLUtils::xl3Accumulator solidAccumulator3d;
     DrawGLUtils::xl3Accumulator transparentAccumulator3d;
+    DrawGLUtils::xl3Accumulator linesAccumulator3d;
     bool is_3d;
+    bool _wiring = false;
+    bool _highlightFirst = false;
     bool m_mouse_down;
     bool m_wheel_down;
     int m_last_mouse_x, m_last_mouse_y;
@@ -177,10 +211,7 @@ private:
     PreviewCamera* camera2d;
     static const long ID_VIEWPOINT2D;
     static const long ID_VIEWPOINT3D;
-
     double currentPixelScaleFactor = 1.0;
 
 	DECLARE_EVENT_TABLE()
 };
-
-#endif // MODELPREVIEW_H

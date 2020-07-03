@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/tokenzr.h>
 
 #include "StateEffect.h"
@@ -7,9 +17,11 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
+#include "../models/ModelGroup.h"
+
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
-#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -23,7 +35,7 @@ StateEffect::~StateEffect()
     //dtor
 }
 
-std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -43,7 +55,10 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
     {
         res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
+    else if (timing != "" && GetTiming(timing.ToStdString()) == nullptr)
+    {
+        res.push_back(wxString::Format("    ERR: State effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
     return res;
 }
 
@@ -64,17 +79,14 @@ void StateEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
+    auto lastTiming = fp->Choice_State_TimingTrack->GetStringSelection();
+    auto lastState = fp->Choice_StateDefinitonChoice->GetStringSelection();
     fp->Choice_State_TimingTrack->Clear();
     fp->Choice_StateDefinitonChoice->Clear();
-    if (mSequenceElements == nullptr) {
-        return;
-    }
 
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 1
-            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
-            fp->Choice_State_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
-        }
+    for (const auto& it : wxSplit(GetTimingTracks(1), '|'))
+    {
+        fp->Choice_State_TimingTrack->Append(it);
     }
 
     if (fp->Choice_State_TimingTrack->GetCount() > 0)
@@ -83,15 +95,33 @@ void StateEffect::SetPanelStatus(Model *cls) {
     }
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it) {
-            if (it->second.size() > 30) // actually it should be about 120
-            {
-                fp->Choice_StateDefinitonChoice->Append(it->first);
+
+        Model* m = cls;
+        if (cls->GetDisplayAs() == "ModelGroup")
+        {
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+
+        std::list<std::string> used;
+        if (m != nullptr)
+        {
+            for (const auto& it : m->stateInfo) {
+                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
+                {
+                    fp->Choice_StateDefinitonChoice->Append(it.first);
+                    used.push_back(it.first);
+                }
             }
         }
     }
 
-    if (fp->Choice_StateDefinitonChoice->GetCount() > 0)
+    if (lastTiming != "") fp->Choice_State_TimingTrack->SetStringSelection(lastTiming);
+    if (lastState != "")
+    {
+        fp->Choice_StateDefinitonChoice->SetStringSelection(lastState);
+    }
+    
+    if (fp->Choice_StateDefinitonChoice->GetSelection() == -1 && fp->Choice_StateDefinitonChoice->GetCount() > 0)
     {
         fp->Choice_StateDefinitonChoice->SetSelection(0);
     }
@@ -99,21 +129,31 @@ void StateEffect::SetPanelStatus(Model *cls) {
     fp->SetEffect(this, cls);
 }
 
-std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
+std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
 
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it)
+
+        Model* m = cls;
+        if (cls->GetDisplayAs() == "ModelGroup")
         {
-            if (model == it->first)
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+
+        if (m != nullptr)
+        {
+            for (const auto& it : m->stateInfo)
             {
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                if (model == it.first)
                 {
-                    wxString f(it2->first);
-                    if (f.EndsWith("-Name") && it2->second != "")
+                    for (const auto& it2 : it.second)
                     {
-                        res.push_back(it2->second);
+                        wxString f(it2.first);
+                        if (f.EndsWith("-Name") && it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res))
+                        {
+                            res.push_back(it2.second);
+                        }
                     }
                 }
             }
@@ -160,7 +200,7 @@ void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name)
 {
-    for (auto it2 : map)
+    for (const auto& it2 : map)
     {
         if (EndsWith(it2.first, "-Name") && it2.second == name)
         {
@@ -471,71 +511,77 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     // process each token
     for (size_t i = 0; i < sstates.size(); i++)
     {
-        // get the channels
-        std::string statename = FindState(model_info->stateInfo[definition], sstates[i]);
-        std::string channels = model_info->stateInfo[definition][statename];
-
-        if (statename != "" && channels != "")
+        for (const auto& it : model_info->stateInfo[definition])
         {
-            xlColor color;
-            if (colourmode == "Graduate")
+            if (it.second == sstates[i] && EndsWith(it.first, "-Name"))
             {
-                buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
-            }
-            else if (colourmode == "Cycle")
-            {
-                buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
-            }
-            else
-            {
-                // allocate
-                int statenum = wxAtoi(statename.substr(1));
-                buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
-            }
-            if (customColor) {
-                std::string cname = model_info->stateInfo[definition][statename + "-Color"];
-                if (cname == "") {
-                    color = xlWHITE;
-                }
-                else {
-                    color = xlColor(cname);
-                }
-            }
+                // get the channels
+                std::string statename = BeforeFirst(it.first, '-');// FindState(model_info->stateInfo[definition], sstates[i]);
+                std::string channels = model_info->stateInfo[definition][statename];
 
-            wxStringTokenizer wtkz(channels, ",");
-            while (wtkz.HasMoreTokens())
-            {
-                wxString valstr = wtkz.GetNextToken();
-
-                if (type == 0) {
-                    for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                        wxString nn = model_info->GetNodeName(n, true);
-                        if (nn == valstr) {
-                            buffer.SetNodePixel(n, color);
+                if (statename != "" && channels != "")
+                {
+                    xlColor color;
+                    if (colourmode == "Graduate")
+                    {
+                        buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
+                    }
+                    else if (colourmode == "Cycle")
+                    {
+                        buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
+                    }
+                    else
+                    {
+                        // allocate
+                        int statenum = wxAtoi(statename.substr(1));
+                        buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
+                    }
+                    if (customColor) {
+                        std::string cname = model_info->stateInfo[definition][statename + "-Color"];
+                        if (cname == "") {
+                            color = xlWHITE;
+                        }
+                        else {
+                            color = xlColor(cname);
                         }
                     }
-                }
-                else if (type == 1) {
-                    int start, end;
-                    if (valstr.Contains("-")) {
-                        int idx = valstr.Index('-');
-                        start = wxAtoi(valstr.Left(idx));
-                        end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                        if (end < start)
-                        {
-                            std::swap(start, end);
+
+                    wxStringTokenizer wtkz(channels, ",");
+                    while (wtkz.HasMoreTokens())
+                    {
+                        wxString valstr = wtkz.GetNextToken();
+
+                        if (type == 0) {
+                            for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
+                                wxString nn = model_info->GetNodeName(n, true);
+                                if (nn == valstr) {
+                                    buffer.SetNodePixel(n, color, true);
+                                }
+                            }
                         }
-                    }
-                    else {
-                        start = end = wxAtoi(valstr);
-                    }
-                    if (start > end) {
-                        start = end;
-                    }
-                    start--;
-                    end--;
-                    for (int n = start; n <= end; n++) {
-                        buffer.SetNodePixel(n, color);
+                        else if (type == 1) {
+                            int start, end;
+                            if (valstr.Contains("-")) {
+                                int idx = valstr.Index('-');
+                                start = wxAtoi(valstr.Left(idx));
+                                end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                                if (end < start)
+                                {
+                                    std::swap(start, end);
+                                }
+                            }
+                            else {
+                                start = end = wxAtoi(valstr);
+                            }
+                            if (start > end) {
+                                start = end;
+                            }
+                            start--;
+                            end--;
+                            for (int n = start; n <= end; n++) {
+                                buffer.SetNodePixel(n, color, true);
+                            }
+                        }
                     }
                 }
             }

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "ModelPreview.h"
@@ -10,21 +20,6 @@
 std::string xLightsFrame::GetSelectedLayoutPanelPreview() const
 {
     return layoutPanel->GetCurrentPreview();
-}
-
-void xLightsFrame::UpdatePreview()
-{
-    layoutPanel->UpdatePreview();
-}
-
-void xLightsFrame::RefreshLayout()
-{
-    layoutPanel->RefreshLayout();
-}
-
-void xLightsFrame::RenderLayout()
-{
-    layoutPanel->RenderLayout();
 }
 
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
@@ -56,7 +51,7 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
     }
     modelPreview->SetbackgroundImage(mBackgroundImage);
     _housePreviewPanel->GetModelPreview()->SetbackgroundImage(mBackgroundImage);
-    UpdatePreview();
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetPreviewBackgroundImage");
 }
 
 void xLightsFrame::SetDisplay2DBoundingBox(bool bb)
@@ -65,7 +60,7 @@ void xLightsFrame::SetDisplay2DBoundingBox(bool bb)
     {
         SetXmlSetting("Display2DBoundingBox", bb ? "1" : "0");
         UnsavedRgbEffectsChanges = true;
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DBoundingBox");
     }
 }
 
@@ -79,7 +74,7 @@ void xLightsFrame::SetDisplay2DCenter0(bool bb) {
     {
         SetXmlSetting("Display2DCenter0", bb ? "1" : "0");
         UnsavedRgbEffectsChanges = true;
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DCenter0");
     }
 }
 bool xLightsFrame::GetDisplay2DCenter0() const {
@@ -105,7 +100,7 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i, int a)
     }
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
     _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
-    UpdatePreview();
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetPreviewBackgroundBrightness");
 }
 
 bool xLightsFrame::GetDefaultPreviewBackgroundScaled()

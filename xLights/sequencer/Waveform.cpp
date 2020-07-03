@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #ifdef __WXMAC__
     #include "OpenGL/gl.h"
@@ -21,6 +31,7 @@
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
 #include "MainSequencer.h"
+#include "../NoteRangeDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -41,6 +52,12 @@ EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
 
 const long Waveform::ID_WAVE_MNU_RENDER = wxNewId();
+const long Waveform::ID_WAVE_MNU_RAW = wxNewId();
+const long Waveform::ID_WAVE_MNU_BASS = wxNewId();
+const long Waveform::ID_WAVE_MNU_ALTO = wxNewId();
+const long Waveform::ID_WAVE_MNU_TREBLE = wxNewId();
+const long Waveform::ID_WAVE_MNU_CUSTOM = wxNewId();
+const long Waveform::ID_WAVE_MNU_NONVOCALS = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -157,12 +174,29 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
 
 void Waveform::rightClick(wxMouseEvent& event)
 {
+    wxMenu mnuWave;
     if( (mTimeline->GetSelectedPositionStartMS() != -1 ) &&
         (mTimeline->GetSelectedPositionEndMS() != -1 ) )
     {
-        wxMenu mnuWave;
         mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
-        mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&Waveform::OnGridPopup, nullptr, this);
+    }
+    if (_media != nullptr)
+    {
+        if (mnuWave.GetMenuItemCount() > 0)
+        {
+            mnuWave.AppendSeparator();
+        }
+
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_RAW, "Raw waveform")->Check(_type == AUDIOSAMPLETYPE::RAW);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_BASS, "Bass waveform")->Check(_type == AUDIOSAMPLETYPE::BASS);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_TREBLE, "Treble waveform")->Check(_type == AUDIOSAMPLETYPE::TREBLE);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_ALTO, "Alto waveform")->Check(_type == AUDIOSAMPLETYPE::ALTO);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_CUSTOM, "Custom filtered waveform")->Check(_type == AUDIOSAMPLETYPE::CUSTOM);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
+    }
+    if (mnuWave.GetMenuItemCount() > 0)
+    {
+        mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
         renderGL();
         PopupMenu(&mnuWave);
     }
@@ -178,6 +212,68 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
     }
+    else if (id == ID_WAVE_MNU_RAW)
+    {
+        _type = AUDIOSAMPLETYPE::RAW;
+    }
+    else if (id == ID_WAVE_MNU_BASS)
+    {
+        _type = AUDIOSAMPLETYPE::BASS;
+    }
+    else if (id == ID_WAVE_MNU_TREBLE)
+    {
+        _type = AUDIOSAMPLETYPE::TREBLE;
+    }
+    else if (id == ID_WAVE_MNU_ALTO)
+    {
+        _type = AUDIOSAMPLETYPE::ALTO;
+    }
+    else if (id == ID_WAVE_MNU_NONVOCALS)
+    {
+        _type = AUDIOSAMPLETYPE::NONVOCALS;
+    }
+    else if (id == ID_WAVE_MNU_CUSTOM)
+    {
+        NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
+        if (dlg.ShowModal() == wxID_CANCEL) return;
+        _type = AUDIOSAMPLETYPE::CUSTOM;
+    }
+
+    wxSetCursor(wxCURSOR_WAIT);
+
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    for (size_t i = 0; i < views.size(); i++)
+    {
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
+        {
+            if (_type == AUDIOSAMPLETYPE::CUSTOM)
+            {
+                if (views[i].GetLowNote() == _lowNote && views[i].GetHighNote() == _highNote)
+                {
+                    mCurrentWaveView = i;
+                    break;
+                }
+            }
+            else
+            {
+                mCurrentWaveView = i;
+                break;
+            }
+        }
+    }
+    if (_media) {
+        _media->SwitchTo(_type, _lowNote, _highNote);
+    }
+    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
+    {
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
+        views.push_back(wv);
+        mCurrentWaveView = views.size() - 1;
+    }
+
+    wxSetCursor(wxCURSOR_ARROW);
+
     Refresh();
 }
 
@@ -194,17 +290,14 @@ void Waveform::SetSelectedInterval(int startMS, int endMS)
     Refresh(false);
 }
 
-void Waveform::mouseMoved( wxMouseEvent& event)
+void Waveform::mouseMoved(wxMouseEvent& event)
 {
-    if(!mIsInitialized){return;}
-    if (m_dragging)
-    {
-        if( m_drag_mode == DRAG_LEFT_EDGE )
-        {
+    if (!mIsInitialized) { return; }
+    if (m_dragging) {
+        if (m_drag_mode == DRAG_LEFT_EDGE) {
             mTimeline->SetSelectedPositionStart(event.GetX(), false);
         }
-        else
-        {
+        else {
             mTimeline->SetSelectedPositionEnd(event.GetX());
         }
         Refresh(false);
@@ -212,22 +305,18 @@ void Waveform::mouseMoved( wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
     }
-    else
-    {
+    else {
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
-        if( event.GetX() >= selected_x1 && event.GetX() < selected_x1+6 )
-        {
+        if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
             SetCursor(wxCURSOR_POINT_LEFT);
             m_drag_mode = DRAG_LEFT_EDGE;
         }
-        else if( event.GetX() > selected_x2-6 && event.GetX() <= selected_x2 )
-        {
+        else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
             SetCursor(wxCURSOR_POINT_RIGHT);
             m_drag_mode = DRAG_RIGHT_EDGE;
         }
-        else
-        {
+        else {
             SetCursor(wxCURSOR_ARROW);
             m_drag_mode = DRAG_NORMAL;
         }
@@ -236,10 +325,15 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     UpdateMousePosition(mouseTimeMS);
 
     // Scrubbing
-    if (_media != nullptr && event.LeftIsDown() && event.ControlDown())
-    {
-        int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
-        _media->Play(mouseTimeMS, msperpixel);
+    if (event.LeftIsDown() && event.ControlDown()) {
+        if (_media != nullptr) {
+            int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
+            _media->Play(mouseTimeMS, msperpixel);
+        }
+
+        wxCommandEvent eventScrub(EVT_SCRUB);
+        eventScrub.SetInt(mouseTimeMS);
+        wxPostEvent(mParent, eventScrub);
     }
 }
 
@@ -287,12 +381,14 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
 // Open Media file and return elapsed time in millseconds
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
-	_media = media;
+    _type = AUDIOSAMPLETYPE::RAW;
+    _media = media;
     views.clear();
 	if (_media != nullptr)
 	{
+        _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		WaveView wv(mZoomLevel, samplesPerLine, media);
+		WaveView wv(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		views.push_back(wv);
 		mCurrentWaveView = 0;
 		return media->LengthMS();
@@ -310,16 +406,18 @@ void Waveform::InitializeGLCanvas()
 #ifdef __LINUX__
     if(!IsShownOnScreen()) return;
 #endif
+    mIsInitialized = true;
+    SetZoomLevel(mZoomLevel);
+}
+void Waveform::InitializeGLContext()
+{
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glDisable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
-    SetZoomLevel(mZoomLevel);
 }
-
 void Waveform::renderGL( wxPaintEvent& event )
 {
     renderGL();
@@ -327,18 +425,10 @@ void Waveform::renderGL( wxPaintEvent& event )
 
 void Waveform::renderGL()
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
-
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-
-	if (mCurrentWaveView >= 0)
-	{
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+    InitializeGLContext();
+	if (mCurrentWaveView >= 0) {
 		DrawWaveView(views[mCurrentWaveView]);
 	}
     LOG_GL_ERRORV(SwapBuffers());
@@ -373,8 +463,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
     int selected_x2 = mTimeline->GetSelectedPositionEnd();
 
     // draw shaded region if needed
-    if( selected_x1 != -1 && selected_x2 != -1)
-    {
+    if (selected_x1 != -1 && selected_x2 != -1) {
         //color.Set(0, 0, 200, 45);
         color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
         color.SetAlpha(45);
@@ -385,11 +474,9 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.Finish(GL_TRIANGLE_FAN, GL_BLEND);
     }
 
-    if(_media != nullptr)
-    {
+    if(_media != nullptr) {
         xlColor c(130,178,207,255);
-        if (xLightsApp::GetFrame() != nullptr)
-        {
+        if (xLightsApp::GetFrame() != nullptr) {
             c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
         }
 
@@ -496,7 +583,7 @@ void Waveform::SetZoomLevel(int level)
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     for (size_t i = 0; i < views.size(); i++)
     {
-        if (views[i].GetZoomLevel() == mZoomLevel)
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
         {
             mCurrentWaveView = i;
         }
@@ -504,7 +591,7 @@ void Waveform::SetZoomLevel(int level)
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(mZoomLevel, samplesPerLine, _media);
+        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         views.push_back(wv);
         mCurrentWaveView = views.size() - 1;
     }
@@ -578,7 +665,7 @@ void Waveform::SetGLSize(int w, int h)
     if (_media != nullptr)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(0, samplesPerLine, _media);
+        WaveView wv(0, samplesPerLine, _media, _type, _lowNote, _highNote);
         views.push_back(wv);
     }
 
@@ -588,7 +675,7 @@ void Waveform::SetGLSize(int w, int h)
     Refresh(false);
 }
 
-void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media)
+void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
 	MinMaxs.clear();
 
@@ -611,7 +698,7 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 			}
 			minimum = 1;
 			maximum = -1;
-            media->GetLeftDataMinMax(start, end, minimum, maximum);
+            media->GetLeftDataMinMax(start, end, minimum, maximum, type, lowNote, highNote);
 			MINMAX mm;
 			mm.min = minimum;
 			mm.max = maximum;

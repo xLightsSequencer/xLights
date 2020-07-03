@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "BarsEffect.h"
 #include "BarsPanel.h"
 
@@ -115,9 +125,14 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     int x,y,n,ColorIdx;
     size_t colorcnt = buffer.GetColorCount();
+    if (colorcnt == 0) {
+        colorcnt = 1;
+    }
     int BarCount = PaletteRepeat * colorcnt;
 
-    if (BarCount<1) BarCount=1;
+    if (BarCount < 1) {
+        BarCount=1;
+    }
 
     xlColor color;
 
@@ -138,21 +153,27 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         for (y=-2*buffer.BufferHt; y<2*buffer.BufferHt; y++)
         {
             n=buffer.BufferHt+y+f_offset;
-            ColorIdx=(n % BlockHt) / BarHt;
+            ColorIdx=std::abs(n % BlockHt) / BarHt;
             int color2 = (ColorIdx+1)%colorcnt;
-            double pct = (double)(n % BarHt) / (double)BarHt;
+            double pct = (double)std::abs(n % BarHt) / (double)BarHt;
 
             if (buffer.allowAlpha) {
                 buffer.palette.GetColor(ColorIdx, color);
                 if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
                 if (Highlight && n % BarHt == 0) color = xlWHITE;
-                if (Show3D) color.alpha = 255.0 * double(BarHt - n%BarHt - 1) / BarHt;
+                if (Show3D) {
+                    int numerator = BarHt - std::abs(n % BarHt) - 1;
+                    color.alpha = 255.0 * double(numerator) / double(BarHt);
+                }
             } else {
                 buffer.palette.GetColor(ColorIdx, color);
                 if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
                 HSVValue hsv = color.asHSV();
                 if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
-                if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
+                if (Show3D) {
+                    int numerator = BarHt - std::abs(n % BarHt) - 1;
+                    hsv.value *= double(numerator) / double(BarHt);
+                }
                 color = hsv;
             }
             switch (Direction)

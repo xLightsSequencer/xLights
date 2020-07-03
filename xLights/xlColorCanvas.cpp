@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "xlColorCanvas.h"
 #include "DrawGLUtils.h"
 #include <algorithm>
@@ -201,11 +211,8 @@ void xlColorCanvas::ProcessPaletteClick( int row, int column )
     }
 }
 
-void xlColorCanvas::InitializeGLCanvas()
+void xlColorCanvas::InitializeGLContext()
 {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -213,27 +220,18 @@ void xlColorCanvas::InitializeGLCanvas()
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
 }
 
 void xlColorCanvas::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    InitializeGLContext();
     
-    if( mDisplayType == TYPE_SLIDER )
-    {
+    if( mDisplayType == TYPE_SLIDER ) {
         DrawSlider();
-    }
-    else
-    {
+    } else {
         DrawPalette();
     }
 

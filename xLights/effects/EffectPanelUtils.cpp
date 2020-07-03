@@ -1,5 +1,14 @@
-#include "EffectPanelUtils.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
+#include "EffectPanelUtils.h"
 
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
@@ -18,11 +27,14 @@
 #include <wx/button.h>
 #include <wx/fontpicker.h>
 #include <wx/choicebk.h>
+#include <wx/valnum.h>
 
 #include "../BitmapCache.h"
 #include "../ValueCurveButton.h"
 #include "../ValueCurveDialog.h"
-#include <wx/valnum.h>
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
@@ -130,51 +142,44 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 {
     ValueCurveButton * vcb = (ValueCurveButton*)event.GetEventObject();
-    wxString name = vcb->GetName();
-    wxString slidername = name;
-    wxString slidername2 = name;
-    slidername.Replace("ID_VALUECURVE_", "ID_SLIDER_");
-    slidername2.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
-    wxString textctrlname = name;
-    wxString textctrlname2 = name;
-    textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
-    textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
-    wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
-    if (slider == nullptr || (void*)slider == (void*)vcb)
-    {
-        slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
-    }
-    wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
-    if (textctrl == nullptr || (void*)textctrl == (void*)vcb)
-    {
-        textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
-    }
-
-    wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
-    wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
-
-    if (vcb->GetValue()->IsActive())
-    {
-        if (slider != nullptr)
-        {
-            slider->Disable();
+    if (vcb != nullptr) {
+        wxString name = vcb->GetName();
+        wxString slidername = name;
+        wxString slidername2 = name;
+        slidername.Replace("ID_VALUECURVE_", "ID_SLIDER_");
+        slidername2.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
+        wxString textctrlname = name;
+        wxString textctrlname2 = name;
+        textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
+        textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
+        wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
+        if (slider == nullptr || (void*)slider == (void*)vcb) {
+            slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
         }
-        if (textctrl != nullptr)
-        {
-            textctrl->Disable();
+        wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
+        if (textctrl == nullptr || (void*)textctrl == (void*)vcb) {
+            textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
         }
-    }
-    else
-    {
-        if (vcb->IsEnabled())
-        {
-            if (slider != nullptr)
-            {
-                slider->Enable();
+
+        wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
+        wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
+
+        if (vcb->GetValue()->IsActive()) {
+            if (slider != nullptr) {
+                slider->Disable();
             }
-            if (textctrl != nullptr)
-            {
-                textctrl->Enable();
+            if (textctrl != nullptr) {
+                textctrl->Disable();
+            }
+        }
+        else {
+            if (vcb->IsEnabled()) {
+                if (slider != nullptr) {
+                    slider->Enable();
+                }
+                if (textctrl != nullptr) {
+                    textctrl->Enable();
+                }
             }
         }
     }
@@ -228,6 +233,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     if (vc->GetValue()->IsActive())
     {
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd);
+        OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() == wxOK)
         {
             if (slider != nullptr)
@@ -252,6 +258,12 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             vc->SetActive(false);
         }
         vc->UpdateState();
+        if (vcd.DidExport())
+        {
+            wxCommandEvent e(EVT_VC_CHANGED);
+            e.SetInt(-1);
+            wxPostEvent(xLightsApp::GetFrame(), e);
+        }
     }
     else
     {

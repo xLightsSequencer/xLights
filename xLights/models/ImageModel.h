@@ -1,8 +1,17 @@
-#ifndef IMAGEMODEL_H
-#define IMAGEMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-#include "Image.h"
+#include "../Image.h"
 
 class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -15,8 +24,8 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
@@ -51,4 +60,3 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _offBrightness;
 };
 
-#endif // IMAGEMODEL_H

@@ -71,6 +71,8 @@
 						<item>None</item>
 						<item>90 CW</item>
 						<item>90 CCW</item>
+						<item>Flip Vertical</item>
+						<item>Flip Horizontal</item>
 					</content>
 					<selection>0</selection>
 				</object>

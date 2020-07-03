@@ -1,7 +1,16 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListStep.h"
 
-#include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "PlayList.h"
 #include "PlayListItemVideo.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
@@ -14,6 +23,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemMicrophone.h"
+#include "PlayListItemColourOrgan.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemProjector.h"
 #include "PlayListItemAllOff.h"
@@ -23,14 +33,22 @@
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemSerial.h"
+#include "PlayListItemMIDI.h"
 #include "PlayListItemFPPEvent.h"
 #include "PlayListItemRunCommand.h"
+#include "PlayListItemMQTT.h"
 #include "PlayListItemOSC.h"
 #include "PlayListItemAudio.h"
-#include <wx/filename.h>
+#include "PlayListItemARTNetTrigger.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
+#include "../../xLights/UtilFunctions.h"
+
+#include <wx/filename.h>
+#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 int __playliststepid = 0;
 
@@ -186,6 +204,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemAudio(n));
         }
+        else if (n->GetName() == "PLIARTNetTrigger")
+        {
+            _items.push_back(new PlayListItemARTNetTrigger(n));
+        }
         else if (n->GetName() == "PLIFSEQVideo")
         {
             _items.push_back(new PlayListItemFSEQVideo(outputManager, n));
@@ -197,6 +219,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIMicrophone")
         {
             _items.push_back(new PlayListItemMicrophone(outputManager, n));
+        }
+        else if (n->GetName() == "PLIColourOrgan")
+        {
+            _items.push_back(new PlayListItemColourOrgan(outputManager, n));
         }
         else if (n->GetName() == "PLIRDS")
         {
@@ -227,7 +253,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemJukebox(n));
         }
-        else if (n->GetName() == "PLIAllSet")
+        else if (n->GetName() == "PLIAllSet" || n->GetName() == "PLIAllOff")
         {
             _items.push_back(new PlayListItemAllOff(outputManager, n));
         }
@@ -255,6 +281,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemSerial(n));
         }
+        else if (n->GetName() == "PLIMIDI")
+        {
+            _items.push_back(new PlayListItemMIDI(n));
+        }
         else if (n->GetName() == "PLIFPPEVENT")
         {
             _items.push_back(new PlayListItemFPPEvent(n));
@@ -262,6 +292,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLICommand")
         {
             _items.push_back(new PlayListItemRunCommand(n));
+        }
+        else if (n->GetName() == "PLIMQTT")
+        {
+            _items.push_back(new PlayListItemMQTT(n));
         }
         else if (n->GetName() == "PLIOSC")
         {
@@ -279,9 +313,9 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
 
     _items.sort(compare_priority);
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
+    for (const auto& it : _items)
     {
-        (*it)->SetStepLength(GetLengthMS());
+        it->SetStepLength(GetLengthMS());
     }
 }
 
@@ -319,21 +353,34 @@ void PlayListStep::RemoveItem(PlayListItem* item)
     _changeCount++;
 }
 
-std::string PlayListStep::GetName()
+std::string PlayListStep::GetStartTime(PlayList* pl)
 {
+    if (pl == nullptr) return "";
+
+    return pl->GetStepStartTime(this);
+}
+
+std::string PlayListStep::GetName(PlayList* pl)
+{
+    std::string offset = "";
+    if (pl != nullptr)
+    {
+        offset = " {" + pl->GetStepStartTime(this) + "}";
+    }
+
     std::string duration = "";
     if (GetLengthMS() != 0)
     {
         duration = " [" + wxString::Format(wxT("%.3f"), (float)GetLengthMS() / 1000.0).ToStdString() + "]";
     }
 
-    if (_name != "") return _name + duration;
+    if (_name != "") return _name + offset + duration;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        if (_items.size() == 0) return "<unnamed>" + duration;
+        if (_items.size() == 0) return "<unnamed>" + offset + duration;
 
-        return _items.front()->GetNameNoTime() + duration;
+        return _items.front()->GetNameNoTime() + offset + duration;
     }
 }
 
@@ -454,6 +501,12 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
     }
 
     //logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+
+    //if (frameMS >= GetLengthMS())
+    //{
+        // we are done
+    //    return true;
+    //}
 
     wxStopWatch sw;
     // we do this backwards to ensure the right render order
@@ -733,8 +786,8 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
 
 void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool force)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
+    static log4cpp::Category &logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
+    logger_sync.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
@@ -763,11 +816,11 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
 
                             if (timeDiff != 0) // if this is zero then we are less than one frame out
                             {
-                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
+                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
 
                                 if (posDiff > (acceptableJitter * 2)) {
                                     pli->SetPosition(frame, ms);
-                                    logger_base.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
+                                    logger_sync.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
                                 }
                                 else {
                                     long mscorrection = 0;
@@ -775,12 +828,12 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     if (timeDiff > 0) {		// Ahead or Behind? 
                                         mscorrection = (long)(acceptableJitter / 20);
                                         fcorrection = 1;
-                                        logger_base.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
+                                        logger_sync.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
                                     }
                                     else {
                                         mscorrection = -(long)(acceptableJitter / 20);
                                         fcorrection = -1;
-                                        logger_base.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
+                                        logger_sync.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
                                     }
 
                                     //pli->SetPosition(frame, pli->GetPositionMS() + mscorrection);
@@ -808,7 +861,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                                 }
 
-                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
                                 if (xScheduleFrame::GetScheduleManager() != nullptr)
                                     xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                             }
@@ -836,7 +889,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         if (force)
                         {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                             pli->SetPosition(frame, ms);
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
@@ -859,7 +912,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                             }
 
-                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
 
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
@@ -925,8 +978,7 @@ bool PlayListStep::IsSimple()
 
         auto type = _items.front()->GetTitle();
 
-        if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video")
-        {
+        if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video") {
             return true;
         }
     }
@@ -938,11 +990,9 @@ PlayListItemText* PlayListStep::GetTextItem(const std::string& name)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if ((*it)->GetTitle() == "Text" && wxString((*it)->GetNameNoTime()).Lower() == wxString(name).Lower())
-            {
-                return (PlayListItemText*)*it;
+        for (const auto& it : _items) {
+            if (it->GetTitle() == "Text" && wxString(it->GetNameNoTime()).Lower() == wxString(name).Lower()) {
+                return (PlayListItemText*)it;
             }
         }
     }
@@ -954,11 +1004,9 @@ PlayListItem* PlayListStep::GetItem(const std::string item)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
-            {
-                return *it;
+        for (const auto& it : _items) {
+            if (wxString(it->GetNameNoTime()).Lower() == wxString(item).Lower()) {
+                return it;
             }
         }
     }
@@ -970,11 +1018,9 @@ PlayListItem* PlayListStep::GetItem(const wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if ((*it)->GetId() == id)
-            {
-                return *it;
+        for (const auto& it : _items) {
+            if (it->GetId() == id) {
+                return it;
             }
         }
     }
@@ -986,11 +1032,11 @@ PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (const auto& it : _items)
         {
-            if ((*it)->GetTitle() == "Run Process" && wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+            if (it->GetTitle() == "Run Process" && wxString(it->GetNameNoTime()).Lower() == wxString(item).Lower())
             {
-                return (*it);
+                return it;
             }
         }
     }
@@ -1046,5 +1092,16 @@ AudioManager* PlayListStep::GetAudioManager()
     return nullptr;
 }
 
+int PlayListStep::GetStepIdFromName(const std::string& step)
+{
+    if (StartsWith(step, "**id="))
+    {
+        return wxAtoi(step.substr(5, step.size() - 7));
+    }
+    return -1;
+}
 
-
+std::string PlayListStep::GetStepNameWithId(int id)
+{
+    return wxString::Format("**id=%d**", id).ToStdString();
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="SGM Idea LED BAR 100 15 channels" parm1="76" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer each 5 LED Group 1,Dimmer each 5 LED Group 2,Dimmer each 5 LED Group 3,Dimmer each 5 LED Group 4,Dimmer each 5 LED Group 5,Dimmer each 5 LED Group 6,Dimmer each 5 LED Group 7,Dimmer each 5 LED Group 8,Dimmer each 5 LED Group 9,Dimmer each 5 LED Group 10,Dimmer each 5 LED Group 11,Dimmer each 5 LED Group 12,Internal Programs,Strobe,Dimmer/Speed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer each 5 LED Group 2" s1-Name="no_function_shutter_open_" s1-Color="#000000" 
+s2="Dimmer each 5 LED Group 2" s2-Name="strobe_effect_slow_to_fast" s2-Color="#303030" 
+s3="Dimmer each 5 LED Group 2" s3-Name="pulse-effect_in_sequences" s3-Color="#8F8F8F" 
+s4="Dimmer each 5 LED Group 2" s4-Name="random_strobe_effect_show_to_fast" s4-Color="#CFCFCF" 
+s5="Dimmer each 5 LED Group 3" s5-Name="no_function" s5-Color="#050505" 
+s6="Dimmer each 5 LED Group 3" s6-Name="internal_program_1" s6-Color="#191919" 
+s7="Dimmer each 5 LED Group 3" s7-Name="internal_program_2" s7-Color="#373737" 
+s8="Dimmer each 5 LED Group 3" s8-Name="internal_program_3" s8-Color="#555555" 
+s9="Dimmer each 5 LED Group 3" s9-Name="internal_program_4" s9-Color="#737373" 
+s10="Dimmer each 5 LED Group 3" s10-Name="internal_program_5" s10-Color="#919191" 
+s11="Dimmer each 5 LED Group 3" s11-Name="internal_program_6" s11-Color="#AFAFAF" 
+s12="Dimmer each 5 LED Group 3" s12-Name="internal_program_7" s12-Color="#CDCDCD" 
+s13="Dimmer each 5 LED Group 3" s13-Name="internal_program_8" s13-Color="#EEEEEE" 
+/>
+</dmxmodel>

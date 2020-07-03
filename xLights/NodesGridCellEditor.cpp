@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "NodesGridCellEditor.h"
 #include <wx/tokenzr.h>
 
@@ -134,7 +144,7 @@ void NodesGridCellEditor::Reset()
     while (wtkz.HasMoreTokens()) //single iteration for model name, maybe multiple for node#s
     {
         wxString valstr = wtkz.GetNextToken();
-        for (int i = 0; i < ListBox()->GetCount(); ++i) {
+        for (size_t i = 0; i < ListBox()->GetCount(); ++i) {
             if (ListBox()->GetString(i) == valstr) {
                 ListBox()->SetSelection(i);
             }

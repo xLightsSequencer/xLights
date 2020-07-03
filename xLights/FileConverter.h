@@ -1,5 +1,14 @@
-#ifndef FILECONVERTER_H
-#define FILECONVERTER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <vector>
 
@@ -33,16 +42,16 @@ public:
     const wxString out_filename;
     int sequence_interval;
     SequenceData& seq_data;
-    OutputManager* _outputManager;
-    DataLayer* data_layer;
-    wxString* media_filename;
-    bool channels_off_at_end;
-    bool map_empty_channels;
-    bool map_no_network_channels;
+    OutputManager* _outputManager = nullptr;
+    DataLayer* data_layer = nullptr;
+    std::string* media_filename = nullptr;
+    bool channels_off_at_end = false;
+    bool map_empty_channels = false;
+    bool map_no_network_channels = false;
     ReadMode read_mode;
-    xLightsFrame* xLightsFrm;
-    ConvertDialog* convertDialog;
-    ConvertLogDialog* convertLogDialog;
+    xLightsFrame* xLightsFrm = nullptr;
+    ConvertDialog* convertDialog = nullptr;
+    ConvertLogDialog* convertLogDialog = nullptr;
 
     void SetStatusText(wxString msg);
     void ConversionError(wxString msg);
@@ -56,7 +65,7 @@ public:
                        xLightsFrame* xLightsFrm_,
                        ConvertDialog* convertDialog_,
                        ConvertLogDialog* convertLogDialog_,
-                       wxString* media_filename_ = nullptr,
+                       std::string* media_filename_ = nullptr,
                        DataLayer* data_layer_ = nullptr,
                        wxString out_filename_ = wxEmptyString,
                        int sequence_interval_ = 50,
@@ -88,5 +97,3 @@ class FileConverter
     protected:
     private:
 };
-
-#endif // FILECONVERTER_H

@@ -1,8 +1,16 @@
-#ifndef POLYLINEMODEL_H
-#define POLYLINEMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-
 
 class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 {
@@ -23,7 +31,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
-        virtual void InsertHandle(int after_handle) override;
+        virtual void InsertHandle(int after_handle, float zoom, int scale) override;
         virtual void DeleteHandle(int handle) override;
 
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
@@ -57,17 +65,16 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         {
             return wxString::Format(wxT("Seg%d"),idx+1).ToStdString();
         }
+        void SetSegsCollapsed(bool collapsed);
 
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;
         bool segs_collapsed;
         virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
-                                                        std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight);
+                                                        std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH);
         void NormalizePointData();
         std::vector<int> polyLineSegDropSizes;
         unsigned int numDropPoints;
         float height;
-
+        bool _alternateNodes = false;
 };
-
-#endif // POLYLINEMODEL_H

@@ -42,15 +42,8 @@ namespace Vamp {
 
 namespace HostExt {
 
-class PluginRateExtractor : public Plugin
-{
-public:
-    PluginRateExtractor() : Plugin(0) { }
-    float getRate() const { return m_inputSampleRate; }
-};
-
 PluginWrapper::PluginWrapper(Plugin *plugin) :
-    Plugin(((PluginRateExtractor *)plugin)->getRate()),
+    Plugin(plugin->getInputSampleRate()),
     m_plugin(plugin)
 {
 }

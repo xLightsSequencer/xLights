@@ -1,10 +1,18 @@
-#ifndef MULTICONTROLLERUPLOADDIALOG_H
-#define MULTICONTROLLERUPLOADDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(MultiControllerUploadDialog)
 #include <wx/button.h>
 #include <wx/checklst.h>
-#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -12,55 +20,50 @@
 //*)
 
 class xLightsFrame;
+class ControllerEthernet;
 
-class MultiControllerUploadDialog: public wxDialog
+class MultiControllerUploadDialog : public wxDialog
 {
-    xLightsFrame* _frame;
-    std::vector<std::string> _ips;
-    void ValidateWindow();
+	xLightsFrame* _frame = nullptr;
+	std::vector <ControllerEthernet*> _controllers;
+	void ValidateWindow();
 
-	public:
+public:
 
-		MultiControllerUploadDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~MultiControllerUploadDialog();
+	MultiControllerUploadDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	virtual ~MultiControllerUploadDialog();
 
-		//(*Declarations(MultiControllerUploadDialog)
-		wxButton* Button_Cancel;
-		wxButton* Button_Upload;
-		wxCheckListBox* CheckListBox_Controllers;
-		wxChoice* Choice1;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Log;
-		//*)
+	//(*Declarations(MultiControllerUploadDialog)
+	wxButton* Button_Cancel;
+	wxButton* Button_Upload;
+	wxCheckListBox* CheckListBox_Controllers;
+	wxStaticText* StaticText1;
+	wxTextCtrl* TextCtrl_Log;
+	//*)
 
-	protected:
+protected:
 
-		//(*Identifiers(MultiControllerUploadDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE1;
-		static const long ID_CHECKLISTBOX1;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
-		static const long ID_TEXTCTRL1;
-		//*)
+	//(*Identifiers(MultiControllerUploadDialog)
+	static const long ID_STATICTEXT1;
+	static const long ID_CHECKLISTBOX1;
+	static const long ID_BUTTON1;
+	static const long ID_BUTTON2;
+	static const long ID_TEXTCTRL1;
+	//*)
 
-        static const long ID_MCU_SELECTALL;
-        static const long ID_MCU_SELECTNONE;
+	static const long ID_MCU_SELECTALL;
+	static const long ID_MCU_SELECTNONE;
 
-	private:
+private:
 
-		//(*Handlers(MultiControllerUploadDialog)
-		void OnButton_UploadClick(wxCommandEvent& event);
-		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnCheckListBox_ControllersToggled(wxCommandEvent& event);
-        //*)
+	//(*Handlers(MultiControllerUploadDialog)
+	void OnButton_UploadClick(wxCommandEvent& event);
+	void OnButton_CancelClick(wxCommandEvent& event);
+	void OnCheckListBox_ControllersToggled(wxCommandEvent& event);
+	//*)
 
-        void OnListRClick(wxContextMenuEvent& event);
-        void OnPopup(wxCommandEvent &event);
+	void OnListRClick(wxContextMenuEvent& event);
+	void OnPopup(wxCommandEvent& event);
 
-		DECLARE_EVENT_TABLE()
+	DECLARE_EVENT_TABLE()
 };
-
-#endif

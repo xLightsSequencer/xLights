@@ -1,5 +1,15 @@
-#ifndef PLAYLIST_H
-#define PLAYLIST_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <map>
 #include <mutex>
@@ -51,6 +61,7 @@ protected:
     void ForgetChildren();
     void DeleteChildren();
     static bool IsInSlaveMode();
+    bool JumpToStep(PlayListStep* pls);
 
 public:
 
@@ -74,6 +85,7 @@ public:
     PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
+    int GetStepCount() const { return _steps.size(); }
     std::string GetNextScheduledTime();
     std::list<Schedule*> GetSchedules() const { return _schedules; }
     size_t GetLengthMS();
@@ -85,6 +97,7 @@ public:
     Schedule* GetSchedule(const std::string& name);
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom();
+    void SetPosition(long secs);
     bool IsRandom() const { return _random || _alwaysShuffle; }
     bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
@@ -109,6 +122,8 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
+    void ClearStopAtEndOfThisLoop() { _lastLoop = false; }
+    std::string GetStepStartTime(PlayListStep* step) const;
     bool IsSimple();
     std::string GetActiveSyncItemFSEQ();
     std::string GetActiveSyncItemMedia();
@@ -124,6 +139,7 @@ public:
     bool IsSuspended() const;
     void Stop();
     void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
+    void ClearStopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = false; }
     void TogglePause();
     void RemoveAllSteps();
     bool IsPaused() const;
@@ -156,4 +172,3 @@ public:
     #pragma endregion UI
 
 };
-#endif

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Fusion FX Bar 1 5 Channel (Default)" parm1="5" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Dimmer/Strobe,Moon Flower Rotation" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer/Strobe" s1-Name="master_dimmer_0_gt_100pct_off-on_" s1-Color="#5F5F5F" 
+s2="Dimmer/Strobe" s2-Name="sound_active" s2-Color="#C3C3C3" 
+s3="Dimmer/Strobe" s3-Name="strobing_slow-fast_" s3-Color="#E0E0E0" 
+s4="Dimmer/Strobe" s4-Name="full_on" s4-Color="#FBFBFB" 
+s5="Moon Flower Rotation" s5-Name="no_rotation" s5-Color="#040404" 
+s6="Moon Flower Rotation" s6-Name="clockwise_rotation_fast-slow_" s6-Color="#414141" 
+s7="Moon Flower Rotation" s7-Name="counter-clockwise_rotation_slow-fast_" s7-Color="#BEBEBE" 
+/>
+</dmxmodel>

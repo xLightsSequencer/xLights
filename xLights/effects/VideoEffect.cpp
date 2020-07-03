@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "../../include/video-16.xpm"
 #include "../../include/video-24.xpm"
 #include "../../include/video-32.xpm"
@@ -25,7 +35,7 @@ VideoEffect::~VideoEffect()
 {
 }
 
-std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -42,13 +52,12 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false);
-
+        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true);
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
             res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
-        else
+        else if (videoreader != nullptr)
         {
             double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
             wxString treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
@@ -60,6 +69,19 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
                 if (videoduration < effectduration)
                 {
                     res.push_back(wxString::Format("    WARN: Video effect video file '%s' is shorter %s than effect duration %s. Model '%s', Start %s", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
+
+            if (!renderCache)
+            {
+                int vh = videoreader->GetHeight();
+                int vw = videoreader->GetHeight();
+
+#define VIDEOSIZETHRESHOLD 10
+                if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi())
+                {
+                    float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
+                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '%s', Start %s", filename, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                 }
             }
         }
@@ -142,11 +164,15 @@ void VideoEffect::SetDefaultParameters()
     SetSliderValue(vp->Slider_Video_CropLeft, 0);
     SetSliderValue(vp->Slider_Video_CropRight, 100);
     SetSliderValue(vp->Slider_Video_CropTop, 100);
+    vp->BitmapButton_Video_CropLeftVC->SetActive(false);
+    vp->BitmapButton_Video_CropRightVC->SetActive(false);
+    vp->BitmapButton_Video_CropTopVC->SetActive(false);
+    vp->BitmapButton_Video_CropBottomVC->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
 
-std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKERCTRL_Video_Filename"]);
@@ -172,13 +198,18 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
 void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
+    int cl = GetValueCurveInt("Video_CropLeft", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cr = GetValueCurveInt("Video_CropRight", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int ct = GetValueCurveInt("Video_CropTop", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cb = GetValueCurveInt("Video_CropBottom", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
-		std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
-        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
-        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
-        std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
+		std::min(cl, cr),
+        std::max(cl, cr),
+        std::max(ct, cb),
+        std::min(ct, cb),
         SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
 		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
         SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
@@ -220,16 +251,12 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
     if (cropLeft > cropRight)
     {
-        auto temp = cropLeft;
-        cropLeft = cropRight;
-        cropRight = temp;
+        std::swap(cropLeft, cropRight);
     }
 
     if (cropBottom > cropTop)
     {
-        auto temp = cropBottom;
-        cropBottom = cropTop;
-        cropTop = temp;
+        std::swap(cropTop, cropBottom);
     }
 
     if (cropLeft == cropRight)
@@ -300,7 +327,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             // have to open the file
             int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
             int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
-            _videoreader = new VideoReader(filename, width, height, aspectratio);
+            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
 
             if (_videoreader == nullptr)
             {
@@ -350,6 +377,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             {
                 logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)filename.c_str());
             }
+        }
+    }
+
+    if (_videoreader != nullptr)         {
+        int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
+        int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+
+        if (_videoreader->GetWidth() != width || _videoreader->GetHeight() != height)             {
+            // need to close and reopen video reader to the new size ... this is inefficient ... but lots of work to do to change video reader size dynamically
+            delete _videoreader;
+            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
         }
     }
 
@@ -415,11 +453,12 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         // check it looks valid
         if (image != nullptr && frame >= 0)
         {
+            int ch = _videoreader->GetPixelChannels();
             // draw the image
             xlColor c;
             for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
             {
-                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * 3 + xoffset * 3;
+                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * ch + xoffset * ch;
 
                 for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
                 {
@@ -427,7 +466,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     {
                         c.Set(*(ptr),
                             *(ptr + 1),
-                            *(ptr + 2), 255);
+                            *(ptr + 2), ch == 3 ? 255 : *(ptr+3));
                     }
                     catch (...)
                     {
@@ -448,7 +487,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                         buffer.SetPixel(x + startx, y + starty, c);
                     }
 
-                    ptr += 3;
+                    ptr += ch;
                 }
             }
             //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());

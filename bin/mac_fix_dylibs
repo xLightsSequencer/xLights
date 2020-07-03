@@ -2,10 +2,22 @@
 
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
+if [ -f "${SCRIPTDIR}/../xLights/xlights_build_version.h" ]; then
+    XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xlights_build_version.h | tr "\"" "\n" | grep 20)
+else
+    XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
+fi
+
+SHORTVER="${XLVERSION//./0}"
+SHORTVERPFX=${SHORTVER:2:5}
+SHORTVERPO=${SHORTVER:8}
+
+if [ "x${SHORTVERPO}" == "x" ]; then
+    SHORTVERPO="0"
+fi
+SHORTVER="${SHORTVERPFX}${SHORTVERPO}"
+
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $XLVERSION" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
-SHORTVER=${XLVERSION//./0}
-SHORTVER=${SHORTVER:2}
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SHORTVER" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
 
@@ -56,8 +68,8 @@ fi
 fi
 
 
-if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.55.dylib" ]; then
-    LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
+if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dylib" ]; then
+    LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5"
     for LS in $LIBS
     do
         for LT in $LIBS
@@ -78,10 +90,6 @@ done
 
 
 if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
-    exit 0
-fi
-
-if [ "${CODE_SIGN_IDENTITY}" == "-" ]; then
     exit 0
 fi
 

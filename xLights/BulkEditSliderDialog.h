@@ -1,14 +1,23 @@
-#ifndef BULKEDITSLIDERDIALOG_H
-#define BULKEDITSLIDERDIALOG_H
+#pragma once
 
-//(*Headers(BulkEditSliderDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/slider.h>
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(BulkEditSliderDialog)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 #include "BulkEditControls.h"
@@ -25,11 +34,11 @@ class BulkEditSliderDialog: public wxDialog
 		virtual ~BulkEditSliderDialog();
 
 		//(*Declarations(BulkEditSliderDialog)
-		wxSlider* Slider_BulkEdit;
-		wxButton* Button_Ok;
-		wxStaticText* StaticText_Label;
 		ValueCurveButton* BitmapButton_VC;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxSlider* Slider_BulkEdit;
+		wxStaticText* StaticText_Label;
 		wxTextCtrl* TextCtrl_BulkEdit;
 		//*)
 
@@ -58,5 +67,3 @@ class BulkEditSliderDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

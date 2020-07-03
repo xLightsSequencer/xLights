@@ -1,5 +1,14 @@
-#ifndef MAINSEQUENCER_H
-#define MAINSEQUENCER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
@@ -43,21 +52,25 @@ class MainSequencer: public wxPanel
         void UnTagAllEffects();
         Effect* GetSelectedEffect();
         void CancelRender();
+        void ToggleRender(bool off);
         int GetSelectedEffectCount(const std::string effectName) const;
         bool AreAllSelectedEffectsOnTheSameElement() const;
         void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
         void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
         void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
         void ConvertSelectedEffectsTo(const std::string& effectName);
-        void SelectEffectUsingDescription(std::string description);
-        void SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
+        Effect* SelectEffectUsingDescription(std::string description);
+        Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
         std::list<std::string> GetAllEffectDescriptions();
         std::list<std::string> GetAllElementNamesWithEffects();
         int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
         std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
         void SetChanged();
         void UnselectAllEffects();
+        void SelectEffect(Effect* ef);
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
+        void ScrollToRow(int row);
+        void UpdateEffectGridHorizontalScrollBar();
 
         void Cut();
         void Copy();
@@ -79,14 +92,15 @@ class MainSequencer: public wxPanel
         void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
     //(*Declarations(MainSequencer)
-		EffectsGrid* PanelEffectGrid;
-		RowHeading* PanelRowHeadings;
-		TimeLine* PanelTimeLine;
-		Waveform* PanelWaveForm;
-		wxChoice* ViewChoice;
-		wxScrollBar* ScrollBarEffectsHorizontal;
-		wxScrollBar* ScrollBarEffectsVertical;
-		//*)
+    EffectsGrid* PanelEffectGrid;
+    RowHeading* PanelRowHeadings;
+    TimeLine* PanelTimeLine;
+    Waveform* PanelWaveForm;
+    wxCheckBox* CheckBox_SuspendRender;
+    wxChoice* ViewChoice;
+    wxScrollBar* ScrollBarEffectsHorizontal;
+    wxScrollBar* ScrollBarEffectsVertical;
+    //*)
 
         KeyBindingMap keyBindings;
         TimeDisplayControl *timeDisplay;
@@ -101,6 +115,7 @@ class MainSequencer: public wxPanel
 		static const long ID_PANEL6;
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR_EFFECTS_VERTICAL;
+		static const long ID_CHECKBOX1;
 		static const long ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
 
@@ -114,6 +129,7 @@ class MainSequencer: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnScrollBarEffectsHorizontalScrollLineUp(wxScrollEvent& event);
 		void OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& event);
+		void OnCheckBox_SuspendRenderClick(wxCommandEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
 
@@ -126,11 +142,9 @@ class MainSequencer: public wxPanel
         void ScrollRight( wxCommandEvent& event);
         void TimelineChanged( wxCommandEvent& event);
         void SequenceChanged( wxCommandEvent& event);
-        void UpdateEffectGridHorizontalScrollBar();
 
         void SavePosition();
         void RestorePosition();
-        void ScrollToRow(int row);
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
@@ -139,5 +153,3 @@ class MainSequencer: public wxPanel
         bool mPasteByCell;
         std::string _savedTopModel;
 };
-
-#endif

@@ -1,5 +1,14 @@
-#ifndef PLAYLISTITEMAUDIO_H
-#define PLAYLISTITEMAUDIO_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "PlayListItem.h"
 #include <string>
@@ -8,18 +17,21 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 
-#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg|All Files|*.*"
+//*.mid; excluded as ffmpeg wont read them
+#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv|All Files|*.*"
 
 class PlayListItemAudio : public PlayListItem
 {
 protected:
 
     #pragma region Member Variables
-    std::string _audioFile;
-    AudioManager* _audioManager;
-    size_t _durationMS;
-    bool _controlsTimingCache;
-    bool _fastStartAudio;
+    std::string _audioFile = "";
+    mutable std::string _lastNameFile = "";
+    mutable std::string _lastName = "";
+    AudioManager* _audioManager = nullptr;
+    size_t _durationMS = 0;
+    bool _controlsTimingCache = false;
+    bool _fastStartAudio = false;
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -69,4 +81,3 @@ public:
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };
-#endif

@@ -1,16 +1,25 @@
-#ifndef PLAYLISTITEMSETCOLOURPANEL_H
-#define PLAYLISTITEMSETCOLOURPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemSetColourPanel)
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/clrpicker.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(PlayListItemSetColourPanel)
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/clrpicker.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class OutputManager;
 class PlayListItemSetColour;
@@ -27,6 +36,7 @@ class PlayListItemSetColourPanel: public wxPanel
         void ValidateWindow();
 
 		//(*Declarations(PlayListItemSetColourPanel)
+		wxCheckBox* CheckBox_FadeToBlack;
 		wxCheckBox* CheckBox_LimitNodes;
 		wxChoice* Choice_BlendMode;
 		wxColourPickerCtrl* ColourPickerCtrl1;
@@ -52,6 +62,7 @@ class PlayListItemSetColourPanel: public wxPanel
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT3;
 		static const long ID_COLOURPICKERCTRL1;
+		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT6;
 		static const long ID_TEXTCTRL3;
@@ -77,4 +88,3 @@ class PlayListItemSetColourPanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

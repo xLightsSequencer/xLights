@@ -16,6 +16,21 @@
 #    else
 #        include <log4cpp/config-win32.h>
 #    endif
+
+#ifdef MSVC_MEMORY_LEAK_CHECK
+#define _CRTDBG_MAP_ALLOC
+
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#ifdef _DEBUG
+   #ifndef DBG_NEW
+      #define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+      #define new DBG_NEW
+   #endif
+#endif  // _DEBUG
+#endif // MSVC_MEMORY_LEAK_CHECK
+
 #else
 #if defined(__OPENVMS__)
 #    include <log4cpp/config-openvms.h>
@@ -49,5 +64,6 @@
      };
 #  endif // LOG4CPP_HAVE_SSTREAM
 #endif // _APPLE_
+
 
 #endif

@@ -1,5 +1,14 @@
-#ifndef CONVERTDIALOG_H
-#define CONVERTDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 class xLightsFrame;
 class SP_XmlStartTagEvent;
@@ -31,7 +40,7 @@ class ConvertDialog: public wxDialog
     SeqDataType& SeqData;
     OutputManager* _outputManager;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
-    wxString& mediaFilename;
+    std::string& mediaFilename;
     wxArrayString& ChannelNames;
     wxArrayInt& ChannelColors;
     wxArrayString& ChNames;
@@ -41,13 +50,13 @@ class ConvertDialog: public wxDialog
     bool isSetOffAtEnd();
     bool WriteLedBlinkyFile(const wxString& filename);
     bool WriteVixenFile(const wxString& filename);
-    void WriteVirFile(const wxString& filename);
-    void WriteHLSFile(const wxString& filename);
-    void WriteXLightsFile(const wxString& filename);
-    void WriteLSPFile(const wxString& filename);
+    void WriteVirFile(const wxString& filename) const;
+    void WriteHLSFile(const wxString& filename) const;
+    void WriteXLightsFile(const wxString& filename) const;
+    void WriteLSPFile(const wxString& filename) const;
     void WriteLorFile(const wxString& filename);
-    void WriteLcbFile(const wxString& filename);
-    void WriteConductorFile(const wxString& filename);
+    void WriteLcbFile(const wxString& filename) const;
+    void WriteConductorFile(const wxString& filename) const;
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString& VixChannelNames);
     void ReadConductorFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
@@ -64,7 +73,7 @@ class ConvertDialog: public wxDialog
         void ConversionError(const wxString& msg);
         void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
         void SetStatusText(const wxString &msg);
-        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, std::string& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ConvertDialog();
 
 		//(*Declarations(ConvertDialog)
@@ -130,5 +139,3 @@ class ConvertDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

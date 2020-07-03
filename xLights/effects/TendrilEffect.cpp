@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "TendrilEffect.h"
 #include "TendrilPanel.h"
 
@@ -813,10 +823,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr)
             {
-                std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                std::list<float> const * const p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
                 if (p != nullptr)
                 {
-                    f = *p->begin();
+                    f = *p->cbegin();
                 }
             }
 
@@ -843,7 +853,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr)
             {
-                std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                const std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
                 if (p != nullptr)
                 {
                     f = *p->begin();

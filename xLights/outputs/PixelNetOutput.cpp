@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PixelNetOutput.h"
 
 #include <wx/xml/xml.h>
@@ -65,8 +75,10 @@ void PixelNetOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void PixelNetOutput::SetOneChannel(long channel, unsigned char data)
+void PixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
+    if (!_enabled) return;
+
     if (_data[channel] != (data == 170 ? 171 : data))
     {
         _data[channel] = (data == 170 ? 171 : data);
@@ -76,15 +88,16 @@ void PixelNetOutput::SetOneChannel(long channel, unsigned char data)
 
 void PixelNetOutput::AllOff()
 {
+    if (!_enabled) return;
+
     memset(_data, 0, _channels);
     _changed = true;
 }
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string PixelNetOutput::GetSetupHelp() const
-{
-    return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
-}
-#pragma endregion Getters and Setters
+//std::string PixelNetOutput::GetSetupHelp() const {
 
+//    return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
+//}
+#pragma endregion Getters and Setters

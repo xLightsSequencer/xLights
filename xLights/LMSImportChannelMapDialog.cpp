@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 //(*InternalHeaders(LMSImportChannelMapDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -31,6 +41,7 @@ BEGIN_EVENT_TABLE(LMSImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+wxColourData LMSImportChannelMapDialog::_colorData;
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -124,12 +135,28 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent, const wxF
     _dirty = false;
 
     SetEscapeId(Button_Cancel->GetId());
+
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsImportDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
+    EnsureWindowHeaderIsOnScreen(this);
 }
 
 LMSImportChannelMapDialog::~LMSImportChannelMapDialog()
 {
 	//(*Destroy(LMSImportChannelMapDialog)
 	//*)
+
+    SaveWindowPosition("xLightsImportDialogPosition", this);
 }
 
 
@@ -148,7 +175,7 @@ void LMSImportChannelMapDialog::Init(bool allModels) {
         }
     } else {
         for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-            if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+            if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelsChoice->Append(mSequenceElements->GetElement(i)->GetName());
             }
         }
@@ -191,7 +218,11 @@ void LMSImportChannelMapDialog::SetupByNode() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (size_t x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModel(modelNames[x]));
+        Model* m = xlights->GetModel(modelNames[x]);
+        if (m != nullptr)
+        {
+            AddModel(*m);
+        }
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
@@ -200,7 +231,11 @@ void LMSImportChannelMapDialog::SetupByStrand() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (size_t x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModel(modelNames[x]));
+        Model* m = xlights->GetModel(modelNames[x]);
+        if (m != nullptr)
+        {
+            AddModel(*m);
+        }
     }
 }
 
@@ -266,7 +301,7 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
     ModelsChoice->Delete(ModelsChoice->GetSelection());
     Element * model = nullptr;
     for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-        if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
             && name == mSequenceElements->GetElement(i)->GetName()) {
             model = mSequenceElements->GetElement(i);
         }
@@ -280,7 +315,10 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
     }
     modelNames.push_back(name);
     Model *cls = xlights->GetModel(name);
-    AddModel(*cls);
+    if (cls != nullptr)
+    {
+        AddModel(*cls);
+    }
     Refresh();
     _dirty = true;
 }
@@ -300,13 +338,15 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& even
 {
     if (event.GetCol() == 4) {
         wxColor c = ChannelMapGrid->GetCellBackgroundColour(event.GetRow(), 4);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
-        dlg.ShowModal();
-        ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
-        ChannelMapGrid->Refresh();
-        _dirty = true;
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            _colorData = dlg.GetColourData();
+            ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
+            ChannelMapGrid->Refresh();
+            _dirty = true;
+        }
     }
 }
 
@@ -334,6 +374,7 @@ wxString FindTab(wxString &line) {
     }
     return line;
 }
+
 void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     bool strandwarning = false;

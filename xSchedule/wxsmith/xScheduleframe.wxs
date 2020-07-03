@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
 		<title>xSchedule</title>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
@@ -182,6 +183,15 @@
 														<object class="wxButton" name="ID_BUTTON2" variable="Button_Edit" member="yes">
 															<label>Edit</label>
 															<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON5" variable="Button_Clone" member="yes">
+															<label>Clone</label>
+															<handler function="OnButton_CloneClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -416,14 +426,14 @@
 					<label>Import xLights Playlist</label>
 					<handler function="OnMenuItem_ImportxLightsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_RESETWINDOWS" variable="MenuItem_ResetWindowLocations" member="yes">
+					<label>Reset Window Locations</label>
+					<handler function="OnMenuItem_ResetWindowLocationsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_Crash" member="yes">
 					<label>Crash</label>
 					<help>Crash xSchedule</help>
 					<handler function="OnMenuItem_CrashSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM_SMS" variable="SMSMenuItem" member="yes">
-					<label>SMS</label>
-					<handler function="OnSMSMenuItemSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
@@ -440,9 +450,19 @@
 						<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPP_MULTICAST" variable="MenuItem_ModeFPPMulticastMaster" member="yes">
+						<label>FPP Multicast</label>
+						<handler function="OnMenuItem_ModeFPPMulticastMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="wxMenuItem" name="ID_MNU_FPP_UNICASTMASTER" variable="MenuItem_ModeFPPUnicastMaster" member="yes">
 						<label>FPP Unicast</label>
 						<handler function="OnMenuItem_ModeFPPUnicastMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPP_UNICASTCSVMASTER" variable="MenuItem_ModeFPPUnicastCSVMaster" member="yes">
+						<label>FPP Unicast CSV</label>
+						<handler function="OnMenuItem_ModeFPPUnicastCSVMasterSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
 					<object class="wxMenuItem" name="IDM_MNU_ARTNETMASTER" variable="MenuItem_ModeArtNetMaster" member="yes">
@@ -468,14 +488,14 @@
 						<handler function="OnMenuItem_StandaloneSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_ModeFPPBroadcastRemote" member="yes">
-						<label>FPP Broadcast</label>
+					<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_ModeFPPRemote" member="yes">
+						<label>FPP</label>
 						<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_ModeFPPUnicastRemote" member="yes">
-						<label>FPP Unicast</label>
-						<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
+					<object class="wxMenuItem" name="ID_MNU_FPPCSVREMOTE" variable="MenuItem_ModeFPPCSVRemote" member="yes">
+						<label>FPP CSV</label>
+						<handler function="OnMenuItem_ModeFPPCSVRemoteSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MNU_ARTNETTIMECODESLAVE" variable="MenuItem_ModeArtNetSlave" member="yes">
@@ -491,6 +511,11 @@
 					<object class="wxMenuItem" name="MNU_MIDITIMECODEREMOTE" variable="MenuItem_ModeMIDISlave" member="yes">
 						<label>MIDI Timecode</label>
 						<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_SMPTE" variable="MenuItem_SMPTE" member="yes">
+						<label>SMPTE LTC</label>
+						<handler function="OnMenuItem_SMPTESelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MNU_REMOTECONFIGURE" variable="MenuItem_RemoteLatency" member="yes">
@@ -515,6 +540,9 @@
 					<label>Configure Test</label>
 					<handler function="OnMenuItem_ConfigureTestSelected" entry="EVT_MENU" />
 				</object>
+			</object>
+			<object class="wxMenu" variable="Menu_Plugins" member="yes">
+				<label>Plugins</label>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>Help</label>

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <atomic>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -17,6 +27,9 @@
         #include "GL/glext.h"
         //#include "GL/glut.h"
     #else
+        #ifndef __WXMSW__
+            #include <GL/glx.h>
+        #endif
         #include <GL/glext.h>
     #endif
 #endif
@@ -46,6 +59,7 @@ PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORM1FPROC glUniform1f;
+PFNGLUNIFORM2FPROC glUniform2f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
@@ -106,6 +120,7 @@ bool DrawGLUtils::LoadGLFunctions() {
     glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
     glUniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f");
     glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+    glUniform2f = (PFNGLUNIFORM2FPROC)wglGetProcAddress("glUniform2f");
     glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
     glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
     glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
@@ -191,7 +206,7 @@ public:
         }
         buffersValid = true;
     }
-    
+
     GLuint GetBufferID(int idx) const {
         return buffers[idx];
     }
@@ -206,10 +221,7 @@ public:
     }
 
     void SetRenderType(int i) {
-        if (lastRenderType != i) {
-            LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
-            lastRenderType = i;
-        }
+        LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
     }
 
     int BindBuffer(int idx, void *data, int sz) {
@@ -355,7 +367,6 @@ public:
     GLuint PointSmoothMinID;
     GLuint PointSmoothMaxID;
     GLuint RenderTypeID;
-    int lastRenderType = -1;
 
     GLuint *buffers;
     BufferInfo *bufferInfo;
@@ -378,10 +389,13 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glDeleteBuffers(NUM_BUFFERS, buffers));
         }
     }
-    
+
     void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
               ShaderProgram &singleColorProgram, ShaderProgram &meshProgram,
               bool transparent) {
+
+        if (vertices.size() == 0) return;
+
         if (buffers[0] == 0) {
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
 
@@ -433,7 +447,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             meshProgram.UseProgram();
             meshProgram.SetRenderType(0);
             meshProgram.SetMatrix(mat);
-            
+
             GLuint brightnessId = glGetUniformLocation(meshProgram.ProgramID, "brightness");
             float br = brightness / 100.0f;
             LOG_GL_ERRORV(glUniform1f(brightnessId, br));
@@ -451,7 +465,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0));
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
             LOG_GL_ERRORV(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-            
+
             std::vector<PType> &programTypes = transparent ? transparentProgramTypes : solidProgramTypes;
             for (auto & pt : programTypes) {
                 if (pt.image == -1) {
@@ -495,7 +509,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
         }
         LOG_GL_ERRORV(glBindVertexArray(0));
     }
-    
+
     private:
     GLuint buffers[NUM_BUFFERS];
 };
@@ -511,7 +525,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     ShaderProgram normalProgram;
     ShaderProgram normal3Program;
     ShaderProgram vbNormalProgram;
-    
+
     static std::atomic_int cacheCount;
     static GLuint textureProgramId;
     static GLuint texture3ProgramId;
@@ -585,7 +599,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "    vec4 c = texture(tex, UV);\n"
                 "    color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
                 "}\n", 3);
-            
+
             meshProgram.Init(meshProgramId,
                 "#version 330 core\n"
                 "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
@@ -620,7 +634,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "    }\n"
                 "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                 "}\n", 0);
-            
+
         }
         if (UsesVertexAccumulator) {
 			singleColorProgram.Init(singleColorProgramId,
@@ -855,7 +869,7 @@ public:
             texturep = &texture3Program;
         }
 
-        
+
         bool hasTexture = false;
         for (auto &brt : va.types) {
             if (brt.textureId != -1) {
@@ -874,17 +888,17 @@ public:
                 LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
             }
         }
-        
+
         program->UseProgram();
         program->SetMatrix(*matrix);
         program->SetRenderType(0);
-        
+
         int roffset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
         int offset0 = roffset0;
         program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
-        
+
         int lastTextureId = -1;
         for (auto &brt : va.types) {
             int type = brt.type;
@@ -921,7 +935,7 @@ public:
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, brt.textureId));
                     LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texturep->ProgramID, "tex"), 0));
-                    
+
                     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
                     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
                 } else {
@@ -1067,9 +1081,9 @@ public:
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
 
         program->UnbindBuffer(0);
-        program->UnbindBuffer(1);
+        program->UnbindBuffer(2);
     }
-    
+
     virtual DrawGLUtils::xl3DMesh *createMesh() override {
         return new GL3Mesh();
     }
@@ -1125,11 +1139,15 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+    void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) override {
         if (matrix) {
             delete matrix;
         }
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        float min = 1.0f;
+        if (zDepth < 24) {
+            min = 50.0f;
+        }
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 10000.0f);
         matrix = new glm::mat4(m);
     }
 

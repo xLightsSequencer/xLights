@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="xLightsImportChannelMapDialog">
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -16,7 +16,7 @@
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>3</growablerows>
+							<growablerows>4</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
 									<cols>2</cols>
@@ -57,6 +57,23 @@
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
+									<cols>1</cols>
+									<growablecols>0</growablecols>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
+											<label>Erase existing effects on imported models</label>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

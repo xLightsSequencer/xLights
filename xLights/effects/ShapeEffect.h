@@ -1,5 +1,14 @@
-#ifndef SHAPEEFFECT_H
-#define SHAPEEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -44,7 +53,7 @@ class ShapeEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 #ifdef LINUX
@@ -57,15 +66,14 @@ protected:
     static int DecodeShape(const std::string& shape);
         void SetPanelTimingTracks() const;
         void Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;
         void Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation = 0) const;
         void Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation = 0) const;
-        void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
+        void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const;
+		void Drawellipse(RenderBuffer &buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
 };
-
-#endif // SHAPEEFFECT_H

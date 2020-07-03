@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "DimmingCurvePanel.h"
 #include "DrawGLUtils.h"
 
@@ -34,10 +44,7 @@ void DimmingCurvePanel::SetDimmingCurve(DimmingCurve *c, int ch) {
     Update();
 }
 
-void DimmingCurvePanel::InitializeGLCanvas() {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
+void DimmingCurvePanel::InitializeGLContext() {
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -46,18 +53,13 @@ void DimmingCurvePanel::InitializeGLCanvas() {
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
 }
 void DimmingCurvePanel::render(wxPaintEvent& event) {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
-    wxPaintDC(this);
-    SetCurrentGLContext();
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    wxPaintDC(this);
+    InitializeGLContext();
 
     DrawGLUtils::xlVertexAccumulator va;
     va.PreAlloc(16);

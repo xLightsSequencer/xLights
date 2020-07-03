@@ -1,5 +1,14 @@
-#ifndef HOUSEPREVIEWPANEL_H
-#define HOUSEPREVIEWPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(HousePreviewPanel)
 #include <wx/bmpbuttn.h>
@@ -35,6 +44,8 @@ class HousePreviewPanel: public wxPanel
         void SetToolbar(bool toolbar) { _showToolbar = toolbar; }
         void SetDurationFrames(int frames);
         void SetPositionFrames(int frames);
+        void Set3d(bool is3d);
+        bool Is3d() const;
 
 		//(*Declarations(HousePreviewPanel)
 		wxBitmapButton* FastForward10Button;
@@ -85,5 +96,3 @@ class HousePreviewPanel: public wxPanel
 
         void ValidateWindow(const wxSize& size);
 };
-
-#endif

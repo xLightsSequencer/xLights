@@ -28,7 +28,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Snowflakes_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Snowflakes_Count" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -52,9 +52,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Count" variable="BitmapButton_SnowflakesCount" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Count" subclass="xlLockButton" variable="BitmapButton_SnowflakesCount" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -73,7 +73,7 @@
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Type" subclass="BulkEditSlider" variable="Slider_Snowflakes_Type" member="yes">
 					<value>1</value>
-					<max>5</max>
+					<max>9</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -90,9 +90,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Type" variable="BitmapButton_SnowflakesType" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Type" subclass="xlLockButton" variable="BitmapButton_SnowflakesType" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -123,7 +123,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Snowflakes_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Snowflakes_Speed" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -147,10 +147,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed" variable="BitmapButton_SnowflakesSpeed" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
-                    <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed" subclass="xlLockButton" variable="BitmapButton_SnowflakesSpeed" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -188,10 +188,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Falling" variable="BitmapButton_Falling" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
-                    <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Falling" subclass="xlLockButton" variable="BitmapButton_Falling" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

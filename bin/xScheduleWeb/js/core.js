@@ -18,6 +18,7 @@ $(document).ready(function() {
   navLoadPlugins();
   checkLogInStatus();
   loadXyzzyData();
+  loadXyzzy2Data();
 
 
   // //Add Hover effect to menus
@@ -53,8 +54,10 @@ function updateStatus() {
   });
 }
 
+var registeredForStatus = [];
 var availableMatrices;
 var xyzzyHighScore;
+var xyzzy2HighScore;
 var uiSettings;
 
 function loadUISettings(resetToDefault) {
@@ -351,9 +354,20 @@ function loadXyzzyData() {
 
   $.ajax({
     type: "GET",
-    url: '/xyzzy?c=initialise',
+    url: '/xyzzy?c=highscore',
     success: function(response) {
       xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
+    }
+
+  });
+}
+
+function loadXyzzy2Data() {
+  $.ajax({
+    type: "GET",
+    url: '/xyzzy2?c=highscore',
+    success: function(response) {
+      xyzzy2HighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
     }
 
   });
@@ -375,4 +389,19 @@ function jsUcfirst(string) {
 //sleep
 function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function registerStatusFunction(fnStatus) {
+	if (!registeredForStatus.includes(fnStatus))
+	{
+		registeredForStatus.push(fnStatus);
+	}
+}
+
+function OnStatus(item, index, arr) {
+	item(this);
+}
+
+function callRegisteredForStatus(response) {
+	registeredForStatus.forEach(OnStatus, response);
 }

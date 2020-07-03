@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItem.h"
 #include <wx/xml/xml.h>
 #include "../xScheduleMain.h"
@@ -12,6 +22,7 @@ int __playlistitemid = 0;
 
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
+    _name = "";
     _currentFrame = 0;
     _id = __playlistitemid++;
     _priority = 0;
@@ -28,6 +39,7 @@ PlayListItem::PlayListItem(wxXmlNode* node)
 
 void PlayListItem::Load(wxXmlNode* node)
 {
+    _type = node->GetName();
     _delay = wxAtoi(node->GetAttribute("Delay", "0"));
     _volume = wxAtoi(node->GetAttribute("Volume", "-1"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
@@ -52,6 +64,7 @@ PlayListItem::PlayListItem()
     _priority = 0;
     _restOfStep = false;
     _stepLengthMS = 0;
+    _type = "";
 }
 
 void PlayListItem::Save(wxXmlNode* node)
@@ -103,6 +116,7 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_volume = _volume;
     to->_restOfStep = _restOfStep;
     to->_stepLengthMS = _stepLengthMS;
+    to->_type = _type;
 }
 
 bool PlayListItem::IsInSlaveMode() const
@@ -127,6 +141,16 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 {
     wxString res = s;
     AudioManager* am = nullptr;
+
+    auto now = wxDateTime::Now();
+
+    res.Replace("\\n", "\n");
+    res.Replace("\\t", "\t");
+    res.Replace("\\\\", "\\");
+    res.Replace("%TIMESTAMP%", now.Format("%F %T"));
+    res.Replace("%TIME%", now.Format("%T"));
+    res.Replace("%DATE%", now.Format("%F"));
+    res.Replace("%MACHINENAME%", wxGetHostName());
 
     PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
     if (pl != nullptr)
@@ -191,6 +215,6 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 
 std::string PlayListItem::GetTagHint()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3";
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %TIMESTAMP% - timestamp\n    %TIME% - time now\n    %MACHINENAME% - computer name\n    %DATE% - date now";
 }
 

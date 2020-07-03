@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Geni Mojo Color Moc 1 Channel" parm1="1" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Colours" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Colours" s1-Name="shutter_turn_off" s1-Color="#040404" 
+s2="Colours" s2-Name="white_circle" s2-Color="#0E0E0E" 
+s3="Colours" s3-Name="red_circle" s3-Color="#181818" 
+s4="Colours" s4-Name="dark_green" s4-Color="#222222" 
+s5="Colours" s5-Name="yellow_circle" s5-Color="#2C2C2C" 
+s6="Colours" s6-Name="green_circle" s6-Color="#363636" 
+s7="Colours" s7-Name="orange_circle" s7-Color="#404040" 
+s8="Colours" s8-Name="light_blue_circle" s8-Color="#4A4A4A" 
+s9="Colours" s9-Name="blue_circle" s9-Color="#545454" 
+s10="Colours" s10-Name="pink_circle" s10-Color="#5E5E5E" 
+s11="Colours" s11-Name="red_and_white_and_orange" s11-Color="#686868" 
+s12="Colours" s12-Name="white_and_yellow" s12-Color="#727272" 
+s13="Colours" s13-Name="blue_and_white_and_green" s13-Color="#7C7C7C" 
+s14="Colours" s14-Name="pink_and_white_and_blue" s14-Color="#868686" 
+s15="Colours" s15-Name="white_and_green" s15-Color="#909090" 
+s16="Colours" s16-Name="four_colour_square" s16-Color="#9A9A9A" 
+s17="Colours" s17-Name="rotation_slow-fast" s17-Color="#B8B8B8" 
+s18="Colours" s18-Name="strobe_1_flash_per_4_seconds_to_4fps" s18-Color="#E8E8E8" 
+/>
+</dmxmodel>

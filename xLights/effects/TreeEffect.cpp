@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "TreeEffect.h"
 #include "TreePanel.h"
 
@@ -155,7 +165,7 @@ void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 }
             //	if(branch>b)
             //	{
-            //		return $rgb_val; // for branches below current, dont dont balnk anything out
+            //		return $rgb_val; // for branches below current, dont dont blank anything out
             //	}
             //	else if(branch==b)
             //	{

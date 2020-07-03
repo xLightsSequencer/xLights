@@ -1,10 +1,14 @@
-//
-//  BitmapCache.h
-//  xLights
-//
+#pragma once
 
-#ifndef xLights_BitmapCache_h
-#define xLights_BitmapCache_h
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/bitmap.h"
 
@@ -17,6 +21,3 @@ public:
     static const wxBitmap &GetCornerIcon(int position, wxString &toolTip, int size, bool exact);
     static const wxBitmap &GetLockIcon(bool locked);
 };
-
-
-#endif

@@ -1,6 +1,12 @@
-//
-//  JobPool.cpp
-//  xLights
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 // needed to ensure the __WXMSW__ is defined
 #include <wx/wx.h>
@@ -25,16 +31,17 @@
 
 #include <log4cpp/Category.hh>
 
+#include "TraceLog.h"
+using namespace TraceLog;
 
 const std::string Job::EMPTY_STRING = "";
-
 
 class JobPoolWorker
 {
     JobPool *pool;
-    volatile bool stopped;
+    std::atomic_bool stopped;
     std::atomic<Job  *> currentJob;
-    enum {
+    enum STATUS_TYPE {
         STARTING,
         IDLE,
         RUNNING_JOB,
@@ -42,7 +49,8 @@ class JobPoolWorker
         FINISHED_JOB,
         STOPPED,
         UNKNOWN
-    } status;
+    };
+    std::atomic<STATUS_TYPE> status;
     std::thread *thread;
     std::thread::id tid;
 public:
@@ -68,16 +76,18 @@ static void startFunc(JobPoolWorker *jpw) {
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
-    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker created  %X\n", this);
+    static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
+    logger_jobpool.debug("JobPoolWorker created  0x%x", tid);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker destroyed  %X\n", this);
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_jobpool.debug("JobPoolWorker destroyed 0x%x", tid);
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -133,7 +143,6 @@ void JobPoolWorker::Stop()
     status = STOPPED;
     stopped = true;
 
-    std::unique_lock<std::mutex> mutLock(pool->queueLock);
     pool->signal.notify_all();
 }
 
@@ -194,7 +203,8 @@ std::string JobPoolWorker::GetThreadName() const
 void JobPoolWorker::Entry()
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker started  %X\n", this);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_jobpool.debug("JobPoolWorker started  0x%x", tid);
 
     try {
         SetThreadName(pool->threadNameBase);
@@ -210,7 +220,7 @@ void JobPoolWorker::Entry()
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 --pool->inFlight;
-            } else if (pool->idleThreads > 12) {
+            } else if (pool->numThreads > pool->minNumThreads && pool->idleThreads > 4) {
                 break;
             }
         }
@@ -227,19 +237,23 @@ void JobPoolWorker::Entry()
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.  %X", this);
+        logger_base.error("JobPoolWorker::Entry exiting due to unknown exception. 0x%x", tid);
         --pool->numThreads;
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
+        logger_base.debug("JobPoolWorker done 0x%x", tid);
         return;
     }
-    logger_jobpool.debug("JobPoolWorker::Entry exiting.  %X", this);
+    logger_jobpool.debug("JobPoolWorker exiting 0x%x", tid);
     --pool->numThreads;
     status = STOPPED;
     pool->RemoveWorker(this);
-    logger_jobpool.debug("JobPoolWorker::Entry removed.  %X", this);
+    logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
     RemoveThreadName();
+    logger_jobpool.debug("JobPoolWorker done 0x%x", tid);
+    //clear trace messages for this thread
+    ClearTraceMessages();
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
@@ -272,29 +286,33 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadLock(false), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8),  idleThreads(0), inFlight(0), threadNameBase(n)
+JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8), minNumThreads(2), idleThreads(0), inFlight(0), threadNameBase(n)
 {
 }
 
+
 JobPool::~JobPool()
 {
+    static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
         for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
+        logger_jobpool.debug("Clearing JobPool queue.");
         queue.clear();
     }
     Stop();
 }
 
 void JobPool::LockThreads() {
-    while (threadLock.exchange(true, std::memory_order_relaxed)) std::this_thread::yield();
+    threadLock.lock();
     std::atomic_thread_fence(std::memory_order_acquire);
 }
 void JobPool::UnlockThreads() {
     std::atomic_thread_fence(std::memory_order_release);
-    threadLock.store(false, std::memory_order_relaxed);
+    threadLock.unlock();
 }
 
 void JobPool::RemoveWorker(JobPoolWorker *w) {
@@ -311,11 +329,7 @@ Job *JobPool::GetNextJob() {
     Job *req = nullptr;
     if (queue.empty()) {
         idleThreads++;
-        long timeout = 100;
-        if (idleThreads <= 12) {
-            timeout = 30000;
-        }
-        signal.wait_for(mutLock, std::chrono::milliseconds(timeout));
+        signal.wait_for(mutLock, std::chrono::milliseconds(30000));
         idleThreads--;
     }
     if ( !queue.empty() ) {
@@ -335,6 +349,8 @@ void JobPool::PushJob(Job *job)
     count -= idleThreads;
     count -= numThreads;
     count = std::min(count, maxNumThreads - numThreads);
+    locker.unlock();
+    
     if (count > 0) {
         LockThreads();
         if (numThreads == 0 && count < 4 && 4 < maxNumThreads) {
@@ -347,17 +363,18 @@ void JobPool::PushJob(Job *job)
         }
         UnlockThreads();
     }
-    signal.notify_all();
+    signal.notify_one();
 }
 
-void JobPool::Start(size_t poolSize)
+void JobPool::Start(size_t poolSize, size_t minPoolSize)
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (poolSize > 250) {
         poolSize = 250;
     }
 
-    maxNumThreads = poolSize;
+    maxNumThreads = poolSize < 4 ? 4 : poolSize;
+    minNumThreads = minPoolSize < 4 ? 4 : minPoolSize;
     idleThreads = 0;
     numThreads = 0;
     logger_jobpool.info("Background thread pool started with %d threads", poolSize);
@@ -372,11 +389,7 @@ void JobPool::Stop()
     
     while (!threads.empty()) {
         UnlockThreads();
-
-        std::unique_lock<std::mutex> qlocker(queueLock);
         signal.notify_all();
-        qlocker.unlock();
-        
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         LockThreads();
     }
@@ -402,4 +415,3 @@ std::string JobPool::GetThreadStatus() {
     UnlockThreads();
     return ret.str();
 }
-

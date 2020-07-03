@@ -1,28 +1,14 @@
+#pragma once
+
 /***************************************************************
- * Name:      RgbEffects.h
- * Purpose:   Implements RGB effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-12-23
- * Copyright: 2012 by Matt Brown
- * License:
-     This file is part of xLights.
-
-    xLights is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    xLights is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with xLights.  If not, see <http://www.gnu.org/licenses/>.
-**************************************************************/
-
-#ifndef XLIGHTS_RENDERBUFFER_H
-#define XLIGHTS_RENDERBUFFER_H
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <stdint.h>
 #include <map>
@@ -159,11 +145,11 @@ public:
     void UpdateForProgress(float progress)
     {
         int i = 0;
-        for (auto it = cc.begin(); it != cc.end(); ++it)
+        for (const auto& it : cc)
         {
-            if (it->IsActive())
+            if (it.IsActive())
             {
-                color[i] = xlColor(it->GetValueAt(progress));
+                color[i] = xlColor(it.GetValueAt(progress));
                 hsv[i] = color[i].asHSV();
             }
             i++;
@@ -175,9 +161,9 @@ public:
         wxASSERT(newcolors.size() == newcc.size());
 
         cc = newcc;
-        color=newcolors;
+        color = newcolors;
         hsv.clear();
-        for(size_t i=0; i<newcolors.size(); i++)
+        for (size_t i = 0; i < newcolors.size(); i++)
         {
             hsv.push_back(newcolors[i].asHSV());
         }
@@ -196,14 +182,14 @@ public:
         return cc[idx];
     }
 
-    const xlColor &GetColor(size_t idx) const {
+    const xlColor& GetColor(size_t idx) const {
         if (idx >= color.size()) {
             return xlWHITE;
         }
 
-            return color[idx];
+        return color[idx];
     }
-    
+
     xlColor GetColor(size_t idx, float progress) const {
         if (idx >= color.size()) {
             return xlWHITE;
@@ -215,7 +201,7 @@ public:
         }
         return color[idx];
     }
-    
+
     void GetColor(size_t idx, xlColor& c) const
     {
         if (idx >= color.size())
@@ -236,23 +222,37 @@ public:
 
     xlColor CalcRoundColor(int idx, double round, int type) const
     {
-        if (type == TC_CW)
+        if (idx < cc.size())
         {
-            return cc[idx].GetValueAt(round);
+            if (type == TC_CW)
+            {
+                return cc[idx].GetValueAt(round);
+            }
+            else
+            {
+                return cc[idx].GetValueAt(1.0 - round);
+            }
         }
         else
         {
-            return cc[idx].GetValueAt(1.0 - round);
+            return xlWHITE;
         }
     }
 
     xlColor CalcRadialColour(int idx, int centrex, int centrey, int maxradius, int x, int y, int type) const
     {
-        double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
-        if (type == TC_RADIALIN)
-            return cc[idx].GetValueAt(1.0 - len / maxradius);
+        if (idx < cc.size())
+        {
+            double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
+            if (type == TC_RADIALIN)
+                return cc[idx].GetValueAt(1.0 - len / maxradius);
+            else
+                return cc[idx].GetValueAt(len / maxradius);
+        }
         else
-            return cc[idx].GetValueAt(len / maxradius);
+        {
+            return xlWHITE;
+        }
     }
 
     void GetSpatialColor(size_t idx, float xcentre, float ycentre, float x, float y, float round, float maxradius, xlColor& c) const
@@ -263,7 +263,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 switch (cc[idx].GetTimeCurve())
                 {
@@ -299,7 +299,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 switch (cc[idx].GetTimeCurve())
                 {
@@ -326,6 +326,7 @@ public:
             }
         }
     }
+
     void GetColor(size_t idx, xlColor& c, float progress) const
     {
         if (idx >= color.size())
@@ -334,7 +335,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 c = cc[idx].GetValueAt(progress);
             }
@@ -371,7 +372,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 c = xlColor(cc[idx].GetValueAt(progress)).asHSV();
             }
@@ -406,20 +407,21 @@ public:
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
     void SetAllowAlphaChannel(bool a);
+    bool IsDmxBuffer() const { return dmx_buffer; }
 
     void SetState(int period, bool reset, const std::string& model_name);
 
     void SetEffectDuration(int startMsec, int endMsec);
-    void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
+    void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer) const;  // nobody wants endPer?
     void SetFrameTimeInMs(int i);
     long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
     long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
 
     const xlColor &GetPixel(int x, int y) const;
     void GetPixel(int x, int y, xlColor &color) const;
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false);
+    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
-    void SetNodePixel(int nodeNum, const xlColor &color);
+    void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
     void CopyNodeColorsToPixels(std::vector<bool> &done);
     
     void CopyPixel(int srcx, int srcy, int destx, int desty);
@@ -444,6 +446,8 @@ public:
     //aproximation of sin/cos, but much faster
     static float sin(float rad);
     static float cos(float rad);
+    static float cot(float rad) { return cos(rad) / sin(rad); }
+    static float acot(float rad) { return M_PI/2.0 - atan(rad); }
 
     double calcAccel(double ratio, double accel);
 
@@ -453,13 +457,13 @@ public:
     void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
     void GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColors = 0);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
-    double RandomRange(double num1, double num2);
-    void Color2HSV(const xlColor& color, HSVValue& hsv);
-    PaletteClass& GetPalette() { return palette; }
+    double RandomRange(double num1, double num2) const;
+    void Color2HSV(const xlColor& color, HSVValue& hsv) const;
+    const PaletteClass& GetPalette() const { return palette; }
 
-    HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
-    float GetEffectTimeIntervalPosition();
-    float GetEffectTimeIntervalPosition(float cycles);
+    HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2) const;
+    float GetEffectTimeIntervalPosition() const;
+    float GetEffectTimeIntervalPosition(float cycles) const;
 
     PathDrawingContext * GetPathDrawingContext();
     TextDrawingContext * GetTextDrawingContext();
@@ -474,40 +478,44 @@ public:
                             const xlColor &cx1y1, const xlColor &cx1y2,
                             const xlColor &cx2y1, const xlColor &cx2y2);
 
-    int BufferHt,BufferWi;  // size of the buffer
-    int ModelBufferHt, ModelBufferWi;  // size of the buffer
+    int BufferHt = 1;
+    int BufferWi = 1;  // size of the buffer
+    int ModelBufferHt = 1;
+    int ModelBufferWi = 1;  // size of the buffer
 
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;
-    bool _nodeBuffer;
+    bool _nodeBuffer = false;
 
-    xLightsFrame *frame;
+    xLightsFrame *frame = nullptr;
     std::string cur_model; //model currently in effect
 
-    int curPeriod;
-    int curEffStartPer;    /**< Start period of current effect. */
-    int curEffEndPer;      /**<  */
-    int frameTimeInMs;
-    bool isTransformed;
+    int curPeriod = 0;
+    int curEffStartPer = 0;    /**< Start period of current effect. */
+    int curEffEndPer = 0;      /**<  */
+    int frameTimeInMs = 50;
+    bool isTransformed = false;
 
-    int fadeinsteps;
-    int fadeoutsteps;
+    int fadeinsteps = 0;
+    int fadeoutsteps = 0;
 
-    bool needToInit;
-    bool allowAlpha;
+    bool needToInit = false;
+    bool allowAlpha = false;
+    bool dmx_buffer = false;
+    bool _isCopy = false;
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
-    int tempInt;
-    int tempInt2;
+    int tempInt = 0;
+    int tempInt2 = 0;
 
 private:
     friend class PixelBufferClass;
     std::vector<NodeBaseClassPtr> Nodes;
-    PathDrawingContext *_pathDrawingContext;
-    TextDrawingContext *_textDrawingContext;
+    PathDrawingContext *_pathDrawingContext = nullptr;
+    TextDrawingContext *_textDrawingContext = nullptr;
+
+    void SetPixelDMXModel(int x, int y, const xlColor& color);
+    void Forget();
 };
-
-
-#endif // XLIGHTS_RENDERBUFFER_H

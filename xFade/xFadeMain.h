@@ -39,14 +39,18 @@
 #include <wx/socket.h>
 #include <mutex>
 #include "Settings.h"
-#include "PacketData.h"
 #include "wxLED.h"
+#include "UniverseData.h"
 
 class wxDebugReportCompress;
-class wxDatagramSocket;
 class Emitter;
+class E131Receiver;
+class ArtNETReceiver;
 class MIDIListener;
 class wxFont;
+
+wxDECLARE_EVENT(EVT_FLASH, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TAG, wxCommandEvent);
 
 class xFadeFrame : public wxFrame
 {
@@ -57,35 +61,25 @@ class xFadeFrame : public wxFrame
     void ValidateWindow();
     void AddFadeTimeButton(std::string label);
 
-    std::map<int, PacketData> _leftData;
-    std::map<int, PacketData> _rightData;
-    unsigned long _leftReceived;
-    unsigned long _rightReceived;
-    bool _suspendListen;
+    std::map<int, UniverseData*> _universeData;
     wxString _leftTag;
     wxString _rightTag;
     Settings _settings;
-    wxDatagramSocket* _e131SocketReceive;
-    wxDatagramSocket* _artNETSocketReceive;
-    Emitter* _emitter;
-    MIDIListener* _midiListener;
-    std::mutex _lock;
+    E131Receiver* _e131Receiver = nullptr;
+    ArtNETReceiver* _artNETReceiver = nullptr;
+    Emitter* _emitter = nullptr;
+    std::list<MIDIListener*> _midiListeners;
     int _direction; // auto fade direction
-    wxLed* Led_Left;
-    wxLed* Led_Right;
-    wxFont* _selectedButtonFont;
+    wxLed* Led_Left = nullptr;
+    wxLed* Led_Right = nullptr;
+    wxFont* _selectedButtonFont = nullptr;
 
-    std::string ExtractE131Tag(wxByte* packet);
+    void CloseAll();
+    void OpenAll();
+    void InitialiseLEDs();
+    void StartMIDIListeners();
     void SetFade();
     void SetTiming();
-    void RestartInterfaces();
-    void CloseSockets(bool force = false);
-    void CreateE131Listener();
-    void CreateArtNETListener();
-    void StashPacket(long type, wxByte* packet, int len);
-    bool IsLeft(long type, wxByte* packet, int len);
-    bool IsRight(long type, wxByte* packet, int len);
-    bool IsUniverseToBeCaptured(int universe);
     void LoadState();
     void SaveState();
     void SetMIDIForControl(wxString controlName, float parm = 0.0);
@@ -103,9 +97,6 @@ public:
         virtual ~xFadeFrame();
         void CreateDebugReport(wxDebugReportCompress *report);
         void SendReport(const wxString &loc, wxDebugReportCompress &report);
-
-        static const long ID_E131SOCKET;
-        static const long ID_ARTNETSOCKET;
 
 private:
 
@@ -204,8 +195,6 @@ private:
 
         DECLARE_EVENT_TABLE()
 
-        void OnE131SocketEvent(wxSocketEvent& event);
-        void OnArtNETSocketEvent(wxSocketEvent& event);
         void OnButtonClickLeft(wxCommandEvent& event);
         void OnButtonRClickLeft(wxContextMenuEvent& event);
         void OnButtonClickRight(wxCommandEvent& event);
@@ -225,6 +214,8 @@ private:
         void OnButtonRClickAdvance(wxContextMenuEvent& event);
 
         void OnMIDIEvent(wxCommandEvent& event);
+        void OnFlash(wxCommandEvent& event);
+        void OnTag(wxCommandEvent& event);
 };
 
 #endif // XFADEMAIN_H

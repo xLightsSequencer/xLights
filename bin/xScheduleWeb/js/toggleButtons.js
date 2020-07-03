@@ -93,7 +93,7 @@ function updateNavStatus() {
   }
 
   //update xlights version
-  $("#version").html("xScheduler " + playingStatus['version']);
+  $("#version").html(" " + playingStatus['version']);
 
 
 }

@@ -1,5 +1,14 @@
-#ifndef MORPHPANEL_H
-#define MORPHPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(MorphPanel)
 #include <wx/panel.h>
@@ -14,6 +23,8 @@ class wxSlider;
 class wxStaticText;
 class wxTextCtrl;
 //*)
+
+class MorphQuickSet;
 
 #include "../BulkEditControls.h"
 
@@ -65,9 +76,9 @@ class MorphPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_X2;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y1;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y2;
+		MorphQuickSet* Choice_Morph_QuickSet;
 		wxCheckBox* CheckBox_Morph_End_Link;
 		wxCheckBox* CheckBox_Morph_Start_Link;
-		wxChoice* Choice_Morph_QuickSet;
 		wxNotebook* Notebook_Morph;
 		wxStaticText* StaticText115;
 		wxStaticText* StaticText117;
@@ -206,5 +217,3 @@ class MorphPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

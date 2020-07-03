@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
@@ -72,7 +82,7 @@ void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
+    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
 
     p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));
     p->SetAttribute("Min", 0);
@@ -131,7 +141,7 @@ void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
     if (p != nullptr) {
         wxArrayString labels = ((wxEnumProperty*)p)->GetChoices().GetLabels();
         std::for_each(labels.begin(), labels.end(), [&p](wxString label) {
-            if (!label.Contains("Single Color")) {
+            if (!label.StartsWith("Single Color")) {
                 ((wxEnumProperty*)p)->DeleteChoice(((wxEnumProperty*)p)->GetChoices().Index(label));
             }
         });
@@ -149,8 +159,10 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _imageFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::Image");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::Image");
+        return 0;
     } else if ("WhiteAsAlpha" == event.GetPropertyName()) {
         _whiteAsAlpha = event.GetValue();
         for (auto it = _images.begin(); it != _images.end(); ++it) {
@@ -159,14 +171,18 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _images.clear();
         ModelXml->DeleteAttribute("WhiteAsAlpha");
         ModelXml->AddAttribute("WhiteAsAlpha", _whiteAsAlpha ? "True" : "False");
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
+        return 0;
     } else if ("OffBrightness" == event.GetPropertyName()) {
         _offBrightness = event.GetValue().GetInteger();
         ModelXml->DeleteAttribute("OffBrightness");
         ModelXml->AddAttribute("OffBrightness", wxString::Format("%d", _offBrightness));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -236,7 +252,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected)
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 
@@ -264,13 +280,18 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawModelOnWindow(preview, va, tva, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
 
+    if (x1 < minx) minx = x1;
+    if (y4 < miny) miny = y4;
+    if (x4 > maxx) maxx = x4;
+    if (y1 > maxy) maxy = y1;
+
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }
 
 void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
-                                      DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected)
+                                      DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 
@@ -299,7 +320,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     DrawModelOnWindow(preview, va, tva, c, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, !allowSelected);
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }
 

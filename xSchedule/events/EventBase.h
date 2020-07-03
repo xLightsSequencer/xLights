@@ -1,7 +1,16 @@
-#ifndef EVENTBASE_H
-#define EVENTBASE_H
+#pragma once
 
-// Artnet channel
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ // Artnet channel
 // E131 channel
 // DMX Serial channel
 // OSC Path
@@ -64,6 +73,7 @@ class EventBase
         virtual void Process(const std::string& commPort, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& id, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager) {}
+        virtual void Process(const std::string& topic, const std::string& data, ScheduleManager* scheduleManager) {}
         virtual void Process(bool success, const std::string& ip, ScheduleManager* scheduleManager) {}
         void SetCondition(std::string condition) { if (_condition != condition) { _condition = condition; _changeCount++; } }
         void SetThreshold(int threshold) { if (_threshold != threshold) { _threshold = threshold; _changeCount++; } }
@@ -72,4 +82,3 @@ class EventBase
         bool EvaluateCondition(uint8_t value);
         static std::string DefaultParmTooltip();
 };
-#endif

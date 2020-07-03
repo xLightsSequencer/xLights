@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "EventOSC.h"
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
@@ -130,9 +140,9 @@ void EventOSC::Process(const std::string& path, const std::string& p1, const std
     logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
-    size_t rate;
+    size_t rate = 0;
     wxString msg;
-    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
+    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
 

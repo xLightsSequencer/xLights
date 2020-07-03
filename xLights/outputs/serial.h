@@ -1,8 +1,17 @@
-#ifndef XLIGHTS_SERIAL_H
-#define XLIGHTS_SERIAL_H
+#pragma once
 
-// Author:      Joachim Buermann (adapted for xLights by Matt Brown)
+// Author:      Joachim Buermann (adapted for xLights)
 // Copyright:   (c) 2010 Joachim Buermann
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/wx.h>
 
@@ -21,25 +30,22 @@ protected:
     int _callback;  // used in basic script
 
 #ifdef __WXMSW__
-    HANDLE _fd;
+    HANDLE _fd = INVALID_HANDLE_VALUE;
     OVERLAPPED _ov;
-    int _rtsdtr_state;
+    int _rtsdtr_state = 0;
 #else
     int _fd;
     struct termios _t;
     speed_t AdaptBaudrate(int baud);
 #endif
-    #pragma endregion Member Variables
+    #pragma endregion 
 
 public:
 
     #pragma region Constructors and Destructors
     SerialPort();
     ~SerialPort();
-    #pragma endregion Constructors and Destructors
-
-    void SetCallback(int cb);
-    int GetCallback();
+    #pragma endregion 
 
     #pragma region Reading and Writing
     int AvailableToRead();
@@ -59,5 +65,3 @@ public:
     int Purge();
     #pragma endregion Start and Stop
 };
-
-#endif // XLIGHTS_SERIAL_H

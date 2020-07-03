@@ -1,8 +1,18 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "NewTimingDialog.h"
 
 //(*InternalHeaders(NewTimingDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -42,7 +52,9 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
     SetEscapeId(wxID_CANCEL);
+    Choice_New_Fixed_Timing->SetStringSelection(_("Empty"));
 }
 
 NewTimingDialog::~NewTimingDialog()
@@ -53,12 +65,14 @@ NewTimingDialog::~NewTimingDialog()
 
 void NewTimingDialog::RemoveChoice(const wxString selection)
 {
-    for( int i = 0; i < Choice_New_Fixed_Timing->GetCount(); i++ )
+    for (size_t i = 0; i < Choice_New_Fixed_Timing->GetCount(); i++)
     {
-        if( Choice_New_Fixed_Timing->GetString(i) == selection )
+        if (Choice_New_Fixed_Timing->GetString(i) == selection)
         {
+            bool removed = false;
+            if (Choice_New_Fixed_Timing->GetSelection() == i) removed = true;
             Choice_New_Fixed_Timing->Delete(i);
-            Choice_New_Fixed_Timing->SetSelection(0);
+            if (removed) Choice_New_Fixed_Timing->SetSelection(0);
             return;
         }
     }

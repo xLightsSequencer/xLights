@@ -1,69 +1,80 @@
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "NullOutput.h"
+#include "../OutputModelManager.h"
 
 #include <wx/xml/xml.h>
-#include "NullOutputDialog.h"
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
-#pragma region Save
-void NullOutput::Save(wxXmlNode* node)
-{
-    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
+#pragma region Constructors and Destructors
+NullOutput::NullOutput(wxXmlNode* node) : Output(node) {
 
-    Output::Save(node);
+    SetId(wxAtoi(node->GetAttribute("Id", "64001")));
 }
 
-wxXmlNode* NullOutput::Save()
-{
+wxXmlNode* NullOutput::Save() {
+
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+    Output::Save(node);
 
     return node;
 }
 #pragma endregion
 
 #pragma region Getters and Setters
-NullOutput::NullOutput(wxXmlNode* node) : Output(node)
-{
-    SetId(wxAtoi(node->GetAttribute("Id", "0")));
-}
+std::string NullOutput::GetLongDescription() const {
 
-std::string NullOutput::GetLongDescription() const
-{
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "NULL (" + std::string(wxString::Format(wxT("%i"), _nullNumber)) + ") ";
-    res += "(" + std::string(wxString::Format(wxT("%ld"), (long)_startChannel)) + "-" + std::string(wxString::Format(wxT("%ld"), GetEndChannel())) + ") ";
-    res += _description;
+    res += "NULL ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ")";
 
     return res;
 }
 
-std::string NullOutput::GetChannelMapping(long ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%ld"), ch)) + " maps to ...\n";
-    res += "Type: NULL (" + std::string(wxString::Format(wxT("%d"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%ld"), ch - _startChannel)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-
-    return res;
+std::string NullOutput::GetSortName() const {
+    return wxString::Format("NULL%02d", _nullNumber).ToStdString();
 }
-#pragma endregion Getters and Setters
-
+#pragma endregion
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager)
-{
-    NullOutputDialog dlg(parent, this, outputManager);
+void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
 
-    int res = dlg.ShowModal();
-    
-    if (res == wxID_CANCEL)
+    wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetEditor("SpinCtrl");
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 10000000);
+}
+
+bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
+
+    wxString name = event.GetPropertyName();
+
+    if (name == "Channels")
     {
-        return nullptr;
+        SetChannels(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "NullOutput::HandlePropertyEvent::Channels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        return true;
     }
 
-    return this;
+    if (Output::HandlePropertyEvent(event, outputModelManager)) return true;
+
+    return false;
 }
 #endif
-#pragma endregion UI
+#pragma endregion

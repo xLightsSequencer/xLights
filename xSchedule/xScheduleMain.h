@@ -1,26 +1,14 @@
+#pragma once
+
 /***************************************************************
- * Name:      xScheduleMain.h
- * Purpose:   Defines Application Frame
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
-
-#ifndef XSCHEDULEMAIN_H
-#define XSCHEDULEMAIN_H
-
-#ifdef _MSC_VER
-
-#include <stdlib.h>
-
-//#define VISUALSTUDIO_MEMORYLEAKDETECTION
-#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-
-#endif
 
 class BrightnessControl;
 
@@ -43,6 +31,7 @@ class BrightnessControl;
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include "PluginManager.h"
 #include <list>
 
 class wxDebugReportCompress;
@@ -69,7 +58,8 @@ wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
-    WebServer* _webServer;
+    FILE* _f = nullptr;
+    WebServer* _webServer = nullptr;
     static ScheduleManager* __schedule;
     std::string _showDir;
     wxDateTime _statusSetAt;
@@ -82,7 +72,7 @@ class xScheduleFrame : public wxFrame
     bool _webIconDisplayed;
     bool _slowDisplayed;
     wxLongLong _lastSlow;
-    wxFrame *_smsDaemon;
+    PluginManager _pluginManager;
 
     void AddIPs();
     void LoadShowDir();
@@ -140,6 +130,11 @@ public:
         void CreateDebugReport(wxDebugReportCompress *report);
         void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
+        PluginManager& GetPluginManager() { return _pluginManager; }
+        std::string GetWebPluginRequest(const std::string& request);
+        wxString ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference);
+        void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
+        std::string GetOurURL() const;
 
     private:
 
@@ -150,6 +145,7 @@ public:
         void OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event);
         void OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event);
         void OnMenuItem_SaveSelected(wxCommandEvent& event);
+        bool SelectShowFolder();
         void OnMenuItem_ShowFolderSelected(wxCommandEvent& event);
         void OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event);
         void On_timerTrigger(wxTimerEvent& event);
@@ -187,7 +183,6 @@ public:
         void OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event);
         void OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event);
         void OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event);
-        void OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
         void OnListView_PingItemActivated(wxListEvent& event);
@@ -204,9 +199,16 @@ public:
         void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
-        void OnSMSMenuItemSelected(wxCommandEvent& event);
+        void OnButton_CloneClick(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
+        void OnClose(wxCloseEvent& event);
+        void OnMenuItem_SMPTESelected(wxCommandEvent& event);
+        void OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event);
         //*)
 
+        void OnListView_RunningItemSelected(wxListEvent& event);
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);
@@ -241,6 +243,7 @@ public:
         static const long ID_TREECTRL1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON2;
+        static const long ID_BUTTON5;
         static const long ID_BUTTON3;
         static const long ID_BUTTON4;
         static const long ID_PANEL6;
@@ -276,21 +279,24 @@ public:
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
+        static const long ID_MNU_RESETWINDOWS;
         static const long ID_MNU_CRASH;
-        static const long ID_MENUITEM_SMS;
         static const long ID_MNU_TEST;
         static const long ID_MNU_FPP_BROADCASTMASTER;
+        static const long ID_MNU_FPP_MULTICAST;
         static const long ID_MNU_FPP_UNICASTMASTER;
+        static const long ID_MNU_FPP_UNICASTCSVMASTER;
         static const long IDM_MNU_ARTNETMASTER;
         static const long ID_MNU_OSCMASTER;
         static const long MNU_MIDITIMECODE_MASTER;
         static const long ID_MNU_MASTER;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPREMOTE;
-        static const long ID_MNU_FPPUNICASTREMOTE;
+        static const long ID_MNU_FPPCSVREMOTE;
         static const long ID_MNU_ARTNETTIMECODESLAVE;
         static const long ID_MNU_OSCREMOTE;
         static const long MNU_MIDITIMECODEREMOTE;
+        static const long ID_MNU_SMPTE;
         static const long ID_MNU_REMOTECONFIGURE;
         static const long ID_MNU_REMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
@@ -326,6 +332,7 @@ public:
         wxBitmapButton* BitmapButton_VolumeDown;
         wxBitmapButton* BitmapButton_VolumeUp;
         wxButton* Button_Add;
+        wxButton* Button_Clone;
         wxButton* Button_Delete;
         wxButton* Button_Edit;
         wxButton* Button_Schedule;
@@ -340,6 +347,7 @@ public:
         wxMenu* Menu5;
         wxMenu* Menu6;
         wxMenu* MenuItem3;
+        wxMenu* Menu_Plugins;
         wxMenu* ToolsMenu;
         wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
         wxMenuItem* MenuItem_AddPlayList;
@@ -355,9 +363,11 @@ public:
         wxMenuItem* MenuItem_ModeArtNetMaster;
         wxMenuItem* MenuItem_ModeArtNetSlave;
         wxMenuItem* MenuItem_ModeFPPBroadcastMaster;
-        wxMenuItem* MenuItem_ModeFPPBroadcastRemote;
+        wxMenuItem* MenuItem_ModeFPPCSVRemote;
+        wxMenuItem* MenuItem_ModeFPPMulticastMaster;
+        wxMenuItem* MenuItem_ModeFPPRemote;
+        wxMenuItem* MenuItem_ModeFPPUnicastCSVMaster;
         wxMenuItem* MenuItem_ModeFPPUnicastMaster;
-        wxMenuItem* MenuItem_ModeFPPUnicastRemote;
         wxMenuItem* MenuItem_ModeMIDIMaster;
         wxMenuItem* MenuItem_ModeMIDISlave;
         wxMenuItem* MenuItem_ModeOSCMaster;
@@ -366,6 +376,8 @@ public:
         wxMenuItem* MenuItem_ModeTest;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_RemoteLatency;
+        wxMenuItem* MenuItem_ResetWindowLocations;
+        wxMenuItem* MenuItem_SMPTE;
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_UsexLightsFolder;
@@ -373,7 +385,6 @@ public:
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* Menu_OutputProcessing;
-        wxMenuItem* SMSMenuItem;
         wxPanel* Panel1;
         wxPanel* Panel2;
         wxPanel* Panel3;
@@ -398,6 +409,6 @@ public:
         //*)
 
         DECLARE_EVENT_TABLE()
-};
 
-#endif // XSCHEDULEMAIN_H
+        void OnPluginMenu(wxCommandEvent& event);
+};

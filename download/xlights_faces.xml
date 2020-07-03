@@ -1,6 +1,16 @@
 <faces>
 	<categories>
 		<category>
+			<id>3</id>
+			<name>COVID-19</name>
+			<categories>
+				<category>
+					<id>COVIDBulbs</id>
+					<name>Bulbs</name>
+				</category>
+			</categories>
+		</category>
+		<category>
 			<id>1</id>
 			<name>Christmas</name>
 			<categories>
@@ -3269,6 +3279,58 @@
 		<faceimage>http://nutcracker123.com/xlights/faces/TreeWhite01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>242</id>
+		<categoryid>COVIDBulbs</categoryid>
+		<name>COVID Blue Bulb</name>
+		<artist>Bill Jenkins</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/COVIDBlueBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/COVIDBlueBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>243</id>
+		<categoryid>COVIDBulbs</categoryid>
+		<name>COVID Red Bulb</name>
+		<artist>Bill Jenkins</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/COVIDRedBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/COVIDRedBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>244</id>
+		<categoryid>COVIDBulbs</categoryid>
+		<name>COVID Green Bulb</name>
+		<artist>Bill Jenkins</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/COVIDGreenBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/COVIDGreenBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>245</id>
+		<categoryid>COVIDBulbs</categoryid>
+		<name>COVID Yellow Bulb</name>
+		<artist>Bill Jenkins</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/COVIDYellowBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/COVIDYellowBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
 		<notes/>

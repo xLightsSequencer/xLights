@@ -1,10 +1,18 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "GIFImage.h"
 
 #include <log4cpp/Category.hh>
 
 #include <wx/filename.h>
-
-#undef max
 
 //#define DEBUG_GIF
 
@@ -96,7 +104,7 @@ void GIFImage::ReadFrameProperties()
     if (_totalTime == 0) {
         _frameTimes.clear();
         _totalTime = 100 * _gifDecoder.GetFrameCount();
-        for (int x = 0; x < _gifDecoder.GetFrameCount(); x++) {
+        for (unsigned int x = 0; x < _gifDecoder.GetFrameCount(); x++) {
             _frameTimes.push_back(100);
         }
     }
@@ -135,8 +143,8 @@ void GIFImage::DoCreate(const std::string& filename)
                 if (its->GetWidth() + ito->x > _gifSize.GetWidth() ||
                     its->GetHeight() + ito->y > _gifSize.GetHeight())
                 {
-                    _gifSize = wxSize(std::max(_gifSize.GetWidth(), its->GetWidth() + ito->x),
-                                      std::max(_gifSize.GetHeight(), its->GetHeight() + ito->y));
+                    _gifSize = wxSize((std::max)((int)_gifSize.GetWidth(), (int)(its->GetWidth() + ito->x)),
+                                      (std::max)((int)_gifSize.GetHeight(), (int)(its->GetHeight() + ito->y)));
                 }
                 ++its;
                 ++ito;
@@ -175,13 +183,8 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
 {
     if (from.GetWidth() != to.GetWidth() || from.GetHeight() != to.GetHeight() || overlay)
     {
-        #ifdef _MSC_VER
-        int tox = min(from.GetWidth(), to.GetWidth() - offset.x);
-        int toy = min(from.GetHeight(), to.GetHeight() - offset.y);
-        #else
-        int tox = std::min(from.GetWidth(), to.GetWidth() - offset.x);
-        int toy = std::min(from.GetHeight(), to.GetHeight() - offset.y);
-        #endif
+        int tox = (std::min)((int)from.GetWidth(), (int)(to.GetWidth() - offset.x));
+        int toy = (std::min)((int)from.GetHeight(), (int)(to.GetHeight() - offset.y));
 
         for (int y = 0; y < toy; y++)
         {

@@ -1,5 +1,14 @@
-#ifndef SERVOPANEL_H
-#define SERVOPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(ServoPanel)
 #include <wx/panel.h>
@@ -23,7 +32,9 @@ class ServoPanel: public wxPanel
 
 		//(*Declarations(ServoPanel)
 		BulkEditCheckBox* CheckBox_16bit;
+		BulkEditCheckBox* CheckBox_Timing_Track;
 		BulkEditChoice* Choice_Channel;
+		BulkEditChoice* Choice_Servo_TimingTrack;
 		BulkEditSliderF1* Slider_Servo;
 		BulkEditValueCurveButton* ValueCurve_Servo;
 		wxFlexGridSizer* FlexGridSizer_Main;
@@ -37,6 +48,8 @@ class ServoPanel: public wxPanel
 		static const long ID_STATICTEXT_Channel;
 		static const long ID_CHOICE_Channel;
 		static const long ID_CHECKBOX_16bit;
+		static const long ID_CHECKBOX_Timing_Track;
+		static const long ID_CHOICE_Servo_TimingTrack;
 		static const long ID_STATICTEXT_Servo;
 		static const long IDD_SLIDER_Servo;
 		static const long ID_VALUECURVE_Servo;
@@ -46,12 +59,12 @@ class ServoPanel: public wxPanel
 	private:
 
 		//(*Handlers(ServoPanel)
-        void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnCheckBox1Click(wxCommandEvent& event);
+		void OnCheckBox_Timing_TrackClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

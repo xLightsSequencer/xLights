@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Entourage 2 Channel" parm1="5" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Output Volume,Fan Speed,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Output Volume" s1-Name="0pct_fog_5pct_fan" s1-Color="#020202" 
+s2="Output Volume" s2-Name="5pct-100pct_fog_100pct_fan" s2-Color="#828282" 
+s3="Fan Speed" s3-Name="0pct_output_volume" s3-Color="#020202" 
+s4="Fan Speed" s4-Name="5pct-100pct_output_volume" s4-Color="#828282" 
+s5="Node3" s5-Name="5pct_fan_speed" s5-Color="#070707" 
+s6="Node3" s6-Name="6pct-100pct_fan_speed" s6-Color="#878787" 
+s7="Node4" s7-Name="3_seconds" s7-Color="#030303" 
+s8="Node4" s8-Name="3-255_seconds" s8-Color="#838383" 
+s9="Node5" s9-Name="0_seconds" s9-Color="#040404" 
+s10="Node5" s10-Name="5-250_seconds" s10-Color="#848484" 
+/>
+</dmxmodel>

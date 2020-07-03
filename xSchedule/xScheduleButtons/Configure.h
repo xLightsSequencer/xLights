@@ -1,5 +1,6 @@
 // un-comment out this line if you want to see debug messages over the serial connection
 //#define DEBUG 1
+//#define DEBUGRESPONSE 1
 
 // The serial speed used for debugging messages
 #define SERIALRATE 115200

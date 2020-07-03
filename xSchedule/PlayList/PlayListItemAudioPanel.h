@@ -1,15 +1,24 @@
-#ifndef PLAYLISTITEMAUDIOPANEL_H
-#define PLAYLISTITEMAUDIOPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemAudioPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(PlayListItemAudioPanel)
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
-#include <wx/spinctrl.h>
-#include <wx/slider.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class PlayListItemAudio;
@@ -26,15 +35,15 @@ class PlayListItemAudioPanel: public wxPanel
 		virtual ~PlayListItemAudioPanel();
 
 		//(*Declarations(PlayListItemAudioPanel)
-		wxSlider* Slider1;
-		wxStaticText* StaticText2;
-		wxCheckBox* CheckBox_FastStartAudio;
-		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Priority;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
-		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox_FastStartAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxSlider* Slider1;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_Delay;
 		//*)
 
 	protected:
@@ -62,4 +71,3 @@ class PlayListItemAudioPanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

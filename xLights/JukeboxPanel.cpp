@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*InternalHeaders(JukeboxPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -10,6 +20,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "LinkJukeboxButtonDialog.h"
+#include "UtilFunctions.h"
 
 ButtonControl::ButtonControl(int i)
 {
@@ -83,13 +94,19 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
 {
     if (sequencer != nullptr)
     {
+        Effect* e = nullptr;
         if (_type == LOOKUPTYPE::LTDESCRIPTION)
         {
-            sequencer->SelectEffectUsingDescription(_description);
+            e = sequencer->SelectEffectUsingDescription(_description);
         }
         else if (_type == LOOKUPTYPE::LTMLT)
         {
-            sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+            e = sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+        }
+
+        if (e != nullptr)
+        {
+            sequencer->PanelEffectGrid->RaiseSelectedEffectChanged(e, false, true);
         }
     }
 }
@@ -121,7 +138,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
             0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
-        GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
+        GridSizer1->Add(button, 1, wxALL | wxEXPAND);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&JukeboxPanel::OnButtonClick);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&JukeboxPanel::OnButtonRClick);
     }
@@ -251,6 +268,7 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
     }
 
     LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer());
+    OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)
     {

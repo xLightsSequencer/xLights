@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Blizzard_Lighting Hotbox EXA 8 Channel Mode" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red,Green,Blue,Amber,White,UV,Strobe,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="White" s1-Name="dimming" s1-Color="#070707" 
+s2="White" s2-Name="strobe_slow-fast_" s2-Color="#878787" 
+s3="UV" s3-Name="no_function" s3-Color="#0F0F0F" 
+s4="UV" s4-Name="fade_in_ch_10_speed_" s4-Color="#2F2F2F" 
+s5="UV" s5-Name="fade_out_ch_10_speed_" s5-Color="#4F4F4F" 
+s6="UV" s6-Name="fade_in_fade_out_ch_10_speed_" s6-Color="#6F6F6F" 
+s7="UV" s7-Name="multicolor_fade_ch_10_speed_" s7-Color="#8F8F8F" 
+s8="UV" s8-Name="fade_in_fade_out_auto_run" s8-Color="#AFAFAF" 
+s9="UV" s9-Name="multi-color_jump_ch_10_speed_" s9-Color="#CFCFCF" 
+s10="UV" s10-Name="sound_active_multicolor_ch_10_speed_" s10-Color="#EFEFEF" 
+s11="Node9" s11-Name="as_set_in_control_menu" s11-Color="#020202" 
+s12="Node9" s12-Name="mode_0_eq_8_bit_256_dimmer_settings" s12-Color="#1E1E1E" 
+s13="Node9" s13-Name="mode_1_eq_32-bit_0-25pct_intensity_range" s13-Color="#505050" 
+s14="Node9" s14-Name="mode_2_eq_32_bit_0-50pct_intensity_range" s14-Color="#828282" 
+s15="Node9" s15-Name="mode_3_eq_32_bit_0-75pct_intensity_range" s15-Color="#B4B4B4" 
+s16="Node9" s16-Name="mode_4_eq_32_bit_full_intensity_dimming" s16-Color="#E6E6E6" 
+/>
+</dmxmodel>

@@ -1,7 +1,17 @@
-#ifndef DDPOUTPUT_H
-#define DDPOUTPUT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "IPOutput.h"
+
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 
@@ -26,7 +36,7 @@
 #define DDP_ID_DISPLAY       1
 #define DDP_ID_CONFIG      250
 #define DDP_ID_STATUS      251
-#pragma endregion DDP Constants
+#pragma endregion 
 
 class DDPOutput : public IPOutput
 {
@@ -35,13 +45,17 @@ class DDPOutput : public IPOutput
     uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
+    uint8_t* _fulldata;
     int _channelsPerPacket;
     bool _keepChannelNumbers;
-    uint8_t* _fulldata;
 
     // These are used for DDP sync
     static bool __initialised;
-    #pragma  endregion Member Variables
+    #pragma  endregion
+
+    #pragma region Private Functions
+    void OpenDatagram();
+    #pragma  endregion
 
 public:
 
@@ -49,50 +63,52 @@ public:
     DDPOutput(wxXmlNode* node);
     DDPOutput();
     virtual ~DDPOutput() override;
-    #pragma endregion  Constructors and Destructors
+    virtual wxXmlNode* Save() override;
+    #pragma endregion
 
     #pragma region Static Functions
     static void SendSync();
-    #pragma endregion  Static Functions
-
-    virtual wxXmlNode* Save() override;
+    #pragma endregion 
 
     #pragma region Getters and Setters
-    int GetChannelsPerPacket() const { return _channelsPerPacket; }
-    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
-    virtual std::string GetType() const override { return OUTPUT_DDP; }
-    virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
-    virtual int GetMaxChannels() const override { return 1000000; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
-    virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
-    virtual void KeepChannelNumber(bool b = true) { _keepChannelNumbers = b; _dirty = true; }
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
-    #pragma endregion Getters and Setters
+
+    int GetChannelsPerPacket() const { return _channelsPerPacket; }
+    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
+
+    virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
+    virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers != b) { _keepChannelNumbers = b; _dirty = true; } }
+
+    virtual std::string GetType() const override { return OUTPUT_DDP; }
+
+    virtual std::string GetLongDescription() const override;
+
+    virtual int GetMaxChannels() const override { return 1000000; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
+    #pragma endregion
 
     #pragma region Start and Stop
     virtual bool Open() override;
     virtual void Close() override;
-    void OpenDatagram();
-    #pragma endregion Start and Stop
+    #pragma endregion
 
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
-    #pragma endregion Frame Handling
+    #pragma endregion
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
-    #pragma endregion Data Setting
+    #pragma endregion
 
     #pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
-#endif
+    #ifndef EXCLUDENETWORKUI
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+    #endif
     #pragma endregion UI
-};
 
- #endif
+};

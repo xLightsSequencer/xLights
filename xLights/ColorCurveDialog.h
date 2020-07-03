@@ -1,7 +1,16 @@
-#ifndef COLORCURVEDIALOG_H
-#define COLORCURVEDIALOG_H
+#pragma once
 
-//(*Headers(ColorCurveDialog)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ColorCurveDialog)
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
@@ -82,8 +91,8 @@ class ColorCurveDialog: public wxDialog
     ColorCurve _backup;
     void ValidateWindow();
     ColorCurvePanel* _ccp;
+    bool _exported = false;
 
-    void LoadXCC(ColorCurve * cc, const wxString& filename);
     void PopulatePresets();
     void ProcessPresetDir(wxDir& directory, bool subdirs);
 
@@ -92,6 +101,7 @@ class ColorCurveDialog: public wxDialog
 		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourData& colorData, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorCurveDialog();
         void OnCCPChanged(wxCommandEvent& event);
+        bool DidExport() const { return _exported; }
 
 		//(*Declarations(ColorCurveDialog)
 		wxButton* ButtonExport;
@@ -132,5 +142,3 @@ class ColorCurveDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

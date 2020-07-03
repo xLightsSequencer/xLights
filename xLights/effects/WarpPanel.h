@@ -1,5 +1,14 @@
-#ifndef WARPPANEL_H
-#define WARPPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "xlGLCanvas.h"
 #include "BulkEditControls.h"
@@ -35,6 +44,8 @@ class WarpPanel: public wxPanel
 		virtual ~WarpPanel();
 
 		//(*Declarations(WarpPanel)
+		BulkEditChoice* Choice_Warp_Treatment;
+		BulkEditChoice* Choice_Warp_Type;
 		BulkEditSlider* Slider_Warp_Cycle_Count;
 		BulkEditSlider* Slider_Warp_Frequency;
 		BulkEditSlider* Slider_Warp_Speed;
@@ -47,8 +58,6 @@ class WarpPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Warp_Y;
 		BulkEditValueCurveButton* BitmapButton_Warp_X;
 		BulkEditValueCurveButton* BitmapButton_Warp_Y;
-		wxChoice* Choice_Warp_Treatment;
-		wxChoice* Choice_Warp_Type;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
@@ -100,5 +109,3 @@ class WarpPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

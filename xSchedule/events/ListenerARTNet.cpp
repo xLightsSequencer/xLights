@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "ListenerARTNet.h"
 #include <log4cpp/Category.hh>
 #include <wx/socket.h>
@@ -42,6 +52,9 @@ void ListenerARTNet::Stop()
         {
             _stop = true;
             _thread->Stop();
+            _thread->Delete();
+            delete _thread;
+            _thread = nullptr;
         }
     }
 }
@@ -132,10 +145,8 @@ void ListenerARTNet::Poll()
                 else if (buffer[9] == 0x99)
                 {
                     // Trigger data packet
-                    // uint8_t key = buffer[14];
-                    // uint8_t subkey = buffer[15];
-                    // TODO add event using ARTNet trigger packets
-                    //_listenerManager->ProcessPacket(GetType() + " Trigger", (key << 8) + subkey, &buffer[16], size);
+                    int oem = (((int)buffer[14])<<8) + buffer[15];
+                    _listenerManager->ProcessPacket(GetType() + " Trigger", oem, &buffer[16], 2);
                 }
                 else if (buffer[9] == 0x97)
                 {

@@ -1,16 +1,25 @@
-#ifndef VIRTUALMATRIXDIALOG_H
-#define VIRTUALMATRIXDIALOG_H
+#pragma once
 
-//(*Headers(VirtualMatrixDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-//*)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(VirtualMatrixDialog)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class OutputManager;
 
@@ -37,23 +46,23 @@ public:
     virtual ~VirtualMatrixDialog();
 
     //(*Declarations(VirtualMatrixDialog)
-    wxButton* Button_Ok;
-    wxTextCtrl* TextCtrl_Name;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText6;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxSpinCtrl* SpinCtrl_Height;
-    wxCheckBox* CheckBox_Topmost;
-    wxStaticText* StaticText5;
-    wxStaticText* StaticText7;
     wxButton* Button_Cancel;
-    wxChoice* Choice_Quality;
-    wxTextCtrl* TextCtrl_StartChannel;
-    wxStaticText* StaticText4;
+    wxButton* Button_Ok;
     wxButton* Button_Position;
+    wxCheckBox* CheckBox_Topmost;
+    wxChoice* Choice_Quality;
     wxChoice* Choice_Rotation;
+    wxSpinCtrl* SpinCtrl_Height;
     wxSpinCtrl* SpinCtrl_Width;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText3;
+    wxStaticText* StaticText4;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText6;
+    wxStaticText* StaticText7;
+    wxTextCtrl* TextCtrl_Name;
+    wxTextCtrl* TextCtrl_StartChannel;
     //*)
 
 protected:
@@ -91,5 +100,3 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
-#endif

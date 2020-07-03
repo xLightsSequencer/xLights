@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SpiralsEffect.h"
 #include "SpiralsPanel.h"
 #include "../sequencer/Effect.h"
@@ -46,7 +56,7 @@ void SpiralsEffect::SetDefaultParameters()
     SetCheckBoxValue(sp->CheckBox_Spirlas_Shrink, false);
 }
 
-bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap)
+bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) const
 {
     // The blend setting is incompatible with linear colour curves
     return !SettingsMap.GetBool("E_CHECKBOX_Spirals_Blend");

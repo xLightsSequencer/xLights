@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemDim.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
@@ -31,6 +41,7 @@ void PlayListItemDim::Load(wxXmlNode* node)
 
 PlayListItemDim::PlayListItemDim(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIDim";
     _outputManager = outputManager;
     _sc = 0;
     _startChannel = "1";
@@ -54,7 +65,7 @@ PlayListItem* PlayListItemDim::Copy() const
 
 wxXmlNode* PlayListItemDim::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIDim");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));

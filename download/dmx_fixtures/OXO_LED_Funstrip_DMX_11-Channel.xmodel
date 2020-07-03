@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="OXO LED Funstrip DMX 11-Channel" parm1="24" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="LED 1-2 Dimmer,LED 3-4 Dimmer,LED 5-6 Dimmer,LED 7-8 Dimmer,LED 9-10 Dimmer,Macro Program,Speed,Fade Time,Lamp Mode,Play Mode,Program Master,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Program Master" s1-Name="dimmer_mode" s1-Color="#030303" 
+s2="Program Master" s2-Name="all_full" s2-Color="#0B0B0B" 
+s3="Program Master" s3-Name="program_1" s3-Color="#131313" 
+s4="Program Master" s4-Name="program_2" s4-Color="#1B1B1B" 
+s5="Program Master" s5-Name="program_3" s5-Color="#232323" 
+s6="Program Master" s6-Name="program_4" s6-Color="#2B2B2B" 
+s7="Program Master" s7-Name="program_5" s7-Color="#333333" 
+s8="Program Master" s8-Name="program_6" s8-Color="#3B3B3B" 
+s9="Program Master" s9-Name="program_7" s9-Color="#434343" 
+s10="Program Master" s10-Name="program_8" s10-Color="#4B4B4B" 
+s11="Program Master" s11-Name="program_9" s11-Color="#535353" 
+s12="Program Master" s12-Name="program_10" s12-Color="#5B5B5B" 
+s13="Program Master" s13-Name="program_11" s13-Color="#636363" 
+s14="Program Master" s14-Name="program_12" s14-Color="#6B6B6B" 
+s15="Program Master" s15-Name="program_13" s15-Color="#737373" 
+s16="Program Master" s16-Name="program_14" s16-Color="#7B7B7B" 
+s17="Program Master" s17-Name="program_15" s17-Color="#838383" 
+s18="Program Master" s18-Name="program_16" s18-Color="#8B8B8B" 
+s19="Program Master" s19-Name="auto" s19-Color="#C7C7C7" 
+s20="Node14" s20-Name="led_mode" s20-Color="#3F3F3F" 
+s21="Node14" s21-Name="tungsten_mode" s21-Color="#BFBFBF" 
+s22="Node15" s22-Name="stop" s22-Color="#282828" 
+s23="Node15" s23-Name="pause" s23-Color="#787878" 
+s24="Node15" s24-Name="play" s24-Color="#D0D0D0" 
+/>
+</dmxmodel>

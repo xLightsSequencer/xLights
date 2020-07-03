@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <sstream>
 
 #include "../../include/On.xpm"
@@ -7,7 +17,6 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../models/DmxModel.h"
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
@@ -209,57 +218,6 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
         transparency /= 100;
         color.alpha = 255 - transparency;
     }
-
-    ///////////////////////// DMX Support ////////////////////////
-    // if the model is a DMX model this will write the color into
-    // the proper red, green, and blue channels.
-    //////////////////////////////////////////////////////////////
-    if (buffer.cur_model != "") {
-        Model* model_info = buffer.GetModel();
-        if (model_info != nullptr) {
-            if( model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
-                xlColor c;
-                DmxModel* dmx = (DmxModel*)model_info;
-
-                int white_channel = dmx->GetWhiteChannel();
-                if (white_channel > 0 && color.red == color.green && color.red == color.blue)
-                {
-                    c.red = color.red;
-                    c.green = color.red;
-                    c.blue = color.red;
-                    buffer.SetPixel(white_channel - 1, 0, c);
-                }
-                else
-                {
-                    int red_channel = dmx->GetRedChannel();
-                    int grn_channel = dmx->GetGreenChannel();
-                    int blu_channel = dmx->GetBlueChannel();
-                    if (red_channel != 0) {
-                        c.red = color.red;
-                        c.green = color.red;
-                        c.blue = color.red;
-                        buffer.SetPixel(red_channel - 1, 0, c);
-                    }
-                    if (grn_channel != 0) {
-                        c.red = color.green;
-                        c.green = color.green;
-                        c.blue = color.green;
-                        buffer.SetPixel(grn_channel - 1, 0, c);
-                    }
-                    if (blu_channel != 0) {
-                        c.red = color.blue;
-                        c.green = color.blue;
-                        c.blue = color.blue;
-                        buffer.SetPixel(blu_channel - 1, 0, c);
-                    }
-                }
-                return;
-            }
-        }
-    }
-    //////////////////////////////////////////////////////////////
-    ///////////////////// End DMX Support ////////////////////////
-    //////////////////////////////////////////////////////////////
 
     //Every Node set to selected color
     for (int x=0; x<buffer.BufferWi; ++x)

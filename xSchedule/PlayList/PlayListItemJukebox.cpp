@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemJukebox.h"
 #include "PlayListItemJukeboxPanel.h"
 #include <wx/xml/xml.h>
@@ -23,6 +33,7 @@ void PlayListItemJukebox::Load(wxXmlNode* node)
 
 PlayListItemJukebox::PlayListItemJukebox() : PlayListItem()
 {
+    _type = "PLIJukebox";
     _started = false;
     _jukeboxButton = 1;
     _port = "A";
@@ -42,7 +53,7 @@ PlayListItem* PlayListItemJukebox::Copy() const
 
 wxXmlNode* PlayListItemJukebox::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIJukebox");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Button", wxString::Format("%d", _jukeboxButton));
     node->AddAttribute("Port", _port);

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "CustomModelDialog.h"
 
 #include <wx/msgdlg.h>
@@ -5,6 +15,7 @@
 #include <wx/graphics.h>
 #include <wx/file.h>
 #include <wx/numdlg.h>
+#include <wx/config.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -16,9 +27,11 @@
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/spinctrl.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 //*)
@@ -28,12 +41,14 @@
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "ModelPreview.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL2 = wxNewId();
 const long CustomModelDialog::ID_STATICTEXT1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL3 = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
@@ -49,14 +64,19 @@ const long CustomModelDialog::ID_SPINCTRL_NEXT_CHANNEL = wxNewId();
 const long CustomModelDialog::ID_BUTTON1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON2 = wxNewId();
 const long CustomModelDialog::ID_NOTEBOOK1 = wxNewId();
+const long CustomModelDialog::ID_PANEL2 = wxNewId();
+const long CustomModelDialog::ID_PANEL1 = wxNewId();
+const long CustomModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CUT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPY = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_PASTE = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_DELETE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPH = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPV = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
@@ -69,6 +89,22 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWDALL = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWDALL = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALTOP = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
@@ -110,6 +146,61 @@ public:
 // Subclassing wxGrid is the only way to get keyboard copy and paste working without breaking the grid behaviour
 class CopyPasteGrid : public wxGrid
 {
+    void HandleOnMouseWheel(wxMouseEvent& event)
+    {
+        m_wheelRotation += event.GetWheelRotation();
+        int lines = m_wheelRotation / event.GetWheelDelta();
+        m_wheelRotation -= lines * event.GetWheelDelta();
+
+        if (lines != 0)
+        {
+
+            wxScrollWinEvent newEvent;
+
+            newEvent.SetPosition(0);
+            newEvent.SetOrientation(event.GetWheelAxis() == 0 ? wxVERTICAL : wxHORIZONTAL);
+
+            if(event.ShiftDown())
+            {
+                if (newEvent.GetOrientation() == wxVERTICAL)
+                {
+                    newEvent.SetOrientation(wxHORIZONTAL);
+                }
+                else
+                {
+                    newEvent.SetOrientation(wxVERTICAL);
+                }
+            }
+
+            newEvent.SetEventObject(m_win);
+
+            if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL)
+                lines = -lines;
+
+            if (event.IsPageScroll())
+            {
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEDOWN);
+
+                m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+            else
+            {
+                lines *= event.GetLinesPerAction();
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEDOWN);
+
+                int times = abs(lines);
+                for (; times > 0; times--)
+                    m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+        }
+    }
+
     void DoOnChar(wxKeyEvent& event)
     {
         wxChar uc = event.GetUnicodeKey();
@@ -174,6 +265,7 @@ class CopyPasteGrid : public wxGrid
     CopyPasteGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) : wxGrid(parent, id, pos, size, style, name)
     {
         Connect(wxEVT_CHAR, (wxObjectEventFunction)&CopyPasteGrid::DoOnChar, 0, this);
+        Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&CopyPasteGrid::HandleOnMouseWheel, 0, this);
     }
 
     virtual ~CopyPasteGrid()
@@ -192,6 +284,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   next_channel(1)
 {
 	//(*Initialize(CustomModelDialog)
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -200,6 +293,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* Sizer2;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -207,7 +301,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText3;
 
-	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxDLG_UNIT(parent,wxSize(450,350)));
 	SetMinSize(wxDLG_UNIT(parent,wxSize(300,200)));
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -219,12 +313,12 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("Width"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	WidthSpin = new wxSpinCtrl(this, ID_SPINCTRL1, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 500, 10, _T("ID_SPINCTRL1"));
+	WidthSpin = new wxSpinCtrl(this, ID_SPINCTRL1, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 1000, 10, _T("ID_SPINCTRL1"));
 	WidthSpin->SetValue(_T("10"));
 	FlexGridSizer2->Add(WidthSpin, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HeightSpin = new wxSpinCtrl(this, ID_SPINCTRL2, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 500, 10, _T("ID_SPINCTRL2"));
+	HeightSpin = new wxSpinCtrl(this, ID_SPINCTRL2, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 1000, 10, _T("ID_SPINCTRL2"));
 	HeightSpin->SetValue(_T("10"));
 	FlexGridSizer2->Add(HeightSpin, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT1, _("Depth"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -234,6 +328,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer2->Add(SpinCtrl_Depth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+	CheckBox_ShowWiring = new wxCheckBox(this, ID_CHECKBOX1, _("Show wiring in model preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ShowWiring->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_ShowWiring, 1, wxALL|wxEXPAND, 5);
 	ButtonWiring = new wxButton(this, ID_BUTTON3, _("Wiring View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -298,8 +395,32 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer7->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
 	Sizer1->Add(Sizer2, 1, wxALL|wxEXPAND, 5);
-	Notebook1 = new CustomNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-	Sizer1->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer9->AddGrowableRow(0);
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(0);
+	SplitterWindow1->SetSashGravity(0.5);
+	Panel11 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer11->AddGrowableCol(0);
+	FlexGridSizer11->AddGrowableRow(0);
+	Notebook1 = new CustomNotebook(Panel11, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
+	FlexGridSizer11->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
+	Panel11->SetSizer(FlexGridSizer11);
+	FlexGridSizer11->Fit(Panel11);
+	FlexGridSizer11->SetSizeHints(Panel11);
+	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer10->AddGrowableCol(0);
+	FlexGridSizer10->AddGrowableRow(0);
+	Panel1->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel1);
+	FlexGridSizer10->SetSizeHints(Panel1);
+	SplitterWindow1->SplitHorizontally(Panel11, Panel1);
+	SplitterWindow1->SetSashPosition(30);
+	FlexGridSizer9->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
+	Sizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	SetSizer(Sizer1);
 	SetSizer(Sizer1);
 	Layout();
@@ -308,6 +429,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnWidthSpinChange);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnHeightSpinChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSpinCtrl_DepthChange);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_ShowWiringClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
@@ -329,6 +451,22 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 
     SetEscapeId(ButtonCancel->GetId());
 
+    wxConfigBase* config = wxConfigBase::Get();
+    int sashPos = config->Read("xLightsCustomDialogSash", 30);
+    if (sashPos < 5) sashPos = 5;
+    if (sashPos > 95) sashPos = 95;
+
+    SplitterWindow1->SetSashPosition((SplitterWindow1->GetSize().GetHeight() * (100 - sashPos)) / 100);
+    SplitterWindow1->SetMinimumPaneSize(5);
+
+    _modelPreview = new ModelPreview(Panel1, nullptr, true);
+    _modelPreview->Set3D(true);
+    FlexGridSizer10->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer10->Fit(Panel1);
+    FlexGridSizer10->SetSizeHints(Panel1);
+
+    Layout();
+
     ValidateWindow();
 }
 
@@ -337,6 +475,15 @@ CustomModelDialog::~CustomModelDialog()
 	//(*Destroy(CustomModelDialog)
 	//*)
 
+    wxConfigBase* config = wxConfigBase::Get();
+    int sashPos = ((SplitterWindow1->GetSize().GetHeight() - SplitterWindow1->GetSashPosition()) * 100) / SplitterWindow1->GetSize().GetHeight();
+    config->Write("xLightsCustomDialogSash", sashPos);
+
+    if (_modelPreview != nullptr)
+    {
+        delete _modelPreview;
+    }
+
 	if( bkg_image != nullptr ) {
         delete bkg_image;
     }
@@ -344,71 +491,110 @@ CustomModelDialog::~CustomModelDialog()
 
 void CustomModelDialog::ValidateWindow()
 {
+    if (SpinCtrl_Depth->GetValue() < 1 ||
+        WidthSpin->GetValue() < 1 ||
+        HeightSpin->GetValue() < 1) {
+        ButtonOk->Enable(false);
+    }
+    else {
+        ButtonOk->Enable();
+    }
 }
 
-void CustomModelDialog::Setup(CustomModel *m) {
+void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::string& modelData)
+{
+    _model->GetBaseObjectScreenLocation().SetMDepth(depth);
+    _model->UpdateModel(width, height, depth, modelData);
+    _model->GetModelScreenLocation().SetWorldPosition(glm::vec3(0, 0, 0)); // centre the model
+    int maxxy = std::max(width, height);
+    float scale = 1500.0 / maxxy;
+    _model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(scale, scale, scale));
+    if (_model != nullptr && _modelPreview != nullptr) {
+        _modelPreview->RenderModel(_model, CheckBox_ShowWiring->IsChecked(), true, _highlightpixel);
+    }
+}
+
+void CustomModelDialog::UpdatePreview()
+{
+    UpdatePreview(WidthSpin->GetValue(), HeightSpin->GetValue(), SpinCtrl_Depth->GetValue(), GetModelData());
+}
+
+void CustomModelDialog::Setup(CustomModel* m)
+{
+
+    _model = m;
+    _modelPreview->SetModel(m, CheckBox_ShowWiring->IsChecked(), true);
     name = m->GetName();
     background_image = m->GetCustomBackground();
     FilePickerCtrl1->SetFileName(wxFileName(background_image));
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
     std::string data = m->GetCustomData();
-    if (data == "") {
-        WidthSpin->SetValue(5);
-        HeightSpin->SetValue(5);
-        SpinCtrl_Depth->SetValue(1);
-        ResizeCustomGrid();
-        return;
-    }
-
-    WidthSpin->SetValue(1);
-    HeightSpin->SetValue(1);
-    SpinCtrl_Depth->SetValue(1);
-    ResizeCustomGrid();
 
     if (background_image != "" && wxFile::Exists(background_image)) {
         bkg_image = new wxImage(background_image);
     }
 
-    wxArrayString layers=wxSplit(data, '|');
-    for (auto layer = 0; layer < layers.size(); layer++)
-    {
-        AddPage();
-        auto grid = GetLayerGrid(layer);
-        wxArrayString rows = wxSplit(layers[layer], ';');
-        for (auto row = 0; row < rows.size(); row++)
-        {
-            if (row >= grid->GetNumberRows()) grid->AppendRows();
-            wxArrayString cols = wxSplit(rows[row], ',');
-            for (auto col = 0; col < cols.size(); col++)
-            {
-                if (col >= grid->GetNumberCols()) grid->AppendCols();
-                wxString value = cols[col];
-                if (!value.IsEmpty() && value != "0")
-                {
-                    grid->SetCellValue(row, col, value);
+    SpinCtrl_Depth->SetValue(m->GetCustomDepth());
+    WidthSpin->SetValue(m->GetCustomWidth());
+    HeightSpin->SetValue(m->GetCustomHeight());
+
+    if (data == "") {
+        for (int i = 0; i < m->GetCustomDepth(); i++) {
+            AddPage();
+            auto grid = GetLayerGrid(i);
+            wxFont font = grid->GetDefaultCellFont();
+            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
+            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+        }
+    }
+    else {
+        wxArrayString layers = wxSplit(data, '|');
+        for (auto layer = 0; layer < layers.size(); layer++) {
+            AddPage();
+            //ResizeCustomGrid();
+            auto grid = GetLayerGrid(layer);
+            wxFont font = grid->GetDefaultCellFont();
+            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
+            wxArrayString rows = wxSplit(layers[layer], ';');
+            //grid->AppendRows(rows.size() - 1);
+
+            for (auto row = 0; row < rows.size(); row++) {
+                wxArrayString cols = wxSplit(rows[row], ',');
+                //if (row == 0) {
+                //    grid->AppendCols(cols.size() - 1);
+                //}
+                for (auto col = 0; col < cols.size(); col++) {
+                    wxString value = cols[col];
+                    if (!value.IsEmpty() && value != "0") {
+                        grid->SetCellValue(row, col, value);
+                    }
                 }
             }
-        }
 
-        wxFont font = grid->GetDefaultCellFont();
-        grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-        grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-        for (int c = 0; c < grid->GetNumberCols(); ++c)
-            grid->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-        for (int r = 0; r < grid->GetNumberRows(); ++r)
-            grid->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
-        font = grid->GetLabelFont();
-        grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
-        //Sizer1->Fit(this);
+            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+        }
     }
 
     UpdateBackground();
 
-    WidthSpin->SetValue(GetActiveGrid()->GetNumberCols());
-    HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
-    SpinCtrl_Depth->SetValue(Notebook1->GetPageCount());
+    _saveScale = m->GetModelScreenLocation().GetScaleMatrix();
+    _saveWorldPos = m->GetModelScreenLocation().GetWorldPosition();
+    _saveCentreX = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreX();
+    _saveCentreY = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreY();
+    _saveCentreZ = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreZ();
+    _saveWidth = WidthSpin->GetValue();
+    _saveHeight = HeightSpin->GetValue();
+    _saveDepth = SpinCtrl_Depth->GetValue();
+    _saveModelData = data;
 
+    // UpdatePreview();  // this is called at the end so not sure why it is here as well, maybe wrong but appears to be redundant
     wxBookCtrlEvent e;
     e.SetSelection(0);
     OnNotebook1PageChanged(e);
@@ -438,16 +624,16 @@ void CustomModelDialog::Setup(CustomModel *m) {
     //        GridCustom->SetCellEditor(r, c, reditor);
     //    }
     //}
+    UpdatePreview();
     ValidateWindow();
 }
 
 // make grid the size specified by the spin controls
 void CustomModelDialog::ResizeCustomGrid()
 {
-    int numCols=WidthSpin->GetValue();
-    int numRows=HeightSpin->GetValue();
-    for (auto grid : _grids)
-    {
+    int numCols = WidthSpin->GetValue();
+    int numRows = HeightSpin->GetValue();
+    for (auto grid : _grids) {
         int deltaCols = numCols - grid->GetNumberCols();
         int deltaRows = numRows - grid->GetNumberRows();
         if (deltaCols > 0) grid->AppendCols(deltaCols);
@@ -473,10 +659,8 @@ wxString StripIllegalChars(const wxString& s)
     return res;
 }
 
-void CustomModelDialog::Save(CustomModel *m) {
-    m->SetCustomHeight(HeightSpin->GetValue());
-    m->SetCustomWidth(WidthSpin->GetValue());
-    m->SetCustomDepth(SpinCtrl_Depth->GetValue());
+std::string CustomModelDialog::GetModelData()
+{
     std::string customChannelData = "";
     for (int layer = 0; layer < Notebook1->GetPageCount(); layer++) {
         if (layer > 0) customChannelData += "|";
@@ -493,6 +677,14 @@ void CustomModelDialog::Save(CustomModel *m) {
             }
         }
     }
+    return customChannelData;
+}
+
+void CustomModelDialog::Save(CustomModel *m) {
+    m->SetCustomHeight(HeightSpin->GetValue());
+    m->SetCustomWidth(WidthSpin->GetValue());
+    m->SetCustomDepth(SpinCtrl_Depth->GetValue());
+    std::string customChannelData = GetModelData();
     m->SetCustomData(customChannelData);
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
@@ -500,12 +692,31 @@ void CustomModelDialog::Save(CustomModel *m) {
 
 void CustomModelDialog::OnWidthSpinChange(wxSpinEvent& event)
 {
+    _changed = true;
     ResizeCustomGrid();
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnHeightSpinChange(wxSpinEvent& event)
 {
+    _changed = true;
     ResizeCustomGrid();
+    UpdatePreview();
+}
+
+void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
+{
+    _changed = true;
+    while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
+    {
+        AddPage();
+    }
+
+    while (Notebook1->GetPageCount() > SpinCtrl_Depth->GetValue())
+    {
+        RemovePage();
+    }
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
@@ -557,6 +768,15 @@ void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
+    UpdateHighlight(event.GetRow(), event.GetCol());
+    _changed = true;
+    UpdatePreview();
+}
+
+void CustomModelDialog::OnGridCustomCellSelected(wxGridEvent& event)
+{
+    UpdateHighlight(event.GetRow(), event.GetCol());
+    UpdatePreview();
 }
 
 #ifdef __WXOSX__
@@ -565,7 +785,9 @@ wxString GetOSXFormattedClipboardData();
 
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
+    _changed = true;
     CutOrCopyToClipboard(true);
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
@@ -661,6 +883,7 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
 
 void CustomModelDialog::Paste()
 {
+    _changed = true;
     wxString copy_data = "";
 
 #ifdef __WXOSX__
@@ -744,7 +967,10 @@ void CustomModelDialog::Paste()
 
 void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
+    _changed = true;
     Paste();
+    UpdatePreview();
 }
 
 void CustomModelDialog::UpdateBackground()
@@ -762,6 +988,7 @@ void CustomModelDialog::UpdateBackground()
 
 void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
 {
+    _changed = true;
     bkgrd_active = !bkgrd_active;
     GetActiveGrid()->Refresh();
     UpdateBackground();
@@ -791,12 +1018,15 @@ void CustomModelDialog::OnSpinCtrlNextChannelChange(wxSpinEvent& event)
 
 void CustomModelDialog::OnGridCustomCellLeftClick(wxGridEvent& event)
 {
+    UpdateHighlight(event.GetRow(), event.GetCol());
     if( autonumber ) {
+        _changed = true;
         GetActiveGrid()->SetCellValue(event.GetRow(), event.GetCol(), wxString::Format("%d", next_channel) );
         if( autoincrement ) {
             next_channel++;
             SpinCtrlNextChannel->SetValue(next_channel);
         }
+        UpdatePreview();
     }
     event.Skip();
 }
@@ -814,7 +1044,7 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto c = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r, c++, it);
             }
@@ -828,11 +1058,31 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
+    if (_changed)
+    {
+        if (wxMessageBox("Abandon changes to this custom model?", "Abandon changes", wxYES_NO, this) == wxNO)
+        {
+            return;
+        }
+    }
+
+    UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
+    _model->GetModelScreenLocation().SetWorldPosition(_saveWorldPos);
+    _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreX(_saveCentreX);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreY(_saveCentreY);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreZ(_saveCentreZ);
     EndDialog(wxID_CANCEL);
 }
 
 void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 {
+    UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
+    _model->GetModelScreenLocation().SetWorldPosition(_saveWorldPos);
+    _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreX(_saveCentreX);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreY(_saveCentreY);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreZ(_saveCentreZ);
     EndDialog(wxID_OK);
 }
 
@@ -863,7 +1113,7 @@ void CustomModelDialog::FlipHorizontal()
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto c = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r, c++, it);
             }
@@ -871,6 +1121,7 @@ void CustomModelDialog::FlipHorizontal()
     }
 
     UpdateBackground();
+    UpdatePreview();
 
     ValidateWindow();
 }
@@ -888,7 +1139,7 @@ void CustomModelDialog::FlipVertical()
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto r = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r++, c, it);
             }
@@ -896,6 +1147,7 @@ void CustomModelDialog::FlipVertical()
     }
 
     UpdateBackground();
+    UpdatePreview();
 
     ValidateWindow();
 }
@@ -933,8 +1185,208 @@ void CustomModelDialog::Rotate90()
     }
 
     UpdateBackground();
-
+    UpdatePreview();
     ValidateWindow();
+}
+
+void CustomModelDialog::CentreModel()
+{
+    int minx = GetActiveGrid()->GetNumberCols() - 1;
+    int miny = GetActiveGrid()->GetNumberRows() - 1;
+    int maxx = 0;
+    int maxy = 0;
+
+    std::vector<std::vector<std::vector<wxString>>> temp;
+    temp.resize(_grids.size(), std::vector<std::vector<wxString>>());
+    for (auto& it : temp)
+    {
+        it.resize(GetActiveGrid()->GetNumberCols(), std::vector<wxString>());
+        for (auto& it2 : it)
+        {
+            it2.resize(GetActiveGrid()->GetNumberRows(), "");
+        }
+    }
+
+    int g = 0;
+    for (auto& grid : _grids)
+    {
+        for (int x = 0; x < grid->GetNumberCols(); x++)
+        {
+            for (int y = 0; y < grid->GetNumberRows(); y++)
+            {
+                if (grid->GetCellValue(x, y) != "")
+                {
+                    minx = std::min(x, minx);
+                    miny = std::min(y, miny);
+                    maxx = std::max(x, maxx);
+                    maxy = std::max(y, maxy);
+                }
+                temp[g][x][y] = grid->GetCellValue(x, y);
+                grid->SetCellValue(x, y, "");
+            }
+        }
+        g++;
+    }
+
+    int deltax = (GetActiveGrid()->GetNumberCols() - (maxx - minx)) / 2;
+    int deltay = (GetActiveGrid()->GetNumberRows() - (maxy - miny)) / 2;
+
+    g = 0;
+    for (auto& grid : _grids)
+    {
+        for (int x = minx; x <= maxx; x++)
+        {
+            for (int y = miny; y <= maxy; y++)
+            {
+                grid->SetCellValue(x + deltax, y + deltay, temp[g][x][y]);
+            }
+        }
+        g++;
+    }
+    UpdatePreview();
+}
+
+void CustomModelDialog::Rotate()
+{
+    wxNumberEntryDialog dlg(this, "Degrees to rotate.", "Rotate by", "Rotate", 0, -180, 180);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        auto degrees = -1 * dlg.GetValue();
+
+        if (degrees != 0)
+        {
+            int max = std::max(GetActiveGrid()->GetNumberRows(), GetActiveGrid()->GetNumberCols());
+            for (auto grid : _grids)
+            {
+                grid->AppendRows(2 * max - grid->GetNumberRows());
+                grid->AppendCols(2 * max - grid->GetNumberCols());
+            }
+            WidthSpin->SetValue(GetActiveGrid()->GetNumberCols());
+            HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
+            ResizeCustomGrid();
+
+            CentreModel();
+
+            int cx = GetActiveGrid()->GetNumberCols() / 2;
+            int cy = GetActiveGrid()->GetNumberRows() / 2;
+
+            std::vector<std::vector<std::vector<wxString>>> temp;
+            temp.resize(_grids.size(), std::vector<std::vector<wxString>>());
+            for (auto& it : temp)
+            {
+                it.resize(GetActiveGrid()->GetNumberCols(), std::vector<wxString>());
+                for (auto& it2 : it)
+                {
+                    it2.resize(GetActiveGrid()->GetNumberRows(), "");
+                }
+            }
+
+            // save the current grid
+            int g = 0;
+            for (const auto& grid : _grids)
+            {
+                for (int x = 0; x < grid->GetNumberCols(); x++)
+                {
+                    for (int y = 0; y < grid->GetNumberRows(); y++)
+                    {
+                        temp[g][x][y] = grid->GetCellValue(x, y);
+                        grid->SetCellValue(x, y, "");
+                    }
+                }
+                g++;
+            }
+
+            // now rotate and put it back
+            double rad = (double)degrees * (M_PI / 180);
+            g = 0;
+            for (auto& grid : _grids)
+            {
+                for (int x = 0; x < grid->GetNumberCols(); x++)
+                {
+                    for (int y = 0; y < grid->GetNumberRows(); y++)
+                    {
+                        if (temp[g][x][y] != "")
+                        {
+                            int newx = std::cos(rad) * (x - cx) - std::sin(rad) * (y - cy) + cx;
+                            int newy = std::sin(rad) * (x - cx) + std::cos(rad) * (y - cy) + cy;
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ..x
+                                // ...
+                                newx++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // .x.
+                                newx--;
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // ..x
+                                newx++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ..x
+                                // ...
+                                // ...
+                                newy -= 2;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // .x.
+                                // ...
+                                // ...
+                                newx --;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // x..
+                                // ...
+                                // ...
+                                newx--;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // x..
+                                // ...
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // x..
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) == "")
+                            {
+                                grid->SetCellValue(newx, newy, temp[g][x][y]);
+                            }
+                            else
+                            {
+                                // This is a problem i have tried 9 locations and they are all used ... results are not going to be good
+                            }
+                        }
+                    }
+                }
+                g++;
+            }
+
+            TrimSpace();
+
+            UpdateBackground();
+            UpdatePreview();
+            ValidateWindow();
+        }
+    }
 }
 
 void CustomModelDialog::Insert(int selRow, int selCol)
@@ -973,6 +1425,7 @@ void CustomModelDialog::Insert(int selRow, int selCol)
         {
             AdjustNodeBy(current, toinsert);
         }
+        UpdatePreview();
     }
 }
 
@@ -1036,6 +1489,7 @@ void CustomModelDialog::Compress()
             adjust--;
         }
     }
+    UpdatePreview();
 }
 
 void CustomModelDialog::Reverse()
@@ -1094,6 +1548,7 @@ void CustomModelDialog::Reverse()
     }
 
     UpdateBackground();
+    UpdatePreview();
     ValidateWindow();
 }
 
@@ -1326,6 +1781,7 @@ void CustomModelDialog::Shift()
             }
 
             UpdateBackground();
+            UpdatePreview();
             ValidateWindow();
         }
     }
@@ -1333,7 +1789,10 @@ void CustomModelDialog::Shift()
 
 void CustomModelDialog::OnPaste(wxCommandEvent& event)
 {
+    UpdateHighlight(-1,-1);
+    _changed = true;
     Paste();
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnGridKey(wxCommandEvent& event)
@@ -1374,10 +1833,21 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         wxASSERT(false);
         break;
     }
+    UpdateHighlight(-1, -1);
+}
+
+void CustomModelDialog::UpdateHighlight(int r, int c)
+{
+    if (r == -1) r = GetActiveGrid()->GetGridCursorRow();
+    if (c == -1) c = GetActiveGrid()->GetGridCursorCol();
+    if (r != -1 && c != -1) {
+        _highlightpixel = wxAtoi(GetActiveGrid()->GetCellValue(r, c));
+    }
 }
 
 void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 {
+    _changed = true;
     int id = event.GetId();
     if (id == CUSTOMMODELDLGMNU_CUT)
     {
@@ -1391,6 +1861,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         Paste();
     }
+    else if (id == CUSTOMMODELDLGMNU_DELETE)
+    {
+        DeleteCells();
+    }
     else if (id == CUSTOMMODELDLGMNU_FLIPH)
     {
         FlipHorizontal();
@@ -1402,6 +1876,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_ROTATE90)
     {
         Rotate90();
+    }
+    else if (id == CUSTOMMODELDLGMNU_ROTATE)
+    {
+        Rotate();
     }
     else if (id == CUSTOMMODELDLGMNU_REVERSE)
     {
@@ -1451,20 +1929,459 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         CopyLayer(false, -1);
     }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS)
+    {
+        for (int i = 0; i < Notebook1->GetPageCount(); i++) {
+            CreateSubmodelFromLayer(i + 1);
+        }
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER)
+    {
+        CreateSubmodelFromLayer(Notebook1->GetSelection() + 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS)
+    {
+        for (int i = 0; i < Notebook1->GetPageCount(); i++) {
+            CreateMinimalSubmodelFromLayer(i + 1);
+        }
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER)
+    {
+        CreateMinimalSubmodelFromLayer(Notebook1->GetSelection() + 1);        
+    }
+    else if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT ||
+            id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
+    {
+        WireSelectedHorizontal(id);
+    }
+    else if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP ||
+            id == CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM)
+    {
+        WireSelectedVertical(id);
+    }
+}
+
+void CustomModelDialog::CreateSubmodelFromLayer(int layer)
+{
+    int startcol = 0;
+    int endcol = GetLayerGrid(layer - 1)->GetNumberCols();
+    int startrow = 0;
+    int endrow = GetLayerGrid(layer - 1)->GetNumberRows();
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Layer%d", layer)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+        std::string row;
+        for (int x = startcol; x < endcol; x++)
+        {
+            if (x != startcol) row += ",";
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                row += GetLayerGrid(layer - 1)->GetCellValue(y, x);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::CreateMinimalSubmodelFromLayer(int layer)
+{
+    int startcol = 0;
+    int endcol = GetLayerGrid(layer - 1)->GetNumberCols();
+    int startrow = 0;
+    int endrow = GetLayerGrid(layer - 1)->GetNumberRows();
+
+    bool nonblank = false;
+    for (int x = startcol; x < endcol && !nonblank; x++)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startcol++;
+        }
+    }
+    nonblank = false;
+    for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endcol--;
+        }
+    }
+    nonblank = false;
+    for (int y = startrow; y < endrow && !nonblank; y++)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startrow++;
+        }
+    }
+    nonblank = false;
+    for (int y = endrow - 1; y >= 0; y--)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endrow--;
+        }
+    }
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalLayer%d", layer)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+
+        std::string row;
+        for (int x = startcol; x < endcol; x++)
+        {
+            if (x != startcol) row += ",";
+            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
+            {
+                row += GetLayerGrid(layer-1)->GetCellValue(y, x);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::CreateSubmodelFromRow(int row)
+{
+    int startcol = 0;
+    int endcol = GetActiveGrid()->GetNumberCols();
+    int startrow = 0;
+    int endrow = SpinCtrl_Depth->GetValue();
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Row%d", row)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+        std::string srow;
+        for (int x = startcol; x < endcol; x++)
+        {
+            if (x != startcol) srow += ",";
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", y - startrow), srow);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::CreateMinimalSubmodelFromRow(int row)
+{
+    int startcol = 0;
+    int endcol = GetActiveGrid()->GetNumberCols();
+    int startrow = 0;
+    int endrow = SpinCtrl_Depth->GetValue();
+
+    bool nonblank = false;
+    for (int x = startcol; x < endcol && !nonblank; x++)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startcol++;
+        }
+    }
+    nonblank = false;
+    for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endcol--;
+        }
+    }
+    nonblank = false;
+    for (int y = startrow; y < endrow && !nonblank; y++)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startrow++;
+        }
+    }
+    nonblank = false;
+    for (int y = endrow - 1; y >= 0; y--)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endrow--;
+        }
+    }
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalRow%d", row)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+        std::string srow;
+        for (int x = startcol; x < endcol; x++)
+        {
+            if (x != startcol) srow += ",";
+            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
+            {
+                srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", y - startrow), srow);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::CreateSubmodelFromColumn(int col)
+{
+    int startcol = 0;
+    int endcol = SpinCtrl_Depth->GetValue();
+    int startrow = 0;
+    int endrow = GetActiveGrid()->GetNumberRows();
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Column%d", col)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+        std::string row;
+        for (int x = endcol - 1; x >= startcol; x--)
+        {
+            if (x != endcol - 1) row += ",";
+            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
+            {
+                row += GetLayerGrid(x)->GetCellValue(y, col - 1);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
+{
+    int startcol = 0;
+    int endcol = SpinCtrl_Depth->GetValue();
+    int startrow = 0;
+    int endrow = GetActiveGrid()->GetNumberRows();
+
+    bool nonblank = false;
+    for (int x = startcol; x < endcol && !nonblank; x++)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(x)->GetCellValue(y, col -1).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startcol++;
+        }
+    }
+    nonblank = false;
+    for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+    {
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endcol--;
+        }
+    }
+    nonblank = false;
+    for (int y = startrow; y < endrow && !nonblank; y++)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            startrow++;
+        }
+    }
+    nonblank = false;
+    for (int y = endrow - 1; y >= 0; y--)
+    {
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
+            {
+                nonblank = true;
+            }
+        }
+        if (!nonblank)
+        {
+            endrow--;
+        }
+    }
+
+    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalColumn%d", col)));
+    sm->AddAttribute("layout", "horizontal");
+    sm->AddAttribute("type", "ranges");
+
+    for (int y = startrow; y < endrow; y++) {
+        std::string row;
+        for (int x = endcol - 1; x >= startcol; x--)
+        {
+            if (x != endcol - 1) row += ",";
+            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
+            {
+                row += GetLayerGrid(x)->GetCellValue(y, col - 1);
+            }
+        }
+
+        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+    }
+
+    _model->AddSubmodel(sm);
+}
+
+void CustomModelDialog::OnGridPopupLabel(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    
+    if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW)
+    {
+        CreateSubmodelFromRow(_selRow + 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS)
+    {
+        for (int i = 0; i < GetActiveGrid()->GetNumberRows(); i++) {
+            CreateSubmodelFromRow(i + 1);
+        }
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW)
+    {
+        CreateMinimalSubmodelFromRow(_selRow + 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS)
+    {
+        for (int i = 0; i < GetActiveGrid()->GetNumberRows(); i++) {
+            CreateMinimalSubmodelFromRow(i + 1);
+        }
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN)
+    {
+            CreateSubmodelFromColumn(_selCol + 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS)
+    {
+        for (int i = 0; i < GetActiveGrid()->GetNumberCols(); i++) {
+            CreateSubmodelFromColumn(i + 1);
+        }
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN)
+    {
+        CreateMinimalSubmodelFromColumn(_selCol + 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS)
+    {
+        for (int i = 0; i < GetActiveGrid()->GetNumberCols(); i++) {
+            CreateMinimalSubmodelFromColumn(i + 1);
+        }
+    }
 }
 
 void CustomModelDialog::OnCut(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
+    _changed = true;
     CutOrCopyToClipboard(true);
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnCopy(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
     CutOrCopyToClipboard(false);
 }
 
 void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    _changed = true;
     background_image = FilePickerCtrl1->GetFileName().GetFullPath();
 
     if (background_image != "") {
@@ -1484,10 +2401,46 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
     }
 }
 
+void CustomModelDialog::OnGridLabelRightClick(wxGridEvent& event)
+{
+    int selRow = event.GetRow();
+    int selCol = event.GetCol();
+
+    UpdateHighlight(selRow, selCol);
+
+    if (SpinCtrl_Depth->GetValue() > 1 && (selRow >= 0 || selCol >= 0))
+    {
+        wxMenu mnu;
+        mnu.AppendSeparator();
+        if (selRow >= 0)
+        {
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW, "Create Submodel From Row");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW, "Create Minimal Submodel From Row");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS, "Create Submodel From All Rows");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS, "Create Minimal Submodel From All Rows");
+            _selRow = selRow;
+        }
+        if (selCol >= 0)
+        {
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN, "Create Submodel From Column");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN, "Create Minimal Submodel From Column");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS, "Create Submodel From AllColumns");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS, "Create Minimal Submodel From All Columns");
+            _selCol = selCol;
+        }
+
+        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopupLabel, nullptr, this);
+        PopupMenu(&mnu);
+    }
+}
+
 void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 {
     _selRow = event.GetRow();
     _selCol = event.GetCol();
+
+    UpdateHighlight(_selRow, _selCol);
+
     GetActiveGrid()->SetGridCursor(_selRow, _selCol);
     auto s = GetActiveGrid()->GetCellValue(_selRow, _selCol);
     bool selectedCellWithValue = !s.IsEmpty() && s.IsNumber();
@@ -1497,7 +2450,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     wxMenuItem* menu_cut = mnu.Append(CUSTOMMODELDLGMNU_CUT, "Cut");
     wxMenuItem* menu_copy = mnu.Append(CUSTOMMODELDLGMNU_COPY, "Copy");
     wxMenuItem* menu_paste = mnu.Append(CUSTOMMODELDLGMNU_PASTE, "Paste");
-    if (GetActiveGrid()->GetSelectedCells().size() > 0)
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0)
     {
         menu_cut->Enable(true);
         menu_copy->Enable(true);
@@ -1509,12 +2462,14 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
         menu_copy->Enable(false);
         menu_paste->Enable(false);
     }
-
+    mnu.AppendSeparator();
+    mnu.Append(CUSTOMMODELDLGMNU_DELETE, "Clear Cells");
     mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
     mnu.Append(CUSTOMMODELDLGMNU_ROTATE90, "Rotate 90");
+    mnu.Append(CUSTOMMODELDLGMNU_ROTATE, "Rotate x");
     mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
     mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
@@ -1523,6 +2478,14 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    if (SpinCtrl_Depth->GetValue() > 1)
+    {
+        mnu.AppendSeparator();
+        mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER, "Create Submodel From Layer");
+        mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER, "Create Minimal Submodel From Layer");
+        mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS, "Create Submodel From All Layers");
+        mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS, "Create Minimal Submodel From All Layers");
+    }
 
     if (selectedCellWithValue)
     {
@@ -1543,21 +2506,25 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWDALL, "Copy Layer Backward All");
     m->Enable(Notebook1->GetSelection() != 0);
 
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0)
+    {
+        wxMenu* sub = new wxMenu();
+        wxMenu* horz = new wxMenu();
+        horz->Append(CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT, "Left -> Right");
+        horz->Append(CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT, "Right -> Left");
+        sub->AppendSubMenu(horz, "Horizontial");
+        wxMenu* vert = new wxMenu();
+        vert->Append(CUSTOMMODELDLGMNU_WIREVERTICALTOP, "Top -> Bottom");
+        vert->Append(CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM, "Bottom -> Top");
+        sub->AppendSubMenu(vert, "Vertical");
+        mnu.AppendSeparator();
+        mnu.AppendSubMenu(sub, "Number Selected");
+
+        wxMenu* horiz = new wxMenu();
+    }
+    
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
-}
-
-void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
-{
-    while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
-    {
-        AddPage();
-    }
-
-    while (Notebook1->GetPageCount() > SpinCtrl_Depth->GetValue())
-    {
-        RemovePage();
-    }
 }
 
 void CustomModelDialog::AddPage()
@@ -1597,10 +2564,6 @@ void CustomModelDialog::AddPage()
     sizer->SetSizeHints(p);
     Notebook1->AddPage(p, wxString::Format("%d", (int)Notebook1->GetPageCount() + 1), false);
 
-    Connect(id, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
-    Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
-    Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
-
     grid->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&CustomModelDialog::OnCut, 0, this);
     grid->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&CustomModelDialog::OnCopy, 0, this);
     grid->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&CustomModelDialog::OnPaste, 0, this);
@@ -1624,6 +2587,13 @@ void CustomModelDialog::AddPage()
     _renderers.push_back(renderer);
 
     _grids.push_back(grid);
+
+    Connect(id, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
+    Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
+    Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
+    Connect(id, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellSelected);
+
+    Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
 }
 
 CopyPasteGrid* CustomModelDialog::GetActiveGrid() const
@@ -1658,31 +2628,130 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
     wxColor nextc = wxColor(200, 200, 255);
     wxColor priornextc = wxColor(200, 255, 200);
 
-    for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
+    // Prevent firing if no grids created yet (aka still in setup())
+    if (_grids.size() > 0)
     {
-        for (auto r = 0; r < GetActiveGrid()->GetNumberRows(); ++r)
+
+        for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
         {
-            int state = 0;
+            for (auto r = 0; r < GetActiveGrid()->GetNumberRows(); ++r)
+            {
+                int state = 0;
 
-            if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
-            if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
+                if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
+                if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
 
-            if (state == 0)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, *wxWHITE);
-            }
-            else if (state == 1)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, priorc);
-            }
-            else if (state == 2)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, nextc);
-            }
-            else if (state == 3)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, priornextc);
+                if (state == 0)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                }
+                else if (state == 1)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, priorc);
+                }
+                else if (state == 2)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, nextc);
+                }
+                else if (state == 3)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, priornextc);
+                }
             }
         }
     }
+    UpdateHighlight(-1, -1);
+}
+
+void CustomModelDialog::OnCheckBox_ShowWiringClick(wxCommandEvent& event)
+{
+    _modelPreview->SetModel(_model, CheckBox_ShowWiring->IsChecked(), true);
+    UpdatePreview();
+}
+
+void CustomModelDialog::DeleteCells()
+{
+    auto grid = GetActiveGrid();
+
+    for (int k = 0; k < grid->GetNumberCols(); k++) {
+        for (int i = grid->GetNumberRows(); i >= 0; i--) {
+            if (grid->IsInSelection(i, k)) {
+                _changed = true;
+                grid->SetCellValue(i, k, wxEmptyString);
+            }
+        }
+    }
+    UpdatePreview();
+}
+void CustomModelDialog::WireSelectedHorizontal(long const id)
+{
+    auto grid = GetActiveGrid();
+
+    bool right = true;
+    if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
+    {
+        right = false;
+    }
+
+    for (int i = grid->GetNumberRows(); i >= 0; i--) {
+        if (right) {
+            for (int k = 0; k < grid->GetNumberCols(); k++) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    right = false;
+                }
+            }
+        }
+        else {
+            for (int k = grid->GetNumberCols(); k >= 0; k--) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    right = true;
+                }
+            }
+        }
+    }
+    UpdatePreview();
+}
+
+void CustomModelDialog::WireSelectedVertical(long const id)
+{
+    auto grid = GetActiveGrid();
+
+    bool up = true;
+    if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP)
+    {
+        up = false;
+    }
+    for (int k = 0; k < grid->GetNumberCols(); k++) {
+        if (up) {
+            for (int i = grid->GetNumberRows(); i >= 0; i--) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    up = false;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < grid->GetNumberRows(); i++) {
+                if (grid->IsInSelection(i, k)) {
+                    _changed = true;
+                    GetActiveGrid()->SetCellValue(i, k, wxString::Format("%d", next_channel));
+                    next_channel++;
+                    SpinCtrlNextChannel->SetValue(next_channel);
+                    up = true;
+                }
+            }
+        }
+    }
+    UpdatePreview();
 }

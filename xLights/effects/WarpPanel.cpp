@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "WarpPanel.h"
 #include "EffectPanelUtils.h"
 #include "xlGLCanvas.h"
@@ -85,7 +95,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer4->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
-	Choice_Warp_Type = new wxChoice(this, ID_CHOICE_Warp_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Type"));
+	Choice_Warp_Type = new BulkEditChoice(this, ID_CHOICE_Warp_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Type"));
 	Choice_Warp_Type->Append(_("water drops"));
 	Choice_Warp_Type->Append(_("dissolve"));
 	Choice_Warp_Type->Append(_("circle reveal"));
@@ -103,7 +113,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer4->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Choice_Warp_Treatment = new wxChoice(this, ID_CHOICE_Warp_Treatment_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment_APPLYLAST"));
+	Choice_Warp_Treatment = new BulkEditChoice(this, ID_CHOICE_Warp_Treatment_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment_APPLYLAST"));
 	Choice_Warp_Treatment->Append(_("constant"));
 	Choice_Warp_Treatment->Append(_("in"));
 	Choice_Warp_Treatment->Append(_("out"));

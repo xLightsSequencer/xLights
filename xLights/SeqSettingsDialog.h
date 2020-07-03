@@ -1,5 +1,14 @@
-#ifndef SEQSETTINGSDIALOG_H
-#define SEQSETTINGSDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "xLightsXmlFile.h"
 #include "tmGridCell.h"
@@ -29,7 +38,7 @@ class SeqSettingsDialog: public wxDialog
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_ = false);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, std::string& media_dir, const wxString& warning, bool wizard_active_ = false);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -50,6 +59,7 @@ class SeqSettingsDialog: public wxDialog
 		wxCheckBox* BlendingCheckBox;
 		wxCheckBox* CheckBox_Overwrite_Tags;
 		wxChoice* Choice_Xml_Seq_Type;
+		wxChoice* RenderModeChoice;
 		wxNotebook* Notebook_Seq_Settings;
 		wxPanel* PanelInfo;
 		wxPanel* PanelMetaData;
@@ -158,6 +168,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BUTTON_Xml_New_Timing;
 		static const long ID_BUTTON_Xml_Import_Timing;
 		static const long ID_PANEL2;
+		static const long ID_CHOICE1;
 		static const long ID_TREECTRL_Data_Layers;
 		static const long ID_BUTTON_Layer_Import;
 		static const long ID_BUTTON_Layer_Delete;
@@ -196,10 +207,16 @@ class SeqSettingsDialog: public wxDialog
 
 	private:
 
+		//void OnPanel1Paint(wxPaintEvent& event);
+		//void OnButton_SaveClick(wxCommandEvent& event);
+		//void OnClose(wxCloseEvent& event);
+		//void OnBitmapButton_skip_importClick(wxCommandEvent& event);
+		//void OnTextCtrl_SeqTimingText(wxCommandEvent& event);
+		//void OnTextCtrl_SeqTimingTextEnter(wxCommandEvent& event);
+
 		//(*Handlers(SeqSettingsDialog)
-		void OnNotebook_Seq_SettingsPageChanged(wxNotebookEvent& event);
-		void OnPanel1Paint(wxPaintEvent& event);
 		void OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event);
+		void OnNotebook_Seq_SettingsPageChanged(wxBookCtrlEvent& event);
 		void OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event);
 		void OnTextCtrl_Xml_AuthorText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_Author_EmailText(wxCommandEvent& event);
@@ -212,11 +229,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event);
 		void OnButton_Xml_New_TimingClick(wxCommandEvent& event);
 		void OnButton_Xml_Import_TimingClick(wxCommandEvent& event);
-		void OnButton_SaveClick(wxCommandEvent& event);
 		void OnButton_CloseClick(wxCommandEvent& event);
-		void OnClose(wxCloseEvent& event);
 		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);
-		void OnBitmapButton_skip_importClick(wxCommandEvent& event);
 		void OnButton_Layer_ImportClick(wxCommandEvent& event);
 		void OnButton_Layer_DeleteClick(wxCommandEvent& event);
 		void OnButton_Move_UpClick(wxCommandEvent& event);
@@ -227,10 +241,9 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_ReimportClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnCheckBox1Click(wxCommandEvent& event);
-		void OnTextCtrl_SeqTimingText(wxCommandEvent& event);
-		void OnTextCtrl_SeqTimingTextEnter(wxCommandEvent& event);
 		void OnBitmapButton_ModifyTimingClick(wxCommandEvent& event);
 		void OnButton_DownloadClick(wxCommandEvent& event);
+		void OnRenderModeChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -256,13 +269,14 @@ class SeqSettingsDialog: public wxDialog
 
         DECLARE_EVENT_TABLE()
 
-        xLightsXmlFile* xml_file;
-        wxString& media_directory;
-        xLightsFrame* xLightsParent;
-        int selected_branch_index;
+        xLightsXmlFile* xml_file = nullptr;
+        std::string& media_directory;
+		std::string selected_view;
+		xLightsFrame* xLightsParent = nullptr;
+        int selected_branch_index = 0;
         wxTreeItemId selected_branch;
-        bool needs_render;
-        bool wizard_active;
+        bool needs_render = false;
+        bool wizard_active = false;
         wxBitmap musical_seq;
         wxBitmap musical_seq_pressed;
         wxBitmap animation_seq;
@@ -298,7 +312,4 @@ class SeqSettingsDialog: public wxDialog
         bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
         void SetHash();
         void MediaLoad(wxFileName filename);
-        std::string selected_view;
 };
-
-#endif

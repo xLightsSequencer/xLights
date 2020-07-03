@@ -1,5 +1,14 @@
-#ifndef XLGLCANVAS_H
-#define XLGLCANVAS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/glcanvas.h"
 #include "DrawGLUtils.h"
@@ -19,6 +28,12 @@ class xlGLCanvas
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
+        int GetCreatedVersion() const {
+            // per Dan if core_profile is enabled then this is at least 3
+            if (DrawGLUtils::IsCoreProfile())
+                return 3;
+            return _ver;
+        }
 
         int getWidth() const { return mWindowWidth; }
         int getHeight() const { return mWindowHeight; }
@@ -48,7 +63,9 @@ class xlGLCanvas
 			  unsigned char *tmpBuf;
 		  };
     
+        int GetZDepth() const { return m_zDepth;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
+    
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -57,7 +74,8 @@ class xlGLCanvas
         int mWindowResized;
         bool mIsInitialized;
 
-        virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
+        virtual void InitializeGLCanvas() { mIsInitialized = true; };
+        virtual void InitializeGLContext() = 0;  // pure virtual method to initialize a context (set clear color, viewport, etc...)
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);
@@ -77,11 +95,11 @@ class xlGLCanvas
         DrawGLUtils::xlGLCacheInfo *cache;
 
     private:
+        int _ver = 0;
         wxString _name;
         wxGLContext* m_context;
         bool m_coreProfile;
+        int  m_zDepth;
     
         static wxGLContext *m_sharedContext;
 };
-
-#endif // XLGLCANVAS_H

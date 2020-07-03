@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <algorithm>
 #include <vector>
 
@@ -37,9 +47,18 @@ EffectLayer::~EffectLayer()
 
 void EffectLayer::CleanupAfterRender() {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    while (!mEffectsToDelete.empty()) {
-        delete *mEffectsToDelete.begin();
-        mEffectsToDelete.pop_front();
+    auto it = mEffectsToDelete.begin();
+    while (it != mEffectsToDelete.end())
+    {
+        if ((*it)->IsTimeToDelete())
+        {
+            delete *it;
+            it = mEffectsToDelete.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
 }
 
@@ -84,6 +103,28 @@ Effect* EffectLayer::GetEffectFromID(int id)
     return eff;
 }
 
+int EffectLayer::GetFirstSelectedEffectStartMS() const
+{
+    for (int x = 0; x < mEffects.size(); x++) {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
+        {
+            return mEffects[x]->GetStartTimeMS();
+        }
+    }
+    return -1;
+}
+
+int EffectLayer::GetLastSelectedEffectEndMS() const
+{
+    for (int x = mEffects.size() - 1; x >= 0; x--) {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
+        {
+            return mEffects[x]->GetEndTimeMS();
+        }
+    }
+    return -1;
+}
+
 void EffectLayer::RemoveEffect(int index)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
@@ -94,8 +135,9 @@ void EffectLayer::RemoveEffect(int index)
         {
             mEffects.erase(mEffects.begin() + index);
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
+            e->SetTimeToDelete();
             mEffectsToDelete.push_back(e);
-            SortEffects();
+            NumberEffects();
         }
     }
 }
@@ -108,9 +150,10 @@ void EffectLayer::DeleteEffect(int id)
         if (mEffects[i]->GetID() == id)
         {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            mEffects[i]->SetTimeToDelete();
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
-            SortEffects();
+            NumberEffects();
             return;
         }
     }
@@ -128,13 +171,14 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
                                                mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS(),
                                                mEffects[x]->GetSelected(), mEffects[x]->GetProtected() );
         }
+        mEffects[x]->SetTimeToDelete();
         mEffectsToDelete.push_back(mEffects[x]);
     }
     mEffects.clear();
 }
 
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
-                               int startTimeMS, int endTimeMS, int Selected, bool Protected)
+                               int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
@@ -142,7 +186,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
 
-    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
+    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         if (name == "") {
             name = "Off";
         }
@@ -157,28 +201,46 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
 
     // KW - I am putting this here because in the past we have forgotten to prevent this and it has caused overlapping effects
     //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
-    wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
+    //wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
+
+    if (startTimeMS < 0 && endTimeMS <= 0)
+    {
+        // This effect is not visible ... so lets not load it
+        return nullptr;
+    }
+
+    // make sure they dont hang over the left side
+    if (startTimeMS < 0) startTimeMS = 0;
 
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    wxASSERT(e != nullptr);
     mEffects.push_back(e);
-    SortEffects();
+    if (!suppress_sort)
+    {
+        SortEffects();
+    }
     IncrementChangeCount(startTimeMS, endTimeMS);
     return e;
 }
 
-void EffectLayer::SortEffects()
+void EffectLayer::NumberEffects()
 {
-    std::sort(mEffects.begin(),mEffects.end(),SortEffectByStartTime);
     for (int x = 0; x < mEffects.size(); x++) {
         mEffects[x]->SetID(x);
     }
 }
 
-bool EffectLayer::IsStartTimeLinked(int index)
+void EffectLayer::SortEffects()
 {
-    if(index < mEffects.size() && index > 0)
+    std::sort(mEffects.begin(), mEffects.end(), SortEffectByStartTime);
+    NumberEffects();
+}
+
+bool EffectLayer::IsStartTimeLinked(int index) const
+{
+    if (index < mEffects.size() && index > 0)
     {
-        return mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
+        return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
     }
     else
     {
@@ -186,11 +248,11 @@ bool EffectLayer::IsStartTimeLinked(int index)
     }
 }
 
-bool EffectLayer::IsEndTimeLinked(int index)
+bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if(index < mEffects.size()-1)
+    if (index < mEffects.size() - 1)
     {
-        return mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS();
+        return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
     }
     else
     {
@@ -198,40 +260,40 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
-int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period)
+int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if(index+1 >= mEffects.size())
+    if (index + 1 >= mEffects.size())
     {
         return NO_MIN_MAX_TIME;
     }
     else
     {
-        if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS() && allow_collapse)
+        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index+1]->GetEndTimeMS() - min_period;
+            return mEffects[index + 1]->GetEndTimeMS() - min_period;
         }
         else
         {
-            return mEffects[index+1]->GetStartTimeMS();
+            return mEffects[index + 1]->GetStartTimeMS();
         }
     }
 }
 
-int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period)
+int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if(index == 0)
+    if (index == 0)
     {
         return NO_MIN_MAX_TIME;
     }
     else
     {
-        if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
+        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index-1]->GetStartTimeMS() + min_period;
+            return mEffects[index - 1]->GetStartTimeMS() + min_period;
         }
         else
         {
-            return mEffects[index-1]->GetEndTimeMS();
+            return mEffects[index - 1]->GetEndTimeMS();
         }
     }
 }
@@ -247,7 +309,7 @@ bool EffectLayer::IsFixedTimingLayer()
     return !(te == nullptr || !te->IsFixedTiming());
 }
 
-bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
+bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -261,7 +323,7 @@ bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
     return false;
 }
 
-bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
+bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -275,7 +337,7 @@ bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
     return false;
 }
 
-Effect* EffectLayer::GetEffectBeforeTime(int ms)
+Effect* EffectLayer::GetEffectBeforeTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -295,7 +357,7 @@ Effect* EffectLayer::GetEffectBeforeTime(int ms)
     }
 }
 
-Effect* EffectLayer::GetEffectAfterTime(int ms)
+Effect* EffectLayer::GetEffectAfterTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -315,7 +377,7 @@ Effect* EffectLayer::GetEffectAfterTime(int ms)
     }
 }
 
-Effect* EffectLayer::GetEffectAtTime(int timeMS)
+Effect* EffectLayer::GetEffectAtTime(int timeMS) const
 {
     for (int i = 0; i < mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
@@ -326,7 +388,17 @@ Effect* EffectLayer::GetEffectAtTime(int timeMS)
     return nullptr;
 }
 
-Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
+Effect* EffectLayer::GetEffectStartingAtTime(int timeMS) const
+{
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (timeMS == mEffects[i]->GetStartTimeMS()) {
+            return mEffects[i];
+        }
+    }
+    return nullptr;
+}
+
+Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const
 {
     int i;
     for (i = mEffects.size() - 1; i >= 0; i--)
@@ -346,7 +418,7 @@ Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
     }
 }
 
-Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
+Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -366,7 +438,7 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
     }
 }
 
-std::list<Effect*> EffectLayer::GetAllEffects()
+std::list<Effect*> EffectLayer::GetAllEffects() const
 {
     std::list<Effect*> res;
 
@@ -421,6 +493,18 @@ bool EffectLayer::HasEffects()
     return mEffects.size() > 0;
 }
 
+bool EffectLayer::HasEffectsByType(const std::string& type) const
+{
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetEffectName() == type)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
 {
     int num_selected = 0;
@@ -460,22 +544,6 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
     return num_selected;
 }
 
-int EffectLayer::SelectEffectsByType(const std::string & type)
-{
-    int num_selected = 0;
-
-    std::for_each(mEffects.begin(), mEffects.end(), [&](auto const& ef)
-    {
-        if (ef->GetEffectName() == type)
-        {
-            ef->SetSelected(EFFECT_SELECTED);
-            num_selected++;
-        }
-    });
-
-    return num_selected;
-}
-
 std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS)
 {
     std::vector<Effect*> effs = std::vector<Effect*>();
@@ -498,48 +566,6 @@ std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &typ
         }
     }
     return effs;
-}
-
-int EffectLayer::SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS)
-{
-    int num_selected = 0;
-    for (int i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetEffectName() == type)
-        {
-            int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
-            if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
-            {
-                if (endTimeMS < midpoint)
-                {
-                    mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
-                }
-                else
-                {
-                    mEffects[i]->SetSelected(EFFECT_SELECTED);
-                }
-                num_selected++;
-            }
-            else if (mEffects[i]->GetEndTimeMS() <= endTimeMS && mEffects[i]->GetEndTimeMS() > startTimeMS)
-            {
-                if (startTimeMS > midpoint)
-                {
-                    mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
-                }
-                else
-                {
-                    mEffects[i]->SetSelected(EFFECT_SELECTED);
-                }
-                num_selected++;
-            }
-            else if (mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
-            {
-                mEffects[i]->SetSelected(EFFECT_SELECTED);
-                num_selected++;
-            }
-        }
-    }
-    return num_selected;
 }
 
 std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTimeMS)
@@ -575,7 +601,7 @@ void EffectLayer::PlayEffect(Effect* effect)
     GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
 }
 
-bool EffectLayer::SelectEffectUsingDescription(std::string description)
+Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -583,6 +609,19 @@ bool EffectLayer::SelectEffectUsingDescription(std::string description)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             PlayEffect(mEffects[i]);
+            return mEffects[i];
+        }
+    }
+
+    return nullptr;
+}
+
+bool EffectLayer::IsEffectValid(Effect* e) const
+{
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if ((void*)mEffects[i] == (void*)e)
+        {
             return true;
         }
     }
@@ -590,7 +629,7 @@ bool EffectLayer::SelectEffectUsingDescription(std::string description)
     return false;
 }
 
-bool EffectLayer::SelectEffectUsingTime(int time)
+Effect* EffectLayer::SelectEffectUsingTime(int time)
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -598,15 +637,14 @@ bool EffectLayer::SelectEffectUsingTime(int time)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             PlayEffect(mEffects[i]);
-            return true;
+            return mEffects[i];
         }
     }
 
-    return false;
+    return nullptr;
 }
 
-int EffectLayer::GetLayerNumber()
-{
+int EffectLayer::GetLayerNumber() const {
     return GetParentElement()->GetLayerNumberFromIndex(GetIndex());
 }
 
@@ -640,11 +678,9 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(int &toLeft, int &
 {
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for (int i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
-        {
-            int l, r;
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED) {
+            int l = 0, r = 0;
             GetMaximumRangeOfMovementForEffect(i, l, r);
             toLeft = toLeft < l ? toLeft : l;
             toRight = toRight < r ? toRight : r;
@@ -662,13 +698,14 @@ void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int
     case EFFECT_RT_SELECTED:
         GetMaximumRangeWithRightMovement(index, toLeft, toRight);
         break;
-    case EFFECT_SELECTED:
-        int l1, l2, r1, r2;
+    case EFFECT_SELECTED: {
+        int l1 = 0, l2 = 0, r1 = 0, r2 = 0;
         GetMaximumRangeWithLeftMovement(index, l1, r1);
         GetMaximumRangeWithRightMovement(index, l2, r2);
         toLeft = l1 < l2 ? l1 : l2;
         toRight = r1 < r2 ? r1 : r2;
         break;
+    }
     default:
         toLeft = NO_MAX;
         toRight = NO_MAX;
@@ -1142,29 +1179,25 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 
 void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    for (int i = 0; i<mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
-        if (eff1 == nullptr && effectName != "")
-        {
-            logger_base.error("Effect not found: '%s'", (const char *)effectName.c_str());
+        if (eff1 == nullptr && effectName != "") {
+            logger_base.error("Effect not found: '%s'", (const char*)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
-        if (eff2 == nullptr)
-        {
+        if (eff2 == nullptr) {
             // this cant happen
-            logger_base.error("Effect not found when scanning effects: '%s'", (const char *)mEffects[i]->GetEffectName().c_str());
+            logger_base.error("Effect not found when scanning effects: '%s'", (const char*)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
-        if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
+        if ((effectName == "" || eff1 == nullptr || eff2 == nullptr || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-             (mEffects[i]->GetSelected() == EFFECT_SELECTED))
-           )
-        {
+                (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+                (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+            ) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->PressButton(eff2, id);
 
@@ -1177,13 +1210,11 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
-    for (int i = 0; i < mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if (mEffects[i]->GetEffectName() == "DMX" &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED)))
-        {
+                (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+                (mEffects[i]->GetSelected() == EFFECT_SELECTED))) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
 
@@ -1194,13 +1225,11 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 
 void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    for (int i = 0; i<mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_SELECTED)
-           )
-        {
+            ) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->ConvertTo(effectManager.GetEffectIndex(effectName));
 
@@ -1212,8 +1241,7 @@ void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_
 void EffectLayer::UnTagAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for(int i=0; i<mEffects.size();i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         mEffects[i]->SetTagged(false);
     }
 }
@@ -1221,26 +1249,43 @@ void EffectLayer::UnTagAllEffects()
 void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); ++it) {
-        if (!(*it)->IsLocked())
+    for (const auto& it : mEffects) {
+        if (!it->IsLocked())
         {
-            if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
-                IncrementChangeCount((*it)->GetStartTimeMS(), (*it)->GetEndTimeMS());
-                undo_mgr.CaptureEffectToBeDeleted(mParentElement->GetModelName(), mIndex, (*it)->GetEffectName(),
-                    (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
-                    (*it)->GetStartTimeMS(), (*it)->GetEndTimeMS(),
-                    (*it)->GetSelected(), (*it)->GetProtected());
-                mEffectsToDelete.push_back(*it);
+            if (it->GetSelected() != EFFECT_NOT_SELECTED) {
+                IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
+                undo_mgr.CaptureEffectToBeDeleted(mParentElement->GetModelName(), mIndex, it->GetEffectName(),
+                    it->GetSettingsAsString(), it->GetPaletteAsString(),
+                    it->GetStartTimeMS(), it->GetEndTimeMS(),
+                    it->GetSelected(), it->GetProtected());
+                it->SetTimeToDelete();
+                mEffectsToDelete.push_back(it);
             }
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteSelected),mEffects.end());
 }
+
+void EffectLayer::DeleteAllEffects()
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+
+    for (const auto& it : mEffects) {
+        if (!it->IsLocked()) {
+            IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
+            it->SetTimeToDelete();
+            mEffectsToDelete.push_back(it);
+        }
+    }
+    mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteNotLocked), mEffects.end());
+}
+
 void EffectLayer::DeleteEffectByIndex(int idx) {
     std::unique_lock<std::recursive_mutex> locker(lock);
     if (!mEffects[idx]->IsLocked())
     {
         IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
+        mEffects[idx]->SetTimeToDelete();
         mEffectsToDelete.push_back(mEffects[idx]);
         mEffects.erase(mEffects.begin() + idx);
     }
@@ -1249,6 +1294,11 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)
 {
     return !eff->IsLocked() && eff->GetSelected() != EFFECT_NOT_SELECTED;
+}
+
+bool EffectLayer::ShouldDeleteNotLocked(Effect* eff)
+{
+    return !eff->IsLocked();
 }
 
 bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)

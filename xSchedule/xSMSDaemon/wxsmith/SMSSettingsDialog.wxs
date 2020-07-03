@@ -12,42 +12,6 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-							<label>xSchedule IP Address:</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-							<cols>2</cols>
-							<growablecols>0</growablecols>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_xScheduleIPAddress" member="yes">
-									<value>127.0.0.1</value>
-									<handler function="OnTextCtrl_xScheduleIPAddressText" entry="EVT_TEXT" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_xSchedulePort" member="yes">
-									<value>80</value>
-									<min>1</min>
-									<max>65535</max>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
 							<label>Target text item(s)</label>
 						</object>
@@ -182,8 +146,43 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT17" variable="StaticText5" member="yes">
+							<label>Timezone Adjust (mins)</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL8" variable="SpinCtrl_TimezoneAdjust" member="yes">
+							<value>0</value>
+							<min>-780</min>
+							<max>780</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticLine" name="ID_STATICLINE1" variable="StaticLine1" member="yes">
+							<size>10,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticLine" name="ID_STATICLINE2" variable="StaticLine2" member="yes">
+							<size>10,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX9" variable="CheckBox_Moderation" member="yes">
+							<label>Manual message moderation</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -196,21 +195,11 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_RejectProfanity" member="yes">
 							<label>Reject messages containing profanity</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -223,11 +212,6 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_UseLocalWhitelist" member="yes">
 							<label>Use local whitelist</label>
@@ -236,14 +220,39 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX8" variable="CheckBox_UsePhoneBlacklist" member="yes">
+							<label>Use phone blacklist</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX8" variable="CheckBox_UsePhoneBlacklist" member="yes">
-							<label>Use phone blacklist</label>
+						<object class="wxStaticLine" name="ID_STATICLINE3" variable="StaticLine3" member="yes">
+							<size>10,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticLine" name="ID_STATICLINE4" variable="StaticLine4" member="yes">
+							<size>10,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Maximum Messages Per Phone Number</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_MaximumMessages" member="yes">
+							<value>0</value>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -318,6 +327,23 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL5" variable="SpinCtrl_MaxMessageAge" member="yes">
 							<value>10</value>
 							<max>3600</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText4" member="yes">
+							<label>Maximum Message Age For Response (mins)</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL7" variable="SpinCtrl_MaxMsgAgeMinsForResponse" member="yes">
+							<value>10</value>
+							<max>1440</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

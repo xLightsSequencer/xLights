@@ -1,9 +1,20 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemRunCommandPanel.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
 #include "../xScheduleMain.h"
+#include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 
 PlayListItemRunCommand::PlayListItemRunCommand(wxXmlNode* node) : PlayListItem(node)
@@ -27,6 +38,7 @@ void PlayListItemRunCommand::Load(wxXmlNode* node)
 
 PlayListItemRunCommand::PlayListItemRunCommand() : PlayListItem()
 {
+    _type = "PLICommand";
     _started = false;
     _command = "";
     _parm1 = "";
@@ -49,7 +61,7 @@ PlayListItem* PlayListItemRunCommand::Copy() const
 
 wxXmlNode* PlayListItemRunCommand::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLICommand");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Command", _command);
     node->AddAttribute("Parm1", _parm1);
@@ -91,12 +103,10 @@ void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size
         if (_parm2 != "") parms += "," + _parm2;
         if (_parm3 != "") parms += "," + _parm3;
 
-        size_t rate;
-        wxString msg;
-        if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, "", nullptr, nullptr, rate, msg))
-        {
-            logger_base.info("Command failed: %s.", (const char *)msg.c_str());
-        }
+        ActionMessageData* amd = new ActionMessageData(_command, parms, "");
+        wxCommandEvent event(EVT_DOACTION);
+        event.SetClientData(amd);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 }
 

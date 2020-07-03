@@ -1,5 +1,14 @@
-#ifndef FILLEFFECT_H
-#define FILLEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -23,7 +32,7 @@ class FillEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
@@ -31,5 +40,3 @@ class FillEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
-
-#endif // FILLEFFECT_H

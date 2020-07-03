@@ -1,14 +1,24 @@
-#ifndef PIXLITE_H
-#define PIXLITE_H
+#pragma once
 
-#include <wx/protocol/http.h>
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
-#include "models/ModelManager.h"
+#include "../models/ModelManager.h"
 
-class Output;
+#include "BaseController.h"
+
+class ControllerEthernet;
 class OutputManager;
 
-class Pixlite16
+class Pixlite16 : public BaseController
 {
 public:
     struct Config
@@ -64,34 +74,51 @@ public:
         std::vector<uint8_t> _bankVoltage;
         uint8_t _testMode = 0;
         std::vector<uint8_t> _testParameters;
+        uint8_t _protocolVersion = 0;
     };
 
 protected:
-    Config _config;
-	std::string _ip = "";
-    bool _connected = false;
-    int _protocolVersion = 0;
 
-    bool SendConfig(bool logresult = false) const;
+    #pragma region Member Variables
+    Config _config;
+    int _protocolVersion = 0;
+    #pragma endregion
+
+    #pragma region Encode and Decode
     static int DecodeStringPortProtocol(std::string protocol);
     static int DecodeSerialOutputProtocol(std::string protocol);
+    #pragma endregion
+
+    #pragma region Private Functions
     static uint16_t Read16(uint8_t* data, int& pos);
     static void Write16(uint8_t* data, int& pos, int value);
     static void WriteString(uint8_t* data, int& pos, int len, const std::string& value);
-    bool ParseV4Config(uint8_t* data);
-    bool ParseV5Config(uint8_t* data);
-    bool ParseV6Config(uint8_t* data);
+    
+    static bool ParseV4Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV5Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV6Config(uint8_t* data, Pixlite16::Config& config);
     int PrepareV4Config(uint8_t* data) const;
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
-    void DumpConfiguration() const;
+
+    static std::list<Pixlite16::Config> DoDiscover();
+
+    bool SendConfig(bool logresult = false) const;
+
+    static void DumpConfiguration(Pixlite16::Config& config);
+    #pragma endregion
 
 public:
 
+    #pragma region Constructors and Destructors
     Pixlite16(const std::string& ip);
-    bool IsConnected() const { return _connected; };
-    ~Pixlite16();
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    ~Pixlite16() {}
+    #pragma endregion
+
+    #pragma region Getters and Setters
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return false; }
+    static std::list<ControllerEthernet*> Discover(OutputManager* om, wxWindow* parent);
+    #pragma endregion
 };
 
-#endif

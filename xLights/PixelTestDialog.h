@@ -1,5 +1,14 @@
-#ifndef PIXELPixelTestDialog_H
-#define PIXELPixelTestDialog_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 // Need to do these manually due to issues with wxSmith and wxTreeListCtrl
 #include <wx/treelist.h>
@@ -33,6 +42,7 @@
 
 class ModelGroup;
 typedef SequenceData SeqDataType;
+class xLightsFrame;
 
 class ChannelTracker
 {
@@ -225,7 +235,7 @@ class PixelTestDialog: public wxDialog
 
 	public:
 
-		PixelTestDialog(wxWindow* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
+		PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~PixelTestDialog();
 		wxTreeListCtrl* TreeListCtrl_Outputs;
 		wxTreeListCtrl* TreeListCtrl_ModelGroups;
@@ -242,6 +252,8 @@ class PixelTestDialog: public wxDialog
 		bool _checkChannelList;
 		wxDateTime _starttime;
 		SeqDataType _seqData;
+        wxTreeListItem _rcItem;
+        wxTreeListCtrl* _rcTree = nullptr;
 
 		//(*Declarations(PixelTestDialog)
 		wxButton* Button_Load;
@@ -317,6 +329,10 @@ class PixelTestDialog: public wxDialog
 		static const long ID_TREELISTCTRL_Outputs;
 		static const long ID_TREELISTCTRL_ModelGroups;
 		static const long ID_TREELISTCTRL_Models;
+        static const long ID_MNU_TEST_SELECTALL;
+        static const long ID_MNU_TEST_DESELECTALL;
+        static const long ID_MNU_TEST_SELECTN;
+        static const long ID_MNU_TEST_DESELECTN;
 
 		//(*Identifiers(PixelTestDialog)
 		static const long ID_BUTTON_Load;
@@ -397,6 +413,8 @@ class PixelTestDialog: public wxDialog
 
 		void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
         void OnTreeListCtrlItemActivated(wxTreeListEvent& event);
+        void OnContextMenu(wxTreeListEvent& event);
+        void OnListPopup(wxCommandEvent& event);
         void OnTreeListCtrlItemSelected(wxTreeListEvent& event);
         void OnTreeListCtrlItemExpanding(wxTreeListEvent& event);
 
@@ -412,7 +430,7 @@ class PixelTestDialog: public wxDialog
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);
 
-		void CascadeSelected(wxTreeListCtrl* tree, wxTreeListItem& item, wxCheckBoxState state);
+		void CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state);
         void DumpSelected();
 
 		void DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeListItem& item);
@@ -425,8 +443,9 @@ class PixelTestDialog: public wxDialog
 		void RollUpAll(wxTreeListCtrl* tree, wxTreeListItem start);
 		void DeactivateNotClickableModels(wxTreeListCtrl* tree);
         void SetTreeTooltip(wxTreeListCtrl* tree, wxTreeListItem& item);
-        void AddController(wxTreeListItem root, Output* output);
-        std::string SerialiseSettings();
+		wxTreeListItem AddController(wxTreeListItem root, Controller* controller);
+		void AddOutput(wxTreeListItem root, Output* output);
+		std::string SerialiseSettings();
         void DeserialiseSettings(const std::string& settings);
         TestFunctions GetTestFunction(int notebookSelection);
         void SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeListItem item, wxCheckBoxState parentState);
@@ -434,4 +453,4 @@ class PixelTestDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-#endif
+

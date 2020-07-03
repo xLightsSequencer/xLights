@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Showtec Infinity XPLO-15 LED Strobe 4 channel" parm1="30" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer intensity,Strobe duration,Strobe,Effects,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Effects" s1-Name="not_functional" s1-Color="#020202" 
+s2="Effects" s2-Name="ramp_up_fade_in_" s2-Color="#181818" 
+s3="Effects" s3-Name="ramp_down_fade_out_" s3-Color="#404040" 
+s4="Effects" s4-Name="ramp_up_down_fade_in_out_" s4-Color="#6B6B6B" 
+s5="Effects" s5-Name="random_effects" s5-Color="#969696" 
+s6="Effects" s6-Name="left_zone" s6-Color="#ACACAC" 
+s7="Effects" s7-Name="center_zone" s7-Color="#AEAEAE" 
+s8="Effects" s8-Name="right_zone" s8-Color="#B1B1B1" 
+s9="Effects" s9-Name="pattern_a" s9-Color="#B3B3B3" 
+s10="Effects" s10-Name="pattern_b" s10-Color="#B5B5B5" 
+s11="Effects" s11-Name="pattern_c" s11-Color="#B7B7B7" 
+s12="Effects" s12-Name="pattern_d" s12-Color="#B9B9B9" 
+s13="Effects" s13-Name="random_patterns" s13-Color="#C8C8C8" 
+s14="Effects" s14-Name="chase_1-from_left_to_right_from_slow_to_fast" s14-Color="#E1E1E1" 
+s15="Effects" s15-Name="chase_2-from_right_to_left_from_slow_to_fast" s15-Color="#F5F5F5" 
+s16="Node6" s16-Name="default" s16-Color="#020202" 
+s17="Node6" s17-Name="not_functional" s17-Color="#111111" 
+s18="Node6" s18-Name="linear_dimming_curve" s18-Color="#202020" 
+s19="Node6" s19-Name="square_dimming_curve" s19-Color="#252525" 
+s20="Node6" s20-Name="s-curve_dimming_curve" s20-Color="#2A2A2A" 
+s21="Node6" s21-Name="pl-curve_dimming_curve" s21-Color="#2F2F2F" 
+/>
+</dmxmodel>

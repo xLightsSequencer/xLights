@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*InternalHeaders(HousePreviewPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -155,6 +165,16 @@ void HousePreviewPanel::OnFastForward10ButtonClick(wxCommandEvent& event)
 {
     wxCommandEvent playEvent(EVT_SEQUENCE_FFORWARD10);
     wxPostEvent(_xLights, playEvent);
+}
+
+void HousePreviewPanel::Set3d(bool is3d)
+{
+    _modelPreview->Set3D(is3d);
+}
+
+bool HousePreviewPanel::Is3d() const
+{
+    return _modelPreview->Is3D();
 }
 
 void HousePreviewPanel::OnEndButtonClick(wxCommandEvent& event)

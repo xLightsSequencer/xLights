@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Showtec QFX Multi 27 Channel" parm1="47" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Derby 1 Red,Derby 1 Green,Derby 1 Blue,Derby 1 Shutter,Derby 1 Motor rotating speed,PAR 1 Red,PAR 1 Green,PAR 1 Blue,PAR 1 Shutter,PAR 1 Reserved,PAR 2 Red,PAR 2 Green,PAR 2 Blue,PAR 2 Shutter,PAR 2 Reserved,Derby 2 Red,Derby 2 Green,Derby 2 Blue,Derby 2 Shutter,Derby 2 Motor rotating speed,Red Laser Dimmer/Strobe,Green Laser Dimmer/Strobe,Laser Motor rotating speed,LED Strobe 1,LED Strobe 2,LED Strobe 3,LED Strobe 4,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Derby 1 Red" s1-Name="blackout" s1-Color="#040404" 
+s2="Derby 1 Red" s2-Name="auto_par
+_" s2-Color="#141414" 
+s3="Derby 1 Red" s3-Name="auto_laser
+_" s3-Color="#303030" 
+s4="Derby 1 Red" s4-Name="auto_flash_led
+_" s4-Color="#505050" 
+s5="Derby 1 Red" s5-Name="auto_mix
+_" s5-Color="#6F6F6F" 
+s6="Derby 1 Red" s6-Name="sound_par
+_" s6-Color="#8F8F8F" 
+s7="Derby 1 Red" s7-Name="sound_laser
+_" s7-Color="#AFAFAF" 
+s8="Derby 1 Red" s8-Name="sound_flash_led
+_" s8-Color="#CFCFCF" 
+s9="Derby 1 Red" s9-Name="sound_mix
+_" s9-Color="#EFEFEF" 
+s10="Derby 1 Motor rotating speed" s10-Name="brightness_of_all_lights" s10-Color="#5F5F5F" 
+s11="Derby 1 Motor rotating speed" s11-Name="sound_strobe" s11-Color="#C4C4C4" 
+s12="Derby 1 Motor rotating speed" s12-Name="strobe_effect_slow_to_fast_0-18hz_" s12-Color="#E1E1E1" 
+s13="Derby 1 Motor rotating speed" s13-Name="full_on" s13-Color="#FCFCFC" 
+s14="PAR 1 Red" s14-Name="stop" s14-Color="#020202" 
+s15="PAR 1 Red" s15-Name="rotate_clockwise_slow_to_fast_" s15-Color="#424242" 
+s16="PAR 1 Red" s16-Name="rotate_counterclockwise_slow_to_fast_" s16-Color="#C2C2C2" 
+s17="PAR 1 Green" s17-Name="nothing" s17-Color="#000000" 
+s18="PAR 1 Blue" s18-Name="closed" s18-Color="#020202" 
+s19="PAR 1 Blue" s19-Name="open" s19-Color="#070707" 
+s20="PAR 1 Blue" s20-Name="strobe_pct" s20-Color="#848484" 
+s21="PAR 1 Shutter" s21-Name="blackout" s21-Color="#020202" 
+s22="PAR 1 Shutter" s22-Name="full_on" s22-Color="#070707" 
+s23="PAR 1 Shutter" s23-Name="strobe_effect_slow_to_fast_0-18hz_" s23-Color="#848484" 
+s24="PAR 1 Reserved" s24-Name="blackout" s24-Color="#020202" 
+s25="PAR 1 Reserved" s25-Name="full_on" s25-Color="#070707" 
+s26="PAR 1 Reserved" s26-Name="strobe_effect_slow_to_fast_0-18hz_" s26-Color="#848484" 
+s27="PAR 2 Red" s27-Name="blackout" s27-Color="#020202" 
+s28="PAR 2 Red" s28-Name="full_on" s28-Color="#070707" 
+s29="PAR 2 Red" s29-Name="strobe_effect_slow_to_fast_0-18hz_" s29-Color="#848484" 
+s30="PAR 2 Green" s30-Name="stop" s30-Color="#020202" 
+s31="PAR 2 Green" s31-Name="rotate_clockwise_from_slow_to_fast" s31-Color="#424242" 
+s32="PAR 2 Green" s32-Name="rotate_counterclockwise_from_slow_to_fast" s32-Color="#C2C2C2" 
+s33="LED Strobe 2" s33-Name="blackout" s33-Color="#040404" 
+s34="LED Strobe 2" s34-Name="strobe_effect_slow_to_fast_0-18hz_" s34-Color="#848484" 
+s35="LED Strobe 3" s35-Name="blackout" s35-Color="#040404" 
+s36="LED Strobe 3" s36-Name="strobe_effect_slow_to_fast_0-18hz_" s36-Color="#848484" 
+s37="LED Strobe 4" s37-Name="blackout" s37-Color="#040404" 
+s38="LED Strobe 4" s38-Name="strobe_effect_slow_to_fast_0-18hz_" s38-Color="#848484" 
+s39="Node28" s39-Name="blackout" s39-Color="#040404" 
+s40="Node28" s40-Name="strobe_effect_slow_to_fast_0-18hz_" s40-Color="#848484" 
+/>
+</dmxmodel>

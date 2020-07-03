@@ -1,7 +1,16 @@
-#ifndef PLAYLISTITEMMICROPHONEPANEL_H
-#define PLAYLISTITEMMICROPHONEPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemMicrophonePanel)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(PlayListItemMicrophonePanel)
 #include <wx/choice.h>
 #include <wx/clrpicker.h>
 #include <wx/panel.h>
@@ -30,10 +39,12 @@ class PlayListItemMicrophonePanel: public wxPanel
 		wxChoice* Choice_Mode;
 		wxColourPickerCtrl* ColourPickerCtrl1;
 		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
@@ -59,6 +70,8 @@ class PlayListItemMicrophonePanel: public wxPanel
 		static const long ID_STATICTEXT9;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL4;
+		static const long ID_STATICTEXT4;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL2;
 		//*)
@@ -74,4 +87,3 @@ class PlayListItemMicrophonePanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

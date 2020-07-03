@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet COREpar UV USB 5-Channel" parm1="5" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="UV,Strobe/Speed/Sound Sensivity,Programs,Dimmer,Dimmer Speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe/Speed/Sound Sensivity" s1-Name="no_function_slow_to_fast_off" s1-Color="#050505" 
+s2="Strobe/Speed/Sound Sensivity" s2-Name="no_function_slow_to_fast_control_the_sound_sensitivity_level" s2-Color="#0D0D0D" 
+s3="Strobe/Speed/Sound Sensivity" s3-Name="slow_to_fast_slow_to_fast_control_the_sound_sensitivity_level" s3-Color="#878787" 
+s4="Programs" s4-Name="no_function" s4-Color="#0F0F0F" 
+s5="Programs" s5-Name="pulse_effect_0-100pct" s5-Color="#3F3F3F" 
+s6="Programs" s6-Name="pulse_effect_100pct-0" s6-Color="#7F7F7F" 
+s7="Programs" s7-Name="pulse_effect_100pct-0-100pct" s7-Color="#BFBFBF" 
+s8="Programs" s8-Name="sound_triggering_mode_1" s8-Color="#E8E8E8" 
+s9="Programs" s9-Name="sound_triggering_mode_2" s9-Color="#F8F8F8" 
+s10="Dimmer Speed" s10-Name="default_set_from_menu" s10-Color="#191919" 
+s11="Dimmer Speed" s11-Name="mode_off" s11-Color="#4C4C4C" 
+s12="Dimmer Speed" s12-Name="mode_1_fast_speed_" s12-Color="#7F7F7F" 
+s13="Dimmer Speed" s13-Name="mode_2_medium_speed_" s13-Color="#B2B2B2" 
+s14="Dimmer Speed" s14-Name="mode_3_slow_speed_" s14-Color="#E5E5E5" 
+/>
+</dmxmodel>

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+ 
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -13,6 +23,8 @@
 #include "TimeLine.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
+#include "../EffectsPanel.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -23,6 +35,7 @@ const long MainSequencer::ID_PANEL3 = wxNewId();
 const long MainSequencer::ID_PANEL6 = wxNewId();
 const long MainSequencer::ID_PANEL2 = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
+const long MainSequencer::ID_CHECKBOX1 = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
 
@@ -79,8 +92,6 @@ public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
-    // ReSharper disable once CppVirtualFunctionCallInsideCtor
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
         _time = "Time: 00:00:00";
         _selected = "";
         _fps = "";
@@ -94,8 +105,7 @@ public:
         renderGL();
     }
 
-    void SetGLSize(int w, int h)
-    {
+    void SetGLSize(int w, int h) {
         SetMinSize(wxSize(w, h));
 
         wxSize size = GetSize();
@@ -106,15 +116,16 @@ public:
         mWindowHeight = h;
         mWindowWidth = w;
         mWindowResized = true;
-        if (h > 50)
-        {
+        h = UnScaleWithSystemDPI(h);
+        if (h > 50) {
             _fontSize = 14;
-        }
-        else
-        {
+        } else if (h > 36) {
             _fontSize = 10;
+        } else if (h > 25) {
+            _fontSize = 8;
+        } else {
+            _fontSize = 6;
         }
-
         Refresh();
         renderGL();
     }
@@ -135,54 +146,49 @@ public:
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return false;}
-    void InitializeGLCanvas() override
-    {
-        if(!IsShownOnScreen()) return;
-
+    void InitializeGLContext() override {
         SetCurrentGLContext();
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
-        //c.Set(70,70,70); //54->70
-        //
-        
+
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
                                    ((float)c.Blue())/255.0f, 1.0f));
         LOG_GL_ERRORV(glDisable(GL_BLEND));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        mIsInitialized = true;
+        prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
     }
 
     void renderGL()
     {
-        if(!mIsInitialized) { InitializeGLCanvas(); }
         if(!IsShownOnScreen()) return;
+        if(!mIsInitialized) { InitializeGLCanvas(); }
 
-        SetCurrentGLContext();
-        glClear(GL_COLOR_BUFFER_BIT);
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        
-        DrawGLUtils::xlVertexTextAccumulator va(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT));
+        InitializeGLContext();
+
+        _va.color = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
 #define LINEGAP 1.2
-        int y = _fontSize * LINEGAP;
-        va.AddVertex(5, y, _time);
-        y += _fontSize * LINEGAP;
+        float fs = ScaleWithSystemDPI(_fontSize);
+        float y = fs * LINEGAP;
+        _va.AddVertex(5, y, _time);
+        y += fs * LINEGAP;
         // only display FPS if we have room
-        if (y + _fontSize * LINEGAP <= mWindowHeight)
-        {
-            va.AddVertex(5, y, _fps);
-            y += _fontSize * LINEGAP;
+        if ((y + fs * LINEGAP <= mWindowHeight)
+            || (_selected == "" && y <= mWindowHeight)) {
+            _va.AddVertex(5, y, _fps);
+            y += fs * LINEGAP;
         }
-        if (y <= mWindowHeight)
-        {
-            va.AddVertex(5, y, _selected);
+        if (y <= mWindowHeight) {
+            _va.AddVertex(5, y, _selected);
         }
-        DrawGLUtils::Draw(va, _fontSize, GetContentScaleFactor());
+        float factor = translateToBacking(1.0);
+        DrawGLUtils::Draw(_va, fs, factor);
         SwapBuffers();
+        _va.Reset();
     }
 
 private:
+    DrawGLUtils::xlVertexTextAccumulator _va;
     std::string _time;
     std::string _fps;
     std::string _selected;
@@ -239,11 +245,12 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
     ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
     FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    CheckBox_SuspendRender = new wxCheckBox(this, ID_CHECKBOX1, _("Suspend Render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_SuspendRender->SetValue(false);
+    FlexGridSizer1->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 0);
     ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -257,6 +264,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MainSequencer::OnCheckBox_SuspendRenderClick);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
@@ -267,6 +275,12 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     //*)
+
+#ifdef __WXOSX__
+    wxFont fnt = CheckBox_SuspendRender->GetFont();
+    fnt.SetFractionalPointSize(10.0);
+    CheckBox_SuspendRender->SetFont(fnt);
+#endif
 
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
@@ -306,6 +320,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
 
 MainSequencer::~MainSequencer()
 {
+    timeDisplay = nullptr; // wxWidgets will delete it
     if (effectGridTouchbar) delete effectGridTouchbar;
 
 	//(*Destroy(MainSequencer)
@@ -332,17 +347,20 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
 void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
 {
     int time = time_ms >= 0 ? time_ms : 0;
-    int msec=time % 1000;
-    int seconds=time / 1000;
-    int minutes=seconds / 60;
-    seconds=seconds % 60;
+    int msec = time % 1000;
+    int seconds = time / 1000;
+    int minutes = seconds / 60;
+    seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
     if (fps >= 0)
     {
-        fpsStr = wxString::Format("FPS: %5.1f",fps);
+        fpsStr = wxString::Format("FPS: %5.1f", fps);
     }
-    timeDisplay->SetLabels(play_time, fpsStr);
+    if (timeDisplay != nullptr)
+    {
+        timeDisplay->SetLabels(play_time, fpsStr);
+    }
 }
 
 void MainSequencer::UpdateSelectedDisplay(int selected)
@@ -375,16 +393,21 @@ void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsVertical->GetThumbPosition();
-    mSequenceElements->SetFirstVisibleModelRow(position);
+    int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+    PanelEffectGrid->ScrollBy(scroll);
     UpdateEffectGridVerticalScrollBar();
 }
 
 void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 {
+    bool fromTrackPad = IsMouseEventFromTouchpad();
     int i = event.GetWheelRotation();
     if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
         int position = ScrollBarEffectsHorizontal->GetThumbPosition();
         int ts = ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+        if (fromTrackPad) {
+            ts = PanelTimeLine->GetTimeMSfromPosition(std::abs(event.GetWheelRotation()));
+        }
         if (ts ==0) {
             ts = 1;
         }
@@ -394,9 +417,9 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             }
         } else if (i > 0) {
             position += ts;
-            if (position >= ScrollBarEffectsHorizontal->GetRange()) {
-                position = ScrollBarEffectsHorizontal->GetRange() - 1;
-            }
+        }
+        if (position >= ScrollBarEffectsHorizontal->GetRange()) {
+            position = ScrollBarEffectsHorizontal->GetRange() - 1;
         }
         ScrollBarEffectsHorizontal->SetThumbPosition(position);
         wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
@@ -409,14 +432,16 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             {
                 position++;
                 ScrollBarEffectsVertical->SetThumbPosition(position);
-                mSequenceElements->SetFirstVisibleModelRow(position);
+                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                PanelEffectGrid->ScrollBy(scroll);
             }
         } else if (i > 0) {
             if(position > 0)
             {
                 position--;
                 ScrollBarEffectsVertical->SetThumbPosition(position);
-                mSequenceElements->SetFirstVisibleModelRow(position);
+                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                PanelEffectGrid->ScrollBy(scroll);
             }
         }
         mSequenceElements->PopulateVisibleRowInformation();
@@ -427,203 +452,246 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 
 bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (mSequenceElements == nullptr) {
-        return false;
-    }
+    if (mSequenceElements != nullptr) {
 
-    auto k = event.GetKeyCode();
-    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
-    
-    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
-        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
-    {
-        // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
-        {
-            return false;
-        }
-    }
+        auto k = event.GetKeyCode();
+        if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
 
-    auto binding = keyBindings.Find(event, KBSCOPE::Sequence);
-    if (binding != nullptr) {
-        std::string type = binding->GetType();
-        if (type == "TIMING_ADD")
+        if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
+            (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
         {
-            InsertTimingMarkFromRange();
+            // Just a regular key ... If current focus is a control then we need to not process this
+            if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
+                (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
+            {
+                return false;
+            }
         }
-        else if (type == "TIMING_SPLIT")
-        {
-            SplitTimingMark();
+
+        auto binding = keyBindings.Find(event, KBSCOPE::Sequence);
+        if (binding != nullptr) {
+            std::string type = binding->GetType();
+            if (type == "TIMING_ADD")
+            {
+                InsertTimingMarkFromRange();
+            }
+            else if (type == "TIMING_SPLIT")
+            {
+                SplitTimingMark();
+            }
+            else if (type == "ZOOM_IN")
+            {
+                PanelTimeLine->ZoomIn();
+            }
+            else if (type == "ZOOM_OUT")
+            {
+                PanelTimeLine->ZoomOut();
+            }
+            else if (type == "RANDOM")
+            {
+                Effect* ef = PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
+                SelectEffect(ef);
+            }
+            else if (type == "EFFECT")
+            {
+                // reset default settings if appropriate
+                if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
+                    mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
+                }
+
+                Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
+                if (ef != nullptr)
+                {
+                    SelectEffect(ef);
+                }
+            }
+            else if (type == "APPLYSETTING")
+            {
+                SettingsMap newSetting = SettingsMap();
+                newSetting.Parse(binding->GetEffectString());
+                
+                // Apply setting on the UI
+                mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
+
+                // Now apply it to all selected effects
+                for (const auto& s : newSetting)
+                {
+                    ApplyEffectSettingToSelected("", s.first, s.second, nullptr, "");
+                }
+            }
+            else if (type == "PRESET")
+            {
+               Effect* ef = mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+                PanelEffectGrid->SelectEffect(ef);
+            }
+            else if (type == "EFFECT_SETTINGS_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
+            }
+            else if (type == "SAVE_SEQUENCE")
+            {
+                mSequenceElements->GetXLightsFrame()->SaveSequence();
+            }
+            else if (type == "SAVEAS_SEQUENCE")
+            {
+                mSequenceElements->GetXLightsFrame()->SaveAsSequence();
+            }
+            else if (type == "EFFECT_ASSIST_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideEffectAssistWindow(e);
+            }
+            else if (type == "COLOR_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideColorWindow(e);
+            }
+            else if (type == "LAYER_SETTING_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideBufferSettingsWindow(e);
+            }
+            else if (type == "LAYER_BLENDING_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideLayerTimingWindow(e);
+            }
+            else if (type == "MODEL_PREVIEW_TOGGLE")
+            {
+                ToggleModelPreview();
+            }
+            else if (type == "HOUSE_PREVIEW_TOGGLE")
+            {
+                ToggleHousePreview();
+            }
+            else if (type == "EFFECTS_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideEffectDropper(e);
+            }
+            else if (type == "DISPLAY_ELEMENTS_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHideDisplayElementsWindow(e);
+            }
+            else if (type == "JUKEBOX_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
+            }
+            else if (type == "LOCK_EFFECT")
+            {
+                PanelEffectGrid->LockEffects(true);
+            }
+            else if (type == "CANCEL_RENDER")
+            {
+                CancelRender();
+            }
+            else if (type == "TOGGLE_RENDER")
+            {
+                CheckBox_SuspendRender->SetValue(!CheckBox_SuspendRender->GetValue());
+                ToggleRender(CheckBox_SuspendRender->GetValue());
+            }
+            else if (type == "UNLOCK_EFFECT")
+            {
+                PanelEffectGrid->LockEffects(false);
+            }
+            else if (type == "MARK_SPOT")
+            {
+                SavePosition();
+            }
+            else if (type == "RETURN_TO_SPOT")
+            {
+                RestorePosition();
+            }
+            else if (type == "EFFECT_DESCRIPTION")
+            {
+                PanelEffectGrid->SetEffectsDescription();
+            }
+            else if (type == "EFFECT_ALIGN_START")
+            {
+                PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
+            }
+            else if (type == "EFFECT_ALIGN_END")
+            {
+                PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
+            }
+            else if (type == "EFFECT_ALIGN_BOTH")
+            {
+                PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
+            }
+            else if (type == "INSERT_LAYER_ABOVE")
+            {
+                PanelEffectGrid->InsertEffectLayerAbove();
+            }
+            else if (type == "SELECT_ALL")
+            {
+                mSequenceElements->SelectAllEffects();
+                PanelEffectGrid->Refresh();
+            }
+            else if (type == "SELECT_ALL_NO_TIMING")
+            {
+                mSequenceElements->SelectAllEffectsNoTiming();
+                PanelEffectGrid->Refresh();
+            }
+            else if (type == "INSERT_LAYER_BELOW")
+            {
+                PanelEffectGrid->InsertEffectLayerBelow();
+            }
+            else if (type == "TOGGLE_ELEMENT_EXPAND")
+            {
+                PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
+            }
+            else if (type == "SHOW_PRESETS")
+            {
+                mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
+            }
+            else if (type == "PRESETS_TOGGLE")
+            {
+                mSequenceElements->GetXLightsFrame()->TogglePresetsPanel();
+            }
+            else if (type == "VALUECURVES_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItem_ValueCurvesSelected(e);
+            }
+            else if (type == "COLOR_DROPPER_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItem_ColourDropperSelected(e);
+            }
+            else if (type == "SEARCH_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
+            }
+            else if (type == "PERSPECTIVES_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
+            }
+            else if (type == "EFFECT_UPDATE")
+            {
+                wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
+                wxPostEvent(GetParent(), eventEffectUpdated);
+            }
+            else if (type == "COLOR_UPDATE")
+            {
+                wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
+                wxPostEvent(GetParent(), eventEffectUpdated);
+            }
+            else
+            {
+                logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+                wxASSERT(false);
+                return false;
+            }
+            event.StopPropagation();
+            return true;
         }
-        else if (type == "ZOOM_IN")
-        {
-            PanelTimeLine->ZoomIn();
-        }
-        else if (type == "ZOOM_OUT")
-        {
-            PanelTimeLine->ZoomOut();
-        }
-        else if (type == "RANDOM")
-        {
-            PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
-        }
-        else if (type == "EFFECT")
-        {
-            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
-        }
-        else if (type == "PRESET")
-        {
-            mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
-        }
-        else if (type == "EFFECT_SETTINGS_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
-        }
-        else if (type == "SAVE_SEQUENCE")
-        {
-            mSequenceElements->GetXLightsFrame()->SaveSequence();
-        }
-        else if (type == "SAVEAS_SEQUENCE")
-        {
-            mSequenceElements->GetXLightsFrame()->SaveAsSequence();
-        }
-        else if (type == "EFFECT_ASSIST_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideEffectAssistWindow(e);
-        }
-        else if (type == "COLOR_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideColorWindow(e);
-        }
-        else if (type == "LAYER_SETTING_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideBufferSettingsWindow(e);
-        }
-        else if (type == "LAYER_BLENDING_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideLayerTimingWindow(e);
-        }
-        else if (type == "MODEL_PREVIEW_TOGGLE")
-        {
-            ToggleModelPreview();
-        }
-        else if (type == "HOUSE_PREVIEW_TOGGLE")
-        {
-            ToggleHousePreview();
-        }
-        else if (type == "EFFECTS_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideEffectDropper(e);
-        }
-        else if (type == "DISPLAY_ELEMENTS_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideDisplayElementsWindow(e);
-        }
-        else if (type == "JUKEBOX_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
-        }
-        else if (type == "LOCK_EFFECT")
-        {
-            PanelEffectGrid->LockEffects(true);
-        }
-        else if (type == "CANCEL_RENDER")
-        {
-            CancelRender();
-        }
-        else if (type == "UNLOCK_EFFECT")
-        {
-            PanelEffectGrid->LockEffects(false);
-        }
-        else if (type == "MARK_SPOT")
-        {
-            SavePosition();
-        }
-        else if (type == "RETURN_TO_SPOT")
-        {
-            RestorePosition();
-        }
-        else if (type == "EFFECT_DESCRIPTION")
-        {
-            PanelEffectGrid->SetEffectsDescription();
-        }
-        else if (type == "EFFECT_ALIGN_START")
-        {
-            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
-        }
-        else if (type == "EFFECT_ALIGN_END")
-        {
-            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
-        }
-        else if (type == "EFFECT_ALIGN_BOTH")
-        {
-            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
-        }
-        else if (type == "INSERT_LAYER_ABOVE")
-        {
-            PanelEffectGrid->InsertEffectLayerAbove();
-        }
-        else if (type == "SELECT_ALL")
-        {
-            mSequenceElements->SelectAllEffects();
-            PanelEffectGrid->Refresh();
-        }
-        else if (type == "SELECT_ALL_NO_TIMING")
-        {
-            mSequenceElements->SelectAllEffectsNoTiming();
-            PanelEffectGrid->Refresh();
-        }
-        else if (type == "INSERT_LAYER_BELOW")
-        {
-            PanelEffectGrid->InsertEffectLayerBelow();
-        }
-        else if (type == "TOGGLE_ELEMENT_EXPAND")
-        {
-            PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
-        }
-        else if (type == "SHOW_PRESETS")
-        {
-            mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
-        }
-        else if (type == "SEARCH_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
-        }
-        else if (type == "PERSPECTIVES_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
-        }
-        else if (type == "EFFECT_UPDATE")
-        {
-            wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
-            wxPostEvent(GetParent(), eventEffectUpdated);
-        }
-        else if (type == "COLOR_UPDATE")
-        {
-            wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
-            wxPostEvent(GetParent(), eventEffectUpdated);
-        }
-        else
-        {
-            logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
-            wxASSERT(false);
-            return false;
-        }
-        event.StopPropagation();
-        return true;
     }
 
     return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
@@ -789,6 +857,13 @@ void MainSequencer::CancelRender()
     }
 }
 
+void MainSequencer::ToggleRender(bool off)
+{
+    if (mSequenceElements == nullptr) return;
+    if (off) CancelRender();
+    mSequenceElements->GetXLightsFrame()->SuspendRender(off);
+}
+
 void MainSequencer::OnKeyDown(wxKeyEvent& event)
 {
     //wxChar uc = event.GetUnicodeKey();
@@ -856,6 +931,20 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
+        case 'y':
+        case 'Y':
+        case WXK_CONTROL_Y:
+            if (event.CmdDown() || event.ControlDown()) {
+                if( mSequenceElements != nullptr &&
+                   mSequenceElements->get_undo_mgr().CanRedo() ) {
+                    mSequenceElements->get_undo_mgr().RedoLastStep();
+                    PanelEffectGrid->ClearSelection();
+                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->sendRenderDirtyEvent();
+                }
+                event.StopPropagation();
+            }
+            break;
         case WXK_ESCAPE: {
             static bool escapeReenter = false;
 
@@ -903,7 +992,8 @@ void MainSequencer::TouchPlayControl(const std::string &evt) {
 void MainSequencer::TouchButtonEvent(wxCommandEvent &event) {
     if (mSequenceElements != nullptr) {
         wxString effect = ((wxWindow*)event.GetEventObject())->GetName();
-        PanelEffectGrid->Paste(effect + "\t\t\n", xlights_version_string);
+        Effect* ef = PanelEffectGrid->Paste(effect + "\t\t\n", xlights_version_string);
+        SelectEffect(ef);
     }
 }
 void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchBar *colorBar) {
@@ -942,6 +1032,14 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoRedo(wxCommandEvent& event) {
+    if (PanelEffectGrid == nullptr) return;
+
+    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
+        mSequenceElements->get_undo_mgr().RedoLastStep();
+        PanelEffectGrid->ClearSelection();
+        PanelEffectGrid->Refresh();
+        PanelEffectGrid->sendRenderDirtyEvent();
+    }
 }
 
 void MainSequencer::SetLargeWaveform()
@@ -1209,7 +1307,7 @@ bool MainSequencer::CopySelectedEffects() {
     else {
         GetSelectedEffectsData(copy_data);
     }
-    if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
+    if (!copy_data.IsEmpty() && wxTheClipboard != nullptr && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
             DisplayError("Unable to copy data to clipboard.", this);
         }
@@ -1276,16 +1374,24 @@ void MainSequencer::UnselectAllEffects()
     mSequenceElements->UnSelectAllEffects();
 }
 
-void MainSequencer::SelectEffectUsingDescription(std::string description)
+void MainSequencer::SelectEffect(Effect* ef)
 {
-    mSequenceElements->UnSelectAllEffects();
-    mSequenceElements->SelectEffectUsingDescription(description);
+    if (!mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        PanelEffectGrid->SelectEffect(ef);
+    }
 }
 
-void MainSequencer::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+Effect* MainSequencer::SelectEffectUsingDescription(std::string description)
 {
     mSequenceElements->UnSelectAllEffects();
-    mSequenceElements->SelectEffectUsingElementLayerTime(element, layer, time);
+    return mSequenceElements->SelectEffectUsingDescription(description);
+}
+
+Effect* MainSequencer::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+{
+    mSequenceElements->UnSelectAllEffects();
+    return mSequenceElements->SelectEffectUsingElementLayerTime(element, layer, time);
 }
 
 void MainSequencer::SetChanged()
@@ -1320,7 +1426,8 @@ void MainSequencer::Paste(bool row_paste) {
         if ((cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT))
             && cbd->GetData(data)) {
             //assume clipboard always has data from same version of xLights
-            PanelEffectGrid->Paste(data.GetText(), xlights_version_string, row_paste);
+            Effect* ef = PanelEffectGrid->Paste(data.GetText(), xlights_version_string, row_paste);
+            SelectEffect(ef);
         }
         cbd->Close();
     }
@@ -1328,123 +1435,102 @@ void MainSequencer::Paste(bool row_paste) {
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool is_range = true;
     int x1;
     int x2;
-    if (mPlayType == PLAY_TYPE_MODEL)
-    {
+    if (mPlayType == PLAY_TYPE_MODEL) {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
     }
-    else
-    {
+    else {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
 
         int pm = PanelTimeLine->GetPlayMarker();
-        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
-        {
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1) {
             x1 = pm;
             x2 = x1;
         }
     }
     if (x2 == -1) x2 = x1;
     if (x1 == x2) is_range = false;
+
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
-    if (selectedTiming >= 0)
-    {
+    if (selectedTiming >= 0) {
         int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
         int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
-        if (t2 > PanelTimeLine->GetTimeLength())
-        {
+        if (t2 > PanelTimeLine->GetTimeLength()) {
             t2 = PanelTimeLine->GetTimeLength();
         }
-        if (is_range)
-        {
+        if (is_range) {
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+            if (e != nullptr) {
+                EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+                if (el != nullptr) {
+                    int i1 = -1;
+                    int i2 = -1;
+                    el->HitTestEffectByTime(t1, i1);
+                    el->HitTestEffectByTime(t2, i2);
 
-            if (el == nullptr)
-            {
-                logger_base.crit("MainSequencer::InsertTimingMarkFromRange el is nullptr ... this is going to crash.");
-            }
-
-            int i1 = -1;
-            int i2 = -1;
-
-            el->HitTestEffectByTime(t1, i1);
-            el->HitTestEffectByTime(t2, i2);
-
-            if ((!el->HitTestEffectByTime(t1, i1) && !el->HitTestEffectByTime(t2, i2) && !el->HitTestEffectBetweenTime(t1, t2)) ||
-                (!el->HitTestEffectBetweenTime(t1, t2) && i1 != i2))
-            {
-                std::string name, settings;
-                el->AddEffect(0, name, settings, "", t1, t2, false, false);
-                PanelEffectGrid->ForceRefresh();
-            }
-            else
-            {
-                DisplayError("Timing placement error: Timing exists already in the selected region", this);
+                    if ((!el->HitTestEffectByTime(t1, i1) && !el->HitTestEffectByTime(t2, i2) && !el->HitTestEffectBetweenTime(t1, t2)) ||
+                        (!el->HitTestEffectBetweenTime(t1, t2) && i1 != i2)) {
+                        std::string name, settings;
+                        el->AddEffect(0, name, settings, "", t1, t2, false, false);
+                        PanelEffectGrid->ForceRefresh();
+                    }
+                    else
+                    {
+                        DisplayError("Timing placement error: Timing exists already in the selected region", this);
+                    }
+                }
             }
         }
         else
         {
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+            if (e != nullptr) {
+                EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+                if (el != nullptr) {
+                    int index = 0;
+                    if (!el->HitTestEffectByTime(t2, index)) {
+                        // get effect to left and right
+                        Effect* lefteffect = nullptr;
+                        Effect* righteffect = nullptr;
+                        for (int x = 0; x < el->GetEffectCount(); x++) {
+                            Effect* eff = el->GetEffect(x);
+                            if (eff->GetEndTimeMS() < t2 && (lefteffect == nullptr || lefteffect->GetEndTimeMS() < eff->GetEndTimeMS())) {
+                                lefteffect = eff;
+                            }
+                            if (righteffect == nullptr && eff->GetStartTimeMS() > t2) {
+                                righteffect = eff;
+                                break;
+                            }
+                        }
 
-            if (el == nullptr)
-            {
-                logger_base.crit("MainSequencer::InsertTimingMarkFromRange [2] el is nullptr ... this is going to crash.");
-            }
+                        std::string name;
+                        std::string settings;
+                        if (lefteffect != nullptr && righteffect != nullptr) {
+                            // fill to left and right
+                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                        }
+                        else if (lefteffect != nullptr) {
+                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                        }
+                        else if (righteffect != nullptr) {
+                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                        }
+                        else {
+                            el->AddEffect(0, name, settings, "", 0, t2, false, false);
+                        }
 
-            int index;
-            if (!el->HitTestEffectByTime(t2, index))
-            {
-                // get effect to left and right
-                Effect * lefteffect = nullptr;
-                Effect * righteffect = nullptr;
-
-                for (int x = 0; x < el->GetEffectCount(); x++) {
-                    Effect * eff = el->GetEffect(x);
-                    if (eff->GetEndTimeMS() < t2 && (lefteffect == nullptr || lefteffect->GetEndTimeMS() < eff->GetEndTimeMS()))
-                    {
-                        lefteffect = eff;
+                        PanelEffectGrid->ForceRefresh();
                     }
-                    if (righteffect == nullptr && eff->GetStartTimeMS() > t2) {
-                        righteffect = eff;
-                        break;
+                    else {
+                        SplitTimingMark();  // inserting a timing mark inside a timing mark same as a split
                     }
                 }
-
-                std::string name;
-                std::string settings;
-                if (lefteffect != nullptr && righteffect != nullptr)
-                {
-                    // fill to left and right
-                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
-                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
-                }
-                else if (lefteffect != nullptr)
-                {
-                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
-                }
-                else if (righteffect != nullptr)
-                {
-                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
-                }
-                else
-                {
-                    el->AddEffect(0, name, settings, "", 0, t2, false, false);
-                }
-
-                PanelEffectGrid->ForceRefresh();
-            }
-            else
-            {
-                SplitTimingMark();  // inserting a timing mark inside a timing mark same as a split
             }
         }
     }
@@ -1704,4 +1790,9 @@ void MainSequencer::ScrollToRow(int row)
 
     mSequenceElements->SetFirstVisibleModelRow(row);
     UpdateEffectGridVerticalScrollBar();
+}
+
+void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
+{
+    ToggleRender(CheckBox_SuspendRender->IsChecked());
 }

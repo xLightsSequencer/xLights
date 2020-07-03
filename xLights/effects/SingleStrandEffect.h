@@ -1,5 +1,14 @@
-#ifndef SINGLESTRANDEFFECT_H
-#define SINGLESTRANDEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -19,7 +28,7 @@ class SingleStrandEffect : public RenderableEffect
         virtual ~SingleStrandEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
@@ -37,5 +46,3 @@ class SingleStrandEffect : public RenderableEffect
                     int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
                     int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
 };
-
-#endif // SINGLESTRANDEFFECT_H

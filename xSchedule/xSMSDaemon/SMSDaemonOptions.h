@@ -10,7 +10,6 @@ class SMSDaemonOptions
     int _changeCount = 0;
     int _lastSavedChangeCount = 0;
 
-	std::string _xScheduleIP = "127.0.0.1";
 	std::string _textItem = "";
 	std::string _user = "";
 	std::string _sid = "";
@@ -25,20 +24,21 @@ class SMSDaemonOptions
 	int _maximiumMessageLength = 100;
 	int _maximiumMessageAge = 10;
 	int _maximiumTimesToDisplay = 0;
-	int _xSchedulePort = 80;
+    int _maxMsgAgeMinsForResponse = 10;
+    int _maxMsgsPerPhone = 0;
+    int _timezoneAdjust = 0;
 	bool _usePurgoMalum = false;
 	bool _rejectProfanity = true;
 	bool _usePhoneBlacklist = false;
 	bool _useLocalBlacklist = false;
 	bool _useLocalWhitelist = false;
 	bool _acceptOneWordOnly = false;
+    bool _manualModeration = false;
 	bool _ignoreOversizedMessages = false;
     bool _upperCase = false;
 
     public:
 
-		std::string GetXScheduleIP() const { return _xScheduleIP; }
-        void SetXScheduleIP(std::string xScheduleIP) { if (xScheduleIP != _xScheduleIP) { _xScheduleIP = xScheduleIP; _changeCount++; } }
 		std::string GetTextItem() const { return _textItem; }
         void SetTextItem(std::string textItem) { if (textItem != _textItem) { _textItem = textItem; _changeCount++; } }
 		std::string GetUser() const { return _user; }
@@ -51,15 +51,20 @@ class SMSDaemonOptions
         void SetPhone(std::string phone) { if (phone != _phone) { _phone = phone; _changeCount++; } }
 		std::string GetSMSService() const { return _smsService; }
         void SetSMSService(std::string smsService) { if (smsService != _smsService) { _smsService = smsService; _changeCount++; } }
-		std::string GetDefaultMessage() const { return _defaultMessage; }
-        void SetDefaultMessage(std::string defaultMessage) { if (defaultMessage != _defaultMessage) { _defaultMessage = defaultMessage; _changeCount++; } }
+        std::string GetDefaultMessage() const { return "\b" + _defaultMessage; }
+        std::string GetUnderlyingDefaultMessage() const { return _defaultMessage; }
+        void SetDefaultMessage(std::string defaultMessage);
 		wxString GetSuccessMessage() const { return _successMessage; }
         void SetSuccessMessage(wxString successMessage) { if (successMessage != _successMessage) { _successMessage = successMessage; _changeCount++; } }
 		wxString GetRejectMessage() const { return _rejectMessage; }
         void SetRejectMessage(wxString rejectMessage) { if (rejectMessage != _rejectMessage) { _rejectMessage = rejectMessage; _changeCount++; } }
 
-		int GetXSchedulePort() const { return _xSchedulePort; }
-        void SetXSchedulePort(int xSchedulePort) { if (xSchedulePort != _xSchedulePort) { _xSchedulePort = xSchedulePort; _changeCount++; } }
+        int GetMaximumMessagesPerPhone() const { return _maxMsgsPerPhone; }
+        void SetMaximumMessagesPerPhone(int maxMessages) { if (maxMessages != _maxMsgsPerPhone) { _maxMsgsPerPhone = maxMessages; _changeCount++; } }
+
+        int GetTimezoneAdjust() const { return _timezoneAdjust; }
+        void SetTimezoneAdjust(int timezoneAdjust) { if (timezoneAdjust != _timezoneAdjust) { _timezoneAdjust = timezoneAdjust; _changeCount++; } }
+
 		int GetRetrieveInterval() const { return _retrieveInterval; }
         void SetRetrieveInterval(int retrieveInterval) { if (retrieveInterval != _retrieveInterval) { _retrieveInterval = retrieveInterval; _changeCount++; } }
 		int GetDisplayDuration() const { return _displayDuration; }
@@ -69,9 +74,18 @@ class SMSDaemonOptions
 		int GetMaxMessageAge() const { return _maximiumMessageAge; }
         void SetMaxMessageAge(int maximiumMessageAge) { if (maximiumMessageAge != _maximiumMessageAge) { _maximiumMessageAge = maximiumMessageAge; _changeCount++; } }
 		int GetMaxTimesToDisplay() const { return _maximiumTimesToDisplay; }
+        int GetMaxMsgAgeMinsForResponse() const { return _maxMsgAgeMinsForResponse; }
+        void SetMaxMsgAgeMinsForResponse(int maxMsgAgeMinsForResponse) {
+            if (maxMsgAgeMinsForResponse != _maxMsgAgeMinsForResponse) {
+                _maxMsgAgeMinsForResponse = maxMsgAgeMinsForResponse; 
+                _changeCount++;
+            }
+        }
         void SetMaxTimesToDisplay(int maximiumTimesToDisplay) { if (maximiumTimesToDisplay != _maximiumTimesToDisplay) { _maximiumTimesToDisplay = maximiumTimesToDisplay; _changeCount++; } }
 
-		bool GetUsePurgoMalum() const { return _usePurgoMalum; }
+        bool GetManualModeration() const { return _manualModeration; }
+        void SetManualModeration(bool manualModeration) { if (manualModeration != _manualModeration) { _manualModeration = manualModeration; _changeCount++; } }
+        bool GetUsePurgoMalum() const { return _usePurgoMalum; }
         void SetUsePurgoMalum(bool usePurgoMalum) { if (usePurgoMalum != _usePurgoMalum) { _usePurgoMalum = usePurgoMalum; _changeCount++; } }
 		bool GetRejectProfanity() const { return _rejectProfanity; }
         void SetRejectProfanity(bool rejectProfanity) { if (rejectProfanity != _rejectProfanity) { _rejectProfanity = rejectProfanity; _changeCount++; } }

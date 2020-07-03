@@ -1,5 +1,14 @@
-#ifndef XLGRIDCANVASMORPH_H
-#define XLGRIDCANVASMORPH_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/wx.h"
 #include "../../xlGridCanvas.h"
@@ -24,11 +33,14 @@ class xlGridCanvasMorph : public xlGridCanvas
         virtual bool UsesAddVertex() {return false;}
 
     protected:
+        virtual void InitializeGLContext();
         virtual void InitializeGLCanvas();
         void SetUndoPoint() const;
 
     private:
 
+        void CalcDistanceTo(float targetX, float targetY, float* disance);
+        void ProcessNearest(int targetX, int targetY, bool* done);
         bool CheckForInsideHit(int x, int y) const;
         int CheckForCornerHit(int x, int y) const;
         void mouseMoved(wxMouseEvent& event);
@@ -36,6 +48,7 @@ class xlGridCanvasMorph : public xlGridCanvas
         void mouseLeftDown(wxMouseEvent& event);
         void mouseRightUp(wxMouseEvent& event);
         void mouseLeftUp(wxMouseEvent& event);
+        void mouseLeftDClick(wxMouseEvent& event);
         void render(wxPaintEvent& event);
         void DrawMorphEffect();
         void CreateCornerTextures();
@@ -62,5 +75,3 @@ class xlGridCanvasMorph : public xlGridCanvas
 
         DECLARE_EVENT_TABLE()
 };
-
-#endif // XLGRIDCANVASMORPH_H

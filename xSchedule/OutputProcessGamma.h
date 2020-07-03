@@ -1,5 +1,14 @@
-#ifndef OUTPUTPROCESSGAMMA_H
-#define OUTPUTPROCESSGAMMA_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "OutputProcess.h"
 
@@ -34,4 +43,3 @@ public:
     std::string GetGammaSettings() const { return wxString::Format("%.2f,%.2f,%.2f,%.2f", _gamma, _gammaR, _gammaG, _gammaB).ToStdString(); }
 };
 
-#endif

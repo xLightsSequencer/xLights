@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "TextPanel.h"
 #include "EffectPanelUtils.h"
 #include "../FontManager.h"
@@ -27,6 +37,8 @@ const long TextPanel::ID_STATICTEXT_Text = wxNewId();
 const long TextPanel::ID_TEXTCTRL_Text = wxNewId();
 const long TextPanel::ID_STATICTEXT1 = wxNewId();
 const long TextPanel::ID_FILEPICKERCTRL_Text_File = wxNewId();
+const long TextPanel::ID_STATICTEXT2 = wxNewId();
+const long TextPanel::ID_CHOICE_Text_LyricTrack = wxNewId();
 const long TextPanel::ID_FONTPICKER_Text_Font = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font = wxNewId();
 const long TextPanel::ID_STATICTEXT_Text_Font = wxNewId();
@@ -75,6 +87,7 @@ TextPanel::TextPanel(wxWindow* parent)
 {
 	//(*Initialize(TextPanel)
 	BulkEditCheckBox* CheckBox_TextToCenter;
+	BulkEditFontPicker* FontPickerCtrl;
 	BulkEditTextCtrl* TextCtrl72;
 	BulkEditTextCtrl* TextCtrl91;
 	BulkEditTextCtrl* TextCtrl92;
@@ -90,7 +103,6 @@ TextPanel::TextPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer48;
 	wxFlexGridSizer* FlexGridSizer66;
 	wxFlexGridSizer* FlexGridSizer69;
-	wxFontPickerCtrl* FontPickerCtrl;
 	wxGridBagSizer* GridBagSizer6;
 	wxGridBagSizer* GridBagSizer7;
 	wxNotebook* Notebook6;
@@ -115,10 +127,15 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer119->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FilePickerCtrl1 = new wxFilePickerCtrl(Panel_Text1, ID_FILEPICKERCTRL_Text_File, wxEmptyString, _("Select a text file"), _T("*.txt"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Text_File"));
 	FlexGridSizer119->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer119->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(Panel_Text1, ID_STATICTEXT2, _("From Lyrics"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer119->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_LyricTrack = new wxChoice(Panel_Text1, ID_CHOICE_Text_LyricTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_LyricTrack"));
+	FlexGridSizer119->Add(Choice_LyricTrack, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText162 = new wxStaticText(Panel_Text1, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer119->Add(StaticText162, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FontPickerCtrl = new wxFontPickerCtrl(Panel_Text1, ID_FONTPICKER_Text_Font, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font"));
+	FontPickerCtrl = new BulkEditFontPicker(Panel_Text1, ID_FONTPICKER_Text_Font, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font"));
 	FlexGridSizer119->Add(FontPickerCtrl, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_TextFont = new xlLockButton(Panel_Text1, ID_BITMAPBUTTON_FONTPICKER_Text_Font, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font"));
 	BitmapButton_TextFont->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -195,7 +212,7 @@ TextPanel::TextPanel(wxWindow* parent)
 	Choice_Text_Count->Append(_("to date \'m\' or \'s\'"));
 	Choice_Text_Count->Append(_("to date \'s\'"));
 	Choice_Text_Count->Append(_("!to date!%fmt"));
-	Choice_Text_Count->SetToolTip(_("seconds: enter time in seconds\nminutes seconds: enter time as mm:ss. To prepend or append text to the counter, delimit the time with / (The next show begins in /15:30/! Stay Tuned.)\n\nto date \'d h m s\'\nto date \'h:m:s\'\nto date \'m\' or \'s\'\nto date \'s\'\n\nThese options count down to given date based on system date and time. Enter Date in on of the following formats: \nFri, 25 Dec 2015 00:00:00 +0100\nFri, 25 Dec 2015 00:00:00 CST\nFri, 25 Dec 2015 00:00:00 MST\n\n\n!to date!%fmt\n\nThis option allows you to choose the output format. i.e. days only.\nEnter Date in the following format to display days only:\n/Fri, 25 Dec 2015 00:00:00 +0100/ %D"));
+	Choice_Text_Count->SetToolTip(_("seconds: enter time in seconds\nminutes seconds: enter time as mm:ss. To prepend or append text to the counter, delimit the time with / (The next show begins in /15:30/! Stay Tuned.)\n\nto date \'d h m s\'\nto date \'h:m:s\'\nto date \'m\' or \'s\'\nto date \'s\'\n\nThese options count down to given date based on system date and time. Enter Date in on of the following formats: \nFri, 25 Dec 2015 00:00:00 +0100\nFri, 25 Dec 2015 00:00:00 CST\nFri, 25 Dec 2015 00:00:00 MST\n\n\n!to date!%fmt\n\nThis option allows you to choose the output format. i.e. days only.\nEnter Date in the following format to display days only:\n!Fri, 25 Dec 2015 00:00:00 +0100! %D"));
 	FlexGridSizer119->Add(Choice_Text_Count, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_TextCount = new xlLockButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Count"));
 	BitmapButton_TextCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -271,7 +288,9 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer46->Fit(this);
 	FlexGridSizer46->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL_Text,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TextPanel::OnTextCtrl_TextText);
 	Connect(ID_FILEPICKERCTRL_Text_File,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&TextPanel::OnFilePickerCtrl1FileChanged);
+	Connect(ID_CHOICE_Text_LyricTrack,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TextPanel::OnChoice_LyricTrackSelect);
 	Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
@@ -308,12 +327,38 @@ void TextPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
 void TextPanel::ValidateWindow()
 {
-    if (!wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
+    TextCtrl_Text->Enable();
+    if (TextCtrl_Text->GetValue() != "")
     {
-        TextCtrl_Text->Enable();
+        FilePickerCtrl1->Disable();
+        Choice_LyricTrack->Disable();
     }
     else
     {
-        TextCtrl_Text->Disable();
+        FilePickerCtrl1->Enable();
+        if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
+        {
+            Choice_LyricTrack->Disable();
+        }
+        else
+        {
+            if (Choice_LyricTrack->GetCount() <= 1)
+            {
+                Choice_LyricTrack->Disable();
+            }
+            else
+            {
+                Choice_LyricTrack->Enable();
+            }
+        }
     }
+}
+void TextPanel::OnTextCtrl_TextText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void TextPanel::OnChoice_LyricTrackSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

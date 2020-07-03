@@ -1,14 +1,23 @@
-#ifndef EVENTE131PANEL_H
-#define EVENTE131PANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "EventPanel.h"
 
 //(*Headers(EventE131Panel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 class EventE131Panel: public EventPanel
@@ -24,11 +33,11 @@ class EventE131Panel: public EventPanel
 		//(*Declarations(EventE131Panel)
 		wxChoice* Choice_Test;
 		wxSpinCtrl* SpinCtrl_Channel;
-		wxStaticText* StaticText2;
 		wxSpinCtrl* SpinCtrl_Universe;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxSpinCtrl* SpinCtrl_Value;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		//*)
 
@@ -52,5 +61,3 @@ class EventE131Panel: public EventPanel
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <locale>
 
 #include "Curl.h"
 
@@ -20,41 +19,42 @@ class Voip_ms : public SMSService
 
     public:
 
-        Voip_ms() : SMSService() {}
+        Voip_ms(const SMSDaemonOptions& options) : SMSService(options) {}
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) const override
+        virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
             if (number == "TEST") return false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            Replace(url, "{sid}", GetSID());
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", GetToken());
             url += "sendSMS";
 
             std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("did", _myNumber));
+            vars.push_back(Curl::Var("did", GetPhone()));
             vars.push_back(Curl::Var("dst", number));
             vars.push_back(Curl::Var("message", message));
 
+            //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
+            logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return Contains(res, "status\":\"success");
 		}
 
         virtual std::string GetServiceName() const override { return "Voip.ms"; }
-        virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
+        virtual bool RetrieveMessages() override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
             std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            Replace(url, "{sid}", GetSID());
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", GetToken());
             url += "getSMS";
 
             std::vector<Curl::Var> vars;
@@ -62,9 +62,10 @@ class Voip_ms : public SMSService
             vars.push_back(Curl::Var("limit", "100"));
             vars.push_back(Curl::Var("timezone", "0"));
 
+            //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
+            logger_base.debug("Retrieving messages.");
             std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("%s", (const char*)url.c_str());
-            logger_base.debug("%s", (const char*)res.c_str());
+            logger_base.debug("Result %s", (const char*)res.c_str());
 
             // construct the JSON root object
             wxJSONValue  root;
@@ -87,6 +88,8 @@ class Voip_ms : public SMSService
                 wxJSONValue defaultValue = wxString("");
                 if (root.Get("status", defaultValue).AsString() == "success")
                 {
+                    Retrieved();
+
                     wxJSONValue msgs = root.Get("sms", defaultValue);
 
                     if (msgs.IsArray())
@@ -101,11 +104,12 @@ class Voip_ms : public SMSService
                                 wxString timestamp = m.Get("date", defaultValue).AsString();
                                 wxString::const_iterator end;
                                 msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
+                                msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
                                 wxASSERT(end == timestamp.end());
                                 msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
                                 msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
 
-                                if (AddMessage(msg, options))
+                                if (AddMessage(msg))
                                 {
                                     added = true;
                                 }

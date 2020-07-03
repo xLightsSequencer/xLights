@@ -1,5 +1,14 @@
-#ifndef MODEL_IMAGES_H
-#define MODEL_IMAGES_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "tree.xpm"
 #include "wreath.xpm"
@@ -25,4 +34,10 @@
 #include "add_object_image.xpm"
 #include "add_object_gridlines.xpm"
 #include "add_object_mesh.xpm"
-#endif
+#include "add_dmx_moving_head.xpm"
+#include "add_dmx_skulltronix.xpm"
+#include "add_dmx.xpm"
+#include "add_dmx_floodlight.xpm"
+#include "add_dmx_servo.xpm"
+#include "add_dmx_servo3d.xpm"
+#include "add_dmx_servo_3axis.xpm"

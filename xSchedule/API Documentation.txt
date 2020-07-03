@@ -36,6 +36,19 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 		GetMatrices
 			- gets a list of matrices that the user has defined for text output and other matrix runtime output. Data includes:
 				- Name
+
+		GetMatrix <matrix name>
+			- gets the matrix configuration settings for the matix name. Data includes:
+				- Name
+				- Width
+				- Height
+				- Start Channel
+				- Channels
+				- Start Location
+				- Orientation
+				- Strings
+				- String Length
+				- Strands Per String
 	
 		GetPlayListSchedules <playlist name>
 			- get the list of schedules that exist for the specified playlist. If the playlist name is not unique then it will return the first playlist found only. Data includes:
@@ -51,6 +64,9 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 				
 		GetPlayListSchedule <playlist name><schedule name>
 			- get the details of the named schedule on the named playlist. These parameters should be expressed as "PlayListName,ScheduleName". The data returned is the same as GetPlayListSchedules
+
+		GetRangesSet
+		    - Provides back a list of channel ranges set by the "Set pixel range" and "Set pixels"
 		
 		GetPlayingStatus
 			- This API tells you all about what the scheduler is playing right now. Data includes:
@@ -143,6 +159,9 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Jump to random step in specified playlist <playlist name>
 			This starts the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will continue to play.
 			
+        Play one random step in specified playlist <playlist name>
+			This plays the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will stop.
+
 		Jump to specified step in current playlist <step name>
 			This jumps to the named step in the currenly playing playlist. At the end of the step the playlist will continue to play.
 			
@@ -197,6 +216,12 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Increase brightness by n% <brighness -100-100>
 			Adjusts the global brightness level by the specified amount. Unless you are running a fully pixel show this is unlikely to be useful as it adjusts the value of every single output channel. To dim selected channels/elements see the schedulers output processing settings.
 
+		Activate all schedules 
+			Sets all schedules to enabled
+			
+		Deactivate all schedules
+			Sets all schedules to disabled
+			
 		Activate specified schedule <schedule name>
 			Sets all instances of schedules with the specified name to enabled
 			
@@ -253,7 +278,11 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 				unmask
 				overwriteifblack
 				max
-			Once set this data will continue to be output until it is overwritten using the same start channel. If the data size is blank then the pixel data is removed.
+			Once set this data will continue to be output until it is overwritten using the same start channel. If the data size is 0 then the pixel data is removed.
+
+		Set pixel range <start channel>,<channels>,<colour>,<blend mode>
+			Sets the range of channels to the nominated colour. colours can be specified using primary colour names or #RRGGBB where RR etc is the hex value.
+			To remove a range from the set ranges pass the start channel and a channel count of 0
 
 		Run process <playlist name>,<step name>,<run process name>
 			This api will run the run process specified without interupting any playlists that happen to be playing at that time. This can be used to run a script which maybe does some more complicated control of the scheduler. For example ... if you wanted to fade the volume down over a period of 3 seconds you could kick off a script that called the api to change the volume several times over the time period.
@@ -301,12 +330,48 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Stop test mode	
 			Stops test mode and restores xSchedule to its previous mode
 
-        Change show folder <show folder>
-            Change the show folder to the named show folder (if it exists). 
-            If blank is passed the current show folder is reloaded
-			
-http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
+		Change show folder <show folder>
+			Change the show folder to the named show folder (if it exists). 
+			If blank is passed the current show folder is reloaded
 
+		Set mode <mode|mode|mode>
+			Sets the test/master/remote modes of xSchedule. You can have one remote mode and many master modes. If more than one remote
+			mode is specified the last one listed wins. Modes can be:
+				Standalone
+				Test
+				Master_FPPUnicast
+				Master_FPPUnicastCSV
+				Master_FPPBroadcast
+				Master_FPPMulticast
+				Master_Artnet
+				Master_MIDI
+				Master_OSC
+				Remote_FPPCSV
+				Remote_FPP
+				Remote_Artnet
+				Remote_MIDI
+				Remote_OSC
+                Remote_SMPTE
+						
+		Fire plugin event <plugin>|<plugin parameteres>
+			Fires an event to the named plugin with the specified data
+			If the plugin name is * then the event is sent to all plugins.
+			The plugin parameters are interpreted by the plugin
+						
+        Set step position <pos>
+            Set the position in a song where pos is a number between 0 and 255
+
+        Set step position ms <pos>
+            Set the position in a song where pos is the miliisecond position
+
+		Adjust frame interval by ms <ms>
+			Adjusts the frame interval up or down by the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it adjusts to zero then the override is disabled.
+		
+		Set frame interval to ms <ms>
+			Set the frame interval to the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it is set to zero then the override is disabled and the sequence frame rate is used.
+
+
+http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 	This API allows the webpage to store and retrieve data between sessions. The key used should be unique to the webpage. There is no security or protection beyond the password protection to this data. There are 2 commands supported:
 	

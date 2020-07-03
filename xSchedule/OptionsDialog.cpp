@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "OptionsDialog.h"
 
 #include "ScheduleOptions.h"
@@ -9,11 +19,14 @@
 #include <wx/file.h>
 #include "../xLights/AudioManager.h"
 #include "City.h"
+#include "../xLights/UtilFunctions.h"
+#include "../xLights/outputs/IPOutput.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/config.h>
 
 //(*IdInit(OptionsDialog)
 const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
@@ -24,6 +37,9 @@ const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX9 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX10 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX11 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX12 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -31,10 +47,6 @@ const long OptionsDialog::ID_BUTTON6 = wxNewId();
 const long OptionsDialog::ID_BUTTON7 = wxNewId();
 const long OptionsDialog::ID_BUTTON10 = wxNewId();
 const long OptionsDialog::ID_BUTTON9 = wxNewId();
-const long OptionsDialog::ID_STATICTEXT7 = wxNewId();
-const long OptionsDialog::ID_CHOICE1 = wxNewId();
-const long OptionsDialog::ID_STATICTEXT8 = wxNewId();
-const long OptionsDialog::ID_CHOICE2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
@@ -44,10 +56,20 @@ const long OptionsDialog::ID_STATICTEXT5 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL2 = wxNewId();
-const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
-const long OptionsDialog::ID_CHOICE3 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT7 = wxNewId();
+const long OptionsDialog::ID_CHOICE1 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT12 = wxNewId();
+const long OptionsDialog::ID_CHOICE7 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT11 = wxNewId();
+const long OptionsDialog::ID_CHOICE6 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT8 = wxNewId();
+const long OptionsDialog::ID_CHOICE2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
 const long OptionsDialog::ID_CHOICE4 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
+const long OptionsDialog::ID_CHOICE3 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT10 = wxNewId();
+const long OptionsDialog::ID_CHOICE5 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -65,12 +87,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	//(*Initialize(OptionsDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 
-	Create(parent, id, _("Options"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
+	Create(parent, id, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -100,6 +123,15 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_SuppressAudioOnRemotes = new wxCheckBox(this, ID_CHECKBOX9, _("Suppress audio on remotes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
 	CheckBox_SuppressAudioOnRemotes->SetValue(true);
 	FlexGridSizer7->Add(CheckBox_SuppressAudioOnRemotes, 1, wxALL|wxEXPAND, 5);
+	CheckBox_HWAcceleratedVideo = new wxCheckBox(this, ID_CHECKBOX10, _("Use hardware accelerated video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX10"));
+	CheckBox_HWAcceleratedVideo->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_HWAcceleratedVideo, 1, wxALL|wxEXPAND, 5);
+	CheckBox_LastStartingSequenceUsesTime = new wxCheckBox(this, ID_CHECKBOX11, _("Late starting scheduled sequence uses time to determine start location"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
+	CheckBox_LastStartingSequenceUsesTime->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_LastStartingSequenceUsesTime, 1, wxALL|wxEXPAND, 5);
+	CheckBox_KeepScreenOn = new wxCheckBox(this, ID_CHECKBOX12, _("Keep computer screen on"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX12"));
+	CheckBox_KeepScreenOn->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_KeepScreenOn, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -123,19 +155,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
-	FlexGridSizer8->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("ARTNet Time Code Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer8->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_ARTNetTimeCodeFormat = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-	Choice_ARTNetTimeCodeFormat->Append(_("Film - 24 fps"));
-	Choice_ARTNetTimeCodeFormat->SetSelection( Choice_ARTNetTimeCodeFormat->Append(_("EBU - 25 fps")) );
-	Choice_ARTNetTimeCodeFormat->Append(_("DF - 29.97 fps"));
-	Choice_ARTNetTimeCodeFormat->Append(_("SMPTE - 30 fps"));
-	FlexGridSizer8->Add(Choice_ARTNetTimeCodeFormat, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Web Server Port:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_WebServerPort = new wxSpinCtrl(this, ID_SPINCTRL1, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 80, _T("ID_SPINCTRL1"));
@@ -158,18 +177,46 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	SpinCtrl_PasswordTimeout = new wxSpinCtrl(this, ID_SPINCTRL2, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 30, _T("ID_SPINCTRL2"));
 	SpinCtrl_PasswordTimeout->SetValue(_T("30"));
 	FlexGridSizer8->Add(SpinCtrl_PasswordTimeout, 1, wxALL|wxEXPAND, 5);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Location:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Location = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	FlexGridSizer8->Add(Choice_Location, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3->AddGrowableCol(3);
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer3->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
+	FlexGridSizer3->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
+	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer3->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_InputAudioDevice = new wxChoice(this, ID_CHOICE7, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE7"));
+	FlexGridSizer3->Add(Choice_InputAudioDevice, 1, wxALL|wxEXPAND, 5);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("SMPTE Timecode Frame Rate:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer3->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_SMPTEFrameRate = new wxChoice(this, ID_CHOICE6, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE6"));
+	FlexGridSizer3->Add(Choice_SMPTEFrameRate, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("ARTNet Time Code Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer3->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_ARTNetTimeCodeFormat = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	Choice_ARTNetTimeCodeFormat->Append(_("Film - 24 fps"));
+	Choice_ARTNetTimeCodeFormat->SetSelection( Choice_ARTNetTimeCodeFormat->Append(_("EBU - 25 fps")) );
+	Choice_ARTNetTimeCodeFormat->Append(_("DF - 29.97 fps"));
+	Choice_ARTNetTimeCodeFormat->Append(_("SMPTE - 30 fps"));
+	FlexGridSizer3->Add(Choice_ARTNetTimeCodeFormat, 1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Behaviour on crash:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-	FlexGridSizer8->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_OnCrash = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
 	Choice_OnCrash->SetSelection( Choice_OnCrash->Append(_("Prompt user")) );
 	Choice_OnCrash->Append(_("Silently exit after sending crash log"));
 	Choice_OnCrash->Append(_("Silently exit without sending crash log"));
-	FlexGridSizer8->Add(Choice_OnCrash, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(Choice_OnCrash, 1, wxALL|wxEXPAND, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Location:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Location = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+	FlexGridSizer3->Add(Choice_Location, 1, wxALL|wxEXPAND, 5);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Force Local IP:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer3->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice1 = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	FlexGridSizer3->Add(Choice1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();
@@ -180,6 +227,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+	Center();
 
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsBeginDrag);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsItemSelect);
@@ -196,9 +244,16 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	//*)
 
     auto audioDevices = AudioManager::GetAudioDevices();
-    for (auto it = audioDevices.begin(); it != audioDevices.end(); ++it)
+    for (const auto& it : audioDevices)
     {
-        Choice_AudioDevice->Append(*it);
+        Choice_AudioDevice->Append(it);
+    }
+
+    Choice_InputAudioDevice->SetSelection(Choice_InputAudioDevice->Append(_("(Default)")));
+    auto inputAudioDevices = AudioManager::GetInputAudioDevices();
+    for (const auto& it : inputAudioDevices)
+    {
+        Choice_InputAudioDevice->Append(it);
     }
 
     auto cities = City::GetCities();
@@ -223,7 +278,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
     CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
     CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
+    CheckBox_KeepScreenOn->SetValue(options->IsKeepScreenOn());
     CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
+    CheckBox_HWAcceleratedVideo->SetValue(options->IsHardwareAcceleratedVideo());
+    CheckBox_LastStartingSequenceUsesTime->SetValue(options->IsLateStartingScheduleUsesTime());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -237,6 +295,18 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     {
         Choice_AudioDevice->SetStringSelection("(Default)");
     }
+    Choice_InputAudioDevice->SetStringSelection(options->GetInputAudioDevice());
+    if (Choice_InputAudioDevice->GetSelection() == -1)
+    {
+        Choice_InputAudioDevice->SetStringSelection("(Default)");
+    }
+
+    Choice1->AppendString("");
+    for (auto it : GetLocalIPs())
+    {
+        Choice1->AppendString(it);
+    }
+    Choice1->SetStringSelection(IPOutput::GetLocalIP());
 
     LoadButtons();
 
@@ -256,6 +326,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
+
+#ifndef __WXMSW__
+    CheckBox_KeepScreenOn->Enable(false);
+#endif
 
     ValidateWindow();
 }
@@ -294,6 +368,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
+    _options->SetHardwareAcceleratedVideo(CheckBox_HWAcceleratedVideo->GetValue());
     _options->SetRetryOutputOpen(CheckBox_RetryOpen->GetValue());
     _options->SetSendBackgroundWhenNotRunning(CheckBox_RunBackground->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
@@ -306,7 +381,9 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
     _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
+    _options->SetKeepScreenOn(CheckBox_KeepScreenOn->GetValue());
     _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
+    _options->SetLateStartingScheduleUsesTime(CheckBox_LastStartingSequenceUsesTime->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {
@@ -317,6 +394,17 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     {
         _options->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
         AudioManager::SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+    }
+
+    if (Choice_InputAudioDevice->GetStringSelection() == "(Default)")
+    {
+        _options->SetInputAudioDevice("");
+        AudioManager::SetInputAudioDevice("");
+    }
+    else
+    {
+        _options->SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
+        AudioManager::SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
     }
 
     _options->ClearButtons();
@@ -333,6 +421,18 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
                             hotkey,
                             ListView_Buttons->GetItemText(i, 4).ToStdString(),
                             _commandManager);
+    }
+
+    if (Choice1->GetStringSelection() != IPOutput::GetLocalIP())
+    {
+        IPOutput::SetLocalIP(Choice1->GetStringSelection());
+        wxConfig* xlconfig = new wxConfig(_("xLights"));
+        if (xlconfig != nullptr)
+        {
+            xlconfig->Write("xLightsLocalIP", Choice1->GetStringSelection());
+            delete xlconfig;
+        }
+        wxMessageBox("Local IP changed. If you are outputting to lights please stop and restart light output");
     }
 
     EndDialog(wxID_OK);

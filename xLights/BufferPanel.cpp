@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
@@ -655,8 +665,8 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
     BufferStyleChoice->Clear();
     if (model != nullptr) {
         const std::vector<std::string> &types = model->GetBufferStyles();
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            BufferStyleChoice->Append(*it);
+        for (const auto& it : types) {
+            BufferStyleChoice->Append(it);
         }
     }
     if (BufferStyleChoice->IsEmpty()) {
@@ -673,8 +683,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         BufferStyleChoice->Clear();
         if (model != nullptr) {
             const std::vector<std::string> &types = model->GetBufferStyles();
-            for (auto it = types.begin(); it != types.end(); ++it) {
-                BufferStyleChoice->Append(*it);
+            for (const auto& it : types) {
+                BufferStyleChoice->Append(it);
             }
         }
         if (BufferStyleChoice->IsEmpty()) {

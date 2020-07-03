@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 
@@ -36,7 +46,7 @@ void LayoutGroup::SetBackgroundImage(const wxString &filename)
                 mModelPreview->Update();
             }
         }
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetBackgroundImage");
     }
 }
 
@@ -52,7 +62,7 @@ void LayoutGroup::SetBackgroundBrightness(int i, int a)
         if( mModelPreview != nullptr ) {
             mModelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
         }
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetBackgroundBrightness");
     }
 }
 
@@ -65,7 +75,7 @@ void LayoutGroup::SetBackgroundScaled(bool scaled)
         if( mModelPreview != nullptr ) {
             mModelPreview->SetScaleBackgroundImage(scaled);
         }
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetBackgroundScaled");
     }
 }
 
@@ -76,7 +86,7 @@ void LayoutGroup::SetPreviewPosition(wxPoint point)
         LayoutGroupXml->AddAttribute("PosX", wxString::Format("%d",point.x));
         LayoutGroupXml->DeleteAttribute("PosY");
         LayoutGroupXml->AddAttribute("PosY", wxString::Format("%d",point.y));
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetPreviewPosition");
     }
 }
 
@@ -87,7 +97,7 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
         LayoutGroupXml->AddAttribute("PaneWidth", wxString::Format("%d",size_.GetWidth()));
         LayoutGroupXml->DeleteAttribute("PaneHeight");
         LayoutGroupXml->AddAttribute("PaneHeight", wxString::Format("%d",size_.GetHeight()));
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetPreviewSize");
     }
 }
 

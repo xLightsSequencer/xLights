@@ -1,0 +1,127 @@
+<Vendor Name="J1Sys">
+	<Controller Name="P2">
+		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>8</MaxInputUniverses>
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<!-- setting this high as we wont use it-->
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</Variant>
+	</Controller>
+	<Controller Name="P12D">
+		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>12</MaxInputUniverses>
+			<MaxPixelPort>12</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</Variant>
+	</Controller>
+	<Controller Name="P12R">
+		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>12</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</Variant>
+		<Variant Name="3.4+">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>26</MaxInputUniverses>
+			<MaxPixelPort>12</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</Variant>
+	</Controller>
+	<Controller Name="P12S">
+		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>12</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</Variant>
+	</Controller>
+</Vendor>

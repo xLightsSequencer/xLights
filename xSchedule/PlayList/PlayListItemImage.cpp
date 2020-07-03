@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemImage.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
@@ -7,6 +17,7 @@
 #include "../../xLights/effects/GIFImage.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
@@ -43,6 +54,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _ImageFile = node->GetAttribute("ImageFile", "");
+    _ImageFile = FixFile("", _ImageFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _duration = wxAtoi(node->GetAttribute("Duration", "0"));
@@ -52,6 +64,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _type = "PLIImage";
     _gifImage = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
@@ -81,7 +94,7 @@ PlayListItem* PlayListItemImage::Copy() const
 
 wxXmlNode* PlayListItemImage::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIImage");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ImageFile", _ImageFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));

@@ -1,5 +1,14 @@
-#ifndef CUBEMODEL_H
-#define CUBEMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
 
@@ -7,8 +16,6 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
     
-        static void InitialiseChoices();
-
         CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CubeModel();
 
@@ -27,6 +34,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override { return _strands; };
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual void ExportAsCustomXModel() const override;
+        virtual int NodesPerString() const override;
 
         virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
@@ -58,5 +66,3 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _strandLength = 1;
         int _strands = 1;
 };
-
-#endif // CUBEMODEL_H

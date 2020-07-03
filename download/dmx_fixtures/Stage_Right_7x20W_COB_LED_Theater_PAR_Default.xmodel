@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stage_Right 7x20W COB LED Theater PAR Default" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Zoom,Strobe Speed,Dimmer speed" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe Speed" s1-Name="no_function" s1-Color="#050505" 
+s2="Strobe Speed" s2-Name="strobe_speed_5-20hz" s2-Color="#858585" 
+s3="Dimmer speed" s3-Name="real_time" s3-Color="#202020" 
+s4="Dimmer speed" s4-Name="fast_controlled_response_recommended_for_use_with_less_expensive_dmx512_controllers_" s4-Color="#606060" 
+s5="Dimmer speed" s5-Name="medium_controlled_response_" s5-Color="#A0A0A0" 
+s6="Dimmer speed" s6-Name="slow_controlled_response_" s6-Color="#E0E0E0" 
+/>
+</dmxmodel>

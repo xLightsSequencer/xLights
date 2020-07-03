@@ -1,6 +1,5 @@
 
-DESTDIR    =
-PREFIX          = /usr/local
+PREFIX          = /usr
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
@@ -14,13 +13,12 @@ DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
-PATH            := $(CURDIR)/wxWidgets-3.1.2:$(PATH)
 
 SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
 .NOTPARALLEL:
 
-all: wxwidgets31 cbp2make linkliquid makefile subdirs
+all: wxwidgets31 log4cpp cbp2make linkliquid makefile subdirs
 
 #############################################################################
 
@@ -36,26 +34,44 @@ linkliquid:
 	@printf "Linking libliquid\n"
 	@if test ! -e lib/linux/libliquidfun.a; \
 		then if test "${DEB_HOST_ARCH}" = "i386"; \
-            then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
-            elif test "${DEB_HOST_ARCH}" = "amd64"; \
-            then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
-            else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
-        fi; \
+    		then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
+			elif test "${DEB_HOST_ARCH}" = "amd64"; \
+			then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
+			else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
+		fi; \
 	fi
+
+log4cpp: FORCE
+	@printf "Checking log4cpp\n"
+	@if test "`log4cpp-config --version`" != "1.1"; \
+		then if test ! -d log4cpp; \
+			then echo Downloading log4cpp; wget --no-verbose -c https://nchc.dl.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.3.tar.gz; \
+			tar xfz log4cpp-1.1.3.tar.gz ;\
+		fi; \
+		cd log4cpp; \
+		./configure --prefix=$(PREFIX); \
+		echo Building log4cpp; \
+		${MAKE} -s; \
+		echo Installing log4cpp; \
+		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		echo Completed build/install of log4cpp; \
+		fi
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.2"; \
-		then if test ! -d wxWidgets-3.1.2; \
-			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.2.tar.bz2; \
-			tar xfj wxWidgets-3.1.2.tar.bz2; \
+	@if test "`wx-config --version`" != "3.1.3"; \
+		then if test ! -d wxWidgets-3.1.3; \
+			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2; \
+			tar xfj wxWidgets-3.1.3.tar.bz2; \
 		fi; \
-		cd wxWidgets-3.1.2; \
+		cd wxWidgets-3.1.3; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
-		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff; \
+		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -s; \
-		echo Completed build of wxwidgets; \
+		echo Installing wxwidgets; \
+		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		echo Completed build/install of wxwidgets; \
         fi
 
 
@@ -80,7 +96,7 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
-	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon $(DESTDIR)/${PREFIX}/bin/xSMSDaemon
+	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon.so $(DESTDIR)/${PREFIX}/bin/xSMSDaemon.so
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
@@ -93,6 +109,10 @@ install:
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/controllers
 	cp -r controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
+	cp -r meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
+	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs

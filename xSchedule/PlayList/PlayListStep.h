@@ -1,5 +1,15 @@
-#ifndef PLAYLISTSTEP_H
-#define PLAYLISTSTEP_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <string>
 #include <wx/wx.h>
@@ -11,6 +21,7 @@ class wxXmlNode;
 class PlayListItem;
 class wxWindow;
 class AudioManager;
+class PlayList;
 
 class PlayListStep
 {
@@ -45,7 +56,9 @@ public:
 #pragma endregion Constructors and Destructors
 
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
-
+    static int GetStepIdFromName(const std::string& step);
+    static std::string GetStepNameWithId(int id);
+    
 #pragma region Getters and Setters
     PlayListItemText* GetTextItem(const std::string& name);
     wxUint32 GetId() const { return _id; }
@@ -53,10 +66,12 @@ public:
     std::list<PlayListItem*> GetItems();
     bool IsDirty();
     void ClearDirty();
+    void SetDirty() { _changeCount++; }
     std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
-    std::string GetName();
+    std::string GetStartTime(PlayList* pl);
+    std::string GetName(PlayList* pl);
     std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
@@ -95,4 +110,3 @@ public:
     wxXmlNode* Save();
     void Load(OutputManager* outputManager, wxXmlNode * node);
 };
-#endif

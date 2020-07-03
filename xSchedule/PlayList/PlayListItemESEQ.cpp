@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemESEQ.h"
 #include "wx/xml/xml.h"
 #include <wx/notebook.h>
@@ -16,11 +26,13 @@ void PlayListItemESEQ::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _ESEQFileName = node->GetAttribute("ESEQFile", "");
+    _ESEQFileName = FixFile("", _ESEQFileName);
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
 }
 
 PlayListItemESEQ::PlayListItemESEQ() : PlayListItem()
 {
+    _type = "PLIESEQ";
     _ESEQFile = nullptr;
     _ESEQFileName = "";
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -48,7 +60,7 @@ PlayListItem* PlayListItemESEQ::Copy() const
 
 wxXmlNode* PlayListItemESEQ::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIESEQ");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ESEQFile", _ESEQFileName);
     _ESEQFileName = FixFile("", _ESEQFileName);

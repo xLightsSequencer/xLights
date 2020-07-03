@@ -1,5 +1,14 @@
-#ifndef TIMELINE_H
-#define TIMELINE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/wx.h"
 #include "wx/window.h"
@@ -62,6 +71,7 @@ public:
 
     void SetTimeFrequency(int frequency);
     int GetTimeFrequency() const;
+    int GetFrameMS() const { return 1000.0 / mFrequency; }
 
     void SetTimeLength(int ms);
     int GetTimeLength() const;
@@ -82,6 +92,7 @@ public:
     int GetPositionFromTimeMS(int timeMS);
 
     void SetSequenceEnd(int ms);
+    int GetSequenceEnd() const { return mSequenceEndMarkerMS; }
 
     int GetTimeMSfromPosition(int position);
     int GetAbsoluteTimeMSfromPosition(int position);
@@ -178,5 +189,3 @@ public:
     int CurrentTimeMS;
 
 };
-
-#endif // TIMELINE_H

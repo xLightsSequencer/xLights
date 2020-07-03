@@ -1,3 +1,14 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+
 #include "Blend.h"
 
 //#define SIMD
@@ -20,6 +31,7 @@ void PopulateBlendModes(wxChoice* choice)
 {
     choice->AppendString("Overwrite");
     choice->AppendString("Overwrite if zero");
+    choice->AppendString("Overwrite skip black");
     choice->AppendString("Mask out if not zero");
     choice->AppendString("Mask out if zero");
     choice->AppendString("Average");
@@ -74,6 +86,10 @@ APPLYMETHOD EncodeBlendMode(const std::string blendMode)
     {
         return APPLYMETHOD::METHOD_MIN;
     }
+    else if(bm == "overwrite skip black")
+    {
+        return APPLYMETHOD::METHOD_OVERWRITESKIPBLACK;
+    }
 
     return APPLYMETHOD::METHOD_OVERWRITE;
 }
@@ -88,6 +104,8 @@ std::string DecodeBlendMode(APPLYMETHOD blendMode)
         return "Overwrite if zero";
     case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
         return "Overwrite if black";
+    case APPLYMETHOD::METHOD_OVERWRITESKIPBLACK:
+        return "Overwrite skip black";
     case APPLYMETHOD::METHOD_MASK:
         return "Mask out if not zero";
     case APPLYMETHOD::METHOD_MASKPIXEL:
@@ -136,6 +154,8 @@ void Blend(uint8_t* buffer, size_t bufferSize, uint8_t* blendBuffer, size_t blen
         return UnmaskPixel(pb, blendBuffer, bytesToUse / 3);
     case APPLYMETHOD::METHOD_MIN:
         return Minimum(pb, blendBuffer, bytesToUse);
+    case APPLYMETHOD::METHOD_OVERWRITESKIPBLACK:
+        return OverwriteSkipBlack(pb, blendBuffer, bytesToUse / 3);
     }
 }
 
@@ -468,6 +488,22 @@ void OverwriteIfBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
         if (sum == 0)
         {
             uint8_t* pp = blendBuffer + i * 3;
+            *p = *pp;
+            *(p + 1) = *(pp + 1);
+            *(p + 2) = *(pp + 2);
+        }
+    }
+}
+
+void OverwriteSkipBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
+{
+    for (size_t i = 0; i < pixels; ++i)
+    {
+        uint8_t* pp = blendBuffer + i * 3;
+        auto sum = *pp + *(pp + 1) + *(pp + 2);
+        if (sum > 0)
+        {
+            uint8_t* p = buffer + i * 3;
             *p = *pp;
             *(p + 1) = *(pp + 1);
             *(p + 2) = *(pp + 2);

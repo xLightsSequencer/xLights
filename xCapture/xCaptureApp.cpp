@@ -27,6 +27,57 @@
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 
+#ifdef _MSC_VER
+    #ifdef _DEBUG
+        #pragma comment(lib, "wxbase31ud.lib")
+        #pragma comment(lib, "wxbase31ud_net.lib")
+        #pragma comment(lib, "wxmsw31ud_core.lib")
+        #pragma comment(lib, "wxscintillad.lib")
+        #pragma comment(lib, "wxregexud.lib")
+        #pragma comment(lib, "wxbase31ud_xml.lib")
+        #pragma comment(lib, "wxtiffd.lib")
+        #pragma comment(lib, "wxjpegd.lib")
+        #pragma comment(lib, "wxpngd.lib")
+        #pragma comment(lib, "wxzlibd.lib")
+        #pragma comment(lib, "wxmsw31ud_qa.lib")
+        #pragma comment(lib, "wxexpatd.lib")
+        #pragma comment(lib, "msvcprtd.lib")
+        #pragma comment(lib, "log4cpplibd.lib")
+    #else
+        #pragma comment(lib, "wxbase31u.lib")
+        #pragma comment(lib, "wxbase31u_net.lib")
+        #pragma comment(lib, "wxmsw31u_core.lib")
+        #pragma comment(lib, "wxscintilla.lib")
+        #pragma comment(lib, "wxregexu.lib")
+        #pragma comment(lib, "wxbase31u_xml.lib")
+        #pragma comment(lib, "wxtiff.lib")
+        #pragma comment(lib, "wxjpeg.lib")
+        #pragma comment(lib, "wxpng.lib")
+        #pragma comment(lib, "wxzlib.lib")
+        #pragma comment(lib, "wxmsw31u_qa.lib")
+        #pragma comment(lib, "wxexpat.lib")
+        #pragma comment(lib, "msvcprt.lib")
+        #pragma comment(lib, "log4cpplib.lib")
+    #endif
+    #pragma comment(lib, "ImageHlp.Lib")
+    #pragma comment(lib, "iphlpapi.lib")
+    #pragma comment(lib, "WS2_32.Lib")
+    #pragma comment(lib, "comdlg32.lib")
+    #pragma comment(lib, "comctl32.lib")
+    #pragma comment(lib, "Rpcrt4.lib")
+    #pragma comment(lib, "uuid.lib")
+    #pragma comment(lib, "advapi32.lib")
+    #pragma comment(lib, "shell32.lib")
+    #pragma comment(lib, "ole32.lib")
+    #pragma comment(lib, "oleaut32.lib")
+    #pragma comment(lib, "odbc32.lib") 
+    #pragma comment(lib, "odbccp32.lib")
+    #pragma comment(lib, "kernel32.lib")
+    #pragma comment(lib, "user32.lib")
+    #pragma comment(lib, "winspool.lib")
+    #pragma comment(lib, "gdi32.lib")
+#endif
+
 IMPLEMENT_APP(xCaptureApp)
 
 std::string DecodeOS(wxOperatingSystemId o)
@@ -276,6 +327,7 @@ void handleCrash(void *data) {
 LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 {
     handleCrash(ExceptionInfo->ContextRecord);
+    return 0;
 }
 #endif
 
@@ -310,7 +362,9 @@ bool xCaptureApp::OnInit()
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
+    #if !defined(_DEBUG) || !defined(_MSC_VER)
+        wxHandleFatalExceptions();
+    #endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Eurolite GKF-60 4 Channel" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Gobo,Effect Wheel,Shutter/Strobe,Dimmer" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Gobo" s1-Name="home" s1-Color="#030303" 
+s2="Gobo" s2-Name="index-position_1" s2-Color="#080808" 
+s3="Gobo" s3-Name="index-position_2" s3-Color="#090909" 
+s4="Gobo" s4-Name="index-position_3" s4-Color="#0A0A0A" 
+s5="Gobo" s5-Name="index-position_4" s5-Color="#0B0B0B" 
+s6="Gobo" s6-Name="index-position_5" s6-Color="#0C0C0C" 
+s7="Gobo" s7-Name="index-position_6" s7-Color="#0D0D0D" 
+s8="Gobo" s8-Name="index-position_7" s8-Color="#0E0E0E" 
+s9="Gobo" s9-Name="index-position_8" s9-Color="#0F0F0F" 
+s10="Gobo" s10-Name="rainbow_effect_increasing_speed" s10-Color="#878787" 
+s11="Effect Wheel" s11-Name="stop" s11-Color="#030303" 
+s12="Effect Wheel" s12-Name="forward_rotation_with_increasing_speed" s12-Color="#434343" 
+s13="Effect Wheel" s13-Name="backward_rotation_with_increasing_speed" s13-Color="#C3C3C3" 
+s14="Shutter/Strobe" s14-Name="blackout" s14-Color="#030303" 
+s15="Shutter/Strobe" s15-Name="shutter_open" s15-Color="#0B0B0B" 
+s16="Shutter/Strobe" s16-Name="strobe-effect_with_increasing_speed" s16-Color="#494949" 
+s17="Shutter/Strobe" s17-Name="pulse_opening_with_decreasing_speed" s17-Color="#A0A0A0" 
+s18="Shutter/Strobe" s18-Name="pulse_closing_with_decreasing_speed" s18-Color="#D2D2D2" 
+s19="Shutter/Strobe" s19-Name="reset_after_3-5_seconds" s19-Color="#EBEBEB" 
+s20="Shutter/Strobe" s20-Name="random_strobe-effect" s20-Color="#F3F3F3" 
+/>
+</dmxmodel>

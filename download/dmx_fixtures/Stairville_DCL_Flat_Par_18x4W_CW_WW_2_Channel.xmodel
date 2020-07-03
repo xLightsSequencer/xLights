@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stairville DCL Flat Par 18x4W CW/WW 2 Channel" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Warm White,Cold White,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node4" s1-Name="no_function" s1-Color="#000000" 
+s2="Node4" s2-Name="program_01" s2-Color="#151515" 
+s3="Node4" s3-Name="program_02" s3-Color="#404040" 
+s4="Node4" s4-Name="program_03" s4-Color="#6B6B6B" 
+s5="Node4" s5-Name="program_04" s5-Color="#969696" 
+s6="Node4" s6-Name="program_05" s6-Color="#C1C1C1" 
+s7="Node4" s7-Name="sound_control" s7-Color="#EBEBEB" 
+s8="Node5" s8-Name="no_function_if_channel_4_eq_0_speed_if_channel_4_eq_43_214_sensitivity_if_channel_4_eq_215_255" s8-Color="#1F1F1F" 
+s9="Node5" s9-Name="warm_white_if_channel_4_eq_1_42_programme_01_speed_if_channel_4_eq_43_214_sensitivity_if_channel_4_eq_215_255" s9-Color="#5F5F5F" 
+s10="Node5" s10-Name="cold_white_if_channel_4_eq_1_42_programme_01_speed_if_channel_4_eq_43_214_sensitivity_if_channel_4_eq_215_255" s10-Color="#9F9F9F" 
+s11="Node5" s11-Name="all_if_channel_4_eq_1_42_programme_01_speed_if_channel_4_eq_43_214_sensitivity_if_channel_4_eq_215_255" s11-Color="#DFDFDF" 
+/>
+</dmxmodel>

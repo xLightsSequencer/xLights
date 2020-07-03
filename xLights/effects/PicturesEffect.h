@@ -1,5 +1,14 @@
-#ifndef PICTURESEFFECT_H
-#define PICTURESEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -27,8 +36,8 @@ class PicturesEffect : public RenderableEffect
         virtual bool HasAssistPanel() override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const override;
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         static bool IsPictureFile(std::string filename);
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
@@ -40,5 +49,3 @@ class PicturesEffect : public RenderableEffect
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel);
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel);
 };
-
-#endif // PICTURESEFFECT_H

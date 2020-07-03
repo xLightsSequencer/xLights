@@ -1,10 +1,18 @@
-#ifndef ELEMENTEFFECTS_H
-#define ELEMENTEFFECTS_H
+#pragma once
 
-#include "wx/wx.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <wx/wx.h>
 #include <vector>
 #include "Effect.h"
-
 
 #define EFFECT_BARS         0
 #define EFFECT_BUTTERFLY    1
@@ -91,5 +99,3 @@ class ElementEffects
         std::vector<Effect> mEffects;
 
 };
-
-#endif // ELEMENTEFFECTS_H

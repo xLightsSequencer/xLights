@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "FastComboEditor.h"
 #include <wx/tokenzr.h>
 #include "EzGrid.h"
@@ -42,9 +52,7 @@ void wxFastComboEditor::Create(wxWindow* parent,
                                     wxWindowID id,
                                     wxEvtHandler* evtHandler)
 {
-    int style = wxTE_PROCESS_ENTER |
-                wxTE_PROCESS_TAB |
-                wxBORDER_NONE;
+    int style = 0; //wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxBORDER_NONE;
 
     if ( !m_allowOthers )
         style |= wxCB_READONLY;
@@ -52,18 +60,14 @@ void wxFastComboEditor::Create(wxWindow* parent,
     //*******************  new code ***********************
     size_t count = m_choices.GetCount();
     wxString *choices = new wxString[count];
-    for ( size_t n = 0; n < count; n++ )
-    {
+    for ( size_t n = 0; n < count; n++ ) {
         choices[n] = m_choices[n];
     }
     m_control = new wxComboBox(parent, id, wxEmptyString,
                                 wxDefaultPosition, wxDefaultSize,
                                 count, choices,
-                                m_allowOthers ? 0 : wxCB_READONLY);
-/*    m_control = new wxSComboBox(parent, id, wxEmptyString,
-                               wxDefaultPosition, wxDefaultSize,
-                               m_choices,
-                               style);*/
+                                style);
+
     //*******************  new code ***********************
 
     wxGridCellEditor::Create(parent, id, evtHandler);

@@ -53,10 +53,13 @@ public:
     int _frameTimeMS;
     virtual ~PacketData() { if (_pdata != nullptr) free(_pdata); }
     PacketData(long type, wxByte* packet, int len);
+    PacketData(PacketData& pd, int seq, int time);
 };
 
 class Collector
 {
+    void DuplicateLastPacket(std::list<PacketData*>& newPackets, int startSeq, int endSeq, int timegap);
+
 public:
     int _universe;
     long _protocol;
@@ -68,6 +71,7 @@ public:
     void CalculateFrames(wxDateTime startTime, int frameMS);
     PacketData* GetPacket(long ms);
     bool operator<(const Collector& c) const;
+    void FillInMissingFrames(int frameTime);
 };
 
 class xCaptureFrame : public wxFrame
@@ -100,6 +104,7 @@ class xCaptureFrame : public wxFrame
     void UpdateCaptureDesc();
     void LoadState();
     void SaveState();
+    void FillInMissingFrames(int frameTime);
 
 public:
 
@@ -163,6 +168,7 @@ private:
         static const long ID_STATICTEXT9;
         static const long ID_CHOICE1;
         static const long ID_SPINCTRL1;
+        static const long ID_CHECKBOX1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON8;
         static const long ID_BUTTON2;
@@ -183,6 +189,7 @@ private:
         wxButton* Button_StartStop;
         wxCheckBox* CheckBox_ArtNET;
         wxCheckBox* CheckBox_E131;
+        wxCheckBox* CheckBox_FillInMissingFrames;
         wxCheckBox* CheckBox_TriggerOnChannel;
         wxChoice* Choice_Timing;
         wxListView* ListView_Universes;

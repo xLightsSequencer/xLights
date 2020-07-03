@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Contest Delirium 4 Channel" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Functions,Combos,Speed,Strobe" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Functions" s1-Name="off" s1-Color="#040404" 
+s2="Functions" s2-Name="synchronous_show" s2-Color="#454545" 
+s3="Functions" s3-Name="asynchronous_show" s3-Color="#BDBDBD" 
+s4="Functions" s4-Name="musical_mode" s4-Color="#FCFCFC" 
+s5="Combos" s5-Name="combo_1" s5-Color="#0A0A0A" 
+s6="Combos" s6-Name="combo_2" s6-Color="#202020" 
+s7="Combos" s7-Name="combo_3" s7-Color="#353535" 
+s8="Combos" s8-Name="combo_4" s8-Color="#4A4A4A" 
+s9="Combos" s9-Name="combo_5" s9-Color="#606060" 
+s10="Combos" s10-Name="combo_6" s10-Color="#757575" 
+s11="Combos" s11-Name="combo_7" s11-Color="#8A8A8A" 
+s12="Combos" s12-Name="combo_8" s12-Color="#A0A0A0" 
+s13="Combos" s13-Name="combo_9" s13-Color="#B5B5B5" 
+s14="Combos" s14-Name="combo_10" s14-Color="#CACACA" 
+s15="Combos" s15-Name="combo_11" s15-Color="#E0E0E0" 
+s16="Combos" s16-Name="combo_12" s16-Color="#F5F5F5" 
+s17="Strobe" s17-Name="on" s17-Color="#040404" 
+s18="Strobe" s18-Name="from_slow_to_fast" s18-Color="#848484" 
+/>
+</dmxmodel>

@@ -1,5 +1,14 @@
-#ifndef TIMINGPANEL_H
-#define TIMINGPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "BulkEditControls.h"
 
@@ -13,6 +22,7 @@
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -47,11 +57,16 @@ class TimingPanel: public wxPanel
 		BulkEditSlider* Slider_EffectLayerMix;
 		BulkEditSlider* Slider_In_Adjust;
 		BulkEditSlider* Slider_Out_Adjust;
+		BulkEditSpinCtrl* SpinCtrl_FreezeEffectAtFrame;
+		BulkEditSpinCtrl* SpinCtrl_SuppressEffectUntil;
 		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
 		BulkEditTextCtrl* TextCtrl_Fadein;
 		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
+		BulkEditValueCurveButton* BitmapButton_In_Transition_Adjust;
+		BulkEditValueCurveButton* BitmapButton_Out_Transition_Adjust;
+		wxButton* Button_About_Layers;
 		wxButton* Button_Layers;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
@@ -60,7 +75,9 @@ class TimingPanel: public wxPanel
 		wxScrolledWindow* ScrolledWindowTiming;
 		wxStaticText* InAdjustmentText;
 		wxStaticText* OutAdjustmentText;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		xlLockButton* BitmapButton_CheckBox_LayerMorph;
 		xlLockButton* BitmapButton_EffectLayerMix;
@@ -70,11 +87,16 @@ class TimingPanel: public wxPanel
 
 		//(*Identifiers(TimingPanel)
 		static const long ID_CHECKBOX_ResetTimingPanel;
+		static const long ID_STATICTEXT1;
+		static const long ID_SPINCTRL_SuppressEffectUntil;
+		static const long ID_STATICTEXT2;
+		static const long ID_SPINCTRL_FreezeEffectAtFrame;
 		static const long ID_CHECKBOX_LayerMorph;
 		static const long ID_SLIDER_EffectLayerMix;
 		static const long IDD_TEXTCTRL_EffectLayerMix;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
 		static const long ID_CHOICE_LayerMethod;
+		static const long ID_BUTTON_ABOUT_LAYERS;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_CHECKBOX_Canvas;
 		static const long ID_BUTTON1;
@@ -83,6 +105,7 @@ class TimingPanel: public wxPanel
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_STATICTEXT_In_Transition_Adjust;
 		static const long ID_SLIDER_In_Transition_Adjust;
+		static const long ID_VALUECURVE_In_Transition_Adjust;
 		static const long IDD_TEXTCTRL_In_Transition_Adjust;
 		static const long ID_CHECKBOX_In_Transition_Reverse;
 		static const long ID_PANEL2;
@@ -91,6 +114,7 @@ class TimingPanel: public wxPanel
 		static const long ID_TEXTCTRL_Fadeout;
 		static const long ID_STATICTEXT_Out_Transition_Adjust;
 		static const long ID_SLIDER_Out_Transition_Adjust;
+		static const long ID_VALUECURVE_Out_Transition_Adjust;
 		static const long IDD_TEXTCTRL_Out_Transition_Adjust;
 		static const long ID_CHECKBOX_Out_Transition_Reverse;
 		static const long ID_PANEL3;
@@ -111,9 +135,8 @@ class TimingPanel: public wxPanel
 		void OnButton_LayersClick(wxCommandEvent& event);
 		void OnChoice_LayerMethodSelect(wxCommandEvent& event);
 		void OnCheckBox_CanvasClick(wxCommandEvent& event);
+		void OnButton_AboutClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif
