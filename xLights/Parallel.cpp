@@ -12,6 +12,7 @@
 
 #include "Parallel.h"
 #include <thread>
+#include <algorithm>
 
 #include "JobPool.h"
 
