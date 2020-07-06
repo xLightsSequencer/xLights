@@ -81,6 +81,7 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
     _supportsBulkEdit = true;
     ID_FILEPICKERCTRL_BULKEDIT_FN = wxNewId();
     ID_FILEPICKERCTRL_BULKEDIT_PN = wxNewId();
+    ID_FILEPICKERCTRL_BULKEDIT_SF = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
     this->GetTextCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
 }
@@ -232,6 +233,7 @@ void BulkEditFilePickerCtrl::OnRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_FN, "Bulk Edit Filename");
     mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_PN, "Bulk Edit Path");
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_SF, "Bulk Edit Show Folder");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrlPopup, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -634,6 +636,43 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
             else
             {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id+"_PN", dlg.GetPath(), nullptr, "");
+            }
+        }
+    }
+    else if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_SF) {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr) {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxDirDialog dlg(this, label, fn.GetPath(), wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            fn.SetPath(dlg.GetPath());
+
+            Effect* e = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect") {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id + "_SF", dlg.GetPath(), nullptr, "");
+            }
+            else {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id + "_SF", dlg.GetPath(), nullptr, "");
+            }
+ 
+            if (e != nullptr) {
+                SetFileName(wxFileName(e->GetSettings().Get(id, GetFileName().GetFullPath())));
+            }
+            else                 {
+                SetFileName(GetFileName());
             }
         }
     }

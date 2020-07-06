@@ -176,7 +176,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
-    //sstatic log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
@@ -483,6 +483,7 @@ void Effect::PressButton(RenderableEffect* re, const std::string& id)
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString idd(id);
     if (idd.StartsWith("C_"))
     {
@@ -512,13 +513,44 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                 wxString realid = wid.substr(0, wid.Length() - 3);
                 if (wid.EndsWith("_FN")) {
                     mSettings[realid] = value;
-                } else {
+                } else if (wid.EndsWith("_PN")) {
                     if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
                         wxString origName = mSettings[realid];
                         wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
                         fn.SetPath(value);
                         wxString newName = fn.GetFullPath();
                         mSettings[realid] = newName;
+                    }
+                }
+                else if (wid.EndsWith("_SF")) {
+                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
+
+                        // This moves through all possible options to locate the file relative to the provided show folder.
+                        // This will be the deepest path possible ... so if the file exists in multiple locations it will find the 
+                        // deepest valid path
+                        // This only updates the path if we find the file ... if not found there will be no errors but it will log the issue
+                        wxString origName = mSettings[realid];
+
+                        wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
+
+                        auto file = fn.GetFullName();
+                        auto dirs = fn.GetDirs();    
+                        for (int i = 0; i < dirs.size(); i++)
+                        {
+                            auto pth = value + fn.GetPathSeparator();
+                            for (int j = i; j < dirs.size(); j++)                                 {
+                                pth += dirs[j] + fn.GetPathSeparator();
+                            }
+                            pth += file;
+                            if (wxFile::Exists(pth))                                 {
+                                // found it
+                                mSettings[realid] = pth;
+                                break;
+                            }
+                        }
+                        if (origName == mSettings[realid] && !wxFile::Exists(origName))                             {
+                            logger_base.warn("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
+                        }
                     }
                 }
             } else {

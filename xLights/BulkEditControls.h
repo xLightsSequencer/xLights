@@ -148,6 +148,7 @@ class BulkEditFilePickerCtrl : public wxFilePickerCtrl
 protected:
     long ID_FILEPICKERCTRL_BULKEDIT_FN;
     long ID_FILEPICKERCTRL_BULKEDIT_PN;
+    long ID_FILEPICKERCTRL_BULKEDIT_SF;
     bool _supportsBulkEdit;
     wxString _wildcard;
 
