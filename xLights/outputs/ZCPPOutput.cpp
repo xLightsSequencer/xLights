@@ -827,7 +827,7 @@ bool ZCPPOutput::Open() {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
-    if (!IsIPValid(_ip)) return false;
+    if (!IsIPValid(_resolvedIp)) return false;
 
     _lastSecond = -1;
 

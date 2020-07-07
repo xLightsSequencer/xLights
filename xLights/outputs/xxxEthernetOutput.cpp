@@ -185,7 +185,7 @@ std::string xxxEthernetOutput::GetExport() const {
 bool xxxEthernetOutput::Open() {
 
     if (!_enabled) return true;
-    if (!IsIPValid(_ip)) return false;
+    if (!IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 

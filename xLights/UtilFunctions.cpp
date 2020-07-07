@@ -1079,21 +1079,22 @@ std::string CleanupIP(const std::string& ip)
 
 std::string ResolveIP(const std::string& ip)
 {
-        if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "") {
-            return ip;
+    // Dont resolve partially entered ip addresses as these resolve into unexpected addresses
+    if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
+        return ip;
+    }
+    const std::string& resolvedIp = __resolvedIPMap[ip];
+    if (resolvedIp == "") {
+        wxIPV4address add;
+        add.Hostname(ip);
+        std::string r = add.IPAddress();
+        if (r == "0.0.0.0") {
+            r = ip;
         }
-        const std::string& resolvedIp = __resolvedIPMap[ip];
-        if (resolvedIp == "") {
-            wxIPV4address add;
-            add.Hostname(ip);
-            std::string r = add.IPAddress();
-            if (r == "0.0.0.0") {
-                r = ip;
-            }
-            __resolvedIPMap[ip] = r;
-            return __resolvedIPMap[ip];
-        }
-        return resolvedIp;
+        __resolvedIPMap[ip] = r;
+        return __resolvedIPMap[ip];
+    }
+    return resolvedIp;
 }
 
 int GetxFadePort(int xfp)

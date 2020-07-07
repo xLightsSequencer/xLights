@@ -289,7 +289,7 @@ bool ArtNetOutput::Open() {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
-    if (!IsIPValid(_ip)) return false;
+    if (!IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 
