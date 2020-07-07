@@ -4860,6 +4860,10 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
+            if (scalex == 0) scalex = 0.001f;
+            if (scaley == 0) scaley = 0.001f;
+            if (scalez == 0) scalez = 0.001f;
+
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
             float newz = (saved_position.z + drag_delta.z - worldPos_z) / scalez;
@@ -4867,53 +4871,59 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             // check for control point handles
             if (handle & 0x4000) {
                 int seg = handle & 0x0FFF;
-                switch (active_axis) {
-                case X_AXIS:
-                    mPos[seg].cp0.x = newx;
-                    break;
-                case Y_AXIS:
-                    mPos[seg].cp0.y = newy;
-                    break;
-                case Z_AXIS:
-                    mPos[seg].cp0.z = newz;
-                    break;
+                if (seg < mPos.size()) {
+                    switch (active_axis) {
+                    case X_AXIS:
+                        mPos[seg].cp0.x = newx;
+                        break;
+                    case Y_AXIS:
+                        mPos[seg].cp0.y = newy;
+                        break;
+                    case Z_AXIS:
+                        mPos[seg].cp0.z = newz;
+                        break;
+                    }
+                    mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
                 }
-                mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
             }
             else if (handle & 0x8000) {
                 int seg = handle & 0x0FFF;
-                switch (active_axis) {
-                case X_AXIS:
-                    mPos[seg].cp1.x = newx;
-                    break;
-                case Y_AXIS:
-                    mPos[seg].cp1.y = newy;
-                    break;
-                case Z_AXIS:
-                    mPos[seg].cp1.z = newz;
-                    break;
+                if (seg < mPos.size()) {
+                    switch (active_axis) {
+                    case X_AXIS:
+                        mPos[seg].cp1.x = newx;
+                        break;
+                    case Y_AXIS:
+                        mPos[seg].cp1.y = newy;
+                        break;
+                    case Z_AXIS:
+                        mPos[seg].cp1.z = newz;
+                        break;
+                    }
+                    mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
                 }
-                mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
                 FixCurveHandles();
             }
             else {
                 int point = handle - 1;
-                switch (active_axis) {
-                case X_AXIS:
-                    mPos[point].x = newx;
-                    break;
-                case Y_AXIS:
-                    mPos[point].y = newy;
-                    break;
-                case Z_AXIS:
-                    mPos[point].z = newz;
-                    break;
+                if (point < mPos.size()) {
+                    switch (active_axis) {
+                    case X_AXIS:
+                        mPos[point].x = newx;
+                        break;
+                    case Y_AXIS:
+                        mPos[point].y = newy;
+                        break;
+                    case Z_AXIS:
+                        mPos[point].z = newz;
+                        break;
+                    }
                 }
                 FixCurveHandles();
             }
         }
         else if (axis_tool == TOOL_XY_TRANS) {
-            if (latch) {
+            if (latch && mHandlePosition.size() > 1) {
                 saved_position.x = mHandlePosition[1].x * scalex + worldPos_x;
                 saved_position.y = mHandlePosition[1].y * scaley + worldPos_y;
                 saved_position.z = 0.0f;
@@ -4921,11 +4931,16 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
+            if (scalex == 0) scalex = 0.001f;
+            if (scaley == 0) scaley = 0.001f;
+
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
             int point = handle - 1;
-            mPos[point].x = newx;
-            mPos[point].y = newy;
+            if (point < mPos.size()) {
+                mPos[point].x = newx;
+                mPos[point].y = newy;
+            }
         }
 
     }
@@ -5002,6 +5017,9 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             }
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+            if (saved_position.x == worldPos_x) saved_position.x += 0.001f;
+            if (saved_position.y == worldPos_y) saved_position.y += 0.001f;
+            if (saved_position.z == worldPos_z) saved_position.z += 0.001f;
             float change_x = (saved_position.x - worldPos_x + drag_delta.x) / (saved_position.x - worldPos_x);
             float change_y = (saved_position.y - worldPos_y + drag_delta.y) / (saved_position.y - worldPos_y);
             float change_z = (saved_position.z - worldPos_z + drag_delta.z) / (saved_position.z - worldPos_z);
@@ -5096,6 +5114,9 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
         ray_origin,
         ray_direction
     );
+
+    if (scalex == 0) scalex = 0.001f;
+    if (scalex == 0) scaley = 0.001f;
 
     float newx = (ray_origin.x - worldPos_x) / scalex;
     float newy = (ray_origin.y - worldPos_y) / scaley;

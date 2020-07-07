@@ -311,126 +311,125 @@ void RowHeading::rightClick( wxMouseEvent& event)
     }
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
-    Element* element = ri->element;
-    if (element->GetType()== ElementType::ELEMENT_TYPE_MODEL
-        || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL
-        || element->GetType()== ElementType::ELEMENT_TYPE_STRAND)
-    {
-        if (ri->nodeIndex < 0) {
-            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
-            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_BELOW,"Insert Layer Below");
-            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYERS_BELOW, "Insert Multiple Layers Below");
+    if (ri != nullptr) {
+        Element* element = ri->element;
+        if (element != nullptr) {
+            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                || element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL
+                || element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                if (ri->nodeIndex < 0) {
+                    mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE, "Insert Layer Above");
+                    mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_BELOW, "Insert Layer Below");
+                    mnuLayer.Append(ID_ROW_MNU_INSERT_LAYERS_BELOW, "Insert Multiple Layers Below");
 
-            if(element->GetEffectLayerCount() > 1)
-            {
-                mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
+                    if (element->GetEffectLayerCount() > 1) {
+                        mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER, "Delete Layer");
 
-                mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
-                mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
-            }
-            mnuLayer.AppendSeparator();
-        }
-        bool canPromote = false;
-        ModelElement *me = dynamic_cast<ModelElement *>(element);
-        if (element->GetType()== ElementType::ELEMENT_TYPE_STRAND || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL) {
-            me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
-        }
-        if (me->GetSubModelAndStrandCount() > 0) {
-            if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
-                canPromote = true;
-            }
-            mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
-            if (ri->strandIndex >= 0) {
-                mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
-            }
-        } else {
-            mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
-        }
-        mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
-        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLMODELS, "Collapse All Models");
-        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLLAYERS, "Collapse All Layers");
-        if (ri->nodeIndex > -1) {
-            StrandElement *se = dynamic_cast<StrandElement*>(element);
-            if (se && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
-                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
-            }
-        }
-        else
-        {
-            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                        mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
+                        mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
+                    }
+                    mnuLayer.AppendSeparator();
+                }
+                bool canPromote = false;
+                ModelElement* me = dynamic_cast<ModelElement*>(element);
+                if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND || element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                    me = dynamic_cast<SubModelElement*>(element)->GetModelElement();
+                }
+                if (me != nullptr && me->GetSubModelAndStrandCount() > 0) {
+                    if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
+                        canPromote = true;
+                    }
+                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Strands");
+                    if (ri->strandIndex >= 0) {
+                        mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES, "Toggle Nodes");
+                    }
+                }
+                else {
+                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Models");
+                }
+                mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
+                mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLMODELS, "Collapse All Models");
+                mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLLAYERS, "Collapse All Layers");
+                if (ri->nodeIndex > -1) {
+                    StrandElement* se = dynamic_cast<StrandElement*>(element);
+                    if (se != nullptr && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
+                        mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                    }
+                }
+                else {
+                    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                        if (m != nullptr && m->GetDisplayAs() != "ModelGroup") {
+                            mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                        }
+                    }
+                    else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                        mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                    }
+                }
+
+                if (canPromote) {
+                    mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
+                }
+                mnuLayer.AppendSeparator();
+
                 Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
-                if (m->GetDisplayAs() != "ModelGroup")
-                {
-                    mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                wxMenu* rowMenu = new wxMenu();
+                wxMenu* modelMenu = new wxMenu();
+                modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+                rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
+                modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
+                rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
+                modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
+                wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
+                wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
+                if (!mCanPaste) {
+                    menu_paste->Enable(false);
+                    menu_pastem->Enable(false);
+                }
+                rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
+                modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
+                mnuLayer.AppendSubMenu(modelMenu, "Model");
+                mnuLayer.AppendSubMenu(rowMenu, "Row");
+                rowMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+                modelMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+            }
+            else {
+                EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
+                if (el != nullptr) {
+                    mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK, "Add Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK, "Delete Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
+                    mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
+                    mnuLayer.AppendSeparator();
+                    mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
+                    mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
+                    if (element->GetEffectLayerCount() > 1) {
+                        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS, "Breakdown Words");
+                    }
+                    mnuLayer.AppendSeparator();
+                    mnuLayer.Append(ID_ROW_MNU_COPY_ROW, "Copy Row");
+                    wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW, "Paste Row");
+                    if (!mCanPaste) {
+                        menu_paste->Enable(false);
+                    }
                 }
             }
-            else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
-            {
-                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
-            }
         }
 
-        if (canPromote) {
-            mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
-        }
         mnuLayer.AppendSeparator();
-
-        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
-        wxMenu* rowMenu = new wxMenu();
-        wxMenu* modelMenu = new wxMenu();
-        modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m!=nullptr && m->GetDisplayAs() != "ModelGroup");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
-        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
-        rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
-        modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
-        rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
-        modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
-        wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
-        wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
-        if (!mCanPaste) {
-            menu_paste->Enable(false);
-            menu_pastem->Enable(false);
-        }
-        rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
-        modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
-        mnuLayer.AppendSubMenu(modelMenu, "Model");
-        mnuLayer.AppendSubMenu(rowMenu, "Row");
-        rowMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
-        modelMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+        mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+        Draw();
+        PopupMenu(&mnuLayer);
     }
-    else
-    {
-        EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
-
-        mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
-        mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
-        mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
-        mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
-        mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
-        mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
-        mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
-        mnuLayer.AppendSeparator();
-        mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
-        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
-        if( element->GetEffectLayerCount() > 1 )
-        {
-            mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
-        }
-        mnuLayer.AppendSeparator();
-        mnuLayer.Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
-        wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
-        if( !mCanPaste ) {
-            menu_paste->Enable(false);
-        }
-    }
-
-    mnuLayer.AppendSeparator();
-    mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS,"Edit Display Elements");
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
-    Draw();
-    PopupMenu(&mnuLayer);
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)

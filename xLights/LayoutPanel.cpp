@@ -2096,49 +2096,49 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
     // process all models
     auto models = modelPreview->GetModels();
-    for (size_t i = 0; i < models.size(); i++)
-    {
+    for (size_t i = 0; i < models.size(); i++) {
         Model* m = modelPreview->GetModels()[i];
-        xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
-        if (m != nullptr)
-        {
-            m->Selected = false;
-            m->Highlighted = false;
-            m->GroupSelected = false;
-            m->SelectHandle(-1);
-            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
 
-            for (const auto& sm : m->GetSubModels())
-            {
-                sm->Selected = false;
-                sm->Highlighted = false;
-                sm->GroupSelected = false;
-            }
+        if (!xlights->AllModels.IsModelValid(m)) {
+            logger_base.error("Really strange ... unselect all models returned an invalid model pointer");
         }
-        else
-        {
-            logger_base.error("Really strange ... unselect all models returned a null model pointer");
+        else {
+            xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
+            if (m != nullptr) {
+                m->Selected = false;
+                m->Highlighted = false;
+                m->GroupSelected = false;
+                m->SelectHandle(-1);
+                m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+
+                for (const auto& sm : m->GetSubModels()) {
+                    sm->Selected = false;
+                    sm->Highlighted = false;
+                    sm->GroupSelected = false;
+                }
+            }
+            else {
+                logger_base.error("Really strange ... unselect all models returned a null model pointer");
+            }
         }
     }
 
     // process all view objects
     for (const auto& it : xlights->AllObjects) {
-        ViewObject *view_object = it.second;
+        ViewObject* view_object = it.second;
         xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Object " + view_object->GetName());
-        if (view_object != nullptr)
-        {
+        if (view_object != nullptr) {
             view_object->Selected = false;
             view_object->Highlighted = false;
             view_object->GroupSelected = false;
             view_object->SelectHandle(-1);
             view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
         }
-        else
-        {
+        else {
             logger_base.error("Really strange ... unselect all models returned a null view object pointer");
         }
     }
-    
+
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnselectAllModels");
 
     if (!updatingProperty && addBkgProps) {
