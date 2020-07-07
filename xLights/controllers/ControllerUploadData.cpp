@@ -855,12 +855,13 @@ void UDController::Rescan(bool eliminateOverlaps) {
                 else {
                     // model uses channels in this universe
                     if (it.second->IsPixelProtocol()) {
-                        if (it.second->GetNumPhysicalStrings() == 1) {
+                        int strings = it.second->GetNumPhysicalStrings();
+                        if (strings == 1) {
                             int port = it.second->GetControllerPort(1);
                             GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                         }
                         else {
-                            for (int i = 0; i < it.second->GetNumPhysicalStrings(); i++) {
+                            for (int i = 0; i < strings; i++) {
                                 int port = it.second->GetControllerPort(i+1);
                                 int32_t startChannel = it.second->GetStringStartChan(i) + 1;
                                 int32_t sc;
