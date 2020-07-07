@@ -1572,6 +1572,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             {
                 CurrentDir = "";
                 splash.Hide();
+                wxMessageBox("Exiting as setting a show folder is not optional.");
                 wxExit();
                 return;
             }
@@ -1583,6 +1584,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         {
             CurrentDir = "";
             splash.Hide();
+            wxMessageBox("Exiting as setting a show folder is not optional.");
             wxExit();
             return;
         }

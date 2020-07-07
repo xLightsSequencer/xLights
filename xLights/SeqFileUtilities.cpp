@@ -48,22 +48,21 @@
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
 #include "Vixen3.h"
-
 #include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
 {
+    if (ModelGroupsNode == nullptr) return;
+    if (ModelsNode == nullptr) return;
+
     std::string models_to_add = "";
     bool first_model = true;
-    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-        if (e->GetName() == "modelGroup")
-        {
+    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "modelGroup") {
             wxString name = e->GetAttribute("name");
-            if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
-            {
+            if (!mSequenceElements.ElementExists(name.ToStdString(), 0)) {
                 if (!first_model) {
                     models_to_add += ",";
                 }
@@ -72,13 +71,11 @@ void xLightsFrame::AddAllModelsToSequence()
             }
         }
     }
-    for (wxXmlNode* e = ModelsNode->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-        if (e->GetName() == "model")
-        {
+
+    for (wxXmlNode* e = ModelsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "model") {
             wxString name = e->GetAttribute("name");
-            if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
-            {
+            if (!mSequenceElements.ElementExists(name.ToStdString(), 0)) {
                 if (!first_model) {
                     models_to_add += ",";
                 }
@@ -87,6 +84,7 @@ void xLightsFrame::AddAllModelsToSequence()
             }
         }
     }
+
     mSequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
@@ -102,54 +100,46 @@ void xLightsFrame::NewSequence()
     xml_file.SetPath(CurrentDir);
     CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
-    if (_modelBlendDefaultOff)
-    {
+    if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
     SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
     setting_dlg.Fit();
     int ret_code = setting_dlg.ShowModal();
-    if( ret_code == wxID_CANCEL )
-    {
+    if (ret_code == wxID_CANCEL) {
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = nullptr;
         return;
     }
-	else
-	{
-        if (CurrentSeqXmlFile->GetMedia() != nullptr)
-		{
-			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
-			{
-				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
-			}
-		}
-	}
+    else {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+            if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0) {
+                CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
+            }
+        }
+    }
 
     // load media if available
-    if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
-    {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia()) {
         SetMediaFilename(CurrentSeqXmlFile->GetMedia()->FileName());
     }
 
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
     int ms = atoi(mss.c_str());
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("New sequence created Type %s Timing %dms.", (const char *)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("New sequence created Type %s Timing %dms.", (const char*)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
 
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    if (mSequenceElements.GetNumberOfTimingElements() == 0)
-    {
+    if (mSequenceElements.GetNumberOfTimingElements() == 0) {
         // only add timing if the user didnt set up timings
         std::string new_timing = "New Timing";
         CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
         mSequenceElements.AddTimingToAllViews(new_timing);
     }
-    else
-    {
+    else {
         mSequenceElements.GetTimingElement(0)->SetActive(true);
     }
     MenuItem_File_Save->Enable(true);
@@ -164,44 +154,39 @@ void xLightsFrame::NewSequence()
 
     unsigned int max = GetMaxNumChannels();
     if (max >= 1999999) {
-        size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+        size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
         m *= max;
         m /= 1024; // ->kb
         m /= 1024; // ->mb
 
         DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                      " a very large amount of memory used (%lu MB).", max, m).ToStdString(),
-                     this);
+            " a very large amount of memory used (%lu MB).", max, m).ToStdString(),
+            this);
     }
     if ((max > SeqData.NumChannels()) ||
-        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames())
-    {
+        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames()) {
         SeqData.init(max, mMediaLengthMS / ms, ms);
     }
-    else
-    {
+    else {
         SeqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 
     // we can render now the sequence data buffers are initialised
-    if (ret_code == NEEDS_RENDER)
-    {
+    if (ret_code == NEEDS_RENDER) {
         RenderAll();
     }
 
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
     const std::string view = setting_dlg.GetView();
-    if( view == "All Models" )
-    {
+    if (view == "All Models") {
         AddAllModelsToSequence();
         displayElementsPanel->SelectView("Master View");
     }
-    else if( view != "Empty" )
-    {
+    else if (view != "Empty") {
         displayElementsPanel->SelectView(view);
     }
-	SetAudioControls();
+    SetAudioControls();
     Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
 }
 

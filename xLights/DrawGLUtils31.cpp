@@ -177,7 +177,7 @@ class ShaderProgram {
     };
 
 public:
-    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false) {}
+    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false)  {}
 
     void Cleanup(GLuint &pid) {
         if (ProgramID != 0) {
@@ -267,8 +267,8 @@ public:
         if (pid == 0) {
             GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
             GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-            CompileShader(vs, VertexShaderID);
-            CompileShader(fs, FragmentShaderID);
+            valid = CompileShader(vs, VertexShaderID);
+            valid &= CompileShader(fs, FragmentShaderID);
             pid = CreateProgram(VertexShaderID, FragmentShaderID);
             glDeleteShader(VertexShaderID);
             glDeleteShader(FragmentShaderID);
@@ -280,7 +280,6 @@ public:
         LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
         LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
         LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
-
 
         numBuffers = numBuf;
         buffers = new GLuint[numBuffers];
@@ -303,6 +302,7 @@ public:
         LOG_GL_ERRORV(glUniform1f(PointSmoothMinID, min));
         LOG_GL_ERRORV(glUniform1f(PointSmoothMaxID, max));
     }
+
     float CalcSmoothPointParams() {
         float ps;
         LOG_GL_ERRORV(glGetFloatv(GL_POINT_SIZE, &ps));
@@ -311,26 +311,29 @@ public:
     }
 
     static GLuint CreateProgram(GLuint vs, GLuint fs) {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+
         GLuint ProgramID = glCreateProgram();
         LOG_GL_ERRORV(glAttachShader(ProgramID, vs));
         LOG_GL_ERRORV(glAttachShader(ProgramID, fs));
         LOG_GL_ERRORV(glLinkProgram(ProgramID));
-
 
         GLint Result = GL_FALSE;
         int InfoLogLength;
 
         LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
         LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
-        if (!Result &&  InfoLogLength > 0 ){
-            std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-            glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-            wxString l = &ProgramErrorMessage[0];
-            l.Trim();
-            if (l.length() > 0) {
-                printf("Program Log: %s\n", &ProgramErrorMessage[0]);
-                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+        if (!Result) {
+            logger_opengl.error("ShaderProgram::CreateProgram failed.");
+            if (InfoLogLength > 0) {
+                std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
+                glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+                wxString l = &ProgramErrorMessage[0];
+                l.Trim();
+                if (l.length() > 0) {
+                    printf("Program Log: %s\n", &ProgramErrorMessage[0]);
+                    logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+                }
             }
         }
         LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
@@ -338,7 +341,9 @@ public:
         return ProgramID;
     }
 
-    static void CompileShader(const char *sourcePointer, GLuint shaderID) {
+    static bool CompileShader(const char *sourcePointer, GLuint shaderID) {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+
         LOG_GL_ERRORV(glShaderSource(shaderID, 1, &sourcePointer , NULL));
         LOG_GL_ERRORV(glCompileShader(shaderID));
 
@@ -347,17 +352,21 @@ public:
 
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if (!Result && InfoLogLength > 0 ) {
-            std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
-            glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-            wxString l = &VertexShaderErrorMessage[0];
-            l.Trim();
-            if (l.length() > 0) {
-                printf("Shader Log: %s\n", &VertexShaderErrorMessage[0]);
-                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.error(std::string(&VertexShaderErrorMessage[0]));
+        if (!Result) {
+            logger_opengl.error("ShaderProgram::Compile failed.");
+            if (InfoLogLength > 0) {
+                std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
+                glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+                wxString l = &VertexShaderErrorMessage[0];
+                l.Trim();
+                if (l.length() > 0) {
+                    printf("Shader Log: %s\n", &VertexShaderErrorMessage[0]);
+                    logger_opengl.error(std::string(&VertexShaderErrorMessage[0]));
+                }
             }
+            return false;
         }
+        return true;
     }
 
     GLuint ProgramID;
@@ -368,11 +377,11 @@ public:
     GLuint PointSmoothMaxID;
     GLuint RenderTypeID;
 
-    GLuint *buffers;
-    BufferInfo *bufferInfo;
-    size_t numBuffers;
-    bool buffersValid;
-
+    GLuint *buffers = nullptr;
+    BufferInfo *bufferInfo = nullptr;
+    size_t numBuffers = 0;
+    bool buffersValid = false;
+    bool valid = true;
 };
 
 class GL3Mesh : public DrawGLUtils::xl3DMesh {
@@ -536,13 +545,14 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     static GLuint normal3ProgramId;
     static GLuint vbNormalProgramId;
 
-    void Load33Shaders(bool UsesVertexTextureAccumulator,
+    bool Load33Shaders(bool UsesVertexTextureAccumulator,
                        bool UsesVertexColorAccumulator,
                        bool UsesVertexAccumulator,
                        bool UsesAddVertex,
 					   bool UsesVertex3Accumulator,
                        bool UsesVertex3TextureAccumulator,
 					   bool UsesVertex3ColorAccumulator) {
+        bool res = true;
         cacheCount++;
         if (UsesVertexTextureAccumulator) {
             textureProgram.Init(textureProgramId,
@@ -573,6 +583,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
                                 "    }\n"
                                 "}\n", 3);
+            res &= textureProgram.valid;
         }
         if (UsesVertex3TextureAccumulator) {
             texture3Program.Init(texture3ProgramId,
@@ -599,6 +610,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "    vec4 c = texture(tex, UV);\n"
                 "    color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
                 "}\n", 3);
+            res &= texture3Program.valid;
 
             meshProgram.Init(meshProgramId,
                 "#version 330 core\n"
@@ -634,8 +646,9 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "    }\n"
                 "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                 "}\n", 0);
-
+            res &= meshProgram.valid;
         }
+
         if (UsesVertexAccumulator) {
 			singleColorProgram.Init(singleColorProgramId,
 				"#version 330 core\n"
@@ -664,7 +677,8 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"        color = vec4(fragmentColor.rgb, alpha);\n"
 				"    }\n"
 				"}\n", 1);
-		}
+            res &= singleColorProgram.valid;
+        }
 		if (UsesVertex3Accumulator) {
 			singleColor3Program.Init(singleColor3ProgramId,
 				"#version 330 core\n"
@@ -693,7 +707,8 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"        color = vec4(fragmentColor.rgb, alpha);\n"
 				"    }\n"
 				"}\n", 1);
-		}
+            res &= singleColor3Program.valid;
+        }
 		const char *npVS = "#version 330 core\n"
                             "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
                             "layout(location = 1) in vec4 vertexColor;\n"
@@ -764,14 +779,19 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 							"}\n";
 		if (UsesVertexColorAccumulator) {
             normalProgram.Init(normalProgramId, npVS, npFS, 2);
+            res &= normalProgram.valid;
         }
         if (UsesVertex3ColorAccumulator) {
             normal3Program.Init(normal3ProgramId, np3VS, np3FS, 2);
+            res &= normal3Program.valid;
         }
         if (UsesAddVertex) {
             vbNormalProgram.Init(vbNormalProgramId, npVS, npFS, 2);
+            res &= vbNormalProgram.valid;
         }
+        return res;
     }
+
     void Release33Shaders() {
         --cacheCount;
         bool del = cacheCount == 0;
@@ -796,8 +816,13 @@ public:
                   bool UsesVertex3TextureAccumulator,
 		          bool UsesVertex3ColorAccumulator) : matrix(nullptr)
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
         UsesVertexColorAccumulator |= UsesAddVertex;
-        Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator);
+        if (!Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator))             {
+
+            logger_base.error("OpenGL33Cache constructor One or more shaders failed to compile. Turn on opengl logging for more details.");
+        }
     }
     ~OpenGL33Cache() {
         if (matrix) {
