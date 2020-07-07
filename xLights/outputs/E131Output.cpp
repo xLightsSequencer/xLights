@@ -287,6 +287,7 @@ bool E131Output::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
+    if (!IsIPValid(_ip)) return false;
 
     _ok = IPOutput::Open();
     if (_fppProxyOutput) {
