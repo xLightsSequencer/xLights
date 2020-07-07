@@ -1314,18 +1314,18 @@ public:
 private:
     wxXmlNode* SettingsNode = nullptr;
 
-    bool MixTypeChanged;
-    bool FadesChanged;
+    bool MixTypeChanged = false;
+    bool FadesChanged = false;
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
-	bool mLoopAudio;
+	bool mLoopAudio = false;
 
     std::unique_ptr<wxPreferencesEditor> mPreferencesEditor;
-    bool mResetToolbars;
-    bool mRenderOnSave;
-    bool mBackupOnSave;
-    bool mBackupOnLaunch;
+    bool mResetToolbars = false;
+    bool mRenderOnSave = false;
+    bool mBackupOnSave = false;
+    bool mBackupOnLaunch = true;
     bool me131Sync = false;
     bool mSuppressFadeHints = false;
     std::string mLocalIP;

@@ -1572,6 +1572,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             {
                 CurrentDir = "";
                 splash.Hide();
+                wxExit();
                 return;
             }
         }
@@ -1582,6 +1583,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         {
             CurrentDir = "";
             splash.Hide();
+            wxExit();
             return;
         }
     }
@@ -2630,34 +2632,41 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     _housePreviewPanel->Refresh();
 }
 
-void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
+void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // Delete existing setting node
-    for(wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-        if (e->GetName() == settingName)
-        {
-            SettingsNode->RemoveChild(e);
-            delete e;
-            break;
+    if (SettingsNode != nullptr) {
+        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+            if (e->GetName() == settingName) {
+                SettingsNode->RemoveChild(e);
+                delete e;
+                break;
+            }
         }
-    }
 
-    // Add new one
-    wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
-    setting->AddAttribute("value", value);
-    SettingsNode->AddChild(setting);
+        // Add new one
+        wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
+        setting->AddAttribute("value", value);
+        SettingsNode->AddChild(setting);
+    }
+    else {
+        logger_base.warn("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
+    }
 }
 
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
-    // Delete existing setting node
-    for(wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-        if (e->GetName() == settingName)
-        {
-            return e->GetAttribute("value", defaultValue);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (SettingsNode != nullptr) {
+        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+            if (e->GetName() == settingName) {
+                return e->GetAttribute("value", defaultValue);
+            }
         }
+    }
+    else {
+        logger_base.warn("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
     }
 
     return defaultValue;
