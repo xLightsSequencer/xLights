@@ -1282,7 +1282,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
         }
     }
     // set color for physical output
-    layers[saveLayer]->buffer.Nodes[node]->SetColor(color);
+    layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
 }
 
 void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
