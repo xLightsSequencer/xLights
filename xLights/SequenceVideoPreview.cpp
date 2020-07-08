@@ -66,16 +66,22 @@ void SequenceVideoPreview::Render( AVFrame *frame )
 
     // Upload video frame to texture
     LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
-    
+
+#ifndef __WXMSW__
     if (frame->format == AV_PIX_FMT_BGRA) {
         LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_BGRA, GL_UNSIGNED_BYTE, frame->data[0] ) );
-    } else if (frame->format == AV_PIX_FMT_RGBA) {
+    } else
+#endif
+    if (frame->format == AV_PIX_FMT_RGBA) {
         LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGBA, GL_UNSIGNED_BYTE, frame->data[0] ) );
     } else if (frame->format == AV_PIX_FMT_RGB24) {
         LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGB, GL_UNSIGNED_BYTE, frame->data[0] ) );
-    } else if (frame->format == AV_PIX_FMT_BGR24) {
+    }
+#ifndef  __WXMSW__
+    else if (frame->format == AV_PIX_FMT_BGR24) {
         LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_BGR, GL_UNSIGNED_BYTE, frame->data[0] ) );
     }
+#endif
     LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
 
     // Draw video frame and swap-buffers
