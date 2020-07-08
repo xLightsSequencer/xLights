@@ -52,7 +52,32 @@ bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) {
     }
     return false;
 }
-void CleanupVideoToolbox(AVCodecContext *s) {
+
+class VideoToolboxDataCache {
+public:
+    CVPixelBufferRef scaledBuf = nullptr;
+    int width = 0;
+    int height = 0;
+    
+    ~VideoToolboxDataCache() {
+        release();
+    }
+    
+    void release() {
+        width = 0;
+        height = 0;
+        if (scaledBuf) {
+            CVPixelBufferRelease(scaledBuf);
+            scaledBuf = nullptr;
+        }
+    }
+};
+
+void CleanupVideoToolbox(AVCodecContext *s, void *cache) {
+    VideoToolboxDataCache *c = (VideoToolboxDataCache*)cache;
+    if (c) {
+        delete c;
+    }
     if (s->hwaccel_context != NULL) {
         av_videotoolbox_default_free(s);
     }
@@ -117,13 +142,9 @@ bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) {
 @end
 
 
-bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {
+bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *&cache) {
     CVPixelBufferRef pixbuf = (CVPixelBufferRef)frame->data[3];
-    float w = dstFrame->width;
-    w /= (float)frame->width;
-    float h = dstFrame->height;
-    h /= (float)frame->height;
-    
+    bool doScale = (dstFrame->height != frame->height) || (dstFrame->width != frame->width);
     if (pixbuf == nullptr) {
         memset(dstFrame->data[0], 0, dstFrame->height * dstFrame->linesize[0]);
         return false;
@@ -134,9 +155,17 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
     }
 
     PushTraceContext();
-    @autoreleasepool {
-        CVPixelBufferRef scaledBuf = NULL;
-        
+    
+    VideoToolboxDataCache *vcache = (VideoToolboxDataCache*)cache;
+    if (vcache == nullptr) {
+        vcache = new VideoToolboxDataCache();
+        cache = vcache;
+    }
+    if (vcache->scaledBuf && (vcache->height != dstFrame->height || vcache->width != dstFrame->width)) {
+        vcache->release();
+    }
+    CVPixelBufferRef scaledBuf = vcache->scaledBuf;
+    if (!scaledBuf) {
         //BGRA is the pixel type that works best for us, there isn't an accelerated RGBA or just RGB
         //so we'll do BGRA and map while copying
         AddTraceMessage("VideoToolbox - creating RGBA destination buffer");
@@ -150,7 +179,12 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
             PopTraceContext();
             return false;
         }
-                
+        vcache->scaledBuf = scaledBuf;
+        vcache->width = dstFrame->width;
+        vcache->height = dstFrame->height;
+    }
+    
+    @autoreleasepool {
         AddTraceMessage("VideoToolbox - creating CIImage from pixbuf");
         CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
         if (image == nullptr) {
@@ -158,21 +192,31 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
             return false;
         }
 
-        
-        AddTraceMessage("VideoToolbox - Scaling image");
-        CIImage *scaledimage = [image imageByApplyingTransform:CGAffineTransformMakeScale(w, h) highQualityDownsample:TRUE];
-        if (scaledimage == nullptr) {
-            PopTraceContext();
-            return false;
+        CIImage *scaledimage = image;
+        if (doScale) {
+            AddTraceMessage("VideoToolbox - Scaling image");
+            float w = dstFrame->width;
+            w /= (float)frame->width;
+            float h = dstFrame->height;
+            h /= (float)frame->height;
+
+            scaledimage = [image imageByApplyingTransform:CGAffineTransformMakeScale(w, h) highQualityDownsample:TRUE];
+            if (scaledimage == nullptr) {
+                PopTraceContext();
+                return false;
+            }
         }
 
-        AddTraceMessage("VideoToolbox - Applying BGRA -> RGBA filter");
-        CIRBFlipFilter *filter = [[CIRBFlipFilter alloc] init];
-        filter->inputImage = scaledimage;
-        CIImage *swappedImage =  [filter outputImage];
-        if (swappedImage == nullptr) {
-            PopTraceContext();
-            return false;
+        CIImage *swappedImage = scaledimage;
+        if (dstFrame->format != AV_PIX_FMT_BGRA && dstFrame->format != AV_PIX_FMT_BGR24) {
+            AddTraceMessage("VideoToolbox - Applying BGRA -> RGBA filter");
+            CIRBFlipFilter *filter = [[CIRBFlipFilter alloc] init];
+            filter->inputImage = scaledimage;
+            swappedImage =  [filter outputImage];
+            if (swappedImage == nullptr) {
+                PopTraceContext();
+                return false;
+            }
         }
 
         AddTraceMessage("VideoToolbox - Rendering image to buffer");
@@ -201,7 +245,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         
         //copy data to dest frame
         if (linesize) {
-            if (dstFrame->format == AV_PIX_FMT_RGBA) {
+            if (dstFrame->format == AV_PIX_FMT_RGBA || dstFrame->format == AV_PIX_FMT_BGRA) {
                 AddTraceMessage("VideoToolbox - Copying frame of size " + std::to_string(dstFrame->width * linesize));
                 if (linesize == (dstFrame->width*4)) {
                     memcpy(dstFrame->data[0], data, linesize*dstFrame->height);
@@ -235,8 +279,6 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         }
         AddTraceMessage("VideoToolbox - Releasing buffer");
         CVPixelBufferUnlockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);
-        CVPixelBufferRelease(scaledBuf);
-        scaledBuf = nil;
     }
 
     av_frame_copy_props(dstFrame, frame);

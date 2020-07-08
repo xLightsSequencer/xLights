@@ -58,7 +58,10 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
     }
     else
     {
-        _videoReader.reset(new VideoReader(path, 0, 0, false, true, false));
+        bool isHWAccel = VideoReader::IsHardwareAcceleratedVideo();
+        // if using hardware acceleration, keep it in the native BGRA format
+        // to avoid some byte reordering, extra copies, etc...
+        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel));
         if (_videoReader->IsValid())
         {
             _isValidVideo = true;
@@ -71,7 +74,7 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
 
 void SequenceVideoPanel::UpdateVideo( int ms )
 {
-   if ( !_isValidVideo || !IsShown() )
+   if ( !_isValidVideo || !IsShownOnScreen() )
       return;
 
    int clampedTime = std::min( ms, _videoLength );

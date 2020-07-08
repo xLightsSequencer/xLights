@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2020.27 July 8 2020
+   -- enh (dkulp)  Performance improvements with Video Preview window open, hardware video decoding
    -- enh (dkulp)  Various performance optimizations in render pipeline, thread pools
    -- enh (dkulp)  FPP Connect - restart fppd if outputs uploaded
    -- bug (keith)  "Black Cherry Cosmos" shader not working

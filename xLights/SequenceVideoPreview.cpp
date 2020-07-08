@@ -57,24 +57,32 @@ void SequenceVideoPreview::paint( wxPaintEvent& evt )
 
 void SequenceVideoPreview::Render( AVFrame *frame )
 {
-   if ( !mIsInitialized ) { InitializeGLCanvas(); }
-   if ( !IsShownOnScreen() ) return;
-   SetCurrentGLContext();
+    if ( !mIsInitialized ) { InitializeGLCanvas(); }
+    if ( !IsShownOnScreen() ) return;
+    SetCurrentGLContext();
 
-   if ( _texId == 0 || frame->width != _texWidth || frame->height != _texHeight )
-      reinitTexture( frame->width, frame->height );
+    if ( _texId == 0 || frame->width != _texWidth || frame->height != _texHeight )
+        reinitTexture( frame->width, frame->height );
 
-   // Upload video frame to texture
-   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
-   LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGB, GL_UNSIGNED_BYTE, frame->data[0] ) );
-   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
+    // Upload video frame to texture
+    LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
+    
+    if (frame->format == AV_PIX_FMT_BGRA) {
+        LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_BGRA, GL_UNSIGNED_BYTE, frame->data[0] ) );
+    } else if (frame->format == AV_PIX_FMT_RGBA) {
+        LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGBA, GL_UNSIGNED_BYTE, frame->data[0] ) );
+    } else if (frame->format == AV_PIX_FMT_RGB24) {
+        LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGB, GL_UNSIGNED_BYTE, frame->data[0] ) );
+    } else if (frame->format == AV_PIX_FMT_BGR24) {
+        LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_BGR, GL_UNSIGNED_BYTE, frame->data[0] ) );
+    }
+    LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
 
-   // Draw video frame and swap-buffers
-   prepare2DViewport( 0, 0, mWindowWidth, mWindowHeight );
-   cache->Ortho( 0, 0, mWindowWidth, mWindowHeight );
-   cache->DrawTexture( _texId, 0, 0, mWindowWidth, mWindowHeight );
-
-   SwapBuffers();
+    // Draw video frame and swap-buffers
+    prepare2DViewport( 0, 0, mWindowWidth, mWindowHeight );
+    cache->Ortho( 0, 0, mWindowWidth, mWindowHeight );
+    cache->DrawTexture( _texId, 0, 0, mWindowWidth, mWindowHeight );
+    SwapBuffers();
 }
 
 void SequenceVideoPreview::Clear()
@@ -103,7 +111,7 @@ void SequenceVideoPreview::reinitTexture( int width, int height )
    LOG_GL_ERRORV( glGenTextures( 1, &_texId ) );
    LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
 
-   LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr ) );
+   LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr ) );
    LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
    LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
    LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );

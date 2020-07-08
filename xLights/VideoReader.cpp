@@ -38,14 +38,14 @@ extern "C" {
 #ifdef __WXOSX__
 extern void InitVideoToolboxAcceleration();
 extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
-extern void CleanupVideoToolbox(AVCodecContext *s);
-extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame);
+extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
+extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache);
 extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
 #else
 extern void InitVideoToolboxAcceleration() {}
 static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
-static inline void CleanupVideoToolbox(AVCodecContext *s) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) { return false; }
+static inline void CleanupVideoToolbox(AVCodecContext *s, void * cache) {}
+static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache) { return false; }
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
@@ -85,7 +85,7 @@ void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
 
-VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha)
+VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha, bool bgr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _maxwidth = maxwidth;
@@ -102,13 +102,10 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _curPos = -1000;
     _wantAlpha = wantAlpha;
     _videoToolboxAccelerated = false;
-    if (_wantAlpha)
-    {
-        _pixelFmt = AVPixelFormat::AV_PIX_FMT_RGBA;
-    }
-    else
-    {
-        _pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
+    if (_wantAlpha) {
+        _pixelFmt = bgr ? AVPixelFormat::AV_PIX_FMT_BGRA : AVPixelFormat::AV_PIX_FMT_RGBA;
+    } else {
+        _pixelFmt = bgr ? AVPixelFormat::AV_PIX_FMT_BGR24 : AVPixelFormat::AV_PIX_FMT_RGB24;
     }
 	_atEnd = false;
 	_swsCtx = nullptr;
@@ -297,7 +294,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 void VideoReader::reopenContext() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_codecContext != nullptr) {
-        CleanupVideoToolbox(_codecContext);
+        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        hwDecoderCache = nullptr;
         avcodec_close(_codecContext);
         _codecContext = nullptr;
     }
@@ -569,7 +567,8 @@ VideoReader::~VideoReader()
         }
 
         //logger_base.debug("Releasing codecContext.");
-        CleanupVideoToolbox(_codecContext);
+        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        hwDecoderCache = nullptr;
         avcodec_close(_codecContext);
 		_codecContext = nullptr;
 	}
@@ -653,7 +652,7 @@ bool VideoReader::readFrame(int timestampMS) {
             #endif
             bool hardwareScaled = false;
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
-                hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
+                hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
             }
 
             if (!hardwareScaled) {
