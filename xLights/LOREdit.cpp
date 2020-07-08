@@ -1377,7 +1377,7 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int cols = 0;
     int channels = GetModelChannels(model, rows, cols);
 
-    if (channel >= channels)
+    if (channel >= channels && channels > 1)
     {
         // Tried to map a model with less channels than the target model so stop once we run out
         return res;
@@ -1387,21 +1387,21 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int mw = m->GetDefaultBufferWi();
     int mh = m->GetDefaultBufferHt();
 
-    wxASSERT(rows == mh);
-    wxASSERT(cols == mw);
-
     std::vector<wxPoint> coords;
     m->GetNodeCoords(channel, coords);
     int bufx = 0;
     int bufy = 0;
-    if (coords.size() != 0)
-    {
-        bufx = coords[0].x;
-        bufy = coords[0].y;
-    }
-    else
-    {
-        // this is not encouraging
+    if (channels != 1) {
+        wxASSERT(rows == mh);
+        wxASSERT(cols == mw);
+
+        if (coords.size() != 0) {
+            bufx = coords[0].x;
+            bufy = coords[0].y;
+        }
+        else {
+            // this is not encouraging
+        }
     }
 
     int targetRow = bufy;
