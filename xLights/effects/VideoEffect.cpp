@@ -380,11 +380,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
     }
 
-    if (_videoreader != nullptr)         {
+    if (_videoreader != nullptr) {
         int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
         int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
-
-        if (_videoreader->GetWidth() != width || _videoreader->GetHeight() != height)             {
+        bool vwidthEq = width == _videoreader->GetWidth();
+        bool vheightEq = height == _videoreader->GetHeight();
+        if (aspectratio) {
+            // if aspect ratio scaling, then only one or the other will be equal
+            vwidthEq = vheightEq | vwidthEq;
+            vheightEq = vwidthEq;
+        }
+        if (!vwidthEq || !vheightEq) {
             // need to close and reopen video reader to the new size ... this is inefficient ... but lots of work to do to change video reader size dynamically
             delete _videoreader;
             _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
