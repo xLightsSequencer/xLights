@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.27 July 8 2020
+   -- enh (dkulp)  Various performance optimizations in render pipeline, thread pools
+   -- enh (dkulp)  FPP Connect - restart fppd if outputs uploaded
+   -- bug (keith)  "Black Cherry Cosmos" shader not working
+   -- enh (keith)  Add a bulk edit option on file picker that lets you set the show folder
+   -- bug (keith)  Fix cube model with many strings does not take up the right number of visualiser ports
+   -- bug (keith)  Fix some crashes if invalid IP addresses/hostnames are used for controllers
+   -- bug (dkulp)  Video effects with "Keep Aspect Ratio" enabled take a long time to render
+   -- bug (dkulp)  OSX Sandboxed builds not able to download models or shaders
    -- change(dkulp) OSX builds are now all "Sandboxed" applications.  This REQUIRES users to
                     go into preferences and reset all their preferences, select storage directories,
                     redownload shader/model caches, etc...
