@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.28 July 10 2020
+   -- bug (keith)  Fix S5 import onto nodes does not work - this is a chance this will break import from multicolour 
+                   models but i dont have any samples to test on.
+   -- bug (dkulp)  More fixes for sandbox file access issues
+   -- bug (dkulp)  Fix parsing custom value curves
 2020.27 July 8 2020
    -- enh (dkulp)  Performance improvements with Video Preview window open, hardware video decoding
    -- enh (dkulp)  Various performance optimizations in render pipeline, thread pools
