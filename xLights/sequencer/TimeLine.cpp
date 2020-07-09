@@ -24,7 +24,7 @@ EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
 EVT_MOUSE_CAPTURE_LOST(TimeLine::OnLostMouseCapture)
-EVT_PAINT(TimeLine::render)
+EVT_PAINT(TimeLine::Paint)
 END_EVENT_TABLE()
 
 // These values are used to calculate zoom
@@ -793,7 +793,7 @@ void TimeLine::Initialize()
     m_dragging = false;
 }
 
-void TimeLine::render( wxPaintEvent& event )
+void TimeLine::Paint( wxPaintEvent& event )
 {
     wxPaintDC dc(this);
     render(dc);

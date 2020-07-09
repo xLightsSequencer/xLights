@@ -43,7 +43,7 @@ BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 	EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
 	EVT_MIDDLE_DOWN(ModelPreview::mouseMiddleDown)
 	EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
-	EVT_PAINT(ModelPreview::render)
+	EVT_PAINT(ModelPreview::Paint)
     EVT_SYS_COLOUR_CHANGED(ModelPreview::OnSysColourChanged)
     EVT_LEFT_DCLICK(ModelPreview::mouseLeftDClick)
 END_EVENT_TABLE()
@@ -409,7 +409,11 @@ void ModelPreview::mouseMiddleUp(wxMouseEvent& event) {
     m_wheel_down = false;
 }
 
-void ModelPreview::render(wxPaintEvent& event)
+void ModelPreview::Paint(wxPaintEvent& event)
+{
+    DoPaint();
+}
+void ModelPreview::DoPaint()
 {
     if (mIsDrawing) return;
 
@@ -424,12 +428,9 @@ void ModelPreview::render(wxPaintEvent& event)
     } else {
         Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
         if (model != nullptr) {
-            if (is_3d)
-            {
+            if (is_3d) {
                 RenderModel(model, _wiring, _highlightFirst);
-            }
-            else
-            {
+            } else {
                 model->DisplayEffectOnWindow(this, 2);
             }
         } else {
@@ -947,7 +948,6 @@ bool ModelPreview::GetActive() const
 
 void ModelPreview::render(const wxSize& size/*wxSize(0,0)*/)
 {
-    wxPaintEvent dummyEvent;
     wxSize origSize(0, 0);
     wxSize origVirtSize(virtualWidth, virtualHeight);
     if (size != wxSize(0, 0)) {
@@ -959,7 +959,7 @@ void ModelPreview::render(const wxSize& size/*wxSize(0,0)*/)
         virtualHeight = int(mult * origVirtSize.GetHeight());
     }
 
-    render(dummyEvent);
+    DoPaint();
 
     if (origSize != wxSize(0, 0)) {
         mWindowWidth = origSize.GetWidth();

@@ -165,7 +165,7 @@ private:
     bool m_dragging;
     bool timeline_initiated_play;
 
-    void render(wxPaintEvent& event);
+    void Paint(wxPaintEvent& event);
     void render(wxDC& dc);
     float GetFirstTimeLabelFromPixelOffset(int offset) const;
     int GetPixelOffsetFromStartTime();

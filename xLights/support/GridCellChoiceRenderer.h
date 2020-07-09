@@ -14,10 +14,10 @@
 #include "wx/laywin.h"
 #include <wx/dc.h>
 
-class wxGridCellChoiceRenderer : public wxGridCellStringRenderer
+class xlGridCellChoiceRenderer : public wxGridCellStringRenderer
 {
 public:
-	wxGridCellChoiceRenderer(wxLayoutAlignment border = wxLAYOUT_NONE) :
+	xlGridCellChoiceRenderer(wxLayoutAlignment border = wxLAYOUT_NONE) :
 		m_border(border) {}
 	virtual void Draw(wxGrid& grid,
 		wxGridCellAttr& attr,
@@ -26,7 +26,7 @@ public:
 		int row, int col,
 		bool isSelected);
 	virtual wxGridCellRenderer *Clone() const
-		{ return new wxGridCellChoiceRenderer; }
+		{ return new xlGridCellChoiceRenderer; }
 private:
 	wxLayoutAlignment m_border;
 };

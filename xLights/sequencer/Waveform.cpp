@@ -48,7 +48,7 @@ EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_SIZE(Waveform::Resized)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
-EVT_PAINT(Waveform::renderGL)
+EVT_PAINT(Waveform::Paint)
 END_EVENT_TABLE()
 
 const long Waveform::ID_WAVE_MNU_RENDER = wxNewId();
@@ -418,7 +418,7 @@ void Waveform::InitializeGLContext()
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 }
-void Waveform::renderGL( wxPaintEvent& event )
+void Waveform::Paint( wxPaintEvent& event )
 {
     renderGL();
 }

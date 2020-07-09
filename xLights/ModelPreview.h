@@ -148,7 +148,8 @@ protected:
 
 private:
     void setupCameras();
-	void render(wxPaintEvent& event);
+	void Paint(wxPaintEvent& event);
+    void DoPaint();
 	void SetOrigin();
 	void mouseMoved(wxMouseEvent& event);
 	void mouseLeftDown(wxMouseEvent& event);

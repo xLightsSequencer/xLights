@@ -11,7 +11,7 @@
 #include "GridCellChoiceRenderer.h"
 #include <wx/renderer.h>
 
-void wxGridCellChoiceRenderer::Draw(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc,
+void xlGridCellChoiceRenderer::Draw(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc,
 	const wxRect& rectCell, int row, int col, bool isSelected)
 {
     //wxGridCellRenderer::Draw(grid, attr, dc, rectCell, row, col, isSelected);
