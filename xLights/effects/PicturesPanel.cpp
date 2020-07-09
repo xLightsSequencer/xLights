@@ -30,6 +30,7 @@
 #include "PicturesPanel.h"
 #include "EffectPanelUtils.h"
 #include "GIFImage.h"
+#include "../osxMacUtils.h"
 
 //(*IdInit(PicturesPanel)
 const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
@@ -327,6 +328,7 @@ void PicturesPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
 
 void PicturesPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    ObtainAccessToURL(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
     ValidateWindow();
 }
 

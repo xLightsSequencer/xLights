@@ -21,6 +21,7 @@
 #include "BulkEditFontPickerDialog.h"
 #include "BulkEditColourPickerDialog.h"
 #include "UtilFunctions.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -589,6 +590,7 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
         }
         else
         {
+            ObtainAccessToURL(filename);
             SetFileName(filename);
 
             std::string id = GetName().ToStdString();

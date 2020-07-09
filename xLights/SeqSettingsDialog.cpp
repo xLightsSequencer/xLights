@@ -36,6 +36,7 @@
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
+#include "osxMacUtils.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -1022,6 +1023,9 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         _plog->SetPosition(wxPoint(x, y));
         wxString fDir = ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
+        ObtainAccessToURL(fDir.ToStdString());
+        ObtainAccessToURL(filename.ToStdString());
+        
         wxFileName full_name(filename);
         full_name.SetPath(fDir);
         wxFileName data_file(full_name);
@@ -1409,6 +1413,9 @@ void SeqSettingsDialog::MediaChooser()
     {
         wxString fDir = OpenDialog.GetDirectory();
         wxString filename = OpenDialog.GetFilename();
+
+        ObtainAccessToURL(fDir.ToStdString());
+        ObtainAccessToURL(filename.ToStdString());
 
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);

@@ -47,6 +47,7 @@
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
 #include "xLightsApp.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -559,6 +560,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
                      wxFD_OPEN | wxFD_CHANGE_DIR);
     if (dlg.ShowModal() == wxID_OK) {
         wxString new_filename = dlg.GetPath();
+        ObtainAccessToURL(new_filename.ToStdString());
         key.Replace(" ", "");
         faceData[name][key.ToStdString()] = new_filename;
         MatrixModelsGrid->SetCellValue(r, c, new_filename);

@@ -42,6 +42,7 @@
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
+#include "osxMacUtils.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -2383,8 +2384,8 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
 {
     _changed = true;
     background_image = FilePickerCtrl1->GetFileName().GetFullPath();
-
     if (background_image != "") {
+        ObtainAccessToURL(background_image);
         if (wxFile::Exists(background_image)) {
             bkg_image = new wxImage(background_image);
         }

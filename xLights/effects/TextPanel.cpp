@@ -11,6 +11,7 @@
 #include "TextPanel.h"
 #include "EffectPanelUtils.h"
 #include "../FontManager.h"
+#include "../osxMacUtils.h"
 
 //(*InternalHeaders(TextPanel)
 #include <wx/artprov.h>
@@ -322,6 +323,7 @@ PANEL_EVENT_HANDLERS(TextPanel)
 
 void TextPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    ObtainAccessToURL(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
     ValidateWindow();
 }
 

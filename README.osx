@@ -11,7 +11,7 @@ xLights on Mac OS/X.
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights on OS X is 3.1.2.
+of wxWidgets for xLights on OS X is 3.1.3.
 
 Unfortunately, xLights cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
@@ -19,29 +19,26 @@ is required for xLights.  You must build wxWidgets from source.
 
 
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.
-Xcode can be downloaded from the Apple developer web site. Make
+Xcode can be downloaded from the Apple developer web site or the App Store. Make
 sure you install the version of Xcode that matches your version of
-OS/X. For example, I use OS/X 10.14, so I installed Xcode 10.0.
-Instructions are here:
-
-  http://wiki.wxwidgets.org/Installing_Xcode
+OS/X. For example, I use OS/X 10.15, so I installed Xcode 11.5.
 
 
-The latest wxWidgets release (3.1.2) will not work anymore as we need some API's that have
+The latest wxWidgets release (3.1.3) will not work anymore as we need some API's that have
 been added since then.  We also have several other fixes in place for background rendering, etc...
 
 To get the latest code that we've tested, do:
 
-git clone  --recurse-submodules -b xlights_fixes https://github.com/dkulp/wxWidgets
+git clone  --recurse-submodules -b xlights_2020.28 https://github.com/dkulp/wxWidgets
 
 Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=c++1z -g"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=c++1z"
-  export CPPFLAGS="-stdlib=libc++ -g"
-  export LDFLAGS="-stdlib=libc++"
+  export CXXFLAGS="-g"
+  export OBJCXXFLAGS=""
+  export CPPFLAGS="-g"
+  export LDFLAGS=""
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
@@ -51,7 +48,7 @@ Then, from inside a Terminal window:
                 --enable-debug --disable-compat30 --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.10 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
-                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make -j 8
   make install
@@ -59,10 +56,10 @@ Then, from inside a Terminal window:
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
-  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
-  export CPPFLAGS="-stdlib=libc++ -flto=thin"
-  export LDFLAGS="-stdlib=libc++ -flto=thin"
+  export CXXFLAGS="-flto=thin"
+  export OBJCXXFLAGS="-flto=thin"
+  export CPPFLAGS="-flto=thin"
+  export LDFLAGS="-flto=thin"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
@@ -71,7 +68,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
   ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
-                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
   make -j 8
   make install
@@ -190,3 +187,4 @@ Jun 30, 2019 - 51bce4ec0b2f1d6e38e1d5ae75e0ad1cec9bae13 Contains fixes for openg
 July 21, 2019 - 9ede90257fa5813bbb6c32f949b8d69619e14c03 add --enable-mimetype
 July 27, 2019 - d50b91554ada145c8031db4540008b0f641bed28 fixes for some openGL issues, wxGrid crashes
 Nov 17, 2019 - 099a4c8b77ccca16870d8761ba724be4e4d13643 Update to wxWidget 3.1.3
+July 9, 2020 - tag: xlights_2020.28 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds
