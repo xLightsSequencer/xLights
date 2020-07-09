@@ -1533,8 +1533,8 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
             }
             idx = vs.find(':');
             if (idx != std::string::npos) {
-                float x = std::strtof(s.substr(0, idx).c_str(), nullptr);
-                float y = std::strtof(s.substr(idx).c_str(), nullptr);
+                float x = std::strtof(vs.substr(0, idx).c_str(), nullptr);
+                float y = std::strtof(vs.substr(idx + 1).c_str(), nullptr);
                 
                 _values.push_back(vcSortablePoint(x, y, false));
             }
