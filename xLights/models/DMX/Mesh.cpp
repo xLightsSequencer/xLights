@@ -20,6 +20,7 @@
 #include "../../UtilFunctions.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
+#include "../../osxMacUtils.h"
 #include <log4cpp/Category.hh>
 
 #include <glm/gtc/quaternion.hpp>
@@ -174,6 +175,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
         textures.clear();
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
+        ObtainAccessToURL(_objFile);
         node_xml->DeleteAttribute("ObjFile");
         node_xml->AddAttribute("ObjFile", _objFile);
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ObjFile");

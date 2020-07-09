@@ -2069,6 +2069,7 @@ public:
     virtual void OnSetValue() override {
         wxFileProperty::OnSetValue();
         wxFileName fn = GetFileName();
+        ObtainAccessToURL(fn.GetFullPath());
         if (fn != lastFileName) {
             lastFileName = fn;
             delete m_pImage;

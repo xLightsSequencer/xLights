@@ -20,6 +20,7 @@
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "../xLightsMain.h"
+#include "../osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -94,6 +95,7 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         textures.clear();
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
+        ObtainAccessToURL(_objFile);
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::ObjFile");

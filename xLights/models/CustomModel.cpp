@@ -21,6 +21,7 @@
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
+#include "../osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -169,6 +170,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
+        ObtainAccessToURL(custom_background);
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomBkgImage");

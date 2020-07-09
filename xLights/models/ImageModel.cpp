@@ -17,6 +17,7 @@
 #include "../ModelPreview.h"
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
+#include "../osxMacUtils.h"
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -151,12 +152,12 @@ void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
 int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
 
     if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it)
-        {
+        for (auto it = _images.begin(); it != _images.end(); ++it) {
             delete it->second;
         }
         _images.clear();
         _imageFile = event.GetValue().GetString();
+        ObtainAccessToURL(_imageFile);
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");

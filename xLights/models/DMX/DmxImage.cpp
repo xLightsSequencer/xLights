@@ -19,6 +19,7 @@
 #include "../../UtilFunctions.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
+#include "../../osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -173,6 +174,7 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         }
         _images.clear();
         _imageFile = event.GetValue().GetString();
+        ObtainAccessToURL(_imageFile);
         obj_exists = false;
         image_selected = true;
         node_xml->DeleteAttribute("Image");
