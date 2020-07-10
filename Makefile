@@ -61,7 +61,7 @@ wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
 	@if test "`wx-config --version`" != "3.1.4"; \
 		then if test ! -d wxWidgets-202029; \
-			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.29 https://github.com/dkulp/wxWidgets wxWidgets-202029 \
+			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.29 https://github.com/dkulp/wxWidgets wxWidgets-202029; \
 		fi; \
 		cd wxWidgets-202029; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
