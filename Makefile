@@ -59,14 +59,13 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.3"; \
-		then if test ! -d wxWidgets-3.1.3; \
-			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2; \
-			tar xfj wxWidgets-3.1.3.tar.bz2; \
+	@if test "`wx-config --version`" != "3.1.4"; \
+		then if test ! -d wxWidgets-202029; \
+			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.29 https://github.com/dkulp/wxWidgets wxWidgets-202029 \
 		fi; \
-		cd wxWidgets-3.1.3; \
+		cd wxWidgets-202029; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
-		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -s; \
 		echo Installing wxwidgets; \

@@ -1688,8 +1688,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     splash.Hide();
 
     config->Read("xLightsUserEmail", &_userEmail, "");
-    if (_userEmail == "") CollectUserEmail();
-    if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -1839,12 +1837,14 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
 
     // dont check for updates if batch rendering
-#ifndef MAC_APP_STORE
     if (!_renderMode)
     {
+        #ifndef MAC_APP_STORE
         CheckForUpdate(false);
+        #endif
+        if (_userEmail == "") CollectUserEmail();
+        if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
-#endif
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 }
 
