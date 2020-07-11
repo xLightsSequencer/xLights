@@ -215,6 +215,7 @@ bool Output::Open() {
         if (proxy != "") {
             _fppProxyOutput = new DDPOutput();
             _fppProxyOutput->_ip = proxy;
+            _fppProxyOutput->_resolvedIp = ResolveIP(proxy);
             _fppProxyOutput->_startChannel = _startChannel;
             _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
             _fppProxyOutput->Open();
