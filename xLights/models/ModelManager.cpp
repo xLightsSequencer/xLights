@@ -349,7 +349,7 @@ bool ModelManager::RecalcStartChannels() const {
 
     wxStopWatch sw;
     bool changed = false;
-    std::list<std::string> modelsDone;
+    std::set<std::string> modelsDone;
 
     for (const auto& it : models) {
         it.second->CouldComputeStartChannel = false;
@@ -363,7 +363,7 @@ bool ModelManager::RecalcStartChannels() const {
             if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
             if (first != '>' && first != '@')
             {
-                modelsDone.push_back(it.first);
+                modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
                 it.second->SetFromXml(it.second->GetModelXml());
                 if (oldsc != it.second->GetFirstChannel())
@@ -388,10 +388,10 @@ bool ModelManager::RecalcStartChannels() const {
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
                     std::string dependsOn = Trim(Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1));
-                    if (std::find(modelsDone.begin(), modelsDone.end(), dependsOn) != modelsDone.end())
+                    if (modelsDone.find(dependsOn) != modelsDone.end())
                     {
                         // the depends on model is done
-                        modelsDone.push_back(it.first);
+                        modelsDone.emplace(it.first);
                         auto oldsc = it.second->GetFirstChannel();
                         it.second->SetFromXml(it.second->GetModelXml());
                         if (oldsc != it.second->GetFirstChannel())
@@ -412,17 +412,14 @@ bool ModelManager::RecalcStartChannels() const {
     // now process anything unprocessed
     int countInvalid = 0;
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup")
-        {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
             char first = '0';
             if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
-            if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
-            {
-                modelsDone.push_back(it.first);
+            if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel) {
+                modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
                 it.second->SetFromXml(it.second->GetModelXml());
-                if (oldsc != it.second->GetFirstChannel())
-                {
+                if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
             }
