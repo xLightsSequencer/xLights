@@ -2112,7 +2112,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
         for (const auto& socket : sockets) {
-            if (socket->IsOk()) {
+            if (socket->IsOk() && socket->WaitForRead(0, 10)) {
                 socket->Read(&buffer[0], sizeof(buffer));
                 readSize = socket->GetLastIOReadSize();
                 if (readSize != 0) {
