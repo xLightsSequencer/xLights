@@ -613,11 +613,9 @@ bool xLightsApp::OnInit()
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
-#ifndef MAC_APP_STORE
     #if !defined(_DEBUG) || !defined(_MSC_VER)
         wxHandleFatalExceptions();
     #endif
-#endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
