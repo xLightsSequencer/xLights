@@ -11,6 +11,7 @@
 
 #include <wx/config.h>
 #include <wx/menu.h>
+#include <wx/colour.h>
 
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
@@ -23,7 +24,6 @@
 
 #include <CoreAudio/CoreAudio.h>
 #include <CoreServices/CoreServices.h>
-
 
 static std::set<std::string> ACCESSIBLE_URLS;
 static std::mutex URL_LOCK;
@@ -180,6 +180,48 @@ double xlOSXGetMainScreenContentScaleFactor()
     return displayScale;
 }
 
+#define WX_IS_MACOS_AVAILABLE(major, minor) \
+       __builtin_available(macOS major ## . ## minor, *)
+class xlOSXEffectiveAppearanceSetter
+{
+public:
+    xlOSXEffectiveAppearanceSetter() {
+        if (WX_IS_MACOS_AVAILABLE(10, 14)) {
+            formerAppearance = NSAppearance.currentAppearance;
+            NSAppearance.currentAppearance = NSApp.effectiveAppearance;
+        }
+    }
+    ~xlOSXEffectiveAppearanceSetter() {
+        if (WX_IS_MACOS_AVAILABLE(10, 14)) {
+            NSAppearance.currentAppearance = (NSAppearance*) formerAppearance;
+        }
+    }
+private:
+    void * formerAppearance;
+};
+
+
+static void printrgb(const char *n, NSColor *c) {
+    float r = [c redComponent] * 255;
+    float g = [c greenComponent] * 255;
+    float b = [c blueComponent] * 255;
+    float a = [c alphaComponent] * 255;
+    
+    printf("%s:  %d %d %d %d\n", n, (int)r, (int)g, (int) b, (int)a);
+}
+
+void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc) {
+    xlOSXEffectiveAppearanceSetter helper;
+    NSColor *nc = c.OSXGetNSColor();
+    NSColor *ncrgbd = [nc colorUsingColorSpaceName:NSDeviceRGBColorSpace];
+
+    float r = [ncrgbd redComponent] * 255;
+    float g = [ncrgbd greenComponent] * 255;
+    float b = [ncrgbd blueComponent] * 255;
+    float a = [ncrgbd alphaComponent] * 255;
+
+    xlc.Set(r, g, b, a);
+}
 
 
 void xlSetOpenGLRetina(xlGLCanvas &win) {

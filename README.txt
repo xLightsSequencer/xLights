@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Move email prompt until after version check and frame is up/displayed (occassionally hangs)
+   -- bug (dkulp)  Fix problem with start channel calculation on reverse single color polylines
+   -- bug (dkulp)  FPP Connect hanging on OSX
+   -- enh (dkulp)  Respond to system color changes and update row header/waveform
 2020.28 July 10 2020
    -- bug (keith)  Fix S5 import onto nodes does not work - this is a chance this will break import from multicolour 
                    models but i dont have any samples to test on.

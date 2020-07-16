@@ -558,6 +558,7 @@ public:
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
     void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
+    void OnSysColourChanged(wxSysColourChangedEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:

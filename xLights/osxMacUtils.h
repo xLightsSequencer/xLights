@@ -13,6 +13,8 @@
 #ifdef __WXOSX__
 class xlGLCanvas;
 class wxMenu;
+class wxColor;
+class xlColor;
 
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
@@ -27,6 +29,10 @@ bool IsMouseEventFromTouchpad();
 class AudioManager;
 void AddAudioDeviceChangeListener(AudioManager *am);
 void RemoveAudioDeviceChangeListener(AudioManager *am);
+
+void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc);
+
+
 
 #define AdjustModalDialogParent(par) par = nullptr
 
@@ -44,6 +50,7 @@ void RemoveAudioDeviceChangeListener(AudioManager *am);
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener(a)
 #define AdjustModalDialogParent(par)
+inline void AdjustColorToDeviceColorspace(c, xlc) {xlc = c;}
 
 inline bool IsMouseEventFromTouchpad() {
     return false;

@@ -41,6 +41,25 @@ ColorManager* ColorManager::instance()
     return pInstance;
 }
 
+void ColorManager::SysColorChanged() {
+    for( size_t i = 0; i < NUM_COLORS; ++i ) {
+        if (xLights_color[i].systemColor != wxSYS_COLOUR_MAX) {
+            //using a system color, we need to reload it
+            wxColour c = wxSystemSettings::GetColour(xLights_color[i].systemColor);
+#ifdef __WXOSX__
+            if (c.IsSolid()) {
+                colors_system[xLights_color[i].name] = c;
+            } else {
+                colors_system[xLights_color[i].name] = xLights_color[i].color;
+            }
+#else
+            colors_system[xLights_color[i].name] = c;
+#endif
+        }
+	}
+}
+
+
 void ColorManager::ResetDefaults()
 {
     colors.clear();

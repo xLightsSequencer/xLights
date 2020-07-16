@@ -148,17 +148,25 @@ public:
     virtual bool UsesAddVertex() override {return false;}
     void InitializeGLContext() override {
         SetCurrentGLContext();
-        xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
-
-        LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
-                                   ((float)c.Green())/255.0f,
-                                   ((float)c.Blue())/255.0f, 1.0f));
+        if (bgColorInvalid) {
+            wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
+            AdjustColorToDeviceColorspace(c, bgColor);
+            bgColorInvalid = false;
+        }
+        
+        LOG_GL_ERRORV(glClearColor(((float)bgColor.Red())/255.0f,
+                                   ((float)bgColor.Green())/255.0f,
+                                   ((float)bgColor.Blue())/255.0f, 1.0f));
         LOG_GL_ERRORV(glDisable(GL_BLEND));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
         prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
     }
-
+    void OnSysColourChanged(wxSysColourChangedEvent& event) {
+        event.Skip();
+        bgColorInvalid = true;
+        Refresh();
+    }
     void renderGL()
     {
         if(!IsShownOnScreen()) return;
@@ -188,6 +196,8 @@ public:
     }
 
 private:
+    bool bgColorInvalid = true;
+    xlColor bgColor;
     DrawGLUtils::xlVertexTextAccumulator _va;
     std::string _time;
     std::string _fps;
@@ -197,6 +207,7 @@ private:
 
 BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)
 EVT_PAINT(TimeDisplayControl::Paint)
+EVT_SYS_COLOUR_CHANGED(TimeDisplayControl::OnSysColourChanged)
 END_EVENT_TABLE()
 
 MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id,const wxPoint& pos,const wxSize& size)

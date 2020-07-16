@@ -435,7 +435,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_VC_CHANGED, xLightsFrame::VCChanged)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
 
-
+    EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
@@ -9901,6 +9901,12 @@ void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
     }
     m_mgr->Update();
 }
+
+void xLightsFrame::OnSysColourChanged(wxSysColourChangedEvent& event) {
+    event.Skip();
+    color_mgr.SysColorChanged();
+}
+
 
 void xLightsFrame::SetHardwareVideoAccelerated(bool b)
 {

@@ -91,6 +91,7 @@ class ColorManager
 
         static ColorManager* instance();
 
+        void SysColorChanged();
         void RefreshColors();
         void ResetDefaults();
         const xlColor GetTimingColor(int colorIndex);
