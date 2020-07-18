@@ -1,2 +1,5 @@
+# These files are ignored because of their size which GitHub will not allow
 wxmsw31ud_adv.lib
 wxmsw31ud_core.lib
+wxmsw31u_adv.lib
+wxmsw31u_core.lib
