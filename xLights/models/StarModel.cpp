@@ -222,7 +222,7 @@ void StarModel::InitModel()
     int LastStringNum = -1;
     int chan = 0;
     int start = 0;
-    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR);
+    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR * starSizes.size());
 
     for (int cur = 0; cur < starSizes.size(); cur++) {
         numlights = starSizes[cur];
@@ -238,8 +238,8 @@ void StarModel::InitModel()
             // forced the pixels into order largest to smallest ... at least on the display
             // I have kept the old code for stars without duplicate sized layers to minimise impacts on users.
             double sep = (double)(SEPERATION_FACTOR * (starSizes.size() - cur));
-            offset = ((double)(numlights) / 2.0 + sep) * scale;
-            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale;
+            offset = ((double)(numlights) / 2.0 + sep) * scale + SEPERATION_FACTOR * starSizes.size() / 4 * scale;
+            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale + SEPERATION_FACTOR * starSizes.size() / 4 * scale;
         }
         else {
             offset = (double)numlights / 2.0;
