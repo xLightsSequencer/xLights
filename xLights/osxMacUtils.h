@@ -50,7 +50,7 @@ void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc);
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener(a)
 #define AdjustModalDialogParent(par)
-inline void AdjustColorToDeviceColorspace(c, xlc) {xlc = c;}
+inline void AdjustColorToDeviceColorspace(const wxColor& c, xlColor& xlc) {xlc = c;}
 
 inline bool IsMouseEventFromTouchpad() {
     return false;
