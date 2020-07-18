@@ -11,10 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.29 July 18 2020
+   -- enh (dkulp)  Respond to system color changes and update row header/waveform
    -- bug (dkulp)  Move email prompt until after version check and frame is up/displayed (occassionally hangs)
    -- bug (dkulp)  Fix problem with start channel calculation on reverse single color polylines
    -- bug (dkulp)  FPP Connect hanging on OSX
-   -- enh (dkulp)  Respond to system color changes and update row header/waveform
+   -- bug (keith)  Fix duplicate layer star cuts off render buffer
+   -- bug (keith)  Fix VU Meter and Music effect note range text boxes prematurely adjust Start vs End
+   -- bug (scott)  Fix FPP Proxy output
 2020.28 July 10 2020
    -- bug (keith)  Fix S5 import onto nodes does not work - this is a chance this will break import from multicolour 
                    models but i dont have any samples to test on.
@@ -24,8 +28,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)  Performance improvements with Video Preview window open, hardware video decoding
    -- enh (dkulp)  Various performance optimizations in render pipeline, thread pools
    -- enh (dkulp)  FPP Connect - restart fppd if outputs uploaded
-   -- bug (keith)  "Black Cherry Cosmos" shader not working
    -- enh (keith)  Add a bulk edit option on file picker that lets you set the show folder
+   -- enh (scott)  Added Right Click "Auto" Wiring Options to Custom Model Dialog
+   -- enh (scott)  Added to Face Effect, Outline 2 uses 4th color pallet
+   -- enh (scott)  Added DMX Skull Model Node Level Support for "On" Effect
+   -- bug (keith)  "Black Cherry Cosmos" shader not working
    -- bug (keith)  Fix cube model with many strings does not take up the right number of visualiser ports
    -- bug (keith)  Fix some crashes if invalid IP addresses/hostnames are used for controllers
    -- bug (dkulp)  Video effects with "Keep Aspect Ratio" enabled take a long time to render
@@ -35,9 +42,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                     redownload shader/model caches, etc...
                     Expect some instability until the sandbox restrictions can all be found and
                     resolved.
-   -- enh (scott)  Added Right Click "Auto" Wiring Options to Custom Model Dialog
-   -- enh (scott)  Added to Face Effect, Outline 2 uses 4th color pallet
-   -- enh (scott)  Added DMX Skull Model Node Level Support for "On" Effect
    -- bug (scott)  Fixed DMX Skull Model Export
    -- bug (scott)  Better Scaling for "Scaled" Render Buffers
    -- bug (scott)  Fixed offset in PinWheel CW mode causing two arms
