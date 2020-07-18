@@ -122,6 +122,10 @@ class MusicPanel: public wxPanel
         void OnVCChanged(wxCommandEvent& event);
         //*)
 
+		void OnTextCtrl_Music_StartNoteKillFocus(wxFocusEvent& event);
+		void OnTextCtrl_Music_StartNoteEnter(wxCommandEvent& event);
+		void ApplyText(wxEvent& event);
+
 		DECLARE_EVENT_TABLE()
 
 	public:

@@ -141,6 +141,10 @@ class VUMeterPanel: public wxPanel
         void OnVCChanged(wxCommandEvent& event);
         //*)
 
+		void OnTextCtrl_VUMeter_StartNoteKillFocus(wxFocusEvent& event);
+		void OnTextCtrl_VUMeter_StartNoteEnter(wxCommandEvent& event);
+		void ApplyText(wxEvent& event);
+
 		DECLARE_EVENT_TABLE()
 
 	public:
