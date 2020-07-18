@@ -10,11 +10,11 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "Color.h"
+
 #ifdef __WXOSX__
 class xlGLCanvas;
 class wxMenu;
-class wxColor;
-class xlColor;
 
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
