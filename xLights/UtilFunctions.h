@@ -46,6 +46,7 @@ std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::strin
 bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path);
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
+void SetFixFileDirectories(const std::list<std::string>& dirs);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);

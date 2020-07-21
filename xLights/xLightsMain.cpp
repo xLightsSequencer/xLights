@@ -1402,13 +1402,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     if (!xLightsApp::mediaDir.IsNull()) {
         md = xLightsApp::mediaDir;
-    } else if (ok && !config->Read(_("MediaDir"), &md)) {
-        md=dir;
+        logger_base.debug("Media directory %s.", (const char *)md.c_str());
+        ObtainAccessToURL(md);
+        mediaDirectories.push_back(md);
+    } else if (config->Read(_("MediaDir"), &md)) {
+        wxArrayString entries = wxSplit(md, '|');
+        for (auto & dir : entries) {
+            ObtainAccessToURL(dir.ToStdString());
+            mediaDirectories.push_back(dir.ToStdString());
+        }
     }
-    mediaDirectory = md;
-    logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
-    ObtainAccessToURL(mediaDirectory);
-
+    SetFixFileDirectories(mediaDirectories);
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
@@ -2694,7 +2698,7 @@ void xLightsFrame::ShowSequenceSettings()
     bool aborted = AbortRender();
 
     // populate dialog
-    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
@@ -3910,44 +3914,27 @@ void xLightsFrame::DoAltBackup(bool prompt)
         DisplayError(errors, this);
     }
 }
-
-void xLightsFrame::GetMediaFolder(bool& useShow, std::string& folder)
-{
-    useShow = (showDirectory == mediaDirectory);
-    folder = mediaDirectory;
-}
-
-void xLightsFrame::SetMediaFolder(bool useShow, const std::string& folder)
-{
+void xLightsFrame::SetMediaFolders(const std::list<std::string> &folders) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxConfigBase* config = wxConfigBase::Get();
-
-    if (useShow) {
-        config->Write("LinkFlag", true);
-        if (mediaDirectory == showDirectory) return;
-        mediaDirectory = showDirectory;
-    }
-    else {
-        if (wxDir::Exists(folder)) {
-            ObtainAccessToURL(folder);
-            config->Write("LinkFlag", false);
-            if (mediaDirectory == folder) return;
-            mediaDirectory = folder;
+    
+    wxString setting;
+    mediaDirectories.clear();
+    for (auto &dir: folders) {
+        ObtainAccessToURL(dir);
+        mediaDirectories.push_back(dir);
+        logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
+        if (setting != "") {
+            setting += "|";
         }
-        else {
-            DisplayError("Media directory does not exist. Media folder was not changed to " + folder + ". Media folder remains : " + mediaDirectory, this);
-            return;
-        }
+        setting += dir;
     }
-
-    config->Write(_("MediaDir"), wxString(mediaDirectory));
-
-    logger_base.debug("Media directory set to : %s.", (const char*)mediaDirectory.c_str());
+    config->Write(_("MediaDir"), setting);
+    SetFixFileDirectories(mediaDirectories);
+    mediaDirectories.push_back(showDirectory);
 }
 
-void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
-{
+void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder) {
     useShow = (showDirectory == fseqDirectory);
     folder = fseqDirectory;
 }

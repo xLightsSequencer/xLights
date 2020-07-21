@@ -257,20 +257,22 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage.ToStdString());
     if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
-        wxString fn = FixFile(mediaDirectory, GetXmlSetting("backgroundImage", ""));
-        ObtainAccessToURL(fn.ToStdString());
-        if (wxFileExists(fn) && wxIsReadable(mBackgroundImage)) {
-            mBackgroundImage = fn;
+        //image doesn't exist there, lets look for it in media directories
+        wxString bgImg = GetXmlSetting("backgroundImage", "");
+        for (auto &dir : mediaDirectories) {
+            wxString fn = FixFile(dir, bgImg);
+            ObtainAccessToURL(fn.ToStdString());
+            if (wxFileExists(fn) && wxIsReadable(fn)) {
+                mBackgroundImage = fn;
+                break;
+            }
         }
-        else {
-            //image doesn't exist there, lets look for it in show directory and media directory
+        if (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage)) {
             wxFileName name(mBackgroundImage);
             name.SetPath(CurrentDir);
-            if (!name.Exists()) {
-                name.SetPath(mediaDirectory);
-            }
             if (name.Exists()) {
                 mBackgroundImage = name.GetFullPath();
+                ObtainAccessToURL(name.GetFullPath().ToStdString());
             }
         }
     }

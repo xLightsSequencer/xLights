@@ -142,9 +142,9 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, std::string& media_dir, const wxString& warning, bool wizard_active_)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, bool wizard_active_)
 	: xml_file(file_to_handle_),
-	media_directory(media_dir),
+	media_directories(media_dirs),
 	xLightsParent((xLightsFrame*)parent),
 	selected_branch_index(-1),
 	wizard_active(wizard_active_),
@@ -1397,6 +1397,9 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 void SeqSettingsDialog::MediaChooser()
 {
 	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+    
+    std::string media_directory = media_directories.empty() ? "" : media_directories.front();
+    
     if (wxDir::Exists(media_directory))
     {
         OpenDialog.SetDirectory(media_directory);

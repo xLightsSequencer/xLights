@@ -11,11 +11,13 @@
 #include "SequenceFileSettingsPanel.h"
 
 //(*InternalHeaders(SequenceFileSettingsPanel)
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filepicker.h>
 #include <wx/gbsizer.h>
 #include <wx/intl.h>
+#include <wx/listbox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
@@ -35,8 +37,9 @@ const long SequenceFileSettingsPanel::ID_CHECKBOX6 = wxNewId();
 const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL3 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL2 = wxNewId();
-const long SequenceFileSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL1 = wxNewId();
+const long SequenceFileSettingsPanel::ID_LISTBOX_MEDIA = wxNewId();
+const long SequenceFileSettingsPanel::ID_BUTTON_ADDMEDIA = wxNewId();
+const long SequenceFileSettingsPanel::ID_BUTTON_REMOVE_MEDIA = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SequenceFileSettingsPanel,wxPanel)
@@ -47,6 +50,8 @@ END_EVENT_TABLE()
 SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindowID id,const wxPoint& pos,const wxSize& size) : frame(f)
 {
 	//(*Initialize(SequenceFileSettingsPanel)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxGridBagSizer* GridBagSizer1;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -105,13 +110,20 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	DirPickerCtrl_FSEQ = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL2, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL2"));
 	StaticBoxSizer2->Add(DirPickerCtrl_FSEQ, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(8, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Media Directory"));
-	CheckBox_Media = new wxCheckBox(this, ID_CHECKBOX4, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
-	CheckBox_Media->SetValue(false);
-	StaticBoxSizer1->Add(CheckBox_Media, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	DirPickerCtrl_Media = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL1, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL1"));
-	StaticBoxSizer1->Add(DirPickerCtrl_Media, 1, wxALL|wxEXPAND, 5);
-	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Media/Resource Directories"));
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	MediaDirectoryList = new wxListBox(this, ID_LISTBOX_MEDIA, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_MEDIA"));
+	MediaDirectoryList->SetMinSize(wxDLG_UNIT(this,wxSize(-1,50)));
+	FlexGridSizer1->Add(MediaDirectoryList, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	AddMediaButton = new wxButton(this, ID_BUTTON_ADDMEDIA, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADDMEDIA"));
+	FlexGridSizer2->Add(AddMediaButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	RemoveMediaButton = new wxButton(this, ID_BUTTON_REMOVE_MEDIA, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REMOVE_MEDIA"));
+	FlexGridSizer2->Add(RemoveMediaButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
+	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -126,8 +138,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	Connect(ID_DIRPICKERCTRL3,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnDirPickerCtrl_RenderCacheDirChanged);
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnCheckBox_FSEQClick);
 	Connect(ID_DIRPICKERCTRL2,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnDirPickerCtrl_FSEQDirChanged);
-	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnCheckBox_MediaClick);
-	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnDirPickerCtrl_MediaDirChanged);
+	Connect(ID_LISTBOX_MEDIA,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnMediaDirectoryListSelect);
+	Connect(ID_BUTTON_ADDMEDIA,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnAddMediaButtonClick);
+	Connect(ID_BUTTON_REMOVE_MEDIA,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnRemoveMediaButtonClick);
 	//*)
 }
 
@@ -166,7 +179,13 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
             break;
     }
 
-    frame->SetMediaFolder(CheckBox_Media->GetValue(), DirPickerCtrl_Media->GetPath());
+    std::list<std::string> mediaFolders;
+    wxArrayString dirs =  MediaDirectoryList->GetStrings();
+    for (auto &a : dirs) {
+        mediaFolders.push_back(a.ToStdString());
+    }
+    frame->SetMediaFolders(mediaFolders);
+    
     frame->SetFSEQFolder(CheckBox_FSEQ->GetValue(), DirPickerCtrl_FSEQ->GetPath());
     frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
 
@@ -205,13 +224,19 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
 
     bool cb;
     std::string folder;
-    frame->GetMediaFolder(cb, folder);
-    CheckBox_Media->SetValue(cb);
-    DirPickerCtrl_Media->SetPath(folder);
-
     frame->GetFSEQFolder(cb, folder);
     CheckBox_FSEQ->SetValue(cb);
     DirPickerCtrl_FSEQ->SetPath(folder);
+
+    
+    folder = frame->GetShowDirectory();
+    for (auto &a : frame->GetMediaFolders()) {
+        if (a != folder) {
+            MediaDirectoryList->Append(a);
+        }
+    }
+    AddMediaButton->Enable();
+    RemoveMediaButton->Disable();
 
     frame->GetRenderCacheFolder(cb, folder);
     CheckBox_RenderCache->SetValue(cb);
@@ -273,13 +298,7 @@ void SequenceFileSettingsPanel::OnRenderModeChoiceSelect(wxCommandEvent& event)
 bool SequenceFileSettingsPanel::ValidateWindow()
 {
     bool res = true;
-
-    if (CheckBox_Media->GetValue()) {
-        DirPickerCtrl_Media->Enable(false);
-    } else {
-        if (!wxDir::Exists(DirPickerCtrl_Media->GetPath())) res = false;
-        DirPickerCtrl_Media->Enable(true);
-    }
+    RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
 
     if (CheckBox_FSEQ->GetValue()) {
         DirPickerCtrl_FSEQ->Enable(false);
@@ -340,4 +359,35 @@ void SequenceFileSettingsPanel::OnDirPickerCtrl_FSEQDirChanged(wxFileDirPickerEv
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
+}
+
+void SequenceFileSettingsPanel::OnAddMediaButtonClick(wxCommandEvent& event)
+{
+    wxDirDialog dlg(NULL, "Choose media directory", "",
+                    wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_NEW_DIR_BUTTON );
+    if (dlg.ShowModal() == wxID_OK) {
+        wxString d = dlg.GetPath();
+        if (MediaDirectoryList->FindString(d) == wxNOT_FOUND) {
+            MediaDirectoryList->Append(d);
+            if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+                TransferDataFromWindow();
+            }
+        }
+    }
+}
+
+void SequenceFileSettingsPanel::OnRemoveMediaButtonClick(wxCommandEvent& event)
+{
+    int i = MediaDirectoryList->GetSelection();
+    if (i != wxNOT_FOUND)  {
+        MediaDirectoryList->Delete(i);
+    }
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void SequenceFileSettingsPanel::OnMediaDirectoryListSelect(wxCommandEvent& event)
+{
+    RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
 }

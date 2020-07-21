@@ -539,13 +539,17 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
             if (mediaName != "") {
                 if (!wxFile::Exists(mediaName)) {
                     wxFileName fn(mediaName);
-                    std::string tmn = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
-                    if (wxFile::Exists(tmn)) {
-                        mediaName = tmn;
-                    } else {
+                    for (auto &md : frame->GetMediaFolders()) {
+                        std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+                        if (wxFile::Exists(tmn)) {
+                            mediaName = tmn;
+                            break;
+                        }
+                    }
+                    if (!wxFile::Exists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
                         if (!wxFile::Exists(fixedMN)) {
-                            logger_base.info("Could not find media: %s  OR   %s   OR   %s", mediaName.c_str(), tmn.c_str(), fixedMN.c_str());
+                            logger_base.info("Could not find media: %s", mediaName.c_str());
                             mediaName = "";
                         } else {
                             mediaName = fixedMN;

@@ -200,16 +200,6 @@ private:
     void * formerAppearance;
 };
 
-
-static void printrgb(const char *n, NSColor *c) {
-    float r = [c redComponent] * 255;
-    float g = [c greenComponent] * 255;
-    float b = [c blueComponent] * 255;
-    float a = [c alphaComponent] * 255;
-    
-    printf("%s:  %d %d %d %d\n", n, (int)r, (int)g, (int) b, (int)a);
-}
-
 void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc) {
     xlOSXEffectiveAppearanceSetter helper;
     NSColor *nc = c.OSXGetNSColor();
@@ -222,7 +212,6 @@ void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc) {
 
     xlc.Set(r, g, b, a);
 }
-
 
 void xlSetOpenGLRetina(xlGLCanvas &win) {
     NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();

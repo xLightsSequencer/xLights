@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fixup filename doesn't work if anything in the path has non-xml safe characters
+   -- enh (dkulp)  Support multiple directories for resources/media
 2020.29 July 18 2020
    -- enh (dkulp)  Respond to system color changes and update row header/waveform
    -- bug (dkulp)  Move email prompt until after version check and frame is up/displayed (occassionally hangs)

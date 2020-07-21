@@ -200,71 +200,120 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
     return res;
 }
 
+static std::list<std::string> SearchDirectories;
+void SetFixFileDirectories(const std::list<std::string>& dirs) {
+    SearchDirectories = dirs;
+}
+
+static bool doesFileExist(const wxString &dir, const wxString &origFileWin, const wxString &origFileUnix, wxString &path) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxFileName fn3(dir, origFileWin);
+    if (fn3.Exists()) {
+        logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
+        path = fn3.GetFullPath();
+        return true;
+    }
+    wxFileName fn4(dir, origFileUnix);
+    if (fn4.Exists()) {
+        logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
+        path = fn4.GetFullPath();
+        return true;
+    }
+    return false;
+}
+static bool doesFileExist(const std::string &sd, const wxString &append,
+                          const wxString &nameWin, const wxString &nameUnix, wxString &newPath) {
+    if (doesFileExist(sd + append, nameWin, nameUnix, newPath)) {
+        // file exists in the new show dir
+        return true;
+    }
+    for (auto &fd : SearchDirectories) {
+        if (doesFileExist(fd + append, nameWin, nameUnix, newPath)) {
+            // file exists in one of the resource directories
+            return true;
+        }
+    }
+    return false;
+}
+static bool doesFileExist(const std::string &sd, const wxString &appendWin, const wxString &appendUnx,
+                          const wxString &nameWin, const wxString &nameUnix, wxString &newPath) {
+    if (doesFileExist(sd + appendWin, nameWin, nameUnix, newPath)) {
+        // file exists in the new show dir
+        return true;
+    }
+    if (doesFileExist(sd + appendUnx, nameWin, nameUnix, newPath)) {
+        // file exists in the new show dir
+        return true;
+    }
+    for (auto &fd : SearchDirectories) {
+        if (doesFileExist(fd + appendUnx, nameWin, nameUnix, newPath)) {
+            // file exists in one of the resource directories
+            return true;
+        }
+        if (doesFileExist(fd + appendUnx, nameWin, nameUnix, newPath)) {
+            // file exists in one of the resource directories
+            return true;
+        }
+    }
+    return false;
+}
+
+
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    if (file == "") {
+        return file;
+    }
 
+    if (wxFileExists(file)) {
+        return file;
+    }
+    logger_base.debug("File not found ... attempting to fix location : " + file);
+
+    
     // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
 	static wxString RememberShowDir;
-
+    
     wxString sd;
-	if (ShowDir == "")
-	{
+	if (ShowDir == "") {
 		sd = RememberShowDir;
-	}
-	else
-	{
-		if (!recurse)
-		{
-			if (ShowDir != RememberShowDir)
-			{
+    } else {
+        if (!recurse) {
+			if (ShowDir != RememberShowDir) {
 				RememberShowDir = ShowDir;
 			}
 		}
 		sd = ShowDir;
 	}
-
-    if (file == "")
-    {
-        return file;
-    }
-
-	if (wxFileExists(file))
-	{
-		return file;
-	}
-
-    logger_base.debug("File not found ... attempting to fix location : " + file);
-
-#ifndef __WXMSW__
     wxFileName fnUnix(file, wxPATH_UNIX);
-    wxFileName fn3(sd, fnUnix.GetFullName());
-    //logger_base.debug("                   trying location : " + fn3.GetFullPath());
-    if (fn3.Exists()) {
-        logger_base.debug("File location fixed: " + file + " -> " + fn3.GetFullPath());
-        return fn3.GetFullPath();
-    }
-#endif
     wxFileName fnWin(file, wxPATH_WIN);
-    wxFileName fn4(sd, fnWin.GetFullName());
-    //logger_base.debug("                   trying location : " + fn4.GetFullPath());
-    if (fn4.Exists()) {
-        logger_base.debug("File location fixed: " + file + " -> " + fn4.GetFullPath());
-        return fn4.GetFullPath();
+    wxString nameUnix = fnUnix.GetFullName();
+    wxString nameWin = fnWin.GetFullName();
+    wxString newPath;
+    if (doesFileExist(sd, nameWin, nameUnix, newPath)) {
+        // file exists in the new show dir
+        return newPath;
+    }
+    for (auto &fd : SearchDirectories) {
+        if (doesFileExist(fd, nameWin, nameUnix, newPath)) {
+            // file exists in one of the resource directories
+            return newPath;
+        }
     }
 
-    wxString sdlc = sd;
-    sdlc.LowerCase();
     wxString flc = file;
     flc.LowerCase();
 
     wxString path;
     wxString fname;
     wxString ext;
-    wxFileName::SplitPath(sd, &path, &fname, &ext);
-    //wxArrayString parts = wxSplit(path, '\\', 0);
-    if (fname == "")
-    {
+    wxFileName::SplitPath(sd, &path, &fname, &ext, wxPATH_WIN);
+    if (fname == "" || fname.Contains("/")) {
+        wxFileName::SplitPath(sd, &path, &fname, &ext, wxPATH_UNIX);
+    }
+    if (fname == "") {
         // no subdirectory
         return file;
     }
@@ -272,75 +321,67 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     wxString showfolder = fname;
     wxString sflc = showfolder;
     sflc.LowerCase();
-    wxString newLoc = sd;
+    
+    wxString appendWin;
+    wxString appendUnx;
 
     bool appending = false;
     for (size_t x = 0; x < fnWin.GetDirs().size(); x++) {
         if (fnWin.GetDirs()[x].Lower() == sflc) {
             appending = true;
         } else if (appending) {
-            newLoc += wxFileName::GetPathSeparator();
-            newLoc += fnWin.GetDirs()[x];
+            appendWin += wxFileName::GetPathSeparator();
+            appendWin += fnWin.GetDirs()[x];
         }
     }
-    if (appending) {
-        newLoc += wxFileName::GetPathSeparator();
-        newLoc += fnWin.GetFullName();
-        //logger_base.debug("                   trying location : " + newLoc);
-        if (wxFileExists(newLoc)) {
-            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
-            return newLoc;
-        }
-    }
-
-#ifndef __WXMSW__
-    newLoc = sd;
     appending = false;
-    for (int x = 0; x < fnUnix.GetDirs().size(); x++) {
+    for (size_t x = 0; x < fnUnix.GetDirs().size(); x++) {
         if (fnUnix.GetDirs()[x].Lower() == sflc) {
             appending = true;
         } else if (appending) {
-            newLoc += wxFileName::GetPathSeparator();
-            newLoc += fnWin.GetDirs()[x];
+            appendUnx += wxFileName::GetPathSeparator();
+            appendUnx += fnUnix.GetDirs()[x];
         }
     }
-    if (appending) {
-        newLoc += wxFileName::GetPathSeparator();
-        newLoc += fnUnix.GetFullName();
-        //logger_base.debug("                   trying location : " + newLoc);
-        if (wxFileExists(newLoc)) {
-            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
-            return newLoc;
-        }
+    if (doesFileExist(sd, appendWin, appendUnx, nameWin, nameUnix, newPath)) {
+        // file exists
+        return newPath;
     }
-#endif
 
-    if (flc.Contains(sflc))
-    {
+    if (flc.Contains(sflc)) {
         int offset = flc.Find(sflc) + showfolder.Length();
         wxString relative = file.SubString(offset, file.Length());
-
-        if (fnWin.GetDirs().size() > 0) {
-
-        }
         wxFileName sdFn =  wxFileName::DirName(sd);
-
-        //logger_base.debug("                   trying location : " + relative);
-        if (wxFileExists(relative))
-        {
-            logger_base.debug("File location fixed: " + file + " -> " + relative);
+        if (wxFileExists(relative)) {
             return relative;
         }
     }
-
-#ifndef __WXMSW__
-    if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
-        return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
+    // if we get here, the show folders could not be matched, let's try the reverse and traverse up the
+    // the files directories to see if we can get a match
+    appendWin = "";
+    for (int x = fnWin.GetDirs().size()-1; x >= 0;x--) {
+        appendWin = wxFileName::GetPathSeparator() + fnWin.GetDirs()[x] + appendWin;
+        if (doesFileExist(sd, appendWin, nameWin, nameUnix, newPath)) {
+            // file exists
+            return newPath;
+        }
     }
-#endif
+    appendUnx = "";
+    for (int x = fnUnix.GetDirs().size()-1; x >= 0;x--) {
+        appendUnx = wxFileName::GetPathSeparator() + fnUnix.GetDirs()[x] + appendUnx;
+        if (doesFileExist(sd, appendUnx, nameWin, nameUnix, newPath)) {
+            // file exists
+            return newPath;
+        }
+    }
+    
     if (ShowDir == "" && fnWin.GetDirCount() > 0) {
         return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file, true);
     }
+    if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
+        return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
+    }
+    logger_base.debug("   could not find a fixed file location for : " + file);
    	return file;
 }
 
@@ -351,8 +392,8 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 	int startvalue = endparamname + 2;
 	int endvalue = parametervalue.find(",", startvalue) - 1;
 	wxString file = parametervalue.SubString(startvalue, endvalue);
-	wxString newfile = FixFile(ShowDir, file);
-	wxString rc = parametervalue.Left(startvalue) + newfile + parametervalue.Right(parametervalue.Length() - endvalue - 1);
+	wxString newfile = FixFile(ShowDir, UnXmlSafe(file));
+	wxString rc = parametervalue.Left(startvalue) + XmlSafe(newfile) + parametervalue.Right(parametervalue.Length() - endvalue - 1);
 	return rc;
 }
 

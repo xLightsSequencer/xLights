@@ -104,7 +104,7 @@ void xLightsFrame::NewSequence()
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""), true);
     setting_dlg.Fit();
     int ret_code = setting_dlg.ShowModal();
     if (ret_code == wxID_CANCEL) {
@@ -404,48 +404,48 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // double-check file existence
-        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable())
-        {
+        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
             wxFileName detect_media(media_file);
 
             // search media directory
-            detect_media.SetPath(mediaDirectory);
-            if( detect_media.FileExists() )
-            {
-                media_file = detect_media;
-            }
-            else
-            {
-                // search selected file directory
-                detect_media.SetPath(selected_file.GetPath());
-                if( detect_media.FileExists() )
-                {
+            for (auto &mediaDirectory : mediaDirectories) {
+                detect_media.SetPath(mediaDirectory);
+                if (detect_media.FileExists()) {
                     media_file = detect_media;
+                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                    break;
+                } else {
+                    // search selected file directory
+                    detect_media.SetPath(selected_file.GetPath());
+                    if (detect_media.FileExists()) {
+                        media_file = detect_media;
+                        ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                        break;
+                    }
                 }
             }
         }
 
         // search for missing media file in media directory and show directory
-        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable() )
-        {
+        if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
             wxFileName detect_media(selected_file);
             detect_media.SetExt("mp3");
 
             // search media directory
-            detect_media.SetPath(mediaDirectory);
-            if( detect_media.FileExists() )
-            {
-                media_file = detect_media;
-                ObtainAccessToURL(media_file.GetFullPath().ToStdString());
-            }
-            else
-            {
-                // search selected file directory
-                detect_media.SetPath(selected_file.GetPath());
-                if( detect_media.FileExists() )
-                {
+            for (auto &mediaDirectory : mediaDirectories) {
+                detect_media.SetPath(mediaDirectory);
+                if (detect_media.FileExists()) {
                     media_file = detect_media;
                     ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                    break;
+                } else {
+                    // search selected file directory
+                    detect_media.SetPath(selected_file.GetPath());
+                    if (detect_media.FileExists()) {
+                        media_file = detect_media;
+                        ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                        break;
+                    }
                 }
             }
         }
@@ -499,7 +499,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 aborted = AbortRender();
             }
 
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT("V3 file was converted. Please check settings!"));
 			setting_dlg.Fit();
             int ret_code = setting_dlg.ShowModal();
 

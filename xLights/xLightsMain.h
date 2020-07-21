@@ -975,8 +975,8 @@ public:
     int GetBackupPugeDays() const { return BackupPurgeDays; }
     void DoAltBackup(bool prompt = true);
 
-    void GetMediaFolder(bool& useShow, std::string& folder);
-    void SetMediaFolder(bool useShow, const std::string& folder);
+    const std::list<std::string> &GetMediaFolders() { return mediaDirectories; }
+    void SetMediaFolders(const std::list<std::string> &folders);
     void GetFSEQFolder(bool& useShow, std::string& folder);
     void SetFSEQFolder(bool useShow, const std::string& folder);
     void GetRenderCacheFolder(bool& useShow, std::string& folder);
@@ -1148,7 +1148,7 @@ public:
     std::string _permanentShowFolder;
     std::string mediaFilename;
     std::string showDirectory;
-    std::string mediaDirectory;
+    std::list<std::string> mediaDirectories;
     std::string fseqDirectory;
     std::string renderCacheDirectory;
     std::string backupDirectory;

@@ -205,13 +205,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     else {
         wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
     }
-
-    long LinkFlag = 0;
-    config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag ) {
-        mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), wxString(mediaDirectory));
-        logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
+    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
+        mediaDirectories.push_back(CurrentDir);
     }
 
     long fseqLinkFlag = 0;
@@ -292,12 +287,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         logger_base.debug("Backup completed.");
     }
 
-    LinkFlag = 0;
-    config->Read(_("LinkFlag"), &LinkFlag);
-    if (LinkFlag) {
-        mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), wxString(mediaDirectory));
-        logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
+    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
+        mediaDirectories.push_back(CurrentDir);
     }
 
     EnableSequenceControls(true);

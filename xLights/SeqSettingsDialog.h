@@ -38,7 +38,7 @@ class SeqSettingsDialog: public wxDialog
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, std::string& media_dir, const wxString& warning, bool wizard_active_ = false);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, bool wizard_active_ = false);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -270,7 +270,7 @@ class SeqSettingsDialog: public wxDialog
         DECLARE_EVENT_TABLE()
 
         xLightsXmlFile* xml_file = nullptr;
-        std::string& media_directory;
+        const std::list<std::string>& media_directories;
 		std::string selected_view;
 		xLightsFrame* xLightsParent = nullptr;
         int selected_branch_index = 0;
