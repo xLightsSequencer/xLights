@@ -2922,7 +2922,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     int audioFrameIndex = 0;
     bool exportStatus = false;
-
+    std::string emsg;
     try {
         VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
 
@@ -2959,6 +2959,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         exportStatus = videoExporter.Export();
     }
     catch (const std::runtime_error& re) {
+        emsg = (const char*)re.what();
         logger_base.error("Error exporting video : %s", (const char*)re.what());
         exportStatus = false;
     }
@@ -2977,7 +2978,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     else
     {
-        DisplayError( "Exporting house preview video failed", this );
+        DisplayError( "Exporting house preview video failed.  " + emsg, this );
     }
 }
 
