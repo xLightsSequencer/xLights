@@ -1491,7 +1491,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
     int unit, circuit, rampdiff;
-    int i, twinklestate;
+    int i;
     int twinkleperiod = 400;
     int curchannel = -1;
     int MappedChannelCnt = 0;
@@ -1887,25 +1887,25 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         else if (EffectType == "twinkle")
                         {
-                            int twinkleFrameCount = 0;
+                            int twinkleFrameCount = 0, twinkleState = 0;
                             
                             int frameIntensity = intensity;
                             for (i = 0; i < perdiff; i++)
                             {
                                 // count down twinkleFrameCount (defaults to 0)
-                                // when <= 0, flip flop twinklestate, this produces a random on/off pattern
+                                // when <= 0, flip flop twinkleState, this produces a random on/off pattern
                                 // calculate the new twinkleFrameCount value (in interations)
                                 // this produces several unique patterns within the full [0, perdiff] window
                                 if (--twinkleFrameCount <= 0)
                                 {
-                                    twinklestate = !twinklestate;
+                                    twinkleState = !twinkleState;
                                     twinkleFrameCount = static_cast<int>(rand01() * twinkleperiod + 100) / LORImportInterval;
                                 }
                                 if (!frameIntensity)
                                 {
                                     frameIntensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 }
-                                SeqData[startper + i][curchannel] = frameIntensity * twinklestate;
+                                SeqData[startper + i][curchannel] = frameIntensity * twinkleState;
                             }
                         }
                         else if (EffectType == "shimmer")
@@ -1917,8 +1917,10 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 {
                                     frameIntensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 }
-                                twinklestate = (startper + i) & 0x01;
-                                SeqData[startper + i][curchannel] = frameIntensity * twinklestate;
+                                
+                                // use bit 0 of (startper + i) to determine the output state
+                                // this creates a "random" on/off pattern using the odd/even sum
+                                SeqData[startper + i][curchannel] = frameIntensity * ((startper + i) & 0x01);
                             }
                         }
                     }
