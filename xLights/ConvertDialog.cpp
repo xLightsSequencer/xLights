@@ -1891,7 +1891,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             
                             // create an initial, random twinkleState value
                             // the exact value is irrelevant since it is used as a seed
-                            int twinkleState = static_cast<int>(rand01() * 2.0) & 0x01;
+                            int twinkleState = rand01() >= 0.5;
                             
                             for (i = 0; i < frameCount; i++)
                             {
@@ -1903,6 +1903,10 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 {
                                     twinkleState = !twinkleState;
                                     twinkleFrameCount = static_cast<int>(rand01() * TwinkleMaxTimeMillis + TwinkleMinTimeMillis) / LORImportInterval;
+                                    
+                                    // prevent the effect subloop from exceeding the remaining frameCount
+                                    // this ensures the last frame of each effect subloop matches the desired endIntensity
+                                    twinkleFrameCount = std::min(twinkleFrameCount, frameCount - i);
                                 }
                                 if (twinkleState)
                                 {
