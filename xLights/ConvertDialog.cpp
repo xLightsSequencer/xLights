@@ -1875,72 +1875,50 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         
                         if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
-                            if (intensity > 0)
+                            int frameIntensity = intensity;
+                            for (i = 0; i < perdiff; i++)
                             {
-                                for (i = 0; i < perdiff; i++)
+                                if (!frameIntensity)
                                 {
-                                    SeqData[startper + i][curchannel] = intensity;
+                                    frameIntensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity;
-                                }
+                                SeqData[startper + i][curchannel] = frameIntensity;
                             }
                         }
                         else if (EffectType == "twinkle")
                         {
-                            twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
-                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                            if (intensity > 0)
+                            int twinkleFrameCount = 0;
+                            
+                            int frameIntensity = intensity;
+                            for (i = 0; i < perdiff; i++)
                             {
-                                for (i = 0; i < perdiff; i++)
+                                // count down twinkleFrameCount (defaults to 0)
+                                // when <= 0, flip flop twinklestate, this produces a random on/off pattern
+                                // calculate the new twinkleFrameCount value (in interations)
+                                // this produces several unique patterns within the full [0, perdiff] window
+                                if (--twinkleFrameCount <= 0)
                                 {
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                                    }
+                                    twinklestate = !twinklestate;
+                                    twinkleFrameCount = static_cast<int>(rand01() * twinkleperiod + 100) / LORImportInterval;
                                 }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
+                                if (!frameIntensity)
                                 {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                                    }
+                                    frameIntensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 }
+                                SeqData[startper + i][curchannel] = frameIntensity * twinklestate;
                             }
                         }
                         else if (EffectType == "shimmer")
                         {
-                            if (intensity > 0)
+                            int frameIntensity = intensity;
+                            for (i = 0; i < perdiff; i++)
                             {
-                                for (i = 0; i < perdiff; i++)
+                                if (!frameIntensity)
                                 {
-                                    twinklestate = (startper + i) & 0x01;
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
+                                    frameIntensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    twinklestate = (startper + i) & 0x01;
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                }
+                                twinklestate = (startper + i) & 0x01;
+                                SeqData[startper + i][curchannel] = frameIntensity * twinklestate;
                             }
                         }
                     }
