@@ -1893,10 +1893,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         else if (EffectType == "twinkle")
                         {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
-                            {
-                                intensity = MaxIntensity;
-                            }
                             twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
                             int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
                             if (intensity > 0)
@@ -1929,10 +1925,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         else if (EffectType == "shimmer")
                         {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
-                            {
-                                intensity = MaxIntensity;
-                            }
                             if (intensity > 0)
                             {
                                 for (i = 0; i < perdiff; i++)
