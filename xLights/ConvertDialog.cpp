@@ -1884,8 +1884,12 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         else if (EffectType == "twinkle")
                         {
-                            const int twinkleMaxTimeMillis = 400, twinkleMinTimeMillis = 100;
-                            int twinkleFrameCount = 0, twinkleState = 0;
+                            const int TwinkleMaxTimeMillis = 400, TwinkleMinTimeMillis = 100;
+                            int twinkleFrameCount = 0;
+                            
+                            // create an initial, random twinkleState value
+                            // the exact value is irrelevant since it is used as a seed
+                            int twinkleState = static_cast<int>(rand01() * 2.0) & 0x01;
                             
                             for (i = 0; i < frameCount; i++)
                             {
@@ -1896,7 +1900,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 if (--twinkleFrameCount <= 0)
                                 {
                                     twinkleState = !twinkleState;
-                                    twinkleFrameCount = static_cast<int>(rand01() * twinkleMaxTimeMillis + twinkleMinTimeMillis) / LORImportInterval;
+                                    twinkleFrameCount = static_cast<int>(rand01() * TwinkleMaxTimeMillis + TwinkleMinTimeMillis) / LORImportInterval;
                                 }
                                 if (twinkleState)
                                 {
