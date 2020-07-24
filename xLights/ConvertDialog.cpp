@@ -1897,7 +1897,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             
                             // create an initial, random twinkleState value
                             // the exact value is irrelevant since it is used as a seed
-                            int twinkleState = rand01() >= 0.5;
+                            int twinkleState = static_cast<int>(rand01() * 2.0 + curchannel) & 0x01;
                             
                             for (i = 0; i < frameCount; i++)
                             {
