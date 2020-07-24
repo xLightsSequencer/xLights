@@ -1920,6 +1920,10 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 }
                             }
                         }
+                        else
+                        {
+                            AppendConvertStatus(wxString("WARNING: unable to convert LOR effect '") + EffectType + wxString("'\n"));
+                        }
                     }
                 }
             }
