@@ -1486,8 +1486,6 @@ static void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *uni
 
 void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
     int unit, circuit;
