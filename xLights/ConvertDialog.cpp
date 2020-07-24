@@ -1494,7 +1494,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     int i;
     int curchannel = -1;
     int MappedChannelCnt = 0;
-    int MaxIntensity = 100;
     int EffectCnt = 0;
     int network, chindex = -1;
     long cnt = 0;
@@ -1855,10 +1854,12 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         
                         if (EffectType != "DMX intensity")
                         {
+                            const int MaxLORIntensity = 100;
+                            
                             // convert LOR's 0-100 range to xLight's 0-255 range
-                            intensity = intensity * 255 / MaxIntensity;
-                            startIntensity = startIntensity * 255 / MaxIntensity;
-                            endIntensity = endIntensity * 255 / MaxIntensity;
+                            intensity = intensity * 255 / MaxLORIntensity;
+                            startIntensity = startIntensity * 255/ MaxLORIntensity;
+                            endIntensity = endIntensity * 255 / MaxLORIntensity;
                         }
                         
                         // if startIntensity & endIntensity match, then the intensity is the same throughout the effect
