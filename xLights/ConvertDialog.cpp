@@ -1851,6 +1851,15 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 
                     if (perdiff > 0)
                     {
+                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
+                        if (EffectType != "DMX intensity")
+                        {
+                            // convert LOR's 0-100 range to xLight's 0-255 range
+                            intensity = intensity * 255 / MaxIntensity;
+                            startIntensity = startIntensity * 255 / MaxIntensity;
+                            endIntensity = endIntensity * 255 / MaxIntensity;
+                        }
+                        
                         // ramping effects check if startIntensity > 0 || endIntensity > 0
                         // if the difference is 0, this zeroes out both values to avoid those code paths
                         // intensity defaults to 0, so its code paths will also be ignored
@@ -1864,13 +1873,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             }
                         }
                         
-                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
-                        if (EffectType != "DMX intensity")
-                        {
-                            intensity = intensity * 255 / MaxIntensity;
-                            startIntensity = startIntensity * 255 / MaxIntensity;
-                            endIntensity = endIntensity * 255 / MaxIntensity;
-                        }
                         if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
                             if (intensity > 0)
