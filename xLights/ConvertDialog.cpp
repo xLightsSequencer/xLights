@@ -1492,7 +1492,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     wxArrayString context;
     int unit, circuit, rampdiff;
     int i;
-    int twinkleperiod = 400;
     int curchannel = -1;
     int MappedChannelCnt = 0;
     int MaxIntensity = 100;
@@ -1889,6 +1888,9 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         {
                             int twinkleFrameCount = 0, twinkleState = 0;
                             
+                            const int twinkleMaxTimeMillis = 400;
+                            const int twinkleMinTimeMillis = 100;
+                            
                             int frameIntensity = intensity;
                             for (i = 0; i < perdiff; i++)
                             {
@@ -1899,7 +1901,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 if (--twinkleFrameCount <= 0)
                                 {
                                     twinkleState = !twinkleState;
-                                    twinkleFrameCount = static_cast<int>(rand01() * twinkleperiod + 100) / LORImportInterval;
+                                    twinkleFrameCount = static_cast<int>(rand01() * twinkleMaxTimeMillis + twinkleMinTimeMillis) / LORImportInterval;
                                 }
                                 if (!frameIntensity)
                                 {
