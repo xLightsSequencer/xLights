@@ -1765,14 +1765,21 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     network = getAttributeValueAsInt(stagEvent, "network");
 
                     unit = getAttributeValueAsInt(stagEvent, "unit");
-                    if (unit < 0)
+                    
+                    // LOR supports up to 240 unit IDs, starting at 0x01
+                    // see https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#unit-ids
+                    const int MinLORUnitId = 0x01;
+                    const int MaxLORUnitId = 0xF0;
+                    
+                    if (unit < MinLORUnitId || unit > MaxLORUnitId)
                     {
-                        unit += 256;
+                        AppendConvertStatus(string_format(wxString("WARNING: invalid LOR unit id: %d, must be within %d-%d\n"), unit, MinLORUnitId, MaxLORUnitId));
+                        
+                        // bind the invalid unit value within the upper and lower bounds
+                        // this ensures out of bounds unit ids will always be pushed into the lowest, or highest, values
+                        unit = std::clamp(unit, MinLORUnitId, MaxLORUnitId);
                     }
-                    if (unit == 0)
-                    {
-                        unit = 1;
-                    }
+
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
@@ -1927,7 +1934,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         else
                         {
-                            AppendConvertStatus(wxString("WARNING: unable to convert LOR effect '") + EffectType + wxString("'\n"));
+                            AppendConvertStatus(string_format(wxString("WARNING: unable to convert LOR effect '%s'\n"), EffectType));
                         }
                     }
                 }
