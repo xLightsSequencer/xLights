@@ -1851,6 +1851,19 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 
                     if (perdiff > 0)
                     {
+                        // ramping effects check if startIntensity > 0 || endIntensity > 0
+                        // if the difference is 0, this zeroes out both values to avoid those code paths
+                        // intensity defaults to 0, so its code paths will also be ignored
+                        if (startIntensity > 0 || endIntensity > 0)
+                        {
+                            rampdiff = endIntensity - startIntensity;
+                            if (rampdiff == 0)
+                            {
+                                startIntensity = 0;
+                                endIntensity = 0;
+                            }
+                        }
+                        
                         wxString EffectType = getAttributeValueSafe(stagEvent, "type");
                         if (EffectType != "DMX intensity")
                         {
@@ -1869,9 +1882,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                if (rampdiff == 0) logger_base.crit("This is going to crash. AAA");
                                 for (i = 0; i < perdiff; i++)
                                 {
                                     intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
@@ -1902,8 +1912,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
                                 for (i = 0; i < perdiff; i++)
                                 {
                                     intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
@@ -1933,9 +1941,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                if (rampdiff == 0) logger_base.crit("This is going to crash. BBB");
                                 for (i = 0; i < perdiff; i++)
                                 {
                                     twinklestate = (startper + i) & 0x01;
