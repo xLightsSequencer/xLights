@@ -1839,9 +1839,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     empty = false;
                     EffectCnt++;
                     
-                    int intensity = getAttributeValueAsInt(stagEvent, "intensity");
-                    int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
-                    int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
                     const int startFrameIndex = getAttributeValueAsInt(stagEvent, "startCentisecond") * 10 / LORImportInterval;
                     const int endFrameIndex = getAttributeValueAsInt(stagEvent, "endCentisecond") * 10 / LORImportInterval;
                     const int frameCount = endFrameIndex - startFrameIndex;
@@ -1850,7 +1847,12 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 
                     if (frameCount > 0)
                     {
-                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
+                        const wxString EffectType = getAttributeValueSafe(stagEvent, "type");
+                        
+                        int intensity = getAttributeValueAsInt(stagEvent, "intensity");
+                        int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
+                        int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
+                        
                         if (EffectType != "DMX intensity")
                         {
                             // convert LOR's 0-100 range to xLight's 0-255 range
