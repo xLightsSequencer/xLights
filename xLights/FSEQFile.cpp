@@ -411,9 +411,9 @@ inline bool isRecongizedVariableHeader(uint8_t a, uint8_t b) {
     return (a == 'm' && b == 'f') || (a == 's' && b == 'p');
 }
 
+const int FSEQ_VARIABLE_HEADER_SIZE = 4;
+
 void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int readIndex) {
-    const int VariableHeaderLength = 4;
-    
     while (readIndex < header.size() - 5) { // todo: where is 5 from? off by one from 4?
         const int variableLength = read2ByteUInt(&header[readIndex]);
 
@@ -422,7 +422,7 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             
             // empty data, advance only the length of the 2 byte length and 2 byte code
             // handle variableLength == 0 check first to ensure the variableLength value is safe to use below
-            readIndex += VariableHeaderLength;
+            readIndex += FSEQ_VARIABLE_HEADER_SIZE;
         } else if (!isRecongizedVariableHeader(header[readIndex + 2], header[readIndex + 3])) {
             // avoid reading unrecongized variable headers
             // each 2 byte length can consume up to 65k of memory when allocating vheader->data
@@ -433,8 +433,8 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             VariableHeader vheader;
             vheader.code[0] = header[readIndex + 2];
             vheader.code[1] = header[readIndex + 3];
-            vheader.data.resize(variableLength - VariableHeaderLength);
-            memcpy(&vheader.data[0], &header[readIndex + VariableHeaderLength], variableLength - VariableHeaderLength);
+            vheader.data.resize(variableLength - FSEQ_VARIABLE_HEADER_SIZE);
+            memcpy(&vheader.data[0], &header[readIndex + FSEQ_VARIABLE_HEADER_SIZE], variableLength - FSEQ_VARIABLE_HEADER_SIZE);
             m_variableHeaders.push_back(vheader);
             
             readIndex += variableLength;
@@ -465,7 +465,7 @@ void V1FSEQFile::writeHeader() {
     // data offset
     uint32_t dataOffset = V1FSEQ_HEADER_SIZE;
     for (auto &a : m_variableHeaders) {
-        dataOffset += a.data.size() + 4;
+        dataOffset += a.data.size() + FSEQ_VARIABLE_HEADER_SIZE;
     }
     dataOffset = roundTo4(dataOffset);
     write2ByteUInt(&header[4], dataOffset);
@@ -494,12 +494,12 @@ void V1FSEQFile::writeHeader() {
     header[27] = 0;
     write(header, V1FSEQ_HEADER_SIZE);
     for (auto &a : m_variableHeaders) {
-        uint8_t buf[4];
-        uint32_t len = a.data.size() + 4;
+        uint8_t buf[FSEQ_VARIABLE_HEADER_SIZE];
+        uint32_t len = a.data.size() + FSEQ_VARIABLE_HEADER_SIZE;
         write2ByteUInt(buf, len);
         buf[2] = a.code[0];
         buf[3] = a.code[1];
-        write(buf, 4);
+        write(buf, FSEQ_VARIABLE_HEADER_SIZE);
         write(&a.data[0], a.data.size());
     }
     uint64_t pos = tell();
@@ -641,7 +641,6 @@ uint32_t V1FSEQFile::getMaxChannel() const {
 }
 
 static const int V2FSEQ_HEADER_SIZE = 32;
-static const int V2FSEQ_VARIABLE_HEADER_SIZE = 4;
 static const int V2FSEQ_SPARSE_RANGE_SIZE = 6;
 static const int V2FSEQ_COMPRESSION_BLOCK_SIZE = 8;
 #if !defined(NO_ZLIB) || !defined(NO_ZSTD)
@@ -1297,7 +1296,7 @@ void V2FSEQFile::writeHeader() {
     // Channel data offset is the headerSize plus size of variable headers
     // Round to a product of 4 for better memory alignment
     m_seqChanDataOffset = headerSize;
-    m_seqChanDataOffset += m_variableHeaders.size() * V2FSEQ_VARIABLE_HEADER_SIZE;
+    m_seqChanDataOffset += m_variableHeaders.size() * FSEQ_VARIABLE_HEADER_SIZE;
     for (auto &a : m_variableHeaders) {
         m_seqChanDataOffset += a.data.size();
     }
@@ -1365,11 +1364,11 @@ void V2FSEQFile::writeHeader() {
     // Variable headers
     // 4 byte size minimum (2 byte length + 2 byte code)
     for (auto &a : m_variableHeaders) {
-        uint32_t len = V2FSEQ_VARIABLE_HEADER_SIZE + a.data.size();
+        uint32_t len = FSEQ_VARIABLE_HEADER_SIZE + a.data.size();
         write2ByteUInt(&header[writePos], len);
         header[writePos + 2] = a.code[0];
         header[writePos + 3] = a.code[1];
-        memcpy(&header[writePos + 4], &a.data[0], a.data.size());
+        memcpy(&header[writePos + FSEQ_VARIABLE_HEADER_SIZE], &a.data[0], a.data.size());
         writePos += len;
     }
 
