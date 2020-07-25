@@ -428,6 +428,14 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             
             // empty data, advance only the length of the 2 byte code
             readIndex += VariableCodeSize;
+        } else if (readIndex + VariableCodeSize + dataLength > header.size()) {
+            // ensure the data length is contained within the header
+            // this is primarily protection against hand modified, or corrupted, sequence files
+            LogErr(VB_SEQUENCE, "VariableHeader '%c%c' has out of bounds data length: %d bytes, max length: %d bytes", header[readIndex], header[readIndex + 1], readIndex + VariableCodeSize + dataLength, header.size());
+            
+            // there is no reasonable way to recover from this error - the reported dataLength is longer than possible
+            // return from parsing variable headers and let the program attempt to read the rest of the file
+            return;
         } else if (!isRecongizedVariableHeader(header[readIndex], header[readIndex + 1])) {
             // avoid reading unrecongized variable headers
             // each 2 byte length can consume up to 65k of memory when allocating vheader->data
