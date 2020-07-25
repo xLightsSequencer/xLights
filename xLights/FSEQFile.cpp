@@ -452,6 +452,13 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             // readIndex is now the first byte of the data
             readIndex += VariableCodeSize;
 
+            // print a warning if the data is not null terminated
+            // this is to assist debugging potential string related issues
+            // the data is not forcibly null terminated to avoid mutating unknown data
+            if (header[readIndex + dataLength] != '\0') {
+                LogErr(VB_SEQUENCE, "VariableHeader %c%c data is not NULL terminated!", vheader.code[0], vheader.code[1]);
+            }
+
             vheader.data.resize(dataLength);
             memcpy(&vheader.data[0], &header[readIndex], dataLength);
             
