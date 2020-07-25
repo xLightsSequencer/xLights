@@ -423,7 +423,7 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
 
         readIndex += VariableLengthSize;
 
-        if (!dataLength) {
+        if (dataLength <= 0) {
             LogErr(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", header[readIndex], header[readIndex + 1]);
             
             // empty data, advance only the length of the 2 byte code
