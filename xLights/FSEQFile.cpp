@@ -405,17 +405,19 @@ void FSEQFile::preload(uint64_t pos, uint64_t size) {
 }
 
 void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int start) {
-    while (start < header.size() - 5) {
+    const int VariableHeaderLength = 4;
+    
+    while (start < header.size() - 5) { // todo: where is 5 from? off by one from 4?
         int len = read2ByteUInt(&header[start]);
         if (len) {
             VariableHeader vheader;
             vheader.code[0] = header[start + 2];
             vheader.code[1] = header[start + 3];
-            vheader.data.resize(len - 4);
-            memcpy(&vheader.data[0], &header[start + 4], len - 4);
+            vheader.data.resize(len - VariableHeaderLength);
+            memcpy(&vheader.data[0], &header[start + VariableHeaderLength], len - VariableHeaderLength);
             m_variableHeaders.push_back(vheader);
         } else {
-            len += 4;
+            len += VariableHeaderLength;
         }
         start += len;
     }
