@@ -414,30 +414,46 @@ inline bool isRecongizedVariableHeader(uint8_t a, uint8_t b) {
 const int FSEQ_VARIABLE_HEADER_SIZE = 4;
 
 void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int readIndex) {
-    while (readIndex < header.size() - 5) { // todo: where is 5 from? off by one from 4?
-        const int variableLength = read2ByteUInt(&header[readIndex]);
+    const int VariableLengthSize = 2, VariableCodeSize = 2;
 
-        if (!variableLength) {
-            LogErr(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", header[readIndex + 2], header[readIndex + 3]);
+    // when encoding, the header size is rounded to the nearest multiple of 4
+    // this comparison ensures that there is enough bytes left to at least constitute a 2 byte length + 2 byte code
+    while (readIndex + FSEQ_VARIABLE_HEADER_SIZE < header.size()) {
+        const int dataLength = read2ByteUInt(&header[readIndex]) - FSEQ_VARIABLE_HEADER_SIZE;
+
+        readIndex += VariableLengthSize;
+
+        if (!dataLength) {
+            LogErr(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", header[readIndex], header[readIndex + 1]);
             
-            // empty data, advance only the length of the 2 byte length and 2 byte code
-            // handle variableLength == 0 check first to ensure the variableLength value is safe to use below
-            readIndex += FSEQ_VARIABLE_HEADER_SIZE;
-        } else if (!isRecongizedVariableHeader(header[readIndex + 2], header[readIndex + 3])) {
+            // empty data, advance only the length of the 2 byte code
+            readIndex += VariableCodeSize;
+        } else if (!isRecongizedVariableHeader(header[readIndex], header[readIndex + 1])) {
             // avoid reading unrecongized variable headers
             // each 2 byte length can consume up to 65k of memory when allocating vheader->data
-            LogErr(VB_SEQUENCE, "Unknown VariableHeader code: %c%c, length: %d bytes", header[readIndex + 2], header[readIndex + 3], variableLength);
+            LogErr(VB_SEQUENCE, "Unknown VariableHeader code: %c%c, length: %d bytes", header[readIndex], header[readIndex + 1], dataLength);
             
-            readIndex += variableLength;
+            // advance the length of the 2 byte code + the length of the data
+            readIndex += VariableCodeSize + dataLength;
         } else {
             VariableHeader vheader;
-            vheader.code[0] = header[readIndex + 2];
-            vheader.code[1] = header[readIndex + 3];
-            vheader.data.resize(variableLength - FSEQ_VARIABLE_HEADER_SIZE);
-            memcpy(&vheader.data[0], &header[readIndex + FSEQ_VARIABLE_HEADER_SIZE], variableLength - FSEQ_VARIABLE_HEADER_SIZE);
+            
+            memcpy(&vheader.code[0], &header[readIndex], VariableCodeSize);
+            
+            // advance the length of the 2 byte code
+            // readIndex is now the first byte of the data
+            readIndex += VariableCodeSize;
+
+            vheader.data.resize(dataLength);
+            memcpy(&vheader.data[0], &header[readIndex], dataLength);
+            
             m_variableHeaders.push_back(vheader);
             
-            readIndex += variableLength;
+            LogDebug(VB_SEQUENCE, "Read VariableHeader: %c%c, length: %d bytes", vheader.code[0], vheader.code[1], dataLength);
+            
+            // advance the length of the data
+            // readIndex now points at the next VariableHeader's length (if any)
+            readIndex += dataLength;
         }
     }
 }
