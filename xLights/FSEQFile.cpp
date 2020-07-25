@@ -404,22 +404,41 @@ void FSEQFile::preload(uint64_t pos, uint64_t size) {
 #endif
 }
 
-void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int start) {
+inline bool isRecongizedVariableHeader(uint8_t a, uint8_t b) {
+    // mf - media filename
+    // sp - sequence producer
+    // see https://github.com/FalconChristmas/fpp/blob/master/docs/FSEQ_Sequence_File_Format.txt#L48 for more information
+    return (a == 'm' && b == 'f') || (a == 's' && b == 'p');
+}
+
+void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int readIndex) {
     const int VariableHeaderLength = 4;
     
-    while (start < header.size() - 5) { // todo: where is 5 from? off by one from 4?
-        int len = read2ByteUInt(&header[start]);
-        if (len) {
-            VariableHeader vheader;
-            vheader.code[0] = header[start + 2];
-            vheader.code[1] = header[start + 3];
-            vheader.data.resize(len - VariableHeaderLength);
-            memcpy(&vheader.data[0], &header[start + VariableHeaderLength], len - VariableHeaderLength);
-            m_variableHeaders.push_back(vheader);
+    while (readIndex < header.size() - 5) { // todo: where is 5 from? off by one from 4?
+        const int variableLength = read2ByteUInt(&header[readIndex]);
+
+        if (!variableLength) {
+            LogErr(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", header[readIndex + 2], header[readIndex + 3]);
+            
+            // empty data, advance only the length of the 2 byte length and 2 byte code
+            // handle variableLength == 0 check first to ensure the variableLength value is safe to use below
+            readIndex += VariableHeaderLength;
+        } else if (!isRecongizedVariableHeader(header[readIndex + 2], header[readIndex + 3])) {
+            // avoid reading unrecongized variable headers
+            // each 2 byte length can consume up to 65k of memory when allocating vheader->data
+            LogErr(VB_SEQUENCE, "Unknown VariableHeader code: %c%c, length: %d bytes", header[readIndex + 2], header[readIndex + 3], variableLength);
+            
+            readIndex += variableLength;
         } else {
-            len += VariableHeaderLength;
+            VariableHeader vheader;
+            vheader.code[0] = header[readIndex + 2];
+            vheader.code[1] = header[readIndex + 3];
+            vheader.data.resize(variableLength - VariableHeaderLength);
+            memcpy(&vheader.data[0], &header[readIndex + VariableHeaderLength], variableLength - VariableHeaderLength);
+            m_variableHeaders.push_back(vheader);
+            
+            readIndex += variableLength;
         }
-        start += len;
     }
 }
 void FSEQFile::finalize() {
