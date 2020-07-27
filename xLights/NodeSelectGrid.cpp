@@ -312,7 +312,11 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     GridNodes->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&NodeSelectGrid::OnCopy, 0, this);
     GridNodes->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&NodeSelectGrid::OnPaste, 0, this);
 
-	GridNodes->Connect(wxEVT_GRID_RANGE_SELECT, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellSelect, 0, this);
+#if defined(EVT_GRID_CMD_RANGE_SELECTED)
+	GridNodes->Connect(wxEVT_GRID_RANGE_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellSelect, 0, this);
+#else
+    GridNodes->Connect(wxEVT_GRID_RANGE_SELECT, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellSelect, 0, this);
+#endif
 
     GridNodes->DisableDragColSize();
     GridNodes->DisableDragRowSize();
