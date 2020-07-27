@@ -339,6 +339,7 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = nullptr;
+static std::condition_variable CRASH_DONE_SIGNAL;
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
@@ -468,8 +469,10 @@ void handleCrash(void *data) {
     TraceLog::GetTraceMessages(trc);
     if (!wxThread::IsMain() && topFrame != nullptr)
     {
+        std::mutex mut;
+        std::unique_lock<std::mutex> lock(mut);
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
-        wxSleep(600000);
+        CRASH_DONE_SIGNAL.wait(lock);
     }
     else if (topFrame != nullptr)
     {
@@ -549,7 +552,10 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
 
     inHere = false;
 
-	exit(1);
+#ifndef __WXOSX__
+    exit(1);
+#endif
+    CRASH_DONE_SIGNAL.notify_all();
 }
 
 
@@ -589,6 +595,67 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         logger_base.info("       No xLightsFrame");
     }
 }
+
+#include <signal.h>
+
+extern "C" {
+static void xlFatalSignalHandler(int sig) {
+    if ( wxTheApp ) {
+        // give the user a chance to do something special about this
+        wxTheApp->OnFatalException();
+    }
+    signal(sig, SIG_DFL);
+    raise(sig);
+}
+}
+
+bool SetupFatalExceptionHandlers() {
+    // old sig handlers
+    static bool s_savedHandlers = false;
+    static struct sigaction s_handlerFPE,
+                            s_handlerILL,
+                            s_handlerBUS,
+                            s_handlerSEGV;
+
+    bool ok = true;
+    if (!s_savedHandlers) {
+        // install the signal handler
+        struct sigaction act;
+
+        // some systems extend it with non std fields, so zero everything
+        memset(&act, 0, sizeof(act));
+
+        act.sa_handler = xlFatalSignalHandler;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags = SA_RESETHAND;
+
+        ok &= sigaction(SIGFPE, &act, &s_handlerFPE) == 0;
+        ok &= sigaction(SIGILL, &act, &s_handlerILL) == 0;
+        ok &= sigaction(SIGBUS, &act, &s_handlerBUS) == 0;
+        ok &= sigaction(SIGSEGV, &act, &s_handlerSEGV) == 0;
+        
+        if (!ok) {
+            wxLogDebug(wxT("Failed to install our signal handler."));
+        }
+        s_savedHandlers = true;
+    } else if (s_savedHandlers) {
+        // uninstall the signal handler
+        ok &= sigaction(SIGFPE, &s_handlerFPE, NULL) == 0;
+        ok &= sigaction(SIGILL, &s_handlerILL, NULL) == 0;
+        ok &= sigaction(SIGBUS, &s_handlerBUS, NULL) == 0;
+        ok &= sigaction(SIGSEGV, &s_handlerSEGV, NULL) == 0;
+        if (!ok) {
+            wxLogDebug(wxT("Failed to uninstall our signal handler."));
+        }
+
+        s_savedHandlers = false;
+    }
+    return ok;
+}
+#else
+bool SetupFatalExceptionHandlers() {
+    return wxHandleFatalExceptions();
+}
 #endif
 
 bool xLightsApp::OnInit()
@@ -614,7 +681,7 @@ bool xLightsApp::OnInit()
 
 #if wxUSE_ON_FATAL_EXCEPTION
     #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
+        SetupFatalExceptionHandlers();
     #endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
