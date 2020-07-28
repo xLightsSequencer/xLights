@@ -1486,16 +1486,12 @@ static void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *uni
 
 void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
-    int unit, circuit, rampdiff;
-    int i, twinklestate;
-    int twinkleperiod = 400;
+    int unit, circuit;
+    int i;
     int curchannel = -1;
     int MappedChannelCnt = 0;
-    int MaxIntensity = 100;
     int EffectCnt = 0;
     int network, chindex = -1;
     long cnt = 0;
@@ -1769,14 +1765,21 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     network = getAttributeValueAsInt(stagEvent, "network");
 
                     unit = getAttributeValueAsInt(stagEvent, "unit");
-                    if (unit < 0)
+                    
+                    // LOR supports up to 240 unit IDs, starting at 0x01
+                    // see https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#unit-ids
+                    const int MinLORUnitId = 0x01;
+                    const int MaxLORUnitId = 0xF0;
+                    
+                    if (unit < MinLORUnitId || unit > MaxLORUnitId)
                     {
-                        unit += 256;
+                        AppendConvertStatus(string_format(wxString("WARNING: invalid LOR unit id: %d, must be within %d-%d\n"), unit, MinLORUnitId, MaxLORUnitId));
+                        
+                        // bind the invalid unit value within the upper and lower bounds
+                        // this ensures out of bounds unit ids will always be pushed into the lowest, or highest, values
+                        unit = std::clamp(unit, MinLORUnitId, MaxLORUnitId);
                     }
-                    if (unit == 0)
-                    {
-                        unit = 1;
-                    }
+
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
@@ -1839,110 +1842,99 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                 {
                     empty = false;
                     EffectCnt++;
-                    int startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
-                    int endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
-                    int intensity = getAttributeValueAsInt(stagEvent, "intensity");
-                    int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
-                    int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
-                    int startper = startcsec * 10 / LORImportInterval;
-                    int endper = endcsec * 10 / LORImportInterval;
-                    int perdiff = endper - startper;  // # of ticks
-                    LorTimingList.insert(startper);
+                    
+                    const int startFrameIndex = getAttributeValueAsInt(stagEvent, "startCentisecond") * 10 / LORImportInterval;
+                    const int endFrameIndex = getAttributeValueAsInt(stagEvent, "endCentisecond") * 10 / LORImportInterval;
+                    const int frameCount = endFrameIndex - startFrameIndex;
+                    
+                    LorTimingList.insert(startFrameIndex);
 
-                    if (perdiff > 0)
+                    if (frameCount > 0)
                     {
-                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
+                        const wxString EffectType = getAttributeValueSafe(stagEvent, "type");
+                        
+                        int intensity = getAttributeValueAsInt(stagEvent, "intensity");
+                        int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
+                        int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
+                        
                         if (EffectType != "DMX intensity")
                         {
-                            intensity = intensity * 255 / MaxIntensity;
-                            startIntensity = startIntensity * 255 / MaxIntensity;
-                            endIntensity = endIntensity * 255 / MaxIntensity;
+                            const int MaxLORIntensity = 100;
+                            
+                            // convert LOR's 0-100 range to xLight's 0-255 range
+                            intensity = intensity * 255 / MaxLORIntensity;
+                            startIntensity = startIntensity * 255/ MaxLORIntensity;
+                            endIntensity = endIntensity * 255 / MaxLORIntensity;
                         }
+                        
+                        // if startIntensity & endIntensity match, then the intensity is the same throughout the effect
+                        // set intensity and zero the startIntensity & endIntensity values to avoid a 0 value intensityRange
+                        if ((startIntensity > 0 || endIntensity > 0) && startIntensity == endIntensity)
+                        {
+                            intensity = startIntensity;
+                            startIntensity = endIntensity = 0;
+                        }
+                        
+                        const int intensityRange = endIntensity - startIntensity;
+                        const int intensityRangeStep = (int) (intensityRange / (double) frameCount);
+                        
+                        // this is the base value, excluding any intensityRangeStep additions
+                        // for effects without an intensityRange (static intensity), it defaults to intensity
+                        // since intensityRange (and intensityRangeStep) is 0, baseFrameIntensity won't mutate
+                        const int baseFrameIntensity = intensityRange ? startIntensity : intensity;
+
                         if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
-                            if (intensity > 0)
+                            for (i = 0; i < frameCount; i++)
                             {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    SeqData[startper + i][curchannel] = intensity;
-                                }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                if (rampdiff == 0) logger_base.crit("This is going to crash. AAA");
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity;
-                                }
+                                SeqData[startFrameIndex + i][curchannel] = baseFrameIntensity + (i * intensityRangeStep);
                             }
                         }
                         else if (EffectType == "twinkle")
                         {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
+                            const int TwinkleMaxTimeMillis = 400, TwinkleMinTimeMillis = 100;
+                            int twinkleFrameCount = 0;
+                            
+                            // create an initial, random twinkleState value
+                            // the exact value is irrelevant since it is used as a seed
+                            int twinkleState = static_cast<int>(rand01() * 2.0 + curchannel) & 0x01;
+                            
+                            for (i = 0; i < frameCount; i++)
                             {
-                                intensity = MaxIntensity;
-                            }
-                            twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
-                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                            if (intensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
+                                // count down twinkleFrameCount (defaults to 0)
+                                // when <= 0, flip flop twinkleState, this produces a random on/off pattern
+                                // calculate the new twinkleFrameCount value (in interations)
+                                // this produces several unique patterns within the full [0, frameCount] window
+                                if (--twinkleFrameCount <= 0)
                                 {
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                                    }
+                                    twinkleState = !twinkleState;
+                                    twinkleFrameCount = static_cast<int>(rand01() * TwinkleMaxTimeMillis + TwinkleMinTimeMillis) / LORImportInterval;
+                                    
+                                    // prevent the effect subloop from exceeding the remaining frameCount
+                                    // this ensures the last frame of each effect subloop matches the desired endIntensity
+                                    twinkleFrameCount = std::min(twinkleFrameCount, frameCount - i);
                                 }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                for (i = 0; i < perdiff; i++)
+                                if (twinkleState)
                                 {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
-                                    }
+                                    SeqData[startFrameIndex + i][curchannel] = baseFrameIntensity + (i * intensityRangeStep);
                                 }
                             }
                         }
                         else if (EffectType == "shimmer")
                         {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
+                            for (i = 0; i < frameCount; i++)
                             {
-                                intensity = MaxIntensity;
-                            }
-                            if (intensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
+                                // use bit 0 of i to determine the output state
+                                // this creates a "random" on/off pattern using the odd/even sum
+                                if (i & 0x01)
                                 {
-                                    twinklestate = (startper + i) & 0x01;
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
+                                    SeqData[startFrameIndex + i][curchannel] = baseFrameIntensity + (i * intensityRangeStep);
                                 }
                             }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                if (rampdiff == 0) logger_base.crit("This is going to crash. BBB");
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    twinklestate = (startper + i) & 0x01;
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
-                                }
-                            }
+                        }
+                        else
+                        {
+                            AppendConvertStatus(string_format(wxString("WARNING: unable to convert LOR effect '%s'\n"), EffectType));
                         }
                     }
                 }
