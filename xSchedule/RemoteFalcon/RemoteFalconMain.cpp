@@ -107,6 +107,10 @@ void RemoteFalconFrame::DoSendPlaylists()
 
     auto plsteps = xSchedule::GetPlayListSteps(_playlist);
 
+    if (plsteps.find("' not found.") != std::string::npos) {//playlist not found, must have been removed
+        return;
+    }
+
     if (plsteps == _oldSteps) {
         // no need to send
     }
