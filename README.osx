@@ -107,14 +107,24 @@ make
 cp ./libavcodec/libavcodec.58.dylib ./libswresample/libswresample.3.dylib ./libswscale/libswscale.5.dylib ./libavformat/libavformat.58.dylib ./libavutil/libavutil.56.dylib ~/working/xLights/lib/osx/
 
 
-portmidi:
-git clone https://github.com/AndrewBelt/portmidi
-Remove i386 from CMakeLists.txt
-
 libzstd:
 git clone https://github.com/facebook/zstd
-export MACOSX_DEPLOYMENT_TARGET=10.10
+cd zstd
+# need to move any local libraries from homebrew out of the way
+sudo mv /usr/local/lib /usr/local/l2
+export MACOSX_DEPLOYMENT_TARGET=11
+export CFLAGS="-target arm64-apple-macos11"
 make
+mv lib/libzstd.a lib/libzstd.a.arm
+make clean
+export MACOSX_DEPLOYMENT_TARGET=10.10
+export CFLAGS="-target x86_64-apple-macos10.10"
+make
+mv lib/libzstd.a lib/libzstd.a.x86_64
+lipo -create -output lib/libzstd.a  lib/libzstd.a.x86_64 lib/libzstd.a.arm
+# restore any local libraries from homebrew
+sudo mv /usr/local/l2 /usr/local/lib
+
 
 log4cpp:
 Download latest src release (current 1.1.3)
@@ -133,7 +143,35 @@ make
 cp ./src/.libs/liblog4cpp.5.dylib to the libs/osx dir
 
 
+liquidfun:
+# requires cmake to be installed, most likely need to have
+# homebrew isntalled and then "brew install cmake"
+git clone https://github.com/google/liquidfun
+cd liquidfun/Box2D
+export CXX=clang++
+export MACOSX_DEPLOYMENT_TARGET=10.10
+export CXXFLAGS="-target x86_64-apple-macos10.10"
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBOX2D_BUILD_EXAMPLES=OFF
+make
+mv ./Box2D/Release/libliquidfun.a ./Box2D/Release/libliquidfun.a.x86_64
+rm -rf CMakeFiles CMakeCache.txt Box2D/CMakeFiles
+export MACOSX_DEPLOYMENT_TARGET=11
+export CXXFLAGS="-target arm64-apple-macos11"
+unset MACOSX_DEPLOYMENT_TARGET
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBOX2D_BUILD_EXAMPLES=OFF
+make
+mv ./Box2D/Release/libliquidfun.a ./Box2D/Release/libliquidfun.a.arm
+lipo -create -output ./Box2D/Release/libliquidfun.a   ./Box2D/Release/libliquidfun.a.x86_64 ./Box2D/Release/libliquidfun.a.arm
+
+
 SDL2:  currently using 2.0.10
+
+
+
+portmidi:
+git clone https://github.com/AndrewBelt/portmidi
+Remove i386 from CMakeLists.txt
+
 
 Codeblocks:
 Codeblocks needs to have wxWidgets compiled differently, specifically c++14, no lto-thin, and without the containers, shared libs
