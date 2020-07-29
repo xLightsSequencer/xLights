@@ -69,7 +69,7 @@ fi
 
 
 if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dylib" ]; then
-    LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5"
+    LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5 libSDL2-2.0.0"
     for LS in $LIBS
     do
         for LT in $LIBS
@@ -81,7 +81,7 @@ if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dy
 fi
 
 
-LIBS="liblog4cpp.5"
+LIBS="liblog4cpp.5 libSDL2-2.0.0"
 for LS in $LIBS
 do
     install_name_tool -change /opt/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"

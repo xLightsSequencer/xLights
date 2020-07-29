@@ -37,9 +37,7 @@
 		67025CA620D7EE8100BF1AC6 /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
 		67025CA720D7EE8100BF1AC6 /* xLightsTimer.h in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */; };
 		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; settings = {COMPILER_FLAGS = "-D__NO_AUIDO__"; }; };
-		67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
 		67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */; };
-		67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */; };
 		670827F62024C19D0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670827F72024C19D0002B617 /* LorControllers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EE2024C19A0002B617 /* LorControllers.cpp */; };
@@ -129,8 +127,6 @@
 		67480D47207268F100B3ED60 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.dylib */; };
 		67480D482072691900B3ED60 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		67480D492072692500B3ED60 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
-		67480D4A2072693A00B3ED60 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		67480D4C2072695600B3ED60 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
 		67480D4D207269DA00B3ED60 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		674A85D1240C663100920D26 /* ControllerModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674A85CF240C663100920D26 /* ControllerModelDialog.cpp */; };
 		674C7C7B21132E3E0056FB9D /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
@@ -233,8 +229,6 @@
 		6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
 		676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */; };
-		676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
-		676C5EAC1C99D6F00031A033 /* liblog4cpp.5.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		676CFAF3207D2BBE002EB5E7 /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676CFAEC207D2BBD002EB5E7 /* jsonreader.cpp */; };
 		676CFAF5207D2BBE002EB5E7 /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676CFAEE207D2BBD002EB5E7 /* jsonval.cpp */; };
 		676CFAF7207D2BBE002EB5E7 /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676CFAEF207D2BBD002EB5E7 /* jsonwriter.cpp */; };
@@ -288,6 +282,11 @@
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
 		6794D2D8238A2B16006161F0 /* AlphaPix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6794D2D7238A2B16006161F0 /* AlphaPix.cpp */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
+		6799E31024D1B68B00E39168 /* liblog4cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6799E30F24D1B67200E39168 /* liblog4cpp.a */; };
+		6799E31224D1D4D700E39168 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6799E31124D1D4D700E39168 /* libSDL2-2.0.0.dylib */; };
+		6799E31324D1D4D700E39168 /* libSDL2-2.0.0.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6799E31124D1D4D700E39168 /* libSDL2-2.0.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		6799E31424D1D7E100E39168 /* liblog4cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6799E30F24D1B67200E39168 /* liblog4cpp.a */; };
+		6799E31524D1D7F700E39168 /* liblog4cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6799E30F24D1B67200E39168 /* liblog4cpp.a */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
 		679BD3351C37555C000539FE /* OnPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3291C37555C000539FE /* OnPanel.cpp */; };
 		679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */; };
@@ -332,8 +331,6 @@
 		67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
-		67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; };
-		67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		67AA37A91C7E3975001D2377 /* libavutil.56.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.56.dylib */; };
 		67AA37AA1C7E3975001D2377 /* libavformat.58.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.58.dylib */; };
 		67AA37AB1C7E3975001D2377 /* libavcodec.58.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.58.dylib */; };
@@ -550,41 +547,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		67025CB020D7EF5500BF1AC6 /* Embed Libraries */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */,
-			);
-			name = "Embed Libraries";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		67480D4B2072693A00B3ED60 /* Embed Libraries */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				67480D4A2072693A00B3ED60 /* liblog4cpp.5.dylib in Embed Libraries */,
-			);
-			name = "Embed Libraries";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		674D3D201C207BBD000D632B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				676C5EAC1C99D6F00031A033 /* liblog4cpp.5.dylib in Embed Frameworks */,
+				6799E31324D1D4D700E39168 /* libSDL2-2.0.0.dylib in Embed Frameworks */,
 				67EE95B61C848C2200C62C95 /* libswscale.5.dylib in Embed Frameworks */,
 				67AA37AE1C7E4107001D2377 /* libavutil.56.dylib in Embed Frameworks */,
 				67AA37AF1C7E4107001D2377 /* libavformat.58.dylib in Embed Frameworks */,
 				67AA37B01C7E4107001D2377 /* libavcodec.58.dylib in Embed Frameworks */,
 				67AA37B11C7E4107001D2377 /* libswresample.3.dylib in Embed Frameworks */,
-				67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1097,6 +1071,8 @@
 		6794D2D7238A2B16006161F0 /* AlphaPix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AlphaPix.cpp; path = controllers/AlphaPix.cpp; sourceTree = "<group>"; };
 		6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTimingDialog.cpp; sourceTree = "<group>"; };
 		6797A1351F427205007CF7A0 /* EffectTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectTimingDialog.h; sourceTree = "<group>"; };
+		6799E30F24D1B67200E39168 /* liblog4cpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblog4cpp.a; path = lib/osx/liblog4cpp.a; sourceTree = "<group>"; };
+		6799E31124D1D4D700E39168 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "lib/osx/libSDL2-2.0.0.dylib"; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
 		679BD3291C37555C000539FE /* OnPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnPanel.cpp; path = effects/OnPanel.cpp; sourceTree = "<group>"; };
 		679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectPanelUtils.cpp; path = effects/EffectPanelUtils.cpp; sourceTree = "<group>"; };
@@ -1163,7 +1139,6 @@
 		67A61A2217B51C0F008E95BB /* xLightsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsApp.h; sourceTree = "<group>"; };
 		67A61A2417B51C0F008E95BB /* xLightsMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = xLightsMain.cpp; sourceTree = "<group>"; };
 		67A61A2517B51C0F008E95BB /* xLightsMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = xLightsMain.h; sourceTree = "<group>"; };
-		67AA379D1C7E3703001D2377 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = lib/osx/SDL2.framework; sourceTree = "<group>"; };
 		67AA37A01C7E372E001D2377 /* libavutil.56.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavutil.56.dylib; path = lib/osx/libavutil.56.dylib; sourceTree = "<group>"; };
 		67AA37A11C7E372E001D2377 /* libavformat.58.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.58.dylib; path = lib/osx/libavformat.58.dylib; sourceTree = "<group>"; };
 		67AA37A21C7E372E001D2377 /* libavcodec.58.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.58.dylib; path = lib/osx/libavcodec.58.dylib; sourceTree = "<group>"; };
@@ -1587,10 +1562,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				67A14C9120DD49CE006EFCFA /* libiconv.tbd in Frameworks */,
+				6799E31524D1D7F700E39168 /* liblog4cpp.a in Frameworks */,
 				67A14C9020DD49C7006EFCFA /* libz.tbd in Frameworks */,
 				67A14C8F20DD49C1006EFCFA /* Carbon.framework in Frameworks */,
 				67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
-				67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */,
 				67025CA520D7EE5F00BF1AC6 /* CoreMIDI.framework in Frameworks */,
 				67025CA420D7EE4400BF1AC6 /* CoreAudio.framework in Frameworks */,
 				67025CA320D7EE1700BF1AC6 /* libportmidi.a in Frameworks */,
@@ -1607,10 +1582,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6799E31424D1D7E100E39168 /* liblog4cpp.a in Frameworks */,
 				67A14C8E20DD4985006EFCFA /* libz.tbd in Frameworks */,
 				67A14C8D20DD497C006EFCFA /* libiconv.tbd in Frameworks */,
 				67A14C8C20DD4916006EFCFA /* Carbon.framework in Frameworks */,
-				67480D4C2072695600B3ED60 /* liblog4cpp.5.dylib in Frameworks */,
 				67480D492072692500B3ED60 /* Cocoa.framework in Frameworks */,
 				67480D482072691900B3ED60 /* IOKit.framework in Frameworks */,
 				67480D38207268F100B3ED60 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
@@ -1630,10 +1605,10 @@
 				673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */,
 				6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
-				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.5.dylib in Frameworks */,
 				67AA37AD1C7E40D3001D2377 /* libswresample.3.dylib in Frameworks */,
 				67AA37A91C7E3975001D2377 /* libavutil.56.dylib in Frameworks */,
+				6799E31224D1D4D700E39168 /* libSDL2-2.0.0.dylib in Frameworks */,
 				67AA37AA1C7E3975001D2377 /* libavformat.58.dylib in Frameworks */,
 				67AA37AB1C7E3975001D2377 /* libavcodec.58.dylib in Frameworks */,
 				671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
@@ -1648,8 +1623,8 @@
 				6781D632234C24BD00408604 /* CoreVideo.framework in Frameworks */,
 				672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
 				672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.1.dylib in Frameworks */,
-				67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */,
 				674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */,
+				6799E31024D1B68B00E39168 /* liblog4cpp.a in Frameworks */,
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
@@ -2325,7 +2300,6 @@
 				677989A01F321BC200A26FA9 /* valuecurves */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
 				67D2B04B1D54CCA4006D324F /* colorcurves */,
-				67AA379D1C7E3703001D2377 /* SDL2.framework */,
 				674298971C20432600B11478 /* wx */,
 				67AAF8F31B63782F00585431 /* Resources */,
 				67DB87F51AD6CA1300595194 /* wxsmith */,
@@ -2353,6 +2327,8 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6799E31124D1D4D700E39168 /* libSDL2-2.0.0.dylib */,
+				6799E30F24D1B67200E39168 /* liblog4cpp.a */,
 				671E47FC2231CEC900049DC9 /* libcurl.tbd */,
 				6794272521CC0E6500F7ED59 /* libzstd.a */,
 				67A14C8520DD337E006EFCFA /* Security.framework */,
@@ -2851,7 +2827,6 @@
 				67025C6420D7E80700BF1AC6 /* Sources */,
 				67025C6520D7E80700BF1AC6 /* Frameworks */,
 				67025C6620D7E80700BF1AC6 /* Resources */,
-				67025CB020D7EF5500BF1AC6 /* Embed Libraries */,
 				67025CB120D7EF8D00BF1AC6 /* ShellScript */,
 			);
 			buildRules = (
@@ -2870,7 +2845,6 @@
 				67480D082072575400B3ED60 /* Sources */,
 				67480D092072575400B3ED60 /* Frameworks */,
 				67480D0A2072575400B3ED60 /* Resources */,
-				67480D4B2072693A00B3ED60 /* Embed Libraries */,
 				67480D4E20726AD300B3ED60 /* Run Script */,
 			);
 			buildRules = (
@@ -3794,6 +3768,7 @@
 					"-lwxjpeg-3.1",
 					"-lwxpng-3.1",
 					"-lwxregexu-3.1",
+					"-lwxzlib-3.1",
 				);
 				OTHER_TAPI_FLAGS = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
