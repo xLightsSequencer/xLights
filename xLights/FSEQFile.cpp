@@ -404,7 +404,7 @@ void FSEQFile::preload(uint64_t pos, uint64_t size) {
 #endif
 }
 
-inline bool isRecongizedVariableHeader(uint8_t a, uint8_t b) {
+inline bool isRecognizedVariableHeader(uint8_t a, uint8_t b) {
     // mf - media filename
     // sp - sequence producer
     // see https://github.com/FalconChristmas/fpp/blob/master/docs/FSEQ_Sequence_File_Format.txt#L48 for more information
@@ -436,14 +436,19 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             // there is no reasonable way to recover from this error - the reported dataLength is longer than possible
             // return from parsing variable headers and let the program attempt to read the rest of the file
             return;
-        } else if (!isRecongizedVariableHeader(header[readIndex], header[readIndex + 1])) {
-            // avoid reading unrecongized variable headers
-            // each 2 byte length can consume up to 65k of memory when allocating vheader->data
-            LogErr(VB_SEQUENCE, "Unknown VariableHeader code: %c%c, length: %d bytes", header[readIndex], header[readIndex + 1], dataLength);
-            
-            // advance the length of the 2 byte code + the length of the data
-            readIndex += VariableCodeSize + dataLength;
         } else {
+            // log when reading unrecongized variable headers
+            if (!isRecognizedVariableHeader(header[readIndex], header[readIndex + 1])) {
+                LogDebug(VB_SEQUENCE, "Unrecognized VariableHeader code: %c%c, length: %d bytes", header[readIndex], header[readIndex + 1], dataLength);
+            } else {
+                // print a warning if the data is not null terminated
+                // this is to assist debugging potential string related issues
+                // the data is not forcibly null terminated to avoid mutating unknown data
+                if (header[readIndex + VariableCodeSize + dataLength] != '\0') {
+                    LogErr(VB_SEQUENCE, "VariableHeader %c%c data is not NULL terminated!", header[readIndex], header[readIndex + 1]);
+                }
+            }
+            
             VariableHeader vheader;
             
             memcpy(&vheader.code[0], &header[readIndex], VariableCodeSize);
@@ -451,13 +456,6 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
             // advance the length of the 2 byte code
             // readIndex is now the first byte of the data
             readIndex += VariableCodeSize;
-
-            // print a warning if the data is not null terminated
-            // this is to assist debugging potential string related issues
-            // the data is not forcibly null terminated to avoid mutating unknown data
-            if (header[readIndex + dataLength] != '\0') {
-                LogErr(VB_SEQUENCE, "VariableHeader %c%c data is not NULL terminated!", vheader.code[0], vheader.code[1]);
-            }
 
             vheader.data.resize(dataLength);
             memcpy(&vheader.data[0], &header[readIndex], dataLength);
