@@ -3786,7 +3786,7 @@
 				CODE_SIGN_ENTITLEMENTS = xLights/xLightsDebug.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 200260;
+				CURRENT_PROJECT_VERSION = 200300;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
@@ -3796,7 +3796,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
-				MARKETING_VERSION = 2020.26;
+				MARKETING_VERSION = 2020.30;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -3817,7 +3817,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
 				CODE_SIGN_IDENTITY = "-";
-				CURRENT_PROJECT_VERSION = 200260;
+				CURRENT_PROJECT_VERSION = 200300;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
@@ -3827,7 +3827,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
-				MARKETING_VERSION = 2020.26;
+				MARKETING_VERSION = 2020.30;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -3935,7 +3935,7 @@
 				CODE_SIGN_ENTITLEMENTS = xLights/xLightsArchive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 200260;
+				CURRENT_PROJECT_VERSION = 200300;
 				DEVELOPMENT_TEAM = U8ZT9RPC6S;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
@@ -3945,7 +3945,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
-				MARKETING_VERSION = 2020.26;
+				MARKETING_VERSION = 2020.30;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",

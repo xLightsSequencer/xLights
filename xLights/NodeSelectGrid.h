@@ -138,10 +138,10 @@ class NodeSelectGrid: public wxDialog
 
         Model *model;
 
-        const wxColour selectColor{ wxColour("white") };
-        const wxColour unselectColor{ wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT) };
-        const wxColour selectBackColor{ wxColour("grey") };
-        const wxColour unselectBackColor{ wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX) };
+        wxColour selectColor;
+        wxColour unselectColor;
+        wxColour selectBackColor;
+        wxColour unselectBackColor;
 
 		DECLARE_EVENT_TABLE()
 };

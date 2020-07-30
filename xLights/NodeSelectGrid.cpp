@@ -207,6 +207,16 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
   renderer(nullptr),
   bkgrd_active(true)
 {
+    unselectColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
+    unselectBackColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        selectColor = wxColour("black");
+    } else {
+        selectColor = wxColour("white");
+    }
+    selectBackColor = wxColour("grey");
+
+    
 	//(*Initialize(NodeSelectGrid)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -582,13 +592,11 @@ void NodeSelectGrid::OnGridNodesCellSelect(wxGridRangeSelectEvent& event)
         event.Skip();
         return;
     }
-
     //skip while mouse is dragging out
     if (!event.Selecting()) {
         event.Skip();
         return;
     }
-
     //skip selecting for Cut, Copy, & Paste
     if (event.CmdDown() || event.ControlDown() || event.ShiftDown()) {
         event.Skip();
@@ -603,9 +611,7 @@ void NodeSelectGrid::OnGridNodesCellSelect(wxGridRangeSelectEvent& event)
                 if (GridNodes->GetCellTextColour(y, x) == selectColor) {
                     GridNodes->SetCellTextColour(y, x, unselectColor);
                     GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
-                }
-                else
-                {
+                } else {
                     GridNodes->SetCellTextColour(y, x, selectColor);
                     GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
                 }

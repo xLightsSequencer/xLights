@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.30 July 30 2020
+   -- enh (dkulp)  OSX - Move to latest SDL, FFMPEG, and libzstd and make sure they are compiled for both x86_64 and arm64
+   -- bug (scott)  RemoteFalcon crash if playlist is renamed/removed
+   -- enh (dkulp)  Provide better error messages to user from VideoExporter if it fails to export
+   -- enh (NickKrecklow) Bunch of fixes and updates to LOR import
+   -- bug (priemd) Fix some resize issues with boxed models
+   -- enh (NickKrecklow) Improve resiliency of FSEQ parsing to detect corrupt FSEQ files
+   -- bug (dkulp)  Node selection SubModel dialog not allowing selection on OSX or Linux
    -- bug (dkulp)  Fixup filename doesn't work if anything in the path has non-xml safe characters
    -- enh (dkulp)  Support multiple directories for resources/media
 2020.29 July 18 2020
