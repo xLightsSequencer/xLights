@@ -404,20 +404,70 @@ void FSEQFile::preload(uint64_t pos, uint64_t size) {
 #endif
 }
 
-void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int start) {
-    while (start < header.size() - 5) {
-        int len = read2ByteUInt(&header[start]);
-        if (len) {
-            VariableHeader vheader;
-            vheader.code[0] = header[start + 2];
-            vheader.code[1] = header[start + 3];
-            vheader.data.resize(len - 4);
-            memcpy(&vheader.data[0], &header[start + 4], len - 4);
-            m_variableHeaders.push_back(vheader);
+inline bool isRecognizedVariableHeader(uint8_t a, uint8_t b) {
+    // mf - media filename
+    // sp - sequence producer
+    // see https://github.com/FalconChristmas/fpp/blob/master/docs/FSEQ_Sequence_File_Format.txt#L48 for more information
+    return (a == 'm' && b == 'f') || (a == 's' && b == 'p');
+}
+
+const int FSEQ_VARIABLE_HEADER_SIZE = 4;
+
+void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int readIndex) {
+    const int VariableLengthSize = 2, VariableCodeSize = 2;
+
+    // when encoding, the header size is rounded to the nearest multiple of 4
+    // this comparison ensures that there is enough bytes left to at least constitute a 2 byte length + 2 byte code
+    while (readIndex + FSEQ_VARIABLE_HEADER_SIZE < header.size()) {
+        const int dataLength = read2ByteUInt(&header[readIndex]) - FSEQ_VARIABLE_HEADER_SIZE;
+
+        readIndex += VariableLengthSize;
+
+        if (dataLength <= 0) {
+            LogErr(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", header[readIndex], header[readIndex + 1]);
+            
+            // empty data, advance only the length of the 2 byte code
+            readIndex += VariableCodeSize;
+        } else if (readIndex + VariableCodeSize + dataLength > header.size()) {
+            // ensure the data length is contained within the header
+            // this is primarily protection against hand modified, or corrupted, sequence files
+            LogErr(VB_SEQUENCE, "VariableHeader '%c%c' has out of bounds data length: %d bytes, max length: %d bytes", header[readIndex], header[readIndex + 1], readIndex + VariableCodeSize + dataLength, header.size());
+            
+            // there is no reasonable way to recover from this error - the reported dataLength is longer than possible
+            // return from parsing variable headers and let the program attempt to read the rest of the file
+            return;
         } else {
-            len += 4;
+            // log when reading unrecongized variable headers
+            if (!isRecognizedVariableHeader(header[readIndex], header[readIndex + 1])) {
+                LogDebug(VB_SEQUENCE, "Unrecognized VariableHeader code: %c%c, length: %d bytes", header[readIndex], header[readIndex + 1], dataLength);
+            } else {
+                // print a warning if the data is not null terminated
+                // this is to assist debugging potential string related issues
+                // the data is not forcibly null terminated to avoid mutating unknown data
+                if (header[readIndex + VariableCodeSize + dataLength] != '\0') {
+                    LogErr(VB_SEQUENCE, "VariableHeader %c%c data is not NULL terminated!", header[readIndex], header[readIndex + 1]);
+                }
+            }
+            
+            VariableHeader vheader;
+            
+            memcpy(&vheader.code[0], &header[readIndex], VariableCodeSize);
+            
+            // advance the length of the 2 byte code
+            // readIndex is now the first byte of the data
+            readIndex += VariableCodeSize;
+
+            vheader.data.resize(dataLength);
+            memcpy(&vheader.data[0], &header[readIndex], dataLength);
+            
+            m_variableHeaders.push_back(vheader);
+            
+            LogDebug(VB_SEQUENCE, "Read VariableHeader: %c%c, length: %d bytes", vheader.code[0], vheader.code[1], dataLength);
+            
+            // advance the length of the data
+            // readIndex now points at the next VariableHeader's length (if any)
+            readIndex += dataLength;
         }
-        start += len;
     }
 }
 void FSEQFile::finalize() {
@@ -444,7 +494,7 @@ void V1FSEQFile::writeHeader() {
     // data offset
     uint32_t dataOffset = V1FSEQ_HEADER_SIZE;
     for (auto &a : m_variableHeaders) {
-        dataOffset += a.data.size() + 4;
+        dataOffset += a.data.size() + FSEQ_VARIABLE_HEADER_SIZE;
     }
     dataOffset = roundTo4(dataOffset);
     write2ByteUInt(&header[4], dataOffset);
@@ -473,12 +523,12 @@ void V1FSEQFile::writeHeader() {
     header[27] = 0;
     write(header, V1FSEQ_HEADER_SIZE);
     for (auto &a : m_variableHeaders) {
-        uint8_t buf[4];
-        uint32_t len = a.data.size() + 4;
+        uint8_t buf[FSEQ_VARIABLE_HEADER_SIZE];
+        uint32_t len = a.data.size() + FSEQ_VARIABLE_HEADER_SIZE;
         write2ByteUInt(buf, len);
         buf[2] = a.code[0];
         buf[3] = a.code[1];
-        write(buf, 4);
+        write(buf, FSEQ_VARIABLE_HEADER_SIZE);
         write(&a.data[0], a.data.size());
     }
     uint64_t pos = tell();
@@ -620,7 +670,6 @@ uint32_t V1FSEQFile::getMaxChannel() const {
 }
 
 static const int V2FSEQ_HEADER_SIZE = 32;
-static const int V2FSEQ_VARIABLE_HEADER_SIZE = 4;
 static const int V2FSEQ_SPARSE_RANGE_SIZE = 6;
 static const int V2FSEQ_COMPRESSION_BLOCK_SIZE = 8;
 #if !defined(NO_ZLIB) || !defined(NO_ZSTD)
@@ -1276,7 +1325,7 @@ void V2FSEQFile::writeHeader() {
     // Channel data offset is the headerSize plus size of variable headers
     // Round to a product of 4 for better memory alignment
     m_seqChanDataOffset = headerSize;
-    m_seqChanDataOffset += m_variableHeaders.size() * V2FSEQ_VARIABLE_HEADER_SIZE;
+    m_seqChanDataOffset += m_variableHeaders.size() * FSEQ_VARIABLE_HEADER_SIZE;
     for (auto &a : m_variableHeaders) {
         m_seqChanDataOffset += a.data.size();
     }
@@ -1344,11 +1393,11 @@ void V2FSEQFile::writeHeader() {
     // Variable headers
     // 4 byte size minimum (2 byte length + 2 byte code)
     for (auto &a : m_variableHeaders) {
-        uint32_t len = V2FSEQ_VARIABLE_HEADER_SIZE + a.data.size();
+        uint32_t len = FSEQ_VARIABLE_HEADER_SIZE + a.data.size();
         write2ByteUInt(&header[writePos], len);
         header[writePos + 2] = a.code[0];
         header[writePos + 3] = a.code[1];
-        memcpy(&header[writePos + 4], &a.data[0], a.data.size());
+        memcpy(&header[writePos + FSEQ_VARIABLE_HEADER_SIZE], &a.data[0], a.data.size());
         writePos += len;
     }
 
