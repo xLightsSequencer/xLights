@@ -155,6 +155,7 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
     frame->SetEnableRenderCache(RenderCacheChoice->GetStringSelection());
     frame->SetRenderOnSave(RenderOnSaveCheckBox->IsChecked());
     frame->SetSaveFseqOnSave(FSEQSaveCheckBox->IsChecked());
+    frame->SetModelBlendDefaultOff(ModelBlendCheckBox->IsChecked());
     switch (AutoSaveIntervalChoice->GetSelection()) {
         case 0:
             frame->SetAutoSaveInterval(0);
@@ -200,6 +201,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     RenderCacheChoice->SetStringSelection(rc);
     FSEQSaveCheckBox->SetValue(frame->SaveFseqOnSave());
     RenderOnSaveCheckBox->SetValue(frame->RenderOnSave());
+    ModelBlendCheckBox->SetValue(frame->ModelBlendDefaultOff());
     switch (frame->AutoSaveInterval()) {
         case 30:
             AutoSaveIntervalChoice->SetSelection(5);
