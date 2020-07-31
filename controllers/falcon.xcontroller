@@ -108,16 +108,19 @@
 		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
+			<NumberOfBanks>2</NumberOfBanks>
 		</Variant>
 		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
+			<NumberOfBanks>3</NumberOfBanks>
 		</Variant>
 	</Controller>
 	<Controller Name="F48">
 		<Variant Name="" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
+			<NumberOfBanks>3</NumberOfBanks>
 		</Variant>
 	</Controller>
 </Vendor>

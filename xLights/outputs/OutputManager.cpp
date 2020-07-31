@@ -937,7 +937,7 @@ void OutputManager::UpdateUnmanaged() {
     // start with everything managed
     for (auto& it : _controllers) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_E131 || eth->GetProtocol() == OUTPUT_ARTNET || eth->GetProtocol() == OUTPUT_xxxETHERNET || eth->GetProtocol() == OUTPUT_OPC)) {
+        if (eth != nullptr) {
             eth->SetManaged(true);
         }
     }

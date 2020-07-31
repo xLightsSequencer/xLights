@@ -4676,12 +4676,13 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    // ZCPP Checks
+    // Controller Checks
+    //do these checks for all Managed Controllers
     std::list<ControllerEthernet*> uniqueControllers;
     for (const auto& it : _outputManager.GetControllers())
     {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_ZCPP || eth->GetProtocol() == OUTPUT_DDP))
+        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_ZCPP || eth->GetProtocol() == OUTPUT_DDP || eth->IsManaged()))
         {
             uniqueControllers.push_back(eth);
         }
@@ -4690,9 +4691,9 @@ void xLightsFrame::CheckSequence(bool display)
     if (uniqueControllers.size() > 0)
     {
         LogAndWrite(f, "");
-        LogAndWrite(f, "ZCPP/DPP Checks");
+        LogAndWrite(f, "Controller Checks");
 
-        // zcpp ip address must only be on one output ... no duplicates
+        // controller ip address must only be on one output ... no duplicates
         for (const auto& it : uniqueControllers)
         {
             for (const auto& itc : _outputManager.GetControllers())
@@ -4815,7 +4816,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             auto eth = dynamic_cast<ControllerEthernet*>(it);
 
-            if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP)
+            if (eth != nullptr)
             {
                 wxString msg = wxString::Format("        Applying controller rules for %s:%s:%s", eth->GetName(), eth->GetIP(), it->GetDescription());
                 LogAndWrite(f, msg.ToStdString());
@@ -4840,6 +4841,7 @@ void xLightsFrame::CheckSequence(bool display)
                 if (check != "")
                 {
                     LogAndWrite(f, check);
+                    errcount++;
                 }
             }
         }

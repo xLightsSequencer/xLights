@@ -441,6 +441,11 @@ int ControllerCaps::GetMinInputUniverseChannels() const
     return wxAtoi(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1"));
 }
 
+int ControllerCaps::GetNumberOfBanks() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "NumberOfBanks", "1"));
+}
+
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
 
     auto pp = GetPixelProtocols();
