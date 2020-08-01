@@ -748,6 +748,8 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
                 return;
             }
 
+            bool presetFound = false;
+
             wxXmlNode* input_root = input_xml.GetRoot();
 
             if (name_and_path.GetExt().Lower() == "xpreset")
@@ -757,10 +759,12 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
                     if (ele->GetName() == "effectGroup")
                     {
                         AddGroup(ele, insertPoint);
+                        presetFound = true;
                     }
                     else
                     {
                         AddEffect(ele, insertPoint);
+                        presetFound = true;
                     }
                 }
             }
@@ -775,14 +779,23 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
                             if (ele->GetName() == "effectGroup")
                             {
                                 AddGroup(ele, insertPoint);
+                                presetFound = true;
                             }
                             else
                             {
                                 AddEffect(ele, insertPoint);
+                                presetFound = true;
                             }
                         }
                     }
                 }
+            }
+
+            if (!presetFound)
+            {
+                DisplayError(wxString::Format("No presets found, Presets file %s is empty.\n", filename).ToStdString(), this);
+                ValidateWindow();
+                return;
             }
         }
         EffectsFileDirty();
@@ -835,6 +848,8 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
         return;
     }
 
+    bool presetFound = false;
+
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     wxString v = xlights_version_string;
     f.Write(wxString::Format("<preset SourceVersion=\"%s\" >\n", v));
@@ -850,10 +865,12 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
             if (itemData->IsGroup())
             {
                 WriteGroup(f, n);
+                presetFound = true;
             }
             else
             {
                 WriteEffect(f, n);
+                presetFound = true;
             }
         }
     }
@@ -866,14 +883,23 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
         if (itemData->IsGroup())
         {
             WriteGroup(f, n);
+            presetFound = true;
         }
         else
         {
             WriteEffect(f, n);
+            presetFound = true;
         }
     }
     f.Write("</preset>\n");
     f.Close();
+
+    if (!presetFound)
+    {
+        DisplayError(wxString::Format("No presets found, Created presets file %s is empty.\n", filename).ToStdString(), this);
+        ValidateWindow();
+        return;
+    }
 }
 
 // This handles all the enabling and disabling of buttons ... stops lots of dialog boxes popping up when users do something
