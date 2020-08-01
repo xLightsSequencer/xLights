@@ -403,77 +403,77 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
-        // double-check file existence
-        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
-            wxFileName detect_media(media_file);
+        if (media_file != "") {
+            // double-check file existence
+            if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
+                wxFileName detect_media(media_file);
 
-            // search media directory
-            for (auto &mediaDirectory : mediaDirectories) {
-                detect_media.SetPath(mediaDirectory);
-                if (detect_media.FileExists()) {
-                    media_file = detect_media;
-                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
-                    break;
-                } else {
-                    // search selected file directory
-                    detect_media.SetPath(selected_file.GetPath());
+                // search media directory
+                for (auto& mediaDirectory : mediaDirectories) {
+                    detect_media.SetPath(mediaDirectory);
                     if (detect_media.FileExists()) {
                         media_file = detect_media;
                         ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                         break;
                     }
+                    else {
+                        // search selected file directory
+                        detect_media.SetPath(selected_file.GetPath());
+                        if (detect_media.FileExists()) {
+                            media_file = detect_media;
+                            ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                            break;
+                        }
+                    }
                 }
             }
-        }
 
-        // search for missing media file in media directory and show directory
-        if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
-            wxFileName detect_media(selected_file);
-            detect_media.SetExt("mp3");
+            // search for missing media file in media directory and show directory
+            if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
+                wxFileName detect_media(selected_file);
+                detect_media.SetExt("mp3");
 
-            // search media directory
-            for (auto &mediaDirectory : mediaDirectories) {
-                detect_media.SetPath(mediaDirectory);
-                if (detect_media.FileExists()) {
-                    media_file = detect_media;
-                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
-                    break;
-                } else {
-                    // search selected file directory
-                    detect_media.SetPath(selected_file.GetPath());
+                // search media directory
+                for (auto& mediaDirectory : mediaDirectories) {
+                    detect_media.SetPath(mediaDirectory);
                     if (detect_media.FileExists()) {
                         media_file = detect_media;
                         ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                         break;
                     }
+                    else {
+                        // search selected file directory
+                        detect_media.SetPath(selected_file.GetPath());
+                        if (detect_media.FileExists()) {
+                            media_file = detect_media;
+                            ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // search for missing media file in the show directory one folder deep
+            if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
+                wxFileName detect_audio(CurrentSeqXmlFile->GetMediaFile());
+                wxDir audDirectory;
+                wxString audFile;
+                audDirectory.Open(GetShowDirectory());
+                bool fcont = audDirectory.GetFirst(&audFile, wxEmptyString, wxDIR_DIRS);
+                while (fcont) {
+                    if (audFile != "Backup") {
+                        // search directory
+                        detect_audio.SetPath(GetShowDirectory() + wxFileName::GetPathSeparator() + audFile);
+                        if (detect_audio.FileExists()) {
+                            media_file = detect_audio;
+                            ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+                            break;
+                        }
+                    }
+                    fcont = audDirectory.GetNext(&audFile);
                 }
             }
         }
-
-		// search for missing media file in the show directory one folder deep
-		if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable())
-		{
-			wxFileName detect_audio(CurrentSeqXmlFile->GetMediaFile());
-			wxDir audDirectory;
-			wxString audFile;
-			audDirectory.Open(GetShowDirectory());
-			bool fcont = audDirectory.GetFirst(&audFile, wxEmptyString, wxDIR_DIRS);
-			while (fcont)
-			{
-				if (audFile != "Backup")
-				{
-					// search directory
-					detect_audio.SetPath(GetShowDirectory() + wxFileName::GetPathSeparator() + audFile);
-					if (detect_audio.FileExists())
-					{
-						media_file = detect_audio;
-						ObtainAccessToURL(media_file.GetFullPath().ToStdString());
-						break;
-					}
-				}
-				fcont = audDirectory.GetNext(&audFile);
-			}
-		}
 
         // if fseq or xseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia()
@@ -490,30 +490,26 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             playAnimation = true;
         }
 
-        if( CurrentSeqXmlFile->WasConverted() )
-        {
+        if (CurrentSeqXmlFile->WasConverted()) {
             // abort any in progress render ... as it may be using any already open media
             bool aborted = false;
-            if (CurrentSeqXmlFile->GetMedia() != nullptr)
-            {
+            if (CurrentSeqXmlFile->GetMedia() != nullptr) {
                 aborted = AbortRender();
             }
 
             SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT("V3 file was converted. Please check settings!"));
-			setting_dlg.Fit();
+            setting_dlg.Fit();
             int ret_code = setting_dlg.ShowModal();
 
-            if (ret_code == NEEDS_RENDER || aborted)
-            {
+            if (ret_code == NEEDS_RENDER || aborted) {
                 RenderAll();
             }
 
-			if (CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
-			{
-				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
-			}
-			SetAudioControls();
-		}
+            if (CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0) {
+                CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
+            }
+            SetAudioControls();
+        }
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());

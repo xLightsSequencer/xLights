@@ -207,17 +207,21 @@ void SetFixFileDirectories(const std::list<std::string>& dirs) {
 
 static bool doesFileExist(const wxString &dir, const wxString &origFileWin, const wxString &origFileUnix, wxString &path) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxFileName fn3(dir, origFileWin);
-    if (fn3.Exists()) {
-        logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
-        path = fn3.GetFullPath();
-        return true;
+    if (origFileWin != "") {
+        wxFileName fn3(dir, origFileWin);
+        if (fn3.Exists()) {
+            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
+            path = fn3.GetFullPath();
+            return true;
+        }
     }
-    wxFileName fn4(dir, origFileUnix);
-    if (fn4.Exists()) {
-        logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
-        path = fn4.GetFullPath();
-        return true;
+    if (origFileUnix != "") {
+        wxFileName fn4(dir, origFileUnix);
+        if (fn4.Exists()) {
+            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
+            path = fn4.GetFullPath();
+            return true;
+        }
     }
     return false;
 }

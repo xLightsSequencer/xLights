@@ -1173,11 +1173,12 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
             if (effectPresent)
             {
@@ -1417,11 +1418,12 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::
     bool effectPresent = false;
     for (int j = 0; j < el->GetEffectCount(); j++)
     {
-        if (el->GetEffect(j)->GetStartTimeMS() == ms)
-        {
+        int ems = el->GetEffect(j)->GetStartTimeMS();
+        if (ems == ms) {
             effectPresent = true;
             break;
         }
+        else if (ems > ms) break;
     }
     if (effectPresent)
     {
@@ -2372,11 +2374,12 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
 
             if (effectPresent)
@@ -2442,11 +2445,12 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadefr
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
 
             if (effectPresent)
@@ -2496,11 +2500,12 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer &buffer, int 
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
 
             if (effectPresent)
@@ -2551,15 +2556,16 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
         if (t != nullptr)
         {
             EffectLayer* el = t->GetEffectLayer(0);
-            int ms = buffer.curPeriod*buffer.frameTimeInMs;
+            int ms = buffer.curPeriod * buffer.frameTimeInMs;
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
 
             if (effectPresent)
@@ -2797,11 +2803,12 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
-                if (el->GetEffect(j)->GetStartTimeMS() == ms)
-                {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) {
                     effectPresent = true;
                     break;
                 }
+                else if (ems > ms) break;
             }
 
             if (effectPresent)
