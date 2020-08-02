@@ -760,6 +760,12 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
         std::string info = map[wxString::Format(wxT("Eyes_%s"), eyesLower.c_str()).ToStdString()];
         Model::ParseFaceElement(info, first_xy);
+
+        info = map[wxString::Format(wxT("Eyes2_%s"), eyesLower.c_str()).ToStdString()];
+        Model::ParseFaceElement(info, first_xy);
+
+        info = map[wxString::Format(wxT("Eyes3_%s"), eyesLower.c_str()).ToStdString()];
+        Model::ParseFaceElement(info, first_xy);
     }
     if (face_outline)
     {
@@ -1033,6 +1039,40 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         else {
             colors.push_back(color);
         }
+
+        todo.push_back("Eyes-Open2");
+        if (customColor) {
+            std::string cname = model_info->faceInfo[definition]["Eyes-Open2-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            }
+            else {
+                colors.push_back(xlColor(cname));
+            }
+        }
+        else {
+            if (buffer.palette.Size() > colorOffset + 3) {
+                buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
+            }
+            colors.push_back(color);
+        }
+
+        todo.push_back("Eyes-Open3");
+        if (customColor) {
+            std::string cname = model_info->faceInfo[definition]["Eyes-Open3-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            }
+            else {
+                colors.push_back(xlColor(cname));
+            }
+        }
+        else {
+            if (buffer.palette.Size() > colorOffset + 4) {
+                buffer.palette.GetColor(colorOffset + 4, color); //use sizth colour
+            }
+            colors.push_back(color);
+        }
     }
     else if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
@@ -1046,6 +1086,40 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             }
         }
         else {
+            colors.push_back(color);
+        }
+
+        todo.push_back("Eyes-Closed2");
+        if (customColor) {
+            std::string cname = model_info->faceInfo[definition]["Eyes-Closed2-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            }
+            else {
+                colors.push_back(xlColor(cname));
+            }
+        }
+        else {
+            if (buffer.palette.Size() > colorOffset + 3) {
+                buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
+            }
+            colors.push_back(color);
+        }
+
+        todo.push_back("Eyes-Closed3");
+        if (customColor) {
+            std::string cname = model_info->faceInfo[definition]["Eyes-Closed3-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            }
+            else {
+                colors.push_back(xlColor(cname));
+            }
+        }
+        else {
+            if (buffer.palette.Size() > colorOffset + 4) {
+                buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
+            }
             colors.push_back(color);
         }
     }

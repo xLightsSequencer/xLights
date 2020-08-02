@@ -1944,7 +1944,12 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                             {
                                 FixNodes(n, "Eyes-Closed", nodeMap);
                                 FixNodes(n, "Eyes-Open", nodeMap);
+                                FixNodes(n, "Eyes2-Closed", nodeMap);
+                                FixNodes(n, "Eyes2-Open", nodeMap);
+                                FixNodes(n, "Eyes3-Closed", nodeMap);
+                                FixNodes(n, "Eyes3-Open", nodeMap);
                                 FixNodes(n, "FaceOutline", nodeMap);
+                                FixNodes(n, "FaceOutline2", nodeMap);
                                 FixNodes(n, "Mouth-AI", nodeMap);
                                 FixNodes(n, "Mouth-E", nodeMap);
                                 FixNodes(n, "Mouth-FV", nodeMap);
