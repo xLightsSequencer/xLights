@@ -355,7 +355,7 @@ void ControllerConnectionDialog::OnButton_CancelClick(wxCommandEvent& event)
 void ControllerConnectionDialog::Set(wxXmlNode* node) {
     if (node != nullptr) {
 
-        _protocol = node->GetAttribute("Protocol", "WS2811");
+        _protocol = node->GetAttribute("Protocol", "ws2811");
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION) {
             _protocol.UpperCase();
             Choice_Protocol->SetStringSelection(_protocol);

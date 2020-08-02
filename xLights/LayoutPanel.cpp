@@ -7577,15 +7577,17 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         }
     }
 
-    for (const auto& it : xlights->AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
-            if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
-                foundInvalid = true;
-                if (foundOverlapping) break;
-            }
-            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it.second)) {
-                foundOverlapping = true;
-                if (foundInvalid) break;
+    if (!foundOverlapping && !foundInvalid) { // no point looking again if we already know we have an issue
+        for (const auto& it : xlights->AllModels) {
+            if (it.second->GetDisplayAs() != "ModelGroup") {
+                if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
+                    foundInvalid = true;
+                    if (foundOverlapping) break;
+                }
+                if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it.second)) {
+                    foundOverlapping = true;
+                    if (foundInvalid) break;
+                }
             }
         }
     }

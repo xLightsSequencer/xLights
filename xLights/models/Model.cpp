@@ -1328,8 +1328,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         if (
-            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
-            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
+            ((newProtocol == "dmx" || newProtocol == "pixelnet" || newProtocol == "renard" || newProtocol == "lor") && IsPixelProtocol(oldProtocol)) ||
+            ((oldProtocol == "dmx" || oldProtocol == "pixelnet" || oldProtocol == "renard" || oldProtocol == "lor") && IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != "")) {
             // if we switch between a DMX and pixel protocol we need to rebuild the properties

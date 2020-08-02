@@ -1250,7 +1250,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
-                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                 }
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
@@ -1259,7 +1259,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             else {
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
-                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                 }
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
@@ -1361,7 +1361,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
-                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                 }
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
@@ -1370,7 +1370,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             else {
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
-                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                 }
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
