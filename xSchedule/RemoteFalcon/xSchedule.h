@@ -23,10 +23,14 @@ class xSchedule
 
 	static std::string Action(const std::string& command, const std::string& parameters = "", const std::string& data = "")
 	{
-		char result[4096];
+		size_t size = 1024 * 1024; // 1MB ... surely that is enough ... and on the heap so should be ok
+		char* result = (char*)malloc(size);
 		std::wstring p(parameters.begin(), parameters.end());
-		__action(command.c_str(), (const wchar_t*)p.c_str(), data.c_str(), result, sizeof(result));
-		return std::string(result);
+		__action(command.c_str(), (const wchar_t*)p.c_str(), data.c_str(), result, size);
+		result[size - 1] = 0x00; // force null termination
+		std::string s(result);
+		free(result);
+		return s;
 	}
 
 public:
