@@ -69,10 +69,12 @@ fi
 
 if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dylib" ]; then
     LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5 libSDL2-2.0.0"
-    for LS in $LIBS
-    do
-        lipo -output "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LS.dylib" -extract $ARCHS "$SOURCE_ROOT/lib/osx/$LS.dylib"
-    done
+    if [ "$CONFIGURATION" != "Debug" ]; then
+        for LS in $LIBS
+        do
+            lipo -output "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LS.dylib" -extract $ARCHS "$SOURCE_ROOT/lib/osx/$LS.dylib"
+        done
+    fi
     for LS in $LIBS
     do
         for LT in $LIBS

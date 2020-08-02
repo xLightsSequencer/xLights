@@ -250,11 +250,11 @@ std::string DecodeOS(wxOperatingSystemId o)
 void DumpConfig()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#ifdef MAC_APP_STORE
-    logger_base.info("Version: " + std::string(xlights_version_string.c_str()) + " - App Store");
-#else
-    logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
-#endif
+    std::string versionStr = "Version: " + xlights_version_string.c_str();
+    if (IsFromAppStore()) {
+        versionStr += " - App Store";
+    }
+    logger_base.info(versionStr);
     logger_base.info("Bits: " + std::string(GetBitness().c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
     logger_base.info("Machine configuration:");

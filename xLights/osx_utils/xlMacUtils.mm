@@ -394,3 +394,43 @@ void RemoveAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &defaultdev_address, device_list_changed, am);
 }
 #endif
+
+
+
+
+
+
+bool IsFromAppStore() {
+    NSURL *bundleURL = [[NSBundle mainBundle] bundleURL];
+       
+    SecStaticCodeRef staticCode = NULL;
+    OSStatus status = SecStaticCodeCreateWithPath((__bridge CFURLRef)bundleURL, kSecCSDefaultFlags, &staticCode);
+    if (status != errSecSuccess) {
+        return false;
+    }
+    NSString *requirementText = @"anchor apple generic";   // For code signed by Apple
+    SecRequirementRef requirement = NULL;
+    status = SecRequirementCreateWithString((__bridge CFStringRef)requirementText, kSecCSDefaultFlags, &requirement);
+    if (status != errSecSuccess) {
+        if (staticCode) {
+            CFRelease(staticCode);
+        }
+        return false;
+    }
+    
+    status = SecStaticCodeCheckValidity(staticCode, kSecCSDefaultFlags, requirement);
+    if (status != errSecSuccess) {
+        if (staticCode) {
+            CFRelease(staticCode);
+        }
+        if (requirement) {
+            CFRelease(requirement);
+        }
+        return false;
+    }
+    
+    if (staticCode) CFRelease(staticCode);
+    if (requirement) CFRelease(requirement);
+    
+    return true;
+}

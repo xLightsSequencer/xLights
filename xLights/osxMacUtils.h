@@ -31,6 +31,7 @@ void AddAudioDeviceChangeListener(AudioManager *am);
 void RemoveAudioDeviceChangeListener(AudioManager *am);
 
 void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc);
+bool IsFromAppStore();
 
 
 
@@ -50,6 +51,7 @@ void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc);
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener(a)
 #define AdjustModalDialogParent(par)
+inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, xlColor& xlc) {xlc = c;}
 
 inline bool IsMouseEventFromTouchpad() {

@@ -3908,7 +3908,6 @@
 					"-I/opt/local/include/wx-3.1",
 					"-DNDEBUG",
 					"-DwxDEBUG_LEVEL=0",
-					"-DMAC_APP_STORE=1",
 					"-Iinclude",
 				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";

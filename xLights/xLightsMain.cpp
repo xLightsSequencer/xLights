@@ -1615,10 +1615,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 #endif
     
-#ifdef MAC_APP_STORE
-    MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
-    MenuItem_Update = nullptr;
-#endif
+    if (IsFromAppStore()) {
+        MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
+        MenuItem_Update = nullptr;
+    }
 
     _valueCurvesPanel->UpdateValueCurveButtons(false);
     _coloursPanel->UpdateColourButtons(false, this);
@@ -1841,11 +1841,10 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
 
     // dont check for updates if batch rendering
-    if (!_renderMode)
-    {
-        #ifndef MAC_APP_STORE
-        CheckForUpdate(false);
-        #endif
+    if (!_renderMode) {
+        if (!IsFromAppStore()) {
+            CheckForUpdate(false);
+        }
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
@@ -8600,7 +8599,8 @@ bool xLightsFrame::CheckForUpdate(bool force)
             (const char *)configver.c_str());
 
         if ((!urlVersion.Matches(configver))
-            && (!urlVersion.Matches(xlights_version_string))) {
+            && (!urlVersion.Matches(xlights_version_string))
+            && IsVersionOlder(urlVersion, xlights_version_string)) {
             found_update = true;
             UpdaterDialog *dialog = new UpdaterDialog(this);
 
