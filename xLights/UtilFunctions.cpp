@@ -291,9 +291,16 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 		}
 		sd = ShowDir;
 	}
+    // I dont know what this is trying to fix but it blows up on windows
     wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fnWin(file, wxPATH_WIN);
     wxString nameUnix = fnUnix.GetFullName();
+#ifdef __WXMSW__
+    // This should stop the blowup but to be honest it wont produce any different result to fnWin so it all looks like wasted effort
+    if (nameUnix.Contains("\\")) {
+        nameUnix = nameUnix.AfterLast('\\');
+    }
+#endif
     wxString nameWin = fnWin.GetFullName();
     wxString newPath;
     if (doesFileExist(sd, nameWin, nameUnix, newPath)) {

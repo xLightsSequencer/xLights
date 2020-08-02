@@ -189,18 +189,18 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
 
 bool ModelManager::IsModelOverlapping(Model* model) const
 {
-    int32_t start = model->GetNumberFromChannelString(model->ModelStartChannel);
+    int32_t start = model->GetFirstChannel(); //model->GetNumberFromChannelString(model->ModelStartChannel);
     int32_t end = start + model->GetChanCount() - 1;
     //int32_t sstart = model->GetFirstChannel() + 1;
     //wxASSERT(sstart == start);
     //int32_t send = model->GetLastChannel() + 1;
     //wxASSERT(send == end);
-    for (auto it = this->begin(); it != this->end(); ++it)
+    for (const auto& it : *this)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup" && it->second->GetName() != model->GetName())
+        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->GetName() != model->GetName())
         {
-            int32_t s = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-            int32_t e = s + it->second->GetChanCount() - 1;
+            int32_t s = it.second->GetFirstChannel(); //GetNumberFromChannelString(it->second->ModelStartChannel);
+            int32_t e = s + it.second->GetChanCount() - 1;
             //int32_t ss = it->second->GetFirstChannel() + 1;
             //wxASSERT(ss == s);
             //int32_t se = it->second->GetLastChannel() + 1;

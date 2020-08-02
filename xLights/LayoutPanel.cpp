@@ -7487,7 +7487,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
             mnuContext.AppendSeparator();
         }
-        
+
         if (selectedTreeModels.size() > 1) {
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
             mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
@@ -7495,7 +7495,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             mnuContext.AppendSeparator();
         }
     }
-    
+
     if (selectedTreeModels.size() == 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
         AddSingleModelOptionsToBaseMenu(mnuContext);
         // Remove preview 'Create Group' option as it may be confusing with tree list 'Create Group from Selections'
@@ -7507,25 +7507,25 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         }
         mnuContext.AppendSeparator();
     }
-    
+
     // add model menu options if only models selected and selected > 1n
     if (selectedTreeModels.size() > 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
         wxMenu* mnuBulkEdit = new wxMenu();
         AddBulkEditOptionsToMenu(mnuBulkEdit);
         mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
-        
+
         wxMenu* mnuAlign = new wxMenu();
         AddAlignOptionsToMenu(mnuAlign);
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
-        
+
         wxMenu* mnuDistribute = new wxMenu();
         AddDistributeOptionsToMenu(mnuDistribute);
         mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
-        
+
         wxMenu* mnuResize = new wxMenu();
         AddResizeOptionsToMenu(mnuResize);
         mnuResize->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
-        
+
         mnuContext.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
         mnuContext.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
         mnuContext.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
@@ -7550,7 +7550,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         if (selectedTreeGroups.size() > 1) {
             mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP, "Delete Groups");
         }
-        
+
         if (selectedTreeGroups.size() == 1) {
             mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP, "Delete Group");
             mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP, "Rename Group");
@@ -7564,32 +7564,28 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     bool foundOverlapping = false;
 
     if (selectedTreeModels.size() == 1 && selectedTreeSubModels.size() == 0 && selectedTreeGroups.size() == 0) {
-        ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
+        ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
         Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
 
-        if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString())
-        {
+        if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString()) {
             mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
             foundInvalid = true;
         }
-        if (xlights->AllModels.IsModelOverlapping(model))
-        {
+        if (xlights->AllModels.IsModelOverlapping(model)) {
             foundOverlapping = true;
             mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
         }
     }
 
-    for (const auto& it : xlights->AllModels)
-    {
-        if (it.second->GetDisplayAs() != "ModelGroup")
-        {
-            if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString()))
-            {
+    for (const auto& it : xlights->AllModels) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
                 foundInvalid = true;
+                if (foundOverlapping) break;
             }
-            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it.second))
-            {
+            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it.second)) {
                 foundOverlapping = true;
+                if (foundInvalid) break;
             }
         }
     }
@@ -7601,7 +7597,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.Append(ID_MNU_MAKEALLSCNOTOVERLAPPING, "Make All Start Channels Not Overlapping");
     }
 
-    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& LayoutPanel::OnModelsPopup, nullptr, this);
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
     PopupMenu(&mnuContext);
 }
 
