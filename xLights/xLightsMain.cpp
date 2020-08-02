@@ -6854,9 +6854,9 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
                 else {
                     auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
                     bool clash = false;
-                    for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                    for (const auto& it : effectsInTime)
                     {
-                        if ((*it)->GetID() != eff->GetID())
+                        if (it->GetID() != eff->GetID())
                         {
                             clash = true;
                             break;
@@ -6891,9 +6891,9 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
                 int end_ms = eff->GetEndTimeMS();
                 auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
                 bool clash = false;
-                for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                for (const auto& it : effectsInTime)
                 {
-                    if ((*it)->GetID() != eff->GetID())
+                    if (it->GetID() != eff->GetID())
                     {
                         clash = true;
                         break;

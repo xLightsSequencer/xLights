@@ -280,6 +280,16 @@ void ControllerEthernet::SetId(int id) {
     }
 }
 
+int ControllerEthernet::GetId() const
+{
+    if (GetProtocol() == OUTPUT_E131 || GetProtocol() == OUTPUT_ARTNET) {
+        return -1;
+    }
+    else         {
+        return Controller::GetId();
+    }
+}
+
 std::string ControllerEthernet::GetLongDescription() const {
 
     std::string res = "";

@@ -105,7 +105,7 @@ public:
     const std::string& GetName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
 
-    int GetId() const { return _id; }
+    virtual int GetId() const { return _id; }
     void EnsureUniqueId();
 
     const std::string &GetDescription() const { return _description; }

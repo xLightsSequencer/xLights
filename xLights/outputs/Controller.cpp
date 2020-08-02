@@ -651,7 +651,7 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
         // Id should be unique
         int id = GetId();
         for (const auto& it : om->GetControllers()) {
-            if (it->GetName() != name && it->GetId() == id) {
+            if (it->GetName() != name && it->GetId() == id && it->GetId() != -1) {
                 p->SetBackgroundColour(*wxRED);
                 break;
             }
