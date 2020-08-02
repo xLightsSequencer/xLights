@@ -13,6 +13,7 @@
 #include <wx/tokenzr.h>
 #include <wx/config.h>
 #include <wx/uri.h>
+#include <wx/regex.h>
 
 #include "LOREdit.h"
 #include "xLightsMain.h"
@@ -1259,7 +1260,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1749,7 +1750,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -4162,6 +4163,39 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     }
 }
 
+void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (eraseExisting) layer->DeleteAllEffects();
+
+    static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]\\[(.*)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
+    if (regex.Matches(mapping)) {
+        int const row = wxAtoi(regex.GetMatch(mapping, 1).ToStdString());
+        int const col = wxAtoi(regex.GetMatch(mapping, 2).ToStdString());
+        int const color = wxAtoi(regex.GetMatch(mapping, 3).ToStdString());
+        std::string strColor = regex.GetMatch(mapping, 4).ToStdString();
+        wxString name = mapping;
+        wxString const end = regex.GetMatch(mapping, 0);
+        name.Replace(end, "");
+
+        auto effects = lorEdit.GetChannelEffects(name, row, col, color, offset);
+
+        for (auto& it : effects)
+        {
+            if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                LOREdit::setNodeColor(strColor, it);
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    layer->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }    
+}
+
 void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
 {
     if (nl == nullptr) return;
@@ -4372,16 +4406,17 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
     LOREdit lorEdit(input_xml, CurrentSeqXmlFile->GetFrequency());
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
     dlg.timingTracks = lorEdit.GetTimingTracks();
     dlg.channelNames = lorEdit.GetModelsWithEffects();
+    dlg.ccrNames = lorEdit.GetNodesWithEffects();
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
 
-    dlg.InitImport();
+    dlg.InitImport("Stands and Channels");
 
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
@@ -4441,7 +4476,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                 }
                 else
                 {
-                    MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    if (!LOREdit::IsNodeStrandMapping(m->_mapping))
+                        MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    else
+                        MapS5ChannelEffects(effectManager, model->GetEffectLayer(0), lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
             }
 
@@ -4462,7 +4500,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                     {
                         SubModelElement* ste = model->GetSubModel(str);
                         if (ste != nullptr) {
-                            MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                            if (!LOREdit::IsNodeStrandMapping(s->_mapping))
+                                MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                            else
+                                MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                     }
                 }
@@ -4483,13 +4524,18 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                             if (stre != nullptr) {
                                 NodeLayer* nl = stre->GetNodeLayer(n, true);
                                 if (nl != nullptr) {
-                                    auto st = lorEdit.GetSequencingType(ns->_mapping);
-                                    if (st == loreditType::CHANNELS) {
-                                        MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                    if (LOREdit::IsNodeStrandMapping(s->_mapping)) {
+                                        MapS5ChannelEffects(effectManager, nl, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                                     }
-                                    else if (st == loreditType::TRACKS) {
-                                        // no layers so we just map the first
-                                        MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                    else {
+                                        auto st = lorEdit.GetSequencingType(ns->_mapping);
+                                        if (st == loreditType::CHANNELS) {
+                                            MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                        }
+                                        else if (st == loreditType::TRACKS) {
+                                            // no layers so we just map the first
+                                            MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                        }
                                     }
                                 }
                             }
@@ -4517,7 +4563,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what it was when it was converted\n\
         - what you changed it to.\n", this);
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;

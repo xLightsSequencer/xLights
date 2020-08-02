@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added LOR S5 Channel/Stand Importing
+   -- enh (scott)  Added "bank" Controller Channel Checking
+   -- bug (scott)  Fix Model Blend Default Off Setting not wroking
 2020.30 July 30 2020
    -- enh (dkulp)  OSX - Move to latest SDL, FFMPEG, and libzstd and make sure they are compiled for both x86_64 and arm64
    -- bug (scott)  RemoteFalcon crash if playlist is renamed/removed

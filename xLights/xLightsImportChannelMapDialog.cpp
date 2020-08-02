@@ -591,7 +591,7 @@ void xLightsImportChannelMapDialog::RightClickTimingTracks(wxContextMenuEvent& e
 
 void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
 {
-    for (int i = 0; i < TimingTrackListBox->GetCount(); i++)
+    for (unsigned int i = 0; i < TimingTrackListBox->GetCount(); i++)
     {
         TimingTrackListBox->Check(i, event.GetId() == ID_MNU_SELECTALL);
     }
@@ -624,7 +624,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
     SaveWindowPosition("xLightsImportDialogPosition", this);
 }
 
-bool xLightsImportChannelMapDialog::InitImport() {
+bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (channelNames.size() == 0)
     {
         DisplayError("No models to import from. Source sequence had no data.");
@@ -654,6 +654,9 @@ bool xLightsImportChannelMapDialog::InitImport() {
             }
         }
     }
+
+    if (!checkboxText.empty())
+        CheckBox_MapCCRStrand->SetLabelText(checkboxText);
 
     PopulateAvailable(false);
 

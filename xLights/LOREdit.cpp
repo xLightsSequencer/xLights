@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <wx/uri.h>
+#include <wx/regex.h>
 
 #include "sequencer/TimeLine.h"
 #include "UtilFunctions.h"
@@ -958,25 +959,29 @@ std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string
 
 // Uses prop definition to work out how many strands a model has
 // that can then be used out to work out channel sequencing mapping
-int LOREdit::GetModelStrands(const std::string& model) const
+std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) const
 {
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "PreviewClass") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
                 if (prop->GetName() == "PropClass") {
-                    if (prop->GetAttribute("name") == model) {
-                        wxString grid = prop->GetAttribute("ChannelGrid");
-                        int strands = 1;
-                        for (const auto it : grid) {
-                            if (it == ';') strands++;
+                    if (prop->GetAttribute("Name") == model) {
+                        wxString const grid = prop->GetAttribute("ChannelGrid");
+                        if(grid.IsEmpty()) return { { 1, "" } };
+                        wxArrayString strands = wxSplit(grid, ';');
+                        int strandCnts = 1;
+                        std::map<int, std::string> strandMap;
+                        for (wxString const& strand: strands) {
+                            strandMap[strandCnts] = GetColor(strand);
+                            strandCnts++;
                         }
-                        return strands;
+                        return strandMap;
                     }
                 }
             }
         }
     }
-    return 0;
+    return std::map<int, std::string>();
 }
 
 // Calculate the number of layers necessary for pixel effects on this model
@@ -1140,6 +1145,51 @@ std::vector<std::string> LOREdit::GetModelsWithEffects() const
     return res;
 }
 
+std::vector<std::string> LOREdit::GetNodesWithEffects() const
+{
+    std::string lastName;
+    int standIndex = 1;;
+    std::vector<std::string> res;
+    std::map<int, std::string> strands;
+    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
+            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "") {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass") {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name != "") {
+                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
+                            if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
+                                if (lastName != name) {
+                                    standIndex = 0;
+                                    strands = GetModelStrands(name);
+                                    lastName = name;
+                                }
+                                standIndex++;
+                                if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
+                                    int row = wxAtoi(tc->GetAttribute("row", "0"));
+                                    int col = wxAtoi(tc->GetAttribute("col", "0"));
+                                    int colour = wxAtoi(tc->GetAttribute("color", "0"));
+                                    res.push_back(name + "[" + std::to_string(row) + "," + std::to_string(col) + ","
+                                        + std::to_string(colour) + "][" + strands[standIndex] + "]");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 void LOREdit::GetLayers(const std::string& settings, int& ll1, int& ll2)
 {
     ll1 = 0;
@@ -1290,7 +1340,7 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     return res;
 }
 
-std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, wxXmlNode* prop, int offset) const
+std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, wxXmlNode* prop, int offset) const
 {
     std::vector<LOREditEffect> res;
 
@@ -1300,9 +1350,10 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int 
             int col = wxAtoi(tc->GetAttribute("col", "0"));
             int colour = wxAtoi(tc->GetAttribute("color", "0"));
 
-            if ((targetRow == -1 && targetCol == -1) || // map regardless
-                (row == targetRow && col == targetCol) || // map because the node matches
-                (row == 0 && col == 0 && colour == targetCol && targetRow == 0)) {
+            if ((targetRow == -1 && targetCol == -1 && targetColor == -1) || // map regardless
+                (row == targetRow && col == targetCol && targetColor == -1) || // map because the node matches
+                (row == 0 && col == 0 && colour == targetCol && targetRow == 0 && targetColor == -1) ||
+                (row == targetRow && col == targetCol && colour == targetColor)) {//match stand/color
                 for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
                     LOREditEffect effect;
                     effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
@@ -1423,7 +1474,7 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                     }
                     if (name == model)
                     {
-                        res = GetChannelEffectsForNode(targetRow, targetCol, prop, offset);
+                        res = GetChannelEffectsForNode(targetRow, targetCol, -1, prop, offset);
                         if (res.size() != 0) {
                             return res;
                         }
@@ -1431,11 +1482,41 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                         // if we got here and the source only has one node just map it regardless
                         if (rows == 1 && cols == 1)
                         {
-                            return GetChannelEffectsForNode(-1, -1, prop, offset);
+                            return GetChannelEffectsForNode(-1, -1, -1, prop, offset);
                         }
 
                         // still no match
 
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int targetRow, int targetCol, int targetColor, int offset) const
+{
+    std::vector<LOREditEffect> res;
+    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
+            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "") {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass") {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model) {
+                        res = GetChannelEffectsForNode(targetRow, targetCol, targetColor, prop, offset);
+                        if (res.size() != 0) {
+                            return res;
+                        }
                         return res;
                     }
                 }
@@ -1573,4 +1654,33 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     }
 
     return res;
+}
+
+std::string LOREdit::GetColor(const std::string& settings)
+{
+    wxArrayString const savedUploadItems = wxSplit(settings, ',');
+    if (savedUploadItems.size() == 6)
+        return savedUploadItems[5];
+    return "";
+}
+
+bool LOREdit::IsNodeStrandMapping(const std::string& mapping)
+{
+    static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
+    if (regex.Matches(mapping)) {
+        return true;
+    }
+    return false;
+}
+
+void LOREdit::setNodeColor(const std::string& color, LOREditEffect & effect)
+{
+    if (color.empty())
+        return;
+
+    if (color.find("Multi") != std::string::npos)
+        return;
+
+    effect.startColour.SetFromString(color);
+    effect.endColour.SetFromString(color);
 }

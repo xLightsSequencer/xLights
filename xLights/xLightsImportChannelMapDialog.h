@@ -359,7 +359,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
-        bool InitImport();
+        bool InitImport(std::string checkboxText = "");
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
