@@ -11,9 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2020.30 August 2 2020
+2020.30 August 2 2020 - Windows
    -- enh (scott)  Added LOR S5 Channel/Stand Importing
    -- enh (scott)  Added "bank" Controller Channel Checking
+   -- bug (keith)  Fix windows version check fails due to website restore
+   -- bug (keith)  Effect which should start/finish on a multiple of the frame time dont - leads to issue with vumeter not triggering on timing marks correctlty
+   -- bug (keith)  Fix DDP controller ids show as in error is invalid
+   -- bug (keith)  Fix some residual issues with protocol case
+   -- bug (keith)  Fix remote falcon plugin wont send large schedules correctly
+2020.30 July 30 2020 - OSX/Linux
    -- enh (dkulp)  Provide better error messages to user from VideoExporter if it fails to export
    -- enh (dkulp)  OSX - Move to latest SDL, FFMPEG, and libzstd and make sure they are compiled for both x86_64 and arm64
    -- enh (dkulp)  Support multiple directories for resources/media
@@ -27,11 +33,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (priemd) Fix some resize issues with boxed models
    -- bug (dkulp)  Node selection SubModel dialog not allowing selection on OSX or Linux
    -- bug (dkulp)  Fixup filename doesn't work if anything in the path has non-xml safe characters
-   -- bug (keith)  Fix windows version check fails due to website restore
-   -- bug (keith)  Effect which should start/finish on a multiple of the frame time dont - leads to issue with vumeter not triggering on timing marks correctlty
-   -- bug (keith)  Fix DDP controller ids show as in error is invalid
-   -- bug (keith)  Fix some residual issues with protocol case
-   -- bug (keith)  Fix remote falcon plugin wont send large schedules correctly
 2020.29 July 18 2020
    -- enh (dkulp)  Respond to system color changes and update row header/waveform
    -- bug (dkulp)  Move email prompt until after version check and frame is up/displayed (occassionally hangs)
