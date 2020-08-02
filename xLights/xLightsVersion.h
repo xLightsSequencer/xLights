@@ -18,7 +18,7 @@
 static const wxString xlights_version_string  = "2020.30";
 #endif
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
-static const wxString xlights_build_date      = "July 30, 2020";
+static const wxString xlights_build_date      = "August 2, 2020";
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
