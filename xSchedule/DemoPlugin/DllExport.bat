@@ -116,6 +116,7 @@ echo.
 echo  DllExport -GetNuTool -unpack
 echo  DllExport -GetNuTool /p:ngpackages="Conari;regXwild"
 echo  DllExport -pe-exp-list bin\Debug\regXwild.dll
+pause
 goto bp
 :bo
 set /a aw=0

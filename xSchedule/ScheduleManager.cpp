@@ -1870,6 +1870,33 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
                     ((xScheduleApp*)wxTheApp)->GetFrame()->PluginStateChanged();
                 }
+                else if (command == "Send command to plugin")                     {
+
+                    wxArrayString split = wxSplit(parameters, ',');
+                    std::string plugin;
+                    std::string command;
+                    std::string params;
+                    if (split.size() > 0) plugin = split[0];
+                    if (split.size() > 1) command = split[1];
+                    if (split.size() > 2) params = split[2];
+
+                    if (split.size() < 2) {
+                        msg = "Plugin command requires at least the plugin name and a command";
+                        result = false;
+                    }
+                    else {
+                        auto p = ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().GetPluginFromLabel(plugin);
+                        if (p == "") {
+                            msg = "Plugin not found";
+                            result = false;
+                        }
+                        else {
+                            std::string m;
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().SendCommand(p, command, params, &result, &m);
+                            msg = m;
+                        }
+                    }
+                 }
                 else if (command == "Set mode")
                 {
                     int mode = (int)SYNCMODE::STANDALONE;

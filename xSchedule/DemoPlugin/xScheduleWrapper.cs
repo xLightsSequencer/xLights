@@ -196,6 +196,15 @@ namespace xScheduleWrapper
             _plugin.FireEvent(type, parameters);
         }
 
+        [DllExport("xSchedule_SendCommand", CallingConvention = CallingConvention.StdCall)]
+        public static bool xSchedule_SendCommand([MarshalAs(UnmanagedType.LPStr)]string command, [MarshalAs(UnmanagedType.LPStr)]string parameters, IntPtr buffer, int bufferSize)
+        {
+            string msg;
+            bool rc = _plugin.SendCommand(command, parameters, out msg);
+            SetString(buffer, bufferSize, msg);
+            return rc;
+        }
+
         [DllExport("xSchedule_ManipulateBuffer", CallingConvention = CallingConvention.StdCall)]
         public static void xSchedule_ManipulateBuffer(IntPtr buffer, int bufferSize)
         {

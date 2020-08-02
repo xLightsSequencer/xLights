@@ -81,6 +81,7 @@ public:
         virtual ~RemoteFalconFrame();
         void NotifyStatus(const std::string& status);
         void FireEvent(const std::string& eventType, const std::string& eventParameter) {}
+        bool SendCommand(const std::string& command, const std::string& parameters, std::string& msg);
 
     private:
 

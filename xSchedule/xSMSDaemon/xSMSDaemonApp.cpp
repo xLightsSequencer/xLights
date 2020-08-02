@@ -247,6 +247,14 @@ static void InitialiseLogging(bool fromMain)
         // we dont care about events
     }
 
+    bool xSMSDaemon_xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
+    {
+        // we dont care about command
+        memset(msg, 0x00, bufferSize);
+        strncpy(msg, "Commands not supported by xSMSDaemon", bufferSize - 1);
+        return false;
+    }
+
     void xSMSDaemon_xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
         // we dont manipulate pixel data directly
     }
@@ -267,6 +275,7 @@ PluginManager::PluginState *CreateSMSPluginState() {
     ret->_notifyStatusFn = xSMSDaemon_xSchedule_NotifyStatus;					
     ret->_manipulateBufferFn = xSMSDaemon_xSchedule_ManipulateBuffer;
     ret->_fireEventFn = xSMSDaemon_xSchedule_FireEvent;
+    ret->_sendCommandFn = xSMSDaemon_xSchedule_SendCommand;
     return ret;
 }
 #else
@@ -305,6 +314,10 @@ extern "C" {
     {
         xSMSDaemon_xSchedule_FireEvent(eventType, eventParameter);
     }																						
+    bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
+    {
+        return xSMSDaemon_xSchedule_SendCommand(command, parameters, msg, bufferSize);
+    }
 }
 
 int xSMSDaemonApp::OnExit()

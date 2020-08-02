@@ -84,5 +84,11 @@ namespace Plugin
         {
             MessageBox.Show(parameters);
         }
+
+        public bool SendCommand(string command, string parameters, out string msg)
+        {
+            msg = "Demo plugin does not support commands.";
+            return false;
+        }
     }
 }

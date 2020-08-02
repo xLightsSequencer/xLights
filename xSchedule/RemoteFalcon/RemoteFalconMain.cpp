@@ -617,6 +617,34 @@ void RemoteFalconFrame::NotifyStatus(const std::string& status)
     }
 }
 
+bool RemoteFalconFrame::SendCommand(const std::string& command, const std::string& parameters, std::string& msg)
+{
+    if (command == "Set playlist") {
+        auto playlists = xSchedule::GetPlaylists();
+        for (const auto& it : playlists)             {
+            if (it.first == parameters)                 {
+                Stop();
+                _options.SetPlaylist(it.second);
+                SaveOptions();
+                LoadOptions();
+                _playlist = parameters;
+                AddMessage("Playlist selected: " + parameters);
+                SendPlaylists();
+                Start();
+                ValidateWindow();
+                return true;
+            }
+        }
+        msg = "Remote Falcon: Unknown playlist when trying to set playlist to " + parameters;
+        return false;
+    }
+    else         {
+        msg = "Remote Falcon: Unknown command";
+        return false;
+    }
+    return true;
+}
+
 void RemoteFalconFrame::OnClose(wxCloseEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

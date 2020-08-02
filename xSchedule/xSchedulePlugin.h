@@ -56,4 +56,8 @@ extern "C" {
     // called when an event occurs
     void WXIMPORT xSchedule_FireEvent(const char* eventType, const char* eventParam);
     typedef bool (*p_xSchedule_FireEvent)(const char* eventType, const char* eventParam);
+
+    // called when an command is to be sent
+    void WXIMPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize);
+    typedef bool (*p_xSchedule_SendCommand)(const char* command, const char* parameters, char* msg, size_t bufferSize);
 }

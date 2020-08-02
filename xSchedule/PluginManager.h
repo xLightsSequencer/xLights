@@ -41,6 +41,7 @@ public:
         p_xSchedule_GetVirtualWebFolder _getVirtualWebFolderFn;
         p_xSchedule_GetMenuLabel _getMenuLabelFn;
         p_xSchedule_FireEvent _fireEventFn;
+        p_xSchedule_SendCommand _sendCommandFn;
     };
 private:
     std::map<std::string, PluginState*> _plugins;
@@ -79,5 +80,6 @@ private:
         void FireEvent(const std::string& eventType, const std::string& eventParam);
         bool IsStarted(const std::string& plugin) const;
         std::string GetPluginFromLabel(const std::string& label) const;
+        bool SendCommand(const std::string& plugin, const std::string& command, const std::string& parameters, bool* success, std::string* msg);
 };
 #endif

@@ -43,6 +43,7 @@ PluginManager::PluginState::PluginState(wxDynamicLibrary* dl, const std::string&
         _getVirtualWebFolderFn = (p_xSchedule_GetVirtualWebFolder)GetFunction(_dl, _filename, "xSchedule_GetVirtualWebFolder");
         _getMenuLabelFn = (p_xSchedule_GetMenuLabel)GetFunction(_dl, _filename, "xSchedule_GetMenuLabel");
         _fireEventFn = (p_xSchedule_FireEvent)GetFunction(_dl, _filename, "xSchedule_FireEvent");
+        _sendCommandFn = (p_xSchedule_SendCommand)GetFunction(_dl, _filename, "xSchedule_SendCommand");
     } else {
         _loadFn = nullptr;
         _unloadFn = nullptr;
@@ -55,6 +56,7 @@ PluginManager::PluginState::PluginState(wxDynamicLibrary* dl, const std::string&
         _getVirtualWebFolderFn = nullptr;
         _getMenuLabelFn = nullptr;
         _fireEventFn = nullptr;
+        _sendCommandFn = nullptr;
     }
 }
 PluginManager::PluginState::~PluginState()
@@ -217,6 +219,29 @@ std::string PluginManager::GetPluginFromLabel(const std::string& label) const
         }
     }
     return "";
+}
+
+bool PluginManager::SendCommand(const std::string& plugin, const std::string& command, const std::string& parameters, bool* success, std::string* msg)
+{
+    if (_plugins.find(plugin) == _plugins.end()) {
+        *success = false;
+        *msg = "Unknown plugin";
+        return false;
+    }
+    if (!_plugins.at(plugin)->_started) {
+        *success = false;
+        *msg = "Plugin is not started";
+        return false;
+    }
+    p_xSchedule_SendCommand fn = _plugins.at(plugin)->_sendCommandFn;
+    if (fn != nullptr) {
+        char message[4096];
+        memset(message, 0x00, sizeof(message));
+        *success = fn(command.c_str(), parameters.c_str(), message, sizeof(message));
+        message[sizeof(message) - 1] = 0x00;
+        *msg = message;
+    }
+    return true;
 }
 
 bool PluginManager::IsStarted(const std::string& plugin) const

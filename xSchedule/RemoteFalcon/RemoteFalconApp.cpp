@@ -180,6 +180,17 @@ static void InitialiseLogging(bool fromMain)
         strncpy(buffer, "Remote Falcon", bufferSize - 1);
     }
 
+    bool RemoteFalcon_xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
+    {
+        memset(msg, 0x00, bufferSize);
+        std::string c(command);
+        std::string p(parameters);
+        std::string m;
+        bool rc = ((RemoteFalconFrame*)wxTheApp->GetTopWindow())->SendCommand(c, p, m);
+        strncpy(msg, m.c_str(), bufferSize - 1);
+        return rc;
+    }
+
     bool RemoteFalcon_xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize) {
         return false;
     }
@@ -264,6 +275,7 @@ PluginManager::PluginState *CreateRemoteFalconPluginState() {
     ret->_notifyStatusFn = RemoteFalcon_xSchedule_NotifyStatus;
     ret->_manipulateBufferFn = RemoteFalcon_xSchedule_ManipulateBuffer;
     ret->_fireEventFn = RemoteFalcon_xSchedule_FireEvent;
+    ret->_sendCommandFn = RemoteFalcon_xSchedule_SendCommand;
     return ret;
 }
 #else
@@ -301,6 +313,10 @@ extern "C" {
     void WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
     {
         RemoteFalcon_xSchedule_FireEvent(eventType, eventParameter);
+    }
+    bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
+    {
+        return RemoteFalcon_xSchedule_SendCommand(command, parameters, msg, bufferSize);
     }
 }
 

@@ -370,6 +370,14 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Set frame interval to ms <ms>
 			Set the frame interval to the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it is set to zero then the override is disabled and the sequence frame rate is used.
 
+		Start plugin <plugin menu item label>
+			Starts the plugin
+
+		Stop plugin <plugin menu item label>
+			Stops the plugin
+
+		Send command to plugin <plugin menu item label>,<command>,<pipe separated parameters>
+			Sends a command to a named plugin ... commands supported and parameters are defined by the plugin
 
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 

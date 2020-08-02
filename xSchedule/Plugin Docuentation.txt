@@ -56,6 +56,14 @@ void xScedule_FireEvent(const char* type, const char* parameters)
 	
 	This is called as a result of either a Playlist Plugin item firing an event or an event or button triggering the "Fire plugin event" api or that api being called externally.
 
+bool xScedule_SendCommand(const char* command, const char* parameters, char message[4096])
+	
+	This is called to send a command to the plugin.
+	If processed the plugin should return true.
+	If there is an error the plugin should return false and fill in the message field. Messages must not be longer that 4095 characters.
+	The names of commands are plugin defined but must not contain commas or xml special characters.
+	The format of parameters are plugin defined but must not contain commas or xml special characters. If more than one parameter is required we recommend using the pipe delimiter.
+
 xSchedule supports one function which you may call if you want to to take any command or query action.
 
     bool Action(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize);
