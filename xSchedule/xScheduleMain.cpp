@@ -892,7 +892,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         Connect(_pluginManager.GetId(it), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& xScheduleFrame::OnPluginMenu);
         if (config->ReadBool(_("Plugin") + it, false))
         {
-            if (_pluginManager.StartPlugin(it, _showDir, GetOurURL()))
+            if (_pluginManager.StartPlugin(it, _showDir, __schedule->GetOptions()->GetOurURL()))
             {
                 mi->Check(true);
             }
@@ -1732,19 +1732,15 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     int oldport = __schedule->GetOptions()->GetWebServerPort();
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        if (oldport != __schedule->GetOptions()->GetWebServerPort() || _webServer == nullptr)
-        {
-            if (_webServer != nullptr)
-            {
+    if (dlg.ShowModal() == wxID_OK) {
+        if (oldport != __schedule->GetOptions()->GetWebServerPort() || _webServer == nullptr) {
+            if (_webServer != nullptr) {
                 delete _webServer;
             }
             _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
                 __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
         }
-        else
-        {
+        else {
             _webServer->SetAPIOnly(__schedule->GetOptions()->GetAPIOnly());
             _webServer->SetPassword(__schedule->GetOptions()->GetPassword());
             _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
@@ -1781,8 +1777,7 @@ void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
 void xScheduleFrame::CreateButtons()
 {
     auto buttons = Panel1->GetChildren();
-    for (auto it : buttons)
-    {
+    for (auto it : buttons) {
         Disconnect(it->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
         FlexGridSizer4->Detach(it);
         delete it;
@@ -1791,8 +1786,7 @@ void xScheduleFrame::CreateButtons()
     auto bs = __schedule->GetOptions()->GetButtons();
 
     // create some default buttons
-    if (bs.size() == 0)
-    {
+    if (bs.size() == 0) {
         __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green", __schedule->GetCommandManager());
         __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red", __schedule->GetCommandManager());
         __schedule->GetOptions()->AddButton("Reset All Schedules", "Restart all schedules", "", '~', "default", __schedule->GetCommandManager());
@@ -1808,11 +1802,9 @@ void xScheduleFrame::CreateButtons()
     if (bs.size() % 5 != 0) rows++;
     FlexGridSizer4->SetRows(rows);
 
-    for (auto it : bs)
-    {
+    for (auto it : bs) {
         // only show not hidden buttons
-        if (!wxString(it->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand(it->GetCommand()) != nullptr)
-        {
+        if (!wxString(it->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand(it->GetCommand()) != nullptr) {
             CreateButton(it->GetLabel(), it->GetColor());
         }
     }
@@ -1836,13 +1828,11 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
 {
     wxArrayString a = wxSplit(event.GetString(), '|');
 
-    if (a.Count() == 2)
-    {
+    if (a.Count() == 2) {
         size_t rate = 0;
         wxString msg;
         __schedule->Action(a[0], a[1], "", nullptr, nullptr, nullptr, rate, msg);
-        if (msg != "")
-        {
+        if (msg != "") {
             SetTempMessage(msg);
         }
     }
@@ -1850,15 +1840,14 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
 
 void xScheduleFrame::ChangeShowFolder(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto newShowFolder = event.GetString();
 
-    if (newShowFolder == "")
-    {
+    if (newShowFolder == "") {
         newShowFolder = __schedule->GetShowDir();
     }
 
-    logger_base.debug("Changing show folder to %s.", (const char *)newShowFolder.c_str());
+    logger_base.debug("Changing show folder to %s.", (const char*)newShowFolder.c_str());
     _showDir = newShowFolder.ToStdString();
     SaveShowDir();
     _timerSchedule.Stop();
@@ -1875,12 +1864,10 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     Schedule* schedule = nullptr;
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    if (IsPlayList(treeitem))
-    {
+    if (IsPlayList(treeitem)) {
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
     }
-    else if (IsSchedule(treeitem))
-    {
+    else if (IsSchedule(treeitem)) {
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
@@ -1914,10 +1901,8 @@ void xScheduleFrame::SetTempMessage(const std::string& msg)
 // returns the name of the plugin associated with the given web folder or blank if not running
 std::string xScheduleFrame::GetWebPluginRequest(const std::string& request)
 {
-    for (auto it : _pluginManager.GetPlugins())
-    {
-        if (wxString(_pluginManager.GetVirtualWebFolder(it)).Lower() == request)
-        {
+    for (auto it : _pluginManager.GetPlugins()) {
+        if (wxString(_pluginManager.GetVirtualWebFolder(it)).Lower() == request) {
             return it;
         }
     }
@@ -1929,6 +1914,23 @@ void xScheduleFrame::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
     _pluginManager.ManipulateBuffer(buffer, bufferSize);
 }
 
+void xScheduleFrame::PluginStateChanged()
+{
+    auto menuItems = Menu_Plugins->GetMenuItems();
+
+    for (const auto& it : menuItems) {
+        auto label = it->GetItemLabelText();
+        auto plugin = _pluginManager.GetPluginFromLabel(label);
+
+        if (plugin != "" && _pluginManager.IsStarted(plugin)) {
+            it->Check(true);
+        }
+        else {
+            it->Check(false);
+        }
+    }
+}
+
 wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
 {
     std::wstring res;
@@ -1938,7 +1940,7 @@ wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxSt
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
     wxString fileName = "xSchedule_l4cpp.log";
 #ifdef __WXMSW__
@@ -1955,33 +1957,28 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString filename = "/tmp/" + fileName;
 #endif
     wxString fn = "";
-    if (wxFile::Exists(filename))
-    {
+    if (wxFile::Exists(filename)) {
         fn = filename;
     }
-    else if (wxFile::Exists(wxFileName(_showDir, fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(_showDir, fileName).GetFullPath())) {
         fn = wxFileName(_showDir, fileName).GetFullPath();
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
     }
 
-    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-    if (fn != "" && ft)
-    {
+    wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+    if (fn != "" && ft) {
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+        logger_base.debug("Viewing log file %s.", (const char*)fn.c_str());
 
         wxExecute(command);
         delete ft;
     }
-    else
-    {
-        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
+    else {
+        logger_base.warn("Unable to view log file %s.", (const char*)fn.c_str());
         wxMessageBox(wxString::Format("Unable to show log file '%s'.", fn.c_str()), _("Error"));
     }
 }
@@ -1994,8 +1991,7 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
     Panel1->GetSize(&pw, &ph);
 
     int n = 20;
-    while (!done && n > 0)
-    {
+    while (!done && n > 0) {
         auto buttons = Panel1->GetChildren();
         FlexGridSizer4->SetRows(buttons.size() / n + (buttons.size() % n > 0 ? 1 : 0));
         FlexGridSizer4->SetCols(n);
@@ -2006,14 +2002,12 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
 
         int lastx = 0;
         int lasty = 0;
-        for (auto it : buttons)
-        {
+        for (auto it : buttons) {
             int x, y, w, h;
             it->GetPosition(&x, &y);
             it->GetSize(&w, &h);
 
-            if ((x < lastx && y == lasty) || x+w > pw - 10)
-            {
+            if ((x < lastx && y == lasty) || x + w > pw - 10) {
                 n--;
                 changed = true;
                 break;
@@ -2023,8 +2017,7 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
             lastx = x + w;
         }
 
-        if (!changed)
-        {
+        if (!changed) {
             break;
         }
     }
@@ -2658,11 +2651,6 @@ void xScheduleFrame::CorrectTimer(int rate)
     }
 }
 
-std::string xScheduleFrame::GetOurURL() const
-{
-    return "http://127.0.0.1:" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort());
-}
-
 void xScheduleFrame::OnPluginMenu(wxCommandEvent& event)
 {
     std::string plugin = _pluginManager.GetPluginFromId(event.GetId());
@@ -2670,7 +2658,7 @@ void xScheduleFrame::OnPluginMenu(wxCommandEvent& event)
 
     if (((wxMenu*)event.GetEventObject())->IsChecked(event.GetId()))
     {
-        if (!_pluginManager.StartPlugin(plugin, _showDir, GetOurURL()))
+        if (!_pluginManager.StartPlugin(plugin, _showDir, __schedule->GetOptions()->GetOurURL()))
         {
             ((wxMenu*)event.GetEventObject())->Check(event.GetId(), false);
             config->Write(_("Plugin") + plugin, false);

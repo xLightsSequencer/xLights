@@ -18,6 +18,7 @@
 #include "PlayListItemPluginPanel.h"
 #include "../PluginManager.h"
 #include "../ScheduleManager.h"
+#include "../ScheduleOptions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -98,7 +99,7 @@ void PlayListItemPlugin::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
         _started = true;
 
         std::string showDir = xScheduleFrame::GetScheduleManager()->GetShowDir();
-        std::string webURL = ((xScheduleApp*)wxTheApp)->GetFrame()->GetOurURL();
+        std::string webURL = xScheduleFrame::GetScheduleManager()->GetOptions()->GetOurURL();
 
 		if (_action == "Start")
 		{

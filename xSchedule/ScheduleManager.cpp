@@ -1842,6 +1842,34 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         result = false;
                     }
                 }
+                else if (command == "Start plugin") {
+                    auto plugin = ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().GetPluginFromLabel(parameters);
+                    if (plugin == "")                         {
+                        msg = "Plugin not found";
+                        result = false;
+                    }
+                    else {
+                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StartPlugin(plugin, _showDir, _scheduleOptions->GetOurURL())) {
+                            msg = "Plugin could not be started";
+                            result = false;
+                        }
+                    }
+                    ((xScheduleApp*)wxTheApp)->GetFrame()->PluginStateChanged();
+                }
+                else if (command == "Stop plugin") {
+                    auto plugin = ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().GetPluginFromLabel(parameters);
+                    if (plugin == "") {
+                        msg = "Plugin not found";
+                        result = false;
+                    }
+                    else {
+                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StopPlugin(plugin))                             {
+                            msg = "Plugin could not be stopped";
+                            result = false;
+                        }
+                    }
+                    ((xScheduleApp*)wxTheApp)->GetFrame()->PluginStateChanged();
+                }
                 else if (command == "Set mode")
                 {
                     int mode = (int)SYNCMODE::STANDALONE;

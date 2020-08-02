@@ -209,12 +209,28 @@ void PluginManager::FireEvent(const std::string& eventType, const std::string& e
     }
 }
 
-void PluginManager::DoStop(const std::string& plugin)
+std::string PluginManager::GetPluginFromLabel(const std::string& label) const
+{
+    for (const auto& it : _plugins) {
+        if (GetMenuLabel(it.first) == label) {
+            return it.first;
+        }
+    }
+    return "";
+}
+
+bool PluginManager::IsStarted(const std::string& plugin) const
+{
+    if (_plugins.find(plugin) == _plugins.end()) return false;
+    return _plugins.at(plugin)->_started;
+}
+
+bool PluginManager::DoStop(const std::string& plugin)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_plugins.find(plugin) == _plugins.end()) return;
-    if (!_plugins.at(plugin)->_started) return;
+    if (_plugins.find(plugin) == _plugins.end()) return false;
+    if (!_plugins.at(plugin)->_started) return false;
 
     p_xSchedule_Stop fn = _plugins.at(plugin)->_stopFn;
     if (fn != nullptr) {
@@ -222,6 +238,7 @@ void PluginManager::DoStop(const std::string& plugin)
         logger_base.debug("Stopped plugin %s", (const char*)plugin.c_str());
         _plugins.at(plugin)->_started = false;
     }
+    return true;
 }
 
 void PluginManager::DoWipeSettings(const std::string& plugin)
@@ -265,7 +282,7 @@ void PluginManager::DoNotifyStatus(const std::string& plugin, const char* status
     reenter = false;
 }
 
-std::string PluginManager::GetVirtualWebFolder(const std::string& plugin)
+std::string PluginManager::GetVirtualWebFolder(const std::string& plugin) const
 {
     if (_plugins.find(plugin) == _plugins.end()) return "";
     if (!_plugins.at(plugin)->_started) return "";
@@ -280,7 +297,7 @@ std::string PluginManager::GetVirtualWebFolder(const std::string& plugin)
     return std::string(buffer);
 }
 
-std::string PluginManager::GetMenuLabel(const std::string& plugin)
+std::string PluginManager::GetMenuLabel(const std::string& plugin) const
 {
     if (_plugins.find(plugin) == _plugins.end()) return "";
 
@@ -334,9 +351,9 @@ bool PluginManager::StartPlugin(const std::string& plugin, const std::string& sh
     return DoStart(plugin, (char *)showDir.c_str(), (char*)xScheduleURL.c_str());
 }
 
-void PluginManager::StopPlugin(const std::string& plugin)
+bool PluginManager::StopPlugin(const std::string& plugin)
 {
-    DoStop(plugin);
+    return DoStop(plugin);
 }
 
 uint32_t PluginManager::GetId(const std::string& plugin) const

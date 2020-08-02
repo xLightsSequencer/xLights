@@ -223,6 +223,7 @@ class ScheduleOptions
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         std::list<EventBase*>* GetEvents() { return &_events; }
         std::string GetMIDITimecodeDevice() const { return _MIDITimecodeDevice; }
+        std::string GetOurURL() const;
         void SetMIDITimecodeDevice(std::string midi) { if (midi != _MIDITimecodeDevice) { _MIDITimecodeDevice = midi; _changeCount++; } }
         TIMECODEFORMAT GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
         size_t GetMIDITimecodeOffset() const { return _MIDITimecodeOffset; }

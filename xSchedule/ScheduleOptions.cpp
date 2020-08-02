@@ -572,6 +572,11 @@ UserButton* ScheduleOptions::GetButton(wxUint32 id) const
     return nullptr;
 }
 
+std::string ScheduleOptions::GetOurURL() const
+{
+   return "http://127.0.0.1:" + wxString::Format("%d", GetWebServerPort());
+}
+
 std::string ScheduleOptions::GetDefaultRoot() const
 {
 #ifdef __WXMSW__
