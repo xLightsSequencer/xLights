@@ -74,6 +74,7 @@ class VendorModelDialog: public wxDialog
 		wxButton* Button_InsertModel;
 		wxButton* Button_Next;
 		wxButton* Button_Prior;
+		wxButton* Button_Search;
 		wxCheckBox* CheckBox_DontDownload;
 		wxHyperlinkCtrl* HyperlinkCtrl_Facebook;
 		wxHyperlinkCtrl* HyperlinkCtrl_ModelWebLink;
@@ -91,6 +92,7 @@ class VendorModelDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_ModelDetails;
+		wxTextCtrl* TextCtrl_Search;
 		wxTextCtrl* TextCtrl_VendorDetails;
 		wxTreeCtrl* TreeCtrl_Navigator;
 		//*)
@@ -99,6 +101,8 @@ class VendorModelDialog: public wxDialog
 
 		//(*Identifiers(VendorModelDialog)
 		static const long ID_TREECTRL1;
+		static const long ID_TEXTCTRL3;
+		static const long ID_BUTTON4;
 		static const long ID_PANEL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICBITMAP1;
@@ -138,6 +142,8 @@ class VendorModelDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnCheckBox_DontDownloadClick(wxCommandEvent& event);
+		void OnTextCtrl_SearchText(wxCommandEvent& event);
+		void OnButton_SearchClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

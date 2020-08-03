@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Search Box to the Vendor Model Download Dialog
 2020.30 August 2 2020 - Windows
    -- enh (scott)  Added LOR S5 Channel/Stand Importing
    -- enh (scott)  Added "bank" Controller Channel Checking
