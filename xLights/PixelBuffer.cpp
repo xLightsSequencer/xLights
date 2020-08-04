@@ -716,8 +716,15 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
     {
         layers[x] = new LayerInfo(frame);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
-        model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
-        layers[x]->bufferType = "Default";
+        if (x == (numLayers-1)) {
+            // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
+            // in the renderbuff which can occur if the group defaults to per-preview or similar
+            model->InitRenderBufferNodes("Single Line", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+            layers[x]->bufferType = "Single Line";
+        } else {
+            model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+            layers[x]->bufferType = "Default";
+        }
         layers[x]->camera = "2D";
         layers[x]->bufferTransform = "None";
         layers[x]->outTransitionType = "Fade";
