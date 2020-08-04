@@ -184,6 +184,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     CurrentDir = newdir;
     showDirectory = newdir;
 
+    SetFixFileShowDir(CurrentDir);
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());
     SpecialOptions::GetOption("", ""); // resets special options
 
@@ -201,8 +202,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         _logfile = fopen("wxlog_xlights.txt", "w");
         wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Debug);
         wxLog::SetActiveTarget(new wxLogStderr(_logfile));
-    }
-    else {
+    } else {
         wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
     }
     if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
@@ -274,6 +274,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
 
+    
     LoadEffectsFile();
 
     logger_base.debug("Get start channels right.");

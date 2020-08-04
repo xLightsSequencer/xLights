@@ -263,6 +263,12 @@ static bool doesFileExist(const std::string &sd, const wxString &appendWin, cons
 }
 
 
+static wxString RememberShowDir;
+void SetFixFileShowDir(const wxString& ShowDir) {
+    RememberShowDir = ShowDir;
+}
+
+
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -276,10 +282,6 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
     logger_base.debug("File not found ... attempting to fix location : " + file);
 
-    
-    // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
-	static wxString RememberShowDir;
-    
     wxString sd;
 	if (ShowDir == "") {
 		sd = RememberShowDir;
