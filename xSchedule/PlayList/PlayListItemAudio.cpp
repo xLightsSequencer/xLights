@@ -57,6 +57,20 @@ void PlayListItemAudio::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
     }
 }
 
+bool PlayListItemAudio::SetPosition(size_t frame, size_t ms)
+{
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    bool res = false;
+
+    _currentFrame = frame;
+    if (_audioManager != nullptr) {
+        _audioManager->Seek(frame * _msPerFrame);
+        res = true;
+    }
+
+    return res;
+}
+
 void PlayListItemAudio::LoadFiles()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

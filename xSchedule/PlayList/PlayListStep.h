@@ -35,6 +35,7 @@ protected:
     std::string _name;
     bool _excludeFromRandom;
     size_t _framecount;
+    size_t _currentFrame = 0;
     wxUint32 _startTime;
     wxUint32 _pause;
     wxUint32 _id;
@@ -64,6 +65,7 @@ public:
     wxUint32 GetId() const { return _id; }
     PlayListItem* GetTimeSource(size_t& ms);
     std::list<PlayListItem*> GetItems();
+    size_t GetCurrentFrame() const { return _currentFrame; }
     bool IsDirty();
     void ClearDirty();
     void SetDirty() { _changeCount++; }
@@ -105,6 +107,7 @@ public:
     void SetSyncPosition(size_t ms, size_t acceptableJitter, bool force = false);
     PlayListItem* FindRunProcessNamed(const std::string& item);
     AudioManager* GetAudioManager();
+    bool SetPosition(size_t frame, size_t ms);
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

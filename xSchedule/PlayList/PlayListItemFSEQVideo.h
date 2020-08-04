@@ -114,7 +114,7 @@ public:
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
     void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }
     void SetLoopVideo(bool loopVideo) { if (_loopVideo != loopVideo) { _loopVideo = loopVideo; _changeCount++; } }
-    bool SetPosition(size_t frame, size_t ms);
+    virtual bool SetPosition(size_t frame, size_t ms) override;
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     void SetVideoFile(const std::string& videoFile);
     std::string GetVideoFile() const { return _videoFile; }

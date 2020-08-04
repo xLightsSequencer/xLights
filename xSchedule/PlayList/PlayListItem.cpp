@@ -37,6 +37,14 @@ PlayListItem::PlayListItem(wxXmlNode* node)
     PlayListItem::Load(node);
 }
 
+bool PlayListItem::SetPosition(size_t frame, size_t ms)
+{
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    _currentFrame = frame;
+
+    return true;
+}
+
 void PlayListItem::Load(wxXmlNode* node)
 {
     _type = node->GetName();

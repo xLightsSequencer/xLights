@@ -119,6 +119,20 @@ PlayListItem* PlayListItemVideo::Copy() const
     return res;
 }
 
+bool PlayListItemVideo::SetPosition(size_t frame, size_t ms)
+{
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    bool res = false;
+
+    _currentFrame = frame;
+
+    if (_frame != nullptr) {
+        _frame->Seek(frame * _msPerFrame);
+    }
+
+    return res;
+}
+
 wxXmlNode* PlayListItemVideo::Save()
 {
     wxXmlNode* node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());

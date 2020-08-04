@@ -43,6 +43,7 @@ ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
 
 void ListenerManager::StartListeners()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto it = _listeners.begin();
     while (it != _listeners.end())
     {
@@ -613,6 +614,9 @@ void ListenerManager::StartListeners()
                 _listeners.push_back(new ListenerMIDI(devid, this));
                 _listeners.back()->Start();
             }
+            else                 {
+                logger_base.error("No midi timecode device specified.");
+            }
         }
     }
     else if (_sync == 6)
@@ -752,8 +756,8 @@ int ListenerManager::Sync(const std::string filename, long ms, const std::string
 		if (_lastSyncMS < 0 || _lastSyncMS >= ms || ms > _lastSyncMS + MIN_SYNC_INTERVAL_MS)
 		{
 			_lastFrameMS = _scheduleManager->Sync(filename, ms);
-		}
-		_lastSyncMS = ms;
+            _lastSyncMS = ms;
+        }
     }
     else
     {

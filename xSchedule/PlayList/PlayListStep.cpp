@@ -61,6 +61,7 @@ PlayListStep::PlayListStep(OutputManager* outputManager, wxXmlNode* node)
     _id = __playliststepid++;
     _startTime = 0;
     _framecount = 0;
+    _currentFrame = 0;
     _excludeFromRandom = false;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
@@ -82,6 +83,7 @@ PlayListStep::PlayListStep()
     _id = __playliststepid++;
     _startTime = 0;
     _framecount = 0;
+    _currentFrame = 0;
     _name = "";
     _lastSavedChangeCount = 0;
     _changeCount = 1;
@@ -97,6 +99,7 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _suspend = 0;
     _loops = step._loops;
     _framecount = step._framecount;
+    _currentFrame = step._currentFrame;
     _name = step._name;
     _lastSavedChangeCount = step._lastSavedChangeCount;
     _changeCount = step._changeCount;
@@ -482,6 +485,8 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _currentFrame++;
+
     size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
 
@@ -786,20 +791,19 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
 
 void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool force)
 {
-    static log4cpp::Category &logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
+    static log4cpp::Category& logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
     logger_sync.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
 
+    bool handled = false;
     std::string fseq = GetActiveSyncItemFSEQ();
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if ((*it)->GetTitle() == "FSEQ")
-            {
-                PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
-                if (fseq == pli->GetFSEQFileName())
-                {
+        for (const auto& it : _items) {
+            if (it->GetTitle() == "FSEQ") {
+                PlayListItemFSEQ* pli = (PlayListItemFSEQ*)it;
+                if (fseq == pli->GetFSEQFileName()) {
+                    handled = true;
                     // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
                     long posDiff = pli->GetPositionMS() - ms; // Stephen Morgan - Wrong Variable?
 
@@ -807,11 +811,9 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     // stops a jump back then big jump forward as often
                     if (posDiff < 0) acceptableJitter *= 2;
 
-                    if (std::abs(posDiff) > acceptableJitter)
-                    {
+                    if (std::abs(posDiff) > acceptableJitter) {
                         int frame = ms / pli->GetFrameMS();
-                        if (force)
-                        {
+                        if (force) {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
 
                             if (timeDiff != 0) // if this is zero then we are less than one frame out
@@ -844,20 +846,16 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                             }
                         }
-                        else
-                        {
+                        else {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
 
                             // only adjust position if we are more that one frame out of sync
-                            if (timeDiff != 0)
-                            {
+                            if (timeDiff != 0) {
                                 int adjustment = 0;
-                                if (abs(timeDiff) > pli->GetFrameMS() * 2)
-                                {
+                                if (abs(timeDiff) > pli->GetFrameMS() * 2) {
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
                                 }
-                                else if (abs(timeDiff) > pli->GetFrameMS())
-                                {
+                                else if (abs(timeDiff) > pli->GetFrameMS()) {
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                                 }
 
@@ -870,11 +868,10 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     break;
                 }
             }
-            else if ((*it)->GetTitle() == "FSEQ & Video")
-            {
-                PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
-                if (fseq == pli->GetFSEQFileName())
-                {
+            else if (it->GetTitle() == "FSEQ & Video") {
+                PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)it;
+                if (fseq == pli->GetFSEQFileName()) {
+                    handled = true;
                     //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
                     long posDiff = pli->GetPositionMS() - ms; // Stephen Morgan - Wrong Variable?
@@ -883,32 +880,26 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     // stops a jump back then big jump forward as often
                     if (posDiff < 0) acceptableJitter *= 2;
 
-                    if (std::abs(posDiff) > acceptableJitter)
-                    {
+                    if (std::abs(posDiff) > acceptableJitter) {
                         int frame = ms / pli->GetFrameMS();
-                        if (force)
-                        {
+                        if (force) {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
                             logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                             pli->SetPosition(frame, ms);
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                         }
-                        else
-                        {
+                        else {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
                             // only adjust position if we are more that one frame out of sync
 
                             int adjustment = 0;
-                            if (timeDiff == 0)
-                            {
+                            if (timeDiff == 0) {
                             }
-                            else if (abs(timeDiff) > pli->GetFrameMS() * 2)
-                            {
+                            else if (abs(timeDiff) > pli->GetFrameMS() * 2) {
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
                             }
-                            else if (abs(timeDiff) > pli->GetFrameMS())
-                            {
+                            else if (abs(timeDiff) > pli->GetFrameMS()) {
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                             }
 
@@ -919,6 +910,47 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         }
                     }
                     break;
+                }
+            }
+        }
+
+        if (!handled) {
+
+            //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
+
+            long posDiff = GetPosition() - ms;
+
+            // double the acceptable jitter if we are ahead as this is more likely a network effect
+            // stops a jump back then big jump forward as often
+            if (posDiff < 0) acceptableJitter *= 2;
+
+            if (std::abs(posDiff) > acceptableJitter) {
+                int frame = ms / GetFrameMS();
+                if (force) {
+                    long timeDiff = (long)frame * (long)GetFrameMS() - (long)GetPosition();
+                    logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff);
+                    SetPosition(frame, ms);
+                    if (xScheduleFrame::GetScheduleManager() != nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                }
+                else {
+                    long timeDiff = (long)frame * (long)GetFrameMS() - (long)GetPosition();
+                    // only adjust position if we are more that one frame out of sync
+
+                    int adjustment = 0;
+                    if (timeDiff == 0) {
+                    }
+                    else if (abs(timeDiff) > GetFrameMS() * 2) {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)GetFrameMS() * 0.1);
+                    }
+                    else if (abs(timeDiff) > GetFrameMS()) {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)GetFrameMS() * 0.06);
+                    }
+
+                    logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff, adjustment);
+
+                    if (xScheduleFrame::GetScheduleManager() != nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                 }
             }
         }
@@ -1079,17 +1111,52 @@ AudioManager* PlayListStep::GetAudioManager()
     {
         {
             ReentrancyCounter rec(_reentrancyCounter);
-            for (auto it = _items.begin(); it != _items.end(); ++it)
+            for (const auto& it : _items)
             {
-                if (GetAudioManager(*it) != nullptr)
+                if (GetAudioManager(it) != nullptr)
                 {
-                    return GetAudioManager(*it);
+                    return GetAudioManager(it);
                 }
             }
         }
     }
 
     return nullptr;
+}
+
+bool PlayListStep::SetPosition(size_t frame, size_t ms)
+{
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    _currentFrame = frame;
+
+    size_t msPerFrame = 1000;
+    PlayListItem* timesource = GetTimeSource(msPerFrame);
+    if (timesource != nullptr) {
+        // Set position should handled it
+    }
+    else {
+        auto now = wxGetUTCTimeMillis().GetLo();
+        if (_pause == 0) {
+            if (_suspend == 0) {
+                _startTime = now - ms;
+            }
+            else {
+                _startTime = now - ms - (now - _suspend);
+            }
+        }
+        else {
+            _startTime = now - ms - (now - _pause);
+        }
+    }
+
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (const auto& it : _items) {
+            it->SetPosition(frame, ms);
+        }
+    }
+
+    return true;
 }
 
 int PlayListStep::GetStepIdFromName(const std::string& step)

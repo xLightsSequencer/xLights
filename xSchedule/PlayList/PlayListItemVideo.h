@@ -81,7 +81,8 @@ public:
     void SetFadeOutMS(const int fadeOutMS) { if (_fadeOutMS != fadeOutMS) { _fadeOutMS = fadeOutMS; _changeCount++; } }
     bool GetUseMediaPlayer() const { return _useMediaPlayer; }
     void SetUseMediaPlayer(bool useMediaPlayer) { if (_useMediaPlayer != useMediaPlayer) { _useMediaPlayer = useMediaPlayer; _changeCount++; } }
-#pragma endregion Getters and Setters
+    virtual bool SetPosition(size_t frame, size_t ms) override;
+    #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;

@@ -89,6 +89,7 @@ protected:
     virtual std::list<std::string> GetMissingFiles() { return std::list<std::string>(); }
     virtual long GetFSEQChannels() const { return 0; }
     void SetStepLength(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
+    virtual bool SetPosition(size_t frame, size_t ms);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;
