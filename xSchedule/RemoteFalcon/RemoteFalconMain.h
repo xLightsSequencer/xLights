@@ -94,6 +94,7 @@ public:
         void OnButton_CloseClick(wxCommandEvent& event);
         void OnClose(wxCloseEvent& event);
         void OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event);
+        void OnMenuItem_RFWebSelected(wxCommandEvent& event);
         //*)
         void HandleAddMessage(wxCommandEvent& event);
 
@@ -102,6 +103,7 @@ public:
         static const long ID_BUTTON2;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
+        static const long ID_MNU_RFWEBSITE;
         static const long idMenuAbout;
         static const long ID_TIMER1;
         //*)
@@ -112,6 +114,7 @@ public:
         wxMenu* Menu1;
         wxMenu* Menu5;
         wxMenuItem* MenuItem_Options;
+        wxMenuItem* MenuItem_RFWeb;
         wxMenuItem* MenuItem_ViewLog;
         wxTextCtrl* TextCtrl_Log;
         wxTimer Timer_UpdatePlaylist;

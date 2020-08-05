@@ -22,6 +22,8 @@ class RemoteFalconOptions
 
     std::string _token = "";
     int _playlist = -1;
+    int _leadTime = 5;
+    bool _immediatelyInterrupt = true;
 
     public:
 
@@ -30,6 +32,12 @@ class RemoteFalconOptions
 
         int GetPlaylist() const { return _playlist; }
         void SetPlaylist(int playlist) { if (playlist != _playlist) { _playlist = playlist; _changeCount++; } }
+
+        bool GetImmediatelyInterrupt() const { return _immediatelyInterrupt; }
+        void SetImmediatelyInterrupt(bool interrupt) { if (interrupt != _immediatelyInterrupt) { _immediatelyInterrupt = interrupt; _changeCount++; } }
+
+        int GetLeadTime() const { return _leadTime; }
+        void SetLeadTime(int leadTime) { if (leadTime != _leadTime) { _leadTime = leadTime; _changeCount++; } }
 
         bool IsDirty() const;
         void ClearDirty();

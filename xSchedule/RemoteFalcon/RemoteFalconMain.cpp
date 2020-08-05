@@ -75,6 +75,7 @@ const long RemoteFalconFrame::ID_TEXTCTRL1 = wxNewId();
 const long RemoteFalconFrame::ID_BUTTON2 = wxNewId();
 const long RemoteFalconFrame::ID_MNU_OPTIONS = wxNewId();
 const long RemoteFalconFrame::ID_MNU_VIEWLOG = wxNewId();
+const long RemoteFalconFrame::ID_MNU_RFWEBSITE = wxNewId();
 const long RemoteFalconFrame::idMenuAbout = wxNewId();
 const long RemoteFalconFrame::ID_TIMER1 = wxNewId();
 //*)
@@ -183,6 +184,8 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     Menu1 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MNU_VIEWLOG, _("View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
+    MenuItem_RFWeb = new wxMenuItem(Menu1, ID_MNU_RFWEBSITE, _("Remote Falcon Web Page"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_RFWeb);
     MenuBar1->Append(Menu1, _("Tools"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
@@ -197,6 +200,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemoteFalconFrame::OnButton_PauseClick);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_ViewLogSelected);
+    Connect(ID_MNU_RFWEBSITE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_RFWebSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&RemoteFalconFrame::OnClose);
@@ -254,7 +258,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
         wxJSONReader reader;
         wxJSONValue val;
         reader.Parse(res, &val);
-    
+
         if (!val.IsNull()) {
             if (val["message"].AsString() == "Queue Empty") {
                 done = true;
@@ -517,7 +521,7 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
 
     AddMessage("Asking remote falcon for the song we should be playing.");
     std::string song;
-    
+
     if (_mode == "voting") {
         song = _remoteFalcon->FetchHighestVotedPlaylist();
     }
@@ -562,8 +566,6 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
     }
 }
 
-#define GRACE_SECONDS_TO_GRAB_NEXT_SONG 5
-
 void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -589,7 +591,11 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
             int queueLength = wxAtoi(val["queuelength"].AsString());
             auto lefts = wxAtol(val["leftms"].AsString()) / 1000;
 
-            if (queueLength == 0 || (queueLength == 1 && lefts <= GRACE_SECONDS_TO_GRAB_NEXT_SONG)) {
+            if (
+                (queueLength == 0 && _options.GetImmediatelyInterrupt()) || // if immediately interrupt then we always ask for the next song
+                (queueLength == 1 && lefts <= _options.GetLeadTime()) || // if there is a song in the queue then dont ask until it is almost done
+                (queueLength == 0 && !_options.GetImmediatelyInterrupt() && lefts <= _options.GetLeadTime()) // if there is nothing in the queue but we are to gracefully interrupt then wait until the current song is almost done
+                ) {
                 GetAndPlaySong(playing);
             }
         }
@@ -677,4 +683,9 @@ void RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event)
 {
     if (!_running) return;
     SendPlaylists();
+}
+
+void RemoteFalconFrame::OnMenuItem_RFWebSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser(_("https://remotefalcon.com"));
 }

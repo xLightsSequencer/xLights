@@ -12,9 +12,11 @@
 
 //(*Headers(RemoteFalconSettingsDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -34,8 +36,11 @@ class RemoteFalconSettingsDialog: public wxDialog
 		//(*Declarations(RemoteFalconSettingsDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_ImmediatelyInterrupt;
 		wxChoice* Choice_Playlists;
+		wxSpinCtrl* SpinCtrl_LeadTime;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText_Token;
 		wxTextCtrl* TextCtrl_Token;
 		//*)
@@ -47,6 +52,9 @@ class RemoteFalconSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL3;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX1;
+		static const long ID_STATICTEXT2;
+		static const long ID_SPINCTRL1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

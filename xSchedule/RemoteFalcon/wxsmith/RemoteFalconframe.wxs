@@ -58,6 +58,10 @@
 					<label>View Log</label>
 					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_RFWEBSITE" variable="MenuItem_RFWeb" member="yes">
+					<label>Remote Falcon Web Page</label>
+					<handler function="OnMenuItem_RFWebSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>Help</label>

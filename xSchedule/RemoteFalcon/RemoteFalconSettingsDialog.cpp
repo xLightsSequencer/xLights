@@ -24,6 +24,9 @@ const long RemoteFalconSettingsDialog::ID_STATICTEXT5 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHOICE1 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_CHECKBOX1 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_STATICTEXT2 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_SPINCTRL1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_BUTTON1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -50,14 +53,23 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	StaticText_Token = new wxStaticText(this, ID_STATICTEXT5, _("Token"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	StaticText_Token = new wxStaticText(this, ID_STATICTEXT5, _("Token:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer3->Add(StaticText_Token, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Token = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer3->Add(TextCtrl_Token, 1, wxALL|wxEXPAND, 2);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Playlist"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Playlist:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Playlists = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	FlexGridSizer3->Add(Choice_Playlists, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(Choice_Playlists, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ImmediatelyInterrupt = new wxCheckBox(this, ID_CHECKBOX1, _("Immediately interrupt schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ImmediatelyInterrupt->SetValue(true);
+	FlexGridSizer3->Add(CheckBox_ImmediatelyInterrupt, 1, wxALL|wxEXPAND, 2);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Time to grab next song (seconds)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_LeadTime = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 20, 5, _T("ID_SPINCTRL1"));
+	SpinCtrl_LeadTime->SetValue(_T("5"));
+	FlexGridSizer3->Add(SpinCtrl_LeadTime, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -87,6 +99,8 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 
     TextCtrl_Token->SetValue(options->GetToken());
 	Choice_Playlists->SetSelection(sel);
+	CheckBox_ImmediatelyInterrupt->SetValue(options->GetImmediatelyInterrupt());
+	SpinCtrl_LeadTime->SetValue(options->GetLeadTime());
 
     ValidateWindow();
 }
@@ -102,6 +116,8 @@ void RemoteFalconSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _options->SetToken(TextCtrl_Token->GetValue().ToStdString());
 	_options->SetPlaylist(_plids[Choice_Playlists->GetSelection()]);
+	_options->SetLeadTime(SpinCtrl_LeadTime->GetValue());
+	_options->SetImmediatelyInterrupt(CheckBox_ImmediatelyInterrupt->IsChecked());
 
     EndDialog(wxID_OK);
 }

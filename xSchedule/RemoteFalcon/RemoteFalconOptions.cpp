@@ -29,6 +29,8 @@ void RemoteFalconOptions::Load()
     wxConfigBase* config = wxConfigBase::Get();
     _token = config->Read(_("RemoteFalconToken"), wxEmptyString).ToStdString();
     _playlist = config->Read(_("RemoteFalconPlaylist"), -1);
+    _immediatelyInterrupt = config->Read(_("RemoteFalconImmediatelyInterrupt"), true);
+    _leadTime = config->Read(_("RemoteFalconLeadTime"), 5);
     ClearDirty();
 }
 
@@ -37,6 +39,8 @@ void RemoteFalconOptions::Save()
     wxConfigBase* config = wxConfigBase::Get();
     config->Write(_("RemoteFalconToken"), wxString(_token));
     config->Write(_("RemoteFalconPlaylist"), _playlist);
+    config->Write(_("RemoteFalconLeadTime"), _leadTime);
+    config->Write(_("RemoteFalconImmediatelyInterrupt"), _immediatelyInterrupt);
     ClearDirty();
 }
 
