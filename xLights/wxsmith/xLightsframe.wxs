@@ -345,7 +345,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACINTENSITY" variable="AC_Intensity" member="yes">
 							<bitmap stock_id="xlAC_INTENSITY" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Intensity - I</shorthelp>
-							<itemkind>Check</itemkind>
+							<itemkind>4294967296</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_IntensityClick" entry="EVT_TOOL" />
 						</object>
@@ -355,7 +355,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUP" variable="AC_RampUp" member="yes">
 							<bitmap stock_id="xlAC_RAMPUP" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Ramp Up - U</shorthelp>
-							<itemkind>Check</itemkind>
+							<itemkind>4294967296</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampUpClick" entry="EVT_TOOL" />
 						</object>
@@ -365,7 +365,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPDOWN" variable="AC_RampDown" member="yes">
 							<bitmap stock_id="xlAC_RAMPDOWN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Ramp Down - D</shorthelp>
-							<itemkind>Check</itemkind>
+							<itemkind>4294967296</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampDownClick" entry="EVT_TOOL" />
 						</object>
@@ -375,7 +375,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUPDOWN" variable="AC_RampUpDown" member="yes">
 							<bitmap stock_id="xlAC_RAMPUPDOWN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Ramp Up/Down - A</shorthelp>
-							<itemkind>Check</itemkind>
+							<itemkind>4294967296</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampUpDownClick" entry="EVT_TOOL" />
 						</object>
@@ -1005,6 +1005,12 @@
 					<bitmap stock_id="wxART_FILE_OPEN" />
 					<handler function="OnMenuItem_File_Open_SequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM_OPENRECENTSEQUENCE" variable="RecentSequencesMenu" member="yes">
+					<label>Open Recent Sequence</label>
+					<object class="wxMenuItem" name="ID_MENUITEM4" variable="MenuItem7" member="no">
+						<label>RECENT1</label>
+					</object>
+				</object>
 				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem_File_Save" member="yes">
 					<label>Save</label>
 					<accel>CTRL-S</accel>
@@ -1044,8 +1050,14 @@
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
-					<bitmap stock_id="wxART_FOLDER" />
+					<bitmap stock_id="wxART_FOLDER_OPEN" />
 					<handler function="OnMenuOpenFolderSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenu" name="ID_MENUITEM_RECENTFOLDERS" variable="RecentShowFoldersMenu" member="yes">
+					<label>Recent Show Folders</label>
+					<object class="wxMenuItem" name="ID_MENUITEM8" variable="MenuItem11" member="no">
+						<label>RECENTFOLDER1</label>
+					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_FILE_BACKUP" variable="MenuItemBackup" member="yes">
 					<label>Backup</label>

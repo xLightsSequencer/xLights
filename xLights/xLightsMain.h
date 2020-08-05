@@ -110,7 +110,9 @@ class Model;
 class ControllerEthernet;
 
 // max number of most recently used show directories on the File menu
-#define MRU_LENGTH 4
+#define MRUD_LENGTH 4
+// max number of most recently used files on the File menu
+#define MRUF_LENGTH 8
 
 // notebook pages
 #define SETUPTAB 0
@@ -661,6 +663,8 @@ public:
     static const long ID_PANEL1;
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
+    static const long ID_MENUITEM4;
+    static const long ID_MENUITEM_OPENRECENTSEQUENCE;
     static const long IS_SAVE_SEQ;
     static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
@@ -668,6 +672,8 @@ public:
     static const long ID_MNU_KEYBINDINGS;
     static const long ID_EXPORT_VIDEO;
     static const long ID_MENUITEM2;
+    static const long ID_MENUITEM8;
+    static const long ID_MENUITEM_RECENTFOLDERS;
     static const long ID_FILE_BACKUP;
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
@@ -802,6 +808,8 @@ public:
     wxMenu* MenuItem18;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuView;
+    wxMenu* RecentSequencesMenu;
+    wxMenu* RecentShowFoldersMenu;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
     wxMenuItem* MenuItem32;
@@ -927,8 +935,12 @@ public:
     bool previewLoaded = false;
     bool previewPlaying = false;
     wxFileName networkFile;
-    wxArrayString mru;  // most recently used directories
-    wxMenuItem* mru_MenuItem[MRU_LENGTH];
+    
+    wxArrayString mruDirectories;  // most recently used directories
+    wxMenuItem* mrud_MenuItem[MRUD_LENGTH];
+    wxArrayString mruFiles;  // most recently used directories
+    wxMenuItem* mruf_MenuItem[MRUF_LENGTH];
+    
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     long DragRowIdx;
@@ -1130,7 +1142,9 @@ public:
     void OnListItemScrollTimerControllers(wxTimerEvent& event);
 
     void OnMenuMRU(wxCommandEvent& event);
+    void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
+    void UpdateRecentFilesList(bool reload);
     bool PromptForShowDirectory(bool permanent);
     bool SaveNetworksFile();
     void NetworkChange();

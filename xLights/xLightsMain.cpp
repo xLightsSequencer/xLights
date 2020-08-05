@@ -221,6 +221,8 @@ const long xLightsFrame::ID_STATICTEXT7 = wxNewId();
 const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
+const long xLightsFrame::ID_MENUITEM4 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OPENRECENTSEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
 const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
@@ -228,6 +230,8 @@ const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const long xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
+const long xLightsFrame::ID_MENUITEM8 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
@@ -498,6 +502,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     wxGridBagSizer* GridBagSizer1;
     wxMenu* Menu2;
     wxMenu* MenuHelp;
+    wxMenuItem* MenuItem11;
     wxMenuItem* MenuItem13;
     wxMenuItem* MenuItem20;
     wxMenuItem* MenuItem21;
@@ -513,6 +518,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem61;
     wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem7;
     wxMenuItem* MenuItem8;
     wxMenuItem* MenuItem9;
     wxMenuItem* MenuItemBatchRender;
@@ -601,10 +607,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SHIMMER")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Shimmer - S"), wxEmptyString, NULL);
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle - K"), wxEmptyString, NULL);
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Intensity - I"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up - U"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Down - D"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up/Down - A"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Intensity - I"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACINTENSITY, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Up - U"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPUP, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Down - D"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPDOWN, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Up/Down - A"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPUPDOWN, true);
     ACToolbar->AddControl(ChoiceParm1, _("Parm1"));
     ACToolbar->AddControl(ChoiceParm2, _("Parm2"));
     ACToolbar->AddSeparator();
@@ -760,6 +770,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTRL-o"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Open_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Open_Sequence);
+    RecentSequencesMenu = new wxMenu();
+    MenuItem7 = new wxMenuItem(RecentSequencesMenu, ID_MENUITEM4, _("RECENT1"), wxEmptyString, wxITEM_NORMAL);
+    RecentSequencesMenu->Append(MenuItem7);
+    MenuFile->Append(ID_MENUITEM_OPENRECENTSEQUENCE, _("Open Recent Sequence"), RecentSequencesMenu, wxEmptyString);
     MenuItem_File_Save = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Save->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save);
@@ -782,8 +796,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuFile->Append(MenuItem_File_Export_Video);
     MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
+    MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
+    RecentShowFoldersMenu = new wxMenu();
+    MenuItem11 = new wxMenuItem(RecentShowFoldersMenu, ID_MENUITEM8, _("RECENTFOLDER1"), wxEmptyString, wxITEM_NORMAL);
+    RecentShowFoldersMenu->Append(MenuItem11);
+    MenuFile->Append(ID_MENUITEM_RECENTFOLDERS, _("Recent Show Folders"), RecentShowFoldersMenu, wxEmptyString);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HARDDISK")),wxART_OTHER));
     MenuFile->Append(MenuItemBackup);
@@ -1362,21 +1380,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     // get list of most recently used directories
     wxString dir;
-    for (int i=0; i<MRU_LENGTH; i++)
-    {
-        wxString mru_name=wxString::Format("mru%d",i);
+    for (int i = 0; i < MRUD_LENGTH; i++) {
+        wxString mru_name = wxString::Format("mru%d",i);
         dir.clear();
-        if ( config->Read(mru_name, &dir) )
-        {
-            if (!dir.IsEmpty())
-            {
-                int idx=mru.Index(dir);
-                if (idx == wxNOT_FOUND) mru.Add(dir);
+        if (config->Read(mru_name, &dir)) {
+            if (!dir.IsEmpty()) {
+                int idx = mruDirectories.Index(dir);
+                if (idx == wxNOT_FOUND) mruDirectories.Add(dir);
             }
         }
-        mru_MenuItem[i] = nullptr;
+        mrud_MenuItem[i] = nullptr;
     }
-
+    for (int i = 0; i < MRUF_LENGTH; i++) {
+        mruf_MenuItem[i] = nullptr;
+    }
+    MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+    MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_TOOLBAR));
+        
     logger_base.debug("xLightsFrame constructor loading config.");
 
     dir.clear();

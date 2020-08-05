@@ -14,6 +14,7 @@
 #endif 
 
 #include <wx/config.h>
+#include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
@@ -68,14 +69,76 @@ const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
-    wxString newdir = MenuFile->GetLabel(id);
+    wxString newdir = RecentShowFoldersMenu->GetLabel(id);
     SetDir(newdir, true);
 }
+void xLightsFrame::OnMRUSequence(wxCommandEvent& event) {
+    int id = event.GetId();
+    wxString fname = RecentSequencesMenu->GetLabel(id);
+    OpenSequence(fname, nullptr);
+}
+
+void xLightsFrame::UpdateRecentFilesList(bool reload) {
+    wxString p = CurrentDir;
+    p.Replace("\\", "/");
+    int idx = p.Find('/');
+    if (idx > 0) {
+        p = p.substr(idx + 1);
+    }
+    wxConfigBase* config = wxConfigBase::Get();
+    config->SetPath(p);
+    if (reload) {
+        mruFiles.clear();
+        for (int x = 0; x < MRUF_LENGTH; x++) {
+            wxString k = "file" + std::to_string(x);
+            wxString v;
+            if (config->Read(k, &v) && v != "") {
+                mruFiles.push_back(v);
+            }
+        }
+    }
+    while (mruFiles.size() >= MRUF_LENGTH) {
+        mruFiles.pop_back();
+    }
+    
+    for (int x = 0; x < MRUF_LENGTH; x++) {
+        if (mruf_MenuItem[x] != nullptr) {
+            Disconnect(mruf_MenuItem[x]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
+            RecentSequencesMenu->Delete(mruf_MenuItem[x]);
+            mruf_MenuItem[x] = nullptr;
+        }
+    }
+    int i = RecentSequencesMenu->GetMenuItemCount();
+    while (i) {
+        i--;
+        wxMenuItem *item = RecentSequencesMenu->FindItemByPosition(0);
+        RecentSequencesMenu->Delete(item);
+    }
+    int cnt = 0;
+    for (int x = 0; x < MRUF_LENGTH; x++) {
+        wxString k = "file" + std::to_string(x);
+        if (x < mruFiles.size()) {
+            if (!reload) {
+                config->Write(k, mruFiles[x]);
+            }
+            cnt++;
+            int menuID = wxNewId();
+            mruf_MenuItem[x] = new wxMenuItem(RecentSequencesMenu, menuID, mruFiles[x]);
+            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
+            Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
+            RecentSequencesMenu->Append(mruf_MenuItem[x]);
+        } else {
+            config->DeleteEntry(k);
+        }
+    }
+    config->SetPath("/");
+    config->Flush();
+    RecentSequencesMenu->UpdateUI();
+    MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
+}
+
 
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
-
-    static bool HasMenuSeparator = false;
-
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
         return false;
@@ -112,17 +175,21 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     EffectTreeDlg = nullptr;
 
     // update most recently used array
-    int idx = mru.Index(newdir);
-    if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
+    int idx = mruDirectories.Index(newdir);
+    if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
     if (!CurrentDir.IsEmpty()) {
-        idx = mru.Index(CurrentDir);
-        if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
-        mru.Insert(CurrentDir, 0);
+        idx = mruDirectories.Index(CurrentDir);
+        if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
+        if (mruDirectories.empty()) {
+            mruDirectories.push_back(CurrentDir);
+        } else {
+            mruDirectories.Insert(CurrentDir, 0);
+        }
     }
-    size_t cnt = mru.GetCount();
-    if (cnt > MRU_LENGTH) {
-        mru.RemoveAt(MRU_LENGTH, cnt - MRU_LENGTH);
-        cnt = MRU_LENGTH;
+    size_t cnt = mruDirectories.GetCount();
+    if (cnt > MRUD_LENGTH) {
+        mruDirectories.RemoveAt(MRUD_LENGTH, cnt - MRUD_LENGTH);
+        cnt = MRUD_LENGTH;
     }
 
     /*
@@ -132,42 +199,46 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     */
 
     // save config
-        bool DirExists = wxFileName::DirExists(newdir);
-        wxString value;
-        wxConfigBase* config = wxConfigBase::Get();
-        if (permanent) {
-            if (DirExists) config->Write(_("LastDir"), newdir);
-            _permanentShowFolder = newdir;
+    bool DirExists = wxFileName::DirExists(newdir);
+    wxString value;
+    wxConfigBase* config = wxConfigBase::Get();
+    if (permanent) {
+        if (DirExists) config->Write(_("LastDir"), newdir);
+        _permanentShowFolder = newdir;
+    }
+    for (size_t i = 0; i < MRUD_LENGTH; i++) {
+        wxString mru_name = wxString::Format("mru%d", (int)i);
+        if (mrud_MenuItem[i] != nullptr) {
+            Disconnect(mrud_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+            RecentShowFoldersMenu->Delete(mrud_MenuItem[i]);
+            mrud_MenuItem[i] = nullptr;
         }
-        for (size_t i = 0; i < MRU_LENGTH; i++) {
-            wxString mru_name = wxString::Format("mru%d", (int)i);
-            if (mru_MenuItem[i] != nullptr) {
-                Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
-                MenuFile->Delete(mru_MenuItem[i]);
-                mru_MenuItem[i] = nullptr;
-            }
-            if (i < cnt) {
-                value = mru[i];
-            }
-            else {
-                value = wxEmptyString;
-            }
-            config->Write(mru_name, value);
+        if (i < cnt) {
+            value = mruDirectories[i];
+        } else {
+            value = wxEmptyString;
         }
+        config->Write(mru_name, value);
+    }
 
-        // append mru items to menu
-        cnt = mru.GetCount();
-        if (!HasMenuSeparator) {
-            MenuFile->AppendSeparator();
-            HasMenuSeparator = true;
-        }
-        for (size_t i = 0; i < cnt; i++) {
-            int menuID = wxNewId();
-            mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
-            Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
-            MenuFile->Append(mru_MenuItem[i]);
-        }
-        MenuFile->UpdateUI();
+    int i = RecentShowFoldersMenu->GetMenuItemCount();
+    while (i) {
+        i--;
+        wxMenuItem *item = RecentShowFoldersMenu->FindItemByPosition(0);
+        RecentShowFoldersMenu->Delete(item);
+    }
+    
+    // append mru items to menu
+    cnt = mruDirectories.GetCount();
+    for (size_t i = 0; i < cnt; i++) {
+        int menuID = wxNewId();
+        mrud_MenuItem[i] = new wxMenuItem(RecentShowFoldersMenu, menuID, mruDirectories[i]);
+        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+        Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+        RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
+    }
+    RecentShowFoldersMenu->UpdateUI();
+    MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->Enable(cnt != 0);
 
     if (!DirExists) {
         wxString msg = _("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
@@ -183,6 +254,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     _outputManager.DeleteAllControllers();
     CurrentDir = newdir;
     showDirectory = newdir;
+    UpdateRecentFilesList(true);
 
     SetFixFileShowDir(CurrentDir);
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());

@@ -584,6 +584,16 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         EnableSequenceControls(true);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
+        
+        if (mruFiles.Index(filename) != wxNOT_FOUND) {
+            mruFiles.Remove(filename);
+        }
+        if (mruFiles.empty()) {
+            mruFiles.push_back(filename);
+        } else {
+            mruFiles.Insert(filename, 0);
+        }
+        UpdateRecentFilesList(false);
     }
 }
 
