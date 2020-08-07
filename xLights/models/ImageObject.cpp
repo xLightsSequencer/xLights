@@ -190,7 +190,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
-            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show directory.", GetName(), _imageFile).ToStdString());
+            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
         }
     }
     return res;

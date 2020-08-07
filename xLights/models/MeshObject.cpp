@@ -285,21 +285,16 @@ std::list<std::string> MeshObject::CheckModelSettings()
 {
     std::list<std::string> res;
 
-    if (_objFile == "" || !wxFile::Exists(_objFile))
-    {
+    if (_objFile == "" || !wxFile::Exists(_objFile)) {
         res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find obj file '%s'", GetName(), _objFile).ToStdString());
-    }
-    else
-    {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile))
-        {
-            res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' not under show directory.", GetName(), _objFile).ToStdString());
+    } else {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile)) {
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' not under show/media/resource directories.", GetName(), _objFile).ToStdString());
         }
 
         wxFileName fn(_objFile);
         fn.SetExt("mtl");
-        if (!fn.Exists())
-        {
+        if (!fn.Exists()) {
             res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
         }
 

@@ -514,12 +514,10 @@
 										<tree_items>
 											<item>TreeCtrl_Data_Layers</item>
 											<item>&lt;none&gt;</item>
-											<item>0,#000000,0,-1,-1,-1,-1,Layers to Render</item>
 										</tree_items>
 										<items_text>
 											<item2>TreeCtrl_Data_Layers</item2>
 											<item2>&lt;none&gt;</item2>
-											<item2>0,#000000,0,-1,-1,-1,-1,Layers to Render</item2>
 										</items_text>
 										<size>300,100d</size>
 										<style>wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE</style>

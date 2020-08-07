@@ -283,7 +283,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   autonumber(false),
   autoincrement(false),
   next_channel(1)
-{
+{    
 	//(*Initialize(CustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -2520,8 +2520,6 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
         sub->AppendSubMenu(vert, "Vertical");
         mnu.AppendSeparator();
         mnu.AppendSubMenu(sub, "Number Selected");
-
-        wxMenu* horiz = new wxMenu();
     }
     
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);

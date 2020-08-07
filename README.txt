@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Remove warning for files not in show directory if they are in a resources directory
+   -- bug (dkulp)  Some dark mode updates for grid controls (custom model dialog, etc..)
+   -- bug (dkulp)  Temporary workaround for tab font on Big Sur, other areas (property grids, grid control headers, etc..) will likely need fixes/updates in wxWidgets
+   -- bug (dkulp)  Crash/hang on custom model dialog when using mouse to enter nodes (Linux/OSX)
+   -- bug (dkulp)  Maximize buttons missing on ModelHouse preview (Linux/OSX)
    -- enh (scott)  Added Search Box to the Vendor Model Download Dialog
 2020.30 August 2 2020 - Windows
    -- enh (scott)  Added LOR S5 Channel/Stand Importing

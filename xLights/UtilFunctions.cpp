@@ -162,11 +162,24 @@ std::string DecodeMidi(int midi)
     return wxString::Format("%c%d", note, o).ToStdString();
 }
 
+
+static std::list<std::string> SearchDirectories;
+void SetFixFileDirectories(const std::list<std::string>& dirs) {
+    SearchDirectories = dirs;
+}
 bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {
     wxString fixedFile = FixFile(showDir, filename, true);
 
-    return fixedFile.StartsWith(showDir);
+    if (fixedFile.StartsWith(showDir)) {
+        return true;
+    }
+    for (auto &d : SearchDirectories) {
+        if (fixedFile.StartsWith(d)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
@@ -200,10 +213,6 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
     return res;
 }
 
-static std::list<std::string> SearchDirectories;
-void SetFixFileDirectories(const std::list<std::string>& dirs) {
-    SearchDirectories = dirs;
-}
 
 static bool doesFileExist(const wxString &dir, const wxString &origFileWin, const wxString &origFileUnix, wxString &path) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

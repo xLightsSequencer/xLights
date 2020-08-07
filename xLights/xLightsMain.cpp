@@ -1187,6 +1187,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     logger_base.debug("xLightsFrame constructor UI code done.");
 
+#ifdef __WXOSX__
+    //temporary workaround for running on Big Sur which has different
+    //fonts that wxWidgets doesn't know about yet
+    Notebook1->Freeze();
+    wxFont norm(wxOSX_SYSTEM_FONT_NORMAL);
+    wxFont bold(wxOSX_SYSTEM_FONT_BOLD);
+    Notebook1->SetNormalFont(norm);
+    Notebook1->SetMeasuringFont(bold);
+    Notebook1->SetSelectedFont(bold);
+    wxAuiTabArt *ap  = Notebook1->GetArtProvider()->Clone();
+    ap->SetNormalFont(norm);
+    ap->SetMeasuringFont(bold);
+    ap->SetSelectedFont(bold);
+    Notebook1->SetArtProvider(ap);
+    Notebook1->Thaw();
+#endif
+
     //need to direct these menu items to different places depending on what is active
     Connect(wxID_UNDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_REDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);

@@ -86,7 +86,7 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
-    m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
+    m_mgr->AddPane(_modelPreviewPanel, wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true));
 
     logger_base.debug("        House preview.");
@@ -2677,13 +2677,11 @@ void xLightsFrame::DoForceSequencerRefresh()
 void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (perspective == nullptr)
-    {
+    if (perspective == nullptr) {
         logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
         return;
     }
-    if (PerspectivesNode == nullptr)
-    {
+    if (PerspectivesNode == nullptr) {
         logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
         return;
     }
@@ -2696,8 +2694,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         UnsavedRgbEffectsChanges = true;
         mCurrentPerpective = perspective;
     }
-    if (settings.size() == 0)
-    {
+    if (settings.size() == 0) {
         settings = m_mgr->SavePerspective();
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings", settings);
@@ -2705,11 +2702,17 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         logger_base.debug("Saved perspective.");
         LogPerspective(settings);
     }
-
-    m_mgr->LoadPerspective(settings, true);
-    ShowHideAllSequencerWindows(true);
-    logger_base.debug("Loaded perspective %s", (const char *)name.c_str());
+    logger_base.debug("Loading perspective %s", (const char *)name.c_str());
     LogPerspective(settings);
+    m_mgr->LoadPerspective(settings, true);
+    
+    //perspectives may have been saved without the maximize button flag, we'll
+    //make sure it's turned on
+    m_mgr->GetPane("ModelPreview").MaximizeButton(true);
+    m_mgr->GetPane("HousePreview").MaximizeButton(true);
+    m_mgr->GetPane("DisplayElements").MaximizeButton(true);
+
+    ShowHideAllSequencerWindows(true);
 
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
         //title on Layer Timing panel changed
@@ -2729,22 +2732,17 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         perspective->AddAttribute("settings", p);
         logger_base.debug("Saved perspective.");
         LogPerspective(p);
-    }
-    else {
+    } else {
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
     }
 
-    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF)
-    {
+    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
         SetEffectAssistWindowState(false);
-    }
-    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON)
-    {
+    } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-        if (!visible)
-        {
+        if (!visible) s{
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
         }
     }
