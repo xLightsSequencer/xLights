@@ -2742,7 +2742,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         SetEffectAssistWindowState(false);
     } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-        if (!visible) s{
+        if (!visible) {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
         }
     }
