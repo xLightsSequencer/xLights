@@ -3655,7 +3655,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     else if (m_mouse_down) {
         if (m_moving_handle) {
             xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Mouse down moving handle");
-            if (selectedBaseObject != nullptr) {
+            if (selectedBaseObject != nullptr && xlights->AllModels.IsModelValid(selectedBaseObject)) {
                 int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
 
                 int selectedModelCnt = ModelsSelectedCount();
@@ -3823,7 +3823,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             BaseObject *obj = _newModel;
             if (obj == nullptr) {
                 obj = selectedBaseObject;
-                if (obj == nullptr) return;
+                if (obj == nullptr || !xlights->AllModels.IsModelValid(obj)) return;
             }
             int active_handle = obj->GetBaseObjectScreenLocation().GetActiveHandle();
             if (obj != _newModel) {
@@ -3842,7 +3842,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         }
         else {
-            if (selectedBaseObject != nullptr) {
+            if (selectedBaseObject != nullptr && xlights->AllModels.IsModelValid(selectedBaseObject)) {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving but no model selected");
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;

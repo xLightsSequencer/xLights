@@ -83,7 +83,10 @@ inline BaseObject *ModelManager::GetObject(const std::string &name) const {
     return GetModel(name);
 }
 
-bool ModelManager::IsModelValid(Model* m) const {
+bool ModelManager::IsModelValid(const BaseObject* o) const {
+
+    const Model* m = static_cast<const Model*>(o);
+    if (m == nullptr) return true; // we dont validate objects ... just assume they are ok
 
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
