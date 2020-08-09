@@ -18,7 +18,7 @@ class wxWindow;
 class AudioManager;
 
 //*.mid; excluded as ffmpeg wont read them
-#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv|All Files|*.*"
+#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv;*.flac|All Files|*.*"
 
 class PlayListItemAudio : public PlayListItem
 {
