@@ -53,9 +53,9 @@ class RemoteFalcon
             return Curl::HTTPSGet(_URLBase + "/nextPlaylistInQueue", "", "", 10, { {"remotetoken", __token} });
         }
 
-        std::string FetchCurrentPlayMode()
+        std::string FetchRemotePreferences()
         {
-            return Curl::HTTPSGet(_URLBase + "/viewerControlMode", "", "", 10, { {"remotetoken", __token} });
+            return Curl::HTTPSGet(_URLBase + "/remotePreferences", "", "", 10, { {"remotetoken", __token} });
         }
 
         std::string FetchHighestVotedPlaylist()

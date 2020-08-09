@@ -72,10 +72,12 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(RemoteFalconFrame)
 const long RemoteFalconFrame::ID_TEXTCTRL1 = wxNewId();
+const long RemoteFalconFrame::ID_HYPERLINKCTRL1 = wxNewId();
 const long RemoteFalconFrame::ID_BUTTON2 = wxNewId();
 const long RemoteFalconFrame::ID_MNU_OPTIONS = wxNewId();
 const long RemoteFalconFrame::ID_MNU_VIEWLOG = wxNewId();
 const long RemoteFalconFrame::ID_MNU_RFWEBSITE = wxNewId();
+const long RemoteFalconFrame::ID_MNU_VISITORPAGE = wxNewId();
 const long RemoteFalconFrame::idMenuAbout = wxNewId();
 const long RemoteFalconFrame::ID_TIMER1 = wxNewId();
 //*)
@@ -155,6 +157,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     _showDir = showDir;
 
     //(*Initialize(RemoteFalconFrame)
+    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
     wxMenu* Menu2;
@@ -171,8 +174,12 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer4->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer4, 0, wxEXPAND, 2);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+    HyperlinkCtrl1 = new wxHyperlinkCtrl(this, ID_HYPERLINKCTRL1, _("https://remotefalcon.com"), _("https://remotefalcon.com"), wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_CENTRE, _T("ID_HYPERLINKCTRL1"));
+    FlexGridSizer2->Add(HyperlinkCtrl1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_Pause = new wxButton(this, ID_BUTTON2, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    Button_Pause = new wxButton(this, ID_BUTTON2, _("Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer3->Add(Button_Pause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
@@ -186,6 +193,9 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     Menu1->Append(MenuItem_ViewLog);
     MenuItem_RFWeb = new wxMenuItem(Menu1, ID_MNU_RFWEBSITE, _("Remote Falcon Web Page"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_RFWeb);
+    MenuItem_VisitorWebPage = new wxMenuItem(Menu1, ID_MNU_VISITORPAGE, _("Visitor Web Page"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_VisitorWebPage);
+    MenuItem_VisitorWebPage->Enable(false);
     MenuBar1->Append(Menu1, _("Tools"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
@@ -197,10 +207,12 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
+    Connect(ID_HYPERLINKCTRL1,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&RemoteFalconFrame::OnHyperlinkCtrl1Click);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemoteFalconFrame::OnButton_PauseClick);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_RFWEBSITE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_RFWebSelected);
+    Connect(ID_MNU_VISITORPAGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnMenuItem_VisitorWebPageSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&RemoteFalconFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&RemoteFalconFrame::OnClose);
@@ -368,7 +380,7 @@ void RemoteFalconFrame::OnButton_CloseClick(wxCommandEvent& event)
 
 void RemoteFalconFrame::OnButton_PauseClick(wxCommandEvent& event)
 {
-    if (Button_Pause->GetLabel() == "Pause")
+    if (Button_Pause->GetLabel() == "Stop")
     {
         Stop();
         Button_Pause->SetLabel("Start");
@@ -376,7 +388,7 @@ void RemoteFalconFrame::OnButton_PauseClick(wxCommandEvent& event)
     else
     {
         Start();
-        Button_Pause->SetLabel("Pause");
+        Button_Pause->SetLabel("Stop");
     }
 }
 
@@ -488,10 +500,11 @@ void RemoteFalconFrame::SendPlayingSong(const std::string& playing)
 void RemoteFalconFrame::GetMode()
 {
     AddMessage("Fetching current playing mode ...");
-    auto res = _remoteFalcon->FetchCurrentPlayMode();
+    auto res = _remoteFalcon->FetchRemotePreferences();
     AddMessage(res);
 
     _mode = "";
+    _subdomain = "";
 
     wxJSONReader reader;
     wxJSONValue val;
@@ -501,7 +514,10 @@ void RemoteFalconFrame::GetMode()
         if (!val["viewerControlMode"].IsNull()) {
             _mode = val["viewerControlMode"].AsString();
         }
-        else if (!val["message"].IsNull()) {
+        if (!val["remoteSubdomain"].IsNull())             {
+            _subdomain = val["remoteSubdomain"].AsString();
+        }
+        if (!val["message"].IsNull()) {
             AddMessage("ERROR: " + val["message"].AsString());
         }
     }
@@ -512,6 +528,18 @@ void RemoteFalconFrame::GetMode()
     }
     else         {
         AddMessage("MODE: " + _mode);
+    }
+
+    if (_subdomain == "")         {
+        MenuItem_VisitorWebPage->Enable(false);
+        HyperlinkCtrl1->SetLabel("https://remotefalcon.com");
+        HyperlinkCtrl1->SetURL("https://remotefalcon.com");
+    }
+    else         {
+        MenuItem_VisitorWebPage->Enable();
+        HyperlinkCtrl1->SetLabel("https://" + _subdomain + ".remotefalcon.com");
+        HyperlinkCtrl1->SetURL("https://" + _subdomain + ".remotefalcon.com");
+        AddMessage("SUBDOMAIN: " + _subdomain);
     }
 }
 
@@ -688,4 +716,14 @@ void RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event)
 void RemoteFalconFrame::OnMenuItem_RFWebSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser(_("https://remotefalcon.com"));
+}
+
+void RemoteFalconFrame::OnMenuItem_VisitorWebPageSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://" + _subdomain + ".remotefalcon.com");
+}
+
+void RemoteFalconFrame::OnHyperlinkCtrl1Click(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser(HyperlinkCtrl1->GetURL());
 }

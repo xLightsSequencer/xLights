@@ -25,6 +25,7 @@
 //(*Headers(RemoteFalconFrame)
 #include <wx/button.h>
 #include <wx/frame.h>
+#include <wx/hyperlink.h>
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
@@ -52,6 +53,7 @@ class RemoteFalconFrame : public wxFrame
     std::string _oldSteps;
     std::string _playlist;
     std::string _mode;
+    std::string _subdomain;
     std::future<void> _sendPlaylistFuture;
     std::future<void> _sendPlayingFuture;
     std::future<void> _handleStatusFuture;
@@ -95,15 +97,19 @@ public:
         void OnClose(wxCloseEvent& event);
         void OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event);
         void OnMenuItem_RFWebSelected(wxCommandEvent& event);
+        void OnMenuItem_VisitorWebPageSelected(wxCommandEvent& event);
+        void OnHyperlinkCtrl1Click(wxCommandEvent& event);
         //*)
         void HandleAddMessage(wxCommandEvent& event);
 
         //(*Identifiers(RemoteFalconFrame)
         static const long ID_TEXTCTRL1;
+        static const long ID_HYPERLINKCTRL1;
         static const long ID_BUTTON2;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
         static const long ID_MNU_RFWEBSITE;
+        static const long ID_MNU_VISITORPAGE;
         static const long idMenuAbout;
         static const long ID_TIMER1;
         //*)
@@ -111,11 +117,13 @@ public:
         //(*Declarations(RemoteFalconFrame)
         wxButton* Button_Pause;
         wxFlexGridSizer* FlexGridSizer1;
+        wxHyperlinkCtrl* HyperlinkCtrl1;
         wxMenu* Menu1;
         wxMenu* Menu5;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_RFWeb;
         wxMenuItem* MenuItem_ViewLog;
+        wxMenuItem* MenuItem_VisitorWebPage;
         wxTextCtrl* TextCtrl_Log;
         wxTimer Timer_UpdatePlaylist;
         //*)
