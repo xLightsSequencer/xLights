@@ -11,12 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.31 August 9 2020
    -- enh (dkulp)  Remove warning for files not in show directory if they are in a resources directory
+   -- enh (scott)  Added Search Box to the Vendor Model Download Dialog
+   -- enh (scott)  Added FLAC audio support
+   -- enh (keith)  Add option to control if remote falcon deletes any pending queued items on startup
+   -- enh (keith)  Add link to remote falcon visitor page for your show
+   -- enh (keith)  Add option to remote falcon to try to gracefully interrupt playing sequence
+   -- enh (keith)  Add ability for timecode to work with non sequence steps
    -- bug (dkulp)  Some dark mode updates for grid controls (custom model dialog, etc..)
    -- bug (dkulp)  Temporary workaround for tab font on Big Sur, other areas (property grids, grid control headers, etc..) will likely need fixes/updates in wxWidgets
    -- bug (dkulp)  Crash/hang on custom model dialog when using mouse to enter nodes (Linux/OSX)
    -- bug (dkulp)  Maximize buttons missing on ModelHouse preview (Linux/OSX)
-   -- enh (scott)  Added Search Box to the Vendor Model Download Dialog
+   -- bug (keith)  Implement fixes to SMPTE and MIDI timecode
 2020.30 August 2 2020 - Windows
    -- enh (scott)  Added LOR S5 Channel/Stand Importing
    -- enh (scott)  Added "bank" Controller Channel Checking
