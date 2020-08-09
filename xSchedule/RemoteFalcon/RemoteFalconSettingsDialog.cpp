@@ -25,6 +25,7 @@ const long RemoteFalconSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHOICE1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHECKBOX1 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_CHECKBOX2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_SPINCTRL1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_BUTTON1 = wxNewId();
@@ -61,10 +62,14 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Playlists = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer3->Add(Choice_Playlists, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_ImmediatelyInterrupt = new wxCheckBox(this, ID_CHECKBOX1, _("Immediately interrupt schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ImmediatelyInterrupt->SetValue(true);
 	FlexGridSizer3->Add(CheckBox_ImmediatelyInterrupt, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ClearQueue = new wxCheckBox(this, ID_CHECKBOX2, _("Clear Remote Falcon queue on start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_ClearQueue->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_ClearQueue, 1, wxALL|wxEXPAND, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Time to grab next song (seconds)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_LeadTime = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 20, 5, _T("ID_SPINCTRL1"));
@@ -100,6 +105,7 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
     TextCtrl_Token->SetValue(options->GetToken());
 	Choice_Playlists->SetSelection(sel);
 	CheckBox_ImmediatelyInterrupt->SetValue(options->GetImmediatelyInterrupt());
+	CheckBox_ClearQueue->SetValue(options->GetClearQueueOnStart());
 	SpinCtrl_LeadTime->SetValue(options->GetLeadTime());
 
     ValidateWindow();
@@ -118,6 +124,7 @@ void RemoteFalconSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
 	_options->SetPlaylist(_plids[Choice_Playlists->GetSelection()]);
 	_options->SetLeadTime(SpinCtrl_LeadTime->GetValue());
 	_options->SetImmediatelyInterrupt(CheckBox_ImmediatelyInterrupt->IsChecked());
+	_options->SetClearQueueOnStart(CheckBox_ClearQueue->IsChecked());
 
     EndDialog(wxID_OK);
 }

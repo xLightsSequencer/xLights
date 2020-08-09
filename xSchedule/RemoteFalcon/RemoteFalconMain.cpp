@@ -260,31 +260,33 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
     if (_sendPlaylistFuture.valid()) _sendPlaylistFuture.wait();
 
-    AddMessage("Clearing remote falcon list of songs.");
-    int tries = 100;
-    bool done = false;
-    do {
-        auto res = _remoteFalcon->UpdatePlaylistQueue();
-        AddMessage("    " + res);
+    if (_options.GetClearQueueOnStart()) {
+        AddMessage("Clearing remote falcon list of songs.");
+        int tries = 100;
+        bool done = false;
+        do {
+            auto res = _remoteFalcon->UpdatePlaylistQueue();
+            AddMessage("    " + res);
 
-        wxJSONReader reader;
-        wxJSONValue val;
-        reader.Parse(res, &val);
+            wxJSONReader reader;
+            wxJSONValue val;
+            reader.Parse(res, &val);
 
-        if (!val.IsNull()) {
-            if (val["message"].AsString() == "Queue Empty") {
-                done = true;
+            if (!val.IsNull()) {
+                if (val["message"].AsString() == "Queue Empty") {
+                    done = true;
+                }
+                else if (val["message"].AsString() == "Unauthorized") {
+                    tries = 1;
+                    AddMessage("Error: " + val["message"].AsString());
+                }
             }
-            else if (val["message"].AsString() == "Unauthorized")                 {
-                tries = 1;
-                AddMessage("Error: " + val["message"].AsString());
-            }
+            tries--;
+        } while (!done && tries > 0);
+
+        if (tries == 0) {
+            logger_base.warn("RemoteFalcon failed to clear existing list of songs.");
         }
-        tries--;
-    } while (!done && tries > 0);
-
-    if (tries == 0) {
-        logger_base.warn("RemoteFalcon failed to clear existing list of songs.");
     }
 
     ValidateWindow();

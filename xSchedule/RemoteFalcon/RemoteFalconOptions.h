@@ -24,6 +24,7 @@ class RemoteFalconOptions
     int _playlist = -1;
     int _leadTime = 5;
     bool _immediatelyInterrupt = true;
+    bool _clearQueueOnStart = true;
 
     public:
 
@@ -35,6 +36,9 @@ class RemoteFalconOptions
 
         bool GetImmediatelyInterrupt() const { return _immediatelyInterrupt; }
         void SetImmediatelyInterrupt(bool interrupt) { if (interrupt != _immediatelyInterrupt) { _immediatelyInterrupt = interrupt; _changeCount++; } }
+
+        bool GetClearQueueOnStart() const { return _clearQueueOnStart; }
+        void SetClearQueueOnStart(bool clearQueue) { if (clearQueue != _clearQueueOnStart) { _clearQueueOnStart = clearQueue; _changeCount++; } }
 
         int GetLeadTime() const { return _leadTime; }
         void SetLeadTime(int leadTime) { if (leadTime != _leadTime) { _leadTime = leadTime; _changeCount++; } }
