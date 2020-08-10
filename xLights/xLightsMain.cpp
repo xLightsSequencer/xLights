@@ -8553,9 +8553,9 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxString hostname = _T("xlights.org");
 
     //wxString path = _T("/downloads/");
-    //wxString downloadUrl = wxT("https://xlights.org/downloads/");
+    wxString downloadUrl = wxT("https://xlights.org/downloads/");
     wxString path = _T("/releases/");
-    wxString downloadUrl = wxT("http://xlights.org/releases/");
+    //wxString downloadUrl = wxT("http://xlights.org/releases/");
 
     logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
     MenuItem_Update->Enable(true);
