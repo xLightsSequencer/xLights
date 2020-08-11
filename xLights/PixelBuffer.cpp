@@ -1212,7 +1212,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                 if (color != xlBLACK &&
                     (thelayer->use_music_sparkle_count ||
                         thelayer->sparkle_count > 0 ||
-                        thelayer->SparklesValueCurve.IsActive())) {
+                        thelayer->outputSparkleCount > 0)) {
 
                     int sc = thelayer->outputSparkleCount;
                     switch (sparkle % (208 - sc))
