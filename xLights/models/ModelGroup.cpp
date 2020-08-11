@@ -204,6 +204,8 @@ bool ModelGroup::ContainsModel(Model* m, std::list<const Model*>& visited) const
 // Returns true if group only contains model and submodels of that model
 bool ModelGroup::OnlyContainsModel(const std::string& name) const
 {
+    if (modelNames.size() == 0) return false;
+
     for (const auto& it : modelNames)         {
         if (!StartsWith(it, name)) return false;
     }
