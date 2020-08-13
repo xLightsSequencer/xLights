@@ -1926,6 +1926,9 @@ wxString Model::SerialiseGroups() const
 
 void Model::DeserialiseGroups(wxXmlNode* n, int w, int h, const wxString& name)
 {
+    auto grpModels = n->GetAttribute("models");
+    if (grpModels.length() == 0) return;
+    
     modelManager.GetXLightsFrame()->AllModels.DeserialiseModelGroup(n, w, h, name);
 }
 
