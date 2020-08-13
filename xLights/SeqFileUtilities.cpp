@@ -4189,15 +4189,12 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
 
         auto effects = lorEdit.GetChannelEffects(name, row, col, color, offset);
 
-        for (auto& it : effects)
-        {
-            if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS))
-            {
+        for (auto& it : effects) {
+            if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS)) {
                 LOREdit::setNodeColor(strColor, it);
                 std::string palette = it.GetPalette();
                 std::string ef = it.GetxLightsEffect();
-                if (ef != "")
-                {
+                if (ef != "") {
                     std::string settings = it.GetSettings(palette);
                     layer->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
                 }

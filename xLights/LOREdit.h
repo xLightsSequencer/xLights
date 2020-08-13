@@ -53,7 +53,6 @@ struct LOREditEffect
     std::string GetBlend() const;
 };
 
-
 class LOREdit {
     wxXmlDocument& _input_xml;
     int _frequency = 20;
