@@ -7157,6 +7157,56 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
+void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup)
+{
+    //add models first
+    for (auto const& it2 : models)
+    {
+        if (!it2->IsModelGroup())
+        {
+            std::string newName = it2->GetName();
+            if (xlights->AllModels.GetModel(newName) != nullptr) {
+                newName = xlights->AllModels.GenerateModelName(it2->GetName());
+            }
+            it2->GetModelXml()->DeleteAttribute("name");
+            it2->GetModelXml()->DeleteAttribute("LayoutGroup");
+            it2->GetModelXml()->AddAttribute("name", newName);
+            it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);
+            xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
+        }
+    }
+
+    //add model groups second, skip adding duplicates, just add models to existing group
+    for (auto const& it2 : models)
+    {
+        if (it2->IsModelGroup())//if a group, try to add models if exist
+        {
+            wxString const smodels = it2->GetModelXml()->GetAttribute("models");
+            auto models = wxSplit(smodels, ',');
+
+            models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
+                {
+                    return (xlights->AllModels.GetModel(s) == nullptr);
+                }), models.end());
+
+            if (models.empty())
+                continue;
+
+            wxString const name = it2->GetName();
+            Model* model = xlights->AllModels.GetModel(name);
+            if (model == nullptr) {//if group doesnt exist, create it
+                it2->GetModelXml()->DeleteAttribute("LayoutGroup");
+                it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);                
+                model = xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
+            }            
+
+            if (model->GetDisplayAs() == "ModelGroup") {
+                dynamic_cast<ModelGroup*>(model)->AddModel(wxJoin(models, ','));
+            }
+        }
+    }
+}
+
 void LayoutPanel::ImportModelsFromRGBEffects()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -7175,35 +7225,10 @@ void LayoutPanel::ImportModelsFromRGBEffects()
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
-        for (auto const& it2 : dlg.GetModelsInPreview(""))
-        {
-            std::string newName = it2->GetName();
-            if (xlights->AllModels.GetModel(newName) != nullptr) {
-                newName = xlights->AllModels.GenerateModelName(it2->GetName());
-            }
-            wxString lg = ChoiceLayoutGroups->GetStringSelection();
-            if (lg == "All Models") lg = "Default";
-            it2->GetModelXml()->DeleteAttribute("name");
-            it2->GetModelXml()->DeleteAttribute("LayoutGroup");
-            it2->GetModelXml()->AddAttribute("name", newName);
-            it2->GetModelXml()->AddAttribute("LayoutGroup", lg);
+        wxString lg = ChoiceLayoutGroups->GetStringSelection();
+        if (lg == "All Models") lg = "Default";
 
-            if (it2->IsModelGroup())//if a group, try to add models if exist
-            {
-                wxString const smodels = it2->GetModelXml()->GetAttribute("models");
-                auto models = wxSplit(smodels, ',');
-
-                models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
-                    {
-                        return (xlights->AllModels.GetModel(s) == nullptr);
-                    }), models.end());
-
-                it2->GetModelXml()->DeleteAttribute("models");
-                it2->GetModelXml()->AddAttribute("models", wxJoin( models,','));
-            }
-
-            xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
-        }
+        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg);
 
         for (const auto& it : dlg.GetPreviews())
         {
@@ -7228,30 +7253,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->AddPreviewOption(grp);
                 AddPreviewChoice(it.ToStdString());
             }
-            for (const auto& it2 : dlg.GetModelsInPreview(it))
-            {
-                std::string newName = it2->GetName();
-                if (xlights->AllModels.GetModel(newName) != nullptr) {
-                    newName = xlights->AllModels.GenerateModelName(it2->GetName());
-                }
-                it2->GetModelXml()->DeleteAttribute("name");
-                it2->GetModelXml()->AddAttribute("name", newName);
-
-                if (it2->IsModelGroup())//if a group, try to add models if exist
-                {
-                    wxString const smodels = it2->GetModelXml()->GetAttribute("models");
-                    auto models = wxSplit(smodels, ',');
-
-                    models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
-                        {
-                            return (xlights->AllModels.GetModel(s) == nullptr);
-                        }), models.end());
-
-                    it2->GetModelXml()->DeleteAttribute("models");
-                    it2->GetModelXml()->AddAttribute("models", wxJoin(models, ','));
-                }
-                xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
-            }
+            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it);
         }
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");

@@ -334,9 +334,20 @@ wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) con
     return res;
 }
 
-void ModelManager::DeserialiseModelGroup(wxXmlNode* n, int w, int h, const std::string& mname)
+void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname)
 {
+    auto grpModels = n->GetAttribute("models");
+    if (grpModels.length() == 0) return;
+
     auto mgname = n->GetAttribute("name");
+    if (models.find(mgname) != models.end()) {
+        Model* mg = GetModel(mgname);
+        if (mg->GetDisplayAs() == "ModelGroup") {
+            dynamic_cast<ModelGroup*>(mg)->AddModel(mname);
+            return;
+        }
+    }
+
     std::string nn = mgname;
     int i = 1;
     while (models.find(nn) != models.end())         {

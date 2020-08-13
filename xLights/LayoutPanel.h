@@ -53,6 +53,7 @@ class wxImageFileProperty;
 class wxScrolledWindow;
 class LayoutGroup;
 class wxStringInputStream;
+class impTreeItemData;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
@@ -527,6 +528,7 @@ class LayoutPanel: public wxPanel
         void DisplayAddDmxPopup();
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
+        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup);
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator

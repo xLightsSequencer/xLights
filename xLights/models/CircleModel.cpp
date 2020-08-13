@@ -441,7 +441,7 @@ void CircleModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
 					AddSubmodel(n);
 				}
                 else if (n->GetName() == "modelGroup") {
-                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                         xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }

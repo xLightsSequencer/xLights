@@ -360,7 +360,7 @@ void DmxFloodlight::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                     AddState(n);
                 }
                 else if (n->GetName() == "modelGroup") {
-                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                         xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }

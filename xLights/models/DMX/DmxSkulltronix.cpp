@@ -1197,7 +1197,7 @@ void DmxSkulltronix::ImportXlightsModel(std::string filename, xLightsFrame* xlig
                     AddState(n);
                 }
                 else if (n->GetName() == "modelGroup") {
-                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                         xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }

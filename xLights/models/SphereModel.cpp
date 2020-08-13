@@ -298,7 +298,7 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                     AddFace(n);
                 }
                 else if (n->GetName() == "modelGroup") {
-                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                         xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }

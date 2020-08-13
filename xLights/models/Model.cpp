@@ -1924,12 +1924,12 @@ wxString Model::SerialiseGroups() const
     return modelManager.SerialiseModelGroupsForModel(GetName());
 }
 
-void Model::DeserialiseGroups(wxXmlNode* n, int w, int h, const wxString& name)
+void Model::AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name)
 {
     auto grpModels = n->GetAttribute("models");
     if (grpModels.length() == 0) return;
-    
-    modelManager.GetXLightsFrame()->AllModels.DeserialiseModelGroup(n, w, h, name);
+
+    modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, w, h, name);
 }
 
 std::string Model::ComputeStringStartChannel(int i) {

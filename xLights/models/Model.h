@@ -113,7 +113,7 @@ public:
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
     wxString SerialiseGroups() const;
-    void DeserialiseGroups(wxXmlNode* n, int w, int h, const wxString& name);
+    void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
     static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);

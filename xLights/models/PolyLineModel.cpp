@@ -1172,7 +1172,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                     AddSubmodel(n);
                 }
                 else if (n->GetName() == "modelGroup") {
-                    DeserialiseGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                         xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
                 }
             }
