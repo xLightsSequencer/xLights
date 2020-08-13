@@ -1709,7 +1709,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				}
 			}
 
-			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue()))
+			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
 			{
 				TreeCtrl_Navigator->SelectItem(current);
 				TreeCtrl_Navigator->EnsureVisible(current);
