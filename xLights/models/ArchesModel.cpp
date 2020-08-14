@@ -67,7 +67,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p = grid->Append(new wxStringProperty("Arch Layer Sizes", "LayeredArch", _layeredArchSizes));
 
         p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", _hollow));
-        p->SetAttribute("Min", 20);
+        p->SetAttribute("Min", 0);
         p->SetAttribute("Max", 95);
         p->SetEditor("SpinCtrl");
     }
