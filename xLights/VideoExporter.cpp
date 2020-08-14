@@ -530,8 +530,8 @@ VideoExporter::VideoExporter( wxWindow *parent,
     , _parent( parent )
     , _frameCount( frameCount )
 {
-    if ( audioChannelCount != 2 && audioChannelCount != 0)
-        throw std::runtime_error( "VideoExporter - assumes stereo input/output currently" );
+    if ( audioChannelCount != 2 && audioChannelCount != 0 && audioChannelCount != 1)
+        throw std::runtime_error( "VideoExporter - assumes mono or stereo for input and creating stereo for output currently" );
 }
 
 bool VideoExporter::Export()
