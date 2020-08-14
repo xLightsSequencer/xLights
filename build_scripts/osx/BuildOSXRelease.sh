@@ -41,39 +41,21 @@ fi
 
 cd build/Release
 
+if [ ! -f xSchedule.app/Contents/MacOS/xSchedule ]; then
+    rm -rf xSchedule.app
+fi
+if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
+    rm -rf xCapture.app
+fi
+if [ -f xFade.app/Contents/MacOS/xFade ]; then
+    rm -rf xFade.app
+fi
+
+
 if [ "${NOTARIZE_PWD}x" != "x" ]; then
     # if we have a notarize password, we need to package the apps into a dmg
     # and upload to apple for verification and notarizing
-    rm -f xLights-$VER.dmg
-    rm -f xLights.dmg
-    hdiutil create -size 192m -fs HFS+ -volname "xLights-$VER" xLights.dmg
-    hdiutil attach xLights.dmg
-
-    cp -a xLights.app /Volumes/xLights-$VER
-    if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
-        cp -a xSchedule.app /Volumes/xLights-$VER
-    fi
-    if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
-        cp -a xCapture.app /Volumes/xLights-$VER
-    fi
-    if [ -f xFade.app/Contents/MacOS/xFade ]; then
-        cp -a xFade.app /Volumes/xLights-$VER
-    fi
-    ln -s /Applications /Volumes/xLights-$VER/Applications
-
-    DEVS=$(hdiutil attach xLights.dmg | cut -f 1)
-    DEV=$(echo $DEVS | cut -f 1 -d ' ')
-
-    # Unmount the disk image
-    hdiutil detach $DEV
-
-    # Convert the disk image to read-only
-    hdiutil convert xLights.dmg -format UDZO -o xLights-$VER.dmg
-
-#    codesign --force --sign "Developer ID Application: Daniel Kulp" xLights-$VER.dmg
-#    spctl -a -t open --context context:primary-signature -v xLights-$VER.dmg
-
-    xcrun altool --notarize-app -f xLights-$VER.dmg  --primary-bundle-id org.xlights -u ${NOTARIZE_EMAIL} -p @env:NOTARIZE_PWD
+    ./BuildDMG.sh $VER xLights.app xSchedule.app xCapture.app xFade.app
 
     # It's now uploaded, we need to wait until we get the email saying it's been notarized
     # before we continue
@@ -95,53 +77,7 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     rm -f xLights.dmg
 fi
 
-#build the tar.gz
-# rm -f xLights-MAC-$VER.tar.gz
-# tar -czf  xLights-MAC-$VER.tar.gz xLights.app xSchedule.app xCapture.app xFade.app
-
-rm -f xLights-$VER.dmg
-rm -f xLights.dmg
-
-#build the final dmg
-hdiutil create -size 192m -fs HFS+ -volname "xLights-$VER" xLights.dmg
-hdiutil attach xLights.dmg
-
-cp -a xLights.app /Volumes/xLights-$VER
-if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
-    cp -a xSchedule.app /Volumes/xLights-$VER
-fi
-if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
-    cp -a xCapture.app /Volumes/xLights-$VER
-fi
-if [ -f xFade.app/Contents/MacOS/xFade ]; then
-    cp -a xFade.app /Volumes/xLights-$VER
-fi
-ln -s /Applications /Volumes/xLights-$VER/Applications
-
-DEVS=$(hdiutil attach xLights.dmg | cut -f 1)
-DEV=$(echo $DEVS | cut -f 1 -d ' ')
- 
-# Unmount the disk image
-hdiutil detach $DEV
- 
-# Convert the disk image to read-only
-hdiutil convert xLights.dmg -format UDZO -o xLights-$VER.dmg
-
-# Sign the DMG
-codesign --force --sign "Developer ID Application: Daniel Kulp" xLights-$VER.dmg
-spctl -a -t open --context context:primary-signature -v xLights-$VER.dmg
-
-if [ "${NOTARIZE_PWD}x" != "x" ]; then
-    # Now send the final DMG off to apple to notarize.  This DMG has the notarized .app's
-    # so it's different than the previous DMG
-
-    xcrun altool --notarize-app -f xLights-$VER.dmg  --primary-bundle-id org.xlights -u ${NOTARIZE_EMAIL} -p @env:NOTARIZE_PWD
-    echo "Run xcrun altool --notarization-info UUID -u ${NOTARIZE_EMAIL} -p @env:NOTARIZE_PWD"
-    read -p "Press any key to continue... " -n1 -s
-
-    # staple the DMG's notarization to the dmg
-    xcrun stapler staple -v xLights-$VER.dmg
-fi
+./BuildDMG.sh $VER xLights.app xSchedule.app xCapture.app xFade.app
 
 # cleanup the build version file
 cd ../..

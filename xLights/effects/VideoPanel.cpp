@@ -269,7 +269,10 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(i);
         TextCtrl2->SetValue(FORMATTIME(i));
     } else {
-        Slider_Video_Starttime->SetMax(1);
+        // we don't know the duration yet, set max long enough to
+        // allow the start time of the effect to fit in util the
+        // real max can be calculated
+        Slider_Video_Starttime->SetMax(99999);
         TextCtrl2->SetValue(FORMATTIME(0));
     }
     FilePicker_Video_Filename->SetToolTip(fn.GetFullName());

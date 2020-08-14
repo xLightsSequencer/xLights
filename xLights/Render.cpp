@@ -671,7 +671,10 @@ public:
 
         rowToRender->IncWaitCount();
         std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
-        rowToRender->DecWaitCount();
+        if (rowToRender->DecWaitCount() && !HasNext()) {
+            // other threads for this model waiting, we'll bail fast and let them handle this
+            return;
+        }
         SetGenericStatus("Got lock on rendering thread for %s", 0);
 
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);

@@ -265,7 +265,7 @@ class ModelElement : public Element
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
         int GetWaitCount() const { return waitCount; }
         void IncWaitCount() { waitCount++; }
-        void DecWaitCount() { waitCount--; }
+        int DecWaitCount() { return --waitCount; }
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;

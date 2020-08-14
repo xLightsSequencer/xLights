@@ -1024,10 +1024,16 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 			if (_packet.stream_index == _streamIndex) {
 
                 // Decode video frame
+                int decodeCount = 0;
                 while (!_abort && avcodec_send_packet(_codecContext, &_packet)) {
                     if (readFrame(timestampMS)) {
                         firstframe = false;
                         currenttime = _curPos;
+                    } else {
+                        decodeCount++;
+                        if (decodeCount == 100) {
+                            return nullptr;
+                        }
                     }
                 }
 
