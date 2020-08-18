@@ -1566,7 +1566,8 @@ bool ScheduleManager::IsQuery(const wxString& command)
         c == "getplayingstatus" ||
         c == "getrangesset" ||
         c == "getbuttons" ||
-        c == "getmatrix")
+        c == "getmatrix" ||
+        c == "listfilesinshowfolder")
     {
         return true;
     }
@@ -3345,6 +3346,128 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Add playlist")
+                {
+                    wxString parameter = parameters;
+
+                    PlayList* playlist = new PlayList();
+                    playlist->SetName(parameter);
+                    AddPlayList(playlist);
+
+                    wxCommandEvent event(EVT_UPDATETREE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
+                else if (command == "Delete playlist")
+                {
+                    wxString parameter = parameters;
+
+                    std::string pl = DecodePlayList(parameter);
+                    PlayList* p = GetPlayList(pl);
+
+                    if (p != nullptr)
+                    {
+                        RemovePlayList(p);
+                        delete p;
+                    }
+                    wxCommandEvent event(EVT_UPDATETREE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
+                else if (command == "Add playlist step fseq")
+                {
+                    wxString parameter = parameters;
+                    wxArrayString split = wxSplit(parameter, ',');
+
+                    std::string pl = DecodePlayList(split[0].ToStdString());
+                    std::string fseq = split[1].ToStdString();
+
+                    PlayList* p = GetPlayList(pl);
+
+                    if (p != nullptr)
+                    {
+                        wxFileName fn(GetShowDir() + wxFileName::GetPathSeparator() + fseq);
+                        if (fn.Exists())
+                        {
+                            PlayListStep* pls = new PlayListStep();
+                            PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
+                            pli->SetFSEQFileName(fn.GetFullPath());
+                            pls->AddItem(pli);
+                            pls->SetName(fn.GetName());
+                            int pos = p->GetStepCount();
+                            p->AddStep(pls, pos);
+                            wxCommandEvent event(EVT_UPDATETREE);
+                            wxPostEvent(wxGetApp().GetTopWindow(), event);
+                            scheduleChanged = true;
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Unable to find fseq in show folder " + fseq;
+                        }
+                    }
+                }
+                else if (command == "Delete playlist step")
+                {
+                    wxString parameter = parameters;
+                    wxArrayString split = wxSplit(parameter, ',');
+
+                    std::string pl = DecodePlayList(split[0].ToStdString());
+                    std::string step = DecodeStep(split[1].ToStdString());
+
+                    PlayList* p = GetPlayList(pl);
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+
+                        if (pls != nullptr)
+                        {
+                            p->RemoveStep(pls);
+                        }
+                    }
+                    scheduleChanged = true;
+                }
+                else if (command == "Move up playlist step")
+                {
+                    wxString parameter = parameters;
+                    wxArrayString split = wxSplit(parameter, ',');
+
+                    std::string pl = DecodePlayList(split[0].ToStdString());
+                    std::string step = DecodeStep(split[1].ToStdString());
+
+                    PlayList* p = GetPlayList(pl);
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+                        if (pls != nullptr)
+                        {
+                            p->MoveStep(pls, -1);
+                        }
+                    }
+                    scheduleChanged = true;
+                }
+                else if (command == "Move down playlist step")
+                {
+                    wxString parameter = parameters;
+                    wxArrayString split = wxSplit(parameter, ',');
+
+                    std::string pl = DecodePlayList(split[0].ToStdString());
+                    std::string step = DecodeStep(split[1].ToStdString());
+
+                    PlayList* p = GetPlayList(pl);
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+                        if (pls != nullptr)
+                        {
+                            p->MoveStep(pls, 1);
+                        }
+                    }
+                    scheduleChanged = true;
+                }
                 else
                 {
                     result = false;
@@ -3700,6 +3823,33 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 data += "],\"reference\":\""+reference+"\"}";
             }
         }
+    }
+    else if (c == "listfilesinshowfolder")
+    {
+        wxString ext = parameters;
+        if (ext.IsEmpty())
+        {
+            ext = "*.*";
+        }
+
+        data = "{\"files\":[";
+        bool first = true;
+
+        wxArrayString files;
+        wxDir::GetAllFiles(GetShowDir(), &files, ext, wxDIR_FILES);
+
+        for (auto const& f : files)
+        {
+            if (!first)
+            {
+                data += ",";
+            }
+            first = false;
+            wxFileName fn(f);
+            data += "\"" + fn.GetFullName() + "\"";
+        }
+        data += "],\"reference\":\"" + reference + "\"}";
+
     }
     else if (c == "getnextscheduledplaylist")
     {

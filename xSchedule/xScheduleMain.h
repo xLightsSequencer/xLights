@@ -55,6 +55,7 @@ wxDECLARE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATETREE, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -225,6 +226,7 @@ public:
         void DoStop(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
+        void ReloadUI(wxCommandEvent& event);
         void CorrectTimer(int rate);
 
         //(*Identifiers(xScheduleFrame)

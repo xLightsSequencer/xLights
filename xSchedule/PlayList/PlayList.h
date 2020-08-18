@@ -131,6 +131,7 @@ public:
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);
     void MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforethis);
+    void MoveStep(PlayListStep* movethis, int dist);
     void AddSchedule(Schedule* schedule);
     bool IsRunning() const;
     void Start(bool loop = false, bool random = false, int loops = -1, const std::string& step = "");

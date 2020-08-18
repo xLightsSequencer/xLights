@@ -340,6 +340,7 @@ wxDEFINE_EVENT(EVT_STOP, wxCommandEvent);
 wxDEFINE_EVENT(EVT_QUIT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATETREE, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
@@ -356,6 +357,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_QUIT, xScheduleFrame::OnQuit)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
+    EVT_COMMAND(wxID_ANY, EVT_UPDATETREE, xScheduleFrame::ReloadUI)
     END_EVENT_TABLE()
 
 // Number of MS after a slow event to show the slow icon for
@@ -705,6 +707,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_QUIT, (wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
+    Connect(wxID_ANY, EVT_UPDATETREE, (wxObjectEventFunction)&xScheduleFrame::ReloadUI);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxString userEmail;
@@ -3654,4 +3657,10 @@ void xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& eve
     config->DeleteEntry(_("xsWindowPosY"));
     config->DeleteEntry(_("xsWindowPosW"));
     config->DeleteEntry(_("xsWindowPosH"));
+}
+
+void xScheduleFrame::ReloadUI(wxCommandEvent& event)
+{
+    UpdateTree();
+    UpdateUI();
 }
