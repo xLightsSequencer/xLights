@@ -154,6 +154,7 @@
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --cflags log4cpp`" />
 					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -191,6 +192,7 @@
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --cflags log4cpp`" />
 					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
