@@ -126,33 +126,43 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 
     std::vector<wxString> models;
 
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
         Element* el = mSequenceElements->GetElement(i);
         if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
             continue;
 
-        for (int i = 0; i < el->GetEffectLayerCount(); ++i)
-        {
+        for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
             EffectLayer* elay = el->GetEffectLayer(i);
-            if (elay->HasEffectsByType(effectType))
-            {
+            if (elay->HasEffectsByType(effectType)) {
                 models.push_back(el->GetFullName());
                 break;
             }
         }
-        if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND)
-        {
-            StrandElement* strEl = dynamic_cast<StrandElement*>(el);
-            if (strEl != nullptr)
-            {
-                for (int n = 0; n < strEl->GetNodeLayerCount(); n++)
-                {
-                    NodeLayer* nlayer = strEl->GetNodeLayer(n);
-                    if (nlayer->HasEffectsByType(effectType))
-                    {
-                        models.push_back(strEl->GetFullName());
-                        break;
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            if (mel != nullptr) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
+                    SubModelElement* sme = mel->GetSubModel(x);
+                    if (sme != nullptr) {
+                        for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
+                            EffectLayer* elay = sme->GetEffectLayer(j);
+                            if (elay->HasEffectsByType(effectType)) {
+                                models.push_back(sme->GetFullName());
+                                break;
+                            }
+                        }
+                        if (sme->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                            StrandElement* strEl = dynamic_cast<StrandElement*>(sme);
+                            if (strEl != nullptr) {
+                                for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+                                    NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                                    if (nlayer->HasEffectsByType(effectType)) {
+                                        models.push_back(strEl->GetNodeLayer(n)->GetName());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -161,8 +171,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
     std::sort(models.begin(), models.end());
     ListBox_Select_Models->Set(models);
 
-    if (ListBox_Select_Models->GetCount() == 1)
-    {
+    if (ListBox_Select_Models->GetCount() == 1) {
         ListBox_Select_Models->SetSelection(0);
         populateEffectsList();
     }
@@ -178,12 +187,10 @@ void SelectPanel::populateEffectsList()
 
     auto const& type = ComboBox_Select_Effect->GetValue().ToStdString();
 
-    if (modelsSelected.size() != 0)
-    {
+    if (modelsSelected.size() != 0) {
         auto const startendtime = GetStartAndEndTime();
         std::vector<std::string> models;
-        for (auto value : modelsSelected)
-        {
+        for (auto value : modelsSelected) {
             auto const& modelname = ListBox_Select_Models->GetString(value);
             Element* el = mSequenceElements->GetElement(modelname);
             if (el == nullptr || el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
@@ -193,31 +200,44 @@ void SelectPanel::populateEffectsList()
             if (modelsSelected.size() > 1)
                 tmpname = modelname;
 
-            for (int i = 0; i < el->GetEffectLayerCount(); ++i)
-            {
+            for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
                 EffectLayer* elay = el->GetEffectLayer(i);
                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
                 for (Effect* eff : effs)
                     ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname),(void * )eff);
             }
-            if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND)
-            {
-                StrandElement* strEl = dynamic_cast<StrandElement*>(el);
-                if (strEl != nullptr)
-                {
-                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++)
-                    {
-                        NodeLayer* nlayer = strEl->GetNodeLayer(n);
-                        std::vector<Effect*> effs = nlayer->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
-                        for (Effect* eff : effs)
-                            ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, modelname), (void*)eff);
+
+            if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(el);
+                if (mel != nullptr) {
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr) {
+                            for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
+                                EffectLayer* elay = sme->GetEffectLayer(j);
+                                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                                for (Effect* eff : effs)
+                                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                            }
+                            if (sme->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                                StrandElement* strEl = dynamic_cast<StrandElement*>(sme);
+                                if (strEl != nullptr) {
+                                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+                                        NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                                        std::vector<Effect*> effs = nlayer->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                                        for (Effect* eff : effs)
+                                            ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        if (ListBox_Select_Effects->GetCount() == 1)
-        {
+        if (ListBox_Select_Effects->GetCount() == 1) {
             ListBox_Select_Effects->SetSelection(0);
             SelectEffects();
         }

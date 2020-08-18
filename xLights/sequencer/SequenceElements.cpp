@@ -1795,27 +1795,39 @@ std::list<std::string> SequenceElements::GetAllUsedEffectTypes() const
 {
     std::list<std::string> res;
 
-    for (size_t i = 0; i < GetElementCount(); i++)
-    {
+    for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
-        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
-        {
-            for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
-            {
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
                 EffectLayer* el = e->GetEffectLayer(j);
-                for (int k = 0; k < el->GetEffectCount(); k++)
-                {
+                for (int k = 0; k < el->GetEffectCount(); k++) {
                     Effect* eff = el->GetEffect(k);
-
-                    if (std::find(res.begin(), res.end(), eff->GetEffectName()) == res.end())
-                    {
+                    if (std::find(res.begin(), res.end(), eff->GetEffectName()) == res.end()) {
                         res.push_back(eff->GetEffectName());
+                    }
+                }
+            }
+            if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(e);
+                if (mel != nullptr) {
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr) {
+                            for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
+                                EffectLayer* el = sme->GetEffectLayer(j);
+                                for (int k = 0; k < el->GetEffectCount(); k++) {
+                                    Effect* eff = el->GetEffect(k);
+                                    if (std::find(res.begin(), res.end(), eff->GetEffectName()) == res.end()) {
+                                        res.push_back(eff->GetEffectName());
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
     return res;
 }
 
