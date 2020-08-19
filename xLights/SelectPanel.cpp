@@ -151,18 +151,6 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                                 break;
                             }
                         }
-                        if (sme->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                            StrandElement* strEl = dynamic_cast<StrandElement*>(sme);
-                            if (strEl != nullptr) {
-                                for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
-                                    NodeLayer* nlayer = strEl->GetNodeLayer(n);
-                                    if (nlayer->HasEffectsByType(effectType)) {
-                                        models.push_back(strEl->GetNodeLayer(n)->GetName());
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -218,18 +206,6 @@ void SelectPanel::populateEffectsList()
                                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
                                 for (Effect* eff : effs)
                                     ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
-                            }
-                            if (sme->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                                StrandElement* strEl = dynamic_cast<StrandElement*>(sme);
-                                if (strEl != nullptr) {
-                                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
-                                        NodeLayer* nlayer = strEl->GetNodeLayer(n);
-                                        std::vector<Effect*> effs = nlayer->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
-                                        for (Effect* eff : effs)
-                                            ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
-
-                                    }
-                                }
                             }
                         }
                     }
