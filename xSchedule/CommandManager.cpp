@@ -279,7 +279,6 @@ CommandManager::CommandManager()
     PARMTYPE st[] = { PARMTYPE::STEP };
     PARMTYPE plst[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP };
     PARMTYPE pli[] = { PARMTYPE::PLAYLIST, PARMTYPE::INTEGER };
-    PARMTYPE pls[] = { PARMTYPE::PLAYLIST, PARMTYPE::STRING };
     PARMTYPE plsti[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::INTEGER };
     PARMTYPE i[] = { PARMTYPE::INTEGER };
     PARMTYPE s[] = { PARMTYPE::STRING };
@@ -399,11 +398,4 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Start plugin", 1, s, false, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop plugin", 1, s, false, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Send command to plugin", 3, sss, false, false, false, false, false, false, true, true, false));
-
-    _commands.push_back(new Command("Add playlist", 1, s, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Delete playlist", 1, pl, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Add playlist step fseq", 2, pls, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Delete playlist step", 2, plst, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Move up playlist step", 2, plst, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Move down playlist step", 2, plst, false, false, false, false, false, false, true, true, false));
 }

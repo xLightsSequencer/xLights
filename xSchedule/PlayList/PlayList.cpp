@@ -561,22 +561,6 @@ void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforeth
     _changeCount++;
 }
 
-void PlayList::MoveStep(PlayListStep* movethis, int dist)
-{
-    {
-        ReentrancyCounter rec(_reentrancyCounter);
-        if (_steps.size() == 1 ) return;
-
-        int mPos = GetPos(movethis) + dist;
-        if (mPos < 0 || mPos >= _steps.size())
-            return;
-        RemoveStep(movethis);
-        AddStep(movethis, mPos);
-    }
-
-    _changeCount++;
-}
-
 int PlayList::GetPos(PlayListStep* step)
 {
     int i = 0;

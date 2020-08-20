@@ -11,7 +11,6 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (scott)  Added xSchedule Web PlayList Editor
    -- bug (scott)  Fixed Select Effects Window not finding effects on submodels/stands
 2020.31 August 9 2020
    -- enh (dkulp)  Remove warning for files not in show directory if they are in a resources directory
