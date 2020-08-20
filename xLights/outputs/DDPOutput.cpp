@@ -333,7 +333,6 @@ std::list<ControllerEthernet*> DDPOutput::Discover(OutputManager* outputManager)
                             logger_base.debug((const char*)&response[10]);
 
                             wxIPV4address aa;
-                            auto peer = datagram->GetPeer(aa);
                             auto ip = aa.IPAddress();
 
                             ControllerEthernet* controller = new ControllerEthernet(outputManager, false);

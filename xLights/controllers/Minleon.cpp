@@ -114,7 +114,6 @@ void Minleon::InitialiseStrings(std::vector<MinleonString*>& stringsData, int ma
 
     std::vector<MinleonString*> newStringsData;
 
-    int index = 0;
     for (int i = 0; i < max; i++) {
         bool added = false;
         for (const auto& sd : stringsData) {
@@ -140,8 +139,8 @@ std::string Minleon::BuildStringPort(MinleonString* string) const {
     return wxString::Format("&L%03d=%d&I%03d=%d%sI%03d=%d",
         start, string->_tees,
         (string->_reverse ? wxString::Format("H%03d=0", start) : _("")),
-        ++start, string->_nodes,
-        ++start, string->_startChannel
+        start + 1, string->_nodes,
+        start + 2, string->_startChannel
     ).ToStdString();
 }
 
