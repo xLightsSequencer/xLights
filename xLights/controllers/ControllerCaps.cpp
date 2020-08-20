@@ -213,7 +213,6 @@ std::list<std::string> ControllerCaps::GetVariants(const std::string& type, cons
 
     LoadControllers();
     std::list<std::string> versions;
-    versions.push_back("");
 
     auto v = __controllers.find(vendor);
     if (v != __controllers.end()) {
@@ -230,6 +229,9 @@ std::list<std::string> ControllerCaps::GetVariants(const std::string& type, cons
                 }
             }
         }
+    }
+    if (versions.empty()) {
+        versions.push_back("");
     }
     return versions;
 }

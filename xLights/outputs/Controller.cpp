@@ -519,15 +519,20 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                 propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
                 if (_model != "") {
-                    int v = 0;
+                    int v = -1;
                     wxPGChoices versions;
-                    for (const auto& it : ControllerCaps::GetVariants(GetType(), _vendor, _model)) {
+                    std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
+                    for (const auto& it : variants) {
                         versions.Add(it);
                         if (it == _variant) {
                             v = versions.GetCount() - 1;
                         }
                     }
                     if (versions.GetCount() > 1) {
+                        if (v == -1) {
+                            v = 0;
+                            _variant = variants.front();
+                        }
                         propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
                     }
                 }
@@ -625,7 +630,9 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
-        SetVariant("");
+        
+        std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, *it);
+        SetVariant(variants.front());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
         return true;
