@@ -1260,6 +1260,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
                     if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
+                    if (m->GetControllerDMXChannel() == 0) m->SetControllerDMXChannel(1);
                 }
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
@@ -1285,11 +1286,19 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     if (fmud != nullptr && fmud->IsFirstModelString()) {
                         Model* lm = fmud->GetModel();
                         if (lm != nullptr) {
-                            m->SetModelChain(">" + lm->GetName());
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL)                                 {
+                                m->SetModelChain("");
+                                int nextch = lm->GetControllerDMXChannel() + lm->GetChanCount();
+                                if (m->GetControllerDMXChannel() < nextch) m->SetControllerDMXChannel(nextch);
+                            }
+                            else                                 {
+                                m->SetModelChain(">" + lm->GetName());
+                            }
                         }
                     }
                     else {
                         m->SetModelChain("");
+                        if (m->GetControllerDMXChannel() == 0) m->SetControllerDMXChannel(1);
                     }
                 }
             }
@@ -1303,8 +1312,31 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     if (hit == BaseCMObject::HITLOCATION::LEFT) {
                         logger_base.debug("    On the left hand side.");
                         logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
-                        m->SetModelChain(droppedOn->GetModelChain());
-                        droppedOn->SetModelChain(">" + m->GetName());
+                        if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            m->SetModelChain("");
+                            droppedOn->SetModelChain("");
+                            Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
+                            int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
+                            if (nextch < 1) nextch = 1;
+                            if (last != nullptr) {
+                                if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                }
+                            }
+                            if (m->GetControllerDMXChannel() < nextch) m->SetControllerDMXChannel(nextch);
+                            Model* next = droppedOn;
+                            last = m;
+                            while (next != nullptr) {
+                                nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                last = next;
+                                next = port->GetUDPort()->GetModelAfter(last);
+                            }
+                        }
+                        else {
+                            m->SetModelChain(droppedOn->GetModelChain());
+                            droppedOn->SetModelChain(">" + m->GetName());
+                        }
                     }
                     else {
                         logger_base.debug("    On the right hand side.");
@@ -1317,6 +1349,20 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                         }
                         m->SetModelChain(">" + droppedOn->GetName());
+
+                        if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            m->SetModelChain("");
+                            if (next != nullptr) next->SetModelChain("");
+                            int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                            if (m->GetControllerDMXChannel() < nextch) m->SetControllerDMXChannel(nextch);
+                            Model* last = m;
+                            while (next != nullptr) {
+                                nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                last = next;
+                                next = port->GetUDPort()->GetModelAfter(last);
+                            }
+                        }
                     }
                 }
             }

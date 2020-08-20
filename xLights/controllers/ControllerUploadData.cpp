@@ -239,6 +239,16 @@ Model* UDControllerPort::GetModelAfter(Model* m) const
     return nullptr;
 }
 
+Model* UDControllerPort::GetModelBefore(Model* m) const
+{
+    Model* last = nullptr;
+    for (const auto& it : _models) {
+        if (it->GetModel() == m) return last;
+        last = it->GetModel();
+    }
+    return last;
+}
+
 UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, int str) const
 {
     for (const auto& it : _models)
