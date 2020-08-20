@@ -1164,18 +1164,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
-                if (n->GetName() == "stateInfo") {
-                    AddState(n);
-                }
-                else if (n->GetName() == "subModel") {
-                    AddSubmodel(n);
-                }
-                else if (n->GetName() == "modelGroup") {
-                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
-                }
-            }
+            ImportModelChildren(root, xlights, newname);
 
             int num_points = wxAtoi(pts);
             ModelXml->DeleteAttribute("NumPoints");

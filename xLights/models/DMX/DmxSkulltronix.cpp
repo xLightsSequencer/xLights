@@ -1186,21 +1186,7 @@ void DmxSkulltronix::ImportXlightsModel(std::string filename, xLightsFrame* xlig
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-            {
-                if (n->GetName() == "subModel")
-                {
-                    AddSubmodel(n);
-                }
-                else if (n->GetName() == "stateInfo")
-                {
-                    AddState(n);
-                }
-                else if (n->GetName() == "modelGroup") {
-                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
-                }
-            }
+            ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");

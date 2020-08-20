@@ -326,31 +326,42 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
 {
     wxString res;
-    for (const auto& it : models)         {
-        if (it.second->GetDisplayAs() == "ModelGroup" && dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name))             {
+    for (const auto& it : models) {
+        if (it.second->GetDisplayAs() == "ModelGroup" && dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
             res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
         }
     }
     return res;
 }
 
-void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname)
+void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask)
 {
     auto grpModels = n->GetAttribute("models");
     if (grpModels.length() == 0) return;
 
     auto mgname = n->GetAttribute("name");
     if (models.find(mgname) != models.end()) {
-        Model* mg = GetModel(mgname);
-        if (mg->GetDisplayAs() == "ModelGroup") {
-            dynamic_cast<ModelGroup*>(mg)->AddModel(mname);
-            return;
+
+        if (ask) {
+            wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Aready Exists"), wxYES_NO);
+            int returnCode = confirm.ShowModal();
+            if (returnCode == wxID_YES)
+                merge = true;
+            ask = false;
+        }
+        if (merge) {//merge
+            Model* mg = GetModel(mgname);
+            if (mg->GetDisplayAs() == "ModelGroup") {
+                dynamic_cast<ModelGroup*>(mg)->AddModel(mname);
+                return;
+            }
         }
     }
 
+    //create new groups
     std::string nn = mgname;
     int i = 1;
-    while (models.find(nn) != models.end())         {
+    while (models.find(nn) != models.end()) {
         nn = wxString::Format("%s_%d", mgname, i++).ToStdString();
     }
     ModelGroup* mg = new ModelGroup(n, *this, w, h, nn, mname);

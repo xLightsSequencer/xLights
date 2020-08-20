@@ -1996,12 +1996,12 @@ wxString Model::SerialiseGroups() const
     return modelManager.SerialiseModelGroupsForModel(GetName());
 }
 
-void Model::AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name)
+void Model::AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask)
 {
     auto grpModels = n->GetAttribute("models");
     if (grpModels.length() == 0) return;
 
-    modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, w, h, name);
+    modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, w, h, name, merge, ask);
 }
 
 std::string Model::ComputeStringStartChannel(int i) {
@@ -4844,6 +4844,28 @@ void Model::ImportXlightsModel(std::string filename, xLightsFrame* xlights, floa
 
 void Model::ExportXlightsModel()
 {
+}
+
+void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname)
+{
+    bool merge = false;
+    bool showPopup = true;
+    for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "stateInfo") {
+            AddState(n);
+        }
+        else if (n->GetName() == "subModel") {
+            AddSubmodel(n);
+        }
+        else if (n->GetName() == "faceInfo") {
+            AddFace(n);
+        }
+        else if (n->GetName() == "modelGroup") {
+            AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
+                xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
+        }
+    }
 }
 
 Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high)

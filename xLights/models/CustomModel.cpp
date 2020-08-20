@@ -1161,25 +1161,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-            {
-                if (n->GetName() == "faceInfo")
-                {
-                    AddFace(n);
-                }
-                else if (n->GetName() == "stateInfo")
-                {
-                    AddState(n);
-                }
-                else if (n->GetName() == "subModel")
-                {
-                    AddSubmodel(n);
-                }
-                else if (n->GetName() == "modelGroup") {
-                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
-                }
-            }
+            ImportModelChildren(root, xlights, newname);
 
             GetModelScreenLocation().SetMWidth(max_x - min_x);
             GetModelScreenLocation().SetMHeight(max_y - min_y);

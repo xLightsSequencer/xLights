@@ -1094,21 +1094,7 @@ void DmxSkull::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             if (hel == "1") eye_lr_servo->Serialise(root, ModelXml, show_dir);
             if (heu == "1") eye_ud_servo->Serialise(root, ModelXml, show_dir);
 
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-            {
-                if (n->GetName() == "subModel")
-                {
-                    AddSubmodel(n);
-                }
-                else if (n->GetName() == "stateInfo")
-                {
-                    AddState(n);
-                }
-                else if (n->GetName() == "modelGroup") {
-                    AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                        xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname);
-                }
-            }
+            ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::ImportXlightsModel");
