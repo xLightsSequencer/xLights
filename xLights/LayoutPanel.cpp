@@ -3774,12 +3774,12 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             float intersection_distance = 1000000000.0f;
             if( editing_models ) {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Editing models");
-                for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                for (const auto& it : modelPreview->GetModels())
                 {
-                    if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                    if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                         if (intersection_distance < distance) {
                             distance = intersection_distance;
-                            which_object = modelPreview->GetModels()[i];
+                            which_object = it;
                         }
                     }
                 }
@@ -3862,13 +3862,13 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     float distance = 1000000000.0f;
                     float intersection_distance = 1000000000.0f;
                     if( editing_models ) {
-                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        for (const auto& it : modelPreview->GetModels())
                         {
-                            if (modelPreview->GetModels()[i] != selectedBaseObject) {
-                                if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (it != selectedBaseObject) {
+                                if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                                     if (intersection_distance < distance) {
                                         distance = intersection_distance;
-                                        which_object = modelPreview->GetModels()[i];
+                                        which_object = it;
                                     }
                                 }
                             }

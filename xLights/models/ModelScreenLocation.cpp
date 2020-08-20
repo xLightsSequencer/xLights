@@ -3862,20 +3862,23 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     int upgrade_result = CheckUpgrade(ModelNode);
     if (upgrade_result == UPGRADE_NOT_NEEDED) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
+        if (isnan(worldPos_x)) worldPos_x = 0.0;
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
+        if (isnan(worldPos_y)) worldPos_y = 0.0;
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
+        if (isnan(worldPos_z)) worldPos_z = 0.0;
 
         scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "100.0"));
         scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "100.0"));
         scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "100.0"));
 
-        if (scalex <= 0 || std::isinf(scalex)) {
+        if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
             scalex = 1.0f;
         }
-        if (scaley <= 0 || std::isinf(scaley)) {
+        if (scaley <= 0 || std::isinf(scaley) || isnan(scaley)) {
             scaley = 1.0f;
         }
-        if (scalez <= 0 || std::isinf(scalez)) {
+        if (scalez <= 0 || std::isinf(scalez) || isnan(scalez)) {
             scalez = 1.0f;
         }
 
@@ -4863,6 +4866,9 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
             if (scalez == 0) scalez = 0.001f;
+            if (isnan(scalex)) scalex = 1.0f;
+            if (isnan(scaley)) scaley = 1.0f;
+            if (isnan(scalez)) scalez = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
@@ -4933,6 +4939,8 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
+            if (isnan(scalex)) scalex = 1.0f;
+            if (isnan(scaley)) scaley = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
@@ -5116,7 +5124,9 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     );
 
     if (scalex == 0) scalex = 0.001f;
-    if (scalex == 0) scaley = 0.001f;
+    if (scaley == 0) scaley = 0.001f;
+    if (isnan(scalex)) scalex = 1.0f;
+    if (isnan(scaley)) scaley = 1.0f;
 
     float newx = (ray_origin.x - worldPos_x) / scalex;
     float newy = (ray_origin.y - worldPos_y) / scaley;
