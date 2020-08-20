@@ -2585,7 +2585,8 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=nullptr; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
-            bool doscale = ch->GetAttribute("type", "") == "DMX intensity";
+            std::string type = ch->GetAttribute("type", "");
+            bool doscale = (type == "DMX intensity");
             int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
             int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
             std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
@@ -2593,26 +2594,48 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
             if (intensity == "-1") {
                 starti = Scale255To100(ch->GetAttribute("startIntensity"), doscale);
                 endi = Scale255To100(ch->GetAttribute("endIntensity"), doscale);
-            } else {
+            }
+            else {
                 starti = endi = Scale255To100(intensity, doscale);
             }
-            std::string settings;
-            if ("100" != starti) {
-                settings += "E_TEXTCTRL_Eff_On_Start=" + starti;
-            }
-            if ("100" != endi) {
-                if (!settings.empty()) {
-                    settings += ",";
+
+            if (type == "twinkle")                 {
+                std::string efpalette = palette;
+                int steps = std::max((float)(endtime - starttime - 1000) / 100.0, 0.0) + (rand01() * 10.0 - 5.0);
+                steps = std::max(steps, 2);
+                steps = std::min(steps, 200);
+                std::string settings = "E_CHECKBOX_Twinkle_Strobe=1,E_SLIDER_Twinkle_Count=2,E_SLIDER_Twinkle_Steps=" + wxString::Format("%d", steps);
+
+                if (starti == endi)                     {
+                    if (starti != "100")                         {
+                        efpalette += ",C_SLIDER_Brightness=" + starti;
+                    }
                 }
-                settings += "E_TEXTCTRL_Eff_On_End=" + endi;
-            }
-            if (("intensity" != ch->GetAttribute("type")) && ("DMX intensity" != ch->GetAttribute("type"))) {
-                if (!settings.empty()) {
-                    settings += ",";
+                else                     {
+                    efpalette += wxString::Format(",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%s.00|P2=%s.00|RV=TRUE|", starti, endi);
                 }
-                settings += "E_CHECKBOX_On_Shimmer=1";
+
+                layer->AddEffect(0, "Twinkle", settings, efpalette, starttime, endtime, false, false);
             }
-            layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
+            else {
+                std::string settings;
+                if ("100" != starti) {
+                    settings += "E_TEXTCTRL_Eff_On_Start=" + starti;
+                }
+                if ("100" != endi) {
+                    if (!settings.empty()) {
+                        settings += ",";
+                    }
+                    settings += "E_TEXTCTRL_Eff_On_End=" + endi;
+                }
+                if (("intensity" != ch->GetAttribute("type")) && ("DMX intensity" != ch->GetAttribute("type"))) {
+                    if (!settings.empty()) {
+                        settings += ",";
+                    }
+                    settings += "E_CHECKBOX_On_Shimmer=1";
+                }
+                layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
+            }
         }
     }
 }

@@ -711,7 +711,7 @@ public:
                 EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
                 std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                SetGenericStatus("Initializing starting effect for %s, startFrame %d, and layer %d ", startFrame, layer, false, true);
+                SetGenericStatus("Initializing starting effect for %s, startFrame %d, and layer %d ", (int)startFrame, layer, false, true);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
             }
