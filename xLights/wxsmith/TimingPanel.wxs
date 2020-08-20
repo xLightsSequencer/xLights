@@ -115,7 +115,7 @@
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -173,7 +173,7 @@
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -261,6 +261,7 @@
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
 																		<size>25,-1d</size>
+																		<handler function="OnTextCtrl_FadeinText" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -293,7 +294,7 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxBitmapButton" name="ID_VALUECURVE_In_Transition_Adjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_In_Transition_Adjust" member="yes">
-																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																		<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																		<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -386,6 +387,7 @@
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
 																		<size>25,-1d</size>
+																		<handler function="OnTextCtrl_FadeoutText" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -418,7 +420,7 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxBitmapButton" name="ID_VALUECURVE_Out_Transition_Adjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Out_Transition_Adjust" member="yes">
-																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																		<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																		<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -7,7 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
- 
+
 //(*InternalHeaders(TimingPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -115,13 +115,13 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SpinCtrl_SuppressEffectUntil = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_SuppressEffectUntil, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 0, _T("ID_SPINCTRL_SuppressEffectUntil"));
 	SpinCtrl_SuppressEffectUntil->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_SuppressEffectUntil, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Freeze Effect At Frame"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_FreezeEffectAtFrame = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_FreezeEffectAtFrame, _T("99999"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 99999, _T("ID_SPINCTRL_FreezeEffectAtFrame"));
 	SpinCtrl_FreezeEffectAtFrame->SetValue(_T("99999"));
 	FlexGridSizer2->Add(SpinCtrl_FreezeEffectAtFrame, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
@@ -135,7 +135,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	TextCtrl_EffectLayerMix->SetMaxLength(3);
 	FlexGridSizer1->Add(TextCtrl_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_CheckBox_LayerMorph = new xlLockButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHECKBOX_LayerMorph, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
+	BitmapButton_CheckBox_LayerMorph = new xlLockButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHECKBOX_LayerMorph, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
 	BitmapButton_CheckBox_LayerMorph->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_CheckBox_LayerMorph->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_CheckBox_LayerMorph, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -166,7 +166,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Button_About_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON_ABOUT_LAYERS, _("\?"), wxDefaultPosition, wxSize(25,23), 0, wxDefaultValidator, _T("ID_BUTTON_ABOUT_LAYERS"));
 	Button_About_Layers->SetToolTip(_("About Layer Blending Types"));
 	FlexGridSizer2->Add(Button_About_Layers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 2);
-	BitmapButton_EffectLayerMix = new xlLockButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
+	BitmapButton_EffectLayerMix = new xlLockButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -216,7 +216,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_In_Adjust = new BulkEditSlider(Panel1, ID_SLIDER_In_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_In_Transition_Adjust"));
 	Slider_In_Adjust->SetMinSize(wxDLG_UNIT(Panel1,wxSize(25,-1)));
 	FlexGridSizer11->Add(Slider_In_Adjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_In_Transition_Adjust = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_In_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_In_Transition_Adjust"));
+	BitmapButton_In_Transition_Adjust = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_In_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_In_Transition_Adjust"));
 	FlexGridSizer11->Add(BitmapButton_In_Transition_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_In_Adjust = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_In_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_In_Transition_Adjust"));
 	FlexGridSizer11->Add(TextCtrl_In_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -268,7 +268,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_Out_Adjust = new BulkEditSlider(Panel2, ID_SLIDER_Out_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Out_Transition_Adjust"));
 	Slider_Out_Adjust->SetMinSize(wxDLG_UNIT(Panel2,wxSize(25,-1)));
 	FlexGridSizer9->Add(Slider_Out_Adjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Out_Transition_Adjust = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Out_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Out_Transition_Adjust"));
+	BitmapButton_Out_Transition_Adjust = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Out_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(BitmapButton_Out_Transition_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Out_Adjust = new BulkEditTextCtrl(Panel2, IDD_TEXTCTRL_Out_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(TextCtrl_Out_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -304,8 +304,10 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_CHECKBOX_Canvas,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_CanvasClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnButton_LayersClick);
 	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_TEXTCTRL_Fadein,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnTextCtrl_FadeinText);
 	Connect(ID_VALUECURVE_In_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_TEXTCTRL_Fadeout,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnTextCtrl_FadeoutText);
 	Connect(ID_VALUECURVE_Out_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
@@ -369,14 +371,11 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
 		SpinCtrl_FreezeEffectAtFrame->SetValue(99999);
 		SpinCtrl_SuppressEffectUntil->SetValue(0);
 
-        CheckBox_In_Reverse->SetValue(false);
-        CheckBox_In_Reverse->Enable(false);
-        CheckBox_Out_Reverse->SetValue(false);
-        CheckBox_Out_Reverse->Enable(false);
-        Slider_Out_Adjust->Enable(false);
-        Slider_In_Adjust->Enable(false);
-        TextCtrl_In_Adjust->Enable(false);
-        TextCtrl_Out_Adjust->Enable(false);
+		BitmapButton_In_Transition_Adjust->GetValue()->SetDefault(0.0f, 100.0f);
+		BitmapButton_In_Transition_Adjust->UpdateState();
+
+		BitmapButton_Out_Transition_Adjust->GetValue()->SetDefault(0.0f, 100.0f);
+		BitmapButton_Out_Transition_Adjust->UpdateState();
     }
 
     ValidateWindow();
@@ -507,46 +506,7 @@ namespace
 
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
-   auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
-
-   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType ) != transitions_noReverse.cend() )
-      CheckBox_In_Reverse->Disable();
-   else
-      CheckBox_In_Reverse->Enable();
-
-   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType ) != transitions_noAdjust.cend() )
-   {
-      Slider_In_Adjust->Disable();
-      BitmapButton_In_Transition_Adjust->Disable();
-      TextCtrl_In_Adjust->Disable();
-   }
-   else
-   {
-      Slider_In_Adjust->Enable();
-      BitmapButton_In_Transition_Adjust->Enable();
-      TextCtrl_In_Adjust->Enable();
-   }
-
-   auto outTransitionType = Choice_Out_Transition_Type->GetStringSelection();
-
-   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), outTransitionType ) != transitions_noReverse.cend() )
-      CheckBox_Out_Reverse->Disable();
-   else
-      CheckBox_Out_Reverse->Enable();
-
-
-   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), outTransitionType ) != transitions_noAdjust.cend() )
-   {
-      Slider_Out_Adjust->Disable();
-      BitmapButton_Out_Transition_Adjust->Disable();
-      TextCtrl_Out_Adjust->Disable();
-   }
-   else
-   {
-      Slider_Out_Adjust->Enable();
-      BitmapButton_Out_Transition_Adjust->Enable();
-      TextCtrl_Out_Adjust->Enable();
-   }
+	ValidateWindow();
 }
 
 void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)
@@ -590,6 +550,45 @@ void TimingPanel::ValidateWindow()
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
+
+	bool inEnable = (wxAtof(TextCtrl_Fadein->GetValue()) != 0.0);
+	bool outEnable = (wxAtof(TextCtrl_Fadeout->GetValue()) != 0.0);
+	auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
+
+	if (!inEnable || std::find(transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType) != transitions_noReverse.cend())
+		CheckBox_In_Reverse->Disable();
+	else
+		CheckBox_In_Reverse->Enable();
+
+	if (!inEnable || std::find(transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType) != transitions_noAdjust.cend()) {
+		Slider_In_Adjust->Disable();
+		BitmapButton_In_Transition_Adjust->Disable();
+		TextCtrl_In_Adjust->Disable();
+	}
+	else {
+		Slider_In_Adjust->Enable();
+		BitmapButton_In_Transition_Adjust->Enable();
+		TextCtrl_In_Adjust->Enable();
+	}
+
+	auto outTransitionType = Choice_Out_Transition_Type->GetStringSelection();
+
+	if (!outEnable || std::find(transitions_noReverse.cbegin(), transitions_noReverse.cend(), outTransitionType) != transitions_noReverse.cend())
+		CheckBox_Out_Reverse->Disable();
+	else
+		CheckBox_Out_Reverse->Enable();
+
+
+	if (!outEnable || std::find(transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), outTransitionType) != transitions_noAdjust.cend()) {
+		Slider_Out_Adjust->Disable();
+		BitmapButton_Out_Transition_Adjust->Disable();
+		TextCtrl_Out_Adjust->Disable();
+	}
+	else {
+		Slider_Out_Adjust->Enable();
+		BitmapButton_Out_Transition_Adjust->Enable();
+		TextCtrl_Out_Adjust->Enable();
+	}
 }
 
 void TimingPanel::OnCheckBox_CanvasClick(wxCommandEvent& event)
@@ -600,4 +599,14 @@ void TimingPanel::OnCheckBox_CanvasClick(wxCommandEvent& event)
 void TimingPanel::OnButton_AboutClick(wxCommandEvent& event)
 {
 	ViewTempFile(Choice_LayerMethod->GetToolTip()->GetTip(), "layerblendhelp");
+}
+
+void TimingPanel::OnTextCtrl_FadeinText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void TimingPanel::OnTextCtrl_FadeoutText(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

@@ -136,6 +136,8 @@ class TimingPanel: public wxPanel
 		void OnChoice_LayerMethodSelect(wxCommandEvent& event);
 		void OnCheckBox_CanvasClick(wxCommandEvent& event);
 		void OnButton_AboutClick(wxCommandEvent& event);
+		void OnTextCtrl_FadeinText(wxCommandEvent& event);
+		void OnTextCtrl_FadeoutText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
