@@ -68,8 +68,13 @@ static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
 static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
     "", "ws2811", "gece", "tm18xx", "lx1203",
     "ws2801", "tls3001", "lpd6803", "apa102", "dmx",
-    "open dmx", "pixelnet", "renard", "lor", "open pixelnet"};
+    "dmx-open", "pixelnet", "renard", "lor", "pixelnet-open"};
 static wxArrayString CONTROLLER_PROTOCOLS(15, CONTROLLER_PROTOCOLS_VALUES);
+
+static std::set<wxString> SERIAL_PROTOCOLS = {
+    "dmx", "dmx-open", "dmx-pro",  "pixelnet", "pixelnet-lynx", "pixelnet-open", "renard", "lor", "genericserial"
+};
+
 
 static const char *SMART_REMOTES_VALUES[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
 static wxArrayString SMART_REMOTES(6, SMART_REMOTES_VALUES);
@@ -559,11 +564,16 @@ ControllerCaps* Model::GetControllerCaps() const
 Controller* Model::GetController() const
 {
     std::string controller = GetControllerName();
-    if (controller == "")
-    {
-        if (StartsWith(ModelStartChannel, "!") && Contains(ModelStartChannel, ":"))
-        {
+    if (controller == "") {
+        if (StartsWith(ModelStartChannel, "!") && Contains(ModelStartChannel, ":")) {
             controller = Trim(BeforeFirst(AfterFirst(ModelStartChannel, '!'), ':'));
+        }
+    }
+    if (controller == "") {
+        int32_t start;
+        Controller *cp = modelManager.GetXLightsFrame()->GetOutputManager()->GetController(GetFirstChannel(), start);
+        if (cp != nullptr) {
+            return cp;
         }
     }
     if (controller == "") return nullptr;
@@ -764,10 +774,8 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
             }
             i++;
         }
-    }
-    else {
-        for (const auto& it : caps->GetAllProtocols())
-        {
+    } else {
+        for (const auto& it : caps->GetAllProtocols()) {
             cp.push_back(it);
             if (protocol == Lower(it)) {
                 idx = i;
@@ -782,7 +790,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     auto caps = GetControllerCaps();
 
     wxString protocol = GetControllerProtocol();
-    protocol.LowerCase();
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
@@ -790,13 +797,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Min", 0);
     if (caps == nullptr || protocol == "") {
         sp->SetAttribute("Max", 48);
-    }
-    else
-    {
+    } else {
         if (IsPixelProtocol(GetControllerProtocol())) {
             sp->SetAttribute("Max", caps->GetMaxPixelPort());
-        }
-        else {
+        } else {
             sp->SetAttribute("Max", caps->GetMaxSerialPort());
         }
     }
@@ -821,8 +825,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         sp->SetAttribute("Min", 1);
         if (caps == nullptr) {
             sp->SetAttribute("Max", 512);
-        }
-        else {
+        } else {
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
@@ -1328,8 +1331,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         if (
-            ((newProtocol == "dmx" || newProtocol == "pixelnet" || newProtocol == "renard" || newProtocol == "lor") && IsPixelProtocol(oldProtocol)) ||
-            ((oldProtocol == "dmx" || oldProtocol == "pixelnet" || oldProtocol == "renard" || oldProtocol == "lor") && IsPixelProtocol(newProtocol)) ||
+            (IsSerialProtocol(newProtocol) && IsPixelProtocol(oldProtocol)) ||
+            (IsSerialProtocol(oldProtocol) && IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != "")) {
             // if we switch between a DMX and pixel protocol we need to rebuild the properties
@@ -5405,10 +5408,6 @@ bool Model::IsControllerConnectionValid() const
 {
     return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
 }
-
-static std::set<wxString> SERIAL_PROTOCOLS = {
-    "dmx", "dmx-open", "dmx-pro",  "pixelnet", "pixelnet-lynx", "pixelnet-open", "renard", "lor", "genericserial"
-};
 
 bool Model::IsPixelProtocol(const std::string &p) {
     if (p == "") {

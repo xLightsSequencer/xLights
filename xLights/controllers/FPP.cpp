@@ -1878,10 +1878,20 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 hasSerial = true;
             } else {
                 int mx = vport->GetEndChannel() - sc + 1;
-                port["channelCount"] = mx;
                 port["device"] = portType;
                 port["enabled"] = 1;
-                port["type"] = vport->GetProtocol();
+                std::string tp = vport->GetProtocol();
+                if (tp == "DMX" || tp == "dmx") {
+                    tp = "DMX-Open";
+                } else if (tp == "PIXELNET" || tp == "pixelnet") {
+                    tp = "Pixelnet-Open";
+                }
+                if (mx < 16) {
+                    //several controllers have issues if the DMX data stream has less than 16 channels
+                    mx = 16;
+                }
+                port["channelCount"] = mx;
+                port["type"] = tp;
                 otherDmxData["channelOutputs"].Append(port);
             }
             
