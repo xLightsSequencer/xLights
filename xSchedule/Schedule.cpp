@@ -157,8 +157,18 @@ wxXmlNode* Schedule::Save()
     node->AddAttribute("DOW", _dow);
     node->AddAttribute("StartDate", _startDate.Format("%Y-%m-%d"));
     node->AddAttribute("EndDate", _endDate.Format("%Y-%m-%d"));
-    node->AddAttribute("StartTime", _startTime.Format("%H:%M:%S"));
-    node->AddAttribute("EndTime", _endTime.Format("%H:%M:%S"));
+    if (_startTimeString != "") {
+        node->AddAttribute("StartTime", _startTimeString);
+    }
+    else {
+        node->AddAttribute("StartTime", _startTime.Format("%H:%M:%S"));
+    }
+    if (_endTimeString != "") {
+        node->AddAttribute("EndTime", _endTimeString);
+    }
+    else {
+        node->AddAttribute("EndTime", _endTime.Format("%H:%M:%S"));
+    }
     node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
     node->AddAttribute("NthDay", wxString::Format(wxT("%i"), _nthDay));
     node->AddAttribute("NthDayOffset", wxString::Format(wxT("%i"), _nthDayOffset));
