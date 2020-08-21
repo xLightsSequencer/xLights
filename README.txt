@@ -11,7 +11,27 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.32 August 21 2020
+   -- enh (scott)  Give an option to add imported models to existing groups or continue to create new groups when importing models containing submodel groups 
+   -- enh (scott)  Lower arch minimum hollowness to zero
+   -- enh (keith)  Add minleon controller upload support
+   -- enh (dklup)  Add new Kulp controllers
+   -- enh (dkulp)  Auto select first controller variant when available
    -- bug (scott)  Fixed Select Effects Window not finding effects on submodels/stands
+   -- bug (scott)  Fix windows download link does not work
+   -- bug (scott)  Fix spakles with a value curve at zero still displays sparkles
+   -- bug (scott)  Model search should not be case sensitive
+   -- bug (scott)  Fix video export required stereo audio
+   -- bug (scott)  Fix select effects does not select effects on strands and nodes
+   -- bug (priemd) Fix xmodel export includes empty groups
+   -- bug (priemd) Fix 3D object model move rotate etc not working
+   -- bug (keith)  Fix issue clicking and dragging out line model in 3D
+   -- bug (keith)  Fix sunset and sunrise not saving in schedules
+   -- bug (keith)  Fix a bunch of issues with transition window controls doing weird things. They now enable and disable more consistently
+   -- bug (keith)  Auto handle really screwed up polyline models restoring them back to editable state
+   -- bug (keith)  Fix old AC LMS import does not import twinkles as twinkles
+   -- bug (keith)  Fix and rework the way visualiser drag and drop of serial output models work
+   -- bug (dkulp)  Fix serial port config upload to FPP controllers 
 2020.31 August 9 2020
    -- enh (dkulp)  Remove warning for files not in show directory if they are in a resources directory
    -- enh (scott)  Added Search Box to the Vendor Model Download Dialog
