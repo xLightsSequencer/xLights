@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="DisperseOptionsDialog">
+		<title>Disperse from a Target Model</title>
+		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<rows>2</rows>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<rows>1</rows>
+					<growablecols>1</growablecols>
+					<growablerows>0</growablerows>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+							<cols>1</cols>
+							<rows>2</rows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<rows>3</rows>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+											<label>Disperse From</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE_DISPERSE_FROM" variable="ChoiceDisperseFrom" member="yes">
+											<tooltip>Select the Model to disperse from.</tooltip>
+											<minsize>-1,-1d</minsize>
+											<handler function="OnChoiceTargetSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_USE_PRIMARY" variable="CheckBoxUsePrimarySel" member="yes">
+											<label>Disperse from Primary Selection</label>
+											<minsize>-1,-1</minsize>
+											<handler function="OnCheckBoxUsePrimarySelClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+											<label>Offset</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSpinCtrlDouble" name="ID_SPINCTRL_OFFSET" variable="SpinCtrlOffset" member="yes">
+											<value>20</value>
+											<max>500.000000</max>
+											<tooltip>Offset/Spacing between dispursed items.</tooltip>
+											<style>wxALIGN_RIGHT</style>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="DirectionNotebook" member="yes">
+									<focused>1</focused>
+									<tooltip>Select the direction in which to disperse from the Target.</tooltip>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL1" variable="DirectionPanelFrontView" member="yes">
+											<object class="wxGridBagSizer" variable="GridBagSizerFrontView" member="yes">
+												<hgap>1d</hgap>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_UP_LEFT" variable="DirectionUpLeft" member="yes">
+														<label>Up + Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_LEFT" variable="DirectionFviewLeft" member="yes">
+														<label>Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>3</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_DOWN_LEFT" variable="DirectionDownLeft" member="yes">
+														<label>Down + Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_DOWN" variable="DirectionDown" member="yes">
+														<label>Down</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>2</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_UP" variable="DirectionUp" member="yes">
+														<label>Up</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>2</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_RIGHT" variable="DirectionFviewRight" member="yes">
+														<label>Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>3</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_DOWN_RIGHT" variable="DirectionDownRight" member="yes">
+														<label>Down + Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="DirectionFrontLabel" member="yes">
+														<value>Direction to Dispurse</value>
+														<size>153,22</size>
+														<style>wxTE_READONLY|wxTE_CENTRE|wxBORDER_RAISED</style>
+													</object>
+													<col>2</col>
+													<row>3</row>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_FVIEW_UP_RIGHT" variable="DirectionUpRight" member="yes">
+														<label>Up + Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Front View</label>
+									</object>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL2" variable="DirectionPanelTopView" member="yes">
+											<object class="wxGridBagSizer" variable="GridBagSizerTopView" member="no">
+												<hgap>4</hgap>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_BACK_LEFT" variable="DirectionBackLeft" member="yes">
+														<label>Back + Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_LEFT" variable="DirectionTviewLeft" member="yes">
+														<label>Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>3</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_FRONT_LEFT" variable="DirectionFrontLeft" member="yes">
+														<label>Front + Left</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>0</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_FRONT" variable="DirectionFront" member="yes">
+														<label>Front</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>2</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_FRONT_RIGHT" variable="DirectionFrontRight" member="yes">
+														<label>Front + Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>6</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_RIGHT" variable="DirectionTviewRight" member="yes">
+														<label>Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>3</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_BACK" variable="DirectionBack" member="yes">
+														<label>Back</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>2</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CB_TVIEW_BACK_RIGHT" variable="DirectionBackRight" member="yes">
+														<label>Back + Right</label>
+														<handler function="OnDirectionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<col>5</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="DirectionTopLabel" member="yes">
+														<value>Direction to Dispurse</value>
+														<size>148,22</size>
+														<style>wxTE_READONLY|wxTE_CENTRE|wxBORDER_RAISED</style>
+													</object>
+													<col>2</col>
+													<row>3</row>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Top View</label>
+									</object>
+								</object>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+							<cols>1</cols>
+							<rows>2</rows>
+							<growablecols>0</growablecols>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT3" variable="DisperseOrderLabel" member="yes">
+									<label>Model Disperse Order</label>
+								</object>
+								<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="DisperseOrderSizer" member="yes">
+									<cols>2</cols>
+									<rows>1</rows>
+									<growablecols>0</growablecols>
+									<growablerows>0</growablerows>
+									<object class="sizeritem">
+										<object class="wxListView" name="ID_DISPERSE_ORDER_LIST" variable="DisperseOrderList" member="yes">
+											<size>-1,-1d</size>
+											<maxsize>-1,-1</maxsize>
+											<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING|wxBORDER_SIMPLE|wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
+											<handler function="OnDisperseOrderListBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+											<handler function="OnDisperseOrderListItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+											<handler function="OnDisperseOrderListItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
+											<handler function="OnDisperseOrderListItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+										</object>
+										<flag>wxTOP|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+											<orient>wxVERTICAL</orient>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BUTTON_ORDER_UP" variable="ButtonOrderUp" member="yes">
+													<bitmap stock_id="wxART_GO_UP" />
+													<handler function="OnButtonOrderUpClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BUTTON_ORDER_DOWN" variable="ButtonOrderDown" member="yes">
+													<bitmap stock_id="wxART_GO_DOWN" />
+													<handler function="OnButtonOrderDownClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_CANCEL" variable="ButtonCancel" member="yes">
+							<label>Cancel</label>
+							<handler function="OnButtonCancelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_OK" variable="ButtonOK" member="yes">
+							<label>OK</label>
+							<handler function="OnButtonOKClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

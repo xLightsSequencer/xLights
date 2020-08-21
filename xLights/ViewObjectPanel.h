@@ -17,6 +17,8 @@
 
 #include <wx/treelist.h>
 
+#include "DisperseOptionsDialog.h"
+
 class ViewObjectManager;
 class LayoutPanel;
 class LayoutGroup;
@@ -49,6 +51,9 @@ public:
     void PreviewObjectAlignVCenter();
     void PreviewObjectHDistribute();
     void PreviewObjectVDistribute();
+    void PreviewObjectDisperseWithOptions();
+    void PreviewObjectDisperseByDirection(DisperseDirection direction);
+    void PreviewObjectDisperse(ViewObject* fromViewObject, std::list<ViewObject*> disperseObjects, DisperseDirection direction, float offset = 20.0f);
 	void DeleteSelectedObject();
 	bool ObjectListHasFocus() { return TreeListViewObjects->HasFocus() || TreeListViewObjects->GetView()->HasFocus(); };
 

@@ -489,6 +489,8 @@
 		<Unit filename="DimmingCurve.h" />
 		<Unit filename="DimmingCurvePanel.cpp" />
 		<Unit filename="DimmingCurvePanel.h" />
+		<Unit filename="DisperseOptionsDialog.cpp" />
+		<Unit filename="DisperseOptionsDialog.h" />
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DragColoursBitmapButton.cpp" />
 		<Unit filename="DragColoursBitmapButton.h" />
@@ -1268,6 +1270,7 @@
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
+		<Unit filename="wxsmith/DisperseOptionsDialog.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
@@ -1600,6 +1603,7 @@
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DisperseOptionsDialog.wxs" src="DisperseOptionsDialog.cpp" hdr="DisperseOptionsDialog.h" fwddecl="0" i18n="1" name="DisperseOptionsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

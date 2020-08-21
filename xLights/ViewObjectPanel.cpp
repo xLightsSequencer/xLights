@@ -996,6 +996,181 @@ void ViewObjectPanel::PreviewObjectVDistribute()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
+// disperse by selected dialog options
+void ViewObjectPanel::PreviewObjectDisperseWithOptions() {
+    if (mSelectedObject == nullptr) return;
+
+    DisperseOptionsDialog::SetupData dlgData;
+    dlgData.is3d = true;
+    dlgData.forModels = false;
+    
+    ViewObject* primarySelection = mSelectedObject;
+    dlgData.primarySelection = primarySelection->GetName();
+    dlgData.primaryLocked = primarySelection->GetObjectScreenLocation().IsLocked();
+    dlgData.objectsToDisperse.Add(primarySelection->GetName());
+    
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); it++) {
+        ViewObject* vo = it->second;
+        wxString name = vo->GetName();
+        if (name != primarySelection->GetName()) {
+            if (vo->GroupSelected) {
+                dlgData.objectsToDisperse.push_back(name);
+            } else {
+                dlgData.availableTargets.push_back(name);
+            }
+        }
+    }
+    
+    DisperseOptionsDialog dlg(this);
+    dlg.Setup(dlgData);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        DisperseOptionsDialog::DisperseOptions disperseInfo = dlg.GetDisperseOptions();
+
+        ViewObject* fromViewObject = mViewObjects.GetViewObject(disperseInfo.fromWhat);
+        std::list<ViewObject*> toDisperse;
+
+        for (const auto& voName : disperseInfo.order) {
+            ViewObject* vo = mViewObjects.GetViewObject(voName);
+            if (vo != nullptr) {
+                toDisperse.push_back(vo);
+            }
+            
+        }
+        
+        PreviewObjectDisperse(fromViewObject, toDisperse, disperseInfo.direction, disperseInfo.offset);
+    }
+}
+
+// disperse by menu direction from primary selection with default offset, order is not
+// guaranteed as we don't track selection order yet...
+void ViewObjectPanel::PreviewObjectDisperseByDirection(DisperseDirection direction) {
+    
+    if (mSelectedObject == nullptr) return;
+
+    ViewObject* fromViewObject = mSelectedObject;
+    std::list<ViewObject*> toDisperse;
+    
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); it++) {
+        ViewObject* vo = it->second;
+        wxString name = vo->GetName();
+        if (name != fromViewObject->GetName() && vo->GroupSelected) {
+            toDisperse.push_back(vo);
+        }
+    }
+    
+    PreviewObjectDisperse(fromViewObject, toDisperse, direction);
+}
+
+// do the actual dispersement
+void ViewObjectPanel::PreviewObjectDisperse(ViewObject* fromViewObject, std::list<ViewObject*> disperseObjects, DisperseDirection direction, float offset) {
+    
+    if (fromViewObject == nullptr) { return; };
+    
+    layoutPanel->CreateUndoPoint("All", fromViewObject->name);
+
+    ViewObject* currFromViewObject = fromViewObject;
+
+    for (const auto& viewObject : disperseObjects) {
+
+        if (viewObject != nullptr) {
+            float left = currFromViewObject->GetLeft();
+            float right = currFromViewObject->GetRight();
+            float top = currFromViewObject->GetTop();
+            float bottom = currFromViewObject->GetBottom();
+            float hCenter = currFromViewObject->GetHcenterPos();
+            float vCenter = currFromViewObject->GetVcenterPos();
+            float zCenter = currFromViewObject->GetDcenterPos();
+            float front = currFromViewObject->GetFront();
+            float back = currFromViewObject->GetBack();
+            float depth = currFromViewObject->GetDepth();
+            float diagOffset = (offset / 2 * std::sqrt(2));
+
+            // center on x/y/z axis
+            viewObject->SetDcenterPos(zCenter);
+            viewObject->SetHcenterPos(hCenter);
+            viewObject->SetVcenterPos(vCenter);
+
+            // distribute model in selected direction
+            switch (direction) {
+                case DisperseDirection::LEFT: {
+                    viewObject->SetRight(left - offset);
+                    break;
+                }
+                case DisperseDirection::RIGHT: {
+                    viewObject->SetLeft(right + offset);
+                    break;
+                }
+                case DisperseDirection::UP: {
+                    viewObject->SetBottom(top + offset);
+                    break;
+                }
+                case DisperseDirection::DOWN: {
+                    viewObject->SetTop(bottom - offset);
+                    break;
+                }
+                case DisperseDirection::UPLEFT: {
+                    viewObject->SetBottom(top + diagOffset);
+                    viewObject->SetRight(left - diagOffset);
+                    break;
+                }
+                case DisperseDirection::UPRIGHT: {
+                    viewObject->SetBottom(top + diagOffset);
+                    viewObject->SetLeft(right + diagOffset);
+                    break;
+                }
+                case DisperseDirection::DOWNLEFT: {
+                    viewObject->SetTop(bottom - diagOffset);
+                    viewObject->SetRight(left - diagOffset);
+                    break;
+                }
+                case DisperseDirection::DOWNRIGHT: {
+                    viewObject->SetTop(bottom - diagOffset);
+                    viewObject->SetLeft(right + diagOffset);
+                    break;
+                }
+                case DisperseDirection::BACK: {
+                    viewObject->SetFront(back + (depth / 2) - offset);
+                    break;
+                }
+                case DisperseDirection::BACKLEFT: {
+                    viewObject->SetFront(back + (depth / 2) - diagOffset);
+                    viewObject->SetRight(left - offset);
+                    break;
+                }
+                case DisperseDirection::BACKRIGHT: {
+                    viewObject->SetFront(back + (depth / 2) - diagOffset);
+                    viewObject->SetLeft(right + offset);
+                    break;
+                }
+                case DisperseDirection::FRONT: {
+                    viewObject->SetBack(front - (depth / 2) + offset);
+                    break;
+                }
+                case DisperseDirection::FRONTLEFT: {
+                    viewObject->SetBack(front - (depth / 2) + diagOffset);
+                    viewObject->SetRight(left + offset);
+                    break;
+                }
+                case DisperseDirection::FRONTRIGHT: {
+                    viewObject->SetBack(front - (depth / 2) + diagOffset);
+                    viewObject->SetLeft(right + offset);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            currFromViewObject = viewObject;
+        }
+    }
+    
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectVDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectVDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+
 void ViewObjectPanel::DoCut(wxCommandEvent& event)
 {
 	layoutPanel->DoCut(event);

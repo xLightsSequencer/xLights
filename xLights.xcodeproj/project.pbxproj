@@ -10,6 +10,7 @@
 		1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */; };
 		1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */; };
 		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
+		63B4360324EE23250000C90D /* DisperseOptionsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63B4360224EE23250000C90D /* DisperseOptionsDialog.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67025C6D20D7E80900BF1AC6 /* Assets.xcassets */; };
 		67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */; };
@@ -572,6 +573,8 @@
 		1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditSliderDialog.cpp; sourceTree = "<group>"; };
 		1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditSliderDialog.h; sourceTree = "<group>"; };
 		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
+		63B4360124EE23250000C90D /* DisperseOptionsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DisperseOptionsDialog.h; sourceTree = "<group>"; };
+		63B4360224EE23250000C90D /* DisperseOptionsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DisperseOptionsDialog.cpp; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2489,6 +2492,8 @@
 				675878D91A89297200205A75 /* DataLayer.cpp */,
 				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
+				63B4360224EE23250000C90D /* DisperseOptionsDialog.cpp */,
+				63B4360124EE23250000C90D /* DisperseOptionsDialog.h */,
 				674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */,
 				674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */,
 				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
@@ -3195,6 +3200,7 @@
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				67F8A29024788E92004EC222 /* md5.cpp in Sources */,
 				67FC881623D7688300D457CB /* RandomEffectsSettingsPanel.cpp in Sources */,
+				63B4360324EE23250000C90D /* DisperseOptionsDialog.cpp in Sources */,
 				675BECE22323DA780077C764 /* CheckboxSelectDialog.cpp in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,

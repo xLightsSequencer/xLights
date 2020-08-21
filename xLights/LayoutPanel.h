@@ -31,6 +31,7 @@ class wxStaticText;
 #include <glm/glm.hpp>
 
 #include "ControllerConnectionDialog.h"
+#include "DisperseOptionsDialog.h"
 
 #include <vector>
 #include <list>
@@ -175,6 +176,22 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_DISTRIBUTE;
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
+        static const long ID_PREVIEW_DISPERSE;
+        static const long ID_PREVIEW_DISPERSE_SELECT_OPTIONS;
+        static const long ID_PREVIEW_DISPERSE_LEFT;
+        static const long ID_PREVIEW_DISPERSE_RIGHT;
+        static const long ID_PREVIEW_DISPERSE_UP;
+        static const long ID_PREVIEW_DISPERSE_DOWN;
+        static const long ID_PREVIEW_DISPERSE_UP_LEFT;
+        static const long ID_PREVIEW_DISPERSE_UP_RIGHT;
+        static const long ID_PREVIEW_DISPERSE_DOWN_LEFT;
+        static const long ID_PREVIEW_DISPERSE_DOWN_RIGHT;
+        static const long ID_PREVIEW_DISPERSE_BACK;
+        static const long ID_PREVIEW_DISPERSE_BACK_LEFT;
+        static const long ID_PREVIEW_DISPERSE_BACK_RIGHT;
+        static const long ID_PREVIEW_DISPERSE_FRONT;
+        static const long ID_PREVIEW_DISPERSE_FRONT_LEFT;
+        static const long ID_PREVIEW_DISPERSE_FRONT_RIGHT;
         static const long ID_PREVIEW_RESIZE;
         static const long ID_PREVIEW_RESIZE_SAMEWIDTH;
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
@@ -320,6 +337,7 @@ class LayoutPanel: public wxPanel
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);
+        void AddDisperseOptionsToMenu(wxMenu* mnuDisperse);
         Model* SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
@@ -363,6 +381,9 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignVCenter();
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
+        void PreviewModelDisperseWithOptions();
+        void PreviewModelDisperseByDirection(DisperseDirection direction);
+        void PreviewModelDisperse(Model* fromModel, std::list<Model*> disperseModels, DisperseDirection direction, float offset = 20.0f);
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type) const;
 

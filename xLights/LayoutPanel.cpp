@@ -158,6 +158,22 @@ const long LayoutPanel::ID_PREVIEW_ALIGN_BACK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_SELECT_OPTIONS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_LEFT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_RIGHT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_UP = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_DOWN = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_UP_LEFT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_UP_RIGHT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_DOWN_LEFT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_DOWN_RIGHT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_BACK = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_BACK_LEFT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_BACK_RIGHT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_FRONT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_FRONT_LEFT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DISPERSE_FRONT_RIGHT = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
@@ -4054,6 +4070,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         if (is_3d && selectedObjectCnt == 1) {
             menu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
         }
+        if (selectedObjectCnt == 1) {
+            menu.Append(ID_PREVIEW_DISPERSE_SELECT_OPTIONS, "Disperse");
+        }
     }
     if (editing_models && (selectedBaseObject != nullptr))
     {
@@ -4144,6 +4163,27 @@ void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
     mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
 }
 
+void LayoutPanel::AddDisperseOptionsToMenu(wxMenu* mnuDisperse) {
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_SELECT_OPTIONS, "Select Options");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_LEFT, "Left");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_RIGHT, "Right");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_UP, "Up");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_UP_LEFT, "Up + Left");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_UP_RIGHT, "Up + Right");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_DOWN, "Down");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_DOWN_LEFT, "Down + Left");
+    mnuDisperse->Append(ID_PREVIEW_DISPERSE_DOWN_RIGHT, "Down + Right");
+    
+    if (is_3d) {
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_FRONT, "Front");
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_FRONT_LEFT, "Front + Left");
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_FRONT_RIGHT, "Front + Right");
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_BACK, "Back");
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_BACK_LEFT, "Back + Left");
+        mnuDisperse->Append(ID_PREVIEW_DISPERSE_BACK_RIGHT, "Back + Right");
+    }
+}
+
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
@@ -4163,6 +4203,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         AddAlignOptionsToMenu(mnuAlign);
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
+        wxMenu* mnuDisperse = new wxMenu();
+        AddDisperseOptionsToMenu(mnuDisperse);
+        mnuDisperse->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+        
         wxMenu* mnuDistribute = new wxMenu();
         AddDistributeOptionsToMenu(mnuDistribute);
         mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
@@ -4173,6 +4217,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
         mnu.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
         mnu.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
+        mnu.Append(ID_PREVIEW_DISPERSE, "Disperse", mnuDisperse, "");
         mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
 
@@ -4370,6 +4415,112 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             PreviewModelAlignVCenter();
         } else {
             objects_panel->PreviewObjectAlignVCenter();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_SELECT_OPTIONS)
+    {
+        if (editing_models ) {
+            PreviewModelDisperseWithOptions();
+        } else {
+            objects_panel->PreviewObjectDisperseWithOptions();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::LEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::LEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::RIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::RIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UP);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UP);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UPLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UPLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UPRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UPRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWN);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWN);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWNLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWNLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWNRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWNRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACK);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACK);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACKLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACKLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACKRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACKRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONTLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONTLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONTRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONTRIGHT);
         }
     }
     else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
@@ -4974,6 +5125,207 @@ void LayoutPanel::PreviewModelVDistribute()
 
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute");
     
+    ReselectTreeModels(selectedModelPaths);
+}
+
+// disperse by selected dialog options
+void LayoutPanel::PreviewModelDisperseWithOptions() {
+        
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) { return; };
+    
+    DisperseOptionsDialog::SetupData dlgData;
+    dlgData.is3d = is_3d;
+    dlgData.forModels = true;
+    
+    Model* primarySelection = modelPreview->GetModels()[selectedindex];
+    dlgData.primarySelection = primarySelection->GetName();
+    dlgData.primaryLocked = primarySelection->GetModelScreenLocation().IsLocked();
+    
+    dlgData.objectsToDisperse.Add(primarySelection->GetName());
+    
+    for (const auto& m : modelPreview->GetModels()) {
+        if (m->GetName() != primarySelection->GetName() && m->GetDisplayAs() != "ModelGroup") {
+            if (m->GroupSelected) {
+                dlgData.objectsToDisperse.push_back(m->GetName());
+            } else {
+                dlgData.availableTargets.push_back(m->GetName());
+            }
+        }
+    }
+    
+    DisperseOptionsDialog dlg(this);
+    dlg.Setup(dlgData);
+    
+    if (dlg.ShowModal() == wxID_OK) {
+        DisperseOptionsDialog::DisperseOptions disperseInfo = dlg.GetDisperseOptions();
+        
+        Model* fromModel = xlights->GetModel(disperseInfo.fromWhat);
+        
+        if (fromModel != nullptr) {
+            std::list<Model*> toDisperse;
+            for (const auto& mName : disperseInfo.order) {
+                Model* m = xlights->GetModel(mName);
+                if (m != nullptr) {
+                    toDisperse.push_back(m);
+                }
+            }
+            
+            PreviewModelDisperse(fromModel, toDisperse, disperseInfo.direction, disperseInfo.offset);
+        }
+    }
+}
+
+// disperse by menu direction from primary selection with default offset, order not guaranteed
+void LayoutPanel::PreviewModelDisperseByDirection(DisperseDirection direction) {
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) { return; };
+        
+    Model* primarySelection = modelPreview->GetModels()[selectedindex];
+        
+    std::list<Model*> disperseModels;
+    
+    for (const auto& m : GetSelectedModelsForEdit()) {
+        if (m->GetName() != primarySelection->GetName()) {
+            disperseModels.push_back(m);
+        }
+    }
+    
+    PreviewModelDisperse(primarySelection, disperseModels, direction);
+}
+
+// do the actual dispersement
+void LayoutPanel::PreviewModelDisperse(Model* fromModel, std::list<Model*> disperseModels, DisperseDirection direction, float offset) {
+    if (fromModel == nullptr) { return; };
+    
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+    Model* currFromModel = fromModel;
+        
+    for (const auto& mToDisperse : disperseModels) {
+
+        if (mToDisperse != nullptr) {
+            float left = currFromModel->GetLeft();
+            float right = currFromModel->GetRight();
+            float top = currFromModel->GetTop();
+            float bottom = currFromModel->GetBottom();
+            float hCenter = currFromModel->GetHcenterPos();
+            float vCenter = currFromModel->GetVcenterPos();
+            float back = 0.0f;
+            float front = 0.0f;
+            float depth = 0.0f;
+            float diagOffset = (offset / 2 * std::sqrt(2));
+            
+            // handle 3d positioning and z-axis centering
+            if (is_3d) {
+                front = currFromModel->GetFront();
+                back = currFromModel->GetBack();
+                depth = currFromModel->GetDepth();
+                
+                // center on z-axis, default to front if target and/or model to distribute is not boxed
+                float zCenter = front;
+                if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(currFromModel)) {
+                    zCenter = fromModel->GetDcenterPos();
+                }
+                
+                if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(mToDisperse)) {
+                    mToDisperse->SetDcenterPos(zCenter);
+                } else {
+                    mToDisperse->SetFront(zCenter);
+                }
+            }
+            
+            // center on x/y axis
+            mToDisperse->SetHcenterPos(hCenter);
+            mToDisperse->SetVcenterPos(vCenter);
+
+            // distribute model in selected direction
+            switch (direction) {
+                case DisperseDirection::LEFT: {
+                    mToDisperse->SetRight(left - offset);
+                    break;
+                }
+                case DisperseDirection::RIGHT: {
+                    mToDisperse->SetLeft(right + offset);
+                    break;
+                }
+                case DisperseDirection::UP: {
+                    mToDisperse->SetBottom(top + offset);
+                    break;
+                }
+                case DisperseDirection::DOWN: {
+                    mToDisperse->SetTop(bottom - offset);
+                    break;
+                }
+                case DisperseDirection::UPLEFT: {
+                    mToDisperse->SetBottom(top + diagOffset);
+                    mToDisperse->SetRight(left - diagOffset);
+                    break;
+                }
+                case DisperseDirection::UPRIGHT: {
+                    mToDisperse->SetBottom(top + diagOffset);
+                    mToDisperse->SetLeft(right + diagOffset);
+                    break;
+                }
+                case DisperseDirection::DOWNLEFT: {
+                    mToDisperse->SetTop(bottom - diagOffset);
+                    mToDisperse->SetRight(left - diagOffset);
+                    break;
+                }
+                case DisperseDirection::DOWNRIGHT: {
+                    mToDisperse->SetTop(bottom - diagOffset);
+                    mToDisperse->SetLeft(right + diagOffset);
+                    break;
+                }
+                case DisperseDirection::BACK: {
+                    if (!is_3d) { break; };
+                    
+                    mToDisperse->SetFront(back + (depth / 2) - offset);
+                    break;
+                }
+                case DisperseDirection::BACKLEFT: {
+                    if (!is_3d) { break; };
+
+                    mToDisperse->SetFront(back + (depth / 2) - diagOffset);
+                    mToDisperse->SetRight(left - diagOffset);
+                    break;
+                }
+                case DisperseDirection::BACKRIGHT: {
+                    if (!is_3d) { break; };
+
+                    mToDisperse->SetFront(back + (depth / 2) - diagOffset);
+                    mToDisperse->SetLeft(right + diagOffset);
+                    break;
+                }
+                case DisperseDirection::FRONT: {
+                    if (!is_3d) { break; };
+                    
+                    mToDisperse->SetBack(front - (depth / 2) + offset);
+                    break;
+                }
+                case DisperseDirection::FRONTLEFT: {
+                    if (!is_3d) { break; };
+
+                    mToDisperse->SetBack(front - (depth / 2) + diagOffset);
+                    mToDisperse->SetRight(left + diagOffset);
+                    break;
+                }
+                case DisperseDirection::FRONTRIGHT: {
+                    if (!is_3d) { break; };
+
+                    mToDisperse->SetBack(front - (depth / 2) + diagOffset);
+                    mToDisperse->SetLeft(right + diagOffset);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            currFromModel = mToDisperse;
+        }
+    }
+    
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewDisperseObjects");
     ReselectTreeModels(selectedModelPaths);
 }
 
@@ -6732,6 +7084,112 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             PreviewModelAlignVCenter();
         } else {
             objects_panel->PreviewObjectAlignVCenter();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_SELECT_OPTIONS)
+    {
+        if (editing_models ) {
+            PreviewModelDisperseWithOptions();
+        } else {
+            objects_panel->PreviewObjectDisperseWithOptions();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::LEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::LEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::RIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::RIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UP);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UP);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UPLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UPLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_UP_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::UPRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::UPRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWN);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWN);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWNLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWNLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_DOWN_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::DOWNRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::DOWNRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACK);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACK);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACKLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACKLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_BACK_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::BACKRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::BACKRIGHT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT_LEFT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONTLEFT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONTLEFT);
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_DISPERSE_FRONT_RIGHT) {
+        if (editing_models ) {
+            PreviewModelDisperseByDirection(DisperseDirection::FRONTRIGHT);
+        } else {
+            objects_panel->PreviewObjectDisperseByDirection(DisperseDirection::FRONTRIGHT);
         }
     }
     else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
