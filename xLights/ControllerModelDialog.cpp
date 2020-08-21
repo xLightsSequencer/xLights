@@ -1352,9 +1352,10 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
 
                         if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                             m->SetModelChain("");
+                            droppedOn->SetModelChain("");
                             if (next != nullptr) next->SetModelChain("");
                             int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
-                            if (m->GetControllerDMXChannel() < nextch) m->SetControllerDMXChannel(nextch);
+                            m->SetControllerDMXChannel(nextch);
                             Model* last = m;
                             while (next != nullptr) {
                                 nextch = last->GetControllerDMXChannel() + last->GetChanCount();
@@ -1450,12 +1451,31 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     auto fmud = cudp->GetLastModel();
                     if (fmud == nullptr) {
                         m->SetModelChain("");
+                        if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            m->SetControllerDMXChannel(1);
+                        }
                     }
                     else {
                         if (fmud != nullptr && fmud->IsFirstModelString()) {
                             Model* lm = fmud->GetModel();
                             if (lm != nullptr) {
                                 m->SetModelChain(">" + lm->GetName());
+                            }
+                        }
+                        if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            m->SetModelChain("");
+                            Model* last = port->GetUDPort()->GetLastModel()->GetModel();
+                            if (last == m)                                 {
+                                last = port->GetUDPort()->GetModelBefore(last);
+                            }
+                            if (last == nullptr)                                 {
+                                // nothing to do
+                            }
+                            else {
+                                int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (m->GetControllerDMXChannel() < nextch) {
+                                    m->SetControllerDMXChannel(nextch);
+                                }
                             }
                         }
                     }
@@ -1488,6 +1508,32 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                             m->SetModelChain(droppedOn->GetModelChain());
                             droppedOn->SetModelChain(">" + m->GetName());
                         }
+                        if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            m->SetModelChain("");
+                            droppedOn->SetModelChain("");
+                            Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
+                            int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
+                            if (nextch < 1) nextch = 1;
+                            if (last != nullptr) {
+                                if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                }
+                            }
+                            if (m->GetControllerDMXChannel() < nextch) {
+                                m->SetControllerDMXChannel(nextch);
+                            }
+                            else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel())                                 {
+                                m->SetControllerDMXChannel(nextch);
+                            }
+                            Model* next = droppedOn;
+                            last = m;
+                            while (next != nullptr) {
+                                nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                last = next;
+                                next = port->GetUDPort()->GetModelAfter(last);
+                            }
+                        }
                     }
                     else {
                         logger_base.debug("    On the right hand side.");
@@ -1501,6 +1547,20 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                             }
                             m->SetModelChain(">" + droppedOn->GetName());
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                m->SetModelChain("");
+                                droppedOn->SetModelChain("");
+                                if (next != nullptr) next->SetModelChain("");
+                                int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                                m->SetControllerDMXChannel(nextch);
+                                Model* last = m;
+                                while (next != nullptr) {
+                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                    last = next;
+                                    next = port->GetUDPort()->GetModelAfter(last);
+                                }
+                            }
                         }
                     }
                 }

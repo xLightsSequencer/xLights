@@ -1020,7 +1020,8 @@ bool UDController::SetAllModelsToControllerName(const std::string& controllerNam
     for (const auto& it : _serialPorts)
     {
         changed |= it.second->SetAllModelsToControllerName(controllerName);
-        changed |= it.second->EnsureAllModelsAreChained();
+        // we dont chain serial models
+        //changed |= it.second->EnsureAllModelsAreChained();
     }
 
     return changed;
