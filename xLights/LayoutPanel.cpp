@@ -5198,6 +5198,7 @@ void LayoutPanel::PreviewModelDisperseByDirection(DisperseDirection direction) {
 void LayoutPanel::PreviewModelDisperse(Model* fromModel, std::list<Model*> disperseModels, DisperseDirection direction, float offset) {
     if (fromModel == nullptr) { return; };
     
+    CreateUndoPoint("All", fromModel->name);
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
     Model* currFromModel = fromModel;
         
@@ -7978,6 +7979,10 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         AddAlignOptionsToMenu(mnuAlign);
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
 
+        wxMenu* mnuDisperse = new wxMenu();
+        AddDisperseOptionsToMenu(mnuDisperse);
+        mnuDisperse->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+        
         wxMenu* mnuDistribute = new wxMenu();
         AddDistributeOptionsToMenu(mnuDistribute);
         mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
@@ -7988,6 +7993,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
         mnuContext.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
         mnuContext.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
+        mnuContext.Append(ID_PREVIEW_DISPERSE, "Disperse", mnuDisperse, "");
         mnuContext.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnuContext.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
 

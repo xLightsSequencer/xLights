@@ -235,7 +235,7 @@ DisperseOptionsDialog::DisperseOptionsDialog(wxWindow* parent, wxWindowID id,con
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&DisperseOptionsDialog::OnResize);
     //*)
 
-    DisperseOptionsDialogTextDropTarget *mdt = new DisperseOptionsDialogTextDropTarget(this, DisperseOrderList, "Object");
+    DisperseOptionsDialogTextDropTarget *mdt = new DisperseOptionsDialogTextDropTarget(this, DisperseOrderList, "ModelOrObject");
     DisperseOrderList->SetDropTarget(mdt);
     FillDirectionCbList();
     
@@ -252,6 +252,7 @@ void DisperseOptionsDialog::Setup(SetupData data) {
     _primarySelection = data.primarySelection;
     _availableTargets = data.availableTargets;
     _objectsToDisperse = data.objectsToDisperse;
+    _selectedDirection = DisperseDirection::NONE;
     
     // no top view for 2d
     if (!_is3d) {
@@ -294,7 +295,7 @@ void DisperseOptionsDialog::Setup(SetupData data) {
 }
 
 void DisperseOptionsDialog::ValidateWindow() {
-    if ((ChoiceDisperseFrom->GetStringSelection() == "" || !CheckBoxUsePrimarySel->IsChecked()) && _selectedDirection == DisperseDirection::NONE) {
+    if (ChoiceDisperseFrom->GetStringSelection() == "" || _selectedDirection == DisperseDirection::NONE) {
         ButtonOK->Disable();
     } else {
         ButtonOK->Enable();
@@ -504,7 +505,7 @@ void DisperseOptionsDialog::MoveSelectedItems(int whereTo) {
 void DisperseOptionsDialog::OnDisperseOrderListBeginDrag(wxListEvent& event) {
     if (DisperseOrderList->GetSelectedItemCount() == 0) return;
 
-    wxString drag = "Object";
+    wxString drag = "ModelOrObject";
     wxTextDataObject my_data(drag);
     wxDropSource dragSource(this);
     dragSource.SetData(my_data);
@@ -543,7 +544,7 @@ wxDragResult DisperseOptionsDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord 
     }
     else
     {
-        if (_type == "Object" && _list->GetItemCount() > 0)
+        if (_type == "ModelOrObject" && _list->GetItemCount() > 0)
         {
             int flags = wxLIST_HITTEST_ONITEM;
             int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
@@ -609,9 +610,9 @@ bool DisperseOptionsDialogTextDropTarget::OnDropText(wxCoord x, wxCoord y, const
 
     wxArrayString parms = wxSplit(data, ',');
 
-    if (parms[0] == "Model")
+    if (parms[0] == "ModelOrObject")
     {
-        if (_type == "Model")
+        if (_type == "ModelOrObject")
         {
             event.SetInt(0);
             wxPostEvent(_owner, event);
