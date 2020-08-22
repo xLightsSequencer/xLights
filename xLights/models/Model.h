@@ -125,7 +125,7 @@ public:
 
     wxString SerialiseSubmodel() const;
 
-    std::map<std::string, std::map<std::string, std::string>> Model::GetDimmingInfo() const;
+    std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
     virtual std::list<std::string> CheckModelSettings() override;
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const;
