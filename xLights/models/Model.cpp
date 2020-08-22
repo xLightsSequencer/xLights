@@ -2664,6 +2664,8 @@ std::string Model::DecodeSmartRemote(int sr)
 }
 
 wxXmlNode *Model::GetControllerConnection() const {
+    if (GetModelXml() == nullptr) return nullptr;
+
     wxXmlNode *n = GetModelXml()->GetChildren();
     while (n != nullptr) {
         if (n->GetName() == "ControllerConnection") {
@@ -5542,6 +5544,8 @@ int Model::GetSortableSmartRemote() const
 
 int Model::GetSmartTs() const
 {
+    if (GetControllerConnection() == nullptr) return 0;
+
     return wxAtoi(GetControllerConnection()->GetAttribute("ts", "0"));
 }
 
