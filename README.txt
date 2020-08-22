@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.33 August 22 2020
+   -- enh (keith)  Have check sequence flag dimming curves which will blank out a prop
+   -- bug (scott)  Try to improve AC effect toolbar
+   -- bug (keith)  Fix gamma value display in visualiser
+   -- bug (keith)  Fix crash when rendering models due to missing controller connection node
 2020.32 August 21 2020
    -- enh (scott)  Give an option to add imported models to existing groups or continue to create new groups when importing models containing submodel groups 
    -- enh (scott)  Lower arch minimum hollowness to zero
