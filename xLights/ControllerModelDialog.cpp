@@ -1835,7 +1835,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             }
             if (udm->GetGamma(-1) != -1)
             {
-                stringSettings += wxString::Format("\nGamma: %.1f", (float)udm->GetGamma(0) / 10.0);
+                stringSettings += wxString::Format("\nGamma: %.1f", (float)udm->GetGamma(0));
             }
             if (udm->GetGroupCount(-1) != -1)
             {
