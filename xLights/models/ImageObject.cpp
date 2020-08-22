@@ -193,6 +193,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
             res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
         }
     }
+    res.splice(res.end(), BaseObject::CheckModelSettings());
     return res;
 }
 

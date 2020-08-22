@@ -323,6 +323,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
         }
     }
 
+    res.splice(res.end(), BaseObject::CheckModelSettings());
     return res;
 }
 

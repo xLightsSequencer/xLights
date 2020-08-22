@@ -148,6 +148,7 @@ std::list<std::string> MatrixModel::CheckModelSettings()
        res.push_back(wxString::Format("    ERR: Model %s strands are not equally sized %d does not divide into string length %d evenly. As a result only %d of %d nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
    }
 
+   res.splice(res.end(), Model::CheckModelSettings());
    return res;
 }
 

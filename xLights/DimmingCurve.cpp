@@ -110,12 +110,10 @@ public:
         }
     }
 
-    
     int channel;
     unsigned char data[256];
     unsigned char reverseData[256];
 };
-
 
 class BasicDimmingCurve : public BaseDimmingCurve {
 public:

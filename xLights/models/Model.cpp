@@ -199,6 +199,30 @@ public:
 protected:
     Model *m_model;
 };
+
+std::map<std::string, std::map<std::string, std::string> > Model::GetDimmingInfo() const
+{
+    std::map<std::string, std::map<std::string, std::string> > dimmingInfo;
+    wxXmlNode* f = GetModelXml()->GetChildren();
+    while (f != nullptr) {
+        if ("dimmingCurve" == f->GetName()) {
+            wxXmlNode* dc = f->GetChildren();
+            while (dc != nullptr) {
+                std::string name = dc->GetName().ToStdString();
+                wxXmlAttribute* att = dc->GetAttributes();
+                while (att != nullptr) {
+                    dimmingInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                    att = att->GetNext();
+                }
+                dc = dc->GetNext();
+            }
+        }
+        f = f->GetNext();
+    }
+
+    return dimmingInfo;
+}
+
 class DimmingCurveDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
@@ -208,23 +232,7 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
         ModelDimmingCurveDialog dlg(propGrid);
-        std::map<std::string, std::map<std::string,std::string> > dimmingInfo;
-        wxXmlNode *f = m_model->GetModelXml()->GetChildren();
-        while (f != nullptr) {
-            if ("dimmingCurve" == f->GetName()) {
-                wxXmlNode *dc = f->GetChildren();
-                while (dc != nullptr) {
-                    std::string name = dc->GetName().ToStdString();
-                    wxXmlAttribute *att = dc->GetAttributes();
-                    while (att != nullptr) {
-                        dimmingInfo[name][att->GetName().ToStdString()] = att->GetValue();
-                        att = att->GetNext();
-                    }
-                    dc = dc->GetNext();
-                }
-            }
-            f = f->GetNext();
-        }
+        auto dimmingInfo = m_model->GetDimmingInfo();
         if(dimmingInfo.empty()) {
             wxString b = m_model->GetModelXml()->GetAttribute("ModelBrightness","0");
             dimmingInfo["all"]["gamma"] = "1.0";
@@ -4798,27 +4806,22 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
 
     bool changed = false;
 
-    if (GetControllerName() == oldName)
-    {
+    if (GetControllerName() == oldName) {
         SetControllerName(newName);
         changed = true;
     }
-    if (StartsWith(ModelStartChannel, "!" + oldName))
-    {
+    if (StartsWith(ModelStartChannel, "!" + oldName)) {
         ModelStartChannel = "!" + newName + ModelStartChannel.substr(oldName.size() + 1);
         ModelXml->DeleteAttribute("StartChannel");
         ModelXml->AddAttribute("StartChannel", ModelStartChannel);
         changed = true;
     }
     if (ModelXml->GetAttribute("Advanced") == "1") {
-        for (int i = 0; i < parm1; i++)
-        {
+        for (int i = 0; i < parm1; i++) {
             auto str = StartChanAttrName(i);
-            if (ModelXml->HasAttribute(str))
-            {
+            if (ModelXml->HasAttribute(str)) {
                 auto sc = ModelXml->GetAttribute(str);
-                if (StartsWith(sc, "!" + oldName))
-                {
+                if (StartsWith(sc, "!" + oldName)) {
                     ModelXml->DeleteAttribute(str);
                     ModelXml->AddAttribute(str, "!" + newName + sc.substr(oldName.size() + 1));
                     changed = true;
@@ -4831,19 +4834,6 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
-}
-
-bool Model::SupportsXlightsModel()
-{
-    return false;
-}
-
-void Model::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
-}
-
-void Model::ExportXlightsModel()
-{
 }
 
 void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname)
@@ -4868,45 +4858,37 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
     }
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high)
+Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (last_model == "")
-    {
-        if (download)
-        {
+    if (last_model == "") {
+        if (download) {
             xlights->SuspendAutoSave(true);
             VendorModelDialog dlg(xlights, xlights->CurrentDir);
             xlights->SetCursor(wxCURSOR_WAIT);
-            if (dlg.DlgInit(prog, low, high))
-            {
-                if (prog != nullptr)
-                {
+            if (dlg.DlgInit(prog, low, high)) {
+                if (prog != nullptr) {
                     prog->Update(100);
                 }
                 xlights->SetCursor(wxCURSOR_DEFAULT);
-                if (dlg.ShowModal() == wxID_OK)
-                {
+                if (dlg.ShowModal() == wxID_OK) {
                     xlights->SuspendAutoSave(false);
                     last_model = dlg.GetModelFile();
 
-                    if (last_model == "")
-                    {
+                    if (last_model == "") {
                         DisplayError("Failed to download model file.");
 
                         cancelled = true;
                         return model;
                     }
                 }
-                else
-                {
+                else {
                     xlights->SuspendAutoSave(false);
                     cancelled = true;
                     return model;
                 }
             }
-            else
-            {
+            else {
                 if (prog != nullptr) prog->Hide();
                 xlights->SetCursor(wxCURSOR_DEFAULT);
                 xlights->SuspendAutoSave(false);
@@ -4914,8 +4896,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 return model;
             }
         }
-        else
-        {
+        else {
             wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf", wxFD_OPEN);
             if (filename.IsEmpty()) {
                 cancelled = true;
@@ -4925,8 +4906,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
         }
     }
 
-    if (wxString(last_model).Lower().EndsWith(".gdtf"))
-    {
+    if (wxString(last_model).Lower().EndsWith(".gdtf")) {
         wxFileInputStream fin(last_model);
         wxZipInputStream zin(fin);
         wxZipEntry* ent = zin.GetNextEntry();
@@ -4935,22 +4915,15 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             if (ent->GetName() == "description.xml") {
                 wxXmlDocument gdtf_doc;
                 gdtf_doc.Load(zin);
-                if (gdtf_doc.IsOk())
-                {
+                if (gdtf_doc.IsOk()) {
                     std::map<std::string, wxXmlNode*> modes;
 
-                    for (wxXmlNode* n = gdtf_doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
-                        if (n->GetName() == "FixtureType")
-                        {
-                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                            {
-                                if (nn->GetName() == "DMXModes")
-                                {
-                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                    {
-                                        if (nnn->GetName() == "DMXMode")
-                                        {
+                    for (wxXmlNode* n = gdtf_doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                        if (n->GetName() == "FixtureType") {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                if (nn->GetName() == "DMXModes") {
+                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        if (nnn->GetName() == "DMXMode") {
                                             modes[nnn->GetAttribute("Name")] = nnn;
                                         }
                                     }
@@ -4962,16 +4935,13 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                     if (modes.size() == 0) break;
 
                     std::string mode = modes.begin()->first;
-                    if (modes.size() > 1)
-                    {
+                    if (modes.size() > 1) {
                         wxArrayString choices;
-                        for (const auto& it : modes)
-                        {
+                        for (const auto& it : modes) {
                             choices.push_back(it.first);
                         }
                         wxSingleChoiceDialog dlg(xlights, "Select the model mode", "DMX Model Mode", choices);
-                        if (dlg.ShowModal() != wxID_OK)
-                        {
+                        if (dlg.ShowModal() != wxID_OK) {
                             cancelled = true;
                             break;
                         }
@@ -4990,16 +4960,13 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                             {
                                 wxArrayString ss = wxSplit(s, '/');
                                 wxASSERT(ss.size() == 2);
-                                if (ss[1] == "1")
-                                {
-                                    if (channels == 2)
-                                    {
+                                if (ss[1] == "1") {
+                                    if (channels == 2) {
                                         return wxAtoi(ss[0]) << 8;
                                     }
                                     return wxAtoi(ss[0]);
                                 }
-                                else if (ss[1] == "2")
-                                {
+                                else if (ss[1] == "2") {
                                     wxASSERT(channels == 2);
                                     return wxAtoi(ss[0]);
                                 }
@@ -5018,12 +4985,10 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                                 _description = n->GetAttribute("Name").ToStdString();
                                 wxASSERT(_description != "");
                                 _low = ParseValue(n->GetAttribute("DMXFrom"), channels);
-                                if (nn == nullptr)
-                                {
+                                if (nn == nullptr) {
                                     _high = _low;
                                 }
-                                else
-                                {
+                                else {
                                     _high = ParseValue(nn->GetAttribute("DMXFrom"), channels) - 1;
                                 }
                             }
@@ -5041,8 +5006,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
                         ~DMXChannel()
                         {
-                            while (_values.size() > 0)
-                            {
+                            while (_values.size() > 0) {
                                 delete _values.front();
                                 _values.pop_front();
                             }
@@ -5055,19 +5019,13 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                             wxASSERT(os.size() > 0);
                             _channelStart = wxAtoi(os[0]);
                             _channels = os.size();
-                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                            {
-                                if (nn->GetName() == "LogicalChannel")
-                                {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                if (nn->GetName() == "LogicalChannel") {
                                     _attribute = nn->GetAttribute("Attribute").ToStdString();
-                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                    {
-                                        if (nnn->GetName() == "ChannelFunction")
-                                        {
-                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                            {
-                                                if (nnnn->GetName() == "ChannelSet" && nnnn->GetAttribute("Name") != "")
-                                                {
+                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        if (nnn->GetName() == "ChannelFunction") {
+                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                if (nnnn->GetName() == "ChannelSet" && nnnn->GetAttribute("Name") != "") {
                                                     _values.push_back(new DMXValue(nnnn, nnnn->GetNext(), _channels));
                                                 }
                                             }
@@ -5081,14 +5039,10 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                     std::list<DMXChannel*> _channels;
 
                     int channels = 0;
-                    for (wxXmlNode* n = modes[mode]->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
-                        if (n->GetName() == "DMXChannels")
-                        {
-                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                            {
-                                if (nn->GetName() == "DMXChannel")
-                                {
+                    for (wxXmlNode* n = modes[mode]->GetChildren(); n != nullptr; n = n->GetNext()) {
+                        if (n->GetName() == "DMXChannels") {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                if (nn->GetName() == "DMXChannel") {
                                     DMXChannel* c = new DMXChannel(nn);
                                     _channels.push_back(c);
                                     channels = std::max(channels, c->_channelStart + c->_channels - 1);
@@ -5108,12 +5062,10 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                         xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
                         delete model;
                     }
-                    if (isMovingHead)
-                    {
+                    if (isMovingHead) {
                         model = xlights->AllModels.CreateDefaultModel("DmxMovingHead3D", startChannel);
                     }
-                    else
-                    {
+                    else {
                         model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
                         model->GetModelXml()->DeleteAttribute("DmxStyle");
                         model->GetModelXml()->AddAttribute("DmxStyle", "Moving Head Bars");
@@ -5122,7 +5074,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                     model->SetHcenterPos(x);
                     model->SetVcenterPos(y);
                     // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-                    ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w*5, h*5);
+                    ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
                     model->GetModelScreenLocation().Write(model->GetModelXml());
                     model->SetLayoutGroup(lg);
 
@@ -5130,8 +5082,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                     model->GetModelXml()->DeleteAttribute("parm1");
                     model->GetModelXml()->AddAttribute("parm1", wxString::Format("%d", channels));
 
-                    if (modes.size() > 0)
-                    {
+                    if (modes.size() > 0) {
                         model->GetModelXml()->DeleteAttribute("Description");
                         model->GetModelXml()->AddAttribute("Description", XmlSafe("Mode: " + mode));
                     }
@@ -5139,51 +5090,41 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                     std::vector<std::string> nodeNames = std::vector<std::string>(channels);
                     std::map<std::string, std::map<std::string, std::string> > stateInfo;
 
-                    for (const auto& it : _channels)
-                    {
-                        if (it->_attribute == "Pan")
-                        {
+                    for (const auto& it : _channels) {
+                        if (it->_attribute == "Pan") {
                             model->GetModelXml()->DeleteAttribute("DmxPanChannel");
                             model->GetModelXml()->AddAttribute("DmxPanChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "Tilt")
-                        {
+                        else if (it->_attribute == "Tilt") {
                             model->GetModelXml()->DeleteAttribute("DmxTiltChannel");
                             model->GetModelXml()->AddAttribute("DmxTiltChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "ColorAdd_W")
-                        {
+                        else if (it->_attribute == "ColorAdd_W") {
                             model->GetModelXml()->DeleteAttribute("DmxWhiteChannel");
                             model->GetModelXml()->AddAttribute("DmxWhiteChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "ColorRGB_Red" || it->_attribute == "ColorAdd_R")
-                        {
+                        else if (it->_attribute == "ColorRGB_Red" || it->_attribute == "ColorAdd_R") {
                             model->GetModelXml()->DeleteAttribute("DmxRedChannel");
                             model->GetModelXml()->AddAttribute("DmxRedChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "ColorRGB_Green" || it->_attribute == "ColorAdd_G")
-                        {
+                        else if (it->_attribute == "ColorRGB_Green" || it->_attribute == "ColorAdd_G") {
                             model->GetModelXml()->DeleteAttribute("DmxGreenChannel");
                             model->GetModelXml()->AddAttribute("DmxGreenChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "ColorRGB_Blue" || it->_attribute == "ColorAdd_B")
-                        {
+                        else if (it->_attribute == "ColorRGB_Blue" || it->_attribute == "ColorAdd_B") {
                             model->GetModelXml()->DeleteAttribute("DmxBlueChannel");
                             model->GetModelXml()->AddAttribute("DmxBlueChannel", wxString::Format("%d", it->_channelStart));
                         }
-                        else if (it->_attribute == "Shutter" || it->_attribute == "Shutter1")
-                        {
+                        else if (it->_attribute == "Shutter" || it->_attribute == "Shutter1") {
                             model->GetModelXml()->DeleteAttribute("DmxShutterChannel");
                             model->GetModelXml()->AddAttribute("DmxShutterChannel", wxString::Format("%d", it->_channelStart));
                         }
 
-                        if (it->_values.size() > 0)
-                        {
+                        if (it->_values.size() > 0) {
                             std::map<std::string, std::string> states;
 
                             int st = 1;
-                            for (const auto& it2 : it->_values)
-                            {
+                            for (const auto& it2 : it->_values) {
                                 states[wxString::Format("s%d-Name", st)] = it2->_description;
                                 states[wxString::Format("s%d", st)] = wxString::Format("%d", it->_channelStart);
                                 states[wxString::Format("s%d-Color", st)] = wxString::Format("#%02x%02x%02x", it2->_low, it2->_low, it2->_low);
@@ -5195,43 +5136,36 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                         }
 
                         // Build the node names
-                        if (it->_channels == 1)
-                        {
+                        if (it->_channels == 1) {
                             nodeNames[it->_channelStart - 1] = it->_attribute;
                         }
-                        else
-                        {
-                            for (int i = 0; i < it->_channels; i++)
-                            {
+                        else {
+                            for (int i = 0; i < it->_channels; i++) {
                                 nodeNames[it->_channelStart + i - 1] = it->_attribute + wxString::Format("-%d", i + 1).ToStdString();
                             }
                         }
                     }
 
                     std::string nodenames = "";
-                    for (const auto& s : nodeNames)
-                    {
+                    for (const auto& s : nodeNames) {
                         if (nodenames != "") nodenames += ",";
                         nodenames += s;
                     }
                     model->GetModelXml()->DeleteAttribute("NodeNames");
                     model->GetModelXml()->AddAttribute("NodeNames", nodenames);
 
-                    if (stateInfo.size() > 0)
-                    {
+                    if (stateInfo.size() > 0) {
                         Model::WriteStateInfo(model->GetModelXml(), stateInfo, true);
                     }
 
                     model->Selected = true;
 
-                    while (_channels.size() > 0)
-                    {
+                    while (_channels.size() > 0) {
                         delete _channels.front();
                         _channels.pop_front();
                     }
                 }
-                else
-                {
+                else {
                     cancelled = true;
                 }
                 break;
@@ -5240,24 +5174,23 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
         }
         return model;
     }
-    else if (!wxString(last_model).Lower().EndsWith(".xmodel"))
-    {
+    else if (!wxString(last_model).Lower().EndsWith(".xmodel")) {
         // if it isnt an xmodel then it is custom
         return model;
     }
 
     wxXmlDocument doc(last_model);
-    if (doc.IsOk())
-    {
+    if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
 
         if (root->GetName() == "custommodel") {
             return model;
-        } else if (root->GetName() == "polylinemodel") {
+        }
+        else if (root->GetName() == "polylinemodel") {
             // not a custom model so delete the default model that was created
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
             auto lg = model->GetLayoutGroup();
-            if( model != nullptr ) {
+            if (model != nullptr) {
                 xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
                 delete model;
             }
@@ -5308,8 +5241,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             int h1 = 1;
             model->InitializeLocation(h1, l, b, nullptr);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r-l));
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t-b) / (float)std::abs(r-l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
             model->SetLayoutGroup(lg);
             model->Selected = true;
             return model;
@@ -5431,7 +5364,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             return model;
         }
         else if (root->GetName() == "dmxservo3axis" ||
-                 root->GetName() == "dmxservo3d" ) {
+            root->GetName() == "dmxservo3d") {
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
@@ -5448,34 +5381,33 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
             model->SetHcenterPos(x);
             model->SetVcenterPos(y);
-            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1,1,1));
+            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
             model->SetLayoutGroup(lg);
             model->Selected = true;
             return model;
         }
         else if (root->GetName() == "circlemodel") {
 
-			// grab the attributes I want to keep
-			std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-			auto x = model->GetHcenterPos();
-			auto y = model->GetVcenterPos();
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto lg = model->GetLayoutGroup();
 
-			// not a custom model so delete the default model that was created
-			if (model != nullptr) {
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
                 xlights->AddTraceMessage("GetXlightsModel converted model to Circle");
                 delete model;
-			}
-			model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
-			model->SetHcenterPos(x);
-			model->SetVcenterPos(y);
-			//((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-			model->SetLayoutGroup(lg);
-			model->Selected = true;
-			return model;
-		}
-        else
-        {
+            }
+            model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            //((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
+        else {
             logger_base.error("GetXlightsModel no code to convert to " + root->GetName());
             xlights->AddTraceMessage("GetXlightsModel no code to convert to " + root->GetName());
             cancelled = true;
@@ -5488,8 +5420,8 @@ wxString Model::SerialiseSubmodel() const
 {
     wxString res = "";
 
-    wxXmlNode * root = GetModelXml();
-    wxXmlNode * child = root->GetChildren();
+    wxXmlNode* root = GetModelXml();
+    wxXmlNode* child = root->GetChildren();
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
             wxXmlDocument new_doc;
@@ -5497,7 +5429,7 @@ wxString Model::SerialiseSubmodel() const
             wxStringOutputStream stream;
             new_doc.Save(stream);
             wxString s = stream.GetString();
-            s = s.SubString(s.Find("\n")+1, s.Length()); // skip over xml format header
+            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
             res += s;
         }
         child = child->GetNext();
@@ -5506,25 +5438,53 @@ wxString Model::SerialiseSubmodel() const
     return res;
 }
 
+std::list<std::string> Model::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (modelDimmingCurve != nullptr) {
+        auto dimmingInfo = GetDimmingInfo();
+        if (dimmingInfo.size() > 0) {
+            float maxGamma = 0.0;
+            int maxBrightness = -100;
+            for (auto& it : dimmingInfo) {
+                maxGamma = std::max(maxGamma, (float)wxAtof(it.second["gamma"]));
+                maxBrightness = std::max(maxBrightness, wxAtoi(it.second["brightness"]));
+            }
+            if (maxGamma == 0.0) {
+                res.push_back(wxString::Format("    ERR: Model %s has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+            }
+            if (maxBrightness == -100) {
+                res.push_back(wxString::Format("    ERR: Model %s has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+            }
+        }
+    }
+
+    res.splice(res.end(), BaseObject::CheckModelSettings());
+    return res;
+}
+
 bool Model::IsControllerConnectionValid() const
 {
     return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
 }
 
-bool Model::IsPixelProtocol(const std::string &p) {
+bool Model::IsPixelProtocol(const std::string& p)
+{
     if (p == "") {
         return false;
     }
     return !IsSerialProtocol(p);
 }
 
-bool Model::IsSerialProtocol(const std::string& p) {
+bool Model::IsSerialProtocol(const std::string& p)
+{
     if (p == "") {
         return false;
     }
     wxString protocol = p;
     protocol.MakeLower();
-    
+
     return SERIAL_PROTOCOLS.find(protocol) != SERIAL_PROTOCOLS.end();
 }
 

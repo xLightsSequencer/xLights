@@ -988,6 +988,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         free(chs);
     }
 
+    res.splice(res.end(), Model::CheckModelSettings());
     return res;
 }
 
