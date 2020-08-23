@@ -243,7 +243,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                         type == OUTPUT_DLIGHT ||
                         type == OUTPUT_RENARD ||
                         type == OUTPUT_OPENDMX ||
-                        type == OUTPUT_OPENPIXELNET) {
+                        type == OUTPUT_OPENPIXELNET ||
+                        type == OUTPUT_GENERICSERIAL) {
                         cu = new ControllerSerial(this);
                     }
                     AddController(cu, -1);

@@ -28,6 +28,7 @@
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
+#include "GenericSerialOutput.h"
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
 
@@ -149,6 +150,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_OPENPIXELNET) {
         return new OpenPixelNetOutput(node);
+    }
+    else if (type == OUTPUT_GENERICSERIAL) {
+        return new GenericSerialOutput(node);
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());

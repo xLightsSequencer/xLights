@@ -829,6 +829,9 @@
     <ClCompile Include="controllers\Minleon.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\GenericSerialOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1664,6 +1667,9 @@
     </ClInclude>
     <ClInclude Include="controllers\Minleon.h">
       <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\GenericSerialOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

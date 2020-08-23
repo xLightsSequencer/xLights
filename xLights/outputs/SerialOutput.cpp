@@ -22,6 +22,7 @@
 #include "PixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
+#include "GenericSerialOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 

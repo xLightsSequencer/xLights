@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Generic Serial Output
 2020.33 August 22 2020
    -- enh (keith)  Have check sequence flag dimming curves which will blank out a prop
    -- bug (scott)  Try to improve AC effect toolbar

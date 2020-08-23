@@ -28,6 +28,7 @@
 #include "LOROptimisedOutput.h"
 #include "PixelNetOutput.h"
 #include "xxxSerialOutput.h"
+#include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
 #pragma region Property Choices
@@ -51,6 +52,7 @@ wxPGChoices ControllerSerial::GetProtocols() const
         else if (it == "openpixelnet") types.Add(OUTPUT_OPENPIXELNET);
         else if (it == "renard") types.Add(OUTPUT_RENARD);
         else if (it == "dlight") types.Add(OUTPUT_DLIGHT);
+        else if (it == "generic serial") types.Add(OUTPUT_GENERICSERIAL);
         else if (it == "xxx serial") {
             if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxSERIAL) {
                 types.Add(OUTPUT_xxxSERIAL);
@@ -71,6 +73,7 @@ void ControllerSerial::InitialiseTypes(bool forceXXX) {
         __types.Add(OUTPUT_OPENPIXELNET);
         __types.Add(OUTPUT_RENARD);
         __types.Add(OUTPUT_DLIGHT);
+        __types.Add(OUTPUT_GENERICSERIAL);
         if (forceXXX || SpecialOptions::GetOption("xxx") == "true") {
             __types.Add(OUTPUT_xxxSERIAL);
         }
@@ -207,6 +210,9 @@ void ControllerSerial::SetProtocol(const std::string& type)
             }
             else if (type == OUTPUT_xxxSERIAL) {
                 o = new xxxSerialOutput();
+            }
+            else if (type == OUTPUT_GENERICSERIAL) {
+                o = new GenericSerialOutput();
             }
             else {
                 wxASSERT(false);
