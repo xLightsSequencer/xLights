@@ -63,6 +63,7 @@
 		6716574923CAAA45000B47D3 /* DmxServo3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574123CAAA45000B47D3 /* DmxServo3D.cpp */; };
 		6716574A23CAAA45000B47D3 /* DmxFloodArea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574223CAAA45000B47D3 /* DmxFloodArea.cpp */; };
 		6716574B23CAAA45000B47D3 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574623CAAA45000B47D3 /* Mesh.cpp */; };
+		671805A524F3090D002DEC46 /* GenericSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
@@ -651,6 +652,8 @@
 		6716574423CAAA45000B47D3 /* DmxServo3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxServo3D.h; sourceTree = "<group>"; };
 		6716574523CAAA45000B47D3 /* DmxImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxImage.h; sourceTree = "<group>"; };
 		6716574623CAAA45000B47D3 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
+		671805A324F3090D002DEC46 /* GenericSerialOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GenericSerialOutput.h; path = outputs/GenericSerialOutput.h; sourceTree = "<group>"; };
+		671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GenericSerialOutput.cpp; path = outputs/GenericSerialOutput.cpp; sourceTree = "<group>"; };
 		671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SevenSegmentDialog.cpp; sourceTree = "<group>"; };
 		671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SevenSegmentDialog.h; sourceTree = "<group>"; };
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
@@ -2168,6 +2171,8 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */,
+				671805A324F3090D002DEC46 /* GenericSerialOutput.h */,
 				67D7FC58243B6918004956FF /* OPCOutput.cpp */,
 				67D7FC57243B6918004956FF /* OPCOutput.h */,
 				678A41BA23E6417600E5FB09 /* Controller.cpp */,
@@ -2435,9 +2440,6 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67CFCBFA24A937770099A1C8 /* xLightsDebug.entitlements */,
-				67F5E4BE24A0EE3A00DE0FF0 /* xLightsArchive.entitlements */,
-				67F8A28F24788E92004EC222 /* md5.cpp */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -2558,6 +2560,7 @@
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
 				670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */,
 				670827FC2024C2D40002B617 /* MatrixFaceDownloadDialog.h */,
+				67F8A28F24788E92004EC222 /* md5.cpp */,
 				67DAFDCD1CA1A62B004B3237 /* MIDI */,
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
@@ -2707,6 +2710,8 @@
 				672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */,
 				67A1CE421D5B4C5D00999746 /* xLights.entitlements */,
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
+				67F5E4BE24A0EE3A00DE0FF0 /* xLightsArchive.entitlements */,
+				67CFCBFA24A937770099A1C8 /* xLightsDebug.entitlements */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */,
 				679240791CF15B37000E4D91 /* xLightsImportChannelMapDialog.h */,
@@ -3137,6 +3142,7 @@
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */,
 				6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */,
+				671805A524F3090D002DEC46 /* GenericSerialOutput.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67503C9A23C3261F0033449B /* DmxFloodlight.cpp in Sources */,
 				6740DD0723BC2136002500F2 /* HinksPixExportDialog.cpp in Sources */,

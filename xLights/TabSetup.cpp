@@ -1230,6 +1230,15 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             startAddresses.push_back(a);
         }
     }
+    for (auto &it : _outputManager.GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr) {
+            startAddresses.push_back(eth->GetIP());
+            if (eth->GetFPPProxy() != "") {
+                startAddresses.push_back(eth->GetFPPProxy());
+            }
+        }
+    }
     FPP::Discover(startAddresses, instances, true, true);
     std::list<FPP*> consider;
     for (auto fpp : instances) {

@@ -176,6 +176,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
 
     std::list<std::string> startAddresses;
+    std::list<std::string> startAddressesForced;
 
     wxConfigBase* config = wxConfigBase::Get();
     wxString force;
@@ -184,11 +185,28 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
         wxString newForce;
         for (const auto &a : ips) {
             startAddresses.push_back(a);
+            startAddressesForced.push_back(a);
+        }
+    }
+    // add existing controller IP's to the discovery, helps speed up
+    // discovery as well as makes it more reliable to discover those,
+    // particularly if on a different subnet.   This also helps
+    // make sure actually configured controllers are found
+    // so the FPP Connect dialog is more likely to
+    // have the entire list allowing the uploads to then entire
+    // show network to be easier to do
+    for (auto &it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr) {
+            startAddresses.push_back(eth->GetIP());
+            if (eth->GetFPPProxy() != "") {
+                startAddresses.push_back(eth->GetFPPProxy());
+            }
         }
     }
     FPP::Discover(startAddresses, instances);
     wxString newForce = "";
-    for (const auto &a : startAddresses) {
+    for (const auto &a : startAddressesForced) {
         for (const auto& fpp : instances) {
             if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
                 if (newForce != "") {
