@@ -1201,6 +1201,23 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     SetStatusText("Running controller discovery ...");
     SetCursor(wxCURSOR_WAIT);
 
+    bool hasChanges = false;
+    std::map<std::string, std::string> renames;
+    if (_outputManager.Discover(this, renames)) {
+        hasChanges = true;
+
+        // update the controller name on any models which use renamed controllers
+        for (auto it = renames.begin(); it != renames.end(); ++it) {
+            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
+
+            for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm) {
+                if (itm->second->GetControllerName() == it->first) {
+                    itm->second->SetControllerName(it->second);
+                }
+            }
+        }
+    }
+
     std::list<std::string> startAddresses;
     std::list<FPP*> instances;
     wxConfigBase* config = wxConfigBase::Get();
@@ -1212,7 +1229,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             startAddresses.push_back(a);
         }
     }
-    bool hasChanges = false;
     FPP::Discover(startAddresses, instances, true, true);
     std::list<FPP*> consider;
     for (auto fpp : instances) {
@@ -1344,22 +1360,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         _outputManager.AddController(controller, -1);
         hasChanges = true;
         delete fpp;
-    }
-
-    std::map<std::string, std::string> renames;
-    if (_outputManager.Discover(this, renames)) {
-        hasChanges = true;
-
-        // update the controller name on any models which use renamed controllers
-        for (auto it = renames.begin(); it != renames.end(); ++it) {
-            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
-
-            for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm) {
-                if (itm->second->GetControllerName() == it->first) {
-                    itm->second->SetControllerName(it->second);
-                }
-            }
-        }
     }
 
     for (const auto& it : Pixlite16::Discover(&_outputManager, this)) {

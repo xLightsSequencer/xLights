@@ -2096,18 +2096,21 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
             delete socket;
         }
     }
+
     wxIPV4address bcAddress;
     bcAddress.BroadcastAddress();
     bcAddress.Service(FPP_CTRL_PORT);
     for (const auto& socket : sockets) {
         socket->SendTo(bcAddress, buffer, 207);
     }
+
     if (mainSocket->IsOk()) {
         wxIPV4address remoteaddr;
         uint8_t target1[] = { 0xE0, 0x00, 0x1E, 0x05 };
         uint8_t target2[] = { 0xE0, 0x46, 0x50, 0x50 };
         remoteaddr.Hostname(toIp(target1));
         remoteaddr.Service(0x7535);
+        // ZCPP because ... why ... does FPP not have proper discovery?
         uint8_t buf[] = { 0x5a, 0x43, 0x50, 0x50, 0, 0, 0, 0 };
         mainSocket->SendTo(remoteaddr, buf, sizeof(buf));
         
@@ -2115,8 +2118,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         remoteaddr.Service(0x7E40);
         mainSocket->SendTo(remoteaddr, buffer, 207);
     }
-    
-    
+        
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = curls.size();
     while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
@@ -2203,7 +2205,6 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                 fpp->hostName = address;
                 instances.push_back(fpp);
 
-                
                 std::string fullAddress = "http://" + address + "/";
                 CurlData *data = new CurlData(fullAddress);
                 data->type = 5;
