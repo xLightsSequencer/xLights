@@ -913,12 +913,21 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
                 if (it == _modelData.begin()) {
                     (*it)->Configuration.flags |= ZCPP_CONFIG_FLAG_FIRST;
                 }
+                else                     {
+                    (*it)->Configuration.flags &= ~ZCPP_CONFIG_FLAG_FIRST;
+                }
                 if (it2 == _modelData.end()) {
                     (*it)->Configuration.flags |= ZCPP_CONFIG_FLAG_LAST;
+                }
+                else {
+                    (*it)->Configuration.flags &= ~ZCPP_CONFIG_FLAG_LAST;
                 }
 
                 if (sendExtra) {
                     (*it)->Configuration.flags |= ZCPP_CONFIG_FLAG_EXTRA_DATA_WILL_FOLLOW;
+                }
+                else                     {
+                    (*it)->Configuration.flags &= ~ZCPP_CONFIG_FLAG_EXTRA_DATA_WILL_FOLLOW;
                 }
 
                 _datagram->SendTo(_remoteAddr, *it, ZCPP_GetPacketActualSize(**it));
@@ -932,8 +941,14 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
                     if (it == _extraConfig.begin()) {
                         (*it)->ExtraData.flags |= ZCPP_CONFIG_FLAG_FIRST;
                     }
+                    else                         {
+                        (*it)->ExtraData.flags &= ~ZCPP_CONFIG_FLAG_FIRST;
+                    }
                     if (it2 == _extraConfig.end()) {
                         (*it)->ExtraData.flags |= ZCPP_CONFIG_FLAG_LAST;
+                    }
+                    else                         {
+                        (*it)->ExtraData.flags &= ~ZCPP_CONFIG_FLAG_LAST;
                     }
                     _datagram->SendTo(_remoteAddr, *it, ZCPP_GetPacketActualSize(**it));
                 }
