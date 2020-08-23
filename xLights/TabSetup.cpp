@@ -1202,21 +1202,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     SetCursor(wxCURSOR_WAIT);
 
     bool hasChanges = false;
-    std::map<std::string, std::string> renames;
-    if (_outputManager.Discover(this, renames)) {
-        hasChanges = true;
-
-        // update the controller name on any models which use renamed controllers
-        for (auto it = renames.begin(); it != renames.end(); ++it) {
-            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
-
-            for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm) {
-                if (itm->second->GetControllerName() == it->first) {
-                    itm->second->SetControllerName(it->second);
-                }
-            }
-        }
-    }
 
     std::list<std::string> startAddresses;
     std::list<FPP*> instances;
@@ -1361,7 +1346,21 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         hasChanges = true;
         delete fpp;
     }
+    std::map<std::string, std::string> renames;
+    if (_outputManager.Discover(this, renames)) {
+        hasChanges = true;
 
+        // update the controller name on any models which use renamed controllers
+        for (auto it = renames.begin(); it != renames.end(); ++it) {
+            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
+
+            for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm) {
+                if (itm->second->GetControllerName() == it->first) {
+                    itm->second->SetControllerName(it->second);
+                }
+            }
+        }
+    }
     for (const auto& it : Pixlite16::Discover(&_outputManager, this)) {
         if (_outputManager.GetControllers(it->GetIP(), "").size() == 0) {
             it->EnsureUniqueId();
