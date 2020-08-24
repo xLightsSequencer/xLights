@@ -16,6 +16,7 @@
 #include <wx/socket.h>
 
 class ControllerEthernet;
+class Discovery;
 
 #define ZCPP_MAXCHANNELS (16 * 1024)
 
@@ -70,7 +71,7 @@ public:
     static int EncodeColourOrder(const std::string& colourOrder);
 
     #ifndef EXCLUDENETWORKUI
-    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
+    static void PrepareDiscovery(Discovery &discovery);
     #endif
 
     static wxArrayString GetVendors();

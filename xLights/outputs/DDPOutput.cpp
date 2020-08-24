@@ -23,6 +23,10 @@
 
 #include <log4cpp/Category.hh>
 
+#ifndef EXCLUDENETWORKUI
+#include "../Discovery.h"
+#endif
+
 #pragma region Static Variables
 bool DDPOutput::__initialised = false;
 #pragma endregion
@@ -254,129 +258,59 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
     return val;
 }
 
-std::list<ControllerEthernet*> DDPOutput::Discover(OutputManager* outputManager)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
-    std::list<ControllerEthernet*> res;
 
     uint8_t packet[DDP_DISCOVERPACKET_LEN];
-
     memset(&packet, 0x00, sizeof(packet));
 
     packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
     packet[3] = DDP_ID_CONFIG;
-
-    auto localIPs = GetLocalIPs();
-
-    for (auto ip : localIPs) {
-        if (ip == "127.0.0.1") {
-            continue;
+    
+    discovery.AddBroadcast(DDP_PORT, [&discovery](uint8_t *response, int len) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (response[0] & DDP_FLAGS1_QUERY) {
+            //getting my own QUERY request, ignore
+            return;
         }
-        wxIPV4address sendlocaladdr;
-        sendlocaladdr.Hostname(ip);
+        if (response[3] == DDP_ID_CONFIG) {
+            logger_base.debug(" Valid response.");
+            logger_base.debug((const char*)&response[10]);
 
-        logger_base.debug(" DDP Discovery using %s", (const char*)ip.c_str());
-        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+            wxIPV4address aa;
+            auto ip = aa.IPAddress();
 
-        if (datagram == nullptr) {
-            logger_base.error("Error initialising DDP discovery datagram.");
-        }
-        else if (!datagram->IsOk()) {
-            logger_base.error("Error initialising DDP discovery datagram ... is network connected? OK : FALSE");
-            delete datagram;
-            datagram = nullptr;
-        }
-        else if (datagram->Error() != wxSOCKET_NOERROR) {
-            logger_base.error("Error creating DDP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
-            delete datagram;
-            datagram = nullptr;
-        }
-        else {
-            logger_base.info("DDP discovery datagram opened successfully.");
-        }
+            ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
+            controller->SetProtocol(OUTPUT_DDP);
 
-        wxIPV4address remoteaddr;
-        wxString ipaddrWithUniv = "255.255.255.255";
-        remoteaddr.Hostname(ipaddrWithUniv);
-        remoteaddr.Service(DDP_PORT);
+            logger_base.debug("   IP %s", (const char*)ip.c_str());
+            controller->SetIP(ip);
+            controller->SetName("DDP_" + ip);
+            controller->SetId(1);
+            controller->EnsureUniqueId();
 
-        // bail if we dont have a datagram to use
-        if (datagram != nullptr) {
-            logger_base.info("DDP sending discovery packet.");
-            datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
-            if (datagram->Error() != wxSOCKET_NOERROR) {
-                logger_base.error("Error sending DDP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            wxJSONReader reader;
+            wxJSONValue val;
+            reader.Parse(wxString(&response[10]), &val);
+
+            int channels = 0;
+            auto ports = val["config"]["ports"].AsArray();
+            for (int i = 0; i < ports->Count(); i++)                                 {
+                auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
+                auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
+                channels += ts * l * 3;
             }
-            else {
-                logger_base.info("DDP sent discovery packet. Sleeping for 2 seconds.");
+            controller->GetOutputs().front()->SetChannels(channels);
 
-                // give the controllers 2 seconds to respond
-                wxMilliSleep(2000);
+            logger_base.info("DDP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
 
-                uint8_t response[1024];
-
-                int lastread = 1;
-
-                while (lastread > 0) {
-                    wxStopWatch sw;
-                    logger_base.debug("Trying to read DDP discovery packet.");
-                    memset(&response, 0x00, sizeof(response));
-                    datagram->Read(&response, sizeof(response));
-                    lastread = datagram->LastReadCount();
-
-                    if (lastread > 10) {
-                        logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
-
-                        if (response[3] == DDP_ID_CONFIG) {
-                            logger_base.debug(" Valid response.");
-                            logger_base.debug((const char*)&response[10]);
-
-                            wxIPV4address aa;
-                            auto ip = aa.IPAddress();
-
-                            ControllerEthernet* controller = new ControllerEthernet(outputManager, false);
-                            controller->SetProtocol(OUTPUT_DDP);
-
-                            logger_base.debug("   IP %s", (const char*)ip.c_str());
-                            controller->SetIP(ip);
-                            controller->SetName("DDP_" + ip);
-                            controller->SetId(1);
-                            controller->EnsureUniqueId();
-
-                            wxJSONReader reader;
-                            wxJSONValue val;
-                            reader.Parse(wxString(&response[10]), &val);
-
-                            int channels = 0;
-                            auto ports = val["config"]["ports"].AsArray();
-                            for (int i = 0; i < ports->Count(); i++)                                 {
-                                auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
-                                auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
-                                channels += ts * l * 3;
-                            }
-                            controller->GetOutputs().front()->SetChannels(channels);
-
-                            logger_base.info("DDP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
-
-                            res.push_back(controller);
-                        }
-                        else {
-                            // non discovery response packet
-                            logger_base.info("DDP Discovery strange packet received.");
-                        }
-                    }
-                }
-                logger_base.info("DDP Discovery Done looking for response.");
-            }
-            datagram->Close();
-            delete datagram;
+            discovery.AddController(controller);
+        } else {
+            // non discovery response packet
+            logger_base.info("DDP Discovery strange packet received.");
         }
-    }
-
-    logger_base.info("DDP Discovery Finished.");
-
-    return res;
+    });
+    discovery.SendBroadcastData(DDP_PORT, packet, DDP_DISCOVERPACKET_LEN);
 }
 #endif
 #pragma endregion

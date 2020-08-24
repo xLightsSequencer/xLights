@@ -26,6 +26,7 @@
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
+#include "../Discovery.h"
 #endif
 
 #include <log4cpp/Category.hh>
@@ -445,185 +446,110 @@ int ZCPPOutput::EncodeColourOrder(const std::string& colourOrder) {
 }
 
 #ifndef EXCLUDENETWORKUI
-std::list<ControllerEthernet*> ZCPPOutput::Discover(OutputManager* outputManager) {
-
+void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    std::list<ControllerEthernet*> res;
     ZCPP_packet_t packet;
-
     memset(&packet, 0x00, sizeof(packet));
     memcpy(packet.Discovery.Header.token, ZCPP_token, sizeof(ZCPP_token));
     packet.Discovery.Header.type = ZCPP_TYPE_DISCOVERY;
     packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
-    auto localIPs = GetLocalIPs();
+    discovery.AddBroadcast(ZCPP_PORT, [&discovery] (uint8_t *buffer, int len) {
+        ZCPP_packet_t response;
+        memcpy(&response, buffer, len);
 
-    for (auto ip : localIPs) {
-        if (ip == "127.0.0.1") {
-            continue;
-        }
-        wxIPV4address sendlocaladdr;
-        sendlocaladdr.Hostname(ip);
+        if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE) {
+            logger_base.debug(" Valid response.");
 
-        logger_base.debug(" ZCPP Discovery using %s", (const char*)ip.c_str());
-        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+            ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
+            controller->SetProtocol(OUTPUT_ZCPP);
 
-        if (datagram == nullptr) {
-            logger_base.error("Error initialising ZCPP discovery datagram.");
-        }
-        else if (!datagram->IsOk()) {
-            logger_base.error("Error initialising ZCPP discovery datagram ... is network connected? OK : FALSE");
-            delete datagram;
-            datagram = nullptr;
-        }
-        else if (datagram->Error() != wxSOCKET_NOERROR) {
-            logger_base.error("Error creating ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
-            delete datagram;
-            datagram = nullptr;
-        }
-        else {
-            logger_base.info("ZCPP discovery datagram opened successfully.");
-        }
-
-        // multicast - universe number must be in lower 2 bytes
-        wxIPV4address remoteaddr;
-        wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
-        remoteaddr.Hostname(ipaddrWithUniv);
-        remoteaddr.Service(ZCPP_PORT);
-
-        // bail if we dont have a datagram to use
-        if (datagram != nullptr) {
-            logger_base.info("ZCPP sending discovery packet.");
-            datagram->SendTo(remoteaddr, &packet, ZCPP_GetPacketActualSize(packet));
-            if (datagram->Error() != wxSOCKET_NOERROR) {
-                logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
-            }
-            else {
-                logger_base.info("ZCPP sent discovery packet. Sleeping for 2 seconds.");
-
-                // give the controllers 2 seconds to respond
-                wxMilliSleep(2000);
-
-                ZCPP_packet_t response;
-
-                int lastread = 1;
-
-                while (lastread > 0) {
-                    wxStopWatch sw;
-                    logger_base.debug("Trying to read ZCPP discovery packet.");
-                    memset(&response, 0x00, sizeof(response));
-                    datagram->Read(&response, sizeof(response));
-                    lastread = datagram->LastReadCount();
-
-                    if (lastread > 0) {
-                        logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
-
-                        if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE) {
-                            logger_base.debug(" Valid response.");
-
-                            ControllerEthernet* controller = new ControllerEthernet(outputManager, false);
-                            controller->SetProtocol(OUTPUT_ZCPP);
-
-                            int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
-                            logger_base.debug("   Vendor %d", vendor);
-                            int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
-                            logger_base.debug("   Model %d", model);
-                            switch (vendor) {
-                            case ZCPP_VENDOR_FALCON:
-                            {
-                                controller->SetVendor("Falcon");
-                                int m, v;
-                                std::string mod = "";
-                                Falcon::DecodeModelVersion(model, m, v);
-                                if (m == 48) {
-                                    mod = "F48";
-                                }
-                                else {
-                                    mod = wxString::Format("F%dV%d", m, v);
-                                }
-                                controller->SetModel(mod);
-                            }
-                            break;
-                            case ZCPP_VENDOR_ESPIXELSTICK:
-                                controller->SetVendor("ESPixelStick");
-                                break;
-                            case ZCPP_VENDOR_FPP:
-                                controller->SetVendor("FPP");
-                                break;
-                            default:
-                                break;
-                            }
-
-                            ZCPPOutput* o = dynamic_cast<ZCPPOutput*>(controller->GetOutputs().front());
-
-                            logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
-
-                            auto ip = wxString::Format("%d.%d.%d.%d",
-                                (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
-                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
-                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
-                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
-                            controller->SetIP(ip.ToStdString());
-                            logger_base.debug("   IP %s", (const char*)ip.c_str());
-
-                            controller->SetName(response.DiscoveryResponse.userControllerName);
-                            logger_base.debug("   Name %s", (const char*)controller->GetName().c_str());
-
-                            uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
-                            logger_base.debug("   Channels %ld", channels);
-
-                            bool supportsVirtualStrings = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) != 0;
-                            logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
-                            o->SetSupportsVirtualStrings(supportsVirtualStrings);
-
-                            bool supportsSmartRemotes = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES) != 0;
-                            logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
-                            o->SetSupportsSmartRemotes(supportsSmartRemotes);
-
-                            bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
-                            logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
-                            o->SetDontConfigure(dontConfigure);
-
-                            bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
-                            logger_base.debug("   Wants to receive data multicast %d", multicast);
-                            o->SetMulticast(multicast);
-
-                            logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
-
-                            uint32_t mask = 0x00000001;
-                            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
-                            for (int i = 0; i < 32; i++) {
-                                if ((dp & mask) != 0) {
-                                    o->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
-                                    logger_base.debug("   Supports Protocol %s", (const char*)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
-                                }
-                                mask = mask << 1;
-                            }
-
-                            controller->SetAutoSize(true);
-                            o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-
-                            logger_base.info("ZCPP Discovery adding controller %s.", (const char*)controller->GetIP().c_str());
-                            res.push_back(controller);
-                        }
-                        else {
-                            // non discovery response packet
-                            logger_base.info("ZCPP Discovery strange packet received.");
-                        }
-                    }
+            int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
+            logger_base.debug("   Vendor %d", vendor);
+            int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
+            logger_base.debug("   Model %d", model);
+            switch (vendor) {
+            case ZCPP_VENDOR_FALCON: {
+                controller->SetVendor("Falcon");
+                int m, v;
+                std::string mod = "";
+                Falcon::DecodeModelVersion(model, m, v);
+                if (m == 48) {
+                    mod = "F48";
+                } else {
+                    mod = wxString::Format("F%dV%d", m, v);
                 }
-                logger_base.info("ZCPP Discovery Done looking for response.");
+                controller->SetModel(mod);
             }
-            datagram->Close();
-            delete datagram;
+            break;
+            case ZCPP_VENDOR_ESPIXELSTICK:
+                controller->SetVendor("ESPixelStick");
+                break;
+            default:
+                break;
+            }
+
+            ZCPPOutput* o = dynamic_cast<ZCPPOutput*>(controller->GetOutputs().front());
+
+            logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
+
+            auto ip = wxString::Format("%d.%d.%d.%d",
+                (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
+                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
+                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
+                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
+            controller->SetIP(ip.ToStdString());
+            logger_base.debug("   IP %s", (const char*)ip.c_str());
+
+            controller->SetName(response.DiscoveryResponse.userControllerName);
+            logger_base.debug("   Name %s", (const char*)controller->GetName().c_str());
+
+            uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
+            logger_base.debug("   Channels %ld", channels);
+
+            bool supportsVirtualStrings = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) != 0;
+            logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+            o->SetSupportsVirtualStrings(supportsVirtualStrings);
+
+            bool supportsSmartRemotes = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES) != 0;
+            logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
+            o->SetSupportsSmartRemotes(supportsSmartRemotes);
+
+            bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
+            logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
+            o->SetDontConfigure(dontConfigure);
+
+            bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
+            logger_base.debug("   Wants to receive data multicast %d", multicast);
+            o->SetMulticast(multicast);
+
+            logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
+
+            uint32_t mask = 0x00000001;
+            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
+            for (int i = 0; i < 32; i++) {
+                if ((dp & mask) != 0) {
+                    o->AddProtocol(ZCPPOutput::DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
+                    logger_base.debug("   Supports Protocol %s", (const char*)ZCPPOutput::DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
+                }
+                mask = mask << 1;
+            }
+
+            controller->SetAutoSize(true);
+            o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
+
+            logger_base.info("ZCPP Discovery adding controller %s.", (const char*)controller->GetIP().c_str());
+            discovery.AddController(controller);
+        } else {
+            // non discovery response packet
+            logger_base.info("ZCPP Discovery strange packet received.");
         }
-    }
+    });
 
-    logger_base.info("ZCPP Discovery Finished.");
-
-    return res;
+    logger_base.info("ZCPP sending discovery packet.");
+    discovery.SendData(ZCPP_PORT, ZCPP_MULTICAST_ADDRESS, (uint8_t*)&packet, ZCPP_GetPacketActualSize(packet));
 }
+
 #endif
 
 wxArrayString ZCPPOutput::GetVendors() {

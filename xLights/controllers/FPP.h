@@ -15,6 +15,7 @@ class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
 class wxProgressDialog;
+class Discovery;
 
 class FPP : public BaseController
 {
@@ -80,11 +81,13 @@ class FPP : public BaseController
 
     bool SetRestartFlag();
     bool Restart(const std::string &mode = "", bool ifNeeded = false);
-    void SetDescription(const std::string &st);
-
-    static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true, bool allPlatforms = false);
-    static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
-
+    void SetDescription(const std::string &st);    
+    
+    static void PrepareDiscovery(Discovery &discovery);
+    static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
+    static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances);
+    
+    
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateUniverseFile(const std::list<ControllerEthernet*>& controllers, bool input);

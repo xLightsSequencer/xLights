@@ -252,6 +252,22 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const {
     }
     return count;
 }
+int Falcon::NumConfiguredStrings() {
+    // get the current config before I start
+    std::string strings = GetURL("/strings.xml");
+    if (strings == "") {
+        return 0;
+    }
+    wxStringInputStream strm(strings);
+    wxXmlDocument stringsDoc(strm);
+
+    if (!stringsDoc.IsOk()) {
+        return 0;
+    }
+    return CountStrings(stringsDoc);
+}
+
+
 
 void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData) const {
 

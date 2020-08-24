@@ -20,6 +20,7 @@
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
+#include "../Discovery.h"
 
 #include <log4cpp/Category.hh>
 
@@ -723,6 +724,87 @@ std::list<Pixlite16::Config> Pixlite16::DoDiscover()
 
     return res;
 }
+void Pixlite16::PrepareDiscovery(Discovery &discovery) {
+    
+    uint8_t discoveryData[12];
+    discoveryData[0] = 'A';
+    discoveryData[1] = 'd';
+    discoveryData[2] = 'v';
+    discoveryData[3] = 'a';
+    discoveryData[4] = 't';
+    discoveryData[5] = 'e';
+    discoveryData[6] = 'c';
+    discoveryData[7] = 'h';
+    discoveryData[8] = 0x00;
+    discoveryData[9] = 0x00;
+    discoveryData[10] = 0x01;
+    discoveryData[11] = 0x06;
+    
+    
+    discovery.AddBroadcast(49150, [&discovery](uint8_t *data, int len) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (data[10] == 0x02) {
+            Pixlite16::Config it;
+            memset(&it, 0x00, sizeof(it));
+            bool connected = false;
+            it._protocolVersion = data[11];
+            switch (it._protocolVersion) {
+            case 4:
+                connected = ParseV4Config(data, it);
+                break;
+            case 5:
+                connected = ParseV5Config(data, it);
+                break;
+            case 6:
+                connected = ParseV6Config(data, it);
+                break;
+            default:
+                logger_base.error("Unsupported protocol : %d.", it._protocolVersion);
+                wxASSERT(false);
+                break;
+            }
+
+            if (connected) {
+                wxString rcvIP = wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
+
+                logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
+                logger_base.debug("    Model %s %.1f.", (const char*)it._modelName.c_str(), (float)it._hwRevision / 10.0);
+                logger_base.debug("    Firmware %s.", (const char*)it._firmwareVersion.c_str());
+                logger_base.debug("    Nickname %s.", (const char*)it._nickname.c_str());
+                logger_base.debug("    Brand %d.", it._brand);
+
+                
+                auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
+                eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
+                eth->SetProtocol(OUTPUT_E131);
+                eth->SetName(it._nickname);
+                eth->EnsureUniqueId();
+                bool mkII = Contains(it._modelName, "MkII");
+                if (Contains(it._modelName, "PixLite")) {
+                    eth->SetVendor("Advatek");
+                    if (it._outputPixels.size() >= 16) {
+                        if (mkII) {
+                            eth->SetModel("PixLite 16 MkII");
+                        } else {
+                            eth->SetModel("PixLite 16");
+                        }
+                    } else {
+                        if (mkII) {
+                            eth->SetModel("PixLite 4 MkII");
+                        } else {
+                            eth->SetModel("PixLite 4");
+                        }
+                    }
+                } else {
+                    eth->SetVendor("LOR");
+                    eth->SetModel("PixCon 16");
+                }
+                discovery.AddController(eth);
+            }
+        }
+    });
+    discovery.SendBroadcastData(49150, discoveryData, sizeof(discoveryData));
+}
 
 bool Pixlite16::SendConfig(bool logresult) const {
 
@@ -842,6 +924,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    /*
     auto configs = DoDiscover();
 
     for (const auto& it : configs)
@@ -861,7 +944,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
             _connected = false;
         }
     }
-
+     */
     if (!_connected) {
         logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
     }
@@ -981,47 +1064,6 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     DisplayError("Not uploaded due to errors.\n" + check);
 
     return false;
-}
-
-std::list<ControllerEthernet*> Pixlite16::Discover(OutputManager* om, wxWindow* parent) {
-
-    std::list<ControllerEthernet*> res;
-
-    for (const auto& it : DoDiscover()) {
-        auto eth = new ControllerEthernet(om, false);
-        eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
-        eth->SetProtocol(OUTPUT_E131);
-        eth->SetName(it._nickname);
-        eth->EnsureUniqueId();
-        bool mkII = Contains(it._modelName, "MkII");
-        if (Contains(it._modelName, "PixLite")) {
-            eth->SetVendor("Advatek");
-            if (it._outputPixels.size() >= 16) {
-                if (mkII) {
-                    eth->SetModel("PixLite 16 MkII");
-                }
-                else {
-                    eth->SetModel("PixLite 16");
-                }
-            }
-            else {
-                if (mkII) {
-                    eth->SetModel("PixLite 4 MkII");
-                }
-                else {
-                    eth->SetModel("PixLite 4");
-                }
-            }
-        }
-        else {
-            eth->SetVendor("LOR");
-            eth->SetModel("PixCon 16");
-        }
-
-        res.push_back(eth);
-    }
-
-    return res;
 }
 
 #pragma endregion

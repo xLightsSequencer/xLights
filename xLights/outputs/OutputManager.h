@@ -132,8 +132,6 @@ public:
     std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
     
-    bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
-    
     void SetShowDir(const std::string& showDir);
     
     void SuspendAll(bool suspend);

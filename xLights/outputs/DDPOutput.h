@@ -43,7 +43,9 @@
 #define DDP_ID_STATUS      251
 #define DDP_ID_DMXTRANSIT  254
 #define DDP_ID_ALLDEVICES  255
-#pragma endregion 
+#pragma endregion
+
+class Discovery;
 
 class DDPOutput : public IPOutput
 {
@@ -78,7 +80,7 @@ public:
 
     #ifndef EXCLUDENETWORKUI
     static wxJSONValue Query(const std::string& ip, uint8_t type);
-    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
+    static void PrepareDiscovery(Discovery &discovery);
     #endif
     #pragma endregion 
 

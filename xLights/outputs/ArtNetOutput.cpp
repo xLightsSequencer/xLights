@@ -18,6 +18,10 @@
 
 #include <log4cpp/Category.hh>
 
+#ifndef EXCLUDENETWORKUI
+#include "../Discovery.h"
+#endif
+
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
 int ArtNetOutput::__ip2 = -1;
@@ -150,14 +154,10 @@ void ArtNetOutput::SendSync() {
     }
 }
 
-std::list<ControllerEthernet*> ArtNetOutput::Discover(OutputManager* outputManager) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::list<ControllerEthernet*> res;
-
+#ifndef EXCLUDENETWORKUI
+void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     wxByte packet[14];
     memset(packet, 0x00, sizeof(packet));
-
     packet[0] = 'A';
     packet[1] = 'r';
     packet[2] = 't';
@@ -169,88 +169,31 @@ std::list<ControllerEthernet*> ArtNetOutput::Discover(OutputManager* outputManag
     packet[11] = 0x0E; // Protocol version Low
     packet[12] = 0x02;
     packet[13] = 0xe0; //Critical messages Only
-    
-    std::vector<wxDatagramSocket *> sockets;
-    wxIPV4address localaddr;
-    localaddr.AnyAddress();
-    localaddr.Service(ARTNET_PORT);
-    wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
-    socket->SetTimeout(1);
-    socket->Notify(false);
-    if (socket->IsOk()) {
-        sockets.push_back(socket);
-    }
-    
-    auto localIPs = GetLocalIPs();
-    for (auto ip : localIPs) {
-        if (ip == "127.0.0.1") {
-            continue;
-        }
-        wxIPV4address localaddr;
-        localaddr.Hostname(ip);
-        
-        wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
-        socket->SetTimeout(1);
-        socket->Notify(false);
-        if (socket->IsOk()) {
-            sockets.push_back(socket);
+
+    discovery.AddBroadcast(ARTNET_PORT, [&discovery](uint8_t *buffer, int len) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
+            logger_base.debug(" Valid response.");
+            uint32_t channels = 512;
+
+            ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
+            c->SetProtocol(OUTPUT_ARTNET);
+            c->SetName(std::string((char*)& buffer[26]));
+            ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
+            o->SetChannels(channels);
+            auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
+            c->SetIP(ip.ToStdString());
+
+            logger_base.info("ArtNet Discovery adding controller %s.", (const char*)c->GetIP().c_str());
+            discovery.AddController(c);
         } else {
-            delete socket;
+            // non discovery response packet
+            logger_base.info("ArtNet Discovery strange packet received.");
         }
-    }
-    wxIPV4address bcAddress;
-    bcAddress.BroadcastAddress();
-    bcAddress.Service(ARTNET_PORT);
-    for (auto socket : sockets) {
-        socket->SendTo(bcAddress, packet, sizeof(packet));
-    }
-
-    unsigned char buffer[2048];
-    long long endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
-    int readSize = 0;
-    while (readSize > 0 || ((uint64_t)wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
-        readSize = 0;
-        memset(buffer, 0x00, sizeof(buffer));
-        for (auto socket : sockets) {
-            if (socket->IsOk()) {
-                socket->Read(&buffer[0], sizeof(buffer));
-                readSize = socket->GetLastIOReadSize();
-                if (readSize != 0) {
-                    break;
-                }
-            }
-            
-            if (readSize > 0) {
-                if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
-                    logger_base.debug(" Valid response.");
-                    uint32_t channels = 512;
-
-                    ControllerEthernet* c = new ControllerEthernet(outputManager, false);
-                    c->SetProtocol(OUTPUT_ARTNET);
-                    c->SetName(std::string((char*)& buffer[26]));
-                    ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
-                    o->SetChannels(channels);
-                    auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-                    c->SetIP(ip.ToStdString());
-
-                    logger_base.info("ArtNet Discovery adding controller %s.", (const char*)c->GetIP().c_str());
-                    res.push_back(c);
-                } else {
-                    // non discovery response packet
-                    logger_base.info("ArtNet Discovery strange packet received.");
-                }
-            }
-        }
-    }
-    for (auto socket : sockets) {
-        socket->Close();
-        delete socket;
-    }
-
-    logger_base.info("ArtNet Discovery Finished.");
-
-    return res;
+    });
+    discovery.SendBroadcastData(ARTNET_PORT, packet, sizeof(packet));
 }
+#endif
 #pragma endregion
 
 #pragma region Getters and Setters

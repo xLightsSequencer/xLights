@@ -109,5 +109,7 @@ public:
     std::string GetName() const { return _name; }
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
+    
+    int NumConfiguredStrings();
 };
 

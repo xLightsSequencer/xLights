@@ -229,6 +229,7 @@
     <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="Discovery.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
@@ -646,6 +647,7 @@
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
+    <ClInclude Include="Discovery.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />

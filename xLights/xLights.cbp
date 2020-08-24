@@ -489,6 +489,8 @@
 		<Unit filename="DimmingCurve.h" />
 		<Unit filename="DimmingCurvePanel.cpp" />
 		<Unit filename="DimmingCurvePanel.h" />
+        <Unit filename="Discovery.cpp" />
+        <Unit filename="Discovery.h" />
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DragColoursBitmapButton.cpp" />
 		<Unit filename="DragColoursBitmapButton.h" />

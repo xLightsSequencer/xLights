@@ -53,6 +53,7 @@
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
+#include "Discovery.h"
 
 #include "../xFade/wxLED.h"
 
@@ -1203,10 +1204,60 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     bool hasChanges = false;
 
+    Discovery discovery(this, &_outputManager);
+    ZCPPOutput::PrepareDiscovery(discovery);
+    ArtNetOutput::PrepareDiscovery(discovery);
+    DDPOutput::PrepareDiscovery(discovery);
+    FPP::PrepareDiscovery(discovery);
+    Pixlite16::PrepareDiscovery(discovery);
+    discovery.Discover();
+    
     std::map<std::string, std::string> renames;
-    if (_outputManager.Discover(this, renames)) {
+    bool found = false;
+    
+    for (int x = 0; x < discovery.GetResults().size(); x++) {
+        auto discovered = discovery.GetResults()[x];
+        if (!discovered->controller) {
+            continue;
+        }
+        ControllerEthernet *it = discovered->controller;
+        auto c = _outputManager.GetControllers(it->GetIP());
+        if (c.size() == 0) {
+            bool updated = false;
+            for (const auto& itc : _outputManager.GetControllers()) {
+                auto eth = dynamic_cast<ControllerEthernet*>(itc);
+                if (eth != nullptr
+                    && eth->GetName() == it->GetName()
+                    && eth->GetProtocol() == it->GetProtocol()) {
+                    if (wxMessageBox("The discovered controller matches an existing controller Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, this) == wxYES) {
+                        updated = true;
+                        eth->SetIP(it->GetIP());
+                        found = true;
+                    }
+                }
+            }
+            if (!updated) {
+                // we need to ensure the id is still unique
+                it->EnsureUniqueId();
+                _outputManager.AddController(it);
+                discovered->controller = nullptr;
+                found = true;
+            }
+        } else {
+            if (c.size() == 1
+                && it->GetName() != c.front()->GetName()
+                && c.front()->GetProtocol() == it->GetProtocol()) {
+                // existing zcpp with same ip but different description ... maybe we should update the description
+                if (wxMessageBox("The discovered controller matches an existing controllers IP address but has a different description. Do you want to update the description in xLights?", "Mismatch controller description", wxYES_NO, this) == wxYES) {
+                    renames[c.front()->GetName()] = it->GetName();
+                    c.front()->SetName(it->GetName());
+                    found = true;
+                }
+            }
+        }
+    }
+    if (found) {
         hasChanges = true;
-
         // update the controller name on any models which use renamed controllers
         for (auto it = renames.begin(); it != renames.end(); ++it) {
             logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
@@ -1216,172 +1267,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                     itm->second->SetControllerName(it->second);
                 }
             }
-        }
-    }
-
-    std::list<std::string> startAddresses;
-    std::list<FPP*> instances;
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString force;
-    if (config->Read("FPPConnectForcedIPs", &force)) {
-        wxArrayString ips = wxSplit(force, '|');
-        wxString newForce;
-        for (auto& a : ips) {
-            startAddresses.push_back(a);
-        }
-    }
-    for (auto &it : _outputManager.GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr) {
-            startAddresses.push_back(eth->GetIP());
-            if (eth->GetFPPProxy() != "") {
-                startAddresses.push_back(eth->GetFPPProxy());
-            }
-        }
-    }
-    FPP::Discover(startAddresses, instances, true, true);
-    std::list<FPP*> consider;
-    for (auto fpp : instances) {
-        auto controllers = _outputManager.GetControllers(fpp->ipAddress, fpp->hostName);
-        if (controllers.size() == 1) {
-            auto c = controllers.front();
-            if (c->GetName() != fpp->description) {
-                if (fpp->description == "") {
-                    fpp->SetDescription(c->GetName());
-                }
-                else if (c->GetName() == "") {
-                    // THIS IS NOT POSSIBLE
-                    c->SetName(fpp->description);
-                }
-                else {
-                    //FIXME - descriptions aren't equal, ask what to do....
-                }
-            }
-            std::string v, m, var;
-            Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m, var);
-            if (c->GetVendor() != v) {
-                if (c->GetVendor() == "") {
-                    c->SetVendor(v);
-                    c->SetModel(m);
-                    c->SetVariant(var);
-                }
-                else if (fpp->pixelControllerType == "") {
-                    // this will get set later at upload time
-                }
-                else {
-                    //FIXME - controller types don't match, ask what to do
-                    //for now, I'll use what FPP is configured for
-                    c->SetVendor(v);
-                    c->SetModel(m);
-                    c->SetVariant(var);
-                }
-            }
-            delete fpp;
-        }
-        else if (controllers.size() > 1) {
-            // not sure what to do if multiple outputs match
-            delete fpp;
-        }
-        else {
-            consider.push_back(fpp);
-        }
-    }
-    for (auto fpp : consider) {
-        ControllerEthernet* controller = nullptr;
-        std::string v, m, var;
-        Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m, var);
-
-        if (fpp->pixelControllerType == "") v = "FPP";
-
-        if (fpp->platform == "J1Sys")
-        {
-            v = "J1Sys";
-            m = AfterFirst(fpp->model, '-');
-        }
-
-        controller = new ControllerEthernet(&_outputManager, false);
-        if (v == "Falcon" || fpp->platform == "J1Sys") {
-            controller->SetProtocol(OUTPUT_E131);
-        } else {
-            controller->SetProtocol(OUTPUT_DDP);
-        }
-        controller->EnsureUniqueId();
-
-        if (v == "ESPixelStick") {
-            dynamic_cast<DDPOutput*>(controller->GetOutputs().front())->SetKeepChannelNumber(false);
-        }
-        controller->SetFPPProxy(fpp->proxy);
-        if (fpp->proxy == "" && fpp->hostName != "") {
-            wxIPV4address address;
-            // hostname resolves to correct IP, DNS works, we can use it
-            if (address.Hostname(fpp->hostName) && address.IPAddress() == fpp->ipAddress) {
-                controller->SetIP(fpp->hostName);
-            } else {
-                // resolved to a different IP or didn't resolve at all, use the IP address directly
-                controller->SetIP(fpp->ipAddress);
-            }
-        } else {
-            controller->SetIP(fpp->ipAddress);
-        }
-        controller->SetVendor(v);
-        controller->SetModel(m);
-        controller->SetVariant(var);
-        if (fpp->description == "") {
-            if (fpp->hostName != "") {
-                controller->SetName(fpp->hostName);
-            }
-        } else {
-            controller->SetName(fpp->description);
-        }
-        int dupCount = 1;
-        std::string origName = controller->GetName();
-        while (_outputManager.GetController(controller->GetName()) != nullptr) {
-            std::string name = origName + std::to_string(dupCount++);
-            controller->SetName(name);
-        }
-        
-        int min = 9999999; int max = 0;
-        if (fpp->ranges != "") {
-            wxArrayString r1 = wxSplit(wxString(fpp->ranges), ',');
-            for (auto a : r1) {
-                wxArrayString r = wxSplit(a, '-');
-                int start = wxAtoi(r[0]);
-                int len = 4; //at least 4
-                if (r.size() == 2) {
-                    len = wxAtoi(r[1]) - start + 1;
-                }
-                min = std::min(min, start);
-                max = std::max(max, start + len - 1);
-            }
-        }
-        int count = max - min + 1;
-        if (count < 512) {
-            count = 512;
-        }
-        controller->GetOutputs().front()->SetChannels(count);
-        ControllerCaps *caps = controller->GetControllerCaps();
-        if (caps != nullptr && caps->SupportsAutoLayout()) {
-            controller->SetAutoLayout(true);
-            controller->SetAutoSize(true);
-        }
-        if (caps != nullptr && caps->SupportsAutoUpload()) {
-            controller->SetAutoUpload(true);
-        }
-        _outputManager.AddController(controller, -1);
-        hasChanges = true;
-        delete fpp;
-    }
-
-    for (const auto& it : Pixlite16::Discover(&_outputManager, this)) {
-        if (_outputManager.GetControllers(it->GetIP(), "").size() == 0) {
-            it->EnsureUniqueId();
-            it->SetName(_outputManager.UniqueName(it->GetName()));
-
-            // no controller with this IP exists
-            _outputManager.AddController(it, -1);
-            hasChanges = true;
-        } else {
-            delete it;
         }
     }
 

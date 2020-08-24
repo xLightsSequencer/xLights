@@ -97,6 +97,7 @@
 		67367C7423DDD80E00B185E2 /* ServoConfigDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67367C7323DDD80E00B185E2 /* ServoConfigDialog.cpp */; };
 		67372761234AB2FD00C6C2F2 /* ColoursPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */; };
 		67372762234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */; };
+		67373D7824F30D8D001AA028 /* Discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67373D7724F30D8D001AA028 /* Discovery.cpp */; };
 		673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673930DD202B6103000A33B4 /* SelectPanel.cpp */; };
 		673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 671E47FC2231CEC900049DC9 /* libcurl.tbd */; };
 		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
@@ -734,6 +735,8 @@
 		6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColoursPanel.h; sourceTree = "<group>"; };
 		6737275F234AB2FD00C6C2F2 /* DragColoursBitmapButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragColoursBitmapButton.h; sourceTree = "<group>"; };
 		67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DragColoursBitmapButton.cpp; sourceTree = "<group>"; };
+		67373D7624F30D8C001AA028 /* Discovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Discovery.h; sourceTree = "<group>"; };
+		67373D7724F30D8D001AA028 /* Discovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Discovery.cpp; sourceTree = "<group>"; };
 		673930DD202B6103000A33B4 /* SelectPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectPanel.cpp; sourceTree = "<group>"; };
 		673930DE202B6103000A33B4 /* SelectPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectPanel.h; sourceTree = "<group>"; };
 		673C45551C79570B00FDED47 /* BufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferPanel.h; sourceTree = "<group>"; };
@@ -2171,10 +2174,8 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
-				671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */,
-				671805A324F3090D002DEC46 /* GenericSerialOutput.h */,
-				67D7FC58243B6918004956FF /* OPCOutput.cpp */,
-				67D7FC57243B6918004956FF /* OPCOutput.h */,
+				67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */,
+				67B2B1FB1E1947BE0024F0BB /* ArtNetOutput.h */,
 				678A41BA23E6417600E5FB09 /* Controller.cpp */,
 				678A41BC23E6417700E5FB09 /* Controller.h */,
 				678A41BB23E6417700E5FB09 /* ControllerEthernet.cpp */,
@@ -2183,34 +2184,29 @@
 				678A41B923E6417600E5FB09 /* ControllerNull.h */,
 				678A41B523E6417600E5FB09 /* ControllerSerial.cpp */,
 				678A41B723E6417600E5FB09 /* ControllerSerial.h */,
-				678A41B823E6417600E5FB09 /* ZCPP.h */,
-				67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */,
-				67D90BE42390176A007792F2 /* xxxEthernetOutput.h */,
-				67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */,
-				67D90BE023901769007792F2 /* xxxSerialOutput.h */,
-				677196AA223C98780082576E /* ZCPPOutput.cpp */,
-				677196AB223C98780082576E /* ZCPPOutput.h */,
+				67DD179520167D4A001E7A8B /* DDPOutput.cpp */,
+				67DD179420167D4A001E7A8B /* DDPOutput.h */,
+				67B2B1FE1E1947BE0024F0BB /* DLightOutput.h */,
+				67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */,
+				67B2B2001E1947BE0024F0BB /* DMXOutput.h */,
+				67B2B2031E1947BE0024F0BB /* E131Output.cpp */,
+				67B2B2041E1947BE0024F0BB /* E131Output.h */,
+				671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */,
+				671805A324F3090D002DEC46 /* GenericSerialOutput.h */,
+				67B2B2051E1947BE0024F0BB /* IPOutput.cpp */,
+				67B2B2061E1947BE0024F0BB /* IPOutput.h */,
 				670827F42024C19C0002B617 /* LorController.cpp */,
 				670827ED2024C19A0002B617 /* LorController.h */,
 				670827EE2024C19A0002B617 /* LorControllers.cpp */,
 				670827F32024C19C0002B617 /* LorControllers.h */,
 				670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */,
 				670827F12024C19B0002B617 /* LOROptimisedOutput.h */,
-				67DD179520167D4A001E7A8B /* DDPOutput.cpp */,
-				67DD179420167D4A001E7A8B /* DDPOutput.h */,
-				67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */,
-				67B2B1FB1E1947BE0024F0BB /* ArtNetOutput.h */,
-				67B2B1FE1E1947BE0024F0BB /* DLightOutput.h */,
-				67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */,
-				67B2B2001E1947BE0024F0BB /* DMXOutput.h */,
-				67B2B2031E1947BE0024F0BB /* E131Output.cpp */,
-				67B2B2041E1947BE0024F0BB /* E131Output.h */,
-				67B2B2051E1947BE0024F0BB /* IPOutput.cpp */,
-				67B2B2061E1947BE0024F0BB /* IPOutput.h */,
 				67B2B2071E1947BE0024F0BB /* LOROutput.cpp */,
 				67B2B2081E1947BE0024F0BB /* LOROutput.h */,
 				67B2B2091E1947BE0024F0BB /* NullOutput.cpp */,
 				67B2B20A1E1947BE0024F0BB /* NullOutput.h */,
+				67D7FC58243B6918004956FF /* OPCOutput.cpp */,
+				67D7FC57243B6918004956FF /* OPCOutput.h */,
 				67B2B20D1E1947BE0024F0BB /* OpenDMXOutput.cpp */,
 				67B2B20E1E1947BE0024F0BB /* OpenDMXOutput.h */,
 				67B2B20F1E1947BE0024F0BB /* OpenPixelNetOutput.cpp */,
@@ -2230,6 +2226,13 @@
 				67B2B21F1E1947BE0024F0BB /* SerialOutput.h */,
 				67B2B2221E1947BE0024F0BB /* TestPreset.cpp */,
 				67B2B2231E1947BE0024F0BB /* TestPreset.h */,
+				67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */,
+				67D90BE42390176A007792F2 /* xxxEthernetOutput.h */,
+				67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */,
+				67D90BE023901769007792F2 /* xxxSerialOutput.h */,
+				678A41B823E6417600E5FB09 /* ZCPP.h */,
+				677196AA223C98780082576E /* ZCPPOutput.cpp */,
+				677196AB223C98780082576E /* ZCPPOutput.h */,
 			);
 			name = Outputs;
 			sourceTree = "<group>";
@@ -2491,6 +2494,8 @@
 				675878D91A89297200205A75 /* DataLayer.cpp */,
 				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
+				67373D7724F30D8D001AA028 /* Discovery.cpp */,
+				67373D7624F30D8C001AA028 /* Discovery.h */,
 				674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */,
 				674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */,
 				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
@@ -3401,6 +3406,7 @@
 				67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */,
 				67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */,
 				67503C9C23C3261F0033449B /* DmxModel.cpp in Sources */,
+				67373D7824F30D8D001AA028 /* Discovery.cpp in Sources */,
 				67B2B22B1E1947BE0024F0BB /* LOROutput.cpp in Sources */,
 				67503CA523C3261F0033449B /* ImageObject.cpp in Sources */,
 				6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */,

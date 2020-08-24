@@ -17,6 +17,7 @@
 
 class ControllerEthernet;
 class OutputManager;
+class Discovery;
 
 class Pixlite16 : public BaseController
 {
@@ -101,8 +102,6 @@ protected:
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
 
-    static std::list<Pixlite16::Config> DoDiscover();
-
     bool SendConfig(bool logresult = false) const;
 
     static void DumpConfiguration(Pixlite16::Config& config);
@@ -118,7 +117,8 @@ public:
     #pragma region Getters and Setters
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UsesHTTP() const override { return false; }
-    static std::list<ControllerEthernet*> Discover(OutputManager* om, wxWindow* parent);
-    #pragma endregion
+    static void PrepareDiscovery(Discovery &discovery);
+    static std::list<Pixlite16::Config> DoDiscover();
+#pragma endregion
 };
 

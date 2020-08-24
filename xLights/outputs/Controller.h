@@ -81,8 +81,8 @@ public:
     static std::string DecodeActiveState(Controller::ACTIVESTATE state);
 
     static Controller* Create(OutputManager* om, wxXmlNode* node, std::string showDir);
-    static std::list<Controller*> Discover(OutputManager* outputManager) { return std::list<Controller*>(); } // Discovers controllers supporting this connection type
     static void ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model, std::string &variant);
+        
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters

@@ -28,6 +28,7 @@
 #pragma endregion 
 
 class ControllerEthernet;
+class Discovery;
 
 class ArtNetOutput : public IPOutput
 {
@@ -62,7 +63,9 @@ public:
     static int GetArtNetUniverse(int u) { return u & 0x000F; }
     static int GetArtNetCombinedUniverse(int net, int subnet, int universe) { return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F); }
     static void SendSync();
-    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager); // Discovers controllers supporting this protocol
+#ifndef EXCLUDENETWORKUI
+    static void PrepareDiscovery(Discovery &discovery);
+#endif
 #pragma endregion  
 
 #pragma region Getters and Setters

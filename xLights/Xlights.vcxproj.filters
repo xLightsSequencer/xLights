@@ -832,6 +832,7 @@
     <ClCompile Include="outputs\GenericSerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="Discovery.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1671,6 +1672,7 @@
     <ClInclude Include="outputs\GenericSerialOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="Discovery.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

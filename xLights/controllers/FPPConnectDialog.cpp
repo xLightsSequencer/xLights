@@ -26,6 +26,7 @@
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../FSEQFile.h"
 #include "../Parallel.h"
+#include "../Discovery.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -204,7 +205,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
             }
         }
     }
-    FPP::Discover(startAddresses, instances);
+    
+    Discovery discovery(this, _outputManager);
+    FPP::PrepareDiscovery(discovery, startAddresses);
+    discovery.Discover();
+    FPP::MapToFPPInstances(discovery, instances);
+    
     wxString newForce = "";
     for (const auto &a : startAddressesForced) {
         for (const auto& fpp : instances) {
@@ -250,12 +256,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
             ChoiceFilter->SetSelection(filterSelect);
         }
         int ifoldSelect = ChoiceFolder->FindString(folderSelect);
-        if (ifoldSelect != wxNOT_FOUND)
-        {
+        if (ifoldSelect != wxNOT_FOUND) {
             ChoiceFolder->SetSelection(ifoldSelect);
-        }
-        else
-        {
+        } else {
             ChoiceFolder->SetSelection(0);
         }
     }
@@ -1098,7 +1101,12 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
             }
             std::list<std::string> add;
             add.push_back(ipAd);
-            FPP::Probe(add, instances);
+            
+            Discovery discovery(this, _outputManager);
+            FPP::PrepareDiscovery(discovery, add, false);
+            discovery.Discover();
+            FPP::MapToFPPInstances(discovery, instances);
+            
             int cur = 0;
             for (const auto &fpp : instances) {
                 if (cur >= curSize) {
