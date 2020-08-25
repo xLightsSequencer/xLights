@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/socket.h>
 #include <wx/secretstore.h>
 
@@ -153,11 +163,11 @@ void Discovery::CurlData::SetupCurl() {
 }
 
 
-Discovery::DatagramData::DatagramData(int p, std::function<void(uint8_t *buffer, int len)> & cb) : port(p) {
+Discovery::DatagramData::DatagramData(int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init("", p);
 }
-Discovery::DatagramData::DatagramData(const std::string &mc, int p, std::function<void(uint8_t *buffer, int len)> & cb) : port(p) {
+Discovery::DatagramData::DatagramData(const std::string &mc, int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init(mc, p);
 }
@@ -228,8 +238,6 @@ Discovery::~Discovery() {
     }
 }
 
-
-
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
     CurlData *curl = new CurlData(host, url, callback);
     //check if we've logged into the host before and reuse credentials
@@ -246,7 +254,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     numCurls++;
 }
 
-void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<void(uint8_t *buffer, int len)>&& callback) {
+void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback) {
     //if port already exists, just add the callback
     for (auto &a : datagrams) {
         if (port == a->port) {
@@ -259,7 +267,7 @@ void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<
     datagrams.push_back(dg);
 }
 
-void Discovery::AddBroadcast(int port, std::function<void(uint8_t *buffer, int len)>&& callback) {
+void Discovery::AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback) {
     //if port already exists, just add the callback
     for (auto &a : datagrams) {
         if (port == a->port) {
@@ -469,7 +477,7 @@ void Discovery::Discover() {
                     readSize = socket->GetLastIOReadSize();
                     if (readSize != 0) {
                         for (auto &cb : dg->callbacks) {
-                            cb(buffer, readSize);
+                            cb(socket, buffer, readSize);
                         }
                     }
                 }

@@ -741,7 +741,7 @@ void Pixlite16::PrepareDiscovery(Discovery &discovery) {
     discoveryData[11] = 0x06;
     
     
-    discovery.AddBroadcast(49150, [&discovery](uint8_t *data, int len) {
+    discovery.AddBroadcast(49150, [&discovery](wxDatagramSocket* socket, uint8_t *data, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (data[10] == 0x02) {
             Pixlite16::Config it;

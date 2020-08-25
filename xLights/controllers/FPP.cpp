@@ -2398,7 +2398,7 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     }
 
     if (broadcastPing) {
-        discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len) {
+        discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
             ProcessFPPPingPacket(discovery, buffer, len);
         });
         discovery.SendBroadcastData(FPP_CTRL_PORT, buffer, 207);

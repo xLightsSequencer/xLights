@@ -1,5 +1,14 @@
-#ifndef DISCOVERY_H
-#define DISCOVERY_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <functional>
@@ -10,7 +19,6 @@
 
 #include "outputs/ControllerEthernet.h"
 #include <wx/secretstore.h>
-
 
 class wxWindow;
 class wxDatagramSocket;
@@ -100,8 +108,8 @@ public:
     void AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback);
     
     // various protocols that use broadcast or multicast requests
-    void AddBroadcast(int port, std::function<void(uint8_t *buffer, int len)>&& callback);
-    void AddMulticast(const std::string &mcAddr, int port, std::function<void(uint8_t *buffer, int len)>&& callback);
+    void AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
+    void AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
 
     void SendBroadcastData(int port, uint8_t *buffer, int len);
     void SendData(int port, const std::string &host, uint8_t *buffer, int len);
@@ -144,13 +152,13 @@ private:
     };
     class DatagramData {
     public:
-        DatagramData(int port, std::function<void(uint8_t *buffer, int len)> & cb);
-        DatagramData(const std::string &mc, int port, std::function<void(uint8_t *buffer, int len)> & cb);
+        DatagramData(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb);
+        DatagramData(const std::string &mc, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb);
         ~DatagramData();
         
         int port;
         std::list<wxDatagramSocket *> sockets;
-        std::list<std::function<void(uint8_t *buffer, int len)>> callbacks;
+        std::list<std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>> callbacks;
         
     private:
         void Init(const std::string &mc, int port);
@@ -167,5 +175,3 @@ private:
     
     std::vector<DiscoveredData*> results;
 };
-
-#endif // DISCOVERY_H

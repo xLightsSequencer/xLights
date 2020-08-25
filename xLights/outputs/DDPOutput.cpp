@@ -267,7 +267,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
     packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
     packet[3] = DDP_ID_CONFIG;
     
-    discovery.AddBroadcast(DDP_PORT, [&discovery](uint8_t *response, int len) {
+    discovery.AddBroadcast(DDP_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *response, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (response[0] & DDP_FLAGS1_QUERY) {
             //getting my own QUERY request, ignore
@@ -277,8 +277,9 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             logger_base.debug(" Valid response.");
             logger_base.debug((const char*)&response[10]);
 
-            wxIPV4address aa;
-            auto ip = aa.IPAddress();
+            wxIPV4address add;
+            socket->GetPeer(add);
+            auto ip = add.IPAddress();
 
             ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
             controller->SetProtocol(OUTPUT_DDP);

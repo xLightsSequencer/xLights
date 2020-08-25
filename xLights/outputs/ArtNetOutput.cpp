@@ -170,7 +170,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     packet[12] = 0x02;
     packet[13] = 0xe0; //Critical messages Only
 
-    discovery.AddBroadcast(ARTNET_PORT, [&discovery](uint8_t *buffer, int len) {
+    discovery.AddBroadcast(ARTNET_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
             logger_base.debug(" Valid response.");
