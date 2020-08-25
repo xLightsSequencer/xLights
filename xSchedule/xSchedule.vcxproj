@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
+    <ClCompile Include="..\xLights\Discovery.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
     <ClCompile Include="..\xLights\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
+    <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LorController.cpp" />
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
@@ -408,6 +410,7 @@
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
+    <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
@@ -421,6 +424,7 @@
     <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
     <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
     <ClInclude Include="..\xLights\outputs\E131Output.h" />
+    <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\IPOutput.h" />
     <ClInclude Include="..\xLights\outputs\LorController.h" />
     <ClInclude Include="..\xLights\outputs\LorControllers.h" />

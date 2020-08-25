@@ -21,9 +21,12 @@
 #include "Discovery.h"
 #include "UtilFunctions.h"
 
+// This stuff is excluded from xSchedule build and this #define is only present in non xLights builds
+#ifndef EXCLUDENETWORKUI
 #include "controllers/ControllerCaps.h"
 #include "controllers/SanDevices.h"
 #include "controllers/Falcon.h"
+#endif
 
 bool xlPasswordEntryDialog::Create(wxWindow *parent,
             const wxString& message,
@@ -340,6 +343,7 @@ DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn
 }
 
 DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer) {
+#ifndef EXCLUDENETWORKUI
     if (htmlBuffer.find("SanDevices SACN") != std::string::npos && htmlBuffer.find("Pixel Controller") != std::string::npos) {
         //SanDevices
         DiscoveredData *cd = FindByIp(ip);
@@ -423,6 +427,7 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
     } else {
         //others we can detect and decode?   J1Sys? Minleon? PixLite?  HinksPix?  etc?
     }
+#endif
     return nullptr;
 }
 
