@@ -4,13 +4,8 @@
         <SupportsInputOnlyUpload/>
         <!--SupportsAutoUpload/-->
         
-		<!--SupportsPixelPortAllSettings/-->
-		<SupportsPixelPortBrightness/>
-		<SupportsPixelPortGamma/>
-		<SupportsPixelPortNullPixels/>
-		<SupportsPixelPortGrouping/>
-		<SupportsPixelPortDirection/>
-		<SupportsPixelPortColourOrder/>
+		<SupportsPixelPortCommonSettings/>
+        
 		<SupportsFullxLightsControl/>
 
         <SupportsMultipleSimultaneousOutputProtocols/>

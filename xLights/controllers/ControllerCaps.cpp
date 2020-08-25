@@ -357,17 +357,17 @@ bool ControllerCaps::NoWebUI() const
 
 bool ControllerCaps::SupportsPixelPortBrightness() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortBrightness");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortBrightness");
 }
 
 bool ControllerCaps::SupportsPixelPortGamma() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGamma");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGamma");
 }
 
 bool ControllerCaps::SupportsPixelPortColourOrder() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortColourOrder");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortColourOrder");
 }
 
 bool ControllerCaps::SupportsEthernetInputProtols() const
@@ -390,27 +390,27 @@ bool ControllerCaps::SupportsSerialInputProtols() const
 
 bool ControllerCaps::SupportsPixelPortNullPixels() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
 }
 
 bool ControllerCaps::SupportsPixelPortDirection() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortDirection");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortDirection");
 }
 
 bool ControllerCaps::SupportsPixelPortGrouping() const {
 
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
 }
 
 bool ControllerCaps::SupportsTs() const
 {
-    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsTs");
+    return DoesXmlNodeExist(_config, "SupportsTs");
 }
 
-bool ControllerCaps::SupportsPixelPortAllSettings() const {
+bool ControllerCaps::SupportsPixelPortCommonSettings() const {
 
-    return DoesXmlNodeExist(_config, "SupportsPixelPortAllSettings");
+    return DoesXmlNodeExist(_config, "SupportsPixelPortCommonSettings");
 }
 
 int ControllerCaps::GetMaxInputE131Universes() const {

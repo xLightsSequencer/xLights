@@ -31,7 +31,7 @@ class ControllerCaps
     static std::map<std::string, std::map<std::string, std::map<std::string, ControllerCaps*>>> __controllers;
     #pragma endregion
 
-    bool SupportsPixelPortAllSettings() const;
+    bool SupportsPixelPortCommonSettings() const;
 
 public:
 

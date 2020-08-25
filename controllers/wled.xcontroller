@@ -1,7 +1,7 @@
 <Vendor Name="WLED">
 	<Controller Name="WLED">
 		<Variant Name="">
-			<!--SupportsPixelPortAllSettings/-->
+			<!--SupportsPixelPortCommonSettings/-->
 			<MaxInputUniverses>9</MaxInputUniverses>
 			<MaxPixelPort>1</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
