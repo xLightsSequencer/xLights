@@ -29,7 +29,6 @@
 #include "../osxMacUtils.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
-#include "../Discovery.h"
 
 #include <log4cpp/Category.hh>
 
