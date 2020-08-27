@@ -94,6 +94,15 @@ class ImportPreviewsModelsDialog: public wxDialog
         void OnContextMenu(wxTreeListEvent& event);
         void OnListPopup(wxCommandEvent& event);
         void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
+        
+        class PreviewItemComparator : public wxTreeListItemComparator {
+            public:
+                PreviewItemComparator() {};
+                virtual ~PreviewItemComparator() {};
+                virtual int Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) override;
+        };
+    
+        PreviewItemComparator previewItemComparator;
 
 		DECLARE_EVENT_TABLE()
 };
