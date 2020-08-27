@@ -20,6 +20,7 @@
 #include <wx/xml/xml.h>
 
 #include "LayoutGroup.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(ImportPreviewsModelsDialog)
 const long ImportPreviewsModelsDialog::ID_BUTTON1 = wxNewId();
@@ -132,8 +133,13 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
                     }
                 }
             }
-           
         }
+        
+        // set tree sort after it's populated or it is really slow when adding items above
+        TreeListCtrl1->Freeze();
+        TreeListCtrl1->SetItemComparator(&previewItemComparator);
+        TreeListCtrl1->SetSortColumn(0);
+        TreeListCtrl1->Thaw();
     }
     ValidateWindow();
 
@@ -398,4 +404,28 @@ void ImportPreviewsModelsDialog::ValidateWindow()
         }
     }
     Button_Ok->Disable();
+}
+
+int ImportPreviewsModelsDialog::PreviewItemComparator::Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) {
+    impTreeItemData* a = dynamic_cast<impTreeItemData*>(treelist->GetItemData(first));
+    impTreeItemData* b = dynamic_cast<impTreeItemData*>(treelist->GetItemData(second));
+
+    // don't sort previews
+    if (a == nullptr || b == nullptr) {
+        return 0;
+    }
+    
+    if (a->IsModelGroup()) {
+        if (b->IsModelGroup()) {
+            return NumberAwareStringCompare(a->GetName(), b->GetName());
+        }
+        else {
+            return -1;
+        }
+    }
+    else if (b->IsModelGroup()) {
+        return -1;
+    }
+    
+    return NumberAwareStringCompare(a->GetName(), b->GetName());
 }
