@@ -161,6 +161,7 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     p = grid->Append(new wxUIntProperty("Arms/String", "FoldCount", parm3));
     p->SetAttribute("Min", 1);

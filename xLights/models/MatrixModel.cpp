@@ -58,6 +58,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 10000);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));

@@ -335,6 +335,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
