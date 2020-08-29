@@ -31,6 +31,11 @@ class ESPixelStick : public BaseController
     std::string GetFromJSON(std::string section, std::string key, std::string json);
     #pragma endregion
 
+    bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+
+    
+    std::string GetWSResponse();
 public:
     #pragma region Constructors and Destructors
     ESPixelStick(const std::string& ip);
@@ -39,6 +44,10 @@ public:
 
     #pragma region Getters and Setters
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+
+    
     virtual bool UsesHTTP() const override { return false; }
     #pragma endregion
 };

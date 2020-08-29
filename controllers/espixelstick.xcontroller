@@ -1,6 +1,6 @@
 <Vendor Name="ESPixelStick">
 	<Controller Name="ESPixelStick">
-		<Variant Name="">
+		<Variant Name="" ID="ESPixelStick">
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
@@ -23,4 +23,58 @@
 			</InputProtocols>
 		</Variant>	
 	</Controller>
+    <Controller Name="ESPixelStick-4.x">
+        <Variant Name="ESP8266" ID="ESP8266">
+            <SupportsPixelPortCommonSettings/>
+            <SupportsUpload/>
+            <SupportsInputOnlyUpload/>
+            <SupportsAutoUpload/>
+            <MaxInputUniverses>6</MaxInputUniverses>
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <AllInputUniversesMustBeSameSize/>
+            <UniversesMustBeSequential/>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gece</Protocol>
+            </PixelProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>e131</Protocol>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+        </Variant>
+        <Variant Name="ESP32" ID="ESP32">
+            <SupportsPixelPortCommonSettings/>
+            <SupportsUpload/>
+            <SupportsInputOnlyUpload/>
+            <SupportsAutoUpload/>
+            <MaxInputUniverses>6</MaxInputUniverses>
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <AllInputUniversesMustBeSameSize/>
+            <UniversesMustBeSequential/>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gece</Protocol>
+            </PixelProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>e131</Protocol>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+        </Variant>
+    </Controller>
 </Vendor>

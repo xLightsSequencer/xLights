@@ -2334,7 +2334,13 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             }
             CreateController(discovery, inst);
             if (inst->typeId >= 0xC2 && inst->typeId <= 0xC3) {
-                inst->pixelControllerType = inst->platformModel;
+                if (inst->majorVersion <= 3) {
+                    inst->pixelControllerType = inst->platformModel;
+                } else if (inst->typeId == 0xC2) {
+                    inst->pixelControllerType = "ESP8266";
+                } else if (inst->typeId == 0xC3) {
+                    inst->pixelControllerType = "ESP32";
+                }
                 SetControllerType(inst);
             }
         }

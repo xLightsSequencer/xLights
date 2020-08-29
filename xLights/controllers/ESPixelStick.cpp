@@ -37,9 +37,7 @@ ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
         _model = "ESPixelStick";
         _connected = true;
         _wsClient.Send("G2");
-        wxMilliSleep(500);
-        std::string g2 = _wsClient.Receive();
-        _version = GetFromJSON("", "version", g2);
+        _version = GetFromJSON("", "version", GetWSResponse());
         logger_base.debug("Connected to ESPixelStick - Firmware Version %s", (const char *)_version.c_str());
     }
     else {
@@ -50,6 +48,19 @@ ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
 #pragma endregion
 
 #pragma region Private Functions
+std::string ESPixelStick::GetWSResponse() {
+    wxLongLong start = wxGetLocalTimeMillis();
+    wxLongLong diff = 0;
+    std::string resp = "";
+    while (diff < 500 && resp == "") {
+        wxMilliSleep(5);
+        resp = _wsClient.Receive();
+        diff = wxGetLocalTimeMillis() - start;
+    }
+    return resp;
+}
+
+
 std::string ESPixelStick::DecodeStringPortProtocol(std::string protocol) {
 
     wxString p(protocol);
@@ -82,24 +93,26 @@ std::string ESPixelStick::DecodeSerialSpeed(std::string protocol) {
 }
 
 std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std::string json) {
-
-    if (section == "") {
-        wxString rkey = wxString::Format("(%s\\\":[\\\"]*)([^\\\",\\}]*)(\\\"|,|\\})", key);
-        wxRegEx regexKey(rkey);
-        if (regexKey.Matches(wxString(json))) {
-            return regexKey.GetMatch(wxString(json), 2);
-        }
-    }
-    else {
-        wxString rsection = wxString::Format("(%s\\\":\\{)([^\\}]*)\\}", section);
-        wxRegEx regexSection(rsection);
-        if (regexSection.Matches(wxString(json))) {
-            wxString sec = regexSection.GetMatch(wxString(json), 2);
-
-            wxString rkey = wxString::Format("(%s\\\":[\\\"]*)([^\\\",\\}]*)(\\\"|,|\\})", key);
-            wxRegEx regexKey(rkey);
-            if (regexKey.Matches(wxString(sec))) {
-                return regexKey.GetMatch(wxString(sec), 2);
+    //skip over the "G2" header or whatever
+    for (int x = 0; x < json.size(); x++) {
+        if (json[x] == '{' || json[x] == '[') {
+            wxJSONValue origJson;
+            wxJSONReader reader;
+            wxString config = json.substr(x);
+            reader.Parse(config, &origJson);
+            wxJSONValue val = origJson;
+            if (section != "") {
+                val = origJson[section];
+            }
+            val = val[key];
+            if (val.IsString()) {
+                return val.AsString().ToStdString();
+            }
+            if (val.IsInt()) {
+                return std::to_string(val.AsInt());
+            }
+            if (val.IsDouble()) {
+                return std::to_string(val.AsDouble());
             }
         }
     }
@@ -108,8 +121,277 @@ std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std:
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_version.size() > 0 && _version[0] == '4') {
+        //only needed on V4.   V3 will upload inputs with outputs
+        
+        _wsClient.Send("{\"cmd\":{\"get\":\"input\"}}");
+        std::string config = GetWSResponse();
+        wxJSONValue origJson;
+        wxJSONReader reader;
+        reader.Parse(config, &origJson);
+        bool changed = false;
+        wxJSONValue inputConfig = origJson["get"]["input_config"]; //get the input_config element
+        
+        std::list<Output*> outputs = controller->GetOutputs();
+        if (outputs.size() > 6) {
+            DisplayError(wxString::Format("Attempt to upload %d universes to ESPixelStick controller but only 6 are supported.", outputs.size()).ToStdString());
+            return false;
+        }
 
+        std::string type = "DDP";
+        int startUniverse = 0;
+        int chanPerUniverse = 512;
+        if (outputs.front()->GetType() == OUTPUT_E131) {
+            type = "E1.31";
+            startUniverse = outputs.front()->GetUniverse();
+            chanPerUniverse = outputs.front()->GetChannels();
+        }
+        std::string origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].AsInt());
+        std::string origType = inputConfig["channels"]["0"][origTypeIdx]["type"].AsString();
+        if (origType != type) {
+            changed = true;
+            for (int x = 0; x < 20; x++) {
+                std::string idx = std::to_string(x);
+                if (!inputConfig["channels"]["0"].HasMember(idx)) {
+                    return false;
+                }
+                if (inputConfig["channels"]["0"][idx]["type"].AsString() == type) {
+                    //found the new element, flip over to using that protocol
+                    inputConfig["channels"]["0"]["type"] = x;
+                    origTypeIdx = idx;
+                    break;
+                }
+            }
+        }
+        if (type == "E1.31") {
+            std::string univString = std::to_string(startUniverse);
+            std::string sizeString = std::to_string(chanPerUniverse);
+
+            //{"type":"E1.31","universe":1,"universe_limit":512,"channel_start":1}
+            if (inputConfig["channels"]["0"][origTypeIdx]["universe"].AsString() != univString) {
+                inputConfig["channels"]["0"][origTypeIdx]["universe"] = univString;
+                changed = true;
+            }
+            if (inputConfig["channels"]["0"][origTypeIdx]["universe_limit"].AsString() != sizeString) {
+                inputConfig["channels"]["0"][origTypeIdx]["universe_limit"] = sizeString;
+                changed = true;
+            }
+            //inputConfig["channels"]["0"][origTypeIdx]["channel_start"] = channel_start;
+        } else if (type == "DDP") {
+            //nothing to do for DDP
+        }
+        
+        if (changed) {
+            wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
+            wxString message;
+            
+            wxJSONValue newJson;
+            newJson["cmd"]["set"]["input"]["input_config"] = inputConfig;
+            
+            writer.Write(newJson, message);
+            message.Replace(" : ", ":");
+            if (_wsClient.Send(message)) {
+                logger_base.debug("ESPixelStick Inputs Upload: Success!!!");
+            }
+            GetWSResponse();
+        }
+    }
+    return true;
+}
+bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    SetInputUniverses(controller, parent);
+    return SetOutputs(allmodels, outputManager, controller, parent);
+}
+
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    if (_version.size() > 0 && _version[0] == '4') {
+        return SetOutputsV4(allmodels, outputManager, controller, parent);
+    }
+    return SetOutputsV3(allmodels, outputManager, controller, parent);
+}
+
+static std::string MapV4Type(const std::string &p) {
+    if (p == "ws2811" || p == "WS2811") {
+        return "WS2811";
+    }
+    if (p == "gece" || p == "gece") {
+        return "GECE";
+    }
+    if (p == "dmx" || p == "DMX") {
+        return "DMX";
+    }
+    if (p == "renard" || p == "Renard") {
+        return "Renard";
+    }
+
+    return "Disabled";
+}
+static std::string MapV4ColorOrder(const std::string &p) {
+    if (p == "RGB") {
+        return "rgb";
+    }
+    if (p == "RBG") {
+        return "rbg";
+    }
+    if (p == "BGR") {
+        return "bgr";
+    }
+    if (p == "BRG") {
+        return "brg";
+    }
+    if (p == "GRB") {
+        return "brb";
+    }
+    if (p == "GBR") {
+        return "gbr";
+    }
+    return p;
+}
+bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(rules, check);
+    cud.Dump();
+    logger_base.debug(check);
+
+    if (success) {
+        _wsClient.Send("{\"cmd\":{\"get\":\"output\"}}");
+        std::string config = GetWSResponse();
+        wxJSONValue origJson;
+        wxJSONReader reader;
+        reader.Parse(config, &origJson);
+        bool changed = false;
+        wxJSONValue outputConfig = origJson["get"]["output_config"]; //get the output_config element
+        
+        for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
+            UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
+            std::string proto = MapV4Type(port->GetProtocol());
+            std::string pixels = std::to_string(port->Pixels());
+            int brightness = 100;
+            std::string gamma = "1";
+            std::string colorOrder = "rgb";
+            std::string groupCount = "1";
+            auto s = port->GetModels().front();
+            if (s) {
+                brightness = s->GetBrightness(100);
+                colorOrder = MapV4ColorOrder(s->GetColourOrder("rgb"));
+                gamma = std::to_string(s->GetGamma(1.0));
+                groupCount = std::to_string(s->GetGroupCount(0));
+            }
+            
+            std::string outidx = std::to_string(x);
+            std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
+            if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
+                changed = true;
+                for (int i = 0; i < 20; i++) {
+                    std::string idx = std::to_string(i);
+                    if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                        return false;
+                    }
+                    if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                        //found the new element, flip over to using that protocol
+                        outputConfig["channels"][outidx]["type"] = i;
+                        curIdx = idx;
+                        break;
+                    }
+                }
+            }
+            if (proto == "WS2811") {
+                if (gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
+                }
+                float b = brightness;
+                if (b > 100) {
+                    b = 100;
+                }
+                b /= 100;
+                std::string b2 = std::to_string(b);
+                if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                }
+                if (colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["color_order"] = colorOrder;
+                }
+                if (groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
+                }
+                if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
+                }
+            } else if (proto == "GECE") {
+                int b = brightness;
+                b *= 255;
+                b /= 100;
+                std::string b2 = std::to_string(b);
+                if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                }
+
+                if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
+                }
+            }
+        }
+        for (int x = 0; x < cud.GetMaxSerialPort(); x++) {
+            UDControllerPort* port = cud.GetControllerSerialPort(x + 1);
+            std::string proto = MapV4Type(port->GetProtocol());
+            std::string channels = std::to_string(port->Channels());
+            
+            std::string outidx = std::to_string(x + rules->GetMaxPixelPort());
+            std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
+            if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
+                changed = true;
+                for (int i = 0; i < 20; i++) {
+                    std::string idx = std::to_string(i);
+                    if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                        return false;
+                    }
+                    if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                        //found the new element, flip over to using that protocol
+                        outputConfig["channels"][outidx]["type"] = i;
+                        curIdx = idx;
+                        break;
+                    }
+                }
+            }
+            if (channels != outputConfig["channels"][outidx][curIdx]["num_chan"].AsString()) {
+                changed = true;
+                outputConfig["channels"][outidx][curIdx]["num_chan"] = channels;
+            }
+        }
+        if (changed) {
+            wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
+            wxString message;
+            
+            wxJSONValue newJson;
+            newJson["cmd"]["set"]["output"]["output_config"] = outputConfig;
+            
+            writer.Write(newJson, message);
+            message.Replace(" : ", ":");
+
+            if (_wsClient.Send(message)) {
+                success = true;
+                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
+            }
+            GetWSResponse();
+        }
+    }
+    return true;
+}
+bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
@@ -131,8 +413,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
         UDControllerPort* port = cud.GetControllerPixelPort(1);
 
         _wsClient.Send("G1");
-        wxMilliSleep(500);
-        std::string config = _wsClient.Receive();
+        std::string config = GetWSResponse();
         config = config.substr(2);
 
         wxJSONValue origJson;
@@ -196,8 +477,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
             success = true;
             logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
         }
-        wxMilliSleep(500);
-        _wsClient.Receive();
+        GetWSResponse();
     } else {
         DisplayError("Not uploaded due to errors.\n" + check);
     }
