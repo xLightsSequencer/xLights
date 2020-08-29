@@ -3335,4 +3335,43 @@
 		<minheight>-1</minheight>
 		<notes/>
 	</face>
+	<face>
+		<id>246</id>
+		<categoryid>Santa</categoryid>
+		<name>Santa 4</name>
+		<artist>Daryl Erwin</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Santa04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Santa04.png</faceimage>
+		<width>214</width>
+		<height>342</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>247</id>
+		<categoryid>Other</categoryid>
+		<name>Sailor</name>
+		<artist>Daryl Erwin</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Sailor.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Sailor.png</faceimage>
+		<width>247</width>
+		<height>293</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>248</id>
+		<categoryid>Santa</categoryid>
+		<name>Santa 5</name>
+		<artist>Daryl Erwin</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Santa05.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Santa05.png</faceimage>
+		<width>88</width>
+		<height>103</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
 </faces>
