@@ -214,6 +214,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	//*)
     
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShockwavePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShockwavePanel::OnValidateWindow, 0, this);
 
     SetName("ID_PANEL_SHOCKWAVE");
 
@@ -223,12 +224,18 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
     BitmapButton_Shockwave_End_Width->GetValue()->SetLimits(SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX);
     BitmapButton_Shockwave_Start_Radius->GetValue()->SetLimits(SHOCKWAVE_STARTRADIUS_MIN, SHOCKWAVE_STARTRADIUS_MAX);
     BitmapButton_Shockwave_End_Radius->GetValue()->SetLimits(SHOCKWAVE_ENDRADIUS_MIN, SHOCKWAVE_ENDRADIUS_MAX);
+
+    ValidateWindow();
 }
 
 ShockwavePanel::~ShockwavePanel()
 {
 	//(*Destroy(ShockwavePanel)
 	//*)
+}
+
+void ShockwavePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ShockwavePanel)

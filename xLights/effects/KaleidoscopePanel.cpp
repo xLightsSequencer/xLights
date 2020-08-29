@@ -164,6 +164,7 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
     Choice_Kaleidoscope_Type->SetSelection(0);
 
 	Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&KaleidoscopePanel::OnVCChanged, 0, this );
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&KaleidoscopePanel::OnValidateWindow, 0, this);
 
 	BitmapButton_Kaleidoscope_X->SetLimits( KALEIDOSCOPE_X_MIN, KALEIDOSCOPE_X_MAX);
 	BitmapButton_Kaleidoscope_Y->SetLimits(KALEIDOSCOPE_Y_MIN, KALEIDOSCOPE_Y_MAX);
@@ -179,17 +180,7 @@ KaleidoscopePanel::~KaleidoscopePanel()
 	//*)
 }
 
-void KaleidoscopePanel::OnVCButtonClick(wxCommandEvent& event)
-{
-   EffectPanelUtils::OnVCButtonClick( event );
-}
-
-//PANEL_EVENT_HANDLERS(KaleidoscopePanel)
-
-void KaleidoscopePanel::OnVCChanged(wxCommandEvent& event)
-{
-   EffectPanelUtils::OnVCChanged( event );
-}
+PANEL_EVENT_HANDLERS(KaleidoscopePanel)
 
 void KaleidoscopePanel::OnChoice_Kaleidoscope_TypeSelect(wxCommandEvent& event)
 {

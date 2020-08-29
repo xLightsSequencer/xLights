@@ -22,14 +22,15 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class MusicPanel: public wxPanel
 {
-
 	public:
 
 		MusicPanel(wxWindow* parent);
 		virtual ~MusicPanel();
+		void ValidateWindow();
 
 		//(*Declarations(MusicPanel)
 		BulkEditCheckBox* CheckBox_Music_Fade;
@@ -113,22 +114,17 @@ class MusicPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(MusicPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
         void OnChoice_Music_TypeSelect(wxCommandEvent& event);
 		void OnSlider_Music_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Music_StartNoteText(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		void OnTextCtrl_Music_StartNoteKillFocus(wxFocusEvent& event);
 		void OnTextCtrl_Music_StartNoteEnter(wxCommandEvent& event);
 		void ApplyText(wxEvent& event);
 
 		DECLARE_EVENT_TABLE()
-
-	public:
-
-		void ValidateWindow();
 };

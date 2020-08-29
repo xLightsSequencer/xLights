@@ -23,6 +23,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class DMXPanel: public wxPanel
 {
@@ -30,6 +31,7 @@ class DMXPanel: public wxPanel
 
 		DMXPanel(wxWindow* parent);
 		virtual ~DMXPanel();
+		void ValidateWindow();
 
 		//(*Declarations(DMXPanel)
 		BulkEditSlider* Slider_DMX10;
@@ -338,10 +340,9 @@ class DMXPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(DMXPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnButtonRemapClick(wxCommandEvent& event);
 		//*)
 

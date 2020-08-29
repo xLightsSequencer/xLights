@@ -187,17 +187,24 @@ FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
     SetName("ID_PANEL_FILL");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FillPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&FillPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Fill_Position->GetValue()->SetLimits(FILL_POSITION_MIN, FILL_POSITION_MAX);
     BitmapButton_Fill_Band_Size->GetValue()->SetLimits(FILL_BANDSIZE_MIN, FILL_BANDSIZE_MAX);
     BitmapButton_Fill_Skip_Size->GetValue()->SetLimits(FILL_SKIPSIZE_MIN, FILL_SKIPSIZE_MAX);
     BitmapButton_Fill_Offset->GetValue()->SetLimits(FILL_OFFSET_MIN, FILL_OFFSET_MAX);
+
+	ValidateWindow();
 }
 
 FillPanel::~FillPanel()
 {
 	//(*Destroy(FillPanel)
 	//*)
+}
+
+void FillPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(FillPanel)

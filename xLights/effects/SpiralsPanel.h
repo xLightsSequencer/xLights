@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class SpiralsPanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class SpiralsPanel: public wxPanel
 
 		SpiralsPanel(wxWindow* parent);
 		virtual ~SpiralsPanel();
+		void ValidateWindow();
 
 		//(*Declarations(SpiralsPanel)
 		BulkEditCheckBox* CheckBox_Spirals_3D;
@@ -91,11 +93,10 @@ class SpiralsPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(SpiralsPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

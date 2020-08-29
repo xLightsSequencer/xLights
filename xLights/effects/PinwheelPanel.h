@@ -23,9 +23,12 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class PinwheelPanel: public wxPanel
 {
+	void ValidateWindow();
+
 	public:
 
 		PinwheelPanel(wxWindow* parent);
@@ -123,11 +126,10 @@ class PinwheelPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(PinwheelPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

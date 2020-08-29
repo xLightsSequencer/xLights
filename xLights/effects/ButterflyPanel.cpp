@@ -171,18 +171,25 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ButterflyPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ButterflyPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Butterfly_Speed->GetValue()->SetLimits(BUTTERFLY_SKIP_MIN, BUTTERFLY_SPEED_MAX);
     BitmapButton_Butterfly_Skip->GetValue()->SetLimits(BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX);
     BitmapButton_Butterfly_Chunks->GetValue()->SetLimits(BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
 
     SetName("ID_PANEL_BUTTERFLY");
+
+	ValidateWindow();
 }
 
 ButterflyPanel::~ButterflyPanel()
 {
 	//(*Destroy(ButterflyPanel)
 	//*)
+}
+
+void ButterflyPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ButterflyPanel)

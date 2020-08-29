@@ -11,26 +11,26 @@
  **************************************************************/
 
  //(*Headers(BarsPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxCheckBox;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class BarsPanel: public wxPanel
 {
-    void ValidateWindow();
-
 	public:
 
 		BarsPanel(wxWindow* parent);
 		virtual ~BarsPanel();
+		void ValidateWindow();
 
 		//(*Declarations(BarsPanel)
 		BulkEditCheckBox* CheckBox_Bars_3D;
@@ -79,12 +79,11 @@ class BarsPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(BarsPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Bars_DirectionSelect(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

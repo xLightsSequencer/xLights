@@ -21,9 +21,12 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class OnPanel: public wxPanel
 {
+	void ValidateWindow();
+
 	public:
 
 		OnPanel(wxWindow* parent);
@@ -67,11 +70,10 @@ class OnPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 	    //(*Handlers(OnPanel)
-        void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

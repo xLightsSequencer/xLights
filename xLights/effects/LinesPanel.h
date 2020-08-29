@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class LinesPanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class LinesPanel: public wxPanel
 
 		LinesPanel(wxWindow* parent);
 		virtual ~LinesPanel();
+		void ValidateWindow();
 
 		//(*Declarations(LinesPanel)
 		BulkEditCheckBox* CheckBox_FadeTrails;
@@ -81,15 +83,10 @@ class LinesPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(LinesPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()
-
-	public:
-
-		void ValidateWindow();
 };

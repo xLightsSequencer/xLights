@@ -321,6 +321,7 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TendrilPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TendrilPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Tendril_TuneMovementVC->GetValue()->SetLimits(TENDRIL_MOVEMENT_MIN, TENDRIL_MOVEMENT_MAX);
     BitmapButton_Tendril_ThicknessVC->GetValue()->SetLimits(TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX);
@@ -329,9 +330,9 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
     BitmapButton_Tendril_XOffsetVC->GetValue()->SetLimits(TENDRIL_OFFSETX_MIN, TENDRIL_OFFSETX_MAX);
     BitmapButton_Tendril_YOffsetVC->GetValue()->SetLimits(TENDRIL_OFFSETY_MIN, TENDRIL_OFFSETY_MAX);
 
-    ValidateWindow();
-
     SetName("ID_PANEL_Tendril");
+
+    ValidateWindow();
 }
 
 TendrilPanel::~TendrilPanel()

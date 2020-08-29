@@ -12,6 +12,7 @@
 
 #include "xlGLCanvas.h"
 #include "BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class WarpPreview : public xlGLCanvas
 {
@@ -42,6 +43,7 @@ class WarpPanel: public wxPanel
 
 		WarpPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~WarpPanel();
+		void ValidateWindow();
 
 		//(*Declarations(WarpPanel)
 		BulkEditChoice* Choice_Warp_Treatment;
@@ -68,7 +70,6 @@ class WarpPanel: public wxPanel
 		wxTextCtrl* TextCtrl1;
 		//*)
 
-		void ValidateWindow();
         void CheckTypeTreatment();
 
 	protected:
@@ -100,9 +101,9 @@ class WarpPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(WarpPanel)
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_Warp_TypeSelect(wxCommandEvent& event);
 		void OnChoice_Warp_TreatmentSelect(wxCommandEvent& event);
 		//*)

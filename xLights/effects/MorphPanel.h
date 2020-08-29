@@ -27,6 +27,7 @@ class wxTextCtrl;
 class MorphQuickSet;
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class MorphPanel: public wxPanel
 {
@@ -34,6 +35,7 @@ class MorphPanel: public wxPanel
 
 		MorphPanel(wxWindow* parent);
 		virtual ~MorphPanel();
+		void ValidateWindow();
 
 		//(*Declarations(MorphPanel)
 		BulkEditButton* ButtonSwap;
@@ -205,13 +207,12 @@ class MorphPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(MorphPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
 		void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
 		void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnButtonSwapClick(wxCommandEvent& event);
 		//*)
 

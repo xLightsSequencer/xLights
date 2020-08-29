@@ -27,6 +27,7 @@ class wxTextCtrl;
 
 #include <wx/filepicker.h>
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class xlPictureFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
@@ -52,7 +53,7 @@ class PicturesPanel: public wxPanel
 
 		PicturesPanel(wxWindow* parent);
 		virtual ~PicturesPanel();
-        void ValidateWindow();
+		void ValidateWindow();
 
 		//(*Declarations(PicturesPanel)
 		BulkEditCheckBox* CheckBox_LoopGIF;
@@ -140,11 +141,10 @@ class PicturesPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(PicturesPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		//*)
 

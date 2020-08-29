@@ -20,6 +20,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class SpirographPanel: public wxPanel
 {
@@ -27,6 +28,7 @@ class SpirographPanel: public wxPanel
 
 		SpirographPanel(wxWindow* parent);
 		virtual ~SpirographPanel();
+		void ValidateWindow();
 
 		//(*Declarations(SpirographPanel)
 		BulkEditSlider* Slider_Spirograph_Animate;
@@ -103,11 +105,10 @@ class SpirographPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(SpirographPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

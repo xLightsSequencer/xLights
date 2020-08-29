@@ -311,6 +311,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&VUMeterPanel::OnValidateWindow, 0, this);
 
     TextCtrl_VUMeter_StartNote->Bind(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteKillFocus, this);
     TextCtrl_VUMeter_EndNote->Bind(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteKillFocus, this);

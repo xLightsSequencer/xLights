@@ -119,15 +119,24 @@ OnPanel::OnPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_On_Transparency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OnPanel::OnVCButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&OnPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&OnPanel::OnValidateWindow, 0, this);
+
     BitmapButton_On_Transparency->SetLimits(ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX);
 
     SetName("ID_PANEL_ON");
+	
+	ValidateWindow();
 }
 
 OnPanel::~OnPanel()
 {
 	//(*Destroy(OnPanel)
 	//*)
+}
+
+void OnPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(OnPanel)

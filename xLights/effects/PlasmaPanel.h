@@ -21,9 +21,12 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class PlasmaPanel: public wxPanel
 {
+	void ValidateWindow();
+
 	public:
 
 		PlasmaPanel(wxWindow* parent);
@@ -64,11 +67,10 @@ class PlasmaPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(PlasmaPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

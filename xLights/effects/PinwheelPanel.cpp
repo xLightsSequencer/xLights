@@ -290,6 +290,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
     SetName("ID_PANEL_PINWHEEL");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PinwheelPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&PinwheelPanel::OnValidateWindow, 0, this);
 
     BitmapButton_PinwheelXCVC->GetValue()->SetLimits(-100, 100);
     BitmapButton_PinwheelYCVC->GetValue()->SetLimits(-100, 100);
@@ -298,12 +299,18 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
     BitmapButton_Pinwheel_ThicknessVC->GetValue()->SetLimits(0, 100);
     BitmapButton_Pinwheel_TwistVC->GetValue()->SetLimits(-360, 360);
 	BitmapButton_Pinwheel_OffsetVC->GetValue()->SetLimits(0, 360);
+
+    ValidateWindow();
 }
 
 PinwheelPanel::~PinwheelPanel()
 {
 	//(*Destroy(PinwheelPanel)
 	//*)
+}
+
+void PinwheelPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(PinwheelPanel)

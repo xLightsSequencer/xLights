@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class CirclesPanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class CirclesPanel: public wxPanel
 
 		CirclesPanel(wxWindow* parent);
 		virtual ~CirclesPanel();
+		void ValidateWindow();
 
 		//(*Declarations(CirclesPanel)
 		BulkEditCheckBox* CheckBox_Circles_Bounce;
@@ -98,12 +100,11 @@ class CirclesPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(CirclesPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Circles_BubblesClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

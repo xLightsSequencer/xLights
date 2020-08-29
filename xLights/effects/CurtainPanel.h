@@ -22,6 +22,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class CurtainPanel: public wxPanel
 {
@@ -29,6 +30,7 @@ class CurtainPanel: public wxPanel
 
 		CurtainPanel(wxWindow* parent);
 		virtual ~CurtainPanel();
+		void ValidateWindow();
 
 		//(*Declarations(CurtainPanel)
 		BulkEditCheckBox* CheckBox_Curtain_Repeat;
@@ -72,11 +74,10 @@ class CurtainPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(CurtainPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
     DECLARE_EVENT_TABLE()
 };

@@ -154,6 +154,7 @@ LinesPanel::LinesPanel(wxWindow* parent)
     SetName("ID_PANEL_Lines");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LinesPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LinesPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Lines_Speed->GetValue()->SetLimits(LINES_SPEED_MIN, LINES_SPEED_MAX);
     BitmapButton_Lines_Thickness->GetValue()->SetLimits(LINES_THICKNESS_MIN, LINES_THICKNESS_MAX);

@@ -107,13 +107,23 @@ StrobePanel::StrobePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Strobe_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Strobe_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&StrobePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&StrobePanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_STROBE");
+
+    ValidateWindow();
 }
 
 StrobePanel::~StrobePanel()
 {
 	//(*Destroy(StrobePanel)
 	//*)
+}
+
+void StrobePanel::ValidateWindow()
+{	
 }
 
 PANEL_EVENT_HANDLERS(StrobePanel)

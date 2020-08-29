@@ -23,6 +23,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class GalaxyPanel: public wxPanel
 {
@@ -30,6 +31,7 @@ class GalaxyPanel: public wxPanel
 
 		GalaxyPanel(wxWindow* parent);
 		virtual ~GalaxyPanel();
+		void ValidateWindow();
 
 		//(*Declarations(GalaxyPanel)
 		BulkEditCheckBox* CheckBox_Galaxy_Blend_Edges;
@@ -142,11 +144,10 @@ class GalaxyPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(GalaxyPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

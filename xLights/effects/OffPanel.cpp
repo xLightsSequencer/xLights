@@ -45,8 +45,13 @@ OffPanel::OffPanel(wxWindow* parent)
 	FlexGridSizer77->Fit(this);
 	FlexGridSizer77->SetSizeHints(this);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&OffPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&OffPanel::OnValidateWindow, 0, this);
     
     SetName("ID_PANEL_OFF");
+
+	ValidateWindow();
 }
 
 OffPanel::~OffPanel()
@@ -55,3 +60,8 @@ OffPanel::~OffPanel()
 	//*)
 }
 
+PANEL_EVENT_HANDLERS(OffPanel)
+
+void OffPanel::ValidateWindow()
+{
+}

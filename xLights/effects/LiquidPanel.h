@@ -24,16 +24,15 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class LiquidPanel: public wxPanel
 {
-    void ValidateWindow();
-    // these are only used for validation
-
 	public:
 
 		LiquidPanel(wxWindow* parent);
 		virtual ~LiquidPanel();
+		void ValidateWindow();
 
 		//(*Declarations(LiquidPanel)
 		BulkEditCheckBox* CheckBox_BottomBarrier;
@@ -310,10 +309,9 @@ class LiquidPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(LiquidPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_EnabledClick(wxCommandEvent& event);
 		//*)
 

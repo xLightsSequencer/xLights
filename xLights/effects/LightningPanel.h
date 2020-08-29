@@ -22,6 +22,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class LightningPanel: public wxPanel
 {
@@ -29,6 +30,7 @@ class LightningPanel: public wxPanel
 
 		LightningPanel(wxWindow* parent);
 		virtual ~LightningPanel();
+		void ValidateWindow();
 
 		//(*Declarations(LightningPanel)
 		BulkEditCheckBox* CheckBox_ForkedLightning;
@@ -104,11 +106,10 @@ class LightningPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(LightningPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

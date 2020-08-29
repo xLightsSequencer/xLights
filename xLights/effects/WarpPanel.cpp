@@ -183,6 +183,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	SetName( "ID_PANEL_WARP" );
 
 	Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&WarpPanel::OnVCChanged, 0, this );
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&WarpPanel::OnValidateWindow, 0, this);
 
 	BitmapButton_Warp_X->SetLimits( 0, 100 );
 	BitmapButton_Warp_Y->SetLimits( 0, 100 );
@@ -196,17 +197,7 @@ WarpPanel::~WarpPanel()
 	//*)
 }
 
-void WarpPanel::OnVCButtonClick(wxCommandEvent& event)
-{
-   EffectPanelUtils::OnVCButtonClick( event );
-}
-
-//PANEL_EVENT_HANDLERS(WarpPanel)
-
-void WarpPanel::OnVCChanged(wxCommandEvent& event)
-{
-   EffectPanelUtils::OnVCChanged( event );
-}
+PANEL_EVENT_HANDLERS(WarpPanel)
 
 void WarpPanel::CheckTypeTreatment()
 {

@@ -19,6 +19,7 @@ class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class GlediatorPanel: public wxPanel
 {
@@ -26,6 +27,7 @@ class GlediatorPanel: public wxPanel
 
 		GlediatorPanel(wxWindow* parent);
 		virtual ~GlediatorPanel();
+		void ValidateWindow();
 
 		//(*Declarations(GlediatorPanel)
 		BulkEditChoice* Choice_Glediator_DurationTreatment;
@@ -47,11 +49,10 @@ class GlediatorPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(GlediatorPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

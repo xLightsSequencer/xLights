@@ -223,6 +223,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
     SetName("ID_PANEL_Video");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VideoPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&VideoPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Video_Speed->GetValue()->SetLimits(VIDEO_SPEED_MIN, VIDEO_SPEED_MAX);
     BitmapButton_Video_Speed->GetValue()->SetDivisor(VIDEO_SPEED_DIVISOR);

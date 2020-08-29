@@ -89,13 +89,23 @@ LifePanel::LifePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Life_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LifePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Life_Seed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LifePanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LifePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LifePanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_LIFE");
+
+	ValidateWindow();
 }
 
 LifePanel::~LifePanel()
 {
 	//(*Destroy(LifePanel)
 	//*)
+}
+
+void LifePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(LifePanel)

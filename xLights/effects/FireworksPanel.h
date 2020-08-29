@@ -23,15 +23,16 @@ class wxTextCtrl;
 
 #include <list>
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class FireworksPanel: public wxPanel
 {
-        void ValidateWindow();
 	public:
 
 		FireworksPanel(wxWindow* parent);
 		virtual ~FireworksPanel();
-        void SetTimingTracks(wxCommandEvent& event);
+		void ValidateWindow();
+		void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(FireworksPanel)
 		BulkEditCheckBox* CheckBox_FireTiming;
@@ -137,11 +138,10 @@ class FireworksPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(FireworksPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_FireTimingClick(wxCommandEvent& event);
 		void OnChoice_TimingTrackSelect(wxCommandEvent& event);
         //*)

@@ -122,13 +122,23 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FacesPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&FacesPanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_FACES");
+
+	ValidateWindow();
 }
 
 FacesPanel::~FacesPanel()
 {
 	//(*Destroy(FacesPanel)
 	//*)
+}
+
+void FacesPanel::ValidateWindow()
+{	
 }
 
 PANEL_EVENT_HANDLERS(FacesPanel)

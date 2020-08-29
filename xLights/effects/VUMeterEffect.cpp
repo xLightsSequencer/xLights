@@ -185,10 +185,7 @@ wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 void VUMeterEffect::SetPanelStatus(Model* cls)
 {
     VUMeterPanel *vp = static_cast<VUMeterPanel*>(panel);
-    if (vp == nullptr)
-    {
-        return;
-    }
+    if (vp == nullptr) { return; }
 
     vp->Choice_VUMeter_TimingTrack->Clear();
     if (mSequenceElements == nullptr)

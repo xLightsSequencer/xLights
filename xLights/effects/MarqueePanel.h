@@ -25,6 +25,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class MarqueePanel: public wxPanel
 {
@@ -32,6 +33,7 @@ class MarqueePanel: public wxPanel
 
 		MarqueePanel(wxWindow* parent);
 		virtual ~MarqueePanel();
+		void ValidateWindow();
 
 		//(*Declarations(MarqueePanel)
 		BulkEditCheckBox* CheckBox1;
@@ -144,11 +146,10 @@ class MarqueePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(MarqueePanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

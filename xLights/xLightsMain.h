@@ -1605,6 +1605,7 @@ public:
     ColorPanel* GetColorPanel() const { return colorPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
+    void ValidatePanels();
 
 	void DoPlaySequence();
     void RecalcModels();

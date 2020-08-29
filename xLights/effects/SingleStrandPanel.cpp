@@ -299,6 +299,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SingleStrandPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SingleStrandPanel::OnValidateWindow, 0, this);
 
     SetName("ID_PANEL_SINGLESTRAND");
 
@@ -306,12 +307,18 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
     BitmapButton_Chase_Rotations->GetValue()->SetDivisor(10);
     BitmapButton_Number_ChasesVC->GetValue()->SetLimits(SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX);
     BitmapButton_Color_Mix1VC->GetValue()->SetLimits(SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX);
+
+    ValidateWindow();
 }
 
 SingleStrandPanel::~SingleStrandPanel()
 {
 	//(*Destroy(SingleStrandPanel)
 	//*)
+}
+
+void SingleStrandPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(SingleStrandPanel)

@@ -12,6 +12,7 @@
 
 #include "xlGLCanvas.h"
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class ShaderConfig;
 
@@ -43,6 +44,7 @@ protected:
 class ShaderPanel: public wxPanel
 {
     ShaderConfig* _shaderConfig = nullptr;
+	void ValidateWindow();
 
 	public:
 
@@ -85,14 +87,13 @@ class ShaderPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(ShaderPanel)
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnButton_DownloadClick(wxCommandEvent& event);
 		//*)
 
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        void OnLockButtonClick(wxCommandEvent& event);
         bool BuildUI(const wxString& filename);
 
 		DECLARE_EVENT_TABLE()

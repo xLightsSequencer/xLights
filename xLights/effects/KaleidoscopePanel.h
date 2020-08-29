@@ -12,6 +12,7 @@
 
 #include "xlGLCanvas.h"
 #include "BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class KaleidoscopePreview : public xlGLCanvas
 {
@@ -38,6 +39,8 @@ class wxTextCtrl;
 
 class KaleidoscopePanel: public wxPanel
 {
+	void ValidateWindow();
+
 	public:
 
 		KaleidoscopePanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -65,8 +68,6 @@ class KaleidoscopePanel: public wxPanel
 		wxTextCtrl* TextCtrl1;
 		//*)
 
-		void ValidateWindow();
-
 	protected:
 
 		//(*Identifiers(KaleidoscopePanel)
@@ -93,9 +94,9 @@ class KaleidoscopePanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(KaleidoscopePanel)
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_Kaleidoscope_TypeSelect(wxCommandEvent& event);
 		//*)
 

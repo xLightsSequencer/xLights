@@ -21,10 +21,10 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class TendrilPanel: public wxPanel
 {
-    void ValidateWindow();
     // these are only used for validation
     int __tuneMovement;
     int __thickness;
@@ -41,6 +41,7 @@ class TendrilPanel: public wxPanel
 
 		TendrilPanel(wxWindow* parent);
 		virtual ~TendrilPanel();
+		void ValidateWindow();
 
 		//(*Declarations(TendrilPanel)
 		BulkEditChoice* Choice_Tendril_Movement;
@@ -164,12 +165,11 @@ class TendrilPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(TendrilPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Tendril_MovementSelect(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
     DECLARE_EVENT_TABLE()
 };

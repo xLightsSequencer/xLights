@@ -24,9 +24,12 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class SingleStrandPanel: public wxPanel
 {
+	void ValidateWindow();
+
 	public:
 
 		SingleStrandPanel(wxWindow* parent);
@@ -129,10 +132,9 @@ class SingleStrandPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(SingleStrandPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

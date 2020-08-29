@@ -22,6 +22,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class VUMeterPanel: public wxPanel
 {
@@ -29,6 +30,7 @@ class VUMeterPanel: public wxPanel
 
 		VUMeterPanel(wxWindow* parent);
 		virtual ~VUMeterPanel();
+		void ValidateWindow();
 
 		//(*Declarations(VUMeterPanel)
 		BulkEditCheckBox* CheckBox_LogarithmicXAxis;
@@ -132,22 +134,17 @@ class VUMeterPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(VUMeterPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
         void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
 		void OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		void OnTextCtrl_VUMeter_StartNoteKillFocus(wxFocusEvent& event);
 		void OnTextCtrl_VUMeter_StartNoteEnter(wxCommandEvent& event);
 		void ApplyText(wxEvent& event);
 
 		DECLARE_EVENT_TABLE()
-
-	public:
-
-		void ValidateWindow();
 };

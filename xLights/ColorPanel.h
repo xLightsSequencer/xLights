@@ -31,6 +31,7 @@
 #include "xlLockButton.h"
 #include "ColorCurve.h"
 #include "BulkEditControls.h"
+#include "Effects/EffectPanelUtils.h"
 #include "osx_utils/TouchBars.h"
 
 #define COLORPANEL_BRIGHTNESS_MIN 0
@@ -48,7 +49,6 @@ class ColourList;
 
 class ColorPanel: public wxPanel
 {
-    void OnVCChanged(wxCommandEvent& event);
     void OnCCChanged(wxCommandEvent& event);
 
     std::list<std::string> _loadedPalettes;
@@ -181,14 +181,13 @@ public:
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
-		//void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);

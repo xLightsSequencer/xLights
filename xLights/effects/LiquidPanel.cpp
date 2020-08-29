@@ -605,6 +605,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LiquidPanel::OnValidateWindow, 0, this);
 
     Slider_Liquid_Gravity->SetRange(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
 
@@ -640,9 +641,9 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
     BitmapButton_Y4->GetValue()->SetLimits(LIQUID_Y_MIN, LIQUID_Y_MAX);
     BitmapButton_Liquid_SourceSize4->GetValue()->SetLimits(LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX);
 
-    ValidateWindow();
-
     SetName("ID_PANEL_LIQUID");
+
+    ValidateWindow();
 }
 
 LiquidPanel::~LiquidPanel()

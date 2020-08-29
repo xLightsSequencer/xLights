@@ -316,7 +316,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     Slider_EffectLayerMix->SetSupportsBulkEdit(false);
     TextCtrl_EffectLayerMix->SetSupportsBulkEdit(false);
 
-    Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TimingPanel::OnVCChanged, 0, this );
+	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TimingPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TimingPanel::OnValidateWindow, 0, this);
 
     BitmapButton_In_Transition_Adjust->SetLimits( 0, 100 );
     BitmapButton_Out_Transition_Adjust->SetLimits( 0, 100 );

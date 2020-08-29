@@ -23,6 +23,7 @@ class StateEffect;
 class Model;
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class StatePanel: public wxPanel
 {
@@ -35,6 +36,7 @@ class StatePanel: public wxPanel
 
 		StatePanel(wxWindow* parent);
 		virtual ~StatePanel();
+		void ValidateWindow();
 
 		//(*Declarations(StatePanel)
 		BulkEditChoice* Choice_State_Color;
@@ -66,13 +68,12 @@ class StatePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(StatePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnMouthMovementTypeSelected(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnState_StateDefinitonChoiceSelect(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

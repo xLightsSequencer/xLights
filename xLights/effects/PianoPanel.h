@@ -25,12 +25,15 @@ class wxTextCtrl;
 
 #include <wx/progdlg.h>
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class MidiFile;
 
 class PianoPanel: public wxPanel
 {
-public:
+	void ValidateWindow();
+	
+	public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
@@ -80,14 +83,12 @@ public:
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(PianoPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event);
 		void OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
-        void ValidateWindow();
 };

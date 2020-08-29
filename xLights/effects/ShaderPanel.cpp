@@ -118,11 +118,14 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)& ShaderPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShaderPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Shader_Speed->GetValue()->SetLimits(SHADER_SPEED_MIN, SHADER_SPEED_MAX);
     BitmapButton_Shader_Speed->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
 
 	_preview = new ShaderPreview( this, ID_CANVAS );
+
+    ValidateWindow();
 }
 
 ShaderPanel::~ShaderPanel()
@@ -130,6 +133,10 @@ ShaderPanel::~ShaderPanel()
     if (_shaderConfig != nullptr) delete _shaderConfig;
 	//(*Destroy(ShaderPanel)
 	//*)
+}
+
+void ShaderPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ShaderPanel)

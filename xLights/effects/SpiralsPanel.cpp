@@ -195,6 +195,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
     SetName("ID_PANEL_SPIRALS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SpiralsPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SpiralsPanel::OnValidateWindow, 0, this);
 
     BitmapButton_VCSpiralsCount->GetValue()->SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
     BitmapButton_VCSpirals_Movement->GetValue()->SetLimits(SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
@@ -202,12 +203,18 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
     BitmapButton_VCSpirals_Rotation->GetValue()->SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
     BitmapButton_VCSpirals_Rotation->GetValue()->SetDivisor(SPIRALS_ROTATION_DIVISOR);
     BitmapButton_VCSpirals_Thickness->GetValue()->SetLimits(SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
+
+    ValidateWindow();
 }
 
 SpiralsPanel::~SpiralsPanel()
 {
 	//(*Destroy(SpiralsPanel)
 	//*)
+}
+
+void SpiralsPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(SpiralsPanel)

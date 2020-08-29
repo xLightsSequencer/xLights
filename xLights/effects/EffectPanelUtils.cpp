@@ -40,6 +40,7 @@ std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
 static std::map<wxControl *, ValueCurveButton*> VALUE_CURVE_BUTTONS;
 
+wxDEFINE_EVENT(EVT_VALIDATEWINDOW, wxCommandEvent);
 
 void EffectPanelUtils::OnLockButtonClick(wxCommandEvent& event) {
     wxButton * button = (wxButton*)event.GetEventObject();
@@ -164,7 +165,7 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
         wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
         wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
 
-        if (vcb->GetValue()->IsActive()) {
+        if (vcb->GetValue()->IsActive() || !vcb->IsEnabled()) {
             if (slider != nullptr) {
                 slider->Disable();
             }

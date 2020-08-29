@@ -22,15 +22,15 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class WavePanel: public wxPanel
 {
-    void ValidateWindow();
-
 	public:
 
 		WavePanel(wxWindow* parent);
 		virtual ~WavePanel();
+		void ValidateWindow();
 
 		//(*Declarations(WavePanel)
 		BulkEditCheckBox* CheckBox_Mirror_Wave;
@@ -109,12 +109,11 @@ class WavePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(WavePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Wave_TypeSelect(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

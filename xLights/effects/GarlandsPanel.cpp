@@ -124,17 +124,24 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GarlandsPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GarlandsPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Garlands_CyclesVC->GetValue()->SetLimits(GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX);
     BitmapButton_Garlands_SpacingVC->GetValue()->SetLimits(GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);
 
     SetName("ID_PANEL_GARLANDS");
+
+    ValidateWindow();
 }
 
 GarlandsPanel::~GarlandsPanel()
 {
 	//(*Destroy(GarlandsPanel)
 	//*)
+}
+
+void GarlandsPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(GarlandsPanel)

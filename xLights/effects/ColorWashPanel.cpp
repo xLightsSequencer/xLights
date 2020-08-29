@@ -114,16 +114,23 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorWashPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ColorWashPanel::OnValidateWindow, 0, this);
 
     BitmapButton_ColorWash_CyclesVC->GetValue()->SetLimits(COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX);
     
     SetName("ID_PANEL_COLORWASH");
+
+	ValidateWindow();
 }
 
 ColorWashPanel::~ColorWashPanel()
 {
 	//(*Destroy(ColorWashPanel)
 	//*)
+}
+
+void ColorWashPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ColorWashPanel)

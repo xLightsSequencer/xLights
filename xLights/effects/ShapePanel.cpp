@@ -397,6 +397,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     SetName("ID_PANEL_SHAPE");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShapePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShapePanel::OnValidateWindow, 0, this);
 
     BitmapButton_Shape_ThicknessVC->GetValue()->SetLimits(SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX);
     BitmapButton_Shape_GrowthVC->GetValue()->SetLimits(SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX);

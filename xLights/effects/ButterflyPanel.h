@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class ButterflyPanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class ButterflyPanel: public wxPanel
 
 		ButterflyPanel(wxWindow* parent);
 		virtual ~ButterflyPanel();
+		void ValidateWindow();
 
 		//(*Declarations(ButterflyPanel)
 		BulkEditChoice* Choice_Butterfly_Colors;
@@ -79,11 +81,10 @@ class ButterflyPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(ButterflyPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
     DECLARE_EVENT_TABLE()
 };

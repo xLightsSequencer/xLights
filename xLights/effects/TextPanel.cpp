@@ -302,6 +302,9 @@ TextPanel::TextPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_TEXT");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TextPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TextPanel::OnValidateWindow, 0, this);
+
    	Choice_Text_Font->SetSelection( Choice_Text_Font->Append(_("Use OS Fonts")) );
    	FontManager& font_mgr(FontManager::instance());
     wxArrayString xl_font_names = font_mgr.get_font_names();
@@ -310,6 +313,7 @@ TextPanel::TextPanel(wxWindow* parent)
     {
         Choice_Text_Font->Append( xl_font_names[i] );
     }
+
     ValidateWindow();
 }
 

@@ -203,18 +203,25 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CirclesPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&CirclesPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Circles_Count->GetValue()->SetLimits(CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX);
     BitmapButton_Circles_Size->GetValue()->SetLimits(CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX);
     BitmapButton_Circles_Speed->GetValue()->SetLimits(CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX);
 
     SetName("ID_PANEL_CIRCLES");
+
+	ValidateWindow();
 }
 
 CirclesPanel::~CirclesPanel()
 {
 	//(*Destroy(CirclesPanel)
 	//*)
+}
+
+void CirclesPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(CirclesPanel)

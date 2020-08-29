@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class SnowflakesPanel: public wxPanel
 {
@@ -74,10 +75,9 @@ class SnowflakesPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(SnowflakesPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_FallingSelect(wxCommandEvent& event);
 		//*)
 

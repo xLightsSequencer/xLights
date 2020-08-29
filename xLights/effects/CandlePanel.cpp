@@ -149,6 +149,7 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CandlePanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&CandlePanel::OnValidateWindow, 0, this);
 
     BitmapButton_Candle_FlameAgilityVC->GetValue()->SetLimits(CANDLE_AGILITY_MIN, CANDLE_AGILITY_MAX);
     BitmapButton_Candle_WindBaselineVC->GetValue()->SetLimits(CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX);
@@ -156,6 +157,7 @@ CandlePanel::CandlePanel(wxWindow* parent)
     BitmapButton_Candle_WindCalmnessVC->GetValue()->SetLimits(CANDLE_WINDCALMNESS_MIN, CANDLE_WINDCALMNESS_MAX);
 
     SetName("ID_PANEL_Candle");
+
     ValidateWindow();
 }
 
@@ -165,13 +167,12 @@ CandlePanel::~CandlePanel()
 	//*)
 }
 
+void CandlePanel::ValidateWindow()
+{
+}
+
 PANEL_EVENT_HANDLERS(CandlePanel)
 void CandlePanel::OnCheckBox_Candle_GrowWithMusicClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }
-
-void CandlePanel::ValidateWindow()
-{
-}
-

@@ -20,6 +20,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class LifePanel: public wxPanel
 {
@@ -27,6 +28,7 @@ class LifePanel: public wxPanel
 
 		LifePanel(wxWindow* parent);
 		virtual ~LifePanel();
+		void ValidateWindow();
 
 		//(*Declarations(LifePanel)
 		BulkEditSlider* Slider_Life_Count;
@@ -57,11 +59,10 @@ class LifePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(LifePanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

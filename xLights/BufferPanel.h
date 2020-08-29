@@ -26,14 +26,13 @@
 #include <string>
 
 #include "BulkEditControls.h"
+#include "Effects/EffectPanelUtils.h"
 
 class Model;
 class SubBufferPanel;
 
 class BufferPanel: public wxPanel
 {
-    void OnVCChanged(wxCommandEvent& event);
-
 public:
 
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -193,11 +192,11 @@ public:
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(BufferPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnBufferTransformSelect(wxCommandEvent& event);
 		void OnChoice_PresetSelect(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnButton_ResetClick(wxCommandEvent& event);
 		void OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event);
 		void OnBufferStyleChoiceSelect(wxCommandEvent& event);

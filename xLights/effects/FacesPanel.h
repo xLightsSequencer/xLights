@@ -23,6 +23,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class FacesPanel: public wxPanel
 {
@@ -30,6 +31,7 @@ class FacesPanel: public wxPanel
 
 		FacesPanel(wxWindow* parent);
 		virtual ~FacesPanel();
+		void ValidateWindow();
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;
@@ -67,12 +69,11 @@ class FacesPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(FacesPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnMouthMovementTypeSelected(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		void OnMouthMovementTypeSelected(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -101,13 +101,23 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TwinklePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TwinklePanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_TWINKLE");
+
+    ValidateWindow();
 }
 
 TwinklePanel::~TwinklePanel()
 {
 	//(*Destroy(TwinklePanel)
 	//*)
+}
+
+void TwinklePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(TwinklePanel)

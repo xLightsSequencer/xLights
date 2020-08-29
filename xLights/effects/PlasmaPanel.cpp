@@ -127,16 +127,23 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PlasmaPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&PlasmaPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Plasma_SpeedVC->GetValue()->SetLimits(PLASMA_SPEED_MIN, PLASMA_SPEED_MAX);
 
     SetName("ID_PANEL_PLASMA");
+
+    ValidateWindow();
 }
 
 PlasmaPanel::~PlasmaPanel()
 {
 	//(*Destroy(PlasmaPanel)
 	//*)
+}
+
+void PlasmaPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(PlasmaPanel)

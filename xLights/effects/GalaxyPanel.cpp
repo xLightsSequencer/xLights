@@ -305,6 +305,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
     SetName("ID_PANEL_GALAXY");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GalaxyPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GalaxyPanel::OnValidateWindow, 0, this);
 
     ValueCurve_Galaxy_CenterX->GetValue()->SetLimits(GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX);
     ValueCurve_Galaxy_CenterY->GetValue()->SetLimits(GALAXY_CENTREY_MIN, GALAXY_CENTREY_MAX);
@@ -317,12 +318,18 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
     ValueCurve_Galaxy_End_Width->GetValue()->SetLimits(GALAXY_ENDWIDTH_MIN, GALAXY_ENDWIDTH_MAX);
     ValueCurve_Galaxy_Duration->GetValue()->SetLimits(GALAXY_DURATION_MIN, GALAXY_DURATION_MAX);
     ValueCurve_Galaxy_Accel->GetValue()->SetLimits(GALAXY_ACCEL_MIN, GALAXY_ACCEL_MAX);
+
+    ValidateWindow();
 }
 
 GalaxyPanel::~GalaxyPanel()
 {
 	//(*Destroy(GalaxyPanel)
 	//*)
+}
+
+void GalaxyPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(GalaxyPanel)

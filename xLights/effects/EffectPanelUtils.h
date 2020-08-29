@@ -15,6 +15,8 @@
 
 #include "../xlLockButton.h"
 
+wxDECLARE_EVENT(EVT_VALIDATEWINDOW, wxCommandEvent);
+
 class wxCommandEvent;
 class wxScrollEvent;
 class wxPanel;
@@ -48,4 +50,13 @@ void cls::OnVCButtonClick(wxCommandEvent& event) { \
 } \
 void cls::OnVCChanged(wxCommandEvent& event) { \
         EffectPanelUtils::OnVCChanged(event); \
+} \
+void cls::OnValidateWindow(wxCommandEvent& event){ \
+        ValidateWindow(); \
 }
+
+#define DECLARE_PANEL_EVENT_HANDLERS() \
+void OnLockButtonClick(wxCommandEvent& event); \
+void OnVCButtonClick(wxCommandEvent& event); \
+void OnVCChanged(wxCommandEvent& event); \
+void OnValidateWindow(wxCommandEvent& event);

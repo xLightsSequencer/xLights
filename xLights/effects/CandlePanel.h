@@ -21,10 +21,12 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class CandlePanel: public wxPanel
 {
     void ValidateWindow();
+
 	public:
 
 		CandlePanel(wxWindow* parent);
@@ -82,11 +84,10 @@ class CandlePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(CandlePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Candle_GrowWithMusicClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

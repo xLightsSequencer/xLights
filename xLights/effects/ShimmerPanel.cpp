@@ -120,16 +120,23 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
     SetName("ID_PANEL_SHIMMER");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, nullptr, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShimmerPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(SHIMMER_CYCLES_MIN, SHIMMER_CYCLES_MAX);
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetDivisor(10);
     BitmapButton_Shimmer_Duty_FactorVC->GetValue()->SetLimits(SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX);
+
+    ValidateWindow();
 }
 
 ShimmerPanel::~ShimmerPanel()
 {
 	//(*Destroy(ShimmerPanel)
 	//*)
+}
+
+void ShimmerPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ShimmerPanel)

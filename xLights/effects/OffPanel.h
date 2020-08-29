@@ -18,6 +18,7 @@ class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class OffPanel: public wxPanel
 {
@@ -25,6 +26,7 @@ class OffPanel: public wxPanel
 
 		OffPanel(wxWindow* parent);
 		virtual ~OffPanel();
+		void ValidateWindow();
 
 		//(*Declarations(OffPanel)
 		BulkEditCheckBox* CheckBox_Transparent;
@@ -37,6 +39,8 @@ class OffPanel: public wxPanel
 		//*)
 
 	private:
+
+		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(OffPanel)
 		//*)

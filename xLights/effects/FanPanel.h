@@ -23,6 +23,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class FanPanel: public wxPanel
 {
@@ -30,6 +31,7 @@ class FanPanel: public wxPanel
 
 		FanPanel(wxWindow* parent);
 		virtual ~FanPanel();
+		void ValidateWindow();
 
 		//(*Declarations(FanPanel)
 		BulkEditCheckBox* CheckBox_Fan_Blend_Edges;
@@ -167,10 +169,9 @@ class FanPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(FanPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

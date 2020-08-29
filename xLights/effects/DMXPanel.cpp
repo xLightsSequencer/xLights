@@ -654,7 +654,8 @@ DMXPanel::DMXPanel(wxWindow* parent)
     SetName("ID_PANEL_DMX");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPanel::OnVCChanged, 0, this);
-    Connect(ID_BUTTON1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&DMXPanel::OnButtonRemapRClick);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&DMXPanel::OnValidateWindow, 0, this);
+	Connect(ID_BUTTON1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&DMXPanel::OnButtonRemapRClick);
 
     ValueCurve_DMX1->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX2->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
@@ -696,6 +697,8 @@ DMXPanel::DMXPanel(wxWindow* parent)
     ValueCurve_DMX38->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX39->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX40->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+
+	ValidateWindow();
 }
 
 DMXPanel::~DMXPanel()
@@ -800,4 +803,8 @@ void DMXPanel::OnChoicePopup(wxCommandEvent& event)
             }
         }
     }
+}
+
+void DMXPanel::ValidateWindow()
+{
 }

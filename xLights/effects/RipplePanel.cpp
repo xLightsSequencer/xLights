@@ -184,6 +184,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
     SetName("ID_PANEL_RIPPLE");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&RipplePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&RipplePanel::OnValidateWindow, 0, this);
 
     BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX);
     BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(10);

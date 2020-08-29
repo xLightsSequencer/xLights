@@ -22,14 +22,15 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class FirePanel: public wxPanel
 {
-    void ValidateWindow();
 	public:
 
 		FirePanel(wxWindow* parent);
 		virtual ~FirePanel();
+		void ValidateWindow();
 
 		//(*Declarations(FirePanel)
 		BulkEditCheckBox* CheckBox_Fire_GrowWithMusic;
@@ -78,12 +79,11 @@ class FirePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(FirePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Fire_GrowWithMusicClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

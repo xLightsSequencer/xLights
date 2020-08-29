@@ -94,14 +94,23 @@ SnowstormPanel::SnowstormPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowstormPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowstormPanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SnowstormPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SnowstormPanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_SNOWSTORM");
 
+    ValidateWindow();
 }
 
 SnowstormPanel::~SnowstormPanel()
 {
 	//(*Destroy(SnowstormPanel)
 	//*)
+}
+
+void SnowstormPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(SnowstormPanel)

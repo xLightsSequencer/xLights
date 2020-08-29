@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "BulkEditControls.h"
+#include "Effects/EffectPanelUtils.h"
 
 //(*Headers(TimingPanel)
 #include <wx/bmpbuttn.h>
@@ -125,12 +126,11 @@ class TimingPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(TimingPanel)
 		void OnResize(wxSizeEvent& event);
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnTransitionTypeSelect(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event);
 		void OnButton_LayersClick(wxCommandEvent& event);
 		void OnChoice_LayerMethodSelect(wxCommandEvent& event);

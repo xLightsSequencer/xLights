@@ -27,6 +27,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class TextPanel: public wxPanel
 {
@@ -34,7 +35,7 @@ class TextPanel: public wxPanel
 
 		TextPanel(wxWindow* parent);
 		virtual ~TextPanel();
-        void ValidateWindow();
+		void ValidateWindow();
 
 		//(*Declarations(TextPanel)
 		BulkEditCheckBox* CheckBox_Text_PixelOffsets;
@@ -123,10 +124,9 @@ class TextPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(TextPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnTextCtrl_TextText(wxCommandEvent& event);
 		void OnChoice_LyricTrackSelect(wxCommandEvent& event);

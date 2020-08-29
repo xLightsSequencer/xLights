@@ -91,16 +91,23 @@ ServoPanel::ServoPanel(wxWindow* parent)
 
     SetName("ID_PANEL_SERVO");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
+	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ServoPanel::OnValidateWindow, nullptr, this);
 
     ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
     ValueCurve_Servo->GetValue()->SetDivisor(SERVO_DIVISOR);
+
+	ValidateWindow();
 }
 
 ServoPanel::~ServoPanel()
 {
 	//(*Destroy(ServoPanel)
 	//*)
+}
+
+void ServoPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(ServoPanel)

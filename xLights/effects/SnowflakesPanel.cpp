@@ -128,6 +128,7 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
     SetName("ID_PANEL_SNOWFLAKES");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SnowflakesPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SnowflakesPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Snowflakes_Count->GetValue()->SetLimits(SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX);
     BitmapButton_Snowflakes_Speed->GetValue()->SetLimits(SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX);

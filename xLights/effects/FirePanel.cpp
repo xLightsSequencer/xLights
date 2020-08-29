@@ -143,6 +143,7 @@ FirePanel::FirePanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FirePanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&FirePanel::OnValidateWindow, 0, this);
 
     BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
     BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);
@@ -150,7 +151,8 @@ FirePanel::FirePanel(wxWindow* parent)
     BitmapButton_Fire_HueShiftVC->GetValue()->SetLimits(FIRE_HUE_MIN, FIRE_HUE_MAX);
 
     SetName("ID_PANEL_FIRE");
-    ValidateWindow();
+
+	ValidateWindow();
 }
 
 FirePanel::~FirePanel()

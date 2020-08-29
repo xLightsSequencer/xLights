@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 #define COLOURWASH_CYCLES_MIN 0.1f
 #define COLOURWASH_CYCLES_MAX 20
@@ -31,6 +32,7 @@ class ColorWashPanel: public wxPanel
 
 		ColorWashPanel(wxWindow* parent);
 		virtual ~ColorWashPanel();
+		void ValidateWindow();
 
 		//(*Declarations(ColorWashPanel)
 		BulkEditCheckBox* CircularPaletteCheckBox;
@@ -61,12 +63,10 @@ class ColorWashPanel: public wxPanel
 		static const long ID_CHECKBOX_ColorWash_CircularPalette;
 		//*)
 
-    
-		//(*Handlers(ColorWashPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		DECLARE_PANEL_EVENT_HANDLERS()
 
-    DECLARE_EVENT_TABLE()
+		//(*Handlers(ColorWashPanel)
+		//*)
+
+		DECLARE_EVENT_TABLE()
 };

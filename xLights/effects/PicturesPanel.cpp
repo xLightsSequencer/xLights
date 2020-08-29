@@ -305,7 +305,13 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PicturesPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&PicturesPanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_PICTURES");
+	
+	ValidateWindow();
 }
 
 PicturesPanel::~PicturesPanel()

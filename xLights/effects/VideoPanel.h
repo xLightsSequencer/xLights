@@ -27,6 +27,7 @@ class wxTextCtrl;
 #include <map>
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 #define VIDEO_SPEED_MIN -1000
 #define VIDEO_SPEED_MAX 1000
@@ -58,13 +59,13 @@ public:
 
 class VideoPanel: public wxPanel
 {
-    void ValidateWindow();
     void AddVideoTime(std::string fn, unsigned long ms);
 
 	public:
 
 		VideoPanel(wxWindow* parent);
 		virtual ~VideoPanel();
+		void ValidateWindow();
 
         //(*Declarations(VideoPanel)
         BulkEditCheckBox* CheckBox_SynchroniseWithAudio;
@@ -145,11 +146,10 @@ protected:
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(VideoPanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
 		void OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event);
 		//*)

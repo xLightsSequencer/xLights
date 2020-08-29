@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class TreePanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class TreePanel: public wxPanel
 
 		TreePanel(wxWindow* parent);
 		virtual ~TreePanel();
+		void ValidateWindow();
 
 		//(*Declarations(TreePanel)
 		BulkEditCheckBox* CheckBox1;
@@ -53,11 +55,10 @@ class TreePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(TreePanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

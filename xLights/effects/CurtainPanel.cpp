@@ -144,18 +144,25 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);
 	//*)
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CurtainPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CurtainPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&CurtainPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Curtain_SpeedVC->GetValue()->SetLimits(CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX);
     BitmapButton_Curtain_SwagVC->GetValue()->SetLimits(CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX);
 
     SetName("ID_PANEL_CURTAIN");
+
+	ValidateWindow();
 }
 
 CurtainPanel::~CurtainPanel()
 {
 	//(*Destroy(CurtainPanel)
 	//*)
+}
+
+void CurtainPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(CurtainPanel)

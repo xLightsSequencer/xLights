@@ -55,13 +55,23 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent)
 	FlexGridSizer53->Fit(this);
 	FlexGridSizer53->SetSizeHints(this);
 	//*)
+	
+	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GlediatorPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GlediatorPanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_GLEDIATOR");
+
+    ValidateWindow();
 }
 
 GlediatorPanel::~GlediatorPanel()
 {
 	//(*Destroy(GlediatorPanel)
 	//*)
+}
+
+void GlediatorPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(GlediatorPanel)

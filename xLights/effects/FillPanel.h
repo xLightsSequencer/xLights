@@ -22,6 +22,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class FillPanel: public wxPanel
 {
@@ -29,6 +30,7 @@ class FillPanel: public wxPanel
 
 		FillPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FillPanel();
+		void ValidateWindow();
 
 		//(*Declarations(FillPanel)
 		BulkEditCheckBox* CheckBox_Fill_Color_Time;
@@ -83,11 +85,10 @@ class FillPanel: public wxPanel
 
 	private:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(FillPanel)
-        void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
     DECLARE_EVENT_TABLE()
 };

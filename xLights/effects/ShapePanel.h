@@ -25,6 +25,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 #include <wx/fontpicker.h>
 #include <list>
 
@@ -173,10 +174,9 @@ class ShapePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(ShapePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
-		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_Shape_ObjectToDrawSelect(wxCommandEvent& event);
 		void OnCheckBox_Shape_RandomLocationClick(wxCommandEvent& event);
 		void OnCheckBox_Shape_UseMusicClick(wxCommandEvent& event);

@@ -223,6 +223,7 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
     SetName("ID_PANEL_SPIROGRAPH");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SpirographPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SpirographPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Spirograph_AnimateVC->GetValue()->SetLimits(SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX);
 	BitmapButton_Spirograph_LengthVC->GetValue()->SetLimits(SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
@@ -231,12 +232,18 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
     BitmapButton_Spirograph_rVC->GetValue()->SetLimits(SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX);
     BitmapButton_Spirograph_SpeedrVC->GetValue()->SetLimits(SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX);
     BitmapButton_Spirograph_dVC->GetValue()->SetLimits(SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX);
+
+    ValidateWindow();
 }
 
 SpirographPanel::~SpirographPanel()
 {
 	//(*Destroy(SpirographPanel)
 	//*)
+}
+
+void SpirographPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(SpirographPanel)

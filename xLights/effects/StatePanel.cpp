@@ -105,15 +105,24 @@ StatePanel::StatePanel(wxWindow* parent)
 	Connect(IDD_RADIOBUTTON_State_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&StatePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&StatePanel::OnValidateWindow, 0, this);
+
     UpdateStateList();
 
     SetName("ID_PANEL_State");
+
+    ValidateWindow();
 }
 
 StatePanel::~StatePanel()
 {
 	//(*Destroy(StatePanel)
 	//*)
+}
+
+void StatePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(StatePanel)

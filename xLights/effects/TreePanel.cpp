@@ -82,13 +82,23 @@ TreePanel::TreePanel(wxWindow* parent)
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Tree_Branches,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TreePanel::OnLockButtonClick);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TreePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TreePanel::OnValidateWindow, 0, this);
+
     SetName("ID_PANEL_TREE");
+
+    ValidateWindow();
 }
 
 TreePanel::~TreePanel()
 {
 	//(*Destroy(TreePanel)
 	//*)
+}
+
+void TreePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(TreePanel)

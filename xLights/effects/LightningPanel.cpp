@@ -193,6 +193,7 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LightningPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LightningPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Lightning_TopXVC->GetValue()->SetLimits(LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX);
     BitmapButton_Lightning_TopYVC->GetValue()->SetLimits(LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX);
@@ -200,12 +201,18 @@ LightningPanel::LightningPanel(wxWindow* parent)
     BitmapButton_Number_SegmentsVC->GetValue()->SetLimits(LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);
 
     SetName("ID_PANEL_LIGHTNING");
+
+	ValidateWindow();
 }
 
 LightningPanel::~LightningPanel()
 {
 	//(*Destroy(LightningPanel)
 	//*)
+}
+
+void LightningPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(LightningPanel)

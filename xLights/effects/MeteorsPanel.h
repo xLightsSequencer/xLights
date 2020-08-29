@@ -22,6 +22,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class MeteorsPanel : public wxPanel
 {
@@ -29,6 +30,7 @@ public:
 
 	MeteorsPanel(wxWindow* parent);
 	virtual ~MeteorsPanel();
+	void ValidateWindow();
 
 	//(*Declarations(MeteorsPanel)
 	BulkEditCheckBox* CheckBox_FadeWithDistance;
@@ -114,14 +116,11 @@ protected:
 
 public:
 
+	DECLARE_PANEL_EVENT_HANDLERS()
+
 	//(*Handlers(MeteorsPanel)
-	void OnLockButtonClick(wxCommandEvent& event);
 	void OnChoice_Meteors_EffectSelect(wxCommandEvent& event);
-	void OnVCButtonClick(wxCommandEvent& event);
-	void OnVCChanged(wxCommandEvent& event);
 	//*)
 
 	DECLARE_EVENT_TABLE()
-
-	void ValidateWindow();
 };

@@ -20,6 +20,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class SnowstormPanel: public wxPanel
 {
@@ -27,6 +28,7 @@ class SnowstormPanel: public wxPanel
 
 		SnowstormPanel(wxWindow* parent);
 		virtual ~SnowstormPanel();
+		void ValidateWindow();
 
 		//(*Declarations(SnowstormPanel)
 		BulkEditSlider* Slider_Snowstorm_Count;
@@ -59,11 +61,10 @@ class SnowstormPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(SnowstormPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

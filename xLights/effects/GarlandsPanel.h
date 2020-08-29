@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class GarlandsPanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class GarlandsPanel: public wxPanel
 
 		GarlandsPanel(wxWindow* parent);
 		virtual ~GarlandsPanel();
+		void ValidateWindow();
 
 		//(*Declarations(GarlandsPanel)
 		BulkEditChoice* Choice_Garlands_Direction;
@@ -66,11 +68,10 @@ class GarlandsPanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(GarlandsPanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -248,6 +248,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
     SetName("ID_PANEL_METEORS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MeteorsPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MeteorsPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Meteors_Count->GetValue()->SetLimits(METEORS_COUNT_MIN, METEORS_COUNT_MAX);
     BitmapButton_Meteors_Speed->GetValue()->SetLimits(METEORS_SPEED_MIN, METEORS_SPEED_MAX);

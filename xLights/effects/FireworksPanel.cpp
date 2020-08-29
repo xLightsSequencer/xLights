@@ -280,6 +280,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
     SetName("ID_PANEL_FIREWORKS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FireworksPanel::OnVCChanged, 0, this);
+   Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&FireworksPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Fireworks_Count->GetValue()->SetLimits(FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX);
     BitmapButton_Fireworks_Velocity->GetValue()->SetLimits(FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX);

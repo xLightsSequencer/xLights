@@ -559,6 +559,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
     SetName("ID_PANEL_MORPH");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MorphPanel::OnVCChanged, nullptr, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MorphPanel::OnValidateWindow, 0, this);
 
     BitmapButton_Morph_Start_X1->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
     BitmapButton_Morph_End_X1->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
@@ -575,12 +576,18 @@ MorphPanel::MorphPanel(wxWindow* parent)
     BitmapButton_Morph_Repeat_Count->GetValue()->SetLimits(MORPH_REPEAT_MIN, MORPH_REPEAT_MAX);
     BitmapButton_Morph_Repeat_Skip->GetValue()->SetLimits(MORPH_REPEATSKIP_MIN, MORPH_REPEATSKIP_MAX);
     BitmapButton_Morph_Stagger->GetValue()->SetLimits(MORPH_STAGGER_MIN, MORPH_STAGGER_MAX);
+
+	ValidateWindow();
 }
 
 MorphPanel::~MorphPanel()
 {
 	//(*Destroy(MorphPanel)
 	//*)
+}
+
+void MorphPanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(MorphPanel)

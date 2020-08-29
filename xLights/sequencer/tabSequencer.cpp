@@ -54,6 +54,7 @@
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
+#include "../Effects/EffectPanelUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2580,9 +2581,7 @@ void xLightsFrame::ApplyLast(wxCommandEvent& event)
     SetEffectControlsApplyLast(*pSettingsMap);
     delete pSettingsMap;
 
-    timingPanel->ValidateWindow();
-    bufferPanel->ValidateWindow();
-    colorPanel->ValidateWindow();
+    ValidatePanels();
 }
 
 void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
@@ -2594,9 +2593,7 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
         }
     }
 
-    timingPanel->ValidateWindow();
-    bufferPanel->ValidateWindow();
-    colorPanel->ValidateWindow();
+    ValidatePanels();
 }
 
 void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
@@ -2639,10 +2636,17 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     }
     else
     {
-        timingPanel->ValidateWindow();
-        bufferPanel->ValidateWindow();
-        colorPanel->ValidateWindow();
+        ValidatePanels();
     }
+}
+
+void xLightsFrame::ValidatePanels()
+{
+    timingPanel->ValidateWindow();
+    bufferPanel->ValidateWindow();
+    colorPanel->ValidateWindow();
+    wxCommandEvent e(EVT_VALIDATEWINDOW);
+    wxPostEvent(EffectsPanel1->GetSelectedPanel(), e);
 }
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const

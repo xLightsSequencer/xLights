@@ -357,6 +357,7 @@ FanPanel::FanPanel(wxWindow* parent)
     SetName("ID_PANEL_FAN");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FanPanel::OnVCChanged, nullptr, this);
+	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&FanPanel::OnValidateWindow, 0, this);
 
     ValueCurve_Fan_CenterX->GetValue()->SetLimits(FAN_CENTREX_MIN, FAN_CENTREX_MAX);
     ValueCurve_Fan_CenterY->GetValue()->SetLimits(FAN_CENTREY_MIN, FAN_CENTREY_MAX);
@@ -371,12 +372,19 @@ FanPanel::FanPanel(wxWindow* parent)
     ValueCurve_Fan_Element_Width->GetValue()->SetLimits(FAN_ELEMENTWIDTH_MIN, FAN_ELEMENTWIDTH_MAX);
     ValueCurve_Fan_Duration->GetValue()->SetLimits(FAN_DURATION_MIN, FAN_DURATION_MAX);
     ValueCurve_Fan_Accel->GetValue()->SetLimits(FAN_ACCEL_MIN, FAN_ACCEL_MAX);
+
+	ValidateWindow();
 }
 
 FanPanel::~FanPanel()
 {
 	//(*Destroy(FanPanel)
 	//*)
+}
+
+void FanPanel::ValidateWindow()
+{
+	
 }
 
 PANEL_EVENT_HANDLERS(FanPanel)

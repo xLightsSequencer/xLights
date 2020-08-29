@@ -333,6 +333,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
     SetName("ID_PANEL_MARQUEE");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MarqueePanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MarqueePanel::OnValidateWindow, 0, this);
 
     BitmapButton_MarqueeXCVC->GetValue()->SetLimits(MARQUEE_XC_MIN, MARQUEE_XC_MAX);
     BitmapButton_MarqueeYCVC->GetValue()->SetLimits(MARQUEE_YC_MIN, MARQUEE_YC_MAX);
@@ -344,12 +345,18 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
     BitmapButton_Marquee_StaggerVC->GetValue()->SetLimits(MARQUEE_STAGGER_MIN, MARQUEE_STAGGER_MAX);
     BitmapButton_Marquee_StartVC->GetValue()->SetLimits(MARQUEE_START_MIN, MARQUEE_START_MAX);
     BitmapButton_Marquee_ThicknessVC->GetValue()->SetLimits(MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX);
+
+	ValidateWindow();
 }
 
 MarqueePanel::~MarqueePanel()
 {
 	//(*Destroy(MarqueePanel)
 	//*)
+}
+
+void MarqueePanel::ValidateWindow()
+{
 }
 
 PANEL_EVENT_HANDLERS(MarqueePanel)

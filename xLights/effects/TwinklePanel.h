@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class TwinklePanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class TwinklePanel: public wxPanel
 
 		TwinklePanel(wxWindow* parent);
 		virtual ~TwinklePanel();
+		void ValidateWindow();
 
 		//(*Declarations(TwinklePanel)
 		BulkEditCheckBox* CheckBox_Twinkle_ReRandom;
@@ -61,11 +63,10 @@ class TwinklePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(TwinklePanel)
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		//*)
 
     DECLARE_EVENT_TABLE()
 };

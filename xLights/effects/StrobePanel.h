@@ -21,6 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 class StrobePanel: public wxPanel
 {
@@ -28,6 +29,7 @@ class StrobePanel: public wxPanel
 
 		StrobePanel(wxWindow* parent);
 		virtual ~StrobePanel();
+		void ValidateWindow();
 
 		//(*Declarations(StrobePanel)
 		BulkEditCheckBox* CheckBox_Strobe_Music;
@@ -67,12 +69,11 @@ class StrobePanel: public wxPanel
 
 	public:
 
+		DECLARE_PANEL_EVENT_HANDLERS()
+
 		//(*Handlers(StrobePanel)
-		void OnLockButtonClick(wxCommandEvent& event);
 		void OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };
