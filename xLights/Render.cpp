@@ -530,8 +530,8 @@ public:
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
 
-        for (auto & layer : info.validLayers) {
-            layer = false;
+        for (int x = 0; x < info.validLayers.size(); x++) {
+            info.validLayers[x] = false;
         }
 
         // To support canvas mix type we must render them bottom to top

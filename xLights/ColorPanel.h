@@ -31,7 +31,7 @@
 #include "xlLockButton.h"
 #include "ColorCurve.h"
 #include "BulkEditControls.h"
-#include "Effects/EffectPanelUtils.h"
+#include "effects/EffectPanelUtils.h"
 #include "osx_utils/TouchBars.h"
 
 #define COLORPANEL_BRIGHTNESS_MIN 0

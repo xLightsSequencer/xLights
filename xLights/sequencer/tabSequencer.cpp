@@ -54,7 +54,7 @@
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
-#include "../Effects/EffectPanelUtils.h"
+#include "../effects/EffectPanelUtils.h"
 
 #include <log4cpp/Category.hh>
 

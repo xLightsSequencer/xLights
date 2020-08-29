@@ -26,7 +26,7 @@
 #include <string>
 
 #include "BulkEditControls.h"
-#include "Effects/EffectPanelUtils.h"
+#include "effects/EffectPanelUtils.h"
 
 class Model;
 class SubBufferPanel;
