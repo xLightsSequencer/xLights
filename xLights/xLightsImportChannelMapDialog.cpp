@@ -1881,6 +1881,78 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
             logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
+
+    // Try again but this time remove spaces from names to try and find more matches
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+        auto model = _dataModel->GetNthChild(i);
+        if (model != nullptr) {
+            if (model->_mapping == "") {
+                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                    wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                    availName.Replace(" ", "");
+                    if (availName.Contains("/")) {
+                        wxArrayString parts = wxSplit(availName, '/');
+                        wxString mod = wxString(model->_model).Trim(true).Trim(false).Lower();
+                        mod.Replace(" ", "");
+                        if (mod == parts[0]) {
+                            // matched the model name ... need to look at strands and submodels
+                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                auto strand = model->GetNthChild(k);
+                                if (strand != nullptr) {
+                                    if (strand->_mapping == "") {
+                                        wxString str = wxString(strand->_strand).Trim(true).Trim(false).Lower();
+                                        str.Replace(" ", "");
+                                        if (str == parts[1]) {
+                                            // matched to the strand level
+                                            if (parts.size() == 2) {
+                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                strand->_mappingExists = true;
+                                            }
+                                            else {
+                                                // need to map the node level
+                                                for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                                    auto node = strand->GetNthChild(m);
+                                                    if (node != nullptr) {
+                                                        if (node->_mapping == "") {
+                                                            auto nod = wxString(node->_node).Trim(true).Trim(false).Lower();
+                                                            nod.Replace(" ", "");
+                                                            if (nod == parts[2]) {
+                                                                // matched to the strand level
+                                                                if (parts.size() == 3) {
+                                                                    node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                    node->_mappingExists = true;
+                                                                }
+                                                                else {
+                                                                    wxASSERT(false);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        wxString mod = wxString(model->_model).Trim(true).Trim(false).Lower();
+                        mod.Replace(" ", "");
+                        if (mod == availName) {
+                            model->_mapping = ListCtrl_Available->GetItemText(j);
+                            model->_mappingExists = true;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+        }
+    }
+
     TreeListCtrl_Mapping->Refresh();
     MarkUsed();
 }
