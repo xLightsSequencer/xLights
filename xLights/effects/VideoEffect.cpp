@@ -41,6 +41,12 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
 
+    if (settings.GetBool("E_CHECKBOX_SynchroniseWithAudio", 0) == 1) {
+        if (media != nullptr) {
+            filename = media->FileName();
+        }
+    }
+
     if (filename == "" || !wxFileExists(filename))
     {
         res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
