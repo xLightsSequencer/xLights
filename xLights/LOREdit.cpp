@@ -142,8 +142,10 @@ std::string LOREditEffect::GetxLightsEffect() const
 
     if (effectType == "colorwash") return "Color Wash";
     if (effectType == "picture") return "Pictures";
-    if (effectType == "lineshorizontal") return "";
-    if (effectType == "linesvertical") return "";
+    if (effectType == "lineshorizontal") return "Lines";
+    if (effectType == "linesvertical") return "Lines";
+    if (effectType == "straightlines") return "Lines";
+    if (effectType == "blendedbars") return "Bars";
     if (effectType == "countdown") return "Text"; // we dont support countdown
 
     return wxString(effectType).Capitalize();
@@ -883,6 +885,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         {
             settings += ",E_CHECKBOX_Twinkle_Strobe=1";
         }
+    }
+    else if (et == "straightlines")         {
+    }
+    else if (et == "blendedbars")         {
     }
     else
     {
