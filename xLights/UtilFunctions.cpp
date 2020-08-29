@@ -969,6 +969,15 @@ std::list<std::string> GetLocalIPs()
     return res;
 }
 
+bool IsValidLocalIP(const std::string& ip)
+{
+    for (const auto& it : GetLocalIPs()) {
+        if (it == ip) return true;
+    }
+
+	return false;
+}
+
 bool DeleteDirectory(std::string directory)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

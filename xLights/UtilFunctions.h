@@ -238,6 +238,7 @@ static inline double toDegrees(double radians) {
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
+bool IsValidLocalIP(const std::string& ip);
 
 void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);

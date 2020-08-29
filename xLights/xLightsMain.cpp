@@ -1672,8 +1672,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");
-    mLocalIP = tmpString;
-    _outputManager.SetForceFromIP(mLocalIP);
+
+    if (IsValidLocalIP(tmpString) || tmpString == "") {
+        mLocalIP = tmpString;
+        _outputManager.SetForceFromIP(mLocalIP);
+    }
+    else {
+        wxMessageBox(wxString::Format("Local IP : %s : Not currently available so clearing that setting.", tmpString));
+        mLocalIP = "";
+        _outputManager.SetForceFromIP("");
+    }
+
     SetControllersProperties();
     UpdateACToolbar();
     ShowACLights();
