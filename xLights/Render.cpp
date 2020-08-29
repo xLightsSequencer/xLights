@@ -94,8 +94,8 @@ public:
     virtual ~NextRenderer() {}
 
     bool addNext(NextRenderer *n) {
-        for (auto i = next.begin(); i < next.end(); ++i) {
-            if (*i == n) return false;
+        for (const auto& i : next) {
+            if (i == n) return false;
         }
         next.push_back(n);
         return true;
@@ -107,8 +107,8 @@ public:
     }
 
     void FrameDone(int frame) {
-        for (auto i = next.begin(); i < next.end(); ++i) {
-            (*i)->setPreviousFrameDone(frame);
+        for (const auto& i : next) {
+            i->setPreviousFrameDone(frame);
         }
     }
 
@@ -530,8 +530,8 @@ public:
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
 
-        for (int layer = 0; layer < info.validLayers.size(); ++layer) {
-            info.validLayers[layer] = false;
+        for (auto & layer : info.validLayers) {
+            layer = false;
         }
 
         // To support canvas mix type we must render them bottom to top
@@ -673,6 +673,8 @@ public:
         std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         if (rowToRender->DecWaitCount() && !HasNext()) {
             // other threads for this model waiting, we'll bail fast and let them handle this
+            renderLog.debug("Rendering thread exiting early.");
+            currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
             return;
         }
         SetGenericStatus("Got lock on rendering thread for %s", 0);
@@ -1049,9 +1051,9 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
     if (renderProgressInfo.empty()) {
         return;
     }
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it) {
-        if ((*it)->renderProgressDialog) {
-            (*it)->renderProgressDialog->Show();
+    for (auto it : renderProgressInfo) {
+        if (it->renderProgressDialog) {
+            it->renderProgressDialog->Show();
             return;
         }
     }
@@ -1555,9 +1557,8 @@ bool xLightsFrame::AbortRender()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Aborting rendering ...");
     int abortCount = 0;
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it) {
+    for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
-        RenderProgressInfo *rpi = (*it);
         for (size_t row = 0; row < rpi->numRows; ++row) {
             if (rpi->jobs[row]) {
                 rpi->jobs[row]->AbortRender();
@@ -1568,9 +1569,15 @@ bool xLightsFrame::AbortRender()
 
     //must wait for the rendering to complete
     logger_base.info("Aborting %d renderers", abortCount);
+    int loops = 0;
     while (!renderProgressInfo.empty()) {
+        loops++;
         wxMilliSleep(10);
         wxYield(); // not sure this is advisable ... but it makes the app look responsive
+        UpdateRenderStatus(); // a side effect is to clean up renderProgressInfo
+        if (loops % 200 == 0) {
+            logger_base.info("    Waiting for renderers to abort. %d left.", (int)renderProgressInfo.size());
+        }
     }
     logger_base.info("    Aborting renderers ... Done");
     return abortCount != 0;
@@ -1598,12 +1605,11 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
         models.push_back((*it)->model);
     }
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it) {
+    for (auto it : renderProgressInfo) {
         //we're going to render EVERYTHING, abort whatever is rendering
-        RenderProgressInfo *rpi = (*it);
-        for (size_t row = 0; row < rpi->numRows; ++row) {
-            if (rpi->jobs[row]) {
-               rpi->jobs[row]->AbortRender();
+        for (size_t row = 0; row < it->numRows; ++row) {
+            if (it->jobs[row]) {
+               it->jobs[row]->AbortRender();
             }
         }
     }

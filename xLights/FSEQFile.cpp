@@ -444,7 +444,10 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int read
                 // print a warning if the data is not null terminated
                 // this is to assist debugging potential string related issues
                 // the data is not forcibly null terminated to avoid mutating unknown data
-                if (header[readIndex + VariableCodeSize + dataLength] != '\0') {
+                if (header.size() <= readIndex + VariableCodeSize + dataLength)                     {
+                    LogErr(VB_SEQUENCE, "VariableHeader %c%c data exceeds header buffer size!", header[readIndex], header[readIndex + 1]);
+                }
+                else if (header[readIndex + VariableCodeSize + dataLength] != '\0') {
                     LogErr(VB_SEQUENCE, "VariableHeader %c%c data is not NULL terminated!", header[readIndex], header[readIndex + 1]);
                 }
             }
