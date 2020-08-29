@@ -541,7 +541,6 @@
     <ClCompile Include="PlayList\PlayerWindow.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\Discovery.cpp" />
     <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -1079,7 +1078,6 @@
     <ClInclude Include="PlayList\PlayerWindow.h">
       <Filter>PlayList</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>

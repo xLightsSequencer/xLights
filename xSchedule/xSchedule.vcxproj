@@ -172,7 +172,6 @@
   <ItemGroup>
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
-    <ClCompile Include="..\xLights\Discovery.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
     <ClCompile Include="..\xLights\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
@@ -410,7 +409,6 @@
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
-    <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
