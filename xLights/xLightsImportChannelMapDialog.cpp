@@ -1796,6 +1796,34 @@ bool xLightsImportChannelMapDialog::AnyStashedMappingExists(wxString modelName, 
     return false;
 }
 
+wxString AggressiveAutomap(const wxString& name)
+{
+    wxString s = name;
+
+    s.Replace(" ", "");
+    s.Replace("-", "");
+    s.Replace("_", "");
+    s.Replace("(", "");
+    s.Replace(")", "");
+    s.Replace(":", "");
+    s.Replace(";", "");
+    s.Replace("\\", "");
+    s.Replace("|", "");
+    s.Replace("{", "");
+    s.Replace("}", "");
+    s.Replace("[", "");
+    s.Replace("]", "");
+    s.Replace("+", "");
+    s.Replace("=", "");
+    s.Replace("*", "");
+    s.Replace("^", "");
+    s.Replace("#", "");
+    s.Replace(",", "");
+    s.Replace(".", "");
+
+    return s;
+}
+
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
@@ -1888,20 +1916,17 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
         if (model != nullptr) {
             if (model->_mapping == "") {
                 for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                    wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
-                    availName.Replace(" ", "");
+                    wxString availName = AggressiveAutomap(ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower());
                     if (availName.Contains("/")) {
                         wxArrayString parts = wxSplit(availName, '/');
-                        wxString mod = wxString(model->_model).Trim(true).Trim(false).Lower();
-                        mod.Replace(" ", "");
+                        wxString mod = AggressiveAutomap(wxString(model->_model).Trim(true).Trim(false).Lower());
                         if (mod == parts[0]) {
                             // matched the model name ... need to look at strands and submodels
                             for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                                 auto strand = model->GetNthChild(k);
                                 if (strand != nullptr) {
                                     if (strand->_mapping == "") {
-                                        wxString str = wxString(strand->_strand).Trim(true).Trim(false).Lower();
-                                        str.Replace(" ", "");
+                                        wxString str = AggressiveAutomap(wxString(strand->_strand).Trim(true).Trim(false).Lower());
                                         if (str == parts[1]) {
                                             // matched to the strand level
                                             if (parts.size() == 2) {
@@ -1914,8 +1939,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
                                                     auto node = strand->GetNthChild(m);
                                                     if (node != nullptr) {
                                                         if (node->_mapping == "") {
-                                                            auto nod = wxString(node->_node).Trim(true).Trim(false).Lower();
-                                                            nod.Replace(" ", "");
+                                                            auto nod = AggressiveAutomap(wxString(node->_node).Trim(true).Trim(false).Lower());
                                                             if (nod == parts[2]) {
                                                                 // matched to the strand level
                                                                 if (parts.size() == 3) {
@@ -1937,8 +1961,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
                         }
                     }
                     else {
-                        wxString mod = wxString(model->_model).Trim(true).Trim(false).Lower();
-                        mod.Replace(" ", "");
+                        wxString mod = AggressiveAutomap(wxString(model->_model).Trim(true).Trim(false).Lower());
                         if (mod == availName) {
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
