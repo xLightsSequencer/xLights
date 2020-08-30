@@ -141,6 +141,13 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
+    // check the face exists on the model
+    if (definition != "Rendered") {
+        if (model->faceInfo.find(definition) == model->faceInfo.end()) {
+            res.push_back(wxString::Format("    ERR: Face effect face '%s' does not exist on model '%s'. Start %s", definition, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+    }
+
     wxString modelType = found ? wxString(model->faceInfo[definition.ToStdString()]["Type"].c_str()) : definition;
     if (modelType == "") {
         modelType = definition;
