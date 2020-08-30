@@ -752,6 +752,8 @@
 		<Unit filename="controllers/HinksPixExportDialog.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
+		<Unit filename="controllers/Minleon.cpp" />
+		<Unit filename="controllers/Minleon.h" />
 		<Unit filename="controllers/Pixlite16.cpp" />
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
@@ -1104,6 +1106,8 @@
 		<Unit filename="outputs/DMXOutput.h" />
 		<Unit filename="outputs/E131Output.cpp" />
 		<Unit filename="outputs/E131Output.h" />
+		<Unit filename="outputs/GenericSerialOutput.cpp" />
+		<Unit filename="outputs/GenericSerialOutput.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
 		<Unit filename="outputs/LOROptimisedOutput.cpp" />
