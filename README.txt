@@ -11,7 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.34 August 30 2020
    -- enh (scott)  Added Generic Serial Output
+   -- enh (scott)  Added export of submodel details
+   -- enh (keith)  Enhance automap to try to find more maps
+   -- enh (keith)  Add hint that #strings is typically the number of connections from controller to the model
+   -- enh (dklup)  Start adding support for new Pixel Stick Firmware
+   -- enh (dkulp)  Optimise controller discovery - much much faster
+   -- enh (dklup)  Have FPP connect reuse known IP addresses reducing frequencing of missing FPP instances
+   -- enh (priemd) Sort previews and models in import dialog
+   -- bug (keith)  Clear force local IP if it isnt present - prevents failures when turning on output to lights
+   -- bug (keith)  Add some additional effects to S5 import - these wont be great matches but at least they come in
+   -- bug (keith)  Fix hang on sequence close/exit
+   -- bug (keith)  Fix DDP discovery not returning IP address
+   -- bug (keith)  Fix a bunch of extra check sequence checks
+						face effects refering to faces not on the model
+						video effect taken from song audio reports incorrectly that video file is missing
+						multicast universe on multiple controllers incorrectly report as a clash
+   -- bug (keith)  Fix some issues with ZCCP packet flags
+   -- bug (dkulp)  Fix Smart Ts appear on controller types they shouldnt
 2020.33 August 22 2020
    -- enh (keith)  Have check sequence flag dimming curves which will blank out a prop
    -- bug (scott)  Try to improve AC effect toolbar
