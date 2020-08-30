@@ -9,19 +9,19 @@
  **************************************************************/
 
  //(*InternalHeaders(SubModelsDialog)
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/grid.h>
-#include <wx/intl.h>
-#include <wx/listctrl.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/splitter.h>
-#include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/grid.h>
+ #include <wx/intl.h>
+ #include <wx/listctrl.h>
+ #include <wx/notebook.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/splitter.h>
+ #include <wx/stattext.h>
+ #include <wx/string.h>
+ #include <wx/textctrl.h>
+ //*)
 
 #include <wx/dnd.h>
 #include <wx/msgdlg.h>
@@ -55,6 +55,7 @@ const long SubModelsDialog::ID_BUTTON5 = wxNewId();
 const long SubModelsDialog::ID_BUTTON_COPY_MODEL = wxNewId();
 const long SubModelsDialog::ID_BUTTON_SUB_IMPORT = wxNewId();
 const long SubModelsDialog::ID_BUTTON9 = wxNewId();
+const long SubModelsDialog::ID_BUTTON10 = wxNewId();
 const long SubModelsDialog::ID_PANEL4 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
 const long SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
@@ -115,19 +116,29 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer9->Add(ListCtrl_SubModels, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(4, 2, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	AddButton->SetToolTip(_("Add New Submodel"));
 	FlexGridSizer10->Add(AddButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	DeleteButton = new wxButton(Panel2, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	DeleteButton->SetToolTip(_("Delete Selected Submodel"));
 	FlexGridSizer10->Add(DeleteButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonCopy = new wxButton(Panel2, ID_BUTTONCOPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCOPY"));
+	ButtonCopy->SetToolTip(_("Copy Selected Submodel"));
 	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Generate = new wxButton(Panel2, ID_BUTTON5, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	Button_Generate->SetToolTip(_("Generate SubBuffer Slices"));
 	FlexGridSizer10->Add(Button_Generate, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonCopyModel = new wxButton(Panel2, ID_BUTTON_COPY_MODEL, _("Import from Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_COPY_MODEL"));
+	ButtonCopyModel->SetToolTip(_("Import Submodels from another model"));
 	FlexGridSizer10->Add(ButtonCopyModel, 1, wxALL|wxEXPAND, 5);
 	Button_Sub_Import = new wxButton(Panel2, ID_BUTTON_SUB_IMPORT, _("Import from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SUB_IMPORT"));
+	Button_Sub_Import->SetToolTip(_("Import Submodels from an .xmodel file"));
 	FlexGridSizer10->Add(Button_Sub_Import, 1, wxALL|wxEXPAND, 5);
 	Button_importCustom = new wxButton(Panel2, ID_BUTTON9, _("Import Custom"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	Button_importCustom->SetToolTip(_("Import a Custom Model On a Matix as a Submodel"));
 	FlexGridSizer10->Add(Button_importCustom, 1, wxALL|wxEXPAND, 5);
+	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export as CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
+	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxSHAPED|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
@@ -239,6 +250,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_BUTTON_COPY_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonCopyModelClick);
 	Connect(ID_BUTTON_SUB_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_ImportClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_importCustomClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomClick);
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
@@ -885,8 +897,10 @@ void SubModelsDialog::ValidateWindow()
         DeleteRowButton->Disable();
         subBufferPanel->Disable();
         TypeNotebook->Disable();
+        Button_ExportCustom->Disable();
     } else {
         ListCtrl_SubModels->Enable();
+        Button_ExportCustom->Enable();
     }
 
     if (ListCtrl_SubModels->GetSelectedItemCount() > 0)
@@ -2022,4 +2036,56 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
         DisplayError("Failure loading xModel file.");
     }
     ValidateWindow();
+}
+
+void SubModelsDialog::OnButton_ExportCustomClick(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Save CSV File"), wxEmptyString, model->Name(), ".csv", "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    ExportSubModels(filename);
+}
+
+void SubModelsDialog::ExportSubModels(wxString const& filename)
+{
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    wxString const header = "Name,Type,Vertical Buffer,Rows Name,Node Ranges\n";
+    f.Write(header);
+
+    for (auto sm : _subModels) {
+        f.Write(sm->name + ",");
+        f.Write((sm->isRanges ? "Node Ranges," : "SubBuffer," ));
+        f.Write((sm->vertical ? "true," : "false,"));
+        f.Write(",\n" );
+        if (sm->isRanges) {
+            for (int x = sm->strands.size() - 1; x >= 0; x--) {
+                f.Write(",,,");
+                int cellrow = (sm->strands.size() - 1) - x;
+                if (x == 0) {
+                    f.Write("Bottom,");
+                }
+                else if (x == sm->strands.size() - 1) {
+                    f.Write("Top,");
+                }
+                else {
+                    f.Write(wxString::Format("Line %d,", (x + 1)));
+                }
+                f.Write("\"" + sm->strands[x] + "\"\n");
+            }
+        }
+        else {
+            f.Write(",,,");
+            f.Write("SubBuffer,");
+            f.Write("\"" + sm->subBuffer + "\"\n");
+        }
+    }
+    f.Close();
 }

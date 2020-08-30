@@ -107,6 +107,7 @@ public:
     wxButton* ButtonCopy;
     wxButton* ButtonCopyModel;
     wxButton* Button_Draw_Model;
+    wxButton* Button_ExportCustom;
     wxButton* Button_Generate;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
@@ -145,6 +146,7 @@ protected:
     static const long ID_BUTTON_COPY_MODEL;
     static const long ID_BUTTON_SUB_IMPORT;
     static const long ID_BUTTON9;
+    static const long ID_BUTTON10;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -195,6 +197,7 @@ protected:
     void ImportSubModel(std::string filename);
     void ReadSubModelXML(wxXmlNode* xmlData);
     wxArrayString getModelList(ModelManager* modelManager);
+    void ExportSubModels(wxString const& filename);
 
 private:
 
@@ -229,6 +232,7 @@ private:
     void OnNodesGridLabelLeftDClick(wxGridEvent& event);
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
     void OnButton_importCustomClick(wxCommandEvent& event);
+    void OnButton_ExportCustomClick(wxCommandEvent& event);
     //*)
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);

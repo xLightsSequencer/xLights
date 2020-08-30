@@ -48,6 +48,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
 												<label>Add</label>
+												<tooltip>Add New Submodel</tooltip>
 												<handler function="OnAddButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -57,6 +58,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
 												<label>Delete</label>
+												<tooltip>Delete Selected Submodel</tooltip>
 												<handler function="OnDeleteButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -66,6 +68,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTONCOPY" variable="ButtonCopy" member="yes">
 												<label>Copy</label>
+												<tooltip>Copy Selected Submodel</tooltip>
 												<handler function="OnButton_Sub_CopyClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -75,6 +78,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON5" variable="Button_Generate" member="yes">
 												<label>Generate</label>
+												<tooltip>Generate SubBuffer Slices</tooltip>
 												<handler function="OnButton_GenerateClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -84,6 +88,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_COPY_MODEL" variable="ButtonCopyModel" member="yes">
 												<label>Import from Model</label>
+												<tooltip>Import Submodels from another model</tooltip>
 												<handler function="OnButtonCopyModelClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
@@ -93,6 +98,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_SUB_IMPORT" variable="Button_Sub_Import" member="yes">
 												<label>Import from File</label>
+												<tooltip>Import Submodels from an .xmodel file</tooltip>
 												<handler function="OnButton_Sub_ImportClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
@@ -102,7 +108,18 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON9" variable="Button_importCustom" member="yes">
 												<label>Import Custom</label>
+												<tooltip>Import a Custom Model On a Matix as a Submodel</tooltip>
 												<handler function="OnButton_importCustomClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON10" variable="Button_ExportCustom" member="yes">
+												<label>Export as CSV</label>
+												<tooltip>Export SubModel as CSV File</tooltip>
+												<handler function="OnButton_ExportCustomClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
