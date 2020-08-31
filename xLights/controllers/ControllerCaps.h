@@ -28,7 +28,7 @@ class ControllerCaps
     #pragma endregion
 
     #pragma region Static Variables
-    static std::map<std::string, std::map<std::string, std::map<std::string, ControllerCaps*>>> __controllers;
+    static std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> __controllers;
     #pragma endregion
 
     bool SupportsPixelPortCommonSettings() const;

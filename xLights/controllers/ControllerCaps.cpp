@@ -21,7 +21,17 @@
 #include "../outputs/Controller.h"
 
 #pragma region Static Functions
-std::map<std::string, std::map<std::string, std::map<std::string, ControllerCaps*>>> ControllerCaps::__controllers;
+std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
+
+inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const std::string &var) {
+    for (auto it : variants) {
+        if (it->GetVariantName() == var) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
 
 static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::string &base, wxXmlNode *t) {
     wxXmlNode *baseNode = abstracts[base];
@@ -111,7 +121,7 @@ void ControllerCaps::LoadControllers() {
                         auto vendor = n->GetAttribute("Name");
 
                         if (__controllers.find(vendor) == end(__controllers)) {
-                            __controllers[vendor] = std::map<std::string, std::map<std::string, ControllerCaps*>>();
+                            __controllers[vendor] = std::map<std::string, std::list<ControllerCaps*>>();
                         }
 
                         auto& v = __controllers[vendor];
@@ -120,19 +130,15 @@ void ControllerCaps::LoadControllers() {
                             if (nn->GetName() == "Controller") {
                                 auto controller = nn->GetAttribute("Name");
                                 if (v.find(controller) == v.end()) {
-                                    v[controller] = std::map<std::string, ControllerCaps*>();
+                                    v[controller] = std::list<ControllerCaps*>();
                                 }
 
                                 auto& c = v[controller];
                                 for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                     if (nnn->GetName() == "Variant") {
-                                        auto fwv = nnn->GetAttribute("Name");
-                                        if (c.find(fwv) == c.end()) {
-                                            c[fwv] = nullptr;
-                                        }
                                         auto base = nnn->GetAttribute("Base");
                                         merge(abstracts, base, nnn);
-                                        c[fwv] = new ControllerCaps(vendor, controller, nnn);
+                                        c.push_back(new ControllerCaps(vendor, controller, nnn));
                                     }
                                 }
                             }
@@ -151,8 +157,8 @@ void ControllerCaps::UnloadControllers() {
     // delete all the wxXmlNodes
     for (const auto& it : __controllers) {
         for (const auto& it2 : it.second) {
-            for (const auto& it3 : it2.second) {
-                delete it3.second;
+            for (auto it3 : it2.second) {
+                delete it3;
             }
         }
     }
@@ -168,12 +174,12 @@ std::list<std::string> ControllerCaps::GetVendors(const std::string& type) {
         bool done = false;
         for (const auto& it2 : it.second) {
             for (const auto& it3 : it2.second) {
-                if (type == CONTROLLER_ETHERNET && it3.second->SupportsEthernetInputProtols()) {
+                if (type == CONTROLLER_ETHERNET && it3->SupportsEthernetInputProtols()) {
                     vendors.push_back(it.first);
                     done = true;
                     break;
                 }
-                else if (type == CONTROLLER_SERIAL && it3.second->SupportsSerialInputProtols()) {
+                else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
                     vendors.push_back(it.first);
                     done = true;
                     break;
@@ -195,11 +201,11 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& type, const 
     if (v != __controllers.end()) {
         for (const auto& it : v->second) {
             for (const auto& it3 : it.second) {
-                if (type == CONTROLLER_ETHERNET && it3.second->SupportsEthernetInputProtols()) {
+                if (type == CONTROLLER_ETHERNET && it3->SupportsEthernetInputProtols()) {
                     models.push_back(it.first);
                     break;
                 }
-                else if (type == CONTROLLER_SERIAL && it3.second->SupportsSerialInputProtols()) {
+                else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
                     models.push_back(it.first);
                     break;
                 }
@@ -219,12 +225,12 @@ std::list<std::string> ControllerCaps::GetVariants(const std::string& type, cons
         auto m = v->second.find(model);
         if (m != v->second.end()) {
             for (const auto& it : m->second) {
-                if (it.first != "") {
-                    if (type == CONTROLLER_ETHERNET && it.second->SupportsEthernetInputProtols()) {
-                        versions.push_back(it.first);
+                if (it->GetVariantName() != "") {
+                    if (type == CONTROLLER_ETHERNET && it->SupportsEthernetInputProtols()) {
+                        versions.push_back(it->GetVariantName());
                     }
-                    else if (type == CONTROLLER_SERIAL && it.second->SupportsSerialInputProtols()) {
-                        versions.push_back(it.first);
+                    else if (type == CONTROLLER_SERIAL && it->SupportsSerialInputProtols()) {
+                        versions.push_back(it->GetVariantName());
                     }
                 }
             }
@@ -251,8 +257,8 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, c
     if (v != __controllers.end()) {
         auto m = v->second.find(model);
         if (m != v->second.end()) {
-            auto f = m->second.find(variant);
-            if (f != m->second.end()) return f->second;
+            auto f = FindVariant(m->second, variant);
+            if (f) return f;
         }
     }
     return nullptr;
@@ -265,8 +271,8 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
     for (auto &v : __controllers) {
         for (auto &m : v.second) {
             for (auto &vr : m.second) {
-                if (ID == vr.second->GetID()) {
-                    return vr.second;
+                if (ID == vr->GetID()) {
+                    return vr;
                 }
             }
         }
