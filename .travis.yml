@@ -1,5 +1,6 @@
 dist: trusty
-sudo: required
+os: linux
+language: cpp
 services:
   - docker
 git:
@@ -12,8 +13,8 @@ after_success:
   - ls -lh /tmp/*
 deploy:
   provider: releases
-  api_key: $GITHUB_TOKEN
-  file_glod: true
+  token: $GITHUB_TOKEN
+  file_glob: true
   file: /tmp/AppImage/*.AppImage
   skip_cleanup: true
   on:
