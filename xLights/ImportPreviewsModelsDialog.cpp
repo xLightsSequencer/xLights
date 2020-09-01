@@ -18,6 +18,7 @@
 #include <wx/menu.h>
 #include <wx/treebase.h>
 #include <wx/xml/xml.h>
+#include <wx/dataview.h>
 
 #include "LayoutGroup.h"
 #include "UtilFunctions.h"
@@ -139,7 +140,9 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
         TreeListCtrl1->Freeze();
         TreeListCtrl1->SetItemComparator(&previewItemComparator);
         TreeListCtrl1->SetSortColumn(0);
+        TreeListCtrl1->GetDataView()->GetModel()->Resort();
         TreeListCtrl1->Thaw();
+        TreeListCtrl1->Refresh();
     }
     ValidateWindow();
 
@@ -417,15 +420,14 @@ int ImportPreviewsModelsDialog::PreviewItemComparator::Compare(wxTreeListCtrl *t
     
     if (a->IsModelGroup()) {
         if (b->IsModelGroup()) {
-            return NumberAwareStringCompare(a->GetName(), b->GetName());
+            return NumberAwareStringCompare(a->GetName().ToStdString(), b->GetName().ToStdString());
         }
         else {
             return -1;
         }
-    }
-    else if (b->IsModelGroup()) {
-        return -1;
+    } else if (b->IsModelGroup()) {
+        return 1;
     }
     
-    return NumberAwareStringCompare(a->GetName(), b->GetName());
+    return NumberAwareStringCompare(a->GetName().ToStdString(), b->GetName().ToStdString());
 }
