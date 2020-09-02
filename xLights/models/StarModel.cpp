@@ -24,8 +24,13 @@
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
-StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034f)
+StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034f)
 {
+    // convert old star sizes to new Layer sizes setting
+    if (node->GetAttribute("starSizes", "") != "") {
+        node->AddAttribute("LayerSizes", node->GetAttribute("starSizes", ""));
+        node->DeleteAttribute("starSizes");
+    }
     SetFromXml(node, zeroBased);
 }
 
@@ -44,7 +49,8 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     return STAR_BUFFER_STYLES;
 }
 
-void StarModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void StarModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+{
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
@@ -61,10 +67,11 @@ void StarModel::GetBufferSize(const std::string &type, const std::string &camera
     }
 }
 
-void StarModel::InitRenderBufferNodes(const std::string &type,
-                                      const std::string &camera,
-                                      const std::string &transform,
-                                      std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+void StarModel::InitRenderBufferNodes(const std::string& type,
+    const std::string& camera,
+    const std::string& transform,
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+{
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
@@ -85,31 +92,33 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
         }
 
         int start = 0;
-        for (int cur = 0; cur < starSizes.size(); cur++) {
-            int numlights = starSizes[cur];
+        for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
+            int numlights = GetLayerSize(cur);
             if (numlights == 0) {
                 continue;
             }
 
-            for(size_t cnt=0; cnt<numlights; cnt++) {
+            for (size_t cnt = 0; cnt < numlights; cnt++) {
                 int n;
                 if (!SingleNode) {
                     n = cnt + start;
-                } else {
+                }
+                else {
                     n = cur;
                     if (n >= Nodes.size()) {
                         n = Nodes.size() - 1;
                     }
                 }
-                for (auto it = newNodes[n]->Coords.begin(); it != newNodes[n]->Coords.end(); ++it) {
-                    it->bufY = cur;
-                    it->bufX = cnt * BufferWi / numlights;
+                for (auto& it : newNodes[n]->Coords) {
+                    it.bufY = cur;
+                    it.bufX = cnt * BufferWi / numlights;
                 }
             }
             start += numlights;
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
-    } else {
+    }
+    else {
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
@@ -118,7 +127,8 @@ int StarModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetStarSize(strand);
 }
 
-int StarModel::MapToNodeIndex(int strand, int node) const {
+int StarModel::MapToNodeIndex(int strand, int node) const
+{
     int idx = 0;
     for (int x = 0; x < strand; x++) {
         idx += GetStrandLength(x);
@@ -128,14 +138,13 @@ int StarModel::MapToNodeIndex(int strand, int node) const {
 }
 
 int StarModel::GetNumStrands() const {
-    return starSizes.size();
+    return GetLayerSizeCount();
 }
 
-bool StarModel::AllNodesAllocated() const 
+bool StarModel::AllNodesAllocated() const
 {
     int allocated = 0;
-    for (const auto& it : starSizes)
-    {
+    for (const auto& it : GetLayerSizes()) {
         allocated += it;
     }
 
@@ -148,25 +157,6 @@ bool StarModel::AllNodesAllocated() const
 void StarModel::InitModel()
 {
     starRatio = wxAtof(ModelXml->GetAttribute("starRatio", "2.618034"));
-
-    wxString tempstr = ModelXml->GetAttribute("starSizes");
-    starSizes.resize(0);
-    while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
-        if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(","));
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        }
-        else {
-            tempstr = "";
-        }
-        long i2 = 0;
-        t2.ToLong(&i2);
-        if (i2 > 0) {
-            starSizes.resize(starSizes.size() + 1);
-            starSizes[starSizes.size() - 1] = i2;
-        }
-    }
 
     if (parm3 < 2) parm3 = 2; // need at least 2 arms
     SetNodeCount(parm1, parm2, rgbOrder);
@@ -185,35 +175,42 @@ void StarModel::InitModel()
     int maxLights = 0;
     int numlights = parm1 * parm2;
     int cnt = 0;
-    if (starSizes.size() == 0) {
-        starSizes.resize(1);
-        starSizes[0] = numlights;
+    if (GetLayerSizeCount() == 0) {
+        SetLayerSizeCount(1);
+    }
+    if (GetLayerSizeCount() == 1) {
+        SetLayerSize(0, numlights);
     }
 
     bool duplicateSized = false;
     std::list<int> duplicateSizedLayers;
-    for (int x = 0; x < starSizes.size(); x++) {
+    for (int x = 0; x < GetLayerSizeCount(); x++) {
 
-        if (std::find(begin(duplicateSizedLayers), end(duplicateSizedLayers), starSizes[x]) == duplicateSizedLayers.end()) {
-            duplicateSizedLayers.push_back(starSizes[x]);
+        if (std::find(begin(duplicateSizedLayers), end(duplicateSizedLayers), GetLayerSize(x)) == duplicateSizedLayers.end()) {
+            duplicateSizedLayers.push_back(GetLayerSize(x));
         }
         else {
             duplicateSized = true;
         }
 
-        if ((cnt + starSizes[x]) > numlights) {
-            starSizes[x] = numlights - cnt;
+        if ((cnt + GetLayerSize(x)) > numlights) {
+            if (cnt > numlights) {
+                SetLayerSize(x, 0);
+            }
+            else {
+                SetLayerSize(x, numlights - cnt);
+            }
         }
-        cnt += starSizes[x];
-        if (starSizes[x] > maxLights) {
-            maxLights = starSizes[x];
+        cnt += GetLayerSize(x);
+        if (GetLayerSize(x) > maxLights) {
+            maxLights = GetLayerSize(x);
         }
     }
 
     // This is used to separate layers with equal numbers of nodes
     const int SEPERATION_FACTOR = 10;
     if (duplicateSized) {
-        int size = maxLights + 1 + SEPERATION_FACTOR * starSizes.size();
+        int size = maxLights + 1 + SEPERATION_FACTOR * GetLayerSizeCount();
         SetBufferSize(size, size);
     }
     else {
@@ -222,11 +219,11 @@ void StarModel::InitModel()
     int LastStringNum = -1;
     int chan = 0;
     int start = 0;
-    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR * starSizes.size());
+    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR * GetLayerSizeCount());
 
-    for (int cur = 0; cur < starSizes.size(); cur++) {
-        numlights = starSizes[cur];
-        if (numlights == 0) {
+    for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
+        numlights = GetLayerSize(cur);
+        if (numlights <= 0) {
             continue;
         }
 
@@ -237,9 +234,9 @@ void StarModel::InitModel()
             // we do funky things if there are duplicate layers with the same number of pixels as the orignal code 
             // forced the pixels into order largest to smallest ... at least on the display
             // I have kept the old code for stars without duplicate sized layers to minimise impacts on users.
-            double sep = (double)(SEPERATION_FACTOR * (starSizes.size() - cur));
-            offset = ((double)(numlights) / 2.0 + sep) * scale + SEPERATION_FACTOR * starSizes.size() / 4 * scale;
-            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale + SEPERATION_FACTOR * starSizes.size() / 4 * scale;
+            double sep = (double)(SEPERATION_FACTOR * (GetLayerSizeCount() - cur));
+            offset = ((double)(numlights) / 2.0 + sep) * scale + SEPERATION_FACTOR * GetLayerSizeCount() / 4 * scale;
+            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale + SEPERATION_FACTOR * GetLayerSizeCount() / 4 * scale;
         }
         else {
             offset = (double)numlights / 2.0;
@@ -261,9 +258,9 @@ void StarModel::InitModel()
             }
             else {
                 n = cur;
-                if (n >= Nodes.size()) {
-                    n = Nodes.size() - 1;
-                }
+            }
+            if (n >= Nodes.size()) {
+                n = Nodes.size() - 1;
             }
             if (Nodes[n]->StringNum != LastStringNum) {
                 LastStringNum = Nodes[n]->StringNum;
@@ -299,11 +296,11 @@ void StarModel::InitModel()
                     double segend_x = r * sin(segend_pct * 2.0 * M_PI);
                     double segend_y = r * cos(segend_pct * 2.0 * M_PI);
                     // now interpolate between segstart and segend
-                    int x = (segend_x - segstart_x) * segpct + segstart_x + offset + 0.5 + coffset; 
+                    int x = (segend_x - segstart_x) * segpct + segstart_x + offset + 0.5 + coffset;
                     int y = (segend_y - segstart_y) * segpct + segstart_y + offset + 0.5 + coffset;
-                    if (duplicateSized)                         {
-                        x += (SEPERATION_FACTOR * starSizes.size()) / 2;
-                        y += (SEPERATION_FACTOR * starSizes.size()) / 2;
+                    if (duplicateSized) {
+                        x += (SEPERATION_FACTOR * GetLayerSizeCount()) / 2;
+                        y += (SEPERATION_FACTOR * GetLayerSizeCount()) / 2;
                     }
                     Nodes[n]->Coords[c].bufX = x;
                     Nodes[n]->Coords[c].bufY = y;
@@ -328,10 +325,12 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
         "Bottom Ctr-CW",
         "Bottom Ctr-CCW"
 };
+
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
 
-void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
+void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
+{
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
@@ -342,7 +341,8 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
-    } else {
+    }
+    else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
@@ -355,15 +355,16 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-    grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
+    AddLayerSizeProperty(grid);
 
-    p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio",  starRatio));
+    p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", starRatio));
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 }
 
-int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     if ("StarStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -376,7 +377,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
         return 0;
-    } else if ("StarLightCount" == event.GetPropertyName()) {
+    }
+    else if ("StarLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarLightCount");
@@ -387,7 +389,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
         return 0;
-    } else if ("StarStrandCount" == event.GetPropertyName()) {
+    }
+    else if ("StarStrandCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStrandCount");
@@ -398,7 +401,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
         return 0;
-    } else if ("StarStart" == event.GetPropertyName()) {
+    }
+    else if ("StarStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
@@ -408,15 +412,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStart");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarStart");
         return 0;
-    } else if ("StarLayerSizes" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("starSizes");
-        ModelXml->AddAttribute("starSizes", event.GetValue().GetString());
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarLayerSizes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarLayerSizes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarLayerSizes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarLayerSizes");
-        return 0;
-    } else if ("StarRatio" == event.GetPropertyName()) {
+    }
+    else if ("StarRatio" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("starRatio");
         ModelXml->AddAttribute("starRatio", wxString::Format("%lf", event.GetValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarRatio");
@@ -427,6 +424,23 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     }
 
     return Model::OnPropertyGridChange(grid, event);
+}
+
+void StarModel::OnLayerSizesChange(bool countChanged)
+{
+    // if string count is 1 then adjust nodes per string to match sum of nodes
+    if (parm1 == 1) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", GetLayerSizesTotalNodes()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "StarModel::OnLayerSizesChange");
+    }
 }
 
 void StarModel::ExportXlightsModel()
@@ -446,8 +460,8 @@ void StarModel::ExportXlightsModel()
     wxString t = ModelXml->GetAttribute("Transparency");
     wxString mb = ModelXml->GetAttribute("ModelBrightness");
     wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("starSizes");
-    wxString sr = ModelXml->GetAttribute("starRatio","2.618034");
+    wxString ls = ModelXml->GetAttribute("LayersSizes");
+    wxString sr = ModelXml->GetAttribute("starRatio", "2.618034");
     wxString sts = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
     wxString sn = ModelXml->GetAttribute("StrandNames");
@@ -466,7 +480,7 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StartSide=\"%s\" ", sts));
-    f.Write(wxString::Format("starSizes=\"%s\" ", ss));
+    f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("starRatio=\"%s\" ", sr));
     f.Write(wxString::Format("Dir=\"%s\" ", dir));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
@@ -478,18 +492,15 @@ void StarModel::ExportXlightsModel()
         f.Write(groups);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     f.Write("</starmodel>");
@@ -500,12 +511,10 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
 {
     wxXmlDocument doc(filename);
 
-    if (doc.IsOk())
-    {
+    if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
 
-        if (root->GetName() == "starmodel")
-        {
+        if (root->GetName() == "starmodel") {
             wxString name = root->GetAttribute("name");
             wxString p1 = root->GetAttribute("parm1");
             wxString p2 = root->GetAttribute("parm2");
@@ -516,7 +525,10 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             wxString mb = root->GetAttribute("ModelBrightness");
             wxString a = root->GetAttribute("Antialias");
             wxString sts = root->GetAttribute("StartSide");
-            wxString ss = root->GetAttribute("starSizes");
+            wxString ls = root->GetAttribute("starSizes");
+            if (ls == "") {
+                ls = root->GetAttribute("LayerSizes");
+            }
             wxString sr = root->GetAttribute("starRatio");
             wxString dir = root->GetAttribute("Dir");
             wxString sn = root->GetAttribute("StrandNames");
@@ -529,8 +541,8 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
-			if (sr.IsEmpty())
-				sr = "2.618034";
+            if (sr.IsEmpty())
+                sr = "2.618034";
 
             SetProperty("parm1", p1);
             SetProperty("parm2", p2);
@@ -541,7 +553,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("ModelBrightness", mb);
             SetProperty("Antialias", a);
             SetProperty("StartSide", sts);
-            SetProperty("starSizes", ss);
+            SetProperty("LayerSizes", ls);
             SetProperty("starRatio", sr);
             SetProperty("Dir", dir);
             SetProperty("StrandNames", sn);
@@ -560,13 +572,11 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");
         }
-        else
-        {
+        else {
             DisplayError("Failure loading Star model file.");
         }
     }
-    else
-    {
+    else {
         DisplayError("Failure loading Star model file.");
     }
 }

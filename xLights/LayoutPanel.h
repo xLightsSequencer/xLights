@@ -242,6 +242,8 @@ class LayoutPanel: public wxPanel
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
         void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);
         void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
+        void OnPropertyGridRightClick(wxPropertyGridEvent& event);
+        void OnPropertyGridContextMenu(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 

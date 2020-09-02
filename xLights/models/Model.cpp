@@ -47,6 +47,9 @@
 
 #include <log4cpp/Category.hh>
 
+const long Model::ID_LAYERSIZE_INSERT = wxNewId();
+const long Model::ID_LAYERSIZE_DELETE = wxNewId();
+
 static const int PORTS_PER_SMARTREMOTE = 4;
 
 static const char* NODE_TYPE_VLUES[] = {
@@ -1124,6 +1127,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     auto caps = GetControllerCaps();
 
     modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + event.GetValue().GetString() + " : " + wxString::Format("%ld", event.GetValue().GetLong()));
+
+    if (HandleLayerSizePropertyChange(grid, event))
+    {
+        return 0;
+    }
 
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
@@ -2386,6 +2394,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     ModelXml=ModelNode;
     StrobeRate=0;
     Nodes.clear();
+
+    DeserialiseLayerSizes(ModelNode->GetAttribute("LayerSizes", ""), false);
 
     name=ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
     if (name != ModelNode->GetAttribute("name")) {
@@ -3677,6 +3687,107 @@ int Model::GetNodeChannelCount(const std::string & nodeType) const {
         return 1;
     }
     return 3;
+}
+
+void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
+{
+    wxPGProperty* psn = grid->Append(new wxUIntProperty("Layers", "Layers", GetLayerSizeCount()));
+    psn->SetAttribute("Min", 1);
+    psn->SetAttribute("Max", 50);
+    psn->SetEditor("SpinCtrl");
+
+    if (GetLayerSizeCount() > 1) {
+        for (int i = 0; i < GetLayerSizeCount(); i++)
+        {
+            std::string id = wxString::Format("Layer%d", i);
+            std::string nm = wxString::Format("Layer %d", i + 1);
+            if (i == 0) nm = "Inside";
+            else if (i == GetLayerSizeCount() - 1) nm = "Outside";
+
+            wxPGProperty* pls = grid->AppendIn(psn, new wxUIntProperty(nm, id, GetLayerSize(i)));
+            pls->SetAttribute("Min", 1);
+            pls->SetAttribute("Max", 1000);
+            pls->SetEditor("SpinCtrl");
+        }
+    }
+}
+
+bool Model::HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
+    if ("Layers" == event.GetPropertyName()) {
+        SetLayerSizeCount(event.GetValue().GetLong());
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::HandleLayerSizePropertyChange::Layers");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::HandleLayerSizePropertyChange::Layers");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::HandleLayerSizePropertyChange::Layers");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandleLayerSizePropertyChange::Layers");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandleLayerSizePropertyChange::Layers");
+        IncrementChangeCount();
+
+        ModelXml->DeleteAttribute("LayerSizes");
+        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
+
+        OnLayerSizesChange(true);
+
+        return true;
+    }
+    else if (event.GetPropertyName().StartsWith("Layers.Layer")) {
+        int layer = wxAtoi(event.GetPropertyName().AfterLast('r'));
+        SetLayerSize(layer, event.GetValue().GetLong());
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::HandleLayerSizePropertyChange::Layer");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::HandleLayerSizePropertyChange::Layer");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::HandleLayerSizePropertyChange::Layer");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandleLayerSizePropertyChange::Layer");
+        IncrementChangeCount();
+
+        ModelXml->DeleteAttribute("LayerSizes");
+        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
+
+        OnLayerSizesChange(false);
+
+        return true;
+    }
+    return false;
+}
+
+void Model::HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu)
+{
+    wxString name = event.GetPropertyName();
+
+    if (name.StartsWith("Layers.")) {
+        layerSizeMenu = wxAtoi(event.GetPropertyName().AfterLast('r'));
+        if (GetLayerSizeCount() != 1) {
+            mnu.Append(ID_LAYERSIZE_DELETE, "Delete");
+        }
+        mnu.Append(ID_LAYERSIZE_INSERT, "Insert");
+    }
+}
+
+void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_LAYERSIZE_DELETE) {
+        DeleteLayerSize(layerSizeMenu);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::HandlePropertyGridContextMenu::Delete");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::HandlePropertyGridContextMenu::Delete");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::HandlePropertyGridContextMenu::Delete");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandlePropertyGridContextMenu::Delete");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Delete");
+        IncrementChangeCount();
+        ModelXml->DeleteAttribute("LayerSizes");
+        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
+        OnLayerSizesChange(true);
+    }
+    else if (event.GetId() == ID_LAYERSIZE_INSERT) {
+        InsertLayerSizeBefore(layerSizeMenu);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::HandlePropertyGridContextMenu::Insert");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::HandlePropertyGridContextMenu::Insert");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::HandlePropertyGridContextMenu::Insert");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandlePropertyGridContextMenu::Insert");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Insert");
+        IncrementChangeCount();
+        ModelXml->DeleteAttribute("LayerSizes");
+        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
+        OnLayerSizesChange(true);
+    }
 }
 
 // returns a number where the first node is 1

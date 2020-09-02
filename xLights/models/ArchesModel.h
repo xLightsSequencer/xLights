@@ -33,6 +33,9 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
+        virtual bool ModelSupportsLayerSizes() const override { return true; }
+        virtual void OnLayerSizesChange(bool countChanged) override;
+
     protected:
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
@@ -40,11 +43,9 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual int CalcCannelsPerString() override;
 
     private:
-        void SetLayerSizes(const std::string& layerSizes);
         void SetLayerdArchCoord(int archcount, int maxLen);
         void SetArchCoord();
         int arc;
         int _gap = 0;
-        std::string _layeredArchSizes;
         int _hollow = 70;
 };

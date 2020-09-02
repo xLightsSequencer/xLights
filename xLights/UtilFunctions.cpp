@@ -1317,6 +1317,17 @@ bool IsxLights()
     return wxTheApp->GetAppName().Lower() == "xlights";
 }
 
+std::string ReverseCSV(const std::string& csv)
+{
+    std::string res;
+    auto a = wxSplit(csv, ',');
+    for (auto it = a.rbegin(); it != a.rend(); ++it)         {
+        if (res != "") res += ",";
+        res += *it;
+    }
+    return res;
+}
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);

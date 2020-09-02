@@ -20,6 +20,9 @@ class wxXmlNode;
 class ModelScreenLocation;
 class ModelPreview;
 class OutputManager;
+class wxPropertyGridEvent;
+class wxMenu;
+class wxCommandEvent;
 
 class BaseObject
 {
@@ -32,6 +35,8 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) {}
+    virtual void HandlePropertyGridContextMenu(wxCommandEvent& event) {}
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;

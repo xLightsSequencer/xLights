@@ -28,7 +28,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int MapToNodeIndex(int strand, int node) const override;
 
         int GetStarSize(int starLayer) const {
-            return starSizes[starLayer];
+            return GetLayerSize(starLayer);
         }
         virtual int GetNumStrands() const override;
         virtual bool AllNodesAllocated() const override;
@@ -40,12 +40,14 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+        virtual bool ModelSupportsLayerSizes() const override { return true; }
+        virtual void OnLayerSizesChange(bool countChanged) override;
+
     protected:
         static std::vector<std::string> STAR_BUFFER_STYLES;
         virtual void InitModel() override;
 
     private:
-        std::vector<int> starSizes;
         // The ratio between the inner and outer radius of the star; default is 2.618034.
         float starRatio;
 };

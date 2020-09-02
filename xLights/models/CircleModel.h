@@ -32,6 +32,8 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 		virtual void ExportXlightsModel() override;
 		virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
+        virtual bool ModelSupportsLayerSizes() const override { return true; }
+        virtual void OnLayerSizesChange(bool countChanged) override;
 
     protected:
         virtual void InitModel() override;
@@ -42,6 +44,5 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
     
         int maxSize();
 
-        std::vector<int> circleSizes;
         bool insideOut = false;
 };
