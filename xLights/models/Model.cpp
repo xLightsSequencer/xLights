@@ -5409,6 +5409,27 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             model->Selected = true;
             return model;
         }
+        else if (root->GetName() == "spheremodel") {
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
+            auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
+            auto lg = model->GetLayoutGroup();
+
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to Sphere");
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("Sphere", startChannel);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
         else {
             logger_base.error("GetXlightsModel no code to convert to " + root->GetName());
             xlights->AddTraceMessage("GetXlightsModel no code to convert to " + root->GetName());
