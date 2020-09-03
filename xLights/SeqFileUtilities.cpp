@@ -154,21 +154,20 @@ void xLightsFrame::NewSequence()
     MenuItem_PurgeRenderCache->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
-    if (max >= 1999999) {
-        size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
-        m *= max;
-        m /= 1024; // ->kb
-        m /= 1024; // ->mb
-
+    size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+    memRequired *= max;
+    memRequired /= 1024; // ->kb
+    memRequired /= 1024; // ->mb
+    if (memRequired > 24*1024) {
         DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-            " a very large amount of memory used (%lu MB).", max, m).ToStdString(),
-            this);
+                                      " a very large amount of memory used (%lu MB).", max, (unsigned long)memRequired),
+                     this);
     }
+
     if ((max > SeqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames()) {
         SeqData.init(max, mMediaLengthMS / ms, ms);
-    }
-    else {
+    } else {
         SeqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 
@@ -183,8 +182,7 @@ void xLightsFrame::NewSequence()
     if (view == "All Models") {
         AddAllModelsToSequence();
         displayElementsPanel->SelectView("Master View");
-    }
-    else if (view != "Empty") {
+    } else if (view != "Empty") {
         displayElementsPanel->SelectView(view);
     }
     SetAudioControls();
@@ -517,14 +515,13 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
-        if (numChan >= 999999) {
-            size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
-            m *= numChan;
-            m /= 1024; // ->kb
-            m /= 1024; // ->mb
-
+        size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+        memRequired *= numChan;
+        memRequired /= 1024; // ->kb
+        memRequired /= 1024; // ->mb
+        if (memRequired > 24*1024) {
             DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                          " a very large amount of memory used (%lu MB).", numChan, (unsigned long)m), 
+                                          " a very large amount of memory used (%lu MB).", numChan, (unsigned long)memRequired),
                          this);
         }
 
