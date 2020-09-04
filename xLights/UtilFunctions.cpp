@@ -1290,7 +1290,6 @@ void ViewTempFile(const wxString& content, const wxString& name,  const wxString
 	}
 }
 
-#include <inttypes.h>
 uint64_t GetPhysicalMemorySizeMB() {
 uint64_t ret = 0;
 #if defined(__WXOSX__)
@@ -1307,7 +1306,6 @@ uint64_t ret = 0;
     ret /= 1024; // -> KB
 #endif
     ret /= 1024; // -> MB
-    printf("Size: %" PRIu64 " MB\n", ret);
     return ret;
 }
 
