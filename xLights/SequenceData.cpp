@@ -101,22 +101,33 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated)
     }
     else if (!_hugePagesFailed) {
 #ifdef __WXOSX__
+        static size_t _hugePageAllocSize = MAX_SP_BLOCK_SIZE;
+        
         type = BlockType::HUGE_PAGE;
-        data = (unsigned char*)mmap(nullptr, sz,
+        size_t szToAlloc = sz;
+        if (szToAlloc > _hugePageAllocSize) {
+            szToAlloc = _hugePageAllocSize;
+        }
+        data = (unsigned char*)mmap(nullptr, szToAlloc,
             PROT_READ | PROT_WRITE,
             MAP_ANON | MAP_PRIVATE,
             VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
-        if (data == MAP_FAILED && (sz > 256 * 1024 * 1024)) {
-            data = (unsigned char*)mmap(nullptr, 256 * 1024 * 1024,
+        if (data != MAP_FAILED) {
+            sz = szToAlloc;
+        }
+        while (data == MAP_FAILED && (_hugePageAllocSize > 16 * 1024 * 1024)) {
+            _hugePageAllocSize /= 2;
+            data = (unsigned char*)mmap(nullptr, _hugePageAllocSize,
                 PROT_READ | PROT_WRITE,
                 MAP_ANON | MAP_PRIVATE,
                 VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
             if (data != MAP_FAILED) {
-                sz = 256 * 1024 * 1024;
+                sz = _hugePageAllocSize;
             }
-            else {
-                _hugePagesFailed = true;
-            }
+        }
+        if (data == MAP_FAILED) {
+            data = nullptr;
+            _hugePagesFailed = true;
         }
 #else
         data = (unsigned char*)mmap(nullptr, sz,
