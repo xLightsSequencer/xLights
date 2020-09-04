@@ -158,10 +158,8 @@ void xLightsFrame::NewSequence()
     memRequired *= max;
     memRequired /= 1024; // ->kb
     memRequired /= 1024; // ->mb
-    if (memRequired > 24*1024) {
-        DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                      " a very large amount of memory used (%lu MB).", max, (unsigned long)memRequired),
-                     this);
+    if (memRequired > (GetPhysicalMemorySizeMB() - 1024)) {
+        DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.",          (unsigned long)memRequired), this);
     }
 
     if ((max > SeqData.NumChannels()) ||
@@ -519,10 +517,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         memRequired *= numChan;
         memRequired /= 1024; // ->kb
         memRequired /= 1024; // ->mb
-        if (memRequired > 24*1024) {
-            DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                          " a very large amount of memory used (%lu MB).", numChan, (unsigned long)memRequired),
-                         this);
+        if (memRequired > (GetPhysicalMemorySizeMB() - 1024)) {
+            DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
 
         if ((numChan > SeqData.NumChannels()) ||

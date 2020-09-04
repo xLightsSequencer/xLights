@@ -242,5 +242,8 @@ bool IsValidLocalIP(const std::string& ip);
 
 void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
+uint64_t GetPhysicalMemorySizeMB();
+
+
 bool IsxLights();
 std::string ReverseCSV(const std::string& csv);

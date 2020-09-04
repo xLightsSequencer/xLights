@@ -27,6 +27,11 @@
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#include <sys/sysctl.h>
+#endif
+
+#ifdef LINUX
+#include <sys/sysinfo.h>
 #endif
 
 #include <log4cpp/Category.hh>
@@ -1284,6 +1289,28 @@ void ViewTempFile(const wxString& content, const wxString& name,  const wxString
 		}
 	}
 }
+
+#include <inttypes.h>
+uint64_t GetPhysicalMemorySizeMB() {
+uint64_t ret = 0;
+#if defined(__WXOSX__)
+    int mib [] = { CTL_HW, HW_MEMSIZE };
+    size_t length = sizeof(ret);
+    sysctl(mib, 2, &ret, &length, NULL, 0);
+    ret /= 1024; // -> KB
+#elif defined(__WXMSW__)
+    GetPhysicallyInstalledSystemMemory(&ret);
+    // already in KB
+#else
+    ret = get_phys_pages();
+    ret *= getpagesize();
+    ret /= 1024; // -> KB
+#endif
+    ret /= 1024; // -> MB
+    printf("Size: %" PRIu64 " MB\n", ret);
+    return ret;
+}
+
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly)
 {

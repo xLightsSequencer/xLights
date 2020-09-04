@@ -258,6 +258,7 @@ void DumpConfig()
     logger_base.info("Bits: " + std::string(GetBitness().c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
     logger_base.info("Machine configuration:");
+    logger_base.info("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
