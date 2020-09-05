@@ -95,9 +95,9 @@ void ChannelTracker::Dump()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Selected channels dump:");
-    for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
+    for (const auto& it : _ranges)
     {
-        logger_base.debug("   %ld-%ld", GetStart(*it), GetEnd(*it));
+        logger_base.debug("   %ld-%ld", GetStart(it), GetEnd(it));
     }
 }
 
@@ -221,7 +221,7 @@ protected:
     // either range is contiguous start->end or non contiguous ... but it cant be both
     long _absoluteStartChannel;
     long _absoluteEndChannel;
-    std::list<int> _nonContiguousChannels;
+    std::vector<int> _nonContiguousChannels;
 
     // if contiguous then this is the prior channel returned
     // if non contiguous then this is the offset within the list
@@ -272,9 +272,9 @@ public:
         }
         else
         {
-            for (auto it = _nonContiguousChannels.begin(); it != _nonContiguousChannels.end(); ++it)
+            for (const auto it : _nonContiguousChannels)
             {
-                if (tracker.IsChannelOn(*it))
+                if (tracker.IsChannelOn(it))
                 {
                     onCount++;
                     if (offCount > 0) break;
@@ -349,15 +349,11 @@ public:
         if (_nonContiguousChannels.size() > 0)
         {
             _lastChannel++;
-            auto it = _nonContiguousChannels.begin();
-            std::advance(it, _lastChannel);
-
-            if (it == _nonContiguousChannels.end())
-            {
+            if (_lastChannel >= _nonContiguousChannels.size()) {
                 _lastChannel = -1;
                 return -1;
             }
-            return *it;
+            return _nonContiguousChannels[_lastChannel];
         }
         else
         {
@@ -377,9 +373,9 @@ public:
             return (ch >= _absoluteStartChannel && ch <= _absoluteEndChannel);
         }
 
-        for (auto it = _nonContiguousChannels.begin(); it != _nonContiguousChannels.end(); ++it)
+        for (const auto it : _nonContiguousChannels)
         {
-            if (ch == *it) return true;
+            if (ch == it) return true;
         }
         return false;
     }
@@ -583,9 +579,9 @@ public:
                 _channelColours = model->GetRGBOrder() + "   ";
             }
 
-            for (auto it = model->GetSubModels().begin(); it != model->GetSubModels().end(); ++it)
+            for (const auto& it : model->GetSubModels())
             {
-                _subModels.push_back(new SubModelTestItem((*it)->GetFullName(), (SubModel*)*it, channelsAvailable, false));
+                _subModels.push_back(new SubModelTestItem(it->GetFullName(), (SubModel*)it, channelsAvailable, false));
             }
 
             _nodes = model->GetNodeCount();
@@ -664,9 +660,9 @@ public:
         }
         else
         {
-            for (auto it = _nonContiguousChannels.begin(); it != _nonContiguousChannels.end(); ++it)
+            for (const auto it : _nonContiguousChannels)
             {
-                if (*it >= start && *it <= end) return true;
+                if (it >= start && it <= end) return true;
             }
             return false;
         }
@@ -676,9 +672,7 @@ public:
     {
         if (_nonContiguousChannels.size() != 0)
         {
-            auto it = _nonContiguousChannels.begin();
-            std::advance(it, node * _channelsPerNode);
-            return *it;
+            return _nonContiguousChannels[node * _channelsPerNode];
         }
         else
         {
@@ -730,26 +724,26 @@ public:
         if (modelGroup != nullptr)
         {
             // channels are not likely contiguous
-            for (auto it = modelGroup->Models().begin(); it != modelGroup->Models().end(); ++it)
+            for (const auto& it : modelGroup->Models())
             {
-                if ((*it)->GetDisplayAs() != "ModelGroup" && (*it)->GetDisplayAs() != "SubModel")
+                if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel")
                 {
-                    _models.push_back(new ModelTestItem((*it)->GetName(), modelManager, channelsAvailable));
+                    _models.push_back(new ModelTestItem(it->GetName(), modelManager, channelsAvailable));
 
-                    long nodes = (*it)->GetNodeCount();
+                    long nodes = it->GetNodeCount();
                     for (int i = 0; i < nodes; i++)
                     {
                         // I am not sure this is right
-                        long sc = (*it)->NodeStartChannel(i);
-                        for (int j = 0; j < (*it)->GetChanCountPerNode(); j++)
+                        long sc = it->NodeStartChannel(i);
+                        for (int j = 0; j < it->GetChanCountPerNode(); j++)
                         {
                             _nonContiguousChannels.push_back(sc + 1 + j);
                         }
                     }
                 }
-                else if ((*it)->GetDisplayAs() == "ModelGroup")
+                else if (it->GetDisplayAs() == "ModelGroup")
                 {
-                    _modelGroups.push_back(new ModelGroupTestItem((*it)->GetName(), modelManager, channelsAvailable));
+                    _modelGroups.push_back(new ModelGroupTestItem(it->GetName(), modelManager, channelsAvailable));
                     long ch = _modelGroups.back()->GetFirstChannel();
                     while (ch > 0)
                     {
@@ -759,7 +753,7 @@ public:
                 }
                 else
                 {
-                    _subModels.push_back(new SubModelTestItem((*it)->GetFullName(), (SubModel*)*it, channelsAvailable, true));
+                    _subModels.push_back(new SubModelTestItem(it->GetFullName(), (SubModel*)it, channelsAvailable, true));
                     long ch = _subModels.back()->GetFirstChannel();
                     while (ch > 0)
                     {
@@ -1340,23 +1334,23 @@ void PixelTestDialog::AddModelGroup(wxTreeListItem parent, Model* m)
     if (modelgroupcontroller->IsClickable())
     {
         auto models = modelgroupcontroller->GetModels();
-        for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+        for (const auto& it2 : models)
         {
-            wxTreeListItem modelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
-            (*it2)->SetTreeListItem(modelitem);
+            wxTreeListItem modelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, it2->GetName(), -1, -1, (wxClientData*)it2);
+            it2->SetTreeListItem(modelitem);
         }
 
         auto submodels = modelgroupcontroller->GetSubModels();
-        for (auto it2 = submodels.begin(); it2 != submodels.end(); ++it2)
+        for (const auto& it2 : submodels)
         {
-            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
-            (*it2)->SetTreeListItem(submodelitem);
+            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, it2->GetName(), -1, -1, (wxClientData*)it2);
+            it2->SetTreeListItem(submodelitem);
         }
 
         auto groups = modelgroupcontroller->GetModelGroups();
-        for (auto it = groups.begin(); it != groups.end(); ++it)
+        for (const auto& it : groups)
         {
-            AddModelGroup(modelgroupitem, *it);
+            AddModelGroup(modelgroupitem, it);
         }
     }
 }
@@ -1369,32 +1363,32 @@ void PixelTestDialog::AddModelGroup(wxTreeListItem parent, ModelGroupTestItem* m
     if (mgti->IsClickable())
     {
         auto models = mgti->GetModels();
-        for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+        for (const auto& it2 : models)
         {
-            wxTreeListItem modelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
-            (*it2)->SetTreeListItem(modelitem);
+            wxTreeListItem modelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, it2->GetName(), -1, -1, (wxClientData*)it2);
+            it2->SetTreeListItem(modelitem);
         }
 
         auto submodels = mgti->GetSubModels();
-        for (auto it2 = submodels.begin(); it2 != submodels.end(); ++it2)
+        for (const auto& it2 : submodels)
         {
-            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
-            (*it2)->SetTreeListItem(submodelitem);
+            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, it2->GetName(), -1, -1, (wxClientData*)it2);
+            it2->SetTreeListItem(submodelitem);
         }
 
         auto groups = mgti->GetModelGroups();
-        for (auto it = groups.begin(); it != groups.end(); ++it)
+        for (const auto& it : groups)
         {
-            AddModelGroup(modelgroupitem, *it);
+            AddModelGroup(modelgroupitem, it);
         }
     }
 }
 
 void PixelTestDialog::PopulateModelGroupTree(ModelManager* modelManager)
 {
-    for (auto it = _modelManager->begin(); it != _modelManager->end(); ++it)
+    for (const auto& it : *_modelManager)
     {
-        Model* m = it->second;
+        Model* m = it.second;
 
         if (m->GetDisplayAs() == "ModelGroup")
         {
@@ -1406,9 +1400,9 @@ void PixelTestDialog::PopulateModelGroupTree(ModelManager* modelManager)
 
 bool PixelTestDialog::AreChannelsAvailable(ModelGroup* modelGroup)
 {
-    for (auto it = modelGroup->Models().begin(); it != modelGroup->Models().end(); ++it)
+    for (const auto& it : modelGroup->Models())
     {
-        if (!AreChannelsAvailable(*it))
+        if (!AreChannelsAvailable(it))
         {
             return false;
         }
@@ -1437,9 +1431,9 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
 
 void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
 {
-	for (auto it = _modelManager->begin(); it != _modelManager->end(); ++it)
+	for (const auto& it : *_modelManager)
 	{
-		Model* m = it->second;
+		Model* m = it.second;
 
 		if (m->GetDisplayAs() != "ModelGroup")
 		{
@@ -1453,10 +1447,10 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
                 auto submodels = modelcontroller->GetSubModels();
                 if (submodels.size() > 0)
                 {
-                    for (auto it2 = submodels.begin(); it2 != submodels.end(); ++it2)
+                    for (const auto& it2 : submodels)
                     {
-                        wxTreeListItem submodelitem = TreeListCtrl_Models->AppendItem(modelitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
-                        (*it2)->SetTreeListItem(submodelitem);
+                        wxTreeListItem submodelitem = TreeListCtrl_Models->AppendItem(modelitem, it2->GetName(), -1, -1, (wxClientData*)it2);
+                        it2->SetTreeListItem(submodelitem);
                     }
                     NodesTestItem* nti = new NodesTestItem();
                     wxTreeListItem nodesitem = TreeListCtrl_Models->AppendItem(modelitem, nti->GetName(), -1, -1, (wxClientData*)nti);
@@ -1514,16 +1508,16 @@ std::list<std::string> PixelTestDialog::GetModelsOnChannels(int start, int end)
 {
 	std::list<std::string> res;
 
-	for (auto it = _modelManager->begin(); it != _modelManager->end(); ++it)
+	for (const auto& it : *_modelManager)
 	{
-		Model* m = it->second;
+		Model* m = it.second;
         if (m->GetDisplayAs() != "ModelGroup")
         {
             int st = m->GetFirstChannel() + 1;
             int en = m->GetLastChannel() + 1;
             if (start <= en && end >= st)
             {
-                res.push_back(it->first);
+                res.push_back(it.first);
             }
         }
 	}
@@ -1541,15 +1535,15 @@ void PixelTestDialog::SetTreeTooltip(wxTreeListCtrl* tree, wxTreeListItem& item)
             if (tib->GetType() == "Controller" || tib->GetType() == "Channel")
             {
                 std::string tt = "";
-                for (auto it = _models.begin(); it != _models.end(); ++it)
+                for (const auto& it : _models)
                 {
-                    if ((*it)->ContainsChannelRange(tib->GetFirstChannel(), tib->GetLastChannel()))
+                    if (it->ContainsChannelRange(tib->GetFirstChannel(), tib->GetLastChannel()))
                     {
                         if (tt != "")
                         {
                             tt += "\n";
                         }
-                        tt = tt + (*it)->GetModelName();
+                        tt = tt + it->GetModelName();
                     }
                 }
                 if (tt != "")
@@ -1903,9 +1897,9 @@ void PixelTestDialog::OnButton_LoadClick(wxCommandEvent& event)
 	// get user selection
 	presets.sort();
     wxArrayString PresetNames;
-    for (auto it = presets.begin(); it != presets.end(); ++it)
+    for (const auto& it : presets)
     {
-        PresetNames.Add(wxString(it->c_str()));
+        PresetNames.Add(wxString(it.c_str()));
     }
 	wxSingleChoiceDialog dialog(this, _("Select test configuration"), _("Load Test Settings"), PresetNames);
 
@@ -1920,11 +1914,11 @@ void PixelTestDialog::OnButton_LoadClick(wxCommandEvent& event)
     _channelTracker.Clear();
 
     auto chs = preset->GetChannels();
-    for (auto c = chs.begin(); c != chs.end(); ++c)
+    for (const auto& c : chs)
     {
-        if (*c > 0 && *c < ChCount)
+        if (c > 0 && c < ChCount)
         {
-            _channelTracker.AddRange(*c, *c);
+            _channelTracker.AddRange(c, c);
         }
     }
 
@@ -2605,12 +2599,12 @@ char PixelTestDialog::GetChannelColour(long ch)
         }
     }
 
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (const auto& it : _models)
     {
-        char c = (*it)->GetModelAbsoluteChannelColour(ch);
+        char c = it->GetModelAbsoluteChannelColour(ch);
         if (c != ' ')
         {
-            _lastModel = *it;
+            _lastModel = it;
             return c;
         }
     }
@@ -2962,15 +2956,15 @@ void PixelTestDialog::SetSuspend()
     if (CheckBox_SuppressUnusedOutputs->GetValue())
     {
         auto outputs = _outputManager->GetOutputs();
-        for (auto it = outputs.begin(); it != outputs.end(); ++it)
+        for (const auto& it : outputs)
         {
-            if (_channelTracker.AreAnyIncluded((*it)->GetStartChannel(), (*it)->GetEndChannel()))
+            if (_channelTracker.AreAnyIncluded(it->GetStartChannel(), it->GetEndChannel()))
             {
-                (*it)->Suspend(false);
+                it->Suspend(false);
             }
             else
             {
-                (*it)->Suspend(true);
+                it->Suspend(true);
             }
         }
     }
