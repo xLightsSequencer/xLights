@@ -536,7 +536,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     }
 
     auto mg = GetSelectedModelGroup();
-    if (minx != 999999 && !Is3D() && mg != nullptr)
+    if (minx != 999999 && !Is3D() && mg != nullptr && xlights->AllModels.IsModelValid(mg))
     {
         int offx = 0;
         int offy = 0;
