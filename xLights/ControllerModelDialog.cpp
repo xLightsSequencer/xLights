@@ -1249,7 +1249,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
                     if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                 }
                 else {
@@ -1258,7 +1258,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             }
             else {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
                     if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                     if (m->GetControllerDMXChannel() == 0) m->SetControllerDMXChannel(1);
                 }
@@ -1407,7 +1407,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
                     if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                 }
                 else {
@@ -1416,7 +1416,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             }
             else {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
                     if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                 }
                 else {

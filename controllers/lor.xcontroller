@@ -73,6 +73,7 @@
 				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>lor</Protocol>
@@ -95,6 +96,7 @@
 				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>lor</Protocol>
@@ -113,6 +115,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -132,6 +136,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -151,6 +157,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -170,6 +178,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -189,6 +199,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -208,6 +220,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -227,6 +241,8 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -248,6 +264,8 @@
 				<Protocol>ccb</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
