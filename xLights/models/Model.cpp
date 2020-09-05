@@ -840,7 +840,9 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         }
     }
 
-    grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+    if (cp.size() > 0) {
+        grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+    }
 
     wxXmlNode *node = GetControllerConnection();
     if (IsSerialProtocol()) {
@@ -1358,10 +1360,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         // This may be why i see some crashes here
         if (event.GetValue().GetLong() >= cp.size()) {
-            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols. This is going to crash", (int)cp.size());
+            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols.", (int)cp.size());
+            return 0;
         }
-
-        SetControllerProtocol(cp[event.GetValue().GetLong()]);
 
         clearUnusedProtocolProperties(GetControllerConnection());
 
