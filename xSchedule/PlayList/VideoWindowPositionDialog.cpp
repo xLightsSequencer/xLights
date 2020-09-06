@@ -15,6 +15,8 @@
 #include <wx/string.h>
 //*)
 
+#include <log4cpp/Category.hh>
+
 //(*IdInit(VideoWindowPositionDialog)
 const long VideoWindowPositionDialog::ID_STATICTEXT1 = wxNewId();
 const long VideoWindowPositionDialog::ID_STATICTEXT2 = wxNewId();
@@ -93,6 +95,13 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 
     ValidateWindow();
     SetWindowPositionText();
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int w, h;
+    GetSize(&w, &h);
+    int x, y;
+    GetPosition(&x, &y);
+    logger_base.info("Position window created location (%d, %d) size (%d, %d).", x, y, w, h);
 }
 
 VideoWindowPositionDialog::~VideoWindowPositionDialog()

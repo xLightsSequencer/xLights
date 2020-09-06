@@ -10,6 +10,7 @@
 
 #include <wx/dcclient.h>
 #include <wx/stopwatch.h>
+#include <wx/display.h>
 
 #include "PlayerWindow.h"
 #include "../VirtualMatrix.h"
@@ -41,16 +42,15 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
 #endif
     _dragging = false;
 
-    wxWindow *wind = FindFocus();
+    wxWindow* wind = FindFocus();
 
-    if (topMost)
-    {
+    if (topMost) {
         Create(parent, id, "Player Window", pos, size, wxBORDER_NONE | wxSTAY_ON_TOP, _T("id"));
     }
-    else
-    {
+    else {
         Create(parent, id, "Player Window", pos, size, wxBORDER_NONE, _T("id"));
     }
+
     SetClientSize(size);
     Move(pos);
     Show();
@@ -61,12 +61,11 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&PlayerWindow::Paint, 0, this);
 
     // prevent this window from stealing focus
-    if (wind != nullptr)
-    {
+    if (wind != nullptr) {
         wind->SetFocus();
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int w, h;
     GetSize(&w, &h);
     int x, y;
@@ -82,14 +81,11 @@ bool PlayerWindow::PrepareImage()
 {
     static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
 
-    if (_imageChanged)
-    {
-        if (_mutex.try_lock_for(std::chrono::milliseconds(1)))
-        {
+    if (_imageChanged) {
+        if (_mutex.try_lock_for(std::chrono::milliseconds(1))) {
             wxStopWatch sw;
 
-            if (_inputImage.IsOk())
-            {
+            if (_inputImage.IsOk()) {
                 logger_frame.debug("Updating Player Window image");
 
                 int width = 0;
@@ -99,27 +95,22 @@ bool PlayerWindow::PrepareImage()
                 int srcWidth = _inputImage.GetWidth();
                 int srcHeight = _inputImage.GetHeight();
 
-                if (_swsQuality < 0)
-                {
+                if (_swsQuality < 0) {
                     _image.Destroy();
                     _image = _inputImage.Copy();
-                    if (srcWidth != width || srcHeight != height)
-                    {
+                    if (srcWidth != width || srcHeight != height) {
                         _image.Rescale(width, height, _quality);
                     }
                 }
-                else
-                {
+                else {
                     // THIS DOES NOT WORK YET ... NOT SURE WHY
                     wxASSERT(false);
-                    if (_image.GetWidth() != width || _image.GetHeight() != height)
-                    {
+                    if (_image.GetWidth() != width || _image.GetHeight() != height) {
                         _image.Destroy();
                         _image = wxImage(width, height);
                     }
 
-                    if (srcWidth != width || srcHeight != height)
-                    {
+                    if (srcWidth != width || srcHeight != height) {
 
                         SwsContext* swsCtx = sws_getContext(srcWidth, srcHeight, AVPixelFormat::AV_PIX_FMT_RGB24,
                             width, height, AVPixelFormat::AV_PIX_FMT_RGB24,
@@ -137,8 +128,7 @@ bool PlayerWindow::PrepareImage()
 
                         sws_freeContext(swsCtx);
                     }
-                    else
-                    {
+                    else {
                         _image.Destroy();
                         _image = _inputImage.Copy();
                     }
@@ -147,8 +137,7 @@ bool PlayerWindow::PrepareImage()
             }
             _mutex.unlock();
         }
-        else
-        {
+        else {
             return false;
         }
     }
@@ -158,10 +147,9 @@ bool PlayerWindow::PrepareImage()
 
 void PlayerWindow::SetImage(const wxImage& image)
 {
-    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
 
-    if (image.IsOk())
-    {
+    if (image.IsOk()) {
         int srcWidth = image.GetWidth();
         int srcHeight = image.GetHeight();
 
@@ -174,8 +162,7 @@ void PlayerWindow::SetImage(const wxImage& image)
             srcHeight != tgtHeight ||
             memcmp(_inputImage.GetData(), image.GetData(), srcWidth * srcHeight * 3) != 0;
 
-        if (changed)
-        {
+        if (changed) {
             _inputImage.Destroy();
             _inputImage = image.Copy();
             _imageChanged = true;
@@ -189,8 +176,7 @@ void PlayerWindow::Paint(wxPaintEvent& event)
     wxASSERT(wxThread::IsMain());
 
     // ensure the image is ready for drawing
-    if (!PrepareImage())
-    {
+    if (!PrepareImage()) {
         Refresh(false); // we failed to get the new image so we will need to paint again
     }
 
@@ -198,10 +184,9 @@ void PlayerWindow::Paint(wxPaintEvent& event)
     dc.DrawBitmap(_image, 0, 0);
 }
 
-void PlayerWindow::OnMouseLeftUp(wxMouseEvent& event) 
+void PlayerWindow::OnMouseLeftUp(wxMouseEvent& event)
 {
-    if (_dragging)
-    {
+    if (_dragging) {
         int cwpx, cwpy;
         GetPosition(&cwpx, &cwpy);
         wxPoint currentWindowPos(cwpx, cwpy);
@@ -219,14 +204,13 @@ void PlayerWindow::OnMouseLeftDown(wxMouseEvent& event)
     _dragging = true;
     int x, y;
     GetPosition(&x, &y);
-    _startDragPos = wxPoint(x,y);
+    _startDragPos = wxPoint(x, y);
     _startMousePos = event.GetPosition() + _startDragPos;
 }
 
 void PlayerWindow::OnMouseMove(wxMouseEvent& event)
 {
-    if (_dragging)
-    {
+    if (_dragging) {
         int cwpx, cwpy;
         GetPosition(&cwpx, &cwpy);
         wxPoint currentWindowPos(cwpx, cwpy);
@@ -237,4 +221,3 @@ void PlayerWindow::OnMouseMove(wxMouseEvent& event)
         Move(_startDragPos.x + x, _startDragPos.y + y);
     }
 }
-

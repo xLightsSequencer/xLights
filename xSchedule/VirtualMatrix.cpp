@@ -12,7 +12,6 @@
 #include <wx/string.h>
 #include <wx/xml/xml.h>
 #include <wx/wx.h>
-#include <log4cpp/Category.hh>
 #include "xScheduleApp.h"
 #include "../xLights/outputs/OutputManager.h"
 
@@ -20,6 +19,8 @@ extern "C"
 {
     #include <libswscale/swscale.h>
 }
+
+#include <log4cpp/Category.hh>
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier)
 {

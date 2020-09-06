@@ -19,6 +19,8 @@
 #include <wx/string.h>
 //*)
 
+#include <log4cpp/Category.hh>
+
 //(*IdInit(VirtualMatrixDialog)
 const long VirtualMatrixDialog::ID_STATICTEXT7 = wxNewId();
 const long VirtualMatrixDialog::ID_TEXTCTRL1 = wxNewId();
@@ -166,6 +168,9 @@ void VirtualMatrixDialog::OnButton_OkClick(wxCommandEvent& event)
     _topMost = CheckBox_Topmost->GetValue();
     _size = _tempSize;
     _location = _tempLocation;
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Virtual matrix position window saved location (%d, %d) size (%d, %d).", _location.x, _location.y, _size.x, _size.y);
 
     EndDialog(wxID_OK);
 }
