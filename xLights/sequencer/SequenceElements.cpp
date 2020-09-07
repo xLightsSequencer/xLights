@@ -1713,31 +1713,29 @@ int SequenceElements::GetFirstVisibleModelRow()
 
 bool SequenceElements::IsValidEffect(Effect* ef) const
 {
-    for (size_t i = 0; i < GetElementCount(); i++)
-    {
+    for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
-        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if (e->IsEffectValid(ef))
-            {
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (e->IsEffectValid(ef)) {
                 return true;
             }
             if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* mel = dynamic_cast<ModelElement*>(e);
-                if (mel != nullptr)
-                {
-                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
-                    {
+                if (mel != nullptr) {
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
                         SubModelElement* sme = mel->GetSubModel(x);
-                        if (sme != nullptr)
-                        {
-                            if (sme->IsEffectValid(ef))
-                            {
+                        if (sme != nullptr) {
+                            if (sme->IsEffectValid(ef)) {
                                 return true;
                             }
                         }
                     }
                 }
+            }
+        }
+        else {
+            if (e->IsEffectValid(ef)) {
+                return true;
             }
         }
     }

@@ -116,5 +116,7 @@ private:
     static const long ID_ROW_MNU_IMPORT_LYRICS;
     static const long ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES;
     static const long ID_ROW_MNU_BREAKDOWN_TIMING_WORDS;
-
+    static const long ID_ROW_MNU_REMOVE_TIMING_WORDS;
+    static const long ID_ROW_MNU_REMOVE_TIMING_PHONEMES;
+    static const long ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES;
 };
