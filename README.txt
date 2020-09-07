@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.35 September 7 2020
+   -- enh (keith)  Add ability to remove word and phoneme layers from timing tracks
+   -- enh (scott)  Add PB16v2 controller
+   -- bug (keith)  Fix xSchedule player window location when DPI per monitor being used
+   -- bug (keith)  Fix test mode seems to hang in large shows - big performance change
+   -- bug (keith)  Fix group creation related crash
+   -- bug (keith)  Fix crash when using visualiser on controllers with no protocols
+   -- bug (keith)  Fix sphere xmodel wont load
+   -- bug (dpriem) Fix sort issue on windows with model/previews import
+   -- bug (dkulp)  Fix overly aggressive warning on memory usage which was triggering on large shows
 2020.34 August 30 2020
    -- enh (scott)  Added Generic Serial Output
    -- enh (scott)  Added export of submodel details
