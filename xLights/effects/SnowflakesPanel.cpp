@@ -55,9 +55,6 @@ END_EVENT_TABLE()
 SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 {
 	//(*Initialize(SnowflakesPanel)
-	BulkEditTextCtrl* TextCtrl56;
-	BulkEditTextCtrl* TextCtrl57;
-	BulkEditTextCtrl* TextCtrl58;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer43;
@@ -71,22 +68,22 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Snowflakes_Count = new BulkEditSlider(this, ID_SLIDER_Snowflakes_Count, 5, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Count"));
 	FlexGridSizer1->Add(Slider_Snowflakes_Count, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Snowflakes_Count = new BulkEditValueCurveButton(this, ID_VALUECURVE_Snowflakes_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Snowflakes_Count"));
+	BitmapButton_Snowflakes_Count = new BulkEditValueCurveButton(this, ID_VALUECURVE_Snowflakes_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Snowflakes_Count"));
 	FlexGridSizer1->Add(BitmapButton_Snowflakes_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer43->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
-	TextCtrl56 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Count, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Count"));
-	TextCtrl56->SetMaxLength(3);
-	FlexGridSizer43->Add(TextCtrl56, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_SnowflakesCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Count"));
+	TextCtrl_Snowflakes_Count = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Count, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Count"));
+	TextCtrl_Snowflakes_Count->SetMaxLength(3);
+	FlexGridSizer43->Add(TextCtrl_Snowflakes_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SnowflakesCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Count"));
 	FlexGridSizer43->Add(BitmapButton_SnowflakesCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText80 = new wxStaticText(this, ID_STATICTEXT_Snowflakes_Type, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Snowflakes_Type"));
 	FlexGridSizer43->Add(StaticText80, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Snowflakes_Type = new BulkEditSlider(this, ID_SLIDER_Snowflakes_Type, 1, 0, 9, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Type"));
 	FlexGridSizer43->Add(Slider_Snowflakes_Type, 1, wxALL|wxEXPAND, 2);
-	TextCtrl57 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Type, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Type"));
-	TextCtrl57->SetMaxLength(3);
-	FlexGridSizer43->Add(TextCtrl57, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_SnowflakesType = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Type"));
+	TextCtrl_Snowflakes_Type = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Type, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Type"));
+	TextCtrl_Snowflakes_Type->SetMaxLength(3);
+	FlexGridSizer43->Add(TextCtrl_Snowflakes_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SnowflakesType = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Type"));
 	FlexGridSizer43->Add(BitmapButton_SnowflakesType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText181 = new wxStaticText(this, ID_STATICTEXT_Snowflakes_Speed, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Snowflakes_Speed"));
 	FlexGridSizer43->Add(StaticText181, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -94,13 +91,13 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Snowflakes_Speed = new BulkEditSlider(this, ID_SLIDER_Snowflakes_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Speed"));
 	FlexGridSizer3->Add(Slider_Snowflakes_Speed, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Snowflakes_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Snowflakes_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Snowflakes_Speed"));
+	BitmapButton_Snowflakes_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Snowflakes_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Snowflakes_Speed"));
 	FlexGridSizer3->Add(BitmapButton_Snowflakes_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer43->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
-	TextCtrl58 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Speed"));
-	TextCtrl58->SetMaxLength(3);
-	FlexGridSizer43->Add(TextCtrl58, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_SnowflakesSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed"));
+	TextCtrl_Snowflakes_Speed = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Speed"));
+	TextCtrl_Snowflakes_Speed->SetMaxLength(3);
+	FlexGridSizer43->Add(TextCtrl_Snowflakes_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SnowflakesSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed"));
 	FlexGridSizer43->Add(BitmapButton_SnowflakesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Falling, _("Falling"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Falling"));
 	FlexGridSizer43->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -111,7 +108,7 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	FlexGridSizer43->Add(Choice_Falling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer43->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Falling = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Falling, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Falling"));
+	BitmapButton_Falling = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Falling, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Falling"));
 	FlexGridSizer43->Add(BitmapButton_Falling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer43);
 	FlexGridSizer43->Fit(this);
@@ -157,7 +154,13 @@ void SnowflakesPanel::ValidateWindow()
        BitmapButton_Snowflakes_Speed->Disable();
        BitmapButton_Snowflakes_Count->GetValue()->SetActive(false);
        BitmapButton_Snowflakes_Speed->GetValue()->SetActive(false);
-    }
+
+	   // Because disabling value curve also disables slider and text we need to re-enable them
+	   Slider_Snowflakes_Count->Enable();
+	   Slider_Snowflakes_Speed->Enable();
+	   TextCtrl_Snowflakes_Count->Enable();
+	   TextCtrl_Snowflakes_Speed->Enable();
+	}
     else
     {
        BitmapButton_Snowflakes_Count->Enable();

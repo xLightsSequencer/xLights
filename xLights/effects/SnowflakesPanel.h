@@ -37,6 +37,9 @@ class SnowflakesPanel: public wxPanel
 		BulkEditSlider* Slider_Snowflakes_Count;
 		BulkEditSlider* Slider_Snowflakes_Speed;
 		BulkEditSlider* Slider_Snowflakes_Type;
+		BulkEditTextCtrl* TextCtrl_Snowflakes_Count;
+		BulkEditTextCtrl* TextCtrl_Snowflakes_Speed;
+		BulkEditTextCtrl* TextCtrl_Snowflakes_Type;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Count;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Speed;
 		wxStaticText* StaticText181;
