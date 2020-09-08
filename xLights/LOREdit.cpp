@@ -145,6 +145,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "lineshorizontal") return "Lines";
     if (effectType == "linesvertical") return "Lines";
     if (effectType == "straightlines") return "Lines";
+    if (effectType == "garland") return "Garlands";
     if (effectType == "blendedbars") return "Bars";
     if (effectType == "singleblock") return "SingleStrand";
     if (effectType == "countdown") return "Text"; // we dont support countdown
@@ -842,6 +843,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         }
 
         // I dont have enough samples to know what the rest of the settings are
+        logger_base.warn("Wave effects I have never seen enough samples to truly decode the settings.");
     }
     else {
         logger_base.warn("S5 conversion for %s not created yet.", (const char*)et.c_str());
