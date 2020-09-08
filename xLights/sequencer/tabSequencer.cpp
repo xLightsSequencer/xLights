@@ -1124,14 +1124,16 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 !event.isNew);
             selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
             selectedEffect = effect;
-            if (effect->GetPaletteMap().empty() || resetStrings) {
-                effect->SetPalette(selectedEffectPalette);
-                effect->SetSettings(selectedEffectString, true);
-                if (!_suspendRender)
-                {
-                    RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                        effect->GetStartTimeMS(),
-                        effect->GetEndTimeMS());
+
+            if (effect->GetParentEffectLayer()->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+                if (effect->GetPaletteMap().empty() || resetStrings) {
+                    effect->SetPalette(selectedEffectPalette);
+                    effect->SetSettings(selectedEffectString, true);
+                    if (!_suspendRender) {
+                        RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                            effect->GetStartTimeMS(),
+                            effect->GetEndTimeMS());
+                    }
                 }
             }
 
@@ -2152,14 +2154,16 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
                 AddTraceMessage("  Undo step created\n");
             }
 
-            eff->SetSettings(effectText, true);
-            eff->SetPalette(palette);
-            AddTraceMessage("  Effect settings updated");
+            if (el->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+                eff->SetSettings(effectText, true);
+                eff->SetPalette(palette);
+                AddTraceMessage("  Effect settings updated");
 
-            selectedEffectName = eff->GetEffectName();
-            selectedEffectString = effectText;
-            selectedEffectPalette = palette;
-            AddTraceMessage("  SEN: " + selectedEffectName);
+                selectedEffectName = eff->GetEffectName();
+                selectedEffectString = effectText;
+                selectedEffectPalette = palette;
+                AddTraceMessage("  SEN: " + selectedEffectName);
+            }
 
             playStartTime = eff->GetStartTimeMS();
             playEndTime = eff->GetEndTimeMS();
