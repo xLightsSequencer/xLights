@@ -146,6 +146,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "linesvertical") return "Lines";
     if (effectType == "straightlines") return "Lines";
     if (effectType == "blendedbars") return "Bars";
+    if (effectType == "singleblock") return "SingleStrand";
     if (effectType == "countdown") return "Text"; // we dont support countdown
 
     return wxString(effectType).Capitalize();
@@ -225,42 +226,35 @@ std::string LOREditEffect::GetBlend() const
 
 std::string LOREditEffect::GetSettings(std::string& palette) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (effectType == "INTENSITY")
-    {
+    if (effectType == "INTENSITY") {
         // intensity ramp 0-100
         return wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", endIntensity, startIntensity).ToStdString();
     }
-    if (effectType == "DMX_INTENSITY")
-    {
+    if (effectType == "DMX_INTENSITY") {
         return wxString::Format("E_VALUECURVE_DMX1=Active=TRUE|Id=ID_VALUECURVE_DMX1|Type=Ramp|Min=0.00|Max=255.00|P1=%d|P2=%d|RV=TRUE|", startIntensity, endIntensity).ToStdString();
     }
-    if (effectType == "SHIMMER")
-    {
+    if (effectType == "SHIMMER") {
         return wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", endIntensity, startIntensity).ToStdString();
     }
-    if (effectType == "TWINKLE")
-    {
+    if (effectType == "TWINKLE") {
         return "E_SLIDER_Twinkle_Count=48";
     }
 
-    if (effectSettings.size() == 0)
-    {
+    if (effectSettings.size() == 0) {
         wxASSERT(false);
         return "";
     }
 
     std::string et = effectType;
-    if (StartsWith(et, "lightorama_"))
-    {
+    if (StartsWith(et, "lightorama_")) {
         et = AfterFirst(et, '_');
     }
 
     std::string settings;
     auto parms = wxSplit(effectSettings[1], ',');
-    if (et == "butterfly")
-    {
+    if (et == "butterfly") {
         wxString style = parms[0];
         wxString chunks = parms[1];
         wxString vcChunks;
@@ -277,20 +271,16 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX);
         wxString colours = parms[6];
 
-        if (style == "linear")
-        {
+        if (style == "linear") {
             settings += ",E_SLIDER_Butterfly_Style=1";
         }
-        else if (style == "radial")
-        {
+        else if (style == "radial") {
             settings += ",E_SLIDER_Butterfly_Style=2";
         }
-        else if (style == "blocks")
-        {
+        else if (style == "blocks") {
             settings += ",E_SLIDER_Butterfly_Style=3";
         }
-        else if (style == "corner")
-        {
+        else if (style == "corner") {
             settings += ",E_SLIDER_Butterfly_Style=5";
         }
         settings += ",E_CHOICE_Butterfly_Colors=" + colours.Capitalize();
@@ -302,14 +292,12 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Butterfly_Speed=" + speed;
         settings += vcSpeed;
 
-        if (hue != "0")
-        {
+        if (hue != "0") {
             palette += ",C_SLIDER_Color_HueAdjust=" + hue;
             palette += vcHue;
         }
     }
-    else if (et == "colorwash")
-    {
+    else if (et == "colorwash") {
         //full, full, none, 12
         wxString horizontalFade = parms[0];
         wxString verticalFade = parms[1];
@@ -344,8 +332,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             settings += ",E_CHECKBOX_ColorWash_VFade=1";
         }
     }
-    else if (et == "spirals")
-    {
+    else if (et == "spirals") {
         // 1, left_to_right, 20, 50, 0, False, none, 12
         wxString repeat = parms[0];
         wxString vcRepeat;
@@ -365,12 +352,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString speed = parms[7];
         speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
         wxString vcSpeed;
-        if (direction == "right_to_left")
-        {
+        if (direction == "right_to_left") {
             speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
         }
-        else
-        {
+        else {
             speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
         }
 
@@ -388,8 +373,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         // dont know what to do with thickness change
 
-        if (blend == "True")
-        {
+        if (blend == "True") {
             settings += ",E_CHECKBOX_Spirals_Blend=1,";
         }
 
@@ -402,8 +386,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             settings += ",E_CHECKBOX_Spirals_3D=1";
         }
     }
-    else if (et == "bars")
-    {
+    else if (et == "bars") {
         // down,2,False,False,8,0
         wxString direction = parms[0];
         wxString repeat = parms[1];
@@ -434,13 +417,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         if (direction == "block_right") direction = "Alternate Right";
         settings += ",E_CHOICE_Bars_Direction=" + direction;
 
-        if (show3d == "True")
-        {
+        if (show3d == "True") {
             settings += ",E_CHECKBOX_Bars_3D=1";
         }
 
-        if (highlight == "True")
-        {
+        if (highlight == "True") {
             settings += "E_CHECKBOX_Bars_Highlight=1";
         }
 
@@ -450,8 +431,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_TEXTCTRL_Bars_Center=" + centre;
         settings += vcCentre;
     }
-    else if (et == "countdown")
-    {
+    else if (et == "countdown") {
         // 0,Arial,75,7
         wxString seconds = parms[0];
         wxString font = parms[1];
@@ -467,24 +447,21 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_FONTPICKER_Text_Font='" + font + "' " + fontSize;
         settings += ",E_SLIDER_Text_XStart=" + position;
     }
-    else if (et == "lineshorizontal")
-    {
+    else if (et == "lineshorizontal") {
         // Bottom_to_Top,8,38
 
         // No xLights equivalent
 
         logger_base.warn("LPE conversion for Lines Horizontal does not exist.");
     }
-    else if (et == "linesvertical")
-    {
+    else if (et == "linesvertical") {
         // Left_to_Right,4,32
 
         // No xLights equivalent
 
         logger_base.warn("LPE conversion for Lines Vertical does not exist.");
     }
-    else if (et == "curtain")
-    {
+    else if (et == "curtain") {
         // center,open,0,once_at_speed,12
         wxString edge = parms[0];
         wxString movement = parms[1];
@@ -502,27 +479,22 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Curtain_Swag=" + swag;
         settings += vcSwag;
 
-        if (repeat == "once_at_speed")
-        {
+        if (repeat == "once_at_speed") {
             settings += ",E_CHECKBOX_Curtain_Repeat=0";
         }
-        else if (repeat == "once_fit_to_duration")
-        {
+        else if (repeat == "once_fit_to_duration") {
             settings += ",E_CHECKBOX_Curtain_Repeat=0";
         }
-        else if (repeat == "repeat_at_speed_rotate_colors")
-        {
+        else if (repeat == "repeat_at_speed_rotate_colors") {
             settings += ",E_CHECKBOX_Curtain_Repeat=1";
         }
-        else if (repeat == "repeat_at_speed_blend_colors")
-        {
+        else if (repeat == "repeat_at_speed_blend_colors") {
             settings += ",E_CHECKBOX_Curtain_Repeat=1";
         }
         settings += ",E_TEXTCTRL_Curtain_Speed=" + speed;
         settings += vcSpeed;
     }
-    else if (et == "fire")
-    {
+    else if (et == "fire") {
         //50,0
         wxString height = parms[0];
         wxString vcHeight;
@@ -536,8 +508,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Fire_HueShift=" + hueShift;
         settings += vcHueShift;
     }
-    else if (et == "fireworks")
-    {
+    else if (et == "fireworks") {
         // 10,50,2,30,normal,continuous
         wxString explosionRate = parms[0];
         wxString vcCrap;
@@ -555,8 +526,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Fireworks_Fade=" + fade;
         settings += ",E_SLIDER_Fireworks_Velocity=" + velocity;
     }
-    else if (et == "garland")
-    {
+    else if (et == "garland") {
         // 3,34,once_at_speed,12,bottom_to_top
         wxString type = parms[0];
         wxString vcCrap;
@@ -572,42 +542,34 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         settings += ",E_SLIDER_Garlands_Type=" + type;
 
-        if (fill == "bottom_to_top")
-        {
+        if (fill == "bottom_to_top") {
             settings += ",E_CHOICE_Garlands_Direction=Up";
         }
-        else if (fill == "top_to_bottom")
-        {
+        else if (fill == "top_to_bottom") {
             settings += ",E_CHOICE_Garlands_Direction=Down";
         }
-        else if (fill == "left_to_right")
-        {
+        else if (fill == "left_to_right") {
             settings += ",E_CHOICE_Garlands_Direction=Right";
         }
-        else if (fill == "right_to_left")
-        {
+        else if (fill == "right_to_left") {
             settings += ",E_CHOICE_Garlands_Direction=Left";
         }
 
         settings += ",E_SLIDER_Garlands_Spacing=" + spacing;
         settings += vcSpacing;
 
-        if (repeat == "repeat_at_speed")
-        {
+        if (repeat == "repeat_at_speed") {
             settings += ",E_TEXTCTRL_Garlands_Cycles=" + speed;
             settings += vcSpeed;
         }
-        else if (repeat == "once_at_speed")
-        {
+        else if (repeat == "once_at_speed") {
             settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
         }
-        else if (repeat == "once_fit_to_duration")
-        {
+        else if (repeat == "once_fit_to_duration") {
             settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
         }
     }
-    else if (et == "meteors")
-    {
+    else if (et == "meteors") {
         // rainbow,10,25,down,0,12
         wxString colourScheme = parms[0];
         wxString count = parms[1];
@@ -635,8 +597,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Meteors_Speed=" + speed;
         settings += vcSpeed;
     }
-    else if (et == "movie")
-    {
+    else if (et == "movie") {
         // xxx.avi,True,False
         wxString file = parms[0];
         wxString scale = parms[1];
@@ -644,25 +605,20 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         settings += ",E_FILEPICKERCTRL_Video_Filename=" + file;
 
-        if (scale == "True")
-        {
+        if (scale == "True") {
             settings += ",E_CHECKBOX_Video_AspectRatio=0";
         }
-        else
-        {
+        else {
             settings += ",E_CHECKBOX_Video_AspectRatio=1";
         }
-        if (fullLength == "True")
-        {
+        if (fullLength == "True") {
             settings += ",E_CHOICE_Video_DurationTreatment=Slow/Accelerate";
         }
-        else
-        {
+        else {
             settings += ",E_CHOICE_Video_DurationTreatment=Normal";
         }
     }
-    else if (et == "picture")
-    {
+    else if (et == "picture") {
         // file.jpg,True,none,0,10,19,12
         wxString file = parms[0];
         wxString scale = parms[1];
@@ -677,49 +633,40 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString speed = parms[6];
         speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
 
-        while (file.Contains("%"))
-        {
+        while (file.Contains("%")) {
             int pos = file.Find("%");
-            if (pos < file.Length() - 2)
-            {
-                char c = HexToChar(file[pos+1], file[pos + 2]);
+            if (pos < file.Length() - 2) {
+                char c = HexToChar(file[pos + 1], file[pos + 2]);
                 file.Replace(file.substr(pos, 3), wxString(c));
             }
         }
 
         settings += ",E_FILEPICKER_Pictures_Filename=" + file;
-        if (scale == "True")
-        {
+        if (scale == "True") {
             settings += ",E_CHOICE_Scaling=Scale To Fit";
         }
-        else
-        {
+        else {
             settings += ",E_CHOICE_Scaling=No Scaling";
         }
 
         movement.Replace("_", "-");
-        if (movement == "peekaboo-bottom")
-        {
+        if (movement == "peekaboo-bottom") {
             movement = "peekaboo";
         }
-        else if (movement == "peekaboo-top")
-        {
+        else if (movement == "peekaboo-top") {
             movement = "peekaboo 180";
         }
-        else if (movement == "peekaboo-left")
-        {
+        else if (movement == "peekaboo-left") {
             movement = "peekaboo 90";
         }
-        else if (movement == "peekaboo-right")
-        {
+        else if (movement == "peekaboo-right") {
             movement = "peekaboo 270";
         }
         settings += ",E_CHOICE_Pictures_Direction=" + movement;
         settings += ",E_SLIDER_PicturesXC=" + x;
         settings += ",E_TEXTCTRL_Pictures_Speed=" + speed;
     }
-    else if (et == "pinwheel")
-    {
+    else if (et == "pinwheel") {
         // 3,1,6,color_per_arm,True,12,100,10,-23
 
         wxString arms = parms[0];
@@ -751,12 +698,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += vcWidth;
         settings += ",E_SLIDER_Pinwheel_Twist=" + bend;
         settings += vcBend;
-        if (CCW == "True")
-        {
+        if (CCW == "True") {
             settings += ",E_CHECKBOX_Pinwheel_Rotation=1";
         }
-        else
-        {
+        else {
             settings += ",E_CHECKBOX_Pinwheel_Rotation=0";
         }
         settings += ",E_SLIDER_Pinwheel_Speed=" + speed;
@@ -769,8 +714,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_PinwheelYC=" + y;
         settings += vcY;
     }
-    else if (et == "snowflakes")
-    {
+    else if (et == "snowflakes") {
         //5,1,0,12,60
         wxString count = parms[0];
         wxString vcCount;
@@ -789,21 +733,18 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Snowflakes_Count=" + count;
         settings += ",E_SLIDER_Snowflakes_Type=" + type;
         settings += ",E_SLIDER_Snowflakes_Speed=" + speed;
-        if (accumulation == "0")
-        {
+        if (accumulation == "0") {
             settings += ",E_CHOICE_Falling=Falling";
             settings += vcCount;
             settings += vcSpeed;
         }
-        else
-        {
+        else {
             settings += ",E_CHOICE_Falling=Falling & Accumulating";
             settings += vcCount;
             settings += vcSpeed;
         }
     }
-    else if (et == "text")
-    {
+    else if (et == "text") {
         //Hello%26nbsp%3B%20Keith,50,left,0,10,0,4,True
         wxString text = wxURI::Unescape(parms[0]);
         text.Replace("&gt;", ">");
@@ -822,8 +763,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
         wxString speed = parms[6];
         speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
-        if (parms.size() > 7)
-        {
+        if (parms.size() > 7) {
             wxString unknown1 = parms[7]; // unused
         }
 
@@ -831,23 +771,19 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Text_Font=Use OS Fonts";
         settings += ",E_FONTPICKER_Text_Font='segoe ui' " + fontSize;
 
-        if (movement == "peekaboo_bottom")
-        {
+        if (movement == "peekaboo_bottom") {
             settings += ",E_CHECKBOX_TextToCenter=1";
             movement = "up";
         }
-        if (movement == "peekaboo_top")
-        {
+        if (movement == "peekaboo_top") {
             settings += ",E_CHECKBOX_TextToCenter=1";
             movement = "down";
         }
-        if (movement == "peekaboo_left")
-        {
+        if (movement == "peekaboo_left") {
             settings += ",E_CHECKBOX_TextToCenter=1";
             movement = "left";
         }
-        if (movement == "peekaboo_right")
-        {
+        if (movement == "peekaboo_right") {
             settings += ",E_CHECKBOX_TextToCenter=1";
             movement = "right";
         }
@@ -855,8 +791,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Text_XStart=" + position;
         settings += ",E_TEXTCTRL_Text_Speed=" + speed;
     }
-    else if (et == "twinkle")
-    {
+    else if (et == "twinkle") {
         // 50,25,twinkle,random
         wxString rate = parms[0];
         wxString vcCrap;
@@ -868,17 +803,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         settings += ",E_SLIDER_Twinkle_Count=" + density;
         settings += ",E_SLIDER_Twinkle_Steps=" + rate;
-        if (layout == "interval")
-        {
+        if (layout == "interval") {
             settings += ",E_CHECKBOX_Twinkle_ReRandom=0";
         }
-        else if (layout == "random")
-        {
+        else if (layout == "random") {
             settings += ",E_CHECKBOX_Twinkle_ReRandom=1";
         }
 
-        if (mode == "twinkle")
-        {
+        if (mode == "twinkle") {
             settings += ",E_CHECKBOX_Twinkle_Strobe=0";
         }
         else // pulse/flash
@@ -886,13 +818,33 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             settings += ",E_CHECKBOX_Twinkle_Strobe=1";
         }
     }
-    else if (et == "straightlines")         {
+    else if (et == "straightlines") {
     }
-    else if (et == "blendedbars")         {
+    else if (et == "blendedbars") {
     }
-    else
-    {
-        logger_base.warn("S5 conversion for %s not created yet.", (const char *)et.c_str());
+    else if (et == "singleblock") {
+    }
+    else if (et == "wave") {
+        // left,along_wave_scrolling,rainbow,triple,50,23,88,A3A50A1.00,A-14A50A1.00
+        if (parms[0] == "left") {
+            settings += ",E_CHOICE_Wave_Direction=Right to Left";
+        }
+        else {
+            settings += ",E_CHOICE_Wave_Direction=Left to Right";
+        }
+
+        // none is not handled because i dont have a sample of a file with that
+        if (parms[2] == "rainbow") {
+            settings += "E_CHOICE_Fill_Colors=Rainbow";
+        }
+        else {
+            settings += "E_CHOICE_Fill_Colors=Palette";
+        }
+
+        // I dont have enough samples to know what the rest of the settings are
+    }
+    else {
+        logger_base.warn("S5 conversion for %s not created yet.", (const char*)et.c_str());
         wxASSERT(false);
     }
 
@@ -900,8 +852,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     settings += ",T_CHOICE_LayerMethod=" + blend;
 
     int blendPos = wxAtoi(otherSettings[1]);
-    if (left && blendPos > 0)
-    {
+    if (left && blendPos > 0) {
         settings += ",T_SLIDER_EffectLayerMix=" + wxString::Format("%d", blendPos);
     }
 
@@ -1202,7 +1153,7 @@ void LOREdit::GetLayers(const std::string& settings, int& ll1, int& ll2)
     ll2 = 0;
     auto ss = wxSplit(settings, '|');
 
-    if (ss.size() == 8)
+    if (ss.size() >= 7)
     {
         if (ss[5].StartsWith("lightorama_") && !ss[5].StartsWith("lightorama_none"))
         {
@@ -1244,7 +1195,7 @@ std::vector<LOREditEffect> LOREdit::AddEffects(wxXmlNode* track, bool left, int 
         auto s = ef->GetAttribute("settings");
         auto ss = wxSplit(s, '|');
         
-        if (ss.size() == 8)
+        if (ss.size() >= 7)
         {
             wxString es;
             if (left)
@@ -1279,7 +1230,12 @@ std::vector<LOREditEffect> LOREdit::AddEffects(wxXmlNode* track, bool left, int 
             effect.otherSettings.push_back(ss[2].ToStdString());
             effect.otherSettings.push_back(ss[3].ToStdString());
             effect.otherSettings.push_back(ss[4].ToStdString());
-            effect.otherSettings.push_back(ss[7].ToStdString());
+            if (ss.size() == 8) {
+                effect.otherSettings.push_back(ss[7].ToStdString());
+            }
+            else                 {
+                effect.otherSettings.push_back("");
+            }
         }
 
         res.push_back(effect);
