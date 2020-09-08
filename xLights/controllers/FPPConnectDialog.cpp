@@ -676,6 +676,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     wxJSONValue outputs = FPP::CreateUniverseFile(outputControllers, false);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
@@ -701,7 +703,11 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                 }
             }
-            inst->Restart("", true);
+            if (GetCheckValue(MODELS_COL + rowStr)) {
+                cancelled |= inst->UploadModels(memoryMaps);
+                cancelled |= inst->UploadDisplayMap(displayMap);
+                inst->SetRestartFlag();
+            }
         }
         row++;
     }
@@ -790,8 +796,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     }
     row = 0;
     
-    wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
@@ -799,11 +803,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             if (playlist != "") {
                 cancelled |= inst->UploadPlaylist(playlist);
             }
-            if (GetCheckValue(MODELS_COL + rowStr)) {
-                cancelled |= inst->UploadModels(memoryMaps);
-                cancelled |= inst->UploadDisplayMap(displayMap);
-                inst->SetRestartFlag();
-            }
+            inst->Restart("", true);
         }
         row++;
     }
