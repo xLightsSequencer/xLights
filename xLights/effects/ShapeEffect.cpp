@@ -253,7 +253,7 @@ public:
     void RemoveOld(int maxAge)
     {
         // old are always at the front of the list
-        while (_shapes.size() > 0 && _shapes.front()->_oset >= maxAge)
+        while (_shapes.size() > 0 && _shapes.front()->_oset > maxAge)
         {
             auto todelete = _shapes.front();
             _shapes.pop_front();
@@ -588,12 +588,6 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             it->SetCentre(wxPoint(xc, yc));
         }
 
-        it->Move();
-        it->_oset++;
-        it->_size += growthPerFrame;
-
-        if (it->_size < 0) it->_size = 0;
-
         xlColor color = it->GetColour(buffer.palette);
 
         if (fadeAway)
@@ -662,6 +656,13 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             wxASSERT(false);
             break;
         }
+
+        // move etc after drawing otherwise first frame has already moved
+        it->Move();
+        it->_oset++;
+        it->_size += growthPerFrame;
+
+        if (it->_size < 0) it->_size = 0;
     }
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI)
