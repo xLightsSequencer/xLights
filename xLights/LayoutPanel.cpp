@@ -7556,7 +7556,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.AppendSeparator();
     }
 
-    mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Group");
+    mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Empty Group");
     if ((selectedTreeModels.size() + selectedTreeSubModels.size() + selectedTreeGroups.size()) > 0) {
         for (const auto& m : xlights->AllModels) {
             if (m.second->GetDisplayAs() == "ModelGroup") {
