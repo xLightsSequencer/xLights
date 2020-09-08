@@ -63,6 +63,7 @@ class FPP : public BaseController
                                const std::string &seq,
                                const std::string &media,
                                int type);
+    bool WillUploadSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
 

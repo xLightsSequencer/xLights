@@ -749,6 +749,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
                 row = 0;
+                int uploadCount = 0;
                 for (const auto& inst : instances) {
                     std::string rowStr = std::to_string(row);
                     if (!cancelled && doUpload[row]) {
@@ -761,10 +762,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         cancelled |= inst->PrepareUploadSequence(*seq,
                                                                 fseq, m2,
                                                                 fseqType);
+                        
+                        if (inst->WillUploadSequence()) {
+                            uploadCount++;
+                        }
                     }
                     row++;
                 }
-                if (!cancelled) {
+                if (!cancelled && uploadCount) {
                     prgs.SetTitle("Generating FSEQ Files");
                     prgs.Update(0, "Generating " + fseq, &cancelled);
                     prgs.Show();
@@ -809,13 +814,13 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         };
                         parallel_for(instances, func);
                     }
-                }
-                row = 0;
-                for (const auto &inst : instances) {
-                    if (!cancelled && doUpload[row]) {
-                        cancelled |= inst->FinalizeUploadSequence();
+                    row = 0;
+                    for (const auto &inst : instances) {
+                        if (!cancelled && doUpload[row]) {
+                            cancelled |= inst->FinalizeUploadSequence();
+                        }
+                        row++;
                     }
-                    row++;
                 }
             }
             delete seq;

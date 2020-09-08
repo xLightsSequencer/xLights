@@ -750,7 +750,8 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
 
 
 bool FPP::PrepareUploadSequence(const FSEQFile &file,
-                                const std::string &seq, const std::string &media,
+                                const std::string &seq,
+                                const std::string &media,
                                 int type) {
     if (outputFile) {
         delete outputFile;
@@ -768,8 +769,18 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     if (media != "") {
         wxFileName mfn(media);
         mediaBaseName = mfn.GetFullName();
-
-        cancelled |= uploadOrCopyFile(mediaBaseName, media, "music");
+        
+        bool doMediaUpload = true;
+        wxJSONValue currentMeta;
+        if (GetURLAsJSON("/api/media/" + mediaBaseName + "/meta", currentMeta)) {
+            if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
+                (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
+                doMediaUpload = false;
+            }
+        }
+        if (doMediaUpload) {
+            cancelled |= uploadOrCopyFile(mediaBaseName, media, "music");
+        }
         if (cancelled) {
             return cancelled;
         }
@@ -783,18 +794,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         tempFileName = wxFileName::CreateTempFileName(baseName);
         fileName = tempFileName;
     }
-    if ((type == 0 && file.getVersionMajor() == 1)
-        || fn.GetExt() == "eseq") {
-
-        //these just get uploaded directly
-        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
-    }
-
-    if (type == 1 && file.getVersionMajor() == 2) {
-        // Full v2 file, upload directly
-        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
-    }
-    baseSeqName = baseName;
+    
     FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
     if (type == 3) {
         ctype = ::FSEQFile::CompressionType::none;
@@ -808,23 +808,105 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             clevel = -5;
         }
     }
+
+    bool doSeqUpload = true;
+    int currentMaxChannel = 0;
+    int currentChannelCount = 0;
+    std::vector<std::pair<uint32_t, uint32_t>> currentRanges;
+    std::vector<std::pair<uint32_t, uint32_t>> newRanges;
+    if (!IsDrive()) {
+        wxJSONValue currentMeta;
+        if (GetURLAsJSON("/api/sequence/" + baseName + "/meta", currentMeta)) {
+            doSeqUpload = false;
+            char buf[24];
+            sprintf(buf, "%" PRIu64, file.getUniqueId());
+            std::string version = currentMeta["Version"].AsString();
+            if (type == 0 && version[0] != '1') doSeqUpload = true;
+            if (type != 0 && version[0] == '1') doSeqUpload = true;
+            int currentCompression = 1;
+            if (version[0] == '1') {
+                currentCompression = 0;
+            }
+            if (currentMeta.HasMember("CompressionType")) {
+                currentCompression = currentMeta["CompressionType"].AsLong();
+            }
+            if ((type == 2 || type == 1) && currentCompression != 1) {
+                doSeqUpload = true;
+            }
+            if ((type == 0 || type == 3) && currentCompression != 0) {
+                doSeqUpload = true;
+            }
+            if (currentMeta["ID"].AsString() != buf) doSeqUpload = true;
+            if (currentMeta["NumFrames"].AsLong() != file.getNumFrames()) doSeqUpload = true;
+            if (currentMeta["StepTime"].AsLong() != file.getStepTime()) doSeqUpload = true;
+            
+            currentMaxChannel = currentMeta["MaxChannel"].AsLong();
+            currentChannelCount = currentMeta["ChannelCount"].AsLong();
+            if (currentMeta.HasMember("Ranges")) {
+                for (int x = 0; x < currentMeta["Ranges"].Size(); x++)  {
+                    int s = currentMeta["Ranges"][x]["Start"].AsLong();
+                    int l = currentMeta["Ranges"][x]["Length"].AsLong();
+                    currentRanges.push_back(std::pair<uint32_t, uint32_t>(s, l));
+                }
+            }
+        }
+    }
+    
+    if (type <= 1) {
+        //full file, non sparse
+        if (currentMaxChannel != file.getMaxChannel()) doSeqUpload = true;
+        if (currentChannelCount != file.getMaxChannel()) doSeqUpload = true;
+        if (!currentRanges.empty()) doSeqUpload = true;
+        
+        // at this point, if we are uploading a full file, we know if something has changed or not
+        // and can bail quickly if not
+    } else if (ranges != "") {
+        if (ranges != "") {
+            wxArrayString r1 = wxSplit(wxString(ranges), ',');
+            for (const auto& a : r1) {
+                wxArrayString r = wxSplit(a, '-');
+                int start = wxAtoi(r[0]);
+                int len = 4; //at least 4
+                if (r.size() == 2) {
+                    len = wxAtoi(r[1]) - start + 1;
+                }
+                newRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
+            }
+            if (newRanges != currentRanges) doSeqUpload = true;
+        }
+    } else if (!currentRanges.empty()) {
+        doSeqUpload = true;
+    }
+    if (!doSeqUpload) {
+        //nothing will change... we can bail
+        return false;
+    }
+
+    if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
+        //these just get uploaded directly
+        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+    }
+    if (type == 1 && file.getVersionMajor() == 2) {
+        // Full v2 file, upload directly
+        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+    }
+    baseSeqName = baseName;
+
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
-    if (type >= 2 && ranges != "") {
-        wxArrayString r1 = wxSplit(wxString(ranges), ',');
-        for (const auto& a : r1) {
-            wxArrayString r = wxSplit(a, '-');
-            int start = wxAtoi(r[0]);
-            int len = 4; //at least 4
-            if (r.size() == 2) {
-                len = wxAtoi(r[1]) - start + 1;
-            }
-            ((V2FSEQFile*)outputFile)->m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
+    if (type >= 2 && !newRanges.empty()) {
+        for (auto &a : newRanges) {
+            ((V2FSEQFile*)outputFile)->m_sparseRanges.push_back(a);
         }
     }
     outputFile->writeHeader();
     return false;
 }
+bool FPP::WillUploadSequence() const {
+    return outputFile != nullptr;
+}
+
+
 bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
     if (outputFile) {
         outputFile->addFrame(frame, data);
