@@ -962,26 +962,27 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
 
     auto p = grid->GetPropertyByName("ModelControllerConnectionPort");
-    if (GetControllerName() != "" && _controller != 0 && GetControllerPort(1) == 0) {
-        p->SetHelpString("When using controller name instead of start channels then port must be specified.");
-        p->SetBackgroundColour(*wxRED);
-    }
-    else
-    {
-        p->SetHelpString("");
-        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    if (p != nullptr) {
+        if (GetControllerName() != "" && _controller != 0 && GetControllerPort(1) == 0) {
+            p->SetHelpString("When using controller name instead of start channels then port must be specified.");
+            p->SetBackgroundColour(*wxRED);
+        }
+        else {
+            p->SetHelpString("");
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
 
     p = grid->GetPropertyByName("ModelControllerConnectionProtocol");
-    if (GetControllerName() != "" && _controller != 0 && (GetControllerPort() == 0 || GetControllerProtocol() == ""))
-    {
-        p->SetHelpString("When using controller name instead of start channels then protocol must be specified.");
-        p->SetBackgroundColour(*wxRED);
-    }
-    else
-    {
-        p->SetHelpString("");
-        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    if (p != nullptr) {
+        if (GetControllerName() != "" && _controller != 0 && (GetControllerPort() == 0 || GetControllerProtocol() == "")) {
+            p->SetHelpString("When using controller name instead of start channels then protocol must be specified.");
+            p->SetBackgroundColour(*wxRED);
+        }
+        else {
+            p->SetHelpString("");
+            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
 
     if (grid->GetPropertyByName("ModelChain") != nullptr)
