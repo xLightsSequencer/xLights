@@ -47,6 +47,11 @@ const long FPPConnectDialog::ID_MNU_SELECTHIGH = wxNewId();
 const long FPPConnectDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 
+
+static const long ID_POPUP_MNU_SORT_NAME = wxNewId();
+static const long ID_POPUP_MNU_SORT_IP = wxNewId();
+
+
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//(*EventTable(FPPConnectDialog)
 	//*)
@@ -71,6 +76,12 @@ static inline int case_insensitive_match(std::string s1, std::string s2) {
    if(s1.compare(s2) == 0)
       return 1; //The strings are same
    return 0; //not matched
+}
+static bool sortByName(FPP* i, FPP* j) {
+    return i->hostName < j->hostName;
+}
+static bool sortByIP(FPP* i, FPP* j) {
+    return i->ipAddress < j->ipAddress;
 }
 
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -210,7 +221,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     FPP::PrepareDiscovery(discovery, startAddresses);
     discovery.Discover();
     FPP::MapToFPPInstances(discovery, instances);
-    
+    instances.sort(sortByIP);
+
     wxString newForce = "";
     for (const auto &a : startAddressesForced) {
         for (const auto& fpp : instances) {
@@ -233,7 +245,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Hide();
 
     AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
-    AddInstanceHeader("Location", "Host and IP Address.");
+    wxPanel *p = AddInstanceHeader("Location", "Host and IP Address.");
+    p->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::LocationPopupMenu, nullptr, this);
+    
     AddInstanceHeader("Description");
     AddInstanceHeader("Version", "FPP Software Version.");
     AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
@@ -273,6 +287,25 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+}
+
+void FPPConnectDialog::OnLocationPopupClick(wxCommandEvent &evt) {
+    if (evt.GetId()== ID_POPUP_MNU_SORT_NAME) {
+        SaveSettings(true);
+        instances.sort(sortByName);
+        PopulateFPPInstanceList();
+    } else if (evt.GetId()== ID_POPUP_MNU_SORT_IP) {
+        SaveSettings(true);
+        instances.sort(sortByIP);
+        PopulateFPPInstanceList();
+    }
+}
+void FPPConnectDialog::LocationPopupMenu(wxContextMenuEvent& event) {
+    wxMenu mnu;
+    mnu.Append(ID_POPUP_MNU_SORT_NAME, "Sort by Hostname");
+    mnu.Append(ID_POPUP_MNU_SORT_IP, "Sort by IP Address");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnLocationPopupClick), NULL, this);
+    PopupMenu(&mnu);
 }
 
 void FPPConnectDialog::PopulateFPPInstanceList() {
@@ -385,17 +418,18 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
     FPPInstanceList->Thaw();
 }
 
-void FPPConnectDialog::AddInstanceHeader(const std::string &h, const std::string &tt) {
+wxPanel *FPPConnectDialog::AddInstanceHeader(const std::string &h, const std::string &tt) {
     wxPanel *Panel1 = new wxPanel(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     wxBoxSizer *BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText *StaticText3 = new wxStaticText(Panel1, wxID_ANY, h, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     if(!tt.empty())
-        StaticText3->SetToolTip ( tt );
+        StaticText3->SetToolTip(tt);
     BoxSizer1->Add(StaticText3, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
     Panel1->SetSizer(BoxSizer1);
     BoxSizer1->Fit(Panel1);
     BoxSizer1->SetSizeHints(Panel1);
     FPPInstanceSizer->Add(Panel1, 1, wxALL|wxEXPAND, 0);
+    return Panel1;
 }
 
 void FPPConnectDialog::AddInstanceRow(const FPP &inst) {
@@ -654,21 +688,15 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (row = 0; row < doUpload.size(); ++row) {
         std::string rowStr = std::to_string(row);
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
-        if (doUpload[row]) {
-
-        }
     }
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
     std::list<ControllerEthernet*> outputControllers;
-    for (const auto& it : _outputManager->GetControllers())
-    {
+    for (const auto& it : _outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr)
-        {
-            if (eth->GetProtocol() != OUTPUT_ZCPP)
-            {
+        if (eth != nullptr) {
+            if (eth->GetProtocol() != OUTPUT_ZCPP) {
                 outputControllers.push_back(eth);
             }
         }
@@ -875,7 +903,13 @@ void FPPConnectDialog::CreateDriveList()
             wxJSONValue system;
             wxJSONReader reader;
             wxString str;
-            wxFile(a + "/fpp-info.json").ReadAll(&str);
+            wxFile file(a + "/fpp-info.json");
+            if (!file.IsOpened()) {
+                //could not open the file, likely not readable/writable
+                continue;
+            }
+            
+            file.ReadAll(&str);
             reader.Parse(str, &system);
 
             if (!system["hostname"].IsNull()) {
@@ -966,25 +1000,27 @@ void FPPConnectDialog::SetCheckValue(const std::string &col, bool b) {
 
 }
 
-void FPPConnectDialog::SaveSettings()
+void FPPConnectDialog::SaveSettings(bool onlyInsts)
 {
-    wxString selected = "";
-    wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
-    while (item.IsOk()) {
-        bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
-        if (isChecked) {
-            if (selected != "") {
-                selected += ",";
-            }
-            selected += CheckListBox_Sequences->GetItemText(item);
-        }
-        item = CheckListBox_Sequences->GetNextItem(item);
-    }
-
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("FPPConnectSelectedSequences", selected);
-    config->Write("FPPConnectFilterSelection", ChoiceFilter->GetSelection());
-    config->Write("FPPConnectFolderSelection", ChoiceFolder->GetString(ChoiceFolder->GetSelection()));
+    if (!onlyInsts) {
+        wxString selected = "";
+        wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+        while (item.IsOk()) {
+            bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
+            if (isChecked) {
+                if (selected != "") {
+                    selected += ",";
+                }
+                selected += CheckListBox_Sequences->GetItemText(item);
+            }
+            item = CheckListBox_Sequences->GetNextItem(item);
+        }
+
+        config->Write("FPPConnectSelectedSequences", selected);
+        config->Write("FPPConnectFilterSelection", ChoiceFilter->GetSelection());
+        config->Write("FPPConnectFolderSelection", ChoiceFolder->GetString(ChoiceFolder->GetSelection()));
+    }
 
     int row = 0;
     for (const auto& inst : instances) {
@@ -1116,6 +1152,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
                 }
                 cur++;
             }
+            instances.sort(sortByIP);
 
             //it worked, we found some new instances, record this
             wxConfigBase* config = wxConfigBase::Get();

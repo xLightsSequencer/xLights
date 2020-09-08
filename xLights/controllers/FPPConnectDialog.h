@@ -24,7 +24,7 @@ class OutputManager;
 
 class FPPConnectDialog: public wxDialog
 {
-    void SaveSettings();
+    void SaveSettings(bool onlyInsts = false);
     void ApplySavedHostSettings();
 
 	public:
@@ -82,14 +82,16 @@ class FPPConnectDialog: public wxDialog
 		void OnAddFPPButtonClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
-		//*)
+        void LocationPopupMenu(wxContextMenuEvent& event);
+        void OnLocationPopupClick(wxCommandEvent &evt);
+        //*)
 
         void CreateDriveList();
         void LoadSequencesFromFolder(wxString dir) const;
         void LoadSequences();
         void PopulateFPPInstanceList();
         void AddInstanceRow(const FPP &inst);
-        void AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
+        wxPanel *AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
 
         void GetFolderList(const wxString& folder);
     
