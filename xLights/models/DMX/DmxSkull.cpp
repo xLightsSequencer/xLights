@@ -1164,3 +1164,24 @@ void DmxSkull::SetupSkulltronix() {
     SetNodeNames(",,,,,,,Power,Jaw,-Jaw Fine,Nod,-Nod Fine,Pan,-Pan Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,Tilt,-Tilt Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue", true);
     setup_skulltronix = false;
 }
+
+void DmxSkull::DisableUnusedProperties(wxPropertyGridInterface* grid)
+{
+    // disable string type properties.  Only Single Color White allowed.
+    wxPGProperty* p = grid->GetPropertyByName("ModelStringType");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelStringColor");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelDimmingCurves");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
+}

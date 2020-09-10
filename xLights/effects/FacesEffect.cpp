@@ -1244,7 +1244,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
                 if (it2 != cache->nodeNameCache.end()) {
                     int n = it2->second;
-                    buffer.SetNodePixel(n, colors[t]);
+                    buffer.SetNodePixel(n, colors[t], true);
                 }
             }
             else if (type == 1) {
@@ -1267,7 +1267,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 start--;
                 end--;
                 for (int n = start; n <= end; n++) {
-                    buffer.SetNodePixel(n, colors[t]);
+                    buffer.SetNodePixel(n, colors[t], true);
                 }
             }
         }

@@ -27,6 +27,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+        virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
         virtual bool HasColorAbility() override { return true; }
         bool Is16Bit() const { return _16bit; }
