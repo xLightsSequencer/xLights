@@ -220,7 +220,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     Discovery discovery(this, _outputManager);
     FPP::PrepareDiscovery(discovery, startAddresses);
     discovery.Discover();
-    FPP::MapToFPPInstances(discovery, instances);
+    FPP::MapToFPPInstances(discovery, instances, outputManager);
     instances.sort(sortByIP);
 
     wxString newForce = "";
@@ -336,7 +336,7 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 
         //FSEQ Type listbox
-        if (inst->IsVersionAtLeast(2, 6)) {
+        if (inst->isFPP && inst->IsVersionAtLeast(2, 6)) {
             wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
             wxFont font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -347,55 +347,63 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             Choice1->Append(_("V2 Sparse/Uncompressed"));
             Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
             FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+        } else if (!inst->isFPP) {
+            label = new wxStaticText(FPPInstanceList, wxID_ANY, "V2 Sparse/Uncompressed", wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATIC_TEXT_FS_" + rowStr));
+            FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         } else {
             label = new wxStaticText(FPPInstanceList, wxID_ANY, "V1", wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATIC_TEXT_FS_" + rowStr));
             FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
-        CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
-        CheckBox1->SetValue(inst->mode != "remote");
-        FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-        if (inst->IsVersionAtLeast(2, 6)) {
-            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MODELS_COL + rowStr);
-            CheckBox1->SetValue(false);
+        if (inst->isFPP) {
+            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
+            CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-        } else {
-            FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-        }
-        if (inst->IsVersionAtLeast(2, 0)) {
-            wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
-            wxFont font = Choice1->GetFont();
-            font.SetPointSize(font.GetPointSize() - 2);
-            Choice1->SetFont(font);
-
-            Choice1->Append(_("None"));
-            Choice1->Append(_("All"));
-            Choice1->Append(_("Proxied"));
-            Choice1->SetSelection(0);
-            FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-        } else {
-            FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-        }
-
-        //playlist combo box
-        if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
-            wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
-            std::list<std::string> playlists;
-            inst->LoadPlaylists(playlists);
-            ComboBox1->Append(_(""));
-            for (const auto& pl : playlists) {
-                ComboBox1->Append(pl);
+            if (inst->IsVersionAtLeast(2, 6)) {
+                CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MODELS_COL + rowStr);
+                CheckBox1->SetValue(false);
+                FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            } else {
+                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
-            wxFont font = ComboBox1->GetFont();
-            font.SetPointSize(font.GetPointSize() - 2);
-            ComboBox1->SetFont(font);
-            FPPInstanceSizer->Add(ComboBox1, 1, wxALL|wxEXPAND, 0);
+            if (inst->IsVersionAtLeast(2, 0)) {
+                wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
+                wxFont font = Choice1->GetFont();
+                font.SetPointSize(font.GetPointSize() - 2);
+                Choice1->SetFont(font);
+
+                Choice1->Append(_("None"));
+                Choice1->Append(_("All"));
+                Choice1->Append(_("Proxied"));
+                Choice1->SetSelection(0);
+                FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            } else {
+                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            }
+            //playlist combo box
+            if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
+                wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
+                std::list<std::string> playlists;
+                inst->LoadPlaylists(playlists);
+                ComboBox1->Append(_(""));
+                for (const auto& pl : playlists) {
+                    ComboBox1->Append(pl);
+                }
+                wxFont font = ComboBox1->GetFont();
+                font.SetPointSize(font.GetPointSize() - 2);
+                ComboBox1->SetFont(font);
+                FPPInstanceSizer->Add(ComboBox1, 1, wxALL|wxEXPAND, 0);
+            } else {
+                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            }
         } else {
+            FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
         std::string m = FPP::GetModel(inst->pixelControllerType);
-
         if (m != "") {
             std::string desc = m;
             if (inst->panelSize != "") {
@@ -711,30 +719,45 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         inst->parent = this;
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
-            std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
-            if (playlist != "") {
-                cancelled |= inst->UploadPlaylist(playlist);
-            }
-            if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
-                cancelled |= inst->UploadUDPOut(outputs);
-                inst->SetRestartFlag();
-            } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
-                cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
-                inst->SetRestartFlag();
-            }
-            if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                auto vendor = FPP::GetVendor(inst->pixelControllerType);
-                auto model = FPP::GetModel(inst->pixelControllerType);
-                //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
+            if (inst->isFPP) {
+                std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
+                if (playlist != "") {
+                    cancelled |= inst->UploadPlaylist(playlist);
+                }
+                if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
+                    cancelled |= inst->UploadUDPOut(outputs);
+                    inst->SetRestartFlag();
+                } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
+                    cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
+                    inst->SetRestartFlag();
+                }
+                if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
+                    auto vendor = FPP::GetVendor(inst->pixelControllerType);
+                    auto model = FPP::GetModel(inst->pixelControllerType);
+                    //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
+                    auto c = _outputManager->GetControllers(inst->ipAddress);
+                    if (c.size() == 1) {
+                        cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                    }
+                }
+                if (GetCheckValue(MODELS_COL + rowStr)) {
+                    cancelled |= inst->UploadModels(memoryMaps);
+                    cancelled |= inst->UploadDisplayMap(displayMap);
+                    inst->SetRestartFlag();
+                }
+            } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
                 auto c = _outputManager->GetControllers(inst->ipAddress);
                 if (c.size() == 1) {
-                    cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                    ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
+                    if (controller) {
+                        if (inst->ranges == "") {
+                            inst->ranges = std::to_string(controller->GetStartChannel()) + "-" + std::to_string(controller->GetStartChannel() + controller->GetChannels()-1);
+                        }
+                        BaseController *bc = BaseController::CreateBaseController(controller, inst->ipAddress);
+                        cancelled |= bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller, this);
+                        delete bc;
+                    }
                 }
-            }
-            if (GetCheckValue(MODELS_COL + rowStr)) {
-                cancelled |= inst->UploadModels(memoryMaps);
-                cancelled |= inst->UploadDisplayMap(displayMap);
-                inst->SetRestartFlag();
             }
         }
         row++;
@@ -758,7 +781,12 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                             m2 = "";
                         }
 
-                        int fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
+                        int fseqType = 0;
+                        if (inst->isFPP) {
+                            fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
+                        } else {
+                            fseqType = 3;
+                        }
                         cancelled |= inst->PrepareUploadSequence(*seq,
                                                                 fseq, m2,
                                                                 fseqType);
@@ -831,12 +859,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
-        if (!cancelled && doUpload[row]) {
-            std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
-            if (playlist != "") {
-                cancelled |= inst->UploadPlaylist(playlist);
+        if (inst->isFPP) {
+            if (!cancelled && doUpload[row]) {
+                std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
+                if (playlist != "") {
+                    cancelled |= inst->UploadPlaylist(playlist);
+                }
+                inst->Restart("", true);
             }
-            inst->Restart("", true);
         }
         row++;
     }
@@ -1146,7 +1176,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
             Discovery discovery(this, _outputManager);
             FPP::PrepareDiscovery(discovery, add, false);
             discovery.Discover();
-            FPP::MapToFPPInstances(discovery, instances);
+            FPP::MapToFPPInstances(discovery, instances, _outputManager);
             
             int cur = 0;
             for (const auto &fpp : instances) {

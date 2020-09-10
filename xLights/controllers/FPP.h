@@ -47,6 +47,10 @@ class FPP : public BaseController
     std::string username;
     std::string password;
     bool isFPP;
+    
+    std::string controllerVendor;
+    std::string controllerModel;
+    std::string controllerVariant;
 
     wxWindow *parent;
     wxProgressDialog *progressDialog = nullptr;
@@ -86,7 +90,7 @@ class FPP : public BaseController
     
     static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
-    static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances);
+    static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     
     
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);

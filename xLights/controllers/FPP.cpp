@@ -216,6 +216,9 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = "http://" + ipAddress + url;
+    if (!isFPP) {
+        fullUrl = "http://" + ipAddress + "/fpp?path=" +  url;
+    }
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     
@@ -263,6 +266,9 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = "http://" + ipAddress + url;
+    if (!isFPP) {
+        fullUrl = "http://" + ipAddress + "/fpp?path=" +  url;
+    }
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
@@ -605,6 +611,12 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = "http://" + ipAddress + "/jqupload.php";
+    bool usingJqUpload = true;
+    if (!isFPP) {
+        fullUrl = "http://" + ipAddress + "/fpp?path=uploadFile&filename=" + filename;
+        usingJqUpload = false;
+    }
+
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
@@ -615,36 +627,47 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
     struct curl_slist *chunk = nullptr;
     std::string ctMime = "Content-Type: multipart/form-data; boundary=" + bound;
-    chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+    if (!usingJqUpload) {
+        ctMime = "Content-Type: application/octet-stream";
+    } else {
+        chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+    }
     chunk = curl_slist_append(chunk, ctMime.c_str());
     chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    
     wxMemoryBuffer memBuffPost;
-    addString(memBuffPost, "\r\n--");
-    addString(memBuffPost, bound);
-    addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-    addString(memBuffPost, bound);
-    addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-    addString(memBuffPost, bound);
-    addString(memBuffPost, "--\r\n");
-    
-    std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
-    cd += fn.ToStdString();
-    cd += "\"\r\n";
     wxMemoryBuffer memBuffPre;
-    addString(memBuffPre, "--");
-    addString(memBuffPre, bound);
-    addString(memBuffPre, "\r\n");
-    addString(memBuffPre, cd);
-    addString(memBuffPre, ct);
-    addString(memBuffPre, "\r\n\r\n");
+    if (usingJqUpload) {
+        addString(memBuffPost, "\r\n--");
+        addString(memBuffPost, bound);
+        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(memBuffPost, bound);
+        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(memBuffPost, bound);
+        addString(memBuffPost, "--\r\n");
+        
+        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
+        cd += fn.ToStdString();
+        cd += "\"\r\n";
+        addString(memBuffPre, "--");
+        addString(memBuffPre, bound);
+        addString(memBuffPre, "\r\n");
+        addString(memBuffPre, cd);
+        addString(memBuffPre, ct);
+        addString(memBuffPre, "\r\n\r\n");
+    }
 
     FPPWriteData data;
     wxFile fileobj(fullFileName);
+    if (!usingJqUpload) {
+        std::string cl = "Content-Length: " + std::to_string(fileobj.Length());
+        chunk = curl_slist_append(chunk, cl.c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+    
     fileobj.Seek(0);
     data.data = (uint8_t*)memBuffPre.GetData();
     data.dataSize = memBuffPre.GetDataLen();
@@ -668,11 +691,13 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     if (i == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
-            std::string val;
-            if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
-                logger_base.warn("Error trying to rename file.");
-            } else {
-                logger_base.debug("Renaming done.");
+            if (usingJqUpload) {
+                std::string val;
+                if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
+                    logger_base.warn("Error trying to rename file.");
+                } else {
+                    logger_base.debug("Renaming done.");
+                }
             }
         } else {
             logger_base.warn("Did not get 200 resonse code:  %d", response_code);
@@ -2048,6 +2073,13 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
             inst->controller->SetProtocol(OUTPUT_DDP);
             dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         }
+        if (inst->majorVersion <= 3) {
+            inst->pixelControllerType = inst->platformModel;
+        } else if (inst->typeId == 0xC2) {
+            inst->pixelControllerType = "ESP8266";
+        } else if (inst->typeId == 0xC3) {
+            inst->pixelControllerType = "ESP32";
+        }
         SetControllerType(inst);
     } else if (inst->typeId >= 0x80 && inst->typeId <= 0xCF) {
         //falcon range
@@ -2174,9 +2206,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
                     }
                     return true;
                 });
-            } else if (found->typeId >= 0xC2) {
-                SetControllerType(found);
-            } else if (found->typeId <= 0xCF) {
+            } else if (found->typeId >= 0xD0) {
                 discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr](int rc, const std::string &buffer, const std::string &err) {
                     discovery.DetectControllerType(ipAddr, "", buffer);
                     return true;
@@ -2268,7 +2298,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     if (proxy != "") {
         inst->SetProxy(proxy);
     }
-    
     wxJSONValue val;
     wxJSONReader reader;
     bool parsed = reader.Parse(sysInfo, &val) == 0;
@@ -2303,8 +2332,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         if (val.HasMember("majorVersion")) {
             inst->majorVersion = val["majorVersion"].AsInt();
         }
-        
-        
+
         std::string file = "co-pixelStrings";
         if (inst->platform.find("Beagle") != std::string::npos) {
             file = "co-bbbStrings";
@@ -2349,7 +2377,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             fullAddress = baseUrl + "/api/proxies";
         }
     }
-
 }
 
 
@@ -2364,7 +2391,7 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             std::string hostname = (char *)&buffer[19];
             std::string ipStr = ip;
             DiscoveredData *inst = discovery.FindByIp(ip, hostname, false);
-  
+
             //int platform = buffer[9];
             //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
             if (!inst) {
@@ -2410,21 +2437,26 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             if (inst->majorVersion == 0) {
                 inst->majorVersion = buffer[11] + (buffer[10] << 8);
             }
+            switch (buffer[14]) {
+                case 1:
+                    inst->mode = "bridge";
+                    break;
+                case 2:
+                    inst->mode = "player";
+                    break;
+                case 4:
+                case 6:
+                    inst->mode = "master";
+                    break;
+                case 8:
+                    inst->mode = "remote";
+                    break;
+            }
             std::string rgn = (char*)&buffer[166];;
             if (rgn != "0-0" && inst->ranges.size() < rgn.size()) {
                 inst->ranges = rgn;
             }
             CreateController(discovery, inst);
-            if (inst->typeId >= 0xC2 && inst->typeId <= 0xC3) {
-                if (inst->majorVersion <= 3) {
-                    inst->pixelControllerType = inst->platformModel;
-                } else if (inst->typeId == 0xC2) {
-                    inst->pixelControllerType = "ESP8266";
-                } else if (inst->typeId == 0xC3) {
-                    inst->pixelControllerType = "ESP32";
-                }
-                SetControllerType(inst);
-            }
         }
     }
 }
@@ -2475,7 +2507,7 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     //we don't want anyone trying to contact us, so we'll set to 0
     buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
     strcpy((char *)&buffer[84], ver.c_str());
-    
+
     for (const auto &a : addresses) {
         discovery.AddCurl(a, "/fppjson.php?command=getFPPSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
@@ -2493,9 +2525,36 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     }
 }
 
-void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances) {
+bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
+    if (res->typeId == 0) {
+        return false;
+    }
+    if (res->typeId < 0x80)  {
+        // genuine FPP instance
+        return true;
+    }
+    if ((res->typeId >= 0xC2) && (res->typeId <= 0xC3)) {
+        if (res->ranges == "") {
+            auto c = outputManager->GetControllers(res->ip);
+            if (c.size() == 1) {
+                ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
+                if (controller) {
+                    res->ranges = std::to_string(controller->GetStartChannel()) + "-" + std::to_string(controller->GetStartChannel() + controller->GetChannels()-1);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        return res->majorVersion >= 4 && res->mode == "remote";
+    }
+    return false;
+}
+
+void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
     for (auto res : discovery.GetResults()) {
-        if (res->typeId && res->typeId < 0x80)  {
+        if (supportedForFPPConnect(res, outputManager))  {
             FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
             fpp->ipAddress = res->ip;
             fpp->hostName = res->hostname;
@@ -2511,6 +2570,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances) {
             fpp->panelSize = res->panelSize;
             fpp->username = res->username;
             fpp->password = res->password;
+            fpp->isFPP = res->typeId < 0x80;
+            fpp->controllerVendor = res->vendor;
+            fpp->controllerModel = res->model;
+            fpp->controllerVariant = res->variant;
+
             instances.push_back(fpp);
         }
     }
