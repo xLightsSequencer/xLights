@@ -247,3 +247,4 @@ uint64_t GetPhysicalMemorySizeMB();
 
 bool IsxLights();
 std::string ReverseCSV(const std::string& csv);
+void DumpBinary(uint8_t* buffer, size_t read);

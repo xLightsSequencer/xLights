@@ -118,6 +118,7 @@ void ListenerOSC::Poll()
         //wxStopWatch sw;
         //logger_base.debug("Trying to read OSC packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
+        auto read = _socket->GetLastIOReadSize();
 
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
@@ -153,6 +154,7 @@ void ListenerOSC::Poll()
             else
             {
                 logger_base.debug("Invalid OSC Packet.");
+                DumpBinary(buffer, read);
             }
         }
     }

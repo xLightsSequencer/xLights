@@ -1353,6 +1353,27 @@ std::string ReverseCSV(const std::string& csv)
     return res;
 }
 
+void DumpBinary(uint8_t* buffer, size_t sz)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    for (size_t i = 0; i < (sz + 15) / 16; i++)         {
+        std::string out;
+        for (int j = i * 16; j < std::min(sz, (i + 1) * 16); j++)             {
+            out += wxString::Format("%02x ", buffer[j]);
+        }
+        out += "    ";
+        for (int j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
+            if (buffer[j] < 32 || buffer[j] > 127)                 {
+                out += '.';
+            }
+            else {
+                out += char(buffer[j]);
+            }
+        }
+        logger_base.debug(out);
+    }
+}
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
