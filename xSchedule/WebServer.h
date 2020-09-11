@@ -17,11 +17,14 @@ class WebServer : HttpServer
 
 public:
 
-        WebServer(int port, bool apionly = false, const wxString& password = "", int mins = 30);
+        WebServer(int port, bool apionly = false, const wxString& password = "", int mins = 30, bool allowUnauthPages = false, const std::string& defaultPage = "index.html");
         virtual ~WebServer();
         void SetAPIOnly(bool apiOnly);
         void SetPasswordTimeout(int mins);
         void SetPassword(const wxString& password);
+        void GeneratePass();
         void SendMessageToAllWebSockets(const wxString& message);
         bool IsSomeoneListening() const;
+        void SetAllowUnauthenticatedPagesToBypassLogin(bool allowUnauthPages);
+        void SetDefaultPage(const std::string& defaultPage);
 };

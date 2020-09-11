@@ -3,8 +3,7 @@
 	<object class="wxDialog" name="OptionsDialog">
 		<title>Options</title>
 		<centered>1</centered>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -224,7 +223,24 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_wwwRoot" member="yes">
 							<value>xScheduleWeb</value>
+							<help>Folder containing the xSchedule website</help>
 							<handler function="OnTextCtrl_wwwRootText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText13" member="yes">
+							<label>Default Page:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_DefaultPage" member="yes">
+							<value>index.html</value>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -236,8 +252,23 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_APIOnly" member="yes">
-							<label>API Only</label>
+						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_APIOnly" member="yes">
+									<label>API Only</label>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX13" variable="CheckBox_AlllowPageBypass" member="yes">
+									<label>Allow guest page bypass of login.</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -252,7 +283,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Password" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Password" member="yes">
+							<help>Website password.</help>
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

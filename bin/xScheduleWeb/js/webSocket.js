@@ -8,6 +8,14 @@ socket.addEventListener('open', function(event) {
 
 socket.addEventListener('message', function(event) {
   var response = JSON.parse(event.data);
+
+  if (response.result == 'not logged in') {
+    window.location.href = "login.html";
+  }
+  if (response.result == 'failed' && response.message == 'Login failed.') {
+    window.location.href = "login.html";
+  }
+
   if (response.score == undefined && response.highscore == undefined) {
     if (response.status != undefined) {
       playingStatus = response;
@@ -29,12 +37,6 @@ socket.addEventListener('message', function(event) {
     } else {
       notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
     }
-  }
-  if (response.result == 'not logged in') {
-    window.location.href = "login.html";
-  }
-  if (response.result == 'failed' && response.message == 'Login failed.') {
-    window.location.href = "login.html";
   }
 });
 

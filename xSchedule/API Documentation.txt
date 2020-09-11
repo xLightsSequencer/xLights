@@ -395,3 +395,18 @@ http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 http://<host:port>/<wwwroot>/<file>
 
 	This type of request is a simple web request which will download the specified file from the web folder the user has specified in options. images, html, css, javascript files can all be stored here.
+
+APIs can also be called over web sockets by sending messages of the form
+
+{"Type":"Command","Command":"","Parameters":"","Data":"","Reference":"","Pass":""}
+{"Type":"Query","Query":"","Parameters":"","Reference":"","Pass":""}
+{"Type":"Stash","Command":"","Key":"","Data":"","Reference":"","Pass":""}
+{"Type":"Login","Credential":"","Reference":""}
+{"Type":"<pluginname>","Command":"","Parameters":"","Data":"","Reference":"","Pass":""}
+
+Pass should be blank unless the page is designed to be used by Joe Public when you have password protection on. For pages you want Joe Public to be able to acces you should have
+javascript like the following in your html or js file:
+
+var pass="!PASS!";
+
+then when you call a websocket API include the pass variable. When the page is sent to the client the !PASS! will be replaced by a value which the client must send for the API to work. This value is valid until the server is restarted.

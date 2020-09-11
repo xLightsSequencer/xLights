@@ -73,6 +73,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _inputAudioDevice = node->GetAttribute("InputAudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
+    _defaultPage = node->GetAttribute("DefaultPage", "index.html");
+    _allowUnauth = node->GetAttribute("AllowUnauth", "FALSE") == "TRUE";
     _city = node->GetAttribute("City", "Sydney");
     if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
@@ -250,6 +252,7 @@ ScheduleOptions::ScheduleOptions()
     _oscOptions = new OSCOptions();
     _testOptions = new TestOptions();
     _password = "";
+    _allowUnauth = false;
     _city = "Sydney";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
@@ -312,6 +315,8 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("MIDITimecodeFormat", wxString::Format("%d", _MIDITimecodeFormat));
     res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
+    res->AddAttribute("DefaultPage", _defaultPage);
+    res->AddAttribute("AllowUnauth", _allowUnauth ? _("TRUE") : _("FALSE"));
     res->AddAttribute("City", _city);
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));

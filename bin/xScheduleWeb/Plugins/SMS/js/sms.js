@@ -83,31 +83,35 @@ function AllowMessage(message, allow, id)
 function populateSMS(response){
   //console.log(response);
   $("#smstable tr.smsrow").remove();
-  for (var i = 0; i < response.messages.length; i++) {
-	var disp = "";
-	if (response.messages[i].displayed == "true")
-	{
-		disp = "background-color: #FFFF80;";
-	}
-    var tr = "<tr class='smsrow' style='border-bottom: 1px solid black;"+disp+"'>'" +
-	         "<td style='width: 18%; padding-top: 1em; padding-bottom: 1em;'>" + response.messages[i].timestamp + "</td>" +
-		     "<td style='width: 25%;'>" + response.messages[i].status + "</td>";
-	if (response.messages[i].moderatedok != "disabled")
-	{
-		if (response.messages[i].moderatedok == "true")
+  
+  if (response.messages != undefined)
+  {
+	  for (var i = 0; i < response.messages.length; i++) {
+		var disp = "";
+		if (response.messages[i].displayed == "true")
 		{
-			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-red" onclick="AllowMessage(\''+response.messages[i].id+'\', false, '+i+')">Suppress</button></td>';
+			disp = "background-color: #FFFF80;";
 		}
-		else
+		var tr = "<tr class='smsrow' style='border-bottom: 1px solid black;"+disp+"'>'" +
+				 "<td style='width: 18%; padding-top: 1em; padding-bottom: 1em;'>" + response.messages[i].timestamp + "</td>" +
+				 "<td style='width: 25%;'>" + response.messages[i].status + "</td>";
+		if (response.messages[i].moderatedok != "disabled")
 		{
-			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-green" onclick="AllowMessage(\''+response.messages[i].id+'\', true, '+i+')">Allow</button></td>';
+			if (response.messages[i].moderatedok == "true")
+			{
+				tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-red" onclick="AllowMessage(\''+response.messages[i].id+'\', false, '+i+')">Suppress</button></td>';
+			}
+			else
+			{
+				tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-green" onclick="AllowMessage(\''+response.messages[i].id+'\', true, '+i+')">Allow</button></td>';
+			}
 		}
-	}
-	tr += "<td>" + response.messages[i].message + "</td>"  
+		tr += "<td>" + response.messages[i].message + "</td>"  
 
-	tr += "</tr style='width: 37%;'>";
-	//console.log(tr);
-    $('#smstable').append(tr);
+		tr += "</tr style='width: 37%;'>";
+		//console.log(tr);
+		$('#smstable').append(tr);
+	  }
   }
 }
 

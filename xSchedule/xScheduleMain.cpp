@@ -962,7 +962,9 @@ void xScheduleFrame::LoadSchedule()
         delete _webServer;
         _webServer = nullptr;
     }
-    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(), __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
+    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(), 
+                               __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout(), 
+                               __schedule->GetOptions()->GetAllowUnauth(), __schedule->GetOptions()->GetDefaultPage());
 
     if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
     {
@@ -1738,12 +1740,14 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
                 delete _webServer;
             }
             _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
-                __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
+                __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout(), __schedule->GetOptions()->GetAllowUnauth(), __schedule->GetOptions()->GetDefaultPage());
         }
         else {
             _webServer->SetAPIOnly(__schedule->GetOptions()->GetAPIOnly());
             _webServer->SetPassword(__schedule->GetOptions()->GetPassword());
             _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
+            _webServer->SetAllowUnauthenticatedPagesToBypassLogin(__schedule->GetOptions()->GetAllowUnauth());
+            _webServer->SetDefaultPage(__schedule->GetOptions()->GetDefaultPage());
         }
 
         Schedule::SetCity(__schedule->GetOptions()->GetCity());

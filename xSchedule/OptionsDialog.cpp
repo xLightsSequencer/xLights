@@ -51,7 +51,10 @@ const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL1 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT13 = wxNewId();
+const long OptionsDialog::ID_TEXTCTRL3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX1 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX13 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT5 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
@@ -85,6 +88,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     _dragging = false;
 
 	//(*Initialize(OptionsDialog)
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -93,9 +97,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 
-	Create(parent, id, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -163,14 +165,25 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Web Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer8->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_wwwRoot = new wxTextCtrl(this, ID_TEXTCTRL1, _("xScheduleWeb"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl_wwwRoot->SetHelpText(_("Folder containing the xSchedule website"));
 	FlexGridSizer8->Add(TextCtrl_wwwRoot, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText13 = new wxStaticText(this, ID_STATICTEXT13, _("Default Page:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
+	FlexGridSizer8->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_DefaultPage = new wxTextCtrl(this, ID_TEXTCTRL3, _("index.html"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+	FlexGridSizer8->Add(TextCtrl_DefaultPage, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	CheckBox_APIOnly = new wxCheckBox(this, ID_CHECKBOX1, _("API Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_APIOnly->SetValue(false);
-	FlexGridSizer8->Add(CheckBox_APIOnly, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1->Add(CheckBox_APIOnly, 1, wxALL|wxEXPAND, 5);
+	CheckBox_AlllowPageBypass = new wxCheckBox(this, ID_CHECKBOX13, _("Allow guest page bypass of login."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX13"));
+	CheckBox_AlllowPageBypass->SetValue(false);
+	BoxSizer1->Add(CheckBox_AlllowPageBypass, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Password:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer8->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Password = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	TextCtrl_Password->SetHelpText(_("Website password."));
 	FlexGridSizer8->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Timeout (minutes):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer8->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -289,6 +302,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     TextCtrl_wwwRoot->SetValue(options->GetWWWRoot());
     StaticText4->SetToolTip("Root Directory: " + options->GetDefaultRoot());
     TextCtrl_Password->SetValue(options->GetPassword());
+    TextCtrl_DefaultPage->SetValue(options->GetDefaultPage());
+    CheckBox_AlllowPageBypass->SetValue(options->GetAllowUnauth());
     Choice_Location->SetStringSelection(options->GetCity());
     Choice_AudioDevice->SetStringSelection(options->GetAudioDevice());
     if (Choice_AudioDevice->GetSelection() == -1)
@@ -375,6 +390,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
     _options->SetAPIOnly(CheckBox_APIOnly->GetValue());
     _options->SetPassword(TextCtrl_Password->GetValue().ToStdString());
+    _options->SetDefaultPage(TextCtrl_DefaultPage->GetValue().ToStdString());
+    _options->SetAllowUnauth(CheckBox_AlllowPageBypass->GetValue());
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
     _options->SetArtNetTimeCodeFormat(static_cast<TIMECODEFORMAT>(Choice_ARTNetTimeCodeFormat->GetSelection()));

@@ -176,6 +176,8 @@ class ScheduleOptions
     int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
+    std::string _defaultPage;
+    bool _allowUnauth = false;
     std::string _crashBehaviour;
     int _passwordTimeout = 0;
     std::vector<UserButton*> _buttons;
@@ -275,6 +277,8 @@ class ScheduleOptions
         int GetRemoteLatency() const { return _remoteLatency; }
         int GetRemoteAcceptableJitter() const { return _remoteAcceptableJitter; }
         std::string GetPassword() const { return _password; }
+        std::string GetDefaultPage() const { return _defaultPage; }
+        bool GetAllowUnauth() const { return _allowUnauth; }
         std::string GetCity() const { return _city; }
         int GetPasswordTimeout() const { return _passwordTimeout; }
         void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
@@ -282,6 +286,8 @@ class ScheduleOptions
         void SetRemoteAcceptableJitter(int remoteAcceptableJitter) { if (remoteAcceptableJitter != _remoteAcceptableJitter) { _remoteAcceptableJitter = remoteAcceptableJitter; _changeCount++; } }
         void SetPasswordTimeout(int passwordTimeout) { if (_passwordTimeout != passwordTimeout) { _passwordTimeout = passwordTimeout; _changeCount++; } }
         void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
+        void SetDefaultPage(const std::string& defaultPage) { if (_defaultPage != defaultPage) { _defaultPage = defaultPage; _changeCount++; } }
+        void SetAllowUnauth(bool allowUnauth) { if (_allowUnauth != allowUnauth) { _allowUnauth = allowUnauth; _changeCount++; } }
         void SetCity(const std::string& city) { if (_city != city) { _city = city; _changeCount++; } }
         OSCOptions* GetOSCOptions() const { return _oscOptions; }
         TestOptions* GetTestOptions() const { return _testOptions; }

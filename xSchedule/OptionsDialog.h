@@ -11,16 +11,16 @@
  **************************************************************/
 
  //(*Headers(OptionsDialog)
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/dialog.h>
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/dialog.h>
+ #include <wx/listctrl.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class ScheduleOptions;
 class CommandManager;
@@ -52,6 +52,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
+		wxCheckBox* CheckBox_AlllowPageBypass;
 		wxCheckBox* CheckBox_HWAcceleratedVideo;
 		wxCheckBox* CheckBox_KeepScreenOn;
 		wxCheckBox* CheckBox_LastStartingSequenceUsesTime;
@@ -76,6 +77,7 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -85,6 +87,7 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_DefaultPage;
 		wxTextCtrl* TextCtrl_Password;
 		wxTextCtrl* TextCtrl_wwwRoot;
 		//*)
@@ -114,7 +117,10 @@ class OptionsDialog: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT13;
+		static const long ID_TEXTCTRL3;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX13;
 		static const long ID_STATICTEXT5;
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT6;
@@ -152,6 +158,7 @@ class OptionsDialog: public wxDialog
 		void OnListView_ButtonsKeyDown(wxListEvent& event);
 		void OnButton_ImportClick(wxCommandEvent& event);
 		void OnButton_ExportClick(wxCommandEvent& event);
+		void OnCheckBox1Click(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

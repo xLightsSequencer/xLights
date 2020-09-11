@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guest Buttons</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="img/favcon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="img/favcon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="img/favcon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="img/favcon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="img/favcon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="img/favcon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="img/favcon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="img/favcon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favcon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="img/favcon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favcon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="img/favcon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favcon/favicon-16x16.png">
+    <link rel="manifest" href="img/favcon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="img/favcon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-slider.min.css" rel="stylesheet">
+    <link href="css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="js/assets/jquery.min.js"></script>
+    <script src="js/assets/bootstrap.min.js"></script>
+    <script src="js/assets/bootstrap-slider.min.js"></script>
+    <script src="js/assets/bootstrap-notify.min.js"></script>
+    <script src="js/assets/jquery.dataTables.min.js"></script>
+    <script src="js/assets/dataTables.bootstrap4.min.js"></script>
+    <script src="js/assets/reconnecting-websocket.min.js"></script>
+    <script src="js/toggleButtons.js"></script>
+
+<script>
+
+	// Button names must start with GB_ to be displayed on this page ... this allows you to have buttons on the admin UI that are not user accessible
+
+	// Pass is replaced by a valid value when the page is served - assuming you are allowing authenticated pages
+	var pass = "!PASS!";
+	url = 'ws://' + location.hostname + (location.port ? ':' + location.port : '');
+	const socket = new ReconnectingWebSocket(url);
+
+	socket.addEventListener('message', function(event) {
+		var response = JSON.parse(event.data);
+
+		if (response.result == 'not logged in') {
+			window.location.href = "login.html";
+		}
+		if (response.result == 'failed' && response.message == 'Login failed.') {
+			window.location.href = "login.html";
+		}
+
+		//Run Fuction if refrence is set
+		if (response.reference != "" && response.reference != undefined) {
+			var fun = response.reference;
+			var fn = window[fun];
+			if (typeof fn === "function") {
+				fn(response);
+			} else {
+			notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
+			}
+		}
+	});
+
+	$(document).ready(function() {
+		if (pass == "!" + "PASS" + "!") pass = "";
+		setTimeout(function(){
+			loadButtonsData();
+		},500);
+	})
+
+	function notification(message, color, priority) {
+		// priority   //
+		// "" = always //
+		// 1 = debug   //
+		//console.log(uiSettings.notificationLevel);
+		$.notify({
+			// options
+			message: message
+			}, {
+			// settings
+		  type: color
+		});
+	}
+
+	function loadButtonsData(){
+	  if (socket.readyState <= '1') {
+		socket.send('{"Type":"Query","Query":"GetButtons", "Reference":"populateButtons","Pass":"'+pass+'"}');
+	  }else{
+		setTimeout(function(){
+			loadButtonsData();
+		},500);
+	  }
+	}
+
+	function runCommand(name, param, reference) {
+
+		if (socket.readyState <= '1') {
+			if (param == undefined) {
+				if (reference == undefined) {
+					socket.send('{"Type":"Command","Command":"' + name + '","Pass":"'+pass+'"}');
+				} else {
+					socket.send('{"Type":"Command","Command":"' + name + '","Reference":"' + reference + '","Pass":"'+pass+'"}');
+				}
+			} else {
+				if (reference == undefined) {
+					socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '","Pass":"'+pass+'"}');
+				} else {
+					socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '", "Reference":"' + reference + '","Pass":"'+pass+'"}');
+				}
+			}
+		}
+		else {
+			console.log("Websocket not open!");
+		}
+	}
+
+	function populateButtons(response){
+	  console.log(response);
+	  for (var i = 0; i < response.buttons.length; i++) {
+
+		// only add buttons prefixed by GB_
+		if (response.buttons[i].label.startsWith("GB_"))
+		{
+			var l = response.buttons[i].label.substring(3);
+			if (response.buttons[i].color == "default"){
+			  var color = "btn-default";
+			}else if (response.buttons[i].color == "blue"){
+			  var color = "btn-primary";
+			}else if (response.buttons[i].color == "green"){
+			  var color = "btn-success";
+			}else if (response.buttons[i].color == "cyan"){
+			  var color = "btn-info";
+			}else if (response.buttons[i].color == "orange"){
+			  var color = "btn-warning";
+			}else if (response.buttons[i].color == "red"){
+			  var color = "btn-danger";
+			}
+
+			var button = `<button onclick="runCommand('PressButton', 'id:`+response.buttons[i].id+`', '')" class="btn `+color+` bigButtons"><wbr>`+l+`</wbr></button>`;
+			$('#buttonContainer').append(button);
+		}
+	  }
+	}
+
+	</script>
+  </head>
+  <body>
+	<div class="container">
+	  <div id='buttonContainer' class="bigbutton-container">
+	  </div>
+	</div>
+
+	<div class="modal fade" id="help" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			<h4 class="modal-title" id="myModalLabel">Help - Buttons</h4>
+		  </div>
+		  <div class="modal-body">
+			<p>Edit buttons displayed here under /Edit/Options/Buttons in GUI</p>
+		</div>
+	  </div>
+	  </div>
+	</div>
+  </body>
+ </html>
