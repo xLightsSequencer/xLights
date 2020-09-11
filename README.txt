@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.36 September 12 2020
    -- enh (keith)  Add a few timing track value curves
    -- enh (keith)  Add support for public xSchedule web pages while securing core web site
    -- enh (dkulp)  Add detection of ESPixelSticks with local FSEQs so FSEQs can be uploaded to them
