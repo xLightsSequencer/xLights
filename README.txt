@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add a few timing track value curves
+   -- enh (keith)  Add support for public xSchedule web pages while securing core web site
+   -- enh (dkulp)  Add detection of ESPixelSticks with local FSEQs so FSEQs can be uploaded to them
+   -- enh (dkulp)  Use sequence metadata and media files sizes to determine if they need to be sent to FPP
+   -- enh (dkulp)  Add sort to FPP connect
+   -- bug (dkulp)  Change when FPPD is rebooted to avoid some race conditions
+   -- bug (scott)  Add back singing face support to DMX Skulls
+   -- bug (keith)  Fix crash on layout due to no protocol options
+   -- bug (keith)  Fix a number of S5 effect imports
+   -- bug (keith)  Fix an issue with lyric track paste that prevented them being copied and pasted again
+   -- bug (keith)  Fix snowflake effect settings are disabled when they shouldnt be
+   -- bug (keith)  Fix some shape effect anomalies
 2020.35 September 7 2020
    -- enh (keith)  Add ability to remove word and phoneme layers from timing tracks
    -- enh (scott)  Add PB16v2 controller
