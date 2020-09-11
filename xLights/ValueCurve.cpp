@@ -18,10 +18,12 @@
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
+#include "sequencer/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
 
 AudioManager* ValueCurve::__audioManager = nullptr;
+SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
 float ValueCurve::SafeParameter(size_t p, float v)
 {
@@ -163,6 +165,18 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Timing Track Toggle") {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Timing Track Fade Fixed") {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Timing Track Fade Proportional") {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Music")
     {
         low = MINVOID;
@@ -235,6 +249,18 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
     }
     else if (type == "Ramp Up/Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Timing Track Toggle") {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Timing Track Fade Fixed") {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Timing Track Fade Proportional") {
         low = MINVOID;
         high = MAXVOID;
     }
@@ -388,6 +414,16 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
         low = -100;
         high = 100;
     }
+    else if (type == "Timing Track Toggle") {
+    }
+    else if (type == "Timing Track Fade Fixed") {
+        low = 1;
+        high = 1000;
+    }
+    else if (type == "Timing Track Fade Proportional") {
+        low = 1;
+        high = 100;
+    }
 }
 
 void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
@@ -447,6 +483,12 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
     else if (type == "Music Trigger Fade")
     {
+    }
+    else if (type == "Timing Track Toggle") {
+    }
+    else if (type == "Timing Track Fade Fixed") {
+    }
+    else if (type == "Timing Track Fade Proportional") {
     }
     else if (type == "Abs Sine")
     {
@@ -584,6 +626,12 @@ void ValueCurve::Flip()
     else if (_type == "Music") {}
     else if (_type == "Inverted Music") {}
     else if (_type == "Music Trigger Fade") {}
+    else if (_type == "Timing Track Toggle") {
+    }
+    else if (_type == "Timing Track Fade Fixed") {
+    }
+    else if (_type == "Timing Track Fade Proportional") {
+    }
     else if (_type == "Decaying Sine") {}
     else if (_type == "Abs Sine") {}
     else { wxASSERT(false); }
@@ -809,6 +857,12 @@ void ValueCurve::RenderType()
     else if (_type == "Music Trigger Fade")
     {
         // ???
+    }
+    else if (_type == "Timing Track Toggle") {
+    }
+    else if (_type == "Timing Track Fade Fixed") {
+    }
+    else if (_type == "Timing Track Fade Proportional") {
     }
     else if (_type == "Square")
     {
@@ -1175,7 +1229,7 @@ void ValueCurve::RenderType()
     _values.sort();
 }
 
-ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap, float divisor)
+ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap, float divisor, const std::string& timingTrack)
 {
     _type = type;
     _id = id;
@@ -1184,6 +1238,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _wrap = wrap;
     _realValues = true;
     _divisor = divisor;
+    _timingTrack = timingTrack;
     wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
     _timeOffset = 0;
     _parameter1 = SafeParameter(1, parameter1);
@@ -1205,6 +1260,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     {
         _max = max;
     }
+    _timingTrack = "";
     _parameter1 = 0;
     _parameter2 = 0;
     _parameter3 = 0;
@@ -1227,6 +1283,7 @@ ValueCurve::ValueCurve(const std::string& s)
     _min = MINVOIDF;
     _max = MAXVOIDF;
     _divisor = 1;
+    _timingTrack = "";
     SetDefault();
     Deserialise(s);
 }
@@ -1256,6 +1313,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _parameter4 = 0.0f;
         _timeOffset = 0;
         _wrap = false;
+        _timingTrack = "";
 
         float oldmin = _min;
         float oldmax = _max;
@@ -1353,6 +1411,9 @@ std::string ValueCurve::Serialise()
         }
         res += "Min=" + std::string(wxString::Format("%.2f", _min).c_str()) + "|";
         res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
+        if (_timingTrack != "")             {
+            res += "TT=" + _timingTrack + "|";
+        }
         if (_parameter1 != 0)
         {
             res += "P1=" + std::string(wxString::Format("%.2f", _parameter1).c_str()) + "|";
@@ -1503,6 +1564,9 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
     } else if (k == "Type") {
         _type = s;
     }
+    else if (k == "TT") {
+        _timingTrack = s;
+    }
     else if (k == "Min") {
         _min = std::strtof(s.c_str(), nullptr);
     } else if (k == "Max") {
@@ -1578,16 +1642,72 @@ float ValueCurve::ApplyGain(float value, int gain) const
     return v;
 }
 
+int ValueCurve::GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly)
+{
+    auto te = __sequenceElements->GetTimingElement(timingTrack);
+    if (te != nullptr) {
+        auto el = te->GetEffectLayer(0);
+        if (el != nullptr) {
+            if (startsOnly) {
+                auto e = el->GetEffectBeforeTime(time);
+                if (e != nullptr) {
+                    return e->GetStartTimeMS();
+                }
+            }
+            else {
+                auto e = el->GetEffectBeforeTime(time);
+                if (e != nullptr) {
+                    if (e->GetEndTimeMS() < time) {
+                        return e->GetEndTimeMS();
+                    }
+                    else {
+                        return e->GetStartTimeMS();
+                    }
+                }
+            }
+        }
+    }
+
+    return -1;
+}
+
+int ValueCurve::GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly)
+{
+    auto te = __sequenceElements->GetTimingElement(timingTrack);
+    if (te != nullptr) {
+        auto el = te->GetEffectLayer(0);
+        if (el != nullptr) {
+            if (startsOnly) {
+                auto e = el->GetEffectAfterTime(time);
+                if (e != nullptr) {
+                    return e->GetStartTimeMS();
+                }
+            }
+            else {
+                auto e = el->GetEffectAtTime(time);
+                if (e != nullptr) {
+                    return e->GetEndTimeMS();
+                }
+                else {
+                    auto e = el->GetEffectAfterTime(time);
+                    if (e != nullptr) {
+                        return e->GetStartTimeMS();
+                    }
+                }
+            }
+        }
+    }
+    return -1;
+}
+
 float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
 
     // If we are music trigger fade and we dont have values ... calculate them on the fly
-    if (_type == "Music Trigger Fade")
-    {
+    if (_type == "Music Trigger Fade") {
         // Just generate what we need on the fly
-        if (__audioManager != nullptr)
-        {
+        if (__audioManager != nullptr) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
             int step = (endMS - startMS) / VC_X_POINTS;
@@ -1597,27 +1717,22 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             long time = (float)startMS + offset * (endMS - startMS);
 
             float last = -1000.0;
-            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)); cur <= time + frameMS; cur += step)
-            {
+            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)); cur <= time + frameMS; cur += step) {
                 float x = (float)(cur - startMS) / (float)(endMS - startMS);
                 float f = 0.0;
                 auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", cur);
-                if (pf != nullptr)
-                {
+                if (pf != nullptr) {
                     f = *pf->begin();
                 }
 
                 float y = min;
-                if (f * 100.0 > GetParameter3())
-                {
+                if (f * 100.0 > GetParameter3()) {
                     y = min + 1.0 * (max - min);
                     last = x;
                 }
-                else
-                {
+                else {
                     float fadeFrames = (x - last) * (endMS - startMS) / frameMS;
-                    if (fadeFrames < GetParameter4())
-                    {
+                    if (fadeFrames < GetParameter4()) {
                         float fadeamt = 1.0 - fadeFrames / GetParameter4();
                         y = (min + 1.0 * (max - min)) * fadeamt;
                     }
@@ -1628,18 +1743,78 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
     }
 
-    if (_type == "Music" || _type == "Inverted Music")
-    {
-        if (__audioManager != nullptr)
-        {
+    if (_type == "Timing Track Toggle") {
+        float min = (GetParameter1() - _min) / (_max - _min);
+        float max = (GetParameter2() - _min) / (_max - _min);
+        bool up = false;
+        long time = (float)startMS + offset * (endMS - startMS);
+        int next = GetSubsequentTimingMark(_timingTrack, startMS - 1, true);
+        if (next != -1) {
+            while (next != -1 && next <= time) {
+                up = !up;
+                next = GetSubsequentTimingMark(_timingTrack, next + 1, false);
+            }
+        }
+
+        if (up) {
+            res = max;
+        }
+        else {
+            res = min;
+        }
+    }
+    else if (_type == "Timing Track Fade Fixed") {
+        float min = (GetParameter1() - _min) / (_max - _min);
+        float max = (GetParameter2() - _min) / (_max - _min);
+        long time = (float)startMS + offset * (endMS - startMS);
+        int prior = GetPriorTimingMark(_timingTrack, time + 1, true);
+        if (prior == -1) {
+            res = min;
+        }
+        else {
+            int frame = (time - prior) / __sequenceElements->GetFrameMS();
+            int fadeFrames = GetParameter3();
+            if (frame < fadeFrames) {
+                res = min + (max - min) * (((float)fadeFrames - (float)frame) / (float)fadeFrames);
+            }
+            else {
+                res = min;
+            }
+        }
+    }
+    else if (_type == "Timing Track Fade Proportional") {
+        float min = (GetParameter1() - _min) / (_max - _min);
+        float max = (GetParameter2() - _min) / (_max - _min);
+        long time = (float)startMS + offset * (endMS - startMS);
+        int prior = GetPriorTimingMark(_timingTrack, time + 1, true);
+        if (prior == -1) {
+            res = min;
+        }
+        else {
+            int next = GetSubsequentTimingMark(_timingTrack, time + 1, false);
+            if (next == 1) {
+                res = min;
+            }
+            else {
+                int frame = (time - prior) / __sequenceElements->GetFrameMS();
+                int fadeFrames = (((next - prior) / __sequenceElements->GetFrameMS()) * GetParameter3()) / 100;
+                if (frame < fadeFrames) {
+                    res = min + (max - min) * (((float)fadeFrames - (float)frame) / (float)fadeFrames);
+                }
+                else {
+                    res = min;
+                }
+            }
+        }
+    }
+    else if (_type == "Music" || _type == "Inverted Music") {
+        if (__audioManager != nullptr) {
             long time = (float)startMS + offset * (endMS - startMS);
             float f = 0.0;
             auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", time);
-            if (pf != nullptr)
-            {
+            if (pf != nullptr) {
                 f = ApplyGain(*pf->begin(), GetParameter3());
-                if (_type == "Inverted Music")
-                {
+                if (_type == "Inverted Music") {
                     f = 1.0 - f;
                 }
             }
@@ -1649,8 +1824,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             res = min + f * (max - min);
         }
     }
-    else
-    {
+    else {
         if (_values.size() < 2) return 1.0f;
         if (!_active) return 1.0f;
 
@@ -1664,44 +1838,35 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         auto it = _values.begin();
         ++it;
 
-        while (it != _values.end() && it->x < offset)
-        {
+        while (it != _values.end() && it->x < offset) {
             last = *it;
             ++it;
         }
 
-        if (it == _values.end())
-        {
+        if (it == _values.end()) {
             res = _values.back().y;
         }
-        else if (it->x == last.x)
-        {
+        else if (it->x == last.x) {
             // this should not be possible
             res = it->y;
         }
-        else
-        {
-            if (it->x == offset)
-            {
+        else {
+            if (it->x == offset) {
                 res = it->y;
             }
-            else if (it->IsWrapped())
-            {
+            else if (it->IsWrapped()) {
                 res = it->y;
             }
-            else
-            {
+            else {
                 res = last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
             }
         }
     }
 
-    if (res < 0.0f)
-    {
+    if (res < 0.0f) {
         res = 0.0f;
     }
-    if (res > 1.0f)
-    {
+    if (res > 1.0f) {
         res = 1.0f;
     }
 
@@ -1874,6 +2039,17 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
         float min = (GetParameter1() - _min) / (_max - _min) * height;
         float max = (GetParameter2() - _min) / (_max - _min) * height;
         dc.SetPen(*wxGREEN_PEN);
+        dc.DrawLine(0, height - min, width, height - min);
+        dc.SetPen(*wxRED_PEN);
+        dc.DrawLine(0, height - max, width, height - max);
+    }
+    else if (_type == "Timing Track Toggle" || _type == "Timing Track Fade Fixed" || _type == "Timing Track Fade Proportional") {
+        dc.DrawLine(width / 4, height / 4, width - width / 4, height / 4);
+        dc.DrawLine(width / 3, height - height / 4, width / 3, height / 4);
+        dc.DrawLine(width - width / 3, height - height / 4, width - width / 3, height / 4);
+        dc.SetPen(*wxGREEN_PEN);
+        float min = (GetParameter1() - _min) / (_max - _min) * height;
+        float max = (GetParameter2() - _min) / (_max - _min) * height;
         dc.DrawLine(0, height - min, width, height - min);
         dc.SetPen(*wxRED_PEN);
         dc.DrawLine(0, height - max, width, height - max);

@@ -95,7 +95,7 @@ class ValueCurveDialog: public wxDialog
 
     public:
 
-		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, SequenceElements* sequenceElements, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
         bool DidExport() const { return _exported; }
 
@@ -108,6 +108,7 @@ class ValueCurveDialog: public wxDialog
 		wxButton* Button_Reverse;
 		wxCheckBox* CheckBox_WrapValues;
 		wxChoice* Choice1;
+		wxChoice* Choice_TimingTrack;
 		wxFlexGridSizer* PresetSizer;
 		wxSlider* Slider_Parameter1;
 		wxSlider* Slider_Parameter2;
@@ -116,6 +117,7 @@ class ValueCurveDialog: public wxDialog
 		wxSlider* Slider_TimeOffset;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText_BottomValue;
 		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_P2;
@@ -154,6 +156,8 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT9;
+		static const long ID_CHOICE2;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
@@ -184,6 +188,7 @@ class ValueCurveDialog: public wxDialog
 		void OnSlider_TimeOffsetCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_TimeOffsetText(wxCommandEvent& event);
 		void OnButton_FlipClick(wxCommandEvent& event);
+		void OnChoice_TimingTrackSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -7,7 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
- 
+
 //(*InternalHeaders(ValueCurveDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -28,6 +28,7 @@
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
 #include "sequencer/MainSequencer.h"
+#include "sequencer/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
 
@@ -107,6 +108,8 @@ const long ValueCurveDialog::ID_BUTTON6 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT8 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER1 = wxNewId();
 const long ValueCurveDialog::ID_TEXTCTRL1 = wxNewId();
+const long ValueCurveDialog::ID_STATICTEXT9 = wxNewId();
+const long ValueCurveDialog::ID_CHOICE2 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON3 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON4 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON1 = wxNewId();
@@ -118,7 +121,7 @@ BEGIN_EVENT_TABLE(ValueCurveDialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
-ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, wxWindowID id, const wxPoint& pos, const wxSize& size)
+ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, SequenceElements* sequenceElements, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     _vc = vc;
     _slideridd = slideridd;
@@ -181,6 +184,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Music"));
     Choice1->Append(_("Inverted Music"));
     Choice1->Append(_("Music Trigger Fade"));
+    Choice1->Append(_("Timing Track Toggle"));
+    Choice1->Append(_("Timing Track Fade Fixed"));
+    Choice1->Append(_("Timing Track Fade Proportional"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -232,6 +238,11 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     TextCtrl_TimeOffset = new wxTextCtrl(this, ID_TEXTCTRL1, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     TextCtrl_TimeOffset->SetMaxLength(5);
     FlexGridSizer2->Add(TextCtrl_TimeOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText3 = new wxStaticText(this, ID_STATICTEXT9, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_TimingTrack = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+    FlexGridSizer2->Add(Choice_TimingTrack, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
@@ -269,6 +280,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_FlipClick);
     Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_TimeOffsetCmdSliderUpdated);
     Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_TimeOffsetText);
+    Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ValueCurveDialog::OnChoice_TimingTrackSelect);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonExportClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
@@ -288,6 +300,11 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     {
         start = eff->GetStartTimeMS();
         end = eff->GetEndTimeMS();
+    }
+
+    for (int i = 0; i < sequenceElements->GetNumberOfTimingElements(); i++)         {
+        auto te = sequenceElements->GetTimingElement(i);
+        Choice_TimingTrack->Append(te->GetName());
     }
 
     Element* timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
@@ -335,6 +352,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
 
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    Choice_TimingTrack->SetStringSelection(_vc->GetTimingTrack());
     Slider_TimeOffset->SetValue(_vc->GetTimeOffset());
     SetParameter(1, _vc->GetParameter1());
     SetParameter(2, _vc->GetParameter2());
@@ -517,6 +535,32 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter100(3, 50);
         SetParameter100(4, 10);
     }
+    else if (type == "Timing Track Toggle") {
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        if (Choice_TimingTrack->GetCount() > 0) {
+            Choice_TimingTrack->SetSelection(0);
+            _vc->SetTimingTrack(Choice_TimingTrack->GetStringSelection());
+        }
+    }
+    else if (type == "Timing Track Fade Fixed") {
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter(3, 10);
+        if (Choice_TimingTrack->GetCount() > 0) {
+            Choice_TimingTrack->SetSelection(0);
+            _vc->SetTimingTrack(Choice_TimingTrack->GetStringSelection());
+        }
+    }
+    else if (type == "Timing Track Fade Proportional") {
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter(3, 50);
+        if (Choice_TimingTrack->GetCount() > 0) {
+            Choice_TimingTrack->SetSelection(0);
+            _vc->SetTimingTrack(Choice_TimingTrack->GetStringSelection());
+        }
+    }
     else if (type == "Ramp Up/Down Hold")
     {
         SetParameter100(1, 0);
@@ -606,6 +650,8 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
             _vc->SetValueAt(1.0, 0.5);
         }
     }
+
+    ValidateWindow();
 }
 
 #pragma region Mouse Control
@@ -1115,8 +1161,7 @@ void ValueCurveDialog::ValidateWindow()
     if (max == MAXVOID) max = _vc->GetMax();
     if (Slider_Parameter4->GetMin() != min || Slider_Parameter4->GetMax() != max) Slider_Parameter4->SetRange(min, max);
 
-    if (type == "Custom")
-    {
+    if (type == "Custom") {
         Slider_Parameter1->Disable();
         TextCtrl_Parameter1->Disable();
         Slider_Parameter2->Disable();
@@ -1126,8 +1171,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Sine" || type == "Abs Sine" || type == "Decaying Sine" || type == "Music Trigger Fade")
-    {
+    else if (type == "Sine" || type == "Abs Sine" || type == "Decaying Sine" || type == "Music Trigger Fade") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
@@ -1137,8 +1181,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Enable();
         TextCtrl_Parameter4->Enable();
     }
-    else if (type == "Flat")
-    {
+    else if (type == "Flat") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Disable();
@@ -1148,8 +1191,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down")
-    {
+    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down" || type == "Timing Track Toggle") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
@@ -1159,8 +1201,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random" || type == "Music" || type == "Inverted Music")
-    {
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random" || type == "Music" || type == "Inverted Music" || type == "Timing Track Fade Fixed" || type == "Timing Track Fade Proportional") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
@@ -1170,8 +1211,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else
-    {
+    else {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
@@ -1182,8 +1222,7 @@ void ValueCurveDialog::ValidateWindow()
         TextCtrl_Parameter4->Enable();
     }
 
-    if (type == "Flat")
-    {
+    if (type == "Flat") {
         StaticText_P1->SetLabel("Level");
         StaticText_P2->SetLabel("N/A");
         StaticText_P3->SetLabel("N/A");
@@ -1192,8 +1231,7 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Ramp")
-    {
+    else if (type == "Ramp") {
         StaticText_P1->SetLabel("Start Level");
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("N/A");
@@ -1201,47 +1239,63 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Music" || type == "Inverted Music")
-    {
+    else if (type == "Timing Track Toggle") {
+        StaticText_P1->SetLabel("Low");
+        StaticText_P2->SetLabel("High");
+        StaticText_P3->SetLabel("N/A");
+        StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
+    }
+    else if (type == "Timing Track Fade Fixed") {
+        StaticText_P1->SetLabel("Low");
+        StaticText_P2->SetLabel("High");
+        StaticText_P3->SetLabel("Frames");
+        StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
+    }
+    else if (type == "Timing Track Fade Proportional") {
+        StaticText_P1->SetLabel("Low");
+        StaticText_P2->SetLabel("High");
+        StaticText_P3->SetLabel("Prportion");
+        StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
+    }
+    else if (type == "Music" || type == "Inverted Music") {
         StaticText_P1->SetLabel("Low");
         StaticText_P2->SetLabel("High");
         StaticText_P3->SetLabel("Gain");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     }
-    else if (type == "Music Trigger Fade")
-    {
+    else if (type == "Music Trigger Fade") {
         StaticText_P1->SetLabel("Low");
         StaticText_P2->SetLabel("High");
         StaticText_P3->SetLabel("Trigger");
         StaticText_P4->SetLabel("Fade");
     }
-    else if (type == "Ramp Up/Down")
-    {
+    else if (type == "Ramp Up/Down") {
         StaticText_P1->SetLabel("Start Level");
         StaticText_P2->SetLabel("Mid Level");
         StaticText_P3->SetLabel("End Level");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     }
-    else if (type == "Ramp Up/Down Hold")
-    {
+    else if (type == "Ramp Up/Down Hold") {
         StaticText_P1->SetLabel("Start/End Level");
         StaticText_P2->SetLabel("Mid Level");
         StaticText_P3->SetLabel("Mid Level Time");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     }
-    else if (type == "Saw Tooth")
-    {
+    else if (type == "Saw Tooth") {
         StaticText_P1->SetLabel("Start Level");
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     }
-    else if (type == "Parabolic Down")
-    {
+    else if (type == "Parabolic Down") {
         StaticText_P1->SetLabel("Slope");
         StaticText_P2->SetLabel("Low");
         StaticText_P3->SetLabel("N/A");
@@ -1249,8 +1303,7 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Parabolic Up")
-    {
+    else if (type == "Parabolic Up") {
         StaticText_P1->SetLabel("Slope");
         StaticText_P2->SetLabel("High");
         StaticText_P3->SetLabel("N/A");
@@ -1258,8 +1311,7 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Logarithmic Up")
-    {
+    else if (type == "Logarithmic Up") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
@@ -1267,8 +1319,7 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Logarithmic Down")
-    {
+    else if (type == "Logarithmic Down") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
@@ -1276,8 +1327,7 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Exponential Up" || type == "Exponential Down")
-    {
+    else if (type == "Exponential Up" || type == "Exponential Down") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
@@ -1285,44 +1335,38 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Sine")
-    {
+    else if (type == "Sine") {
         StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
     }
-    else if (type == "Decaying Sine")
-    {
+    else if (type == "Decaying Sine") {
         StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
     }
-    else if (type == "Random")
-    {
+    else if (type == "Random") {
         StaticText_P1->SetLabel("Minimum");
         StaticText_P2->SetLabel("Maximum");
         StaticText_P3->SetLabel("Points");
         StaticText_P4->SetLabel("N/A");
     }
-    else if (type == "Abs Sine")
-    {
+    else if (type == "Abs Sine") {
         StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
     }
-    else if (type == "Square")
-    {
+    else if (type == "Square") {
         StaticText_P1->SetLabel("Start Level");
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     }
-    else if (type == "Custom")
-    {
+    else if (type == "Custom") {
         StaticText_P1->SetLabel("N/A");
         StaticText_P2->SetLabel("N/A");
         StaticText_P3->SetLabel("N/A");
@@ -1346,12 +1390,13 @@ void ValueCurveDialog::ValidateWindow()
         type == "Music" ||
         type == "Inverted Music" ||
         type == "Music Trigger Fade" ||
-        type == "Exponential Down")
-    {
+        type == "Timing Track Toggle" ||
+        type == "Timing Track Fade Fixed" ||
+        type == "Timing Track Fade Proportional" ||
+        type == "Exponential Down") {
         Button_Reverse->Enable(false);
     }
-    else
-    {
+    else {
         Button_Reverse->Enable();
     }
     if (type == "Logarithmic Up" ||
@@ -1361,14 +1406,33 @@ void ValueCurveDialog::ValidateWindow()
         type == "Music" ||
         type == "Inverted Music" ||
         type == "Music Trigger Fade" ||
+        type == "Timing Track Toggle" ||
+        type == "Timing Track Fade Fixed" ||
+        type == "Timing Track Fade Proportional" ||
         type == "Decaying Sine"
-        )
-    {
+        ) {
         Button_Flip->Enable(false);
     }
-    else
-    {
+    else {
         Button_Flip->Enable();
+    }
+
+    if (type == "Timing Track Toggle" ||
+        type == "Timing Track Fade Fixed" ||
+        type == "Timing Track Fade Proportional") {
+        Choice_TimingTrack->Enable();
+
+        if (Choice_TimingTrack->GetStringSelection() == "") {
+            Button_Ok->Enable(false);
+        }
+        else {
+            Button_Ok->Enable();
+        }
+    }
+    else {
+        Button_Ok->Enable();
+        Choice_TimingTrack->Enable(false);
+        _vc->SetTimingTrack("");
     }
 }
 
@@ -1650,5 +1714,11 @@ void ValueCurveDialog::OnButton_FlipClick(wxCommandEvent& event)
     _vcp->SetType(_vc->GetType());
     _vcp->SetTimeOffset(_vc->GetTimeOffset());
     _vcp->ClearUndo();
+    ValidateWindow();
+}
+
+void ValueCurveDialog::OnChoice_TimingTrackSelect(wxCommandEvent& event)
+{
+    _vc->SetTimingTrack(Choice_TimingTrack->GetStringSelection());
     ValidateWindow();
 }

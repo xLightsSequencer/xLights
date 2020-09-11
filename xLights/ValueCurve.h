@@ -23,6 +23,7 @@
 
 class wxFileName;
 class AudioManager;
+class SequenceElements;
 
 class vcSortablePoint
 {
@@ -82,6 +83,7 @@ class ValueCurve
     std::list<vcSortablePoint> _values;
     std::string _type;
     std::string _id;
+    std::string _timingTrack;
     float _max;
     float _min;
     float _divisor;
@@ -94,6 +96,7 @@ class ValueCurve
     bool _wrap;
     bool _realValues;
     static AudioManager* __audioManager;
+    static SequenceElements* __sequenceElements;
 
     void RenderType();
     void SetSerialisedValue(const std::string &k, const std::string &s);
@@ -103,15 +106,19 @@ class ValueCurve
     float Normalise(int parm, float value);
     float Denormalise(int parm, float value) const;
     float ApplyGain(float value, int gain) const;
+    int GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly);
+    int GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly);
 
 public:
 
     static void SetAudio(AudioManager* am) { __audioManager = am; }
+    static void SetSequenceElements(SequenceElements* se) { __sequenceElements = se; }
+    static SequenceElements* GetSequenceElements() { return __sequenceElements; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
 
     ValueCurve() { _divisor = 1; _min = MINVOIDF; _max = MAXVOIDF; SetDefault(); }
     ValueCurve(const std::string& serialised);
-    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
+    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0, const std::string& timingTrack = "");
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
     wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     std::string Serialise();
@@ -145,6 +152,8 @@ public:
     void SetDivisor(float divisor) { _divisor = divisor; }
     bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
+    void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; }
+    std::string GetTimingTrack() const { return _timingTrack; }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }

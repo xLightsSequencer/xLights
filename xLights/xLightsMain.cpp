@@ -474,6 +474,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     xLightsApp::__frame = this;
 
+    ValueCurve::SetSequenceElements(&mSequenceElements);
+
     _exiting = false;
     SplashDialog splash(nullptr);
     splash.Show();

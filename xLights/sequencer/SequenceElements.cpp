@@ -1174,6 +1174,11 @@ double SequenceElements::GetFrequency()
     return mFrequency;
 }
 
+int SequenceElements::GetFrameMS()
+{
+	return GetMinPeriod();
+}
+
 int SequenceElements::GetMinPeriod()
 {
     return (int)((double)1000.0/(double)mFrequency);

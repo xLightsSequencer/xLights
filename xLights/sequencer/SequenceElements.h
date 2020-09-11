@@ -165,6 +165,7 @@ public:
     void DeactivateAllTimingElements();
     void SetFrequency(double frequency);
     double GetFrequency();
+    int GetFrameMS();
     int GetMinPeriod();
 
     int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);

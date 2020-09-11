@@ -294,7 +294,7 @@ void BulkEditSliderDialog::OnBitmapButton_VCClick(wxCommandEvent& event)
     vc->ToggleActive();
     if (vc->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd);
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd, ValueCurve::GetSequenceElements());
         OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() == wxOK)
         {

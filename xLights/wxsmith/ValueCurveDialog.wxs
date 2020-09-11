@@ -98,6 +98,9 @@
 								<item>Music</item>
 								<item>Inverted Music</item>
 								<item>Music Trigger Fade</item>
+								<item>Timing Track Toggle</item>
+								<item>Timing Track Fade Fixed</item>
+								<item>Timing Track Fade Proportional</item>
 								<item>Custom</item>
 							</content>
 							<selection>0</selection>
@@ -299,6 +302,27 @@
 							<size>25,-1d</size>
 							<handler function="OnTextCtrl_TimeOffsetText" entry="EVT_TEXT" />
 						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText3" member="yes">
+							<label>Timing Track</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE2" variable="Choice_TimingTrack" member="yes">
+							<handler function="OnChoice_TimingTrackSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

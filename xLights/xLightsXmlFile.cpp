@@ -71,6 +71,7 @@ xLightsXmlFile::~xLightsXmlFile()
 	if (audio != nullptr)
 	{
         ValueCurve::SetAudio(nullptr);
+        ValueCurve::SetSequenceElements(nullptr);
 		delete audio;
 		audio = nullptr;
 	}
