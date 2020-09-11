@@ -108,16 +108,17 @@ ServoPanel::~ServoPanel()
 
 void ServoPanel::ValidateWindow()
 {
-}
-
-PANEL_EVENT_HANDLERS(ServoPanel)
-
-void ServoPanel::OnCheckBox_Timing_TrackClick(wxCommandEvent& event)
-{
 	if (CheckBox_Timing_Track->IsChecked()) {
 		Choice_Servo_TimingTrack->Enable();
 	}
 	else {
 		Choice_Servo_TimingTrack->Disable();
 	}
+}
+
+PANEL_EVENT_HANDLERS(ServoPanel)
+
+void ServoPanel::OnCheckBox_Timing_TrackClick(wxCommandEvent& event)
+{
+	ValidateWindow();
 }

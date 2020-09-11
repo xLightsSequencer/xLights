@@ -123,6 +123,15 @@ StatePanel::~StatePanel()
 
 void StatePanel::ValidateWindow()
 {
+    if (RadioButton1->GetValue()) {
+        Choice_State_State->Enable();
+        Choice_State_TimingTrack->Disable();
+        Choice_State_Mode->Disable();
+    } else {
+        Choice_State_State->Disable();
+        Choice_State_TimingTrack->Enable();
+        Choice_State_Mode->Enable();
+    }
 }
 
 PANEL_EVENT_HANDLERS(StatePanel)
@@ -162,15 +171,7 @@ void StatePanel::SetEffect(StateEffect* effect, Model* model)
 
 void StatePanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
-    if (event.GetId() == IDD_RADIOBUTTON_State_State) {
-        Choice_State_State->Enable();
-        Choice_State_TimingTrack->Disable();
-        Choice_State_Mode->Disable();
-    } else {
-        Choice_State_State->Disable();
-        Choice_State_TimingTrack->Enable();
-        Choice_State_Mode->Enable();
-    }
+	ValidateWindow();
 }
 
 void StatePanel::OnState_StateDefinitonChoiceSelect(wxCommandEvent& event)

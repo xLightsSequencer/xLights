@@ -139,17 +139,21 @@ FacesPanel::~FacesPanel()
 
 void FacesPanel::ValidateWindow()
 {	
+	if (RadioButton1->GetValue())
+	{
+        Choice_Faces_Phoneme->Enable();
+        Choice_Faces_TimingTrack->Disable();
+	}
+	else
+	{
+        Choice_Faces_Phoneme->Disable();
+        Choice_Faces_TimingTrack->Enable();
+	}
 }
 
 PANEL_EVENT_HANDLERS(FacesPanel)
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
-    if (event.GetId() == IDD_RADIOBUTTON_Faces_Phoneme) {
-        Choice_Faces_Phoneme->Enable();
-        Choice_Faces_TimingTrack->Disable();
-    } else {
-        Choice_Faces_Phoneme->Disable();
-        Choice_Faces_TimingTrack->Enable();
-    }
+	ValidateWindow();
 }

@@ -275,23 +275,24 @@ void MeteorsPanel::ValidateWindow()
     {
         Slider_Meteors_XOffset->Enable();
         Slider_Meteors_YOffset->Enable();
-        BitmapButton_Meteors_XOffsetVC->Enable();
-        BitmapButton_Meteors_YOffsetVC->Enable();
         TextCtrl_Meteors_XOffset->Enable();
         TextCtrl_Meteors_YOffset->Enable();
         CheckBox_FadeWithDistance->Enable();
+        BitmapButton_Meteors_XOffsetVC->Enable();
+        BitmapButton_Meteors_YOffsetVC->Enable();
     }
     else
     {
         Slider_Meteors_XOffset->Disable();
         Slider_Meteors_YOffset->Disable();
-        BitmapButton_Meteors_XOffsetVC->Disable();
-        BitmapButton_Meteors_YOffsetVC->Disable();
         TextCtrl_Meteors_XOffset->Disable();
         TextCtrl_Meteors_YOffset->Disable();
         CheckBox_FadeWithDistance->Disable();
+        BitmapButton_Meteors_XOffsetVC->Disable();
+        BitmapButton_Meteors_YOffsetVC->Disable();
     }
 }
+
 void MeteorsPanel::OnChoice_Meteors_EffectSelect(wxCommandEvent& event)
 {
     ValidateWindow();
