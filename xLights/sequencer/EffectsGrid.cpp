@@ -4612,7 +4612,7 @@ bool EffectsGrid::PapagayoEffectsSelected() const
     for(int i = 0; i<mSequenceElements->GetVisibleRowInformationSize(); i++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
-        if( el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING )
+        if( el && el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING )
         {
             if( el->GetParentElement()->GetEffectLayerCount() > 1 )
             {
@@ -4643,7 +4643,7 @@ std::set<EffectLayer *> EffectsGrid::GetLayersWithSelectedEffects() const {
     std::set<EffectLayer *> layers;
     for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
-        if (el->GetSelectedEffectCount() > 0) {
+        if (el && (el->GetSelectedEffectCount() > 0)) {
             layers.insert(el);
         }
     }
