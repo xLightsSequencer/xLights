@@ -613,7 +613,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     std::string fullUrl = "http://" + ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
     if (!isFPP) {
-        fullUrl = "http://" + ipAddress + "/fpp?path=uploadFile&filename=" + filename;
+        fullUrl = "http://" + ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         usingJqUpload = false;
     }
 
@@ -797,7 +797,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         
         bool doMediaUpload = true;
         wxJSONValue currentMeta;
-        if (GetURLAsJSON("/api/media/" + mediaBaseName + "/meta", currentMeta)) {
+        if (GetURLAsJSON("/api/media/" + URLEncode(mediaBaseName) + "/meta", currentMeta)) {
             if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
                 (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
                 doMediaUpload = false;
@@ -841,7 +841,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
     if (!IsDrive()) {
         wxJSONValue currentMeta;
-        if (GetURLAsJSON("/api/sequence/" + baseName + "/meta", currentMeta)) {
+        if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta)) {
             doSeqUpload = false;
             char buf[24];
             sprintf(buf, "%" PRIu64, file.getUniqueId());
