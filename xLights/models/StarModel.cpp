@@ -28,6 +28,7 @@ StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBase
 {
     // convert old star sizes to new Layer sizes setting
     if (node->GetAttribute("starSizes", "") != "") {
+        node->DeleteAttribute("LayerSizes");
         node->AddAttribute("LayerSizes", node->GetAttribute("starSizes", ""));
         node->DeleteAttribute("starSizes");
     }

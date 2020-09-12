@@ -26,6 +26,7 @@ CircleModel::CircleModel(wxXmlNode* node, const ModelManager& manager, bool zero
 {
     // convert old circle sizes to new Layer sizes setting - this also reverses the order
     if (node->GetAttribute("circleSizes", "") != "") {
+        node->DeleteAttribute("LayerSizes");
         node->AddAttribute("LayerSizes", ReverseCSV(node->GetAttribute("circleSizes", "")));
         node->DeleteAttribute("circleSizes");
     }
