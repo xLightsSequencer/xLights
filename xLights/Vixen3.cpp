@@ -159,18 +159,19 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     if (system == "" || !wxFile::Exists(_systemFile))
     {
         wxFileName seq(_filename);
-        _systemFile = seq.GetPath() + "/SystemConfig.xml";
+        _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemConfig.xml";
         logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
 
         if (!wxFile::Exists(_systemFile))
         {
-            _systemFile = seq.GetPath() + "/SystemData/SystemConfig.xml";
+            _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
             logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
         if (!wxFile::Exists(_systemFile))
         {
-            _systemFile = seq.GetPath() + "/../SystemData/SystemConfig.xml";
+            int lastFolder = seq.GetPath().Last(wxFileName::GetPathSeparator());
+            _systemFile = seq.GetPath().Left(lastFolder) + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
             logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
