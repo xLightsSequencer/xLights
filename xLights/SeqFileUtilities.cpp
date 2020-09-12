@@ -210,6 +210,9 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    ClearNonExistentFiles();
+
     bool loaded_fseq = false;
     wxString filename;
     wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";

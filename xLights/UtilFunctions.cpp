@@ -282,6 +282,13 @@ void SetFixFileShowDir(const wxString& ShowDir) {
     RememberShowDir = ShowDir;
 }
 
+static std::vector<wxString> __nonExistentFiles;
+static std::map<wxString, wxString> __fileMap;
+
+void ClearNonExistentFiles()
+{
+    __nonExistentFiles.clear();
+}
 
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
@@ -294,6 +301,17 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (wxFileExists(file)) {
         return file;
     }
+
+    // Lookup previous mappings as this is faster
+    if (__fileMap.find(file) != __fileMap.end()) {
+        return __fileMap[file];
+    }
+
+    if (std::find(__nonExistentFiles.begin(), __nonExistentFiles.end(), file) != __nonExistentFiles.end()) {
+        // we have looked before and this file does not exist ... so dont look again
+        return file;
+    }
+
     logger_base.debug("File not found ... attempting to fix location : " + file);
 
     wxString sd;
@@ -321,11 +339,13 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     wxString newPath;
     if (doesFileExist(sd, nameWin, nameUnix, newPath)) {
         // file exists in the new show dir
+        __fileMap[file] = newPath;
         return newPath;
     }
     for (auto &fd : SearchDirectories) {
         if (doesFileExist(fd, nameWin, nameUnix, newPath)) {
             // file exists in one of the resource directories
+            __fileMap[file] = newPath;
             return newPath;
         }
     }
@@ -342,6 +362,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
     if (fname == "") {
         // no subdirectory
+        __nonExistentFiles.push_back(file);
         return file;
     }
 
@@ -372,6 +393,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
     if (doesFileExist(sd, appendWin, appendUnx, nameWin, nameUnix, newPath)) {
         // file exists
+        __fileMap[file] = newPath;
         return newPath;
     }
 
@@ -380,6 +402,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         wxString relative = file.SubString(offset, file.Length());
         wxFileName sdFn =  wxFileName::DirName(sd);
         if (wxFileExists(relative)) {
+            __fileMap[file] = relative;
             return relative;
         }
     }
@@ -390,6 +413,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         appendWin = wxFileName::GetPathSeparator() + fnWin.GetDirs()[x] + appendWin;
         if (doesFileExist(sd, appendWin, nameWin, nameUnix, newPath)) {
             // file exists
+            __fileMap[file] = newPath;
             return newPath;
         }
     }
@@ -398,6 +422,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         appendUnx = wxFileName::GetPathSeparator() + fnUnix.GetDirs()[x] + appendUnx;
         if (doesFileExist(sd, appendUnx, nameWin, nameUnix, newPath)) {
             // file exists
+            __fileMap[file] = newPath;
             return newPath;
         }
     }
@@ -409,6 +434,8 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
     }
     logger_base.debug("   could not find a fixed file location for : " + file);
+    logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
+    __nonExistentFiles.push_back(file);
    	return file;
 }
 
