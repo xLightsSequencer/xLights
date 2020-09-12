@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.37 September 13 2020
+   -- enh (keith)  Add a handle status function to guestbuttons to make it easier to customise based on xSchedule status
+   -- bug (keith)  Fix occasional crashes when cloning groups and creating them
+   -- bug (keith)  Fix error pasting phonemes where selected effect name is pasted
+   -- bug (keith)  Optimise fix files to minimise slow file system operations which we have already tried
+   -- bug (dkulp)  Fix board IDs for F40D-PB
+   -- bug (scott)  Maybe fix vixen imports on OSX
 2020.36 September 12 2020
    -- enh (keith)  Add a few timing track value curves
    -- enh (keith)  Add support for public xSchedule web pages while securing core web site
