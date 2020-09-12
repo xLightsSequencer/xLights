@@ -118,8 +118,8 @@ wxXmlNode* LayoutGroup::GetLayoutGroupXml() const {
 void LayoutGroup::SetModels(std::vector<Model*> &models)
 {
     previewModels.clear();
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        previewModels.push_back(*it);
+    for (const auto& it : models) {
+        previewModels.push_back(it);
     }
 }
 

@@ -304,30 +304,29 @@ const std::vector<Model*> &ModelPreview::GetModels() {
                 tmpModelList = xlights->PreviewModels;
             }
         }
+
+        // Only in debug builds but this really should all be valid or bad things will happen
+        wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
     }
     if (additionalModel != nullptr) {
         tmpModelList.push_back(additionalModel);
     }
+
     return tmpModelList;
 }
 
-// Checks that all models in the preview are valid
-bool ModelPreview::ValidateModels(const ModelManager& mm)
+bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelManager& mm)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    for (const auto& it : GetModels())
-    {
+    for (const auto& it : models) {
         bool found = false;
-        for (auto it2 : mm)
-        {
-            if (it2.second == it)
-            {
+        for (auto it2 : mm) {
+            if (it2.second == it) {
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             // pointer to a non-existent model found ... not good
             wxASSERT(false);
             logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
@@ -335,6 +334,12 @@ bool ModelPreview::ValidateModels(const ModelManager& mm)
         }
     }
     return true;
+}
+
+// Checks that all models in the preview are valid
+bool ModelPreview::ValidateModels(const ModelManager& mm)
+{
+    return ValidateModels(GetModels(), mm);
 }
 
 void ModelPreview::SetModel(const Model* model, bool wiring, bool highlightFirst) {

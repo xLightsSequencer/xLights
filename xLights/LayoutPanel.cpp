@@ -1345,6 +1345,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     FreezeTreeListView();
     unsigned sortcol;
     bool ascending;
@@ -1439,6 +1440,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->GetDataView()->GetModel()->Resort();
         }
     }
+    logger_base.debug("Layout tab preview models updated.");
     xlights->PreviewModels = models;
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
@@ -1447,6 +1449,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Updated models for preview: %s.", (const char*)group.c_str());
+
     std::set<std::string> modelsAdded;
 
     for (const auto& it : xlights->AllModels) {
@@ -7041,13 +7046,13 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             node->AddAttribute("LayoutGroup", grp);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
                     
-            Model* model = xlights->GetModel(name.ToStdString());
-            SelectModelInTree(model);
+            //Model* model = xlights->GetModel(name.ToStdString());
+            //SelectModelInTree(model);
             
-            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
-            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
         }
     }
     else if (id == ID_MNU_CLONE_MODEL_GROUP)
@@ -7075,7 +7080,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP", nullptr, nullptr, name);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
-        model_grp_panel->UpdatePanel(name);
+        //model_grp_panel->UpdatePanel(name);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
     }

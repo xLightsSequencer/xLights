@@ -104,6 +104,7 @@ public:
     const std::vector<Model*> &GetModels();
     ModelGroup* GetSelectedModelGroup();
     bool ValidateModels(const ModelManager& mm);
+    bool ValidateModels(const std::vector<Model*>models, const ModelManager& mm);
     void SetAdditionalModel(Model *m) {
         additionalModel = m;
         Refresh();
