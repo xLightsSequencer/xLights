@@ -269,6 +269,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
     if (xlights) {
         if (currentLayoutGroup == "Default") {
             if (additionalModel == nullptr) {
+                //wxASSERT(ValidateModels(xlights->PreviewModels, xlights->AllModels));
                 return xlights->PreviewModels;
             } else {
                 tmpModelList = xlights->PreviewModels;
@@ -293,6 +294,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
                 if (currentLayoutGroup == grp->GetName()) {
                     foundGrp = true;
                     if (additionalModel == nullptr) {
+                        //wxASSERT(ValidateModels(grp->GetModels(), xlights->AllModels));
                         return grp->GetModels();
                     } else {
                         tmpModelList = grp->GetModels();
@@ -306,7 +308,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
         }
 
         // Only in debug builds but this really should all be valid or bad things will happen
-        wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
+        //wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
     }
     if (additionalModel != nullptr) {
         tmpModelList.push_back(additionalModel);
@@ -319,26 +321,30 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (const auto& it : models) {
-        bool found = false;
-        for (auto it2 : mm) {
-            if (it2.second == it) {
-                found = true;
-                break;
+        if (it->GetDisplayAs() != "SubModel") {
+            bool found = false;
+            for (auto it2 : mm) {
+                if (it2.second == it) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // pointer to a non-existent model found ... not good
+                wxASSERT(false);
+                logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
+                return false;
             }
         }
-        if (!found) {
-            // pointer to a non-existent model found ... not good
-            wxASSERT(false);
-            logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
-            return false;
-        }
     }
+    //logger_base.debug("Validating models in model preview %s ALL OK", (const char*)GetName().c_str());
     return true;
 }
 
 // Checks that all models in the preview are valid
 bool ModelPreview::ValidateModels(const ModelManager& mm)
 {
+    // this will actually double validate in debug builds
     return ValidateModels(GetModels(), mm);
 }
 

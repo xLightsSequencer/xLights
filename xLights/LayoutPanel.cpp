@@ -1345,7 +1345,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     FreezeTreeListView();
     unsigned sortcol;
     bool ascending;
@@ -1368,6 +1368,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
+
+    //logger_base.debug("Layout tab preview models updated.");
+    xlights->PreviewModels = models;
 
     int width = 0;
     if (full_refresh) {
@@ -1440,8 +1443,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->GetDataView()->GetModel()->Resort();
         }
     }
-    logger_base.debug("Layout tab preview models updated.");
-    xlights->PreviewModels = models;
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
     ThawTreeListView(width);
@@ -1449,8 +1450,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Updated models for preview: %s.", (const char*)group.c_str());
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Updated models for preview: %s.", (const char*)group.c_str());
 
     std::set<std::string> modelsAdded;
 
@@ -2121,10 +2122,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     selectedTreeSubModels.clear();
 
     // process all models
-    auto models = modelPreview->GetModels();
-    for (size_t i = 0; i < models.size(); i++) {
-        Model* m = modelPreview->GetModels()[i];
-
+    for (const auto& m : modelPreview->GetModels()) {
         if (!xlights->AllModels.IsModelValid(m)) {
             logger_base.error("Really strange ... unselect all models returned an invalid model pointer");
         }

@@ -1078,12 +1078,12 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     );
     if (work & OutputModelManager::WORK_RELOAD_MODELLIST) {
         logger_work.debug("    WORK_RELOAD_MODELLIST.");
+
         // reload the models list on the layout panel
-        layoutPanel->refreshModelList();
-        //layoutPanel->ReloadModelList();
-        // reload the whole list if no model is selected
-        //layoutPanel->UpdateModelList(layoutPanel->GetSelectedModelName() == "");
-        //layoutPanel->UpdateModelList(true);
+        //layoutPanel->refreshModelList();
+
+        // need to reload the modelPreview model lists or bad things will happen
+        layoutPanel->ReloadModelList();
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |

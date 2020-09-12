@@ -217,6 +217,7 @@ bool ModelManager::IsModelOverlapping(Model* model) const
 void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("ModelManager loading models.");
 
     _modelsLoading = true;
     clear();
@@ -256,6 +257,9 @@ uint32_t ModelManager::GetLastChannel() const {
 
 void ModelManager::ResetModelGroups() const
 {
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("ModelManager resetting groups.");
+
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
@@ -336,6 +340,9 @@ wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) con
 
 void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask)
 {
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("ModelManager adding groups.");
+
     auto grpModels = n->GetAttribute("models");
     if (grpModels.length() == 0) return;
 
@@ -455,6 +462,8 @@ bool ModelManager::RecalcStartChannels() const {
     }
 
     ResetModelGroups();
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
     long end = sw.Time();
     logger_base.debug("RecalcStartChannels takes %ldms.", end);
@@ -845,6 +854,10 @@ bool ModelManager::ReworkStartChannel() const
 }
 
 bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
+
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("ModelManager loading groups.");
+
     this->groupNode = groupNode;
     bool changed = false;
 
