@@ -1097,35 +1097,34 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         }
         else
         {
-            if (event.effect != effect)
-            {
-                logger_base.warn("SelectedEffectChanged ... effect didnt match");
-            }
-
-            // For canvas mode the timing panel needs to know how many layers are under this effect
-            int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
-            int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
-			std::vector<int> effectLayers = effect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(effect->GetStartTimeMS(), effect->GetEndTimeMS());
-            if (start > layers) start = -1;
-            timingPanel->SetLayersBelow(start, layers, effectLayers);
-
-            bool resetStrings = false;
-            if ("Random" == effect->GetEffectName()) {
-                std::string settings, palette;
-                std::string effectName = CreateEffectStringRandom(settings, palette);
-                effect->SetPalette(palette);
-                effect->SetSettings(settings, false);
-                effect->SetEffectName(effectName);
-                effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
-                resetStrings = true;
-            }
-            SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                !event.isNew);
-            selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
-            selectedEffect = effect;
-
             if (effect->GetParentEffectLayer()->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+                if (event.effect != effect) {
+                    logger_base.warn("SelectedEffectChanged ... effect didnt match");
+                }
+
+                // For canvas mode the timing panel needs to know how many layers are under this effect
+                int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
+                int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
+                std::vector<int> effectLayers = effect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                if (start > layers) start = -1;
+                timingPanel->SetLayersBelow(start, layers, effectLayers);
+
+                bool resetStrings = false;
+                if ("Random" == effect->GetEffectName()) {
+                    std::string settings, palette;
+                    std::string effectName = CreateEffectStringRandom(settings, palette);
+                    effect->SetPalette(palette);
+                    effect->SetSettings(settings, false);
+                    effect->SetEffectName(effectName);
+                    effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
+                    resetStrings = true;
+                }
+                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                    effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                    !event.isNew);
+                selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
+                selectedEffect = effect;
+
                 if (effect->GetPaletteMap().empty() || resetStrings) {
                     effect->SetPalette(selectedEffectPalette);
                     effect->SetSettings(selectedEffectString, true);
@@ -1135,19 +1134,19 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                             effect->GetEndTimeMS());
                     }
                 }
-            }
 
-            if (playType == PLAY_TYPE_MODEL_PAUSED) {
-                DoStopSequence();
-            }
+                if (playType == PLAY_TYPE_MODEL_PAUSED) {
+                    DoStopSequence();
+                }
 
-            if (playType != PLAY_TYPE_MODEL) {
-                playType = PLAY_TYPE_EFFECT;
-                playStartTime = effect->GetStartTimeMS();
-                playEndTime = effect->GetEndTimeMS();
-                playStartMS = -1;
-                playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
-                SetAudioControls();
+                if (playType != PLAY_TYPE_MODEL) {
+                    playType = PLAY_TYPE_EFFECT;
+                    playStartTime = effect->GetStartTimeMS();
+                    playEndTime = effect->GetEndTimeMS();
+                    playStartMS = -1;
+                    playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
+                    SetAudioControls();
+                }
             }
         }
     }
