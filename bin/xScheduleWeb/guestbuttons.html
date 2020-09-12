@@ -58,6 +58,16 @@
 			window.location.href = "login.html";
 		}
 
+		if (response.score == undefined && response.highscore == undefined) {
+			if (response.status != undefined) {
+				handleStatus(response);
+			}
+
+			if (response.result == 'failed') {
+				notification('Failed: ' + response.message, 'danger', '0');
+			}
+		}
+
 		//Run Fuction if refrence is set
 		if (response.reference != "" && response.reference != undefined) {
 			var fun = response.reference;
@@ -65,7 +75,7 @@
 			if (typeof fn === "function") {
 				fn(response);
 			} else {
-			notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
+				notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
 			}
 		}
 	});
@@ -99,6 +109,11 @@
 			loadButtonsData();
 		},500);
 	  }
+	}
+
+	function handleStatus(response)
+	{
+		// add anything here to handle the once per second status updates from xSchedule
 	}
 
 	function runCommand(name, param, reference) {
