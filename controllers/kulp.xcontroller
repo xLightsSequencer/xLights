@@ -15,15 +15,15 @@
 		</Variant>
 	</Controller>
 	<Controller Name="F40D-PB">
-		<Variant Name="4 Serial" ID="F40D-PB-40" Base="FPP:FPPStringCape">
+		<Variant Name="4 Serial" ID="F40D-PB-36" Base="FPP:FPPStringCape">
 			<MaxPixelPort>36</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
-		<Variant Name="8 Serial" ID="F40D-PB-36" Base="FPP:FPPStringCape">
+		<Variant Name="8 Serial" ID="F40D-PB" Base="FPP:FPPStringCape">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
 		</Variant>
-		<Variant Name="No Serial" ID="F40D-PB" Base="FPP:FPPStringCape">
+		<Variant Name="No Serial" ID="F40D-PB-40" Base="FPP:FPPStringCape">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
