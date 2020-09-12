@@ -20,6 +20,8 @@
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 
+#include <mutex>
+
 #ifdef __WXMSW__
 #include <psapi.h>
 #include <iphlpapi.h>
@@ -282,18 +284,21 @@ void SetFixFileShowDir(const wxString& ShowDir) {
     RememberShowDir = ShowDir;
 }
 
-static std::vector<wxString> __nonExistentFiles;
-static std::map<wxString, wxString> __fileMap;
+static std::recursive_mutex __fixFilesMutex;
+static std::vector<std::string> __nonExistentFiles;
 
 void ClearNonExistentFiles()
 {
+    std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
     __nonExistentFiles.clear();
 }
 
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
+    static std::map<wxString, wxString> __fileMap;
+
     if (file == "") {
         return file;
     }
@@ -302,12 +307,14 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         return file;
     }
 
+    std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
+
     // Lookup previous mappings as this is faster
     if (__fileMap.find(file) != __fileMap.end()) {
         return __fileMap[file];
     }
 
-    if (std::find(__nonExistentFiles.begin(), __nonExistentFiles.end(), file) != __nonExistentFiles.end()) {
+    if (std::find(begin(__nonExistentFiles), end(__nonExistentFiles), file.ToStdString()) != end(__nonExistentFiles)) {
         // we have looked before and this file does not exist ... so dont look again
         return file;
     }
@@ -362,7 +369,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
     if (fname == "") {
         // no subdirectory
-        __nonExistentFiles.push_back(file);
+        __nonExistentFiles.push_back(file.ToStdString());
         return file;
     }
 
@@ -435,7 +442,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
     logger_base.debug("   could not find a fixed file location for : " + file);
     logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
-    __nonExistentFiles.push_back(file);
+    __nonExistentFiles.push_back(file.ToStdString());
    	return file;
 }
 
