@@ -188,12 +188,9 @@ AudioManager* RenderBuffer::GetMedia() const
 Model* RenderBuffer::GetModel() const
 {
     // this only returns a model or model group
-    wxString m(cur_model);
-    if (m.Contains("/"))
-    {
+    if (cur_model.find("/") == std::string::npos) {
         return nullptr;
     }
-
     return frame->AllModels[cur_model];
 }
 

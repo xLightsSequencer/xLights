@@ -1898,8 +1898,7 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (wxString(subBuffer).Contains("Active=TRUE"))
-    {
+    if (subBuffer.find("Active=TRUE") != std::string::npos) {
         // value curve present ... we have work to do
         wxString sb = subBuffer;
         sb.Replace("Max", "yyz");
