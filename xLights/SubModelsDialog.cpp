@@ -2068,7 +2068,6 @@ void SubModelsDialog::ExportSubModels(wxString const& filename)
         if (sm->isRanges) {
             for (int x = sm->strands.size() - 1; x >= 0; x--) {
                 f.Write(",,,");
-                int cellrow = (sm->strands.size() - 1) - x;
                 if (x == 0) {
                     f.Write("Bottom,");
                 }

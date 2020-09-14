@@ -3488,7 +3488,16 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
 
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
 
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, GetBitness(), ts);
+    
+    wxString qualifier = GetBitness();
+#ifdef __WXOSX__
+#if defined(__x86_64__)
+    qualifier = "x86_64";
+#elif defined(__aarch64__)
+    qualifier = "arm64";
+#endif
+#endif
+    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, qualifier, ts);
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
 

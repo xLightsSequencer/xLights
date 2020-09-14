@@ -3031,7 +3031,7 @@
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
+			shellPath = /bin/bash;
 			shellScript = "bin/mac_fix_dylibs\n";
 			showEnvVarsInLog = 0;
 		};
