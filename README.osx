@@ -37,7 +37,7 @@ Then, from inside a Terminal window:
   cd build
   export BINARY_PLATFORMS=x86_64
   # export BINARY_PLATFORMS="x86_64,arm64"
-  export CXXFLAGS="-g"
+  export CXXFLAGS=""
   export OBJCXXFLAGS=""
   export CPPFLAGS="-g"
   export LDFLAGS=""
@@ -48,11 +48,11 @@ Then, from inside a Terminal window:
   export CFLAGS="-g"
   ../configure  --prefix=/opt/local --libdir=/opt/local/libdbg \
                 --enable-debug --enable-debug_info --disable-optimise --enable-universal_binary=${BINARY_PLATFORMS} \
-                --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
-                --disable-compat30 --with-libjpeg=builtin --without-libtiff --enable-mimetype \
-                --with-macosx-version-min=10.10 \
+                --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
+                --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
                 --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
-                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --with-zlib=builtin
+                --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
+                --enable-backtrace --enable-exceptions
   make -j 8
   make install
 
@@ -61,21 +61,21 @@ If you are planning on being able to build Release builds, you will ALSO need to
 
   export BINARY_PLATFORMS="x86_64"
   # export BINARY_PLATFORMS="x86_64,arm64"
-  export CXXFLAGS="-flto=thin"
-  export OBJCXXFLAGS="-flto=thin"
+  export CXXFLAGS=""
+  export OBJCXXFLAGS=""
   export CPPFLAGS="-flto=thin"
   export LDFLAGS="-flto=thin"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
   export CPP="clang -E" 
-  export CFLAGS=""
-  ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-universal_binary=${BINARY_PLATFORMS} \
-                --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
-                --disable-compat30 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
-                --with-macosx-version-min=10.10 \
+  export CFLAGS="-g"
+  ../configure  --enable-optimise --prefix=/opt/local --enable-universal_binary=${BINARY_PLATFORMS} \
+                --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
+                --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
                 --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
-                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --with-zlib=builtin --disable-shared
+                --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
+                --enable-backtrace --enable-exceptions --disable-shared
   make -j 8
   make install
 
@@ -148,9 +148,10 @@ sudo mv /usr/local/l2 /usr/local/lib
 
 log4cpp:
 Download latest src release (current 1.1.3)
+patch -p1 < ~/working/xLights/lib/osx/log4cpp.patch
+export HOST=x86_64
+# export HOST=arm
 export MACOSX_DEPLOYMENT_TARGET=10.10
-export CXXFLAGS="-target x86_64-apple-macos10.10 -std=gnu++11 -stdlib=libc++ -fvisibility-inlines-hidden"
-export LDFLAGS="-target x86_64-apple-macos10.10"
 export OBJCXXFLAGS=""
 export CPPFLAGS=""
 export CXX=clang++
@@ -158,15 +159,12 @@ export CXXCPP="clang++ -E"
 export CC=clang
 export CPP="clang++ -E"
 export CFLAGS=""
-./configure --prefix=/opt/local
-make
-cp ./src/.libs/liblog4cpp.a ./liblog4cpp.a.x86_64
+export CXXFLAGS="-g -O2 -target x86_64-apple-macos10.10 -target arm64-apple-macos10.10 -arch arm64 -arch x86_64 -std=c++11 -stdlib=libc++ -fvisibility-inlines-hidden"
+export LDFLAGS="-target x86_64-apple-macos10.10 -target arm64-apple-macos10.10 -arch arm64 -arch x86_64 "
+./configure --prefix=/opt/local -host ${HOST}
 make clean
-export CXXFLAGS="-target arm64-apple-macos10.10 -std=gnu++11 -stdlib=libc++ -fvisibility-inlines-hidden"
-export LDFLAGS="-target arm64-apple-macos10.10"
-./configure --prefix=/opt/local --host x86_64
 make
-lipo -create -output ./liblog4cpp.a  ./liblog4cpp.a.x86_64 ./src/.libs/liblog4cpp.a
+cp src/.libs/liblog4cpp.a ~/working/xLights/lib/osx/
 
 
 liquidfun:

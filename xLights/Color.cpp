@@ -15,9 +15,92 @@
 #include <iomanip>
 #include <cmath>
 #include <algorithm>
+#include <map>
 
 #include <wx/colour.h>
 #include "Color.h"
+
+static const std::map<std::string, xlColor> NAME_MAP = {
+    {"White", xlWHITE},
+    {"WHITE", xlWHITE},
+    {"Black", xlBLACK},
+    {"BLACK", xlBLACK},
+    {"Blue", xlBLUE},
+    {"BLUE", xlBLUE},
+    {"Cyan", xlCYAN},
+    {"CYAN", xlCYAN},
+    {"Green", xlGREEN},
+    {"GREEN", xlGREEN},
+    {"MAGENTA", xlMAGENTA},
+    {"Magenta", xlMAGENTA},
+    {"RED", xlRED},
+    {"Red", xlRED},
+    {"YELLOW", xlYELLOW},
+    {"Yellow", xlYELLOW},
+
+    {"AQUAMARINE", xlColor(112, 219, 147)},
+    {"BLUE VIOLET", xlColor( 159, 95, 159)},
+    {"BROWN", xlColor( 165, 42, 42)},
+    {"CADET BLUE", xlColor( 95, 159, 159)},
+    {"CORAL", xlColor( 255, 127, 0)},
+    {"CORNFLOWER BLUE", xlColor( 66, 66, 111)},
+    {"DARK GREY", xlColor( 47, 47, 47)},   // ?
+    {"DARK GREEN", xlColor( 47, 79, 47)},
+    {"DARK OLIVE GREEN", xlColor( 79, 79, 47)},
+    {"DARK ORCHID", xlColor( 153, 50, 204)},
+    {"DARK SLATE BLUE", xlColor( 107, 35, 142)},
+    {"DARK SLATE GREY", xlColor( 47, 79, 79)},
+    {"DARK TURQUOISE", xlColor( 112, 147, 219)},
+    {"DIM GREY", xlColor( 84, 84, 84)},
+    {"FIREBRICK", xlColor( 142, 35, 35)},
+    {"FOREST GREEN", xlColor( 35, 142, 35)},
+    {"GOLD", xlColor( 204, 127, 50)},
+    {"GOLDENROD", xlColor( 219, 219, 112)},
+    {"GREEN YELLOW", xlColor( 147, 219, 112)},
+    {"GREY", xlColor( 128, 128, 128)},
+    {"INDIAN RED", xlColor( 79, 47, 47)},
+    {"KHAKI", xlColor( 159, 159, 95)},
+    {"LIGHT BLUE", xlColor( 191, 216, 216)},
+    {"LIGHT GREY", xlColor( 192, 192, 192)},
+    {"LIGHT STEEL BLUE", xlColor( 143, 143, 188)},
+    {"LIME GREEN", xlColor( 50, 204, 50)},
+    {"LIGHT MAGENTA", xlColor( 255, 119, 255)},
+    {"MAROON", xlColor( 142, 35, 107)},
+    {"MEDIUM AQUAMARINE", xlColor( 50, 204, 153)},
+    {"MEDIUM GREY", xlColor( 100, 100, 100)},
+    {"MEDIUM BLUE", xlColor( 50, 50, 204)},
+    {"MEDIUM FOREST GREEN", xlColor( 107, 142, 35)},
+    {"MEDIUM GOLDENROD", xlColor( 234, 234, 173)},
+    {"MEDIUM ORCHID", xlColor( 147, 112, 219)},
+    {"MEDIUM SEA GREEN", xlColor( 66, 111, 66)},
+    {"MEDIUM SLATE BLUE", xlColor( 127, 0, 255)},
+    {"MEDIUM SPRING GREEN", xlColor( 127, 255, 0)},
+    {"MEDIUM TURQUOISE", xlColor( 112, 219, 219)},
+    {"MEDIUM VIOLET RED", xlColor( 219, 112, 147)},
+    {"MIDNIGHT BLUE", xlColor( 47, 47, 79)},
+    {"NAVY", xlColor( 35, 35, 142)},
+    {"ORANGE", xlColor( 204, 50, 50)},
+    {"ORANGE RED", xlColor( 255, 0, 127)},
+    {"ORCHID", xlColor( 219, 112, 219)},
+    {"PALE GREEN", xlColor( 143, 188, 143)},
+    {"PINK", xlColor( 255, 192, 203)},
+    {"PLUM", xlColor( 234, 173, 234)},
+    {"PURPLE", xlColor( 176, 0, 255)},
+    {"SALMON", xlColor( 111, 66, 66)},
+    {"SEA GREEN", xlColor( 35, 142, 107)},
+    {"SIENNA", xlColor( 142, 107, 35)},
+    {"SKY BLUE", xlColor( 50, 153, 204)},
+    {"SLATE BLUE", xlColor( 0, 127, 255)},
+    {"SPRING GREEN", xlColor( 0, 255, 127)},
+    {"STEEL BLUE", xlColor( 35, 107, 142)},
+    {"TAN", xlColor( 219, 147, 112)},
+    {"THISTLE", xlColor( 216, 191, 216)},
+    {"TURQUOISE", xlColor( 173, 234, 234)},
+    {"VIOLET", xlColor( 79, 47, 79)},
+    {"VIOLET RED", xlColor( 204, 50, 153)},
+    {"WHEAT", xlColor( 216, 216, 191)},
+    {"YELLOW GREEN", xlColor( 153, 204, 50)}
+};
 
 xlColor::operator std::string() const {
     std::stringstream stream;
@@ -81,11 +164,20 @@ void xlColor::SetFromString(const std::string &str) {
             alpha = f;
         }
     } else {
-        //need to do the slower lookups
-        wxColor c(str);
-        red = c.Red();
-        green = c.Green();
-        blue = c.Blue();
+        auto c = NAME_MAP.find(str);
+        if (c != NAME_MAP.end()) {
+            red = c->second.red;
+            green = c->second.green;
+            blue = c->second.blue;
+            alpha = c->second.alpha;
+        } else {
+        
+            //need to do the slower lookups
+            wxColor c(str);
+            red = c.Red();
+            green = c.Green();
+            blue = c.Blue();
+        }
     }
 }
 static void fromHSV(xlColor & rgb, const HSVValue &hsv) {

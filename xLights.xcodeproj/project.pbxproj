@@ -1611,6 +1611,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6799E31024D1B68B00E39168 /* liblog4cpp.a in Frameworks */,
 				673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */,
 				6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
@@ -1633,7 +1634,6 @@
 				672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
 				672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.1.dylib in Frameworks */,
 				674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */,
-				6799E31024D1B68B00E39168 /* liblog4cpp.a in Frameworks */,
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
