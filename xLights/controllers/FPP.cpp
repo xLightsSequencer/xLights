@@ -172,7 +172,7 @@ public:
                 donePct /= file->Length();
                 if (donePct != lastDone) {
                     lastDone = donePct;
-                    cancelled = !progress->Update(donePct, progressString, &cancelled);
+                    cancelled = !progress->Update(donePct, progressString);
                     wxYield();
                 }
             }
@@ -206,11 +206,11 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BaseController::writeFunction);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
 }
 
-bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
+bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     setupCurl();
     curlInputBuffer.clear();
@@ -256,7 +256,18 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
         retValue = (response_code == 200);
     }
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
-    logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d  - %s", fullUrl.c_str(), i, response_code, val.c_str());
+    if (response_code != 200) {
+        if (recordError) {
+            if (i == CURLE_OK) {
+                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
+            } else {
+                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
+            }
+        }
+        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d  - %s", fullUrl.c_str(), i, response_code, val.c_str());
+    } else {
+        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d", fullUrl.c_str(), i, response_code);
+    }
     return retValue;
 
 }
@@ -294,15 +305,19 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     long response_code = 0;
     if (i == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code != 200) {
+            messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
+        }
         return response_code;
     }
+    messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
     logger_base.info("FPPConnect Post %s  - RC: %d - Return %d", fullUrl.c_str(), response_code, i);
     return 500;
 }
 
-bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
+bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError) {
     std::string sval;
-    if (GetURLAsString(url, sval)) {
+    if (GetURLAsString(url, sval, recordError)) {
         wxJSONReader reader;
         reader.Parse(sval, &val);
         return true;
@@ -597,7 +612,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     bool cancelled = false;
     progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
+    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -700,17 +715,18 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
                 }
             }
         } else {
+            messages.push_back("ERROR Uploading file: " + filename + "     Response Code: " + std::to_string(response_code) + " - " + error);
             logger_base.warn("Did not get 200 resonse code:  %d", response_code);
-            cancelled = true;
         }
     } else {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
+        messages.push_back("ERROR Uploading file: " + filename + "     CURL response: " + std::to_string(i) + " - " + error);
     }
-    progressDialog->Update(1000, wxEmptyString, &cancelled);
+    cancelled |= !progressDialog->Update(1000);
     logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, filename.c_str());
 
-    return data.cancelled;
+    return data.cancelled | cancelled;
 }
 
 
@@ -722,7 +738,7 @@ bool FPP::copyFile(const std::string &filename,
 
     progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
+    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
     progressDialog->Show();
     wxFile in;
     in.Open(file);
@@ -746,20 +762,20 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                progressDialog->Update(prgs, wxEmptyString, &cancelled);
+                cancelled |= !progressDialog->Update(prgs);
                 if (!cancelled) {
                     cancelled = progressDialog->WasCancelled();
                 }
             }
-            progressDialog->Update(1000, wxEmptyString);
+            cancelled |= !progressDialog->Update(1000);
             in.Close();
             out.Close();
         } else {
-            progressDialog->Update(1000, wxEmptyString);
+            cancelled |= !progressDialog->Update(1000);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        progressDialog->Update(1000, wxEmptyString);
+        cancelled |= !progressDialog->Update(1000);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -797,7 +813,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         
         bool doMediaUpload = true;
         wxJSONValue currentMeta;
-        if (GetURLAsJSON("/api/media/" + URLEncode(mediaBaseName) + "/meta", currentMeta)) {
+        if (GetURLAsJSON("/api/media/" + URLEncode(mediaBaseName) + "/meta", currentMeta, false)) {
             if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
                 (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
                 doMediaUpload = false;
@@ -841,7 +857,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
     if (!IsDrive()) {
         wxJSONValue currentMeta;
-        if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta)) {
+        if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
             char buf[24];
             sprintf(buf, "%" PRIu64, file.getUniqueId());
@@ -1090,8 +1106,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
     std::string stringType;
 
     int xoffset = 0;
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m)
-    {
+    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
         Model* model = m->second;
 
         if (model->GetLayoutGroup() != "Default")
@@ -1100,8 +1115,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
         if (model->GetDisplayAs() == "ModelGroup")
             continue;
 
-        if (first)
-        {
+        if (first) {
             first = 0;
             ret += "# Preview Size\n";
             ret += wxString::Format("%d,%d\n", model->GetModelScreenLocation().previewW, model->GetModelScreenLocation().previewH);
@@ -1136,24 +1150,20 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
         else if ((stringType == "Single Color White") || (stringType == "W"))
             stringType = "White";
         else if (stringType == "Single Color Custom")
-        {
             stringType = "White";
-        }
-        else if (stringType == "Node Single Color")             {
+        else if (stringType == "Node Single Color") {
             stringType = "White";
         }
 
         ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
 
         float x, y, z;
-        for (int i = 0; i < model->GetNodeCount(); i++)
-        {
+        for (int i = 0; i < model->GetNodeCount(); i++) {
             pts.clear();
             model->GetNodeScreenCoords(i, pts);
             ch = model->NodeStartChannel(i);
 
-            for (int i = 0; i < pts.size(); i++)
-            {
+            for (int i = 0; i < pts.size(); i++) {
                 x = pts[i].x;
                 y = pts[i].y;
                 z = 0;
@@ -1232,14 +1242,11 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
 
 
 bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
-    std::list<ControllerEthernet*> selected;
-    for (const auto& it : outputManager->GetControllers())
-    {
+    std::list<Controller*> selected;
+    for (const auto& it : outputManager->GetControllers()) {
         auto c = dynamic_cast<ControllerEthernet*>(it);
-        if (c != nullptr)
-        {
-            if (c->GetFPPProxy() == ipAddress)
-            {
+        if (c != nullptr) {
+            if (c->GetFPPProxy() == ipAddress) {
                 selected.push_back(c);
             }
         }
@@ -1261,7 +1268,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
 }
 
 wxJSONValue FPP::CreateUniverseFile(ControllerEthernet* controller, bool input) {
-    std::list<ControllerEthernet*> selected;
+    std::list<Controller*> selected;
     selected.push_back(controller);
     return CreateUniverseFile(selected, false);
 }
@@ -1313,18 +1320,15 @@ bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin)
     if (thePassword == "true") {
         if (username == "pi") {
             password = "raspberry";
-        }
-        else if (username == "fpp") {
+        } else if (username == "fpp") {
             password = "falcon";
-        }
-        else {
+        } else {
             wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
             if (ted.ShowModal() == wxID_OK) {
                 password = ted.GetValue();
             }
         }
-    }
-    else {
+    } else {
         wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
         if (ted.ShowModal() == wxID_OK) {
             password = ted.GetValue();
@@ -1354,7 +1358,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     return b;
 }
 
-wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& selected, bool input) {
+wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input) {
     wxJSONValue root;
     root["type"] = wxString("universes");
     root["enabled"] = 1;
@@ -1363,12 +1367,15 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
 
     wxJSONValue universes;
 
-    for (const auto& it2 : selected)
-    {
-        auto controllerEnabled = it2->GetActive();
-        bool const allSameSize = it2->AllSameSize();
+    for (const auto& it2 : selected) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it2);
+        if (eth == nullptr) {
+            continue;
+        }
+        auto controllerEnabled = eth->GetActive();
+        bool const allSameSize = eth->AllSameSize();
         // Get universes based on IP
-        std::list<Output*> outputs = it2->GetOutputs();
+        std::list<Output*> outputs = eth->GetOutputs();
         for (const auto& it : outputs) {
             int c = it->GetStartChannel();
 
@@ -1392,25 +1399,25 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                     universe["universeCount"] = it2->GetOutputCount();
                     universes.Append(universe);
                     break;
-                }
-                else { 
+                } else {
                     universe["universeCount"] = 1;
                 }
                 universes.Append(universe);
-            }
-            else if (it->GetType() == OUTPUT_DDP) {
+            } else if (it->GetType() == OUTPUT_DDP || it->GetType() == OUTPUT_ZCPP) {
                 if (!input) {
                     universe["address"] = wxString(it->GetIP());
-                    DDPOutput* ddp = (DDPOutput*)it;
-                    universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
+                    DDPOutput* ddp = dynamic_cast<DDPOutput*>(it);
+                    if (ddp) {
+                        universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
+                    } else {
+                        universe["type"] = 5;
+                    }
                     universes.Append(universe);
-                }
-                else {
+                } else {
                     //don't need to do anything to configure DDP input
                 }
-            }
-            else if (it->GetType() == OUTPUT_ARTNET) {
-                universe["type"] = (int)((it2->GetIP() != "MULTICAST") + 2);
+            } else if (it->GetType() == OUTPUT_ARTNET) {
+                universe["type"] = (int)((eth->GetIP() != "MULTICAST") + 2);
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
@@ -1477,7 +1484,7 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     auto c = dynamic_cast<ControllerEthernet*>(controller);
     if (c == nullptr) return false;
 
-    wxJSONValue udp = CreateUniverseFile(std::list<ControllerEthernet*>({ c }), true);
+    wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ c }), true);
     if (IsDrive()) {
         std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
         WriteJSONToPath(fn, udp);
@@ -1987,9 +1994,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
             SetRestartFlag();
         }
-    }
-    else
-    {
+    } else {
         logger_base.debug("Skipping JSON upload as it has not changed.");
     }
     SetNewRanges(rngs);
@@ -2552,30 +2557,69 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
     return false;
 }
 
+inline void setIfEmpty(std::string &val, const std::string &nv) {
+    if (val == "") {
+        val = nv;
+    }
+}
+inline void setIfEmpty(uint32_t &val, uint32_t nv) {
+    if (val == 0) {
+        val = nv;
+    }
+}
+
 void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
     for (auto res : discovery.GetResults()) {
         if (supportedForFPPConnect(res, outputManager))  {
-            FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
-            fpp->ipAddress = res->ip;
-            fpp->hostName = res->hostname;
-            fpp->description = res->description;
-            fpp->platform = res->platform;
-            fpp->model = res->platformModel;
-            fpp->majorVersion = res->majorVersion;
-            fpp->minorVersion = res->minorVersion;
-            fpp->fullVersion = res->version;
-            fpp->ranges = res->ranges;
-            fpp->mode = res->mode;
-            fpp->pixelControllerType = res->pixelControllerType;
-            fpp->panelSize = res->panelSize;
-            fpp->username = res->username;
-            fpp->password = res->password;
-            fpp->isFPP = res->typeId < 0x80;
-            fpp->controllerVendor = res->vendor;
-            fpp->controllerModel = res->model;
-            fpp->controllerVariant = res->variant;
+            FPP *fpp = nullptr;
+            
+            for (auto f : instances) {
+                if (f->ipAddress == res->ip) {
+                    fpp = f;
+                }
+            }
+            if (fpp == nullptr) {
+                FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
+                fpp->ipAddress = res->ip;
+                fpp->hostName = res->hostname;
+                fpp->description = res->description;
+                fpp->platform = res->platform;
+                fpp->model = res->platformModel;
+                fpp->majorVersion = res->majorVersion;
+                fpp->minorVersion = res->minorVersion;
+                fpp->fullVersion = res->version;
+                fpp->ranges = res->ranges;
+                fpp->mode = res->mode;
+                fpp->pixelControllerType = res->pixelControllerType;
+                fpp->panelSize = res->panelSize;
+                fpp->username = res->username;
+                fpp->password = res->password;
+                fpp->isFPP = res->typeId < 0x80;
+                fpp->controllerVendor = res->vendor;
+                fpp->controllerModel = res->model;
+                fpp->controllerVariant = res->variant;
 
-            instances.push_back(fpp);
+                instances.push_back(fpp);
+            } else {
+                setIfEmpty(fpp->hostName, res->hostname);
+                setIfEmpty(fpp->description, res->description);
+                setIfEmpty(fpp->platform, res->platform);
+                setIfEmpty(fpp->model, res->platformModel);
+                setIfEmpty(fpp->fullVersion, res->version);
+                setIfEmpty(fpp->mode, res->mode);
+                setIfEmpty(fpp->pixelControllerType, res->pixelControllerType);
+                setIfEmpty(fpp->ranges, res->ranges);
+                setIfEmpty(fpp->panelSize, res->panelSize);
+                setIfEmpty(fpp->username, res->username);
+                setIfEmpty(fpp->password, res->password);
+                setIfEmpty(fpp->controllerVendor, res->vendor);
+                setIfEmpty(fpp->controllerModel, res->model);
+                setIfEmpty(fpp->controllerVariant, res->variant);
+
+                setIfEmpty(fpp->minorVersion, res->minorVersion);
+                setIfEmpty(fpp->majorVersion, res->majorVersion);
+                fpp->isFPP = res->typeId < 0x80;
+            }
         }
     }
 }

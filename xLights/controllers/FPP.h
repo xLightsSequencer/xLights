@@ -54,6 +54,8 @@ class FPP : public BaseController
 
     wxWindow *parent;
     wxProgressDialog *progressDialog = nullptr;
+    std::list<std::string> messages;
+    int defaultConnectTimeout = 2000;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
     bool AuthenticateAndUpdateVersions();
@@ -95,7 +97,7 @@ class FPP : public BaseController
     
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
-    static wxJSONValue CreateUniverseFile(const std::list<ControllerEthernet*>& controllers, bool input);
+    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input);
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
@@ -114,8 +116,8 @@ private:
     void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
-    bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
-    bool GetURLAsString(const std::string& url, std::string& val);
+    bool GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError = true);
+    bool GetURLAsString(const std::string& url, std::string& val, bool recordError = true);
 
     bool WriteJSONToPath(const std::string& path, const wxJSONValue& val);
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);

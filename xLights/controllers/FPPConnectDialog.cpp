@@ -700,23 +700,16 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-    std::list<ControllerEthernet*> outputControllers;
-    for (const auto& it : _outputManager->GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr) {
-            if (eth->GetProtocol() != OUTPUT_ZCPP) {
-                outputControllers.push_back(eth);
-            }
-        }
-    }
-
-    wxJSONValue outputs = FPP::CreateUniverseFile(outputControllers, false);
+    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
+        // not in discovery so we can increate the timeouts to make sure things get transferred
+        inst->defaultConnectTimeout = 5000;
+        inst->messages.clear();
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
             if (inst->isFPP) {
@@ -754,7 +747,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                             inst->ranges = std::to_string(controller->GetStartChannel()) + "-" + std::to_string(controller->GetStartChannel() + controller->GetChannels()-1);
                         }
                         BaseController *bc = BaseController::CreateBaseController(controller, inst->ipAddress);
-                        cancelled |= bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller, this);
+                        bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller, this);
                         delete bc;
                     }
                 }
@@ -799,7 +792,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (!cancelled && uploadCount) {
                     prgs.SetTitle("Generating FSEQ Files");
-                    prgs.Update(0, "Generating " + fseq, &cancelled);
+                    cancelled |= !prgs.Update(0, "Generating " + fseq);
                     prgs.Show();
                     int lastDone = 0;
                     static const int FRAMES_TO_BUFFER = 50;
@@ -812,7 +805,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         int donePct = frame * 1000 / seq->getNumFrames();
                         if (donePct != lastDone) {
                             lastDone = donePct;
-                            cancelled |= !prgs.Update(donePct, "Generating " + fseq, &cancelled);
+                            cancelled |= !prgs.Update(donePct, "Generating " + fseq);
                             wxYield();
                         }
 
@@ -857,6 +850,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     }
     row = 0;
     
+    
+    std::string messages;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (inst->isFPP) {
@@ -868,7 +863,23 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 inst->Restart("", true);
             }
         }
+        if (!inst->messages.empty()) {
+            messages += inst->ipAddress;
+            if (inst->hostName != "" && inst->hostName != inst->ipAddress) {
+                messages += "/";
+                messages += inst->hostName;
+            }
+            messages += ":\n";
+            for (auto &m : inst->messages) {
+                messages += "    ";
+                messages += m;
+                messages += "\n";
+            }
+        }
         row++;
+    }
+    if (messages != "") {
+        wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
     }
     prgs.Update(1001);
     prgs.Hide();
@@ -1155,29 +1166,15 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
         prgs.Pulse("Gathering configuration for " + ipAd);
         prgs.Show();
 
-        FPP *inst = new FPP(ipAd);
-        if (inst->AuthenticateAndUpdateVersions()) {
-            bool found = false;
-            for (const auto &fpp : instances) {
-                if (inst->ipAddress == fpp->ipAddress
-                    || inst->ipAddress == fpp->hostName
-                    || fpp->hostName == inst->ipAddress) {
-                    found = true;
-                }
-            }
-            if (found) {
-                delete inst;
-            } else {
-                instances.push_back(inst);
-            }
-            std::list<std::string> add;
-            add.push_back(ipAd);
-            
-            Discovery discovery(this, _outputManager);
-            FPP::PrepareDiscovery(discovery, add, false);
-            discovery.Discover();
-            FPP::MapToFPPInstances(discovery, instances, _outputManager);
-            
+        std::list<std::string> add;
+        add.push_back(ipAd);
+        
+        Discovery discovery(this, _outputManager);
+        FPP::PrepareDiscovery(discovery, add, false);
+        discovery.Discover();
+        FPP::MapToFPPInstances(discovery, instances, _outputManager);
+        
+        if (curSize < instances.size()) {
             int cur = 0;
             for (const auto &fpp : instances) {
                 if (cur >= curSize) {
@@ -1187,8 +1184,8 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
                 }
                 cur++;
             }
-            instances.sort(sortByIP);
 
+            instances.sort(sortByIP);
             //it worked, we found some new instances, record this
             wxConfigBase* config = wxConfigBase::Get();
             wxString ip;
@@ -1202,9 +1199,8 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
                 config->Flush();
             }
             PopulateFPPInstanceList();
-        } else {
-            delete inst;
         }
+
         prgs.Hide();
     }
 }

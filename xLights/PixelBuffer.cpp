@@ -2154,8 +2154,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->chromaSensitivity = settingsMap.GetInt(SLIDER_ChromaSensitivity, 1);
     inf->freezeAfterFrame = settingsMap.GetInt(SPINCTRL_FreezeEffectAtFrame, 99999);
     inf->suppressUntil = settingsMap.GetInt(SPINCTRL_SuppressEffectUntil, 0);
-    inf->chromaKeyColour.SetFromString(settingsMap.Get(COLOURPICKERCTRL_ChromaColour, "Black"));
-    inf->sparklesColour.SetFromString(settingsMap.Get(COLOURPICKERCTRL_SparklesColour, "White"));
+    inf->chromaKeyColour.SetFromString(settingsMap.Get(COLOURPICKERCTRL_ChromaColour, STR_EMPTY));
+    inf->sparklesColour.SetFromString(settingsMap.Get(COLOURPICKERCTRL_SparklesColour, "#FFFFFF"));
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
     inf->saturationadjust = settingsMap.GetInt(SLIDER_SaturationAdjust, 0);
