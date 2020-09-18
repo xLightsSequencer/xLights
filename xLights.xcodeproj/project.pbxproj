@@ -107,6 +107,7 @@
 		673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */; };
 		673CAD5622F1D02400836D87 /* BulkEditFontPickerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673CAD5422F1D02400836D87 /* BulkEditFontPickerDialog.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
+		673EB955251531F800C26CA7 /* RulerObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673EB954251531F800C26CA7 /* RulerObject.cpp */; };
 		673ED24E23E1BFE300C07472 /* meshobjects in Resources */ = {isa = PBXBuildFile; fileRef = 673ED24D23E1BFE300C07472 /* meshobjects */; };
 		673ED25323E1C27C00C07472 /* DmxSkull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673ED25123E1C27C00C07472 /* DmxSkull.cpp */; };
 		673ED25423E1C27C00C07472 /* SkullConfigDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673ED25223E1C27C00C07472 /* SkullConfigDialog.cpp */; };
@@ -753,6 +754,8 @@
 		673CAD5522F1D02400836D87 /* BulkEditFontPickerDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditFontPickerDialog.h; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
+		673EB953251531F800C26CA7 /* RulerObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RulerObject.h; sourceTree = "<group>"; };
+		673EB954251531F800C26CA7 /* RulerObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RulerObject.cpp; sourceTree = "<group>"; };
 		673ED24D23E1BFE300C07472 /* meshobjects */ = {isa = PBXFileReference; lastKnownFileType = folder; path = meshobjects; sourceTree = "<group>"; };
 		673ED24F23E1C27B00C07472 /* SkullConfigDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkullConfigDialog.h; sourceTree = "<group>"; };
 		673ED25023E1C27B00C07472 /* DmxSkull.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxSkull.h; sourceTree = "<group>"; };
@@ -1770,6 +1773,8 @@
 				67503C8423C3261F0033449B /* ObjectManager.h */,
 				67503C3E23C3261F0033449B /* PolyLineModel.cpp */,
 				67503C8523C3261F0033449B /* PolyLineModel.h */,
+				673EB954251531F800C26CA7 /* RulerObject.cpp */,
+				673EB953251531F800C26CA7 /* RulerObject.h */,
 				67503C8023C3261F0033449B /* Shapes.cpp */,
 				67503C8B23C3261F0033449B /* Shapes.h */,
 				67503C4923C3261F0033449B /* SingleLineModel.cpp */,
@@ -3356,6 +3361,7 @@
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
 				67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */,
 				67B2CFED1C3A186A003C17CA /* GarlandsEffect.cpp in Sources */,
+				673EB955251531F800C26CA7 /* RulerObject.cpp in Sources */,
 				675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */,
 				675BECE32323DA780077C764 /* EmailDialog.cpp in Sources */,
 				67503CAD23C3261F0033449B /* SpinnerModel.cpp in Sources */,

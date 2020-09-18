@@ -32,7 +32,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) = 0;
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) = 0;
 
-        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) {}
+        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
