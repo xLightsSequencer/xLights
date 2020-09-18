@@ -65,11 +65,7 @@ void OffEffect::Render(Effect* effect, SettingsMap& settings, RenderBuffer& buff
     if (settings.GetBool("CHECKBOX_Off_Transparent", false)) return;
 
     //  Every Node, every frame set to BLACK
-    for (int x = 0; x < buffer.BufferWi; x++) {
-        for (int y = 0; y < buffer.BufferHt; y++) {
-            buffer.SetPixel(x, y, xlBLACK);
-        }
-    }
+    buffer.Fill(xlBLACK);
 }
 
 std::string OffEffect::GetEffectString()

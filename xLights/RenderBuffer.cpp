@@ -1203,17 +1203,19 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
     }
 }
 
+void RenderBuffer::Fill(const xlColor& color) {
+    std::fill_n(&pixels[0], pixels.size(), color);
+}
+
+
 // 0,0 is lower left
 void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size())
-    {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size()) {
         color = pixels[pidx];
-    }
-    else
-    {
+    } else {
         color = xlBLACK;
     }
 }
@@ -1283,8 +1285,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
 
 void RenderBuffer::ClearTempBuf()
 {
-    for (size_t i = 0; i < tempbuf.size(); i++)
-    {
+    for (size_t i = 0; i < tempbuf.size(); i++) {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }

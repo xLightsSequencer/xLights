@@ -434,6 +434,7 @@ public:
     void GetTempPixel(int x, int y, xlColor &color);
     const xlColor &GetTempPixel(int x, int y);
 
+    void Fill(const xlColor& color);
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
     void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);

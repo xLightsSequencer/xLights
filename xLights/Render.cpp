@@ -1969,13 +1969,13 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
         for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); ++bufn) {
             RenderBuffer* b = &buffer.BufferForLayer(layer, bufn);
             RenderBuffer* oldBuffer = nullptr;
-            RenderBuffer rb(*b);
+            RenderBuffer *newBuffer = nullptr;
 
             // if we are suppressing then create a fake render buffer
-            if (suppress)
-            {
+            if (suppress) {
+                newBuffer = new RenderBuffer(*b);
                 oldBuffer = b;
-                b = &rb;
+                b = newBuffer;
             }
 
             if (reff == nullptr) {
@@ -2020,8 +2020,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                     // Give it one more chance
                     if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
                         retval = event->returnVal;
-                    }
-                    else {
+                    } else {
                         logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                         printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                     }
@@ -2043,10 +2042,10 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                 }
             }
 
-            if (suppress && oldBuffer != nullptr)
-            {
+            if (suppress && oldBuffer != nullptr) {
                 oldBuffer->needToInit = b->needToInit;
                 oldBuffer->infoCache = b->infoCache;
+                delete newBuffer;
             }
         }
         buffer.MergeBuffersForLayer(layer);

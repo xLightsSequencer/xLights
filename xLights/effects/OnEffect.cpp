@@ -220,16 +220,12 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
     }
 
     //Every Node set to selected color
-    for (int x=0; x<buffer.BufferWi; ++x)
-    {
-        for (int y=0; y<buffer.BufferHt; ++y)
-        {
-            if (spatialcolour)
-            {
+    if (spatialcolour) {
+        for (int x=0; x<buffer.BufferWi; ++x) {
+            for (int y=0; y<buffer.BufferHt; ++y)  {
                 buffer.palette.GetSpatialColor(cidx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
                 if (start == 100 && end == 100) {
-                }
-                else {
+                } else {
                     HSVValue hsv = color.asHSV();
                     double d = adjust;
                     d = start + (end - start) * d;
@@ -240,11 +236,12 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
                 if (transparency) {
                     color.alpha = 255 - transparency;
                 }
+                buffer.SetPixel(x,y,color);
             }
-
-            buffer.SetPixel(x,y,color);
         }
-    }
+    } else {
+        buffer.Fill(color);
+    }    
 
     if (shimmer || cycles != 1.0) {
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);

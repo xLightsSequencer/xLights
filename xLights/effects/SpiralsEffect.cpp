@@ -20,6 +20,9 @@
 #include "../../include/spirals-48.xpm"
 #include "../../include/spirals-64.xpm"
 
+
+#include "../Parallel.h"
+
 SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
 {
     //ctor
@@ -68,8 +71,7 @@ void SpiralsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_MOVEMENT_DIVISOR);
     float Rotation = GetValueCurveDouble("Spirals_Rotation", 0.0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_ROTATION_DIVISOR);
     // This is because spirals uses the slider while most others use the TextCtrl
-    if (SettingsMap.Contains("VALUECURVE_Spirals_Rotation") && wxString(SettingsMap["VALUECURVE_Spirals_Rotation"]).Contains("Active=TRUE"))
-    {
+    if (SettingsMap.Contains("VALUECURVE_Spirals_Rotation") && wxString(SettingsMap["VALUECURVE_Spirals_Rotation"]).Contains("Active=TRUE")) {
         Rotation *= 10;
     }
     int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -90,73 +92,67 @@ void SpiralsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);
     double position = buffer.GetEffectTimeIntervalPosition(std::abs(Movement));
     long ThicknessState = 0;
-    if (grow && shrink)
-    {
+    if (grow && shrink) {
         ThicknessState = position <= 0.5 ? spiralGap * (position * 2) : spiralGap * ((1 - position) * 2);
-    }
-    else if (grow)
-    {
+    } else if (grow) {
         ThicknessState = spiralGap * position;
-    }
-    else if (shrink)
-    {
+    } else if (shrink) {
         ThicknessState = spiralGap * (1.0 - position);
     }
     long SpiralState = position * buffer.BufferWi * 10 * Direction;
 
     SpiralThickness += ThicknessState;
 
-    for (int ns = 0; ns < SpiralCount; ns++)
-    {
+    for (int ns = 0; ns < SpiralCount; ns++) {
         int strand_base = ns * deltaStrands;
         int ColorIdx = ns % colorcnt;
         xlColor color;
         buffer.palette.GetColor(ColorIdx, color);
-        for (int thick = 0; thick < SpiralThickness; thick++)
-        {
+        bool isSpacial = buffer.palette.IsSpatial(ColorIdx);
+
+        std::function<void(int)> spiralF = [&](int thick) {
             int strand = (strand_base + thick) % buffer.BufferWi;
-            for (int y = 0; y < buffer.BufferHt; y++)
-            {
+            for (int y = 0; y < buffer.BufferHt; y++) {
                 int x = (int)((strand + SpiralState / 10.0 + y * Rotation / buffer.BufferHt)) % buffer.BufferWi;
                 if (x < 0) x += buffer.BufferWi;
 
-                if (buffer.palette.IsSpatial(ColorIdx))
-                {
+                if (isSpacial) {
                     buffer.palette.GetSpatialColor(ColorIdx, (float)thick / (float)SpiralThickness, (float)y / (float)buffer.BufferHt, color);
                 }
 
-                if (Blend)
-                {
+                if (Blend) {
                     buffer.GetMultiColorBlend(double(buffer.BufferHt - y - 1) / double(buffer.BufferHt), false, color);
                 }
-                if (Show3D)
-                {
+                if (Show3D) {
                     double f = 1.0;
 
-                    if (Rotation < 0)
-                    {
+                    if (Rotation < 0) {
                         f = double(thick + 1) / SpiralThickness;
-                    }
-                    else
-                    {
+                    } else {
                         f = double(SpiralThickness - thick) / SpiralThickness;
                     }
                     if (buffer.allowAlpha) {
                         xlColor c(color);
                         c.alpha = 255.0 * f;
                         buffer.SetPixel(x, y, c);
-                    }
-                    else {
+                    } else {
                         HSVValue hsv;
                         buffer.Color2HSV(color, hsv);
                         hsv.value *= f;
                         buffer.SetPixel(x, y, hsv);
                     }
-                }
-                else
-                {
+                } else {
                     buffer.SetPixel(x, y, color);
                 }
+            }
+        };
+        
+        if ((!isSpacial && !Blend) && SpiralThickness > 2) {
+            // if we aren't blending or dealing with spacial, we can use parallel
+            parallel_for(0, SpiralThickness, [&spiralF](int i) { spiralF(i); }, 1);
+        } else {
+            for (int i = 0; i < SpiralThickness; i++) {
+                spiralF(i);
             }
         }
     }

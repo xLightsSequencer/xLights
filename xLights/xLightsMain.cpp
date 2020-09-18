@@ -1700,7 +1700,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
     // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
     // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
-    int threadCount = wxThread::GetCPUCount() * 7;
+    int multiplier = (sizeof(size_t) == 8) ? 10 : 7;
+    if (GetPhysicalMemorySizeMB() > 12*1024) {
+        // if we have over 12GB of memory, creating more threads shouldn't be an issue
+        multiplier *= 2;
+    }
+    int threadCount = wxThread::GetCPUCount() * multiplier;
     if (threadCount < 20) {
         threadCount = 20;
     }
