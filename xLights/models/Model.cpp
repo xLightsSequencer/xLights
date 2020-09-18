@@ -4624,7 +4624,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
 }
 
@@ -4947,8 +4947,19 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
     return changed;
 }
 
-void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
+void Model::AddSizeLocationProperties(wxPropertyGridInterface* grid)
+{
     GetModelScreenLocation().AddSizeLocationProperties(grid);
+}
+
+void Model::AddDimensionProperties(wxPropertyGridInterface* grid)
+{
+    GetModelScreenLocation().AddDimensionProperties(grid);
+}
+
+std::string Model::GetDimension() const
+{
+    return GetModelScreenLocation().GetDimension();
 }
 
 void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname)

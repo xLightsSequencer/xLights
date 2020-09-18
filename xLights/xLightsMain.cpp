@@ -4158,7 +4158,7 @@ void xLightsFrame::ExportModels(wxString filename)
     uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
-    const std::string modelTitle = _("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
+    const std::string modelTitle = _("Model Name,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
     //int cols = wxSplit(modelTitle, ',').size();
     f.Write(modelTitle);
 
@@ -4182,7 +4182,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%lu,,%lu,,%lu,%d x %d,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,,%lu,,%lu,,%lu,%d x %d,%s\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
@@ -4228,10 +4228,11 @@ void xLightsFrame::ExportModels(wxString filename)
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i,\"%s\",%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i,\"%s\",%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
                 EscapeCSV(model->name),
                 EscapeCSV(model->description),
                 EscapeCSV(model->GetDisplayAs()),
+                model->GetDimension(),
                 model->GetStringType(),
                 model->GetNumPhysicalStrings(),
                 model->GetNodeCount(),

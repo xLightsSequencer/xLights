@@ -291,6 +291,7 @@
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="models\MeshObject.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
+    <ClCompile Include="models\RulerObject.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
@@ -706,6 +707,7 @@
     <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="models\MeshObject.h" />
     <ClInclude Include="models\ObjectManager.h" />
+    <ClInclude Include="models\RulerObject.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />

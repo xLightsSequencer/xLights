@@ -178,7 +178,7 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     }
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
 }
 

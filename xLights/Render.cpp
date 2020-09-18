@@ -307,8 +307,8 @@ public:
         if (mainBuffer != nullptr) {
             delete mainBuffer;
         }
-        for (auto a = subModelInfos.begin(); a != subModelInfos.end(); ++a) {
-            EffectLayerInfo *info = *a;
+        for (const auto& a : subModelInfos) {
+            EffectLayerInfo *info = a;
             delete info;
         }
     }
@@ -745,15 +745,15 @@ public:
                 }
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
-                    for (auto a = subModelInfos.begin(); a != subModelInfos.end(); ++a) {
-                        EffectLayerInfo *info = *a;
+                    for (const auto& a : subModelInfos) {
+                        EffectLayerInfo *info = a;
                         ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
                     }
                 }
                 if (!nodeBuffers.empty()) {
-                    for (std::map<SNPair, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); ++it) {
-                        SNPair node = it->first;
-                        PixelBufferClass *buffer = it->second.get();
+                    for (const auto& it : nodeBuffers) {
+                        SNPair node = it.first;
+                        PixelBufferClass *buffer = it.second.get();
 
                         if (buffer == nullptr)
                         {
@@ -1184,9 +1184,9 @@ public:
     }
 
     bool Overlaps(RenderTreeData &e) {
-        for (auto it = ranges.begin(); it != ranges.end(); ++it) {
-            for (auto it2 = e.ranges.begin(); it2 != e.ranges.end(); ++it2) {
-                if (it->Overlaps(*it2)) {
+        for (const auto& it : ranges) {
+            for (const auto& it2 : e.ranges) {
+                if (it.Overlaps(it2)) {
                     return true;
                 }
             }
@@ -1229,16 +1229,16 @@ public:
 };
 
 void xLightsFrame::RenderTree::Clear() {
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        delete *it;
+    for (auto it : data) {
+        delete it;
     }
     data.clear();
 }
 
 void xLightsFrame::RenderTree::Add(Model *el) {
     RenderTreeData *elData = new RenderTreeData(el);
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        RenderTreeData *elData2 = *it;
+    for (const auto& it : data) {
+        RenderTreeData *elData2 = it;
         if (elData2->Overlaps(*elData)) {
             elData->Add(elData2->model);
             elData2->Add(el);
@@ -1251,12 +1251,12 @@ void xLightsFrame::RenderTree::Add(Model *el) {
 void xLightsFrame::RenderTree::Print() {
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
     logger_render.debug("========== RENDER TREE");
-    for (auto it = data.begin(); it != data.end(); ++it) {
+    for (const auto& it : data) {
         //printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
-        logger_render.debug("   %s:   (%d)", (const char *)(*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
-        for (auto it2 = (*it)->renderOrder.begin(); it2 != (*it)->renderOrder.end(); ++it2) {
-            //printf("    %s     \n", (*it2)->GetName().c_str());
-            logger_render.debug("        %s", (const char *)(*it2)->GetName().c_str());
+        logger_render.debug("   %s:   (%d)", (const char *)it->model->GetName().c_str(), (int)it->ranges.size());
+        for (const auto& it2 : it->renderOrder) {
+            //printf("    %s     \n", it2->GetName().c_str());
+            logger_render.debug("        %s", (const char *)it2->GetName().c_str());
         }
     }
     logger_render.debug("========== END RENDER TREE");
@@ -1304,8 +1304,8 @@ void xLightsFrame::Render(const std::list<Model*> models,
     if (restrictToModels.empty()) {
         ranges.push_back(NodeRange(0, SeqData.NumChannels()));
     } else {
-        for (auto it = restrictToModels.begin(); it != restrictToModels.end(); ++it) {
-            RenderTreeData data(*it);
+        for (const auto& it : restrictToModels) {
+            RenderTreeData data(it);
             ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
         }
         RenderTreeData::sortRanges(ranges);
@@ -1360,8 +1360,8 @@ void xLightsFrame::Render(const std::list<Model*> models,
                         for (int c = 0; c < cn; ++c) {
                             int cnum = start + c;
                             if (cnum < SeqData.NumChannels()) {
-                                for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); ++i) {
-                                    int idx = *i;
+                                for (const auto i : channelMaps[cnum]) {
+                                    int idx = i;
                                     if (idx != row) {
                                         if (jobs[idx]->addNext(aggregators[row])) {
                                             aggregators[row]->incNumAggregated();
@@ -1387,8 +1387,8 @@ void xLightsFrame::Render(const std::list<Model*> models,
     unsigned int count = 0;
     if (clear) {
         for (int f = startFrame; f <= endFrame; f++) {
-            for (auto it = ranges.begin(); it != ranges.end(); ++it) {
-                SeqData[f].Zero(it->start, it->end - it->start + 1);
+            for (const auto& it : ranges) {
+                SeqData[f].Zero(it.start, it.end - it.start + 1);
             }
         }
     }
@@ -1602,8 +1602,8 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
         return;
     }
     std::list<Model *> models;
-    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
-        models.push_back((*it)->model);
+    for (const auto& it : renderTree.data) {
+        models.push_back(it->model);
     }
     for (auto it : renderProgressInfo) {
         //we're going to render EVERYTHING, abort whatever is rendering

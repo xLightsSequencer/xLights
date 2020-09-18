@@ -32,6 +32,8 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual bool SupportsXlightsModel() override { return true; }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual std::string GetDimension() const override;
+        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;

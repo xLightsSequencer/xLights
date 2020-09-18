@@ -196,6 +196,24 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     return Model::OnPropertyGridChange(grid, event);
 }
 
+std::string CandyCaneModel::GetDimension() const
+{
+    if (parm1 != 0) {
+        return GetModelScreenLocation().GetDimension(3.0 / parm1);
+    }
+    return GetModelScreenLocation().GetDimension(1.0);
+}
+
+void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
+{
+    if (parm1 != 0) {
+        GetModelScreenLocation().AddDimensionProperties(grid, 3.0 / parm1);
+    }
+    else {
+        GetModelScreenLocation().AddDimensionProperties(grid, 1.0);
+    }
+}
+
 void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;

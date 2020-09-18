@@ -24,8 +24,13 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
-    void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {}
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
+    virtual std::string GetDimension() const override
+    {
+        return "";
+    }
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased=false) override;
     void UpdateXmlWithScale() override;

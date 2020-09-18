@@ -621,6 +621,24 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
     }
 }
 
+std::string ArchesModel::GetDimension() const
+{
+    if (GetLayerSizeCount() == 0 && parm1 != 0)         {
+        return GetModelScreenLocation().GetDimension(1.0 / parm1);
+    }
+    return GetModelScreenLocation().GetDimension(1.0);
+}
+
+void ArchesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
+{
+    if (GetLayerSizeCount() == 0 && parm1 != 0) {
+        GetModelScreenLocation().AddDimensionProperties(grid, 1.0 / parm1);
+    }
+    else {
+        GetModelScreenLocation().AddDimensionProperties(grid, 1.0);
+    }
+}
+
 void ArchesModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes

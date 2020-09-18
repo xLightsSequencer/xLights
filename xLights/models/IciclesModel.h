@@ -22,6 +22,8 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool SupportsExportAsCustom() const override { return true; }
     virtual bool SupportsWiringView() const override { return true; }
+    virtual std::string GetDimension() const override;
+    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 
 protected:
     virtual void InitModel() override;

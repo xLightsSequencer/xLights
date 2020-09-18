@@ -13,6 +13,7 @@
 
 #include "ViewObjectManager.h"
 #include "GridlinesObject.h"
+#include "RulerObject.h"
 #include "ImageObject.h"
 #include "MeshObject.h"
 #include "xLightsMain.h"
@@ -54,6 +55,9 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
+    }
+    else if (type == "Ruler") {
+        view_object = new RulerObject(node, *this);
     } else if (type == "Image") {
         view_object = new ImageObject(node, *this);
     } else if (type == "Mesh") {
@@ -72,6 +76,9 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     ViewObject *view_object = nullptr;
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
+    }
+    else if (type == "Ruler") {
+        view_object = new RulerObject(node, *this);
     }
     else if (type == "Image") {
         view_object = new ImageObject(node, *this);

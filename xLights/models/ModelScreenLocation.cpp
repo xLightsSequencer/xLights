@@ -25,6 +25,7 @@
 #include "UtilFunctions.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include "RulerObject.h"
 
 #include <log4cpp/Category.hh>
 
@@ -165,7 +166,7 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 }
 
-glm::vec3 ModelScreenLocation::GetHandlePosition(int handle)
+glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
 {
     if (handle < 0 || handle >= mHandlePosition.size()) return glm::vec3(0, 0, 0);
     return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
@@ -683,9 +684,9 @@ bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direct
 void ModelScreenLocation::UpdateBoundingBox(float width, float height, float depth)
 {
     // scale the bounding box for selection logic
-    aabb_max.x = width / 2.0f * scalex;
-    aabb_max.y = height / 2.0f * scaley;
-    aabb_max.z = depth / 2.0f * scalez;
+    aabb_max.x = (width * scalex) / 2.0f;
+    aabb_max.y = (height * scaley) / 2.0f;
+    aabb_max.z = (depth * scalez) / 2.0f;
     aabb_min.x = -aabb_max.x;
     aabb_min.y = -aabb_max.y;
     aabb_min.z = -aabb_max.z;
@@ -703,7 +704,6 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height, float dep
         aabb_max.z += 5;
         aabb_min.z -= 5;
     }
-
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
@@ -1111,7 +1111,7 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     }
 }
 
-void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
+void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding) const {
     va.PreAlloc(32 * 5);
 
     float sz1 = RenderDp / 2;
@@ -1343,6 +1343,35 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     va.AddVertex(w1, h1, xlWHITE);
     va.AddVertex(sx, sy, xlWHITE);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+}
+
+void BoxedScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
+{
+    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Width", "RealWidth", RulerObject::MeasureDescription(GetMWidth())));
+    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    prop = propertyEditor->Append(new wxStringProperty("Height", "RealHeight", RulerObject::MeasureDescription(GetMHeight())));
+    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    if (supportsZScaling) {
+        prop = propertyEditor->Append(new wxStringProperty("Depth", "RealDepth", RulerObject::MeasureDescription(GetMDepth())));
+        prop->ChangeFlag(wxPG_PROP_READONLY, true);
+        prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    }
+}
+
+std::string BoxedScreenLocation::GetDimension(float factor) const
+{
+    if (RulerObject::GetRuler() == nullptr) return "";
+    if (supportsZScaling) {
+        return wxString::Format("Width %s Height %s Depth %s",
+            RulerObject::MeasureDescription(GetMWidth()),
+            RulerObject::MeasureDescription(GetMHeight()),
+            RulerObject::MeasureDescription(GetMDepth())).ToStdString();
+    }
+    return wxString::Format("Width %s Height %s",
+        RulerObject::MeasureDescription(GetMWidth()),
+        RulerObject::MeasureDescription(GetMHeight())).ToStdString();
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
@@ -1765,7 +1794,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return 0;
 }
 
-glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview)
+glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
                                                     preview->getHeight(),
@@ -2140,7 +2169,7 @@ void TwoPointScreenLocation::AdvanceAxisTool()
     axis_tool %= (NUM_TOOLS-1);
 }
 
-void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
+void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding) const {
     va.PreAlloc(10);
 
     if (active_handle != NO_HANDLE) {
@@ -2228,7 +2257,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float 
             }
         }
     }
-    else {
+    else if (drawBounding) {
         // the bounding box is so close to a single line don't draw it once it's selected
         xlColor Box3dColor = xlWHITETRANSLUCENT;
         if (_locked) Box3dColor = xlREDTRANSLUCENT;
@@ -2592,6 +2621,18 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
     return wxCURSOR_SIZING;
 }
 
+void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
+{
+    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Length", "RealLength", RulerObject::MeasureLengthDescription(origin, point2)));
+    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+}
+
+std::string TwoPointScreenLocation::GetDimension(float factor) const
+{
+    if (RulerObject::GetRuler() == nullptr) return "";
+    return wxString::Format("Length %s", RulerObject::MeasureLengthDescription(origin, point2)).ToStdString();
+}
 
 void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
@@ -2790,6 +2831,91 @@ void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angl
     }
 }
 
+void TwoPointScreenLocation::DrawBoundingBox(DrawGLUtils::xl3Accumulator& va) const
+{
+    // draws a bounding box around a two point screen location
+    // used by ruler object
+
+    xlColor colour = xlWHITETRANSLUCENT;
+    if (_locked) {
+        colour = xlREDTRANSLUCENT;
+    }
+
+    glm::vec3 start = origin - glm::vec3(5, 5, 5);
+    glm::vec3 end = point2 + glm::vec3(5, 5, 5);
+
+    if (abs(start.x) < 4) {
+        start.x = -5;
+    }
+    if (abs(start.y) < 4) {
+        start.y = 5;
+    }
+    if (abs(start.z) < 4) {
+        start.z = 5;
+    }
+
+    if (abs(end.x) < 4) {
+        end.x = 5;
+    }
+    if (abs(end.y) < 4) {
+        end.y = 5;
+    }
+    if (abs(end.z) < 4) {
+        end.z = 5;
+    }
+
+    glm::mat4 mat;
+    mat[0] = glm::vec4(1, 0, 0, 0);
+    mat[1] = glm::vec4(0, 1, 0, 0);
+    mat[2] = glm::vec4(0, 0, 1, 0);
+    mat[3] = glm::vec4(0, 0, 0, 1);
+    DrawGLUtils::DrawBoundingBox(colour, start, end, mat, va);
+}
+
+void TwoPointScreenLocation::UpdateBoundingBox()
+{
+    glm::vec3 start = origin - glm::vec3(5, 5, 5);
+    glm::vec3 end = point2 + glm::vec3(5, 5, 5);
+
+    if (abs(start.x) < 4) {
+        start.x = -5;
+    }
+    if (abs(start.y) < 4) {
+        start.y = 5;
+    }
+    if (abs(start.z) < 4) {
+        start.z = 5;
+    }
+
+    if (abs(end.x) < 4) {
+        end.x = 5;
+    }
+    if (abs(end.y) < 4) {
+        end.y = 5;
+    }
+    if (abs(end.z) < 4) {
+        end.z = 5;
+    }
+
+    start = start - origin;
+    end = end - origin;
+
+    glm::vec4 c1(std::min(start.x, end.x), std::min(start.y, end.y), std::min(start.z, end.z), 1.0f);
+    glm::vec4 c2(std::max(end.x, start.x), std::max(end.y, start.y), std::max(end.z, start.z), 1.0f);
+
+    glm::mat4 mat;
+    mat[0] = glm::vec4(1, 0, 0, 0);
+    mat[1] = glm::vec4(0, 1, 0, 0);
+    mat[2] = glm::vec4(0, 0, 1, 0);
+    mat[3] = glm::vec4(0, 0, 0, 1);
+
+    c1 = mat * c1;
+    c2 = mat * c2;
+
+    aabb_min = glm::vec3(c1.x, c1.y, c1.z);
+    aabb_max = glm::vec3(c2.x, c2.y, c2.z);
+}
+
 bool TwoPointScreenLocation::Rotate(int axis, float factor) {
     if (_locked) return false;
     glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -2851,7 +2977,7 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
 }
 
-glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview)
+glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
         preview->getHeight(),
@@ -3084,6 +3210,25 @@ void ThreePointScreenLocation::Write(wxXmlNode *node) {
     }
 }
 
+void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
+{
+    TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
+    float width = RulerObject::Measure(origin, point2);
+    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Height", "RealHeight", 
+                                                                     RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)
+                                                                    ));
+    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+}
+
+std::string ThreePointScreenLocation::GetDimension(float factor) const
+{
+    if (RulerObject::GetRuler() == nullptr) return "";
+    float width = RulerObject::Measure(origin, point2);
+    return wxString::Format("Length %s Height %s", RulerObject::MeasureLengthDescription(origin, point2), 
+        RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)).ToStdString();
+}
+
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
     wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));
@@ -3304,7 +3449,7 @@ void ThreePointScreenLocation::SetActiveAxis(int axis)
     }
 }
 
-void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
+void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding) const {
 
     if (active_handle != -1) {
 
@@ -4494,7 +4639,7 @@ void PolyPointScreenLocation::SetActiveAxis(int axis)
    ModelScreenLocation::SetActiveAxis(axis);
 }
 
-void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
+void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding) const {
     std::unique_lock<std::mutex> locker(_mutex);
 
     if (active_handle != NO_HANDLE || mouse_down) {
@@ -4683,7 +4828,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
             }
         }
     }
-    else {
+    else if (drawBounding) {
         // draw bounding box for each segment if model is highlighted
         xlColor Box3dColor = xlWHITETRANSLUCENT;
         if (_locked) Box3dColor = xlREDTRANSLUCENT;
@@ -5419,7 +5564,33 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     return wxCURSOR_SIZING;
 }
 
+void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
+{
+    float len = 0;
+    auto last = mPos[0].AsVector();
+    for (int i = 1; i < mPos.size(); i++) {
+        len += RulerObject::Measure(last, mPos[i].AsVector());
+        last = mPos[i].AsVector();
+    }
+    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Length", "RealLength", RulerObject::PrescaledMeasureDescription(len)));
+    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+}
+
+std::string PolyPointScreenLocation::GetDimension(float factor) const
+{
+    if (RulerObject::GetRuler() == nullptr) return "";
+    float len = 0;
+    auto last = mPos[0].AsVector();
+    for (int i = 1; i < mPos.size(); i++) {
+        len += RulerObject::Measure(last, mPos[i].AsVector());
+        last = mPos[i].AsVector();
+    }
+    return wxString::Format("Length %s", RulerObject::PrescaledMeasureDescription(len)).ToStdString();
+}
+
 void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
+
     wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
     prop->SetAttribute("UseCheckbox", 1);
     prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x + worldPos_x));
@@ -5615,7 +5786,7 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
     }
 }
 
-glm::vec2 PolyPointScreenLocation::GetScreenOffset(ModelPreview* preview)
+glm::vec2 PolyPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
 {
     float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
     float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;

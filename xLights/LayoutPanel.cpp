@@ -48,6 +48,7 @@
 #include "models/PolyLineModel.h"
 #include "models/ModelGroup.h"
 #include "models/ViewObject.h"
+#include "models/RulerObject.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
@@ -183,6 +184,7 @@ const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
@@ -202,7 +204,6 @@ const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 #else
 #define PlatformHandleSelectionChanged()
 #endif
-
 
 class ModelTreeData : public wxTreeItemData {
 public:
@@ -302,7 +303,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     background = nullptr;
     _firstTreeLoad = true;
     _lastXlightsModel = "";
-    appearanceVisible = sizeVisible = stringPropsVisible = false;
+    appearanceVisible = sizeVisible = dimensionsVisible = stringPropsVisible = false;
     controllerConnectionVisible = true;
 
 	//(*Initialize(LayoutPanel)
@@ -1081,6 +1082,10 @@ void LayoutPanel::clearPropGrid() {
     p = propertyEditor->GetPropertyByName("ModelSize");
     if (p != nullptr) {
         sizeVisible = propertyEditor->IsPropertyExpanded(p);
+    }
+    p = propertyEditor->GetPropertyByName("Dimensions");
+    if (p != nullptr) {
+        dimensionsVisible = propertyEditor->IsPropertyExpanded(p);
     }
     p = propertyEditor->GetPropertyByName("ModelStringProperties");
     if (p != nullptr) {
@@ -2123,7 +2128,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
     // process all models
     for (const auto& m : modelPreview->GetModels()) {
-        if (!xlights->AllModels.IsModelValid(m)) {
+        if (!xlights->AllModels.IsModelValid(m) && m != _newModel) {
             logger_base.error("Really strange ... unselect all models returned an invalid model pointer");
         }
         else {
@@ -2287,8 +2292,23 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     }
 
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
-        wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
 
+        wxPGProperty* p2;
+
+        if (RulerObject::GetRuler() != nullptr) {
+            p2 = propertyEditor->Append(new wxPropertyCategory("Dimensions", "Dimensions"));
+
+            base_object->AddDimensionProperties(propertyEditor);
+            if (!dimensionsVisible) {
+                propertyEditor->Collapse(p2);
+            }
+
+            if (p2->GetChildCount() == 0) {
+                p2->Hide(true);
+            }
+        }
+
+        p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
         base_object->AddSizeLocationProperties(propertyEditor);
         if (!sizeVisible) {
             propertyEditor->Collapse(p2);
@@ -2895,7 +2915,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         // this is designed to pretend the control and shift keys are down when creating models to
                         // make them scale from the desired handle depending on model type
                         auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
-                        xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
+                        xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                         m_moving_handle = true;
                         m_mouse_down = true;
@@ -2981,7 +3001,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
             lastModelName = _newModel->name;
             modelPreview->SetAdditionalModel(_newModel);
         }
@@ -3694,7 +3714,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
                 auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
-                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                 //SetupPropGrid(selectedBaseObject);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
                 // dont need these until released
@@ -3858,7 +3878,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             auto pos = obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, obj->GetDimension()));
             //SetupPropGrid(obj);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
             // dont need these until model is finished moving
@@ -5444,6 +5464,9 @@ void LayoutPanel::DisplayAddObjectPopup() {
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
+    if (RulerObject::GetRuler() == nullptr) {
+        AddObjectButton(mnuObjects, ID_ADD_OBJECT_RULER, "Ruler", add_object_ruler_xpm);
+    }
     mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddObjectPopup, nullptr, this);
     PopupMenu(&mnuObjects);
 }
@@ -5469,6 +5492,17 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    }
+    else if (id == ID_ADD_OBJECT_RULER) {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_RULER");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Ruler");
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
+        vobj->GetObjectScreenLocation().SetVcenterPos(100);
+        vobj->GetObjectScreenLocation().SetLeft(-50);
+        vobj->GetObjectScreenLocation().SetMWidth(100);
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -7788,6 +7822,13 @@ void LayoutPanel::HandleSelectionChanged() {
         showBackgroundProperties();
         SetToolTipForTreeList(TreeListViewModels, "");
     }
+
+    if (selectedBaseObject != nullptr) {
+        auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+        if (Is3d()) {
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+        }
+    }
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
@@ -8103,6 +8144,8 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 
 bool LayoutPanel::IsNewModel(Model* m) const
 {
-    if (m == nullptr) return false;
+    // if nullptr is passed then it is true if the new model pointer is valid
+    if (m == nullptr) return _newModel != nullptr;
+
     return m == _newModel;
 }

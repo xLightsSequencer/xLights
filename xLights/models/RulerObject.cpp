@@ -1,0 +1,215 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+
+#include "RulerObject.h"
+#include "DrawGLUtils.h"
+#include "ModelPreview.h"
+#include "Model.h"
+#include "../DrawGLUtils.h"
+
+RulerObject* RulerObject::__rulerObject = nullptr;
+
+RulerObject::RulerObject(wxXmlNode *node, const ViewObjectManager &manager)
+ : ObjectWithScreenLocation(manager)
+{
+	__rulerObject = this;
+    SetFromXml(node);
+}
+
+RulerObject::~RulerObject()
+{
+	__rulerObject = nullptr;
+}
+
+void RulerObject::InitModel() {
+    if (ModelXml->HasAttribute("Units")) {
+        _units = wxAtoi(ModelXml->GetAttribute("Units"));
+    }
+    if (ModelXml->HasAttribute("Length")) {
+        _realLength = wxAtof(ModelXml->GetAttribute("Length"));
+    }
+    auto start = screenLocation.GetPoint1();
+    auto end = screenLocation.GetPoint2();
+    //screenLocation.SetRenderSize(1.0, 1.0, 1.0);
+    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));  // FIXME: Modify to only call this when position changes
+}
+
+static const char *UNITS_VALUES[] = {
+    "Meters", "Centimeters", "Millimeters", "Yards", "Feet",
+    "Inches"};
+static wxArrayString RULER_UNITS(6, UNITS_VALUES);
+
+void RulerObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+
+	wxPGProperty* p = grid->Append(new wxEnumProperty("Units", "Units", RULER_UNITS, wxArrayInt(), _units));
+
+    p = grid->Append(new wxFloatProperty("Real Length", "Length", _realLength));
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.5);
+    p->SetAttribute("Min", 0.01);
+    p->SetEditor("SpinCtrl");
+}
+
+int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("Units" == event.GetPropertyName()) {
+        _units = (int)event.GetPropertyValue().GetLong();
+        ModelXml->DeleteAttribute("Units");
+        ModelXml->AddAttribute("Units", wxString::Format("%d", _units));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "RulerObject::OnPropertyGridChange::Units");
+        return 0;
+    }
+    else if ("Length" == event.GetPropertyName()) {
+        _realLength = event.GetPropertyValue().GetDouble();
+        if (_realLength < 0.01) _realLength = 0.01f;
+        ModelXml->DeleteAttribute("Length");
+        ModelXml->AddAttribute("Length", wxString::Format("%f", _realLength));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
+        return 0;
+    }
+
+    return ViewObject::OnPropertyGridChange(grid, event);
+}
+
+void RulerObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
+{
+    if (!IsActive()) { return; }
+
+    GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+
+	xlColor colour = xlColor(255,0,255);
+
+    auto start = screenLocation.GetPoint1();
+    auto end = screenLocation.GetPoint2();
+    
+    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));  
+
+    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+    tva3.AddVertex(start.x, start.y, start.z, colour);
+    tva3.AddVertex(end.x, end.y, end.z, colour);
+    tva3.Finish(GL_LINES, GL_LINE_SMOOTH, 3.0f);
+
+    GetObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0, 1.0, 1.0));
+    //GetObjectScreenLocation().UpdateBoundingBox(10,10,10);
+    static_cast<TwoPointScreenLocation&>(screenLocation).UpdateBoundingBox();
+
+    if ((Selected || Highlighted) && allowSelected) {
+        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), false);
+        // THis is dodgy. The UpdateBoundingBox call actually creates a box which does not really encompass the line
+        // so i cheat and draw one that does here ... but that is not how it behaves. Need some help from Gil here.
+        static_cast<TwoPointScreenLocation>(screenLocation).DrawBoundingBox(tva3);
+    }
+}
+
+std::string RulerObject::GetUnitDescription()
+{
+	if (__rulerObject == nullptr) return "m";
+	switch(__rulerObject->_units)
+	{
+		case RULER_UNITS_INCHES: return "in";
+		case RULER_UNITS_FEET: return "ft";
+        case RULER_UNITS_YARDS: return "yds";
+        case RULER_UNITS_MM: return "mm";
+        case RULER_UNITS_CM: return "cm";
+        case RULER_UNITS_M: return "m";
+	}
+	return "m";
+}
+
+float RulerObject::Measure(float length)
+{
+    if (__rulerObject == nullptr) return 0.0;
+    return length * __rulerObject->GetPerUnit();
+}
+
+float RulerObject::Measure(glm::vec3 p1, glm::vec3 p2)
+{
+	if (__rulerObject == nullptr) return 0.0;
+	float res = std::sqrt(
+						(p2.x - p1.x) * (p2.x - p1.x) +
+						(p2.y - p1.y) * (p2.y - p1.y) +
+						(p2.z - p1.z) * (p2.z - p1.z)
+					) * __rulerObject->GetPerUnit();
+    return res;
+}
+
+float RulerObject::MeasureWidth(glm::vec3 p1, glm::vec3 p2)
+{
+	if (__rulerObject == nullptr) return 0.0;
+	return std::abs(p2.x - p1.x) * __rulerObject->GetPerUnit();
+}
+
+float RulerObject::MeasureHeight(glm::vec3 p1, glm::vec3 p2)
+{
+	if (__rulerObject == nullptr) return 0.0;
+	return std::abs(p2.y - p1.y) * __rulerObject->GetPerUnit();
+}
+
+float RulerObject::MeasureDepth(glm::vec3 p1, glm::vec3 p2)
+{
+	if (__rulerObject == nullptr) return 0.0;
+	return std::abs(p2.z - p1.z) * __rulerObject->GetPerUnit();
+}
+
+std::string RulerObject::MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", Measure(p1,p2), GetUnitDescription()).ToStdString();
+}
+
+std::string RulerObject::MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", MeasureWidth(p1,p2), GetUnitDescription()).ToStdString();
+}
+
+std::string RulerObject::MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", MeasureHeight(p1,p2), GetUnitDescription()).ToStdString();
+}
+
+std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", MeasureDepth(p1,p2), GetUnitDescription()).ToStdString();
+}
+
+float RulerObject::GetPerUnit() const
+{
+    auto p1 = static_cast<TwoPointScreenLocation>(screenLocation).GetPoint1();
+    auto p2 = static_cast<TwoPointScreenLocation>(screenLocation).GetPoint2();
+
+    float den = std::sqrt(
+        (p2.x - p1.x) * (p2.x - p1.x) +
+        (p2.y - p1.y) * (p2.y - p1.y) +
+        (p2.z - p1.z) * (p2.z - p1.z)
+    );
+
+    if (den == 0) return 1;
+    if (_realLength == 0) return 1;
+
+    return _realLength / den;
+}
+
+std::string RulerObject::MeasureDescription(float length)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", Measure(length), GetUnitDescription()).ToStdString();
+}
+
+std::string RulerObject::PrescaledMeasureDescription(float length)
+{
+    if (__rulerObject == nullptr) return "";
+    return wxString::Format("%0.02f%s", length, GetUnitDescription()).ToStdString();
+}

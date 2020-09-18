@@ -162,10 +162,12 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
     virtual void OnPropertyGridChanging(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
     virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) { return 0; };
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
+    virtual std::string GetDimension() const override;
     /**
      * Returns a combination of:
      *     0x0001  -  Refresh displays

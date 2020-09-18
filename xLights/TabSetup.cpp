@@ -1077,13 +1077,18 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RELOAD_MODELLIST) {
-        logger_work.debug("    WORK_RELOAD_MODELLIST.");
 
-        // reload the models list on the layout panel
-        //layoutPanel->refreshModelList();
-
-        // need to reload the modelPreview model lists or bad things will happen
-        layoutPanel->ReloadModelList();
+        // if we are drawing a new model
+        if (layoutPanel->IsNewModel(nullptr)) {
+            logger_work.debug("    WORK_RELOAD_MODELLIST - model being added.");
+            // reload the models list on the layout panel
+            layoutPanel->refreshModelList();
+        }
+        else {
+            logger_work.debug("    WORK_RELOAD_MODELLIST - model NOT being added.");
+            // need to reload the modelPreview model lists or bad things will happen
+            layoutPanel->ReloadModelList();
+        }
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |

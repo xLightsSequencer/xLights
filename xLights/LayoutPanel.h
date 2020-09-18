@@ -194,6 +194,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS;
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
+        static const long ID_ADD_OBJECT_RULER;
         static const long ID_ADD_OBJECT_MESH;
         static const long ID_ADD_DMX_MOVING_HEAD;
         static const long ID_ADD_DMX_MOVING_HEAD_3D;
@@ -400,11 +401,12 @@ class LayoutPanel: public wxPanel
         glm::vec3 last_worldscale;
 
         void clearPropGrid();
-        bool stringPropsVisible;
-        bool controllerConnectionVisible;
-        bool appearanceVisible;
-        bool sizeVisible;
-        bool colSizesSet;
+        bool stringPropsVisible = false;
+        bool controllerConnectionVisible = true;
+        bool appearanceVisible = false;
+        bool sizeVisible = false;
+        bool dimensionsVisible = false;
+        bool colSizesSet = false;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton = nullptr;
         NewModelBitmapButton *obj_button = nullptr;

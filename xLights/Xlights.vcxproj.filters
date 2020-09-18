@@ -833,6 +833,9 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="Discovery.cpp" />
+    <ClCompile Include="models\RulerObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1673,6 +1676,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="Discovery.h" />
+    <ClInclude Include="models\RulerObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -34,9 +34,11 @@ public:
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) = 0;
+    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) = 0;
     virtual void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) {}
     virtual void HandlePropertyGridContextMenu(wxCommandEvent& event) {}
+    virtual std::string GetDimension() const = 0;
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;

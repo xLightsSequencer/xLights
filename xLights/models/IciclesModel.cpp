@@ -186,3 +186,15 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     }
     return Model::OnPropertyGridChange(grid, event);
 }
+
+std::string IciclesModel::GetDimension() const
+{
+    // the height does not make sense for icicles
+    return static_cast<TwoPointScreenLocation>(screenLocation).GetDimension(1.0);
+}
+
+void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
+{
+    // the height does not make sense for icicles
+    static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
+}
