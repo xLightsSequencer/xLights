@@ -80,6 +80,8 @@ void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+	int xcc = GetValueCurveInt("Ripple_XC", 0, SettingsMap, oset, RIPPLE_XC_MIN, RIPPLE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+	int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int Object_To_Draw;
     if (Object_To_DrawStr == "Circle")
@@ -141,8 +143,8 @@ void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the row> value is 0.0 to 1.0
     
     float rx = position;
-    xc = buffer.BufferWi/2;
-    yc = buffer.BufferHt/2;
+    xc = buffer.BufferWi/2 + xcc * (buffer.BufferWi / 2) / 100;
+    yc = buffer.BufferHt/2 + ycc * (buffer.BufferHt / 2) / 100;
     
     ColorIdx=static_cast<int>(rx * colorcnt);
     if(ColorIdx==colorcnt) ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true

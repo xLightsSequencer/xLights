@@ -23,6 +23,12 @@
 #define RIPPLE_ROTATION_MIN 0
 #define RIPPLE_ROTATION_MAX 360
 
+#define RIPPLE_XC_MIN -100
+#define RIPPLE_XC_MAX 100
+
+#define RIPPLE_YC_MIN -100
+#define RIPPLE_YC_MAX 100
+
 class RippleEffect : public RenderableEffect
 {
     public:

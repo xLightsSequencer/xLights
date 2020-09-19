@@ -40,14 +40,22 @@ class RipplePanel: public wxPanel
 		BulkEditSlider* Slider_Ripple_Points;
 		BulkEditSlider* Slider_Ripple_Rotation;
 		BulkEditSlider* Slider_Ripple_Thickness;
+		BulkEditSlider* Slider_Ripple_XC;
+		BulkEditSlider* Slider_Ripple_YC;
 		BulkEditSliderF1* Slider_Ripple_Cycles;
 		BulkEditTextCtrl* TextCtrl_Ripple_Points;
 		BulkEditTextCtrl* TextCtrl_Ripple_Rotation;
+		BulkEditTextCtrl* TextCtrl_Ripple_XC;
+		BulkEditTextCtrl* TextCtrl_Ripple_YC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_CyclesVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_RotationVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
+		BulkEditValueCurveButton* BitmapButton_Ripple_XCVC;
+		BulkEditValueCurveButton* BitmapButton_Ripple_YCVC;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText69;
 		wxStaticText* StaticText70;
 		wxStaticText* StaticText72;
@@ -87,6 +95,14 @@ class RipplePanel: public wxPanel
 		static const long ID_VALUECURVE_Ripple_Rotation;
 		static const long IDD_TEXTCTRL_Ripple_Rotation;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Rotation;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_Ripple_XC;
+		static const long ID_VALUECURVE_Ripple_XC;
+		static const long IDD_TEXTCTRL_Ripple_XC;
+		static const long ID_STATICTEXT3;
+		static const long ID_SLIDER_Ripple_YC;
+		static const long ID_VALUECURVE_Ripple_YC;
+		static const long IDD_TEXTCTRL_Ripple_YC;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Ripple3D;
 		//*)
