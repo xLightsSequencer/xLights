@@ -162,6 +162,41 @@ public:
     }
 };
 
+class ColourText2DropTarget : public wxTextDropTarget
+{
+public:
+    ColourText2DropTarget(BulkEditColourPickerCtrl* owner) { _owner = owner; };
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    BulkEditColourPickerCtrl* _owner;
+};
+
+wxDragResult ColourText2DropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (_owner->IsEnabled()) {
+        _owner->SetFocus();
+        return wxDragCopy;
+    }
+    return wxDragNone;
+}
+
+bool ColourText2DropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (data == "") return false;
+
+    if (!_owner->IsEnabled()) return false;
+
+    if (ColorCurve::IsColorCurve(data)) {
+        wxMessageBox("You cannot drag a colour curve onto this colour picker.");
+    }
+    else {
+        _owner->SetColour(data);
+    }
+    return true;
+}
+
 class ColourTextDropTarget : public wxTextDropTarget
 {
 public:
@@ -416,6 +451,9 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     BitmapButton_Color_HueAdjust->GetValue()->SetLimits(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
     BitmapButton_Color_SaturationAdjust->GetValue()->SetLimits(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
     BitmapButton_Color_ValueAdjust->GetValue()->SetLimits(COLORPANEL_VALUE_MIN, COLORPANEL_VALUE_MAX);
+
+    ColourPickerCtrl_ChromaColour->SetDropTarget(new ColourText2DropTarget(ColourPickerCtrl_ChromaColour));
+    ColourPickerCtrl_SparklesColour->SetDropTarget(new ColourText2DropTarget(ColourPickerCtrl_SparklesColour));
 
     FlexGridSizer_Palette->SetCols(PALETTE_SIZE);
     for (int x = 0; x < PALETTE_SIZE; x++) {
