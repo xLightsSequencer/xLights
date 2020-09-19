@@ -1089,7 +1089,6 @@ bool IsEmailValid(const std::string& email)
     }
     else
     {
-        //static wxRegEx regxEmail("^[a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]+@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9-\\.]*$");
         static wxRegEx regxEmail("^([a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]*@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9\\=\\.]+)$");
 
         if (regxEmail.Matches(e))
