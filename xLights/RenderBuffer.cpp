@@ -188,7 +188,7 @@ AudioManager* RenderBuffer::GetMedia() const
 Model* RenderBuffer::GetModel() const
 {
     // this only returns a model or model group
-    if (cur_model.find("/") == std::string::npos) {
+    if (cur_model.find("/") != std::string::npos) {
         return nullptr;
     }
     return frame->AllModels[cur_model];
