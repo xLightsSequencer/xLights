@@ -51,6 +51,7 @@ class TimingPanel: public wxPanel
 		//(*Declarations(TimingPanel)
 		BulkEditCheckBox* CheckBox_Canvas;
 		BulkEditCheckBox* CheckBox_In_Reverse;
+		BulkEditCheckBox* CheckBox_LayerMorph;
 		BulkEditCheckBox* CheckBox_Out_Reverse;
 		BulkEditChoice* Choice_In_Transition_Type;
 		BulkEditChoice* Choice_LayerMethod;
@@ -69,7 +70,6 @@ class TimingPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Out_Transition_Adjust;
 		wxButton* Button_About_Layers;
 		wxButton* Button_Layers;
-		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxNotebook* Notebook1;
 		wxPanel* Panel_Sizer;

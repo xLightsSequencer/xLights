@@ -122,7 +122,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SpinCtrl_FreezeEffectAtFrame->SetValue(_T("99999"));
 	FlexGridSizer2->Add(SpinCtrl_FreezeEffectAtFrame, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
+	CheckBox_LayerMorph = new BulkEditCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
 	FlexGridSizer2->Add(CheckBox_LayerMorph, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -311,10 +311,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_VALUECURVE_Out_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
-
-    // Turn off bulk edit for this setting
-    Slider_EffectLayerMix->SetSupportsBulkEdit(false);
-    TextCtrl_EffectLayerMix->SetSupportsBulkEdit(false);
 
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TimingPanel::OnVCChanged, 0, this);
 	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TimingPanel::OnValidateWindow, 0, this);
