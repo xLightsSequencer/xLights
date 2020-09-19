@@ -28,6 +28,7 @@
 #include "ListenerOSC.h"
 #include "EventMIDI.h"
 #include "EventMQTT.h"
+#include "EventE131.h"
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
@@ -327,11 +328,13 @@ void ListenerManager::StartListeners()
     {
         if (it3->GetType() == "E131")
         {
+            ListenerE131* pl = nullptr;
             bool e131Exists = false;
             for (auto it2 : _listeners)
             {
                 if (it2->GetType() == "E131")
                 {
+                    pl = dynamic_cast<ListenerE131*>(it2);
                     e131Exists = true;
                     break;
                 }
@@ -341,6 +344,14 @@ void ListenerManager::StartListeners()
             {
                 _listeners.push_back(new ListenerE131(this));
                 _listeners.back()->Start();
+                pl = dynamic_cast<ListenerE131*>(_listeners.back());
+            }
+
+            if (pl != nullptr) {
+                EventE131* e = dynamic_cast<EventE131*>(it3);
+                if (e != nullptr) {
+                    pl->AddMulticast(e->GetUniverse());
+                }
             }
         }
         else if (it3->GetType() == "ARTNet" || it3->GetType() == "ARTNetTrigger")

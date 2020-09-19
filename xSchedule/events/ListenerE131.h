@@ -20,8 +20,10 @@ class wxDatagramSocket;
 class ListenerE131 : public ListenerBase
 {
     wxDatagramSocket* _socket;
+    std::vector<uint16_t> _multicastUniverses;
 
     bool IsValidHeader(uint8_t* buffer);
+    void Subscribe(uint16_t universe);
 
 	public:
         ListenerE131(ListenerManager* _listenerManager);
@@ -32,4 +34,5 @@ class ListenerE131 : public ListenerBase
         virtual void StartProcess() override;
         virtual void StopProcess() override;
         virtual void Poll() override;
+        void AddMulticast(uint16_t universe);
 };
