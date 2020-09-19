@@ -186,7 +186,7 @@ void ListenerE131::Subscribe(uint16_t universe)
     struct ifaddrs* interfaces, * tmp;
     getifaddrs(&interfaces);
     memset(&mreq, 0, sizeof(mreq));
-    mreq.imr_multiaddr.s_addr = inet_addr(ip);
+    mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
     tmp = interfaces;
     int receiveSock = _socket->GetSocket();
     //loop through all the interfaces and subscribe to the group
