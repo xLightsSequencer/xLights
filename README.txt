@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.38 September 19 2020
+   -- enh (keith)  Add colour dropper support to chromakey and sparkles
+   -- enh (keith)  Add centre controls to ripple
+   -- enh (keith)  Add real world dimensions in 3D layout
+   -- enh (dkulp)  Bunch of render performance improvements
+   -- bug (keith)  Fix keybinding should not change an effect if an effect is selected
+   -- bug (keith)  Email addresses are valid if they start with numbers
+   -- bug (keith)  xSchedule start process does not work if it contains \t or \n ... fix but users may need to change these to \\t and \\n
+   -- bug (keith)  xSchedule e131 event does not listen to multicast universes
+   -- bug (keith)  Bulk edit on morph slider does not work
+   -- bug (dkulp)  Fix OSX app store build does not get serial port access permissions
+   -- bug (dkulp)  Extend FPP timeout issues
 2020.37 September 13 2020
    -- enh (keith)  Add a handle status function to guestbuttons to make it easier to customise based on xSchedule status
    -- bug (keith)  Fix occasional crashes when cloning groups and creating them
