@@ -113,6 +113,17 @@ inline int CountChar(const std::string& s, char c) {
     return std::count(begin(s), end(s), c);
 }
 
+inline size_t CountStrings(const std::string& what, const std::string& in)
+{
+    size_t count = 0;
+    size_t pos = 0;
+    while ((pos = in.find(what, pos)) != std::string::npos) {
+        count++; 
+        pos += what.size();
+    }
+    return count;
+}
+
 inline char HexToChar(char c1, char c2) {
     return (HexToChar(c1) << 4) + HexToChar(c2);
 }

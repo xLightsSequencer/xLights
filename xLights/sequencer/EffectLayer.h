@@ -38,6 +38,7 @@ class EffectLayer
         Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort = false);
         Effect* GetEffect(int index) const;
+        const std::vector<Effect*>& GetEffects() const { return mEffects; }
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
         int GetFirstSelectedEffectStartMS() const;

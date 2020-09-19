@@ -61,6 +61,7 @@ public:
  
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
+    const std::vector<EffectLayer*>& GetEffectLayers() const { return mEffectLayers; }
     int GetLayerNumberFromIndex(int index);
     virtual NodeLayer* GetNodeEffectLayer(int index) const = 0;
     size_t GetEffectLayerCount() const;

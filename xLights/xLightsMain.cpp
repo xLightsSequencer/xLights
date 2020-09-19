@@ -4504,8 +4504,8 @@ void xLightsFrame::CheckSequence(bool display)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    int errcount = 0;
-    int warncount = 0;
+    size_t errcount = 0;
+    size_t warncount = 0;
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
@@ -4585,8 +4585,8 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, wxString::Format("    %s", it));
     }
 
-    int errcountsave = errcount;
-    int warncountsave = warncount;
+    size_t errcountsave = errcount;
+    size_t warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Working in a backup directory");
@@ -4899,7 +4899,8 @@ void xLightsFrame::CheckSequence(bool display)
                 if (check != "")
                 {
                     LogAndWrite(f, check);
-                    errcount++;
+                    errcount += CountStrings("ERR:", check);
+                    warncount += CountStrings("WARN:", check);
                 }
             }
         }
@@ -6169,7 +6170,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Check sequence done.");
-    LogAndWrite(f, wxString::Format("Errors: %d. Warnings: %d", errcount, warncount).ToStdString());
+    LogAndWrite(f, wxString::Format("Errors: %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
 
     if (f.IsOpened())
     {
@@ -6199,7 +6200,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
@@ -6379,15 +6380,14 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles)
 {
-    for (int j = 0; j < e->GetEffectLayerCount(); j++)
+    int layer = 0;
+    for (const auto& el : e->GetEffectLayers())
     {
-        EffectLayer* el = e->GetEffectLayer(j);
-
-        for (int k = 0; k < el->GetEffectCount(); k++)
+        layer++;
+        for (const auto& ef : el->GetEffects())
         {
-            Effect* ef = el->GetEffect(k);
             RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
             allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
 
@@ -6401,7 +6401,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                     {
                         wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
                             ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                            name, j + 1);
+                            name, layer);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
@@ -6413,7 +6413,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                     {
                         wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
                             ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                            name, j + 1);
+                            name, layer);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
@@ -6427,7 +6427,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                         {
                             wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
                                 ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                                name, j + 1);
+                                name, layer);
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
@@ -6444,17 +6444,15 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
 
         // This assumes effects are stored in start time order per layer
         Effect* lastEffect = nullptr;
-        for (int k = 0; k < el->GetEffectCount(); k++)
+        for (const auto& ef : el->GetEffects())
         {
-            Effect* ef = el->GetEffect(k);
-
             if (lastEffect != nullptr)
             {
                 // the start time of an effect should not be before the end of the prior effect
                 if (ef->GetStartTimeMS() < lastEffect->GetEndTimeMS())
                 {
                     wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) overlaps with Effect %s (%s-%s) on Model '%s' layer %d. This shouldn't be possible.",
-                        ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()), lastEffect->GetEffectName(), FORMATTIME(lastEffect->GetStartTimeMS()), FORMATTIME(lastEffect->GetEndTimeMS()), name, j + 1);
+                        ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()), lastEffect->GetEffectName(), FORMATTIME(lastEffect->GetStartTimeMS()), FORMATTIME(lastEffect->GetEndTimeMS()), name, layer);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
