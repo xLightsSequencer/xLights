@@ -10,6 +10,7 @@
 
 #include "PlayListItem.h"
 #include <wx/xml/xml.h>
+#include <wx/regex.h>
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
@@ -152,9 +153,30 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 
     auto now = wxDateTime::Now();
 
-    res.Replace("\\n", "\n");
-    res.Replace("\\t", "\t");
-    res.Replace("\\\\", "\\");
+    static wxRegEx nl("(^.*[^\\]+|^)(\\n)", wxRE_BASIC);
+    while (nl.Matches(res)) // need to do it several times because the results overlap
+    {
+        wxString s0 = nl.GetMatch(res, 0);
+        wxString s1 = nl.GetMatch(res, 1);
+        res = res.replace(s0.size(), s1.size(), "\n");
+    }
+
+    static wxRegEx tb("(^.*[^\\]+|^)(\\t)", wxRE_BASIC);
+    while (tb.Matches(res)) // need to do it several times because the results overlap
+    {
+        wxString s0 = tb.GetMatch(res, 0);
+        wxString s1 = tb.GetMatch(res, 1);
+        res = res.replace(s0.size(), s1.size(), "\t");
+    }
+
+    static wxRegEx sl("(^.*[^\\]+|^)(\\\\)", wxRE_BASIC);
+    while (tb.Matches(res)) // need to do it several times because the results overlap
+    {
+        wxString s0 = sl.GetMatch(res, 0);
+        wxString s1 = sl.GetMatch(res, 1);
+        res = res.replace(s0.size(), s1.size(), "\\");
+    }
+
     res.Replace("%TIMESTAMP%", now.Format("%F %T"));
     res.Replace("%TIME%", now.Format("%T"));
     res.Replace("%DATE%", now.Format("%F"));
