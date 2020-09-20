@@ -20,6 +20,7 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 								<cols>1</cols>
 								<rows>3</rows>
+								<growablecols>0</growablecols>
 								<growablerows>1</growablerows>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
@@ -125,13 +126,8 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
 									</object>
-									<flag>wxALL|wxSHAPED|wxFIXED_MINSIZE</flag>
+									<flag>wxALL|wxEXPAND|wxSHAPED|wxFIXED_MINSIZE</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

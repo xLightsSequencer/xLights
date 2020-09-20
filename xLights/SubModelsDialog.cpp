@@ -109,6 +109,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2->AddGrowableRow(0);
 	Panel2 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(3, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -139,8 +140,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export as CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
 	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxSHAPED|wxFIXED_MINSIZE, 5);
+	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxSHAPED|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
 	FlexGridSizer9->SetSizeHints(Panel2);
