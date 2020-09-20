@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.39 September 20 2020
+   -- bug (keith)  Fix bug which prevented some face and state effects rendering
+   -- bug (keith)  Fix check sequence returns incorrect error total
 2020.38 September 19 2020
    -- enh (keith)  Add colour dropper support to chromakey and sparkles
    -- enh (keith)  Add centre controls to ripple
