@@ -867,17 +867,18 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "LayoutPanel::OnPropertyGridChange::ModelName", nullptr, nullptr, safename);
                 }
                 else {
-                    selectedModel->SaveDisplayDimensions();
-                    int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
-                    if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
-                        (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
-                            dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr))
-                    {
-                        // only restore if not suppressed and if it is a boxed screen location
-                        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange", selectedModel);
-                        selectedModel->RestoreDisplayDimensions();
+                    if (selectedModel != nullptr) {
+                        selectedModel->SaveDisplayDimensions();
+                        int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                        if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
+                            (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
+                                dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr)) {
+                            // only restore if not suppressed and if it is a boxed screen location
+                            xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange", selectedModel);
+                            selectedModel->RestoreDisplayDimensions();
+                        }
+                        wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
                     }
-                    wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
                 }
             }
         }
