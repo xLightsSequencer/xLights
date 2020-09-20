@@ -1583,7 +1583,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             if (IsDrive()) {
                 GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
             } else {
-                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson);
+                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson, false);
             }
             bool changed = true;
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
@@ -1624,7 +1624,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             if (IsDrive()) {
                 GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
             } else {
-                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson);
+                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson, false);
             }
             bool changed = true;
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
@@ -1668,7 +1668,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     if (IsDrive()) {
         GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", origJson);
     } else {
-        GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + fppFileName, origJson);
+        GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + fppFileName, origJson, false);
     }
     logger_base.debug("Original JSON");
     DumpJSON(origJson);
@@ -1958,13 +1958,15 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         root["channelOutputs"].Append(bbbDmxData);
     } else {
         wxJSONValue otherOrigRoot;
-        
+        bool changed = true;
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
+            changed = mergeSerialInto(otherDmxData, otherOrigRoot);
         } else {
-            GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot);
+            if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
+                changed = mergeSerialInto(otherDmxData, otherOrigRoot);
+            }
         }
-        bool changed = mergeSerialInto(otherDmxData, otherOrigRoot);
         if (changed) {
             if (IsDrive()) {
                 WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
