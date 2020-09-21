@@ -99,6 +99,8 @@ float ValueCurve::Denormalise(int parm, float value) const
 
 std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
 {
+    if (showFolder == "") return "";
+
     std::string vcf = showFolder + "/valuecurves";
     if (!wxDir::Exists(vcf))
     {

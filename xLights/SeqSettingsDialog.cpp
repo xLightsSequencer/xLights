@@ -1613,6 +1613,10 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
+    if (xLightsParent->CurrentDir == "") {
+        wxMessageBox("Show folder invalid. Download aborted.");
+    }
+
     wxString downloadDir = xLightsParent->CurrentDir + wxFileName::GetPathSeparator() + "Downloads";
 
     if (!wxDirExists(downloadDir))

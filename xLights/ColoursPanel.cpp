@@ -167,6 +167,8 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 
 std::string ColoursPanel::GetPaletteFolder(const std::string& showFolder)
 {
+    if (showFolder == "") return "";
+
     std::string pf = showFolder + "/palettes";
     if (!wxDir::Exists(pf))
     {

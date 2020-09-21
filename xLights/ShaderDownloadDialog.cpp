@@ -170,6 +170,10 @@ public:
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+        if (xLightsFrame::CurrentDir == "") {
+            wxMessageBox("Show folder invalid. Shader download aborted.");
+        }
+
         auto download = GetDownload();
 
         if (download != "")

@@ -1077,6 +1077,12 @@ std::string FixPhonemeCase(const std::string p)
 void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (xLightsFrame::CurrentDir == "")         {
+        wxMessageBox("Show folder is not valid. Face image download aborted.");
+        return;
+    }
+
     MatrixFaceDownloadDialog dlg(this);
     if (dlg.DlgInit(model->GetDefaultBufferWi(), model->GetDefaultBufferHt()))
     {

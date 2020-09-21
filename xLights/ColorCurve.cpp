@@ -503,6 +503,8 @@ wxBitmap ColorCurve::GetSolidColourImage(int x, int y, const wxColour& c)
 
 std::string ColorCurve::GetColorCurveFolder(const std::string& showFolder)
 {
+    if (showFolder == "") return "";
+
     std::string ccf = showFolder + "/colorcurves";
     if (!wxDir::Exists(ccf))
     {
