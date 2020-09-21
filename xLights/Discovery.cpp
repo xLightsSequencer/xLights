@@ -327,8 +327,15 @@ DiscoveredData *Discovery::AddController(ControllerEthernet *c) {
 
 DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn, bool create) {
     std::string host = ((hn == "") ? ip : hn);
+    //first check direct IP address match
     for (auto a : results) {
-        if (a->ip == ip || a->hostname == ip || a->hostname == host) {
+        if (a->ip == ip || a->hostname == ip) {
+            return a;
+        }
+    }
+    // now attempt hostname matching
+    for (auto a : results) {
+        if (a->hostname == host && (a->ip == "" || ip == "")) {
             return a;
         }
     }
