@@ -55,7 +55,7 @@ void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
     wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
     p->SetEditor("SpinCtrl");
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 10000000);
+    p->SetAttribute("Max", 100000000);
 }
 
 bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {

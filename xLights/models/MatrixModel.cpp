@@ -74,7 +74,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
+    p->SetAttribute("Max", 2500);
     p->SetEditor("SpinCtrl");
 
     grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
