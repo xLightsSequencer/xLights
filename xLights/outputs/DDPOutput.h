@@ -98,7 +98,7 @@ public:
 
     virtual std::string GetLongDescription() const override;
 
-    virtual int GetMaxChannels() const override { return 1000000; }
+    virtual int GetMaxChannels() const override { return 2000000; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     #pragma endregion
 
