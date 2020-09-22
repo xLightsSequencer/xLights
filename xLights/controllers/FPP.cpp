@@ -1543,7 +1543,20 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
     return changed;
 }
 
-
+static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
+                         std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
+    if (origMod == "") {
+        Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
+    }
+    if (origMod != "" && rules->GetModel() != origMod) {
+        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
+            + origMod + ".   Continue?";
+        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES)  {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
@@ -1675,6 +1688,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
+    wxString origType = "";
     if (origJson["channelOutputs"].IsArray()) {
         for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
             wxJSONValue &f = origJson["channelOutputs"][x];
@@ -1683,6 +1697,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 if (pinout == "") {
                     pinout = "1.x";
                 }
+                origType = f["subType"].AsString();
             }
             for (int o = 0; o < f["outputs"].Size(); o++) {
                 if (f["outputs"][o].HasMember("virtualStrings")) {
@@ -1713,6 +1728,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = wxString("");
     } else {
         stringData["type"] = wxString("BBB48String");
+        if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
+            return true;
+        }
+        
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }
@@ -1773,7 +1792,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["gamma"] = gam;
                 }
                 if (pvs->_brightnessSet) {
-                    vs["brightness"] = pvs->_brightness;
+                    // round to nearest 5
+                    int i = pvs->_brightness + 2;
+                    i -= i % 5;
+                    vs["brightness"] = i;
                 }
                 if (pvs->_nullPixelsSet) {
                     vs["nullNodes"] = pvs->_nullPixels;

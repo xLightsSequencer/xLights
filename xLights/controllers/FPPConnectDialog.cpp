@@ -403,7 +403,15 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
+        auto c = _outputManager->GetControllers(inst->ipAddress);
         std::string m = FPP::GetModel(inst->pixelControllerType);
+        if (c.size() == 1) {
+            ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
+            const ControllerCaps *a = controller->GetControllerCaps();
+            if (a) {
+                m = a->GetModel();
+            }
+        }
         if (m != "") {
             std::string desc = m;
             if (inst->panelSize != "") {
