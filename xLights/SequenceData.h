@@ -60,7 +60,7 @@ class SequenceData {
         DataBlock &operator=(const DataBlock& d) = delete;
     public:
         DataBlock(size_t s, unsigned char *d, BlockType bt) : size(s), data(d), type(bt) {}
-        DataBlock(DataBlock&&d) noexcept : size(d.size), data(d.data), type(d.type) {d.data = nullptr; };
+        DataBlock(DataBlock&&d) noexcept : size(d.size), data(d.data), type(d.type) {d.data = nullptr; d.size = 0; d.type = BlockType::NORMAL;};
         ~DataBlock();
         
         unsigned char * data;
@@ -72,7 +72,6 @@ class SequenceData {
     FrameData _invalidFrame;
     std::vector<FrameData> _frames;
     std::list<std::unique_ptr<DataBlock>> _dataBlocks;
-    bool _hugePagesFailed;
     
     unsigned int _bytesPerFrame;
     unsigned int _numChannels;
@@ -83,7 +82,8 @@ class SequenceData {
     SequenceData &operator=(const SequenceData& rgb) = delete;
 
     void Cleanup();
-    unsigned char *AllocBlock(size_t requested, size_t &szAllocated);
+    unsigned char *checkBlockPtr(unsigned char *block, size_t sizeRemaining);
+    static unsigned char *AllocBlock(size_t requested, size_t &szAllocated, BlockType &bt);
 public:
     SequenceData();
     virtual ~SequenceData();

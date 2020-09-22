@@ -28,8 +28,56 @@
 
 const unsigned char FrameData::_constzero = 0;
 
+
+// we'll keep the callocs below 1GB in size.  Should keep pressure off
+// the VM to find a huge block of space, but still not waste much
+// memory.  Most users sequences will likely fit in this anyway
+static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
+
+
+std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CACHE;
+
+#ifdef USE_MMAP_BLOCKS
+#include <thread>
+// OSX/Linux allows 2MB huge pages (or Superpages as they call them on OSX)
+static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
+static bool firstSeq = true;
+static std::mutex HUGE_BLOCK_LOCK;
+static size_t _hugePageAllocSize = MAX_BLOCK_SIZE;
+static bool _hugePagesFailed;
+#endif
+
+
 SequenceData::SequenceData() : _invalidFrame()
 {
+#ifdef USE_MMAP_BLOCKS
+    if (firstSeq) {
+        firstSeq = false;
+        std::thread([]{
+            size_t sizeRemaining = MAX_BLOCK_SIZE;
+            size_t blockSize = 0;
+            BlockType type = BlockType::NORMAL;
+            unsigned char* block = AllocBlock(sizeRemaining, blockSize, type);
+            while (block) {
+                if (type == BlockType::HUGE_PAGE) {
+                    std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
+                    HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
+                    lock.unlock();
+                    if (blockSize > sizeRemaining) {
+                        sizeRemaining -= blockSize;
+                        block = AllocBlock(sizeRemaining, blockSize, type);
+                    } else {
+                        block = nullptr;
+                    }
+                } else {
+                    munmap(block, blockSize);
+                    block = nullptr;
+                }
+            }
+
+        }).detach();
+    }
+#endif
     _numFrames = 0;
     _numChannels = 0;
     _bytesPerFrame = 0;
@@ -40,8 +88,6 @@ SequenceData::~SequenceData()
 {
     Cleanup();
 }
-
-std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CACHE;
 
 SequenceData::DataBlock::~DataBlock()
 {
@@ -61,6 +107,7 @@ void SequenceData::Cleanup()
         if (p.get() && p.get()->type == BlockType::HUGE_PAGE) {
             //save these for later, HUGE_PAGE blocks are limitted and hard to come by
             //so if we get any, we'll hold onto them
+            std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
             HUGE_BLOCK_CACHE.emplace_back(std::move(p));
         }
     }
@@ -70,40 +117,33 @@ void SequenceData::Cleanup()
     _invalidFrame._data = nullptr;
 }
 
-unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated)
+unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, BlockType &blockType)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     unsigned char* data = nullptr;
     size_t sz = requested;
-    BlockType type = BlockType::NORMAL;
+    blockType = BlockType::NORMAL;
 #ifdef USE_MMAP_BLOCKS
-    // OSX/Linux allows 2MB large pages (or Superpages as they call them on OSX)
-    static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
-    // max on OSX is 2GB block for the superpage sizes
-    static const size_t MAX_SP_BLOCK_SIZE = LARGE_PAGE_SIZE * 1024;
-    static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
-    if (sz > MAX_SP_BLOCK_SIZE) {
-        sz = MAX_SP_BLOCK_SIZE;
-    }
-    else {
+    if (sz > MAX_BLOCK_SIZE) {
+        sz = MAX_BLOCK_SIZE;
+    } else {
         sz = sz - (sz % LARGE_PAGE_SIZE) + LARGE_PAGE_SIZE;
     }
+    std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
     if (!HUGE_BLOCK_CACHE.empty()) {
         std::unique_ptr<DataBlock> d = std::move(HUGE_BLOCK_CACHE.front());
         HUGE_BLOCK_CACHE.pop_front();
         data = d.get()->data;
         sz = d.get()->size;
-        memset(data, 0, sz);
+        blockType = d.get()->type;
         szAllocated = sz;
-        _dataBlocks.push_back(std::move(d));
+        memset(data, 0, sz);
+        d.get()->data = nullptr;
         return data;
     }
-    else if (!_hugePagesFailed) {
+    lock.unlock();
+    if (!_hugePagesFailed) {
 #ifdef __WXOSX__
-        static size_t _hugePageAllocSize = MAX_SP_BLOCK_SIZE;
-        
-        type = BlockType::HUGE_PAGE;
+        blockType = BlockType::HUGE_PAGE;
         size_t szToAlloc = sz;
         if (szToAlloc > _hugePageAllocSize) {
             szToAlloc = _hugePageAllocSize;
@@ -138,7 +178,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated)
     }
     if (data == nullptr || data == MAP_FAILED) {
         _hugePagesFailed = true;
-        type = BlockType::NORMAL;
+        blockType = BlockType::NORMAL;
         if (sz > MAX_BLOCK_SIZE) {
             sz = MAX_BLOCK_SIZE;
         }
@@ -169,10 +209,6 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated)
 #endif
     }
 #else
-    // we'll keep the callocs below 1GB in size.  Should keep pressure off
-    // the VM to find a huge block of space, but still not waste much
-    // memory.  Most users sequences will likely fit in this anyway
-    static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
     if (sz > MAX_BLOCK_SIZE) {
         sz = MAX_BLOCK_SIZE;
     }
@@ -192,27 +228,29 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated)
         }
     }
 #endif
-    wxASSERT(data != nullptr); // if this fails then we have a memory allocation error
-    if (data == nullptr) {
-        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-        logger_base.crit("***** THIS IS GOING TO CRASH *****");
-        wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-        DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
-    }
-    else {
-        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%ld.", _dataBlocks.size(), _numFrames, _numChannels, sz);
-    }
 
     szAllocated = sz;
-    _dataBlocks.push_back(std::make_unique<DataBlock>(sz, data, type));
     return data;
+}
+
+unsigned char *SequenceData::checkBlockPtr(unsigned char *block, size_t sizeRemaining) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxASSERT(block != nullptr); // if this fails then we have a memory allocation error
+    if (block == nullptr) {
+        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
+        logger_base.crit("***** THIS IS GOING TO CRASH *****");
+        wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
+        DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
+    } else {
+        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%ld.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
+    }
+    return block;
 }
 
 void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Cleanup();
-    _hugePagesFailed = false;
     if (roundto4) {
         _numChannels = roundTo4(numChannels);
     }
@@ -227,11 +265,15 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         _frames.reserve(numFrames);
         size_t sizeRemaining = (size_t)_bytesPerFrame * (size_t)_numFrames;
         size_t blockSize = 0;
-        unsigned char* block = AllocBlock(sizeRemaining, blockSize);
-
+        
+        BlockType type = BlockType::NORMAL;
+        unsigned char* block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type), sizeRemaining);
+        _dataBlocks.push_back(std::make_unique<DataBlock>(blockSize, block, type));
+        
         for (unsigned int frame = 0; frame < numFrames; ++frame) {
             if (blockSize < _bytesPerFrame) {
-                block = AllocBlock(sizeRemaining, blockSize);
+                block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type), sizeRemaining);
+                _dataBlocks.push_back(std::make_unique<DataBlock>(blockSize, block, type));
             }
             _frames.push_back(FrameData(_numChannels, block));
             block += _bytesPerFrame;

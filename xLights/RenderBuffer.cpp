@@ -25,6 +25,7 @@
 #include "models/DMX/DmxColorAbility.h"
 
 #include <log4cpp/Category.hh>
+#include "Parallel.h"
 
 template <class CTX>
 class ContextPool {
@@ -984,10 +985,10 @@ void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_igno
 }
 
 void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
-    xlColor c;
-    for (auto &node : Nodes) {
-        node->GetColor(c);
-        for (auto &a : node->Coords) {
+    parallel_for(0, Nodes.size(), [&](int n) {
+        xlColor c;
+        Nodes[n]->GetColor(c);
+        for (auto &a : Nodes[n]->Coords) {
             int x = a.bufX;
             int y = a.bufY;
             if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size()) {
@@ -995,7 +996,8 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
                 done[y*BufferWi+x] = true;
             }
         }
-    }
+
+    }, 500);
 }
 
 
