@@ -301,9 +301,8 @@ void VideoReader::reopenContext() {
     }
 
     #if LIBAVFORMAT_VERSION_MAJOR > 57
-    enum AVHWDeviceType type;
-    if (IsHardwareAcceleratedVideo())
-    {
+    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
+    if (IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
         std::list<std::string> hwdecoders = { "dxva2" }; //{ "d3d11va", "dxva2", "cuda", "qsv" };
 #elif defined(__WXOSX__)
@@ -312,25 +311,16 @@ void VideoReader::reopenContext() {
         std::list<std::string> hwdecoders = { "vaapi", "vdpau" };
 #endif
 
-        for (const auto& it : hwdecoders)
-        {
+        for (const auto& it : hwdecoders) {
             type = av_hwdevice_find_type_by_name(it.c_str());
-            if (type == AV_HWDEVICE_TYPE_NONE) {
-                logger_base.debug("Device type %s is not supported.", (const char*)it.c_str());
-            }
-            else
-            {
-                logger_base.debug("Using device type %s.", (const char*)it.c_str());
+            if (type != AV_HWDEVICE_TYPE_NONE) {
                 break;
             }
         }
-        if (__hw_pix_fmt == AV_PIX_FMT_NONE)
-        {
+        if (type != AV_HWDEVICE_TYPE_NONE) {
             for (int i = 0;; i++) {
                 const AVCodecHWConfig* config = avcodec_get_hw_config(_decoder, i);
                 if (!config) {
-                    logger_base.debug("Decoder %s does not support device type %s.",
-                        _decoder->name, av_hwdevice_get_type_name(type));
                     type = AV_HWDEVICE_TYPE_NONE;
                     break;
                 }
@@ -341,7 +331,6 @@ void VideoReader::reopenContext() {
                 }
             }
         }
-        logger_base.debug("Decoder Pixfmt %s.", av_get_pix_fmt_name(__hw_pix_fmt));
     }
     #endif
 
