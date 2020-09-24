@@ -42,6 +42,7 @@ public:
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= PIXELNET_MAX_CHANNELS; }
     //virtual std::string GetSetupHelp() const override;
     virtual bool AllowsBaudRateSetting() const override { return false; }
+    virtual int GetDefaultBaudRate() const override { return 250000;}
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop

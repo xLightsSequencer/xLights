@@ -45,6 +45,10 @@ public:
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= OPENDMX_MAX_CHANNELS; }
 
     virtual bool AllowsBaudRateSetting() const override { return false; }
+    virtual int GetDefaultBaudRate() const override
+    {
+        return 250000;
+    }
     #pragma endregion 
 
     #pragma region Start and Stop

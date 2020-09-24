@@ -44,6 +44,7 @@ public:
     virtual int GetMaxChannels() const override { return DMX_MAX_CHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= DMX_MAX_CHANNELS; }
     virtual bool AllowsBaudRateSetting() const override { return false; }
+    virtual int GetDefaultBaudRate() const { return 250000; }
     #pragma endregion 
 
     #pragma region Start and Stop

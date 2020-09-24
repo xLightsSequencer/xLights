@@ -110,7 +110,11 @@ public:
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
 
     int GetBaudRate() const;
-    void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
+    virtual void SetBaudRate(int baudRate) 
+    {
+        _baudRate = baudRate;
+        _dirty = true;
+    }
 
     std::string GetIP() const { return _ip; }
     virtual void SetIP(const std::string& ip);

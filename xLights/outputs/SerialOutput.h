@@ -53,6 +53,17 @@ public:
     virtual int GetMaxChannels() const override { return 0; }
 
     virtual bool AllowsBaudRateSetting() const { return true; }
+    virtual int GetDefaultBaudRate() const { return 250000; }
+    virtual void SetBaudRate(int baudRate) override
+    {
+        if (AllowsBaudRateSetting()) {
+            Output::SetBaudRate(baudRate);
+        }
+        else {
+            _baudRate = GetDefaultBaudRate();
+            _dirty = true;
+        }
+    }
 
     virtual size_t TxNonEmptyCount() const override;
     virtual bool TxEmpty() const override;

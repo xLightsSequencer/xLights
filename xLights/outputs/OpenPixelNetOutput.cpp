@@ -16,7 +16,7 @@
 #pragma region Constructs and Destructors
 OpenPixelNetOutput::OpenPixelNetOutput(SerialOutput* output) : SerialOutput(output) {
     
-    _baudRate = 1000000;
+    _baudRate = GetDefaultBaudRate();
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
@@ -24,7 +24,7 @@ OpenPixelNetOutput::OpenPixelNetOutput(SerialOutput* output) : SerialOutput(outp
 
 OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node) {
 
-    _baudRate = 1000000;
+    _baudRate = GetDefaultBaudRate();
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
@@ -32,7 +32,7 @@ OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node) {
 
 OpenPixelNetOutput::OpenPixelNetOutput() : SerialOutput() {
 
-    _baudRate = 1000000;
+    _baudRate = GetDefaultBaudRate();
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));

@@ -71,7 +71,7 @@ SerialOutput::SerialOutput() : Output() {
 
     strcpy(_serialConfig, "8N1");
     _commPort = GetPossibleSerialPorts().front();
-    _baudRate = 250000;
+    _baudRate = GetDefaultBaudRate();
 }
 
 SerialOutput::~SerialOutput() {

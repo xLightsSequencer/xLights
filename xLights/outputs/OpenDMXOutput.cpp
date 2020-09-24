@@ -15,17 +15,17 @@
 
 #pragma region Constructors and Destructors
 OpenDMXOutput::OpenDMXOutput(SerialOutput* output) : SerialOutput(output) {
-    _baudRate = 250000;
+    _baudRate = GetDefaultBaudRate();
     memset(_data, 0x00, sizeof(_data));
 }
 
 OpenDMXOutput::OpenDMXOutput(wxXmlNode* node) : SerialOutput(node) {
-    _baudRate = 250000;
+    _baudRate = GetDefaultBaudRate();
     memset(_data, 0x00, sizeof(_data));
 }
 
 OpenDMXOutput::OpenDMXOutput() : SerialOutput() {
-    _baudRate = 250000;
+    _baudRate = GetDefaultBaudRate();
     memset(_data, 0x00, sizeof(_data));
 }
 #pragma endregion 

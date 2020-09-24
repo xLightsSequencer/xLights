@@ -43,7 +43,8 @@ public:
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= OPENPIXELNET_MAX_CHANNELS; }
     
     virtual bool AllowsBaudRateSetting() const override { return false; }
-    #pragma endregion 
+    virtual int GetDefaultBaudRate() const override { return 1000000;}
+    #pragma endregion
 
     #pragma region Start and Stop
     virtual bool Open() override;

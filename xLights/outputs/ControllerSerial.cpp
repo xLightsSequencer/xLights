@@ -222,6 +222,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
             if (o != nullptr) {
                 o->SetCommPort(p);
                 o->SetBaudRate(s);
+                _speed = o->GetBaudRate(); // because the old speed may have been overridden
                 o->SetChannels(c);
                 _outputs.push_front(o);
                 _dirty = true;
