@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <memory>
+#include <mutex>
 
 class FrameData {
     FrameData(const FrameData&) = delete;
