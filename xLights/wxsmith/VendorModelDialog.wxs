@@ -125,7 +125,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Facebook" member="yes">
-																<label>http://xlights.org</label>
+																<label>https://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_FacebookClick" entry="EVT_HYPERLINK" />
 															</object>
@@ -143,7 +143,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL2" variable="HyperlinkCtrl_Website" member="yes">
-																<label>http://xlights.org</label>
+																<label>https://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
 															</object>
@@ -229,7 +229,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL3" variable="HyperlinkCtrl_ModelWebLink" member="yes">
-																<label>http://xlights.org</label>
+																<label>https://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_ModelWebLinkClick" entry="EVT_HYPERLINK" />
 															</object>

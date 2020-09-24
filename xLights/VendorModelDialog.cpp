@@ -727,11 +727,11 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer5->AddGrowableRow(0);
     StaticText6 = new wxStaticText(PanelVendor, ID_STATICTEXT8, _("Facebook:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_Facebook = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL4, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
+    HyperlinkCtrl_Facebook = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
     FlexGridSizer5->Add(HyperlinkCtrl_Facebook, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(PanelVendor, ID_STATICTEXT4, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_Website = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL2, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL2"));
+    HyperlinkCtrl_Website = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL2, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL2"));
     FlexGridSizer5->Add(HyperlinkCtrl_Website, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
     PanelVendor->SetSizer(FlexGridSizer4);
@@ -762,7 +762,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer8->AddGrowableCol(1);
     StaticText5 = new wxStaticText(Panel_Item, ID_STATICTEXT7, _("Web Link:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer8->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_ModelWebLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL3, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL3"));
+    HyperlinkCtrl_ModelWebLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL3, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL3"));
     FlexGridSizer8->Add(HyperlinkCtrl_ModelWebLink, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
     Button_InsertModel = new wxButton(Panel_Item, ID_BUTTON1, _("Insert Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -840,7 +840,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://threebuttes.com/Extras/dmx_models/xlights_vendors.xml";
 
     std::string filename;
@@ -1074,6 +1074,86 @@ void VendorModelDialog::OnButton_NextClick(wxCommandEvent& event)
     }
 }
 
+void VendorModelDialog::DownloadModel(MModelWiring* wiring)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wiring->DownloadXModel();
+    if (wiring->_xmodelFile.GetExt().Lower() == "zip") {
+        // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
+        logger_base.debug("    opening zipped model " + _modelFile);
+
+        auto dir = _showFolder + wxFileName::GetPathSeparator() + "modeldownload";
+        if (!wxDir::Exists(dir)) {
+            logger_base.debug("Creating modeldownload directory " + dir);
+            wxMkdir(dir);
+        }
+
+        // files should be .jpg/png/bmp/obj ... and one xmodel file
+        wxFileInputStream fin(wiring->_xmodelFile.GetFullPath());
+        if (fin.IsOk()) {
+            wxZipInputStream zin(fin);
+            if (zin.IsOk()) {
+                wxZipEntry* ent = zin.GetNextEntry();
+                while (ent != nullptr) {
+
+                    // create any needed subfolders
+                    if (ent->GetName().Contains('\\') || ent->GetName().Contains('/')) {
+                        wxArrayString aa = wxSplit(ent->GetName(), '\\');
+                        wxArrayString bb = wxSplit(ent->GetName(), '/');
+
+                        auto createdirs = [](const wxString& parent, const wxString& sub) {
+                            auto d = parent + wxFileName::GetPathSeparator() + sub;
+                            if (!wxDir::Exists(d)) {
+                                logger_base.debug("Creating modeldownload subdirectory " + d);
+                                wxMkdir(d);
+                            }
+                            return d;
+                        };
+
+                        wxString parent = dir;
+                        for (int i = 0; i < aa.size() - 1; i++) {
+                            parent = createdirs(parent, aa[i]);
+                        }
+
+                        parent = dir;
+                        for (int i = 0; i < bb.size() - 1; i++) {
+                            parent = createdirs(parent, bb[i]);
+                        }
+                    }
+
+                    auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                    if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
+                        _modelFile = file;
+                    }
+
+                    if (!wxFile::Exists(file)) {
+                        logger_base.debug("        model file " + file + " downloaded.");
+                        wxFileOutputStream fout(file);
+                        zin.Read(fout);
+                    }
+                    else {
+                        logger_base.warn("        skipping file " + file + " it already exists.");
+                    }
+
+                    ent = zin.GetNextEntry();
+                }
+            }
+            else {
+                logger_base.error("Failed to open zip file.");
+                return;
+            }
+        }
+        else {
+            logger_base.error("Failed to open zip file.");
+            return;
+        }
+    }
+    else {
+        _modelFile = wiring->_xmodelFile.GetFullPath();
+    }
+}
+
 void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1084,89 +1164,7 @@ void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
 
         if (tid != nullptr && ((VendorBaseTreeItemData*)tid)->GetType() == "Wiring")
         {
-            ((MWiringTreeItemData*)tid)->GetWiring()->DownloadXModel();
-            if (((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetExt().Lower() == "zip")
-            {
-                // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
-                logger_base.debug("    opening zipped model " + _modelFile);
-
-                auto dir = _showFolder + wxFileName::GetPathSeparator() + "modeldownload";
-                if (!wxDir::Exists(dir))
-                {
-                    logger_base.debug("Creating modeldownload directory " + dir);
-                    wxMkdir(dir);
-                }
-
-                // files should be .jpg/png/bmp/obj ... and one xmodel file
-                wxFileInputStream fin(((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetFullPath());
-                if (fin.IsOk())
-                {
-                    wxZipInputStream zin(fin);
-                    if (zin.IsOk())
-                    {
-                        wxZipEntry* ent = zin.GetNextEntry();
-                        while (ent != nullptr) {
-
-                            // create any needed subfolders
-                            if (ent->GetName().Contains('\\') || ent->GetName().Contains('/'))
-                            {
-                                wxArrayString aa = wxSplit(ent->GetName(), '\\');
-                                wxArrayString bb = wxSplit(ent->GetName(), '/');
-
-                                auto createdirs = [](const wxString& parent, const wxString& sub) {
-                                    auto d = parent + wxFileName::GetPathSeparator() + sub;
-                                    if (!wxDir::Exists(d))
-                                    {
-                                        logger_base.debug("Creating modeldownload subdirectory " + d);
-                                        wxMkdir(d);
-                                    }
-                                    return d;
-                                };
-
-                                wxString parent = dir;
-                                for (int i = 0; i < aa.size() - 1; i++)
-                                {
-                                    parent = createdirs(parent, aa[i]);
-                                }
-
-                                parent = dir;
-                                for (int i = 0; i < bb.size() - 1; i++)
-                                {
-                                    parent = createdirs(parent, bb[i]);
-                                }
-                            }
-
-                            auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
-                            if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
-                                _modelFile = file;
-                            }
-
-                            if (!wxFile::Exists(file))
-                            {
-                                logger_base.debug("        model file " + file + " downloaded.");
-                                wxFileOutputStream fout(file);
-                                zin.Read(fout);
-                            }
-                            else
-                            {
-                                logger_base.warn("        skipping file " + file + " it already exists.");
-                            }
-
-                            ent = zin.GetNextEntry();
-                        }
-                    }
-                    else {
-                        logger_base.error("Failed to open zip file.");
-                        return; }
-                }
-                else {
-                    logger_base.error("Failed to open zip file.");
-                    return; }
-            }
-            else
-            {
-                _modelFile = ((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetFullPath();
-            }
+            DownloadModel(((MWiringTreeItemData*)tid)->GetWiring());
         }
     }
 
@@ -1179,6 +1177,35 @@ void VendorModelDialog::OnNotebookPanelsPageChanged(wxNotebookEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 {
+    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+
+    SetCursor(wxCURSOR_WAIT);
+
+    if (TreeCtrl_Navigator->GetSelection().IsOk()) {
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
+
+        if (tid != nullptr) {
+            std::string type = ((VendorBaseTreeItemData*)tid)->GetType();
+
+            MModelWiring* wiring = nullptr;
+
+            if (type == "Model") {
+                MModel* model = ((MModelTreeItemData*)tid)->GetModel();
+                if (model->_wiring.size() == 1) {
+                    wiring = model->_wiring.front();
+                }
+            }
+            else if (type == "Wiring") {
+                wiring = ((MWiringTreeItemData*)tid)->GetWiring();
+            }
+
+            if (wiring != nullptr) {
+                DownloadModel(wiring);
+                EndDialog(wxID_OK);
+            }
+        }
+    }
+
     ValidateWindow();
 }
 

@@ -303,7 +303,7 @@ public:
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef _DEBUG
-        logger_base.debug(s.c_str());
+        logger_base.debug("%s", (const char*)s.c_str());
 #endif
 
         bool res = true;

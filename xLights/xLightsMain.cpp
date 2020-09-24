@@ -6480,12 +6480,12 @@ void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("http://nutcracker123.com/forum/");
+    ::wxLaunchDefaultBrowser("https://nutcracker123.com/forum/");
 }
 
 void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("http://xlights.org");
+    ::wxLaunchDefaultBrowser("https://xlights.org");
 }
 
 void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
@@ -7615,7 +7615,7 @@ bool xLightsFrame::IsDrawRamps()
 
 void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("http://videos.xlights.org");
+    ::wxLaunchDefaultBrowser("https://videos.xlights.org");
 }
 
 void xLightsFrame::DoDonate()
@@ -8590,7 +8590,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
     //wxString path = _T("/downloads/");
     wxString downloadUrl = wxT("https://xlights.org/downloads/");
     wxString path = _T("/releases/");
-    //wxString downloadUrl = wxT("http://xlights.org/releases/");
+    //wxString downloadUrl = wxT("https://xlights.org/releases/");
 
     logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
     MenuItem_Update->Enable(true);

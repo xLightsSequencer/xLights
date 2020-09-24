@@ -654,7 +654,7 @@ void DownloadVamp()
     }
     else
     {
-        ::wxLaunchDefaultBrowser("http://xlights.org/downloads/Vamp_Plugin32.exe");
+        ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin32.exe");
     }
 #elif defined __WXOSX__
     // likely can/should be used for all platforms

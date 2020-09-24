@@ -325,7 +325,7 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 	FlexGridSizer4->AddGrowableCol(1);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT4, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HyperlinkCtrl_Website = new wxHyperlinkCtrl(Panel1, ID_HYPERLINKCTRL4, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
+	HyperlinkCtrl_Website = new wxHyperlinkCtrl(Panel1, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
 	FlexGridSizer4->Add(HyperlinkCtrl_Website, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	Button_Download = new wxButton(Panel1, ID_BUTTON4, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));

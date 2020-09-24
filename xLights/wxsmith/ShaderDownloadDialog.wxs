@@ -93,7 +93,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Website" member="yes">
-											<label>http://xlights.org</label>
+											<label>https://xlights.org</label>
 											<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 											<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
 										</object>
