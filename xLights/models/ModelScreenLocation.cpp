@@ -3394,7 +3394,7 @@ void ThreePointScreenLocation::SetMWidth(float w)
 
 void ThreePointScreenLocation::SetMHeight(float h)
 {
-    TwoPointScreenLocation::SetMHeight(h);
+    height = h;
 }
 
 float ThreePointScreenLocation::GetMWidth() const
@@ -3404,7 +3404,7 @@ float ThreePointScreenLocation::GetMWidth() const
 
 float ThreePointScreenLocation::GetMHeight() const
 {
-    return TwoPointScreenLocation::GetMHeight();
+    return height;
 }
 
 void ThreePointScreenLocation::SetActiveHandle(int handle)

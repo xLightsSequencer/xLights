@@ -4781,8 +4781,8 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     
     Model* selectedModel = modelPreview->GetModels()[selectedindex];
     std::string selectedType = selectedModel->GetDisplayAs();
-    int width = selectedModel->GetWidth();
-    int height = selectedModel->GetHeight();
+    float width = selectedModel->GetWidth();
+    float height = selectedModel->GetHeight();
 
     bool isBoxed = false;
     if ((dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr)) {
