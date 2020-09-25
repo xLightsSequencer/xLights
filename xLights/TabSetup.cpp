@@ -1364,7 +1364,14 @@ void xLightsFrame::InitialiseControllersTab() {
         Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
         FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
+        Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridCollapsed, 0, this);
+        Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
+
+        Controllers_PropertyEditor->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_RETURN);
+        Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
+        Controllers_PropertyEditor->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_TAB);
+        Controllers_PropertyEditor->DedicateKey(WXK_TAB);
     }
 
     List_Controllers->Freeze();
@@ -1454,6 +1461,8 @@ ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
 
 #pragma region Controller Properties
 void xLightsFrame::SetControllersProperties() {
+
+    std::list<wxPGProperty*> expandProperties;
 
     if (GetFirstSelectedControllerIndex() >= 0 && ButtonAddControllerSerial->IsEnabled()) {
         if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr || 
@@ -1573,7 +1582,7 @@ void xLightsFrame::SetControllersProperties() {
             }
 
             // one item selected - display selected controller properties
-            controller->AddProperties(Controllers_PropertyEditor, &AllModels);
+            controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
         }
     }
 
@@ -1588,8 +1597,19 @@ void xLightsFrame::SetControllersProperties() {
 
     Controllers_PropertyEditor->Thaw();
 
-    // This has to be done when the Property editor is not frozen ... as it is ignored if called when frozen
-    Controllers_PropertyEditor->ExpandAll();
+    if (expandProperties.size() > 0) {
+        // This has to be done when the Property editor is not frozen ... as it is ignored if called when frozen
+        for (const auto& it : expandProperties) {
+            it->SetExpanded(true);
+        }
+
+        // this is only here to force a recalculation of the virtual size and thus force scrollbar display
+        // there has to be a better way to do this
+        Controllers_PropertyEditor->Freeze();
+        expandProperties.front()->Hide(true); // hide then show triggers a flag that vertical height has changed
+        expandProperties.front()->Hide(false);
+        Controllers_PropertyEditor->Thaw();
+    }
 }
 
 void xLightsFrame::ValidateControllerProperties() {
@@ -1603,6 +1623,34 @@ void xLightsFrame::ValidateControllerProperties() {
         auto controller = _outputManager.GetController(name);
         // controller settings
         controller->ValidateProperties(&_outputManager, Controllers_PropertyEditor);
+    }
+}
+
+void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
+{
+    wxString name = event.GetPropertyName();
+    auto selections = GetSelectedControllerNames();
+
+    if (selections.size() == 1) {
+        auto controllername = selections.front();
+        auto controller = _outputManager.GetController(controllername);
+
+        controller->HandleExpanded(event, false);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridCollapsed");
+    }
+}
+
+void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
+{
+    wxString name = event.GetPropertyName();
+    auto selections = GetSelectedControllerNames();
+
+    if (selections.size() == 1) {
+        auto controllername = selections.front();
+        auto controller = _outputManager.GetController(controllername);
+
+        controller->HandleExpanded(event, true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridExpanded");
     }
 }
 

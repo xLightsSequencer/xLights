@@ -19,6 +19,7 @@ class ModelManager;
 class OutputManager;
 class wxXmlNode;
 class OutputModelManager;
+class wxPGProperty;
 class wxPropertyGrid;
 class wxPropertyGridEvent;
 class ControllerEthernet;
@@ -205,8 +206,9 @@ public:
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {}
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {}
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) { return false; }
+    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
     #endif
     #pragma endregion UI
 };

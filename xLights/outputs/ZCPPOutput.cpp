@@ -947,7 +947,7 @@ void ZCPPOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
+void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
 
     auto p = propertyGrid->Append(new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
     p->ChangeFlag(wxPG_PROP_READONLY, true);

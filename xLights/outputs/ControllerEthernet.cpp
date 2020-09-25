@@ -87,6 +87,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const
     SetIP(node->GetAttribute("IP"));
     SetFPPProxy(node->GetAttribute("FPPProxy"));
     SetPriority(wxAtoi(node->GetAttribute("Priority", "100")));
+    _expanded = node->GetAttribute("Expanded", "FALSE") == "TRUE";
     _dirty = false;
 }
 
@@ -96,6 +97,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates)
     InitialiseTypes(false);
     _name = om->UniqueName("Ethernet_");
     _type = OUTPUT_E131;
+    _expanded = false;
     E131Output* o = new E131Output();
     _outputs.push_back(o);
 }
@@ -116,6 +118,7 @@ wxXmlNode* ControllerEthernet::Save() {
     um->AddAttribute("Protocol", _type);
     um->AddAttribute("FPPProxy", _fppProxy);
     um->AddAttribute("Priority", wxString::Format("%d", _priority));
+    um->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
 
     return um;
 }
@@ -422,6 +425,14 @@ void ControllerEthernet::AsyncPing() {
     _asyncPing = std::async(std::launch::async, &ControllerEthernet::Ping, this);
 }
 
+void ControllerEthernet::SetExpanded(bool expanded)
+{
+    if (_expanded != expanded)         {
+        _expanded = expanded;
+        _dirty = true;
+    }
+}
+
 std::string ControllerEthernet::GetExport() const {
 
     return wxString::Format("%s,%d,%d,%s,%s,%s,,,\"%s\",%s,%d,%s,%s,%s,%s",
@@ -537,9 +548,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
+void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
-    Controller::AddProperties(propertyGrid, modelManager);
+    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
 
     wxPGProperty* p = nullptr;
     if (_type == OUTPUT_E131) {
@@ -562,7 +573,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() == 1) {
-        _outputs.front()->AddProperties(propertyGrid, allSameSize);
+        _outputs.front()->AddProperties(propertyGrid, allSameSize, expandProperties);
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ZCPP) {
@@ -663,6 +674,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                     }
                 }
             }
+            if (IsExpanded()) expandProperties.push_back(p2);
         }
         else {
             std::string chlabel = "Channels";

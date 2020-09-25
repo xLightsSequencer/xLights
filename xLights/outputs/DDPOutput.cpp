@@ -507,7 +507,7 @@ void DDPOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize)
+void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
 {
     auto p = propertyGrid->Append(new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", GetChannelsPerPacket()));
     p->SetAttribute("Min", 1);

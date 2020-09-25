@@ -457,7 +457,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
+void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
     p->SetHelpString("This must be unique.");
@@ -668,5 +668,13 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
         }
     }
 }
+
+void Controller::HandleExpanded(wxPropertyGridEvent& event, bool expanded)
+{
+    if (_outputs.size() > 0) {
+        _outputs.front()->HandleExpanded(event, expanded);
+    }
+}
+
 #pragma endregion
 #endif

@@ -100,15 +100,15 @@ std::string ControllerNull::GetExport() const {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
+void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
-    Controller::AddProperties(propertyGrid, modelManager);
+    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
 
     auto p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
-    if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true);
+    if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true, expandProperties);
 }
 
 bool ControllerNull::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {

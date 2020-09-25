@@ -324,9 +324,9 @@ std::string ControllerSerial::GetExport() const {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager)
+void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties)
 {
-    Controller::AddProperties(propertyGrid, modelManager);
+    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
 
     wxPGProperty* p = propertyGrid->Append(new wxEnumProperty("Port", "Port", __ports, Controller::EncodeChoices(__ports, _port)));
     p->SetHelpString("This must be unique across all controllers.");
@@ -363,7 +363,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
     p->ChangeFlag(wxPG_PROP_READONLY, true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
-    if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true);
+    if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true, expandProperties);
 }
 
 bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {

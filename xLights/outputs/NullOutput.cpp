@@ -50,7 +50,7 @@ std::string NullOutput::GetSortName() const {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
+void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
 
     wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
     p->SetEditor("SpinCtrl");

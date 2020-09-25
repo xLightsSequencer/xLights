@@ -29,6 +29,7 @@ class LorController
         int _num_channels = 16;
         std::string _type;
         std::string _description;
+        bool _expanded;
         LorController::AddressMode _mode = LorController::AddressMode::LOR_ADDR_MODE_NORMAL;
         bool _dirty = false;
     #pragma endregion
@@ -48,6 +49,9 @@ class LorController
 
         int GetNumChannels() const { return _num_channels; }
         void SetNumChannels(int channels) { if (_num_channels != channels) { _num_channels = channels; _dirty = true; } }
+
+        bool IsExpanded() const { return _expanded; }
+        void SetExpanded(bool expanded) { if (_expanded != expanded) { _expanded = expanded; _dirty = true; } }
 
         int GetTotalNumChannels() const;
 

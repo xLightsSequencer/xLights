@@ -39,6 +39,7 @@ protected:
     int _priority = 100;
     bool _managed = true;
     std::string _fppProxy;
+    bool _expanded = false;
     std::future<Output::PINGSTATE> _asyncPing;
 #pragma endregion
 
@@ -105,6 +106,9 @@ public:
     virtual void AsyncPing() override;
     virtual bool CanPing() const override { return GetIP() != "MULTICAST"; }
 
+    bool IsExpanded() const { return _expanded; }
+    void SetExpanded(bool expanded);
+
     virtual std::string GetExport() const override;
 
     virtual void SetTransientData(int32_t& startChannel, int& nullnumber) override;
@@ -116,9 +120,10 @@ public:
 
 #pragma region UI
     #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) override;
+        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
+        virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
     #endif
 #pragma endregion UI
 };

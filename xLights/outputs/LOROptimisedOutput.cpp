@@ -479,7 +479,7 @@ void LOROptimisedOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
+void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
 
     auto devs = GetControllers().GetControllers();
     auto p = propertyGrid->Append(new wxUIntProperty("Devices", "Devices", devs.size()));
@@ -523,7 +523,22 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
 
         propertyGrid->AppendIn(p2, new wxStringProperty("Description", wxString::Format("DeviceDescription/%d", i), it->GetDescription()));
 
+        if (it->IsExpanded()) expandProperties.push_back(p2);
+
         i++;
+    }
+}
+
+void LOROptimisedOutput::HandleExpanded(wxPropertyGridEvent& event, bool expanded)
+{
+    wxString name = event.GetPropertyName();
+
+    if (name.StartsWith("Device") && isdigit(name[name.size()-1])) {
+        int index = wxAtoi(name.substr(6));
+        auto it = GetControllers().GetControllers().begin();
+        std::advance(it, index);
+        wxASSERT(it != GetControllers().GetControllers().end());
+        (*it)->SetExpanded(expanded);
     }
 }
 

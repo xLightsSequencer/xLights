@@ -23,6 +23,7 @@ LorController::LorController() {
     _mode = AddressMode::LOR_ADDR_MODE_NORMAL;
     _description = "";
     _dirty = true;
+    _expanded = true;
 }
 
 LorController::LorController(wxXmlNode* node) {
@@ -32,6 +33,7 @@ LorController::LorController(wxXmlNode* node) {
     _type = node->GetAttribute("CntlrType", "AC Controller").ToStdString();
     _mode = AddressMode(wxAtoi(node->GetAttribute("AddrMode", "1")));
     _description = node->GetAttribute("CntlrDesc", "LOR Controller").ToStdString();
+    _expanded = node->GetAttribute("Expanded", "TRUE") == "TRUE";
     _dirty = false;
 }
 
@@ -42,6 +44,7 @@ void LorController::Save(wxXmlNode* node) {
     node->AddAttribute("CntlrType", wxString::Format("%s", _type));
     node->AddAttribute("AddrMode", wxString::Format("%d", _mode));
     node->AddAttribute("CntlrDesc", wxString::Format("%s", _description));
+    node->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
     _dirty = false;
 }
 #pragma endregion

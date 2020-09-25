@@ -1114,6 +1114,8 @@ public:
     void OnListControllersColClick(wxListEvent& event);
     void OnListControllersItemRClick(wxListEvent& event);
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
+    void OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event);
+    void OnControllerPropertyGridExpanded(wxPropertyGridEvent& event);
     void OnListItemDeselectedControllers(wxListEvent& event);
 
     void SelectController(const std::string& controllerName);
