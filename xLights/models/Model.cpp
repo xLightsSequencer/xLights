@@ -1365,6 +1365,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             return 0;
         }
 
+        SetControllerProtocol(cp[event.GetValue().GetLong()]);
+
         clearUnusedProtocolProperties(GetControllerConnection());
 
         if (GetControllerName() != "" && _controller != 0) {
