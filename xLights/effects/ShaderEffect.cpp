@@ -1213,7 +1213,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = _("#version 330\n\n"
+    wxString prependText = _(
     "uniform float TIME;\n"
     "uniform float TIMEDELTA;\n"
     "uniform vec2 RENDERSIZE;\n"
@@ -1313,6 +1313,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
     shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
+    shaderCode.Replace("varying ", "uniform ");
     if (!audioFFTName.empty())
     {
         shaderCode.Replace(audioFFTName, "texSampler");
@@ -1323,7 +1324,15 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode.Replace(canvasImgName, "texSampler");
         _canvasMode = true;
     }
-    _code = prependText.ToStdString();
+    _code = "#version 330\n\n";
+    size_t idx = shaderCode.find("#extension");
+    if (idx != std::string::npos) {
+        size_t nidx = shaderCode.find("\n", idx);
+        _code += shaderCode.substr(0, nidx);
+        _code += "\n";
+        shaderCode = shaderCode.substr(nidx);
+    }
+    _code += prependText.ToStdString();
     _code += shaderCode.ToStdString();
     wxASSERT(_code != "");
 #if 0
