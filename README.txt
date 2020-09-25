@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.40 September 25 2020
+   -- enh (keith)  Remember expanded property state on controller tab
+   -- enh (dkulp)  Expand controllers (DDP/NULL) to support 2 Million channels
+   -- bug (keith)  Fix arch model 3D match height not working
+   -- bug (keith)  When changing serial controller type to a protocol with a fixed rate ensure that rate is displayed
+   -- bug (keith)  Fix nutcracker123 only accepts https requests which broke model download (and others)
+   -- bug (keith)  Fix xlights creates spurious directories in root folder on startup
+   -- bug (dkulp)  Fix FPP brightness setting to match what FPP expects
+   -- bug (dkulp)  Move more processing to multiprocessors
+   -- bug (dkulp)  Fix some FPP discovery bugs which resulted in FPP addresses not showing
+   -- bug (dkulp)  Fix some 404 errors in FPP connect that are not really errors
 2020.39 September 20 2020
    -- bug (keith)  Fix bug which prevented some face and state effects rendering
    -- bug (keith)  Fix check sequence returns incorrect error total

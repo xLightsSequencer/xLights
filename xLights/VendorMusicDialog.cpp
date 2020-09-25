@@ -223,7 +223,7 @@ wxXmlDocument* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& filename
 
 bool VendorMusicDialog::LoadTree(std::string hash)
 {
-    const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://127.0.0.1:3000/xlights_vendors.xml";
 
     std::string filename;
