@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fix HinksPix Controller Upload
+   -- bug (scott)  Fix Controller Protocol Dropdown in Model Tab
+   -- bug (scott)  Fix On Effect with DMX Models
 2020.40 September 25 2020
    -- enh (keith)  Remember expanded property state on controller tab
    -- enh (dkulp)  Expand controllers (DDP/NULL) to support 2 Million channels

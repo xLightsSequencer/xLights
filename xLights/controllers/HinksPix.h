@@ -10,8 +10,6 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/protocol/http.h>
-
 #include <list>
 #include <string>
 #include <memory>
@@ -86,7 +84,6 @@ public:
 class HinksPix : public BaseController
 {
     #pragma region Member Variables
-    wxHTTP _http;
     int _inputMode;//e131=0, ddp=1, artnet=2
     int _outputTypes[3];
     int _Flex;

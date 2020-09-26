@@ -17,6 +17,8 @@
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
 
+#include <curl/curl.h>
+
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
@@ -362,44 +364,51 @@ wxString HinksPix::GetControllerE131Data(int rowIndex)
 wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, std::string const& data)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString res;
-
-    if (!_http.IsConnected()) {
-        if (_fppProxy != "") {
-            _baseUrl = "/proxy/" + _ip;
-            _connected = _http.Connect(_fppProxy);
-        } else {
-            _connected = _http.Connect(_ip);
-        }
-    }
+    std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
     logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
 
-    _http.SetHeader(_T("Content-type"), _T("text/plain"));
-    _http.SetHeader(_T("ROW"), std::to_string(rowIndex));
+    CURL* curl = curl_easy_init();
+    struct curl_slist* list = NULL;
 
-    logger_base.debug("Row='%d'.", rowIndex);
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+       
+        list = curl_slist_append(list, "Content-type: text/plain");
+        logger_base.debug("Row='%d'.", rowIndex);
+        list = curl_slist_append(list, std::string("ROW: " + std::to_string(rowIndex)).c_str());
+        
+        if (!data.empty()) {
+            list = curl_slist_append(list, std::string("DATA: " + data).c_str());
+            logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+        }
 
-    if (!data.empty()) {
-        _http.SetHeader(_T("DATA"), data);
-        logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+
+        std::string response_string;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+
+        /* Perform the request, res will get the return code */
+        CURLcode r = curl_easy_perform(curl);
+
+        if (r != CURLE_OK) {
+            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+        }
+        else {
+            res = response_string;
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
     }
-    _http.SetTimeout(30); // 30 seconds of timeout instead of 10 minutes ...
-
-    _http.SetMethod("GET");
-    wxString gurl = url;
-    wxInputStream* httpStream = _http.GetInputStream(_baseUrl + url);
-
-    if (_http.GetError() == wxPROTO_NOERR) {
-        wxStringOutputStream out_stream(&res);
-        httpStream->Read(out_stream);
-        logger_base.debug("Response from HinksPix '%s' : %d.", (const char*)res.c_str(), _http.GetError());
-    } else {
-        DisplayError(wxString::Format("Unable to connect to HinksPix '%s'.", url).ToStdString());
-        res = "";
-    }
-
-    wxDELETE(httpStream);
     return res;
 }
 
@@ -509,13 +518,7 @@ int HinksPix::EncodeGamma(int gamma) const
 HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy), _numberOfOutputs(0), _Flex(false)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!_fppProxy.empty()) {
-        _connected = _http.Connect(_fppProxy);
-    }
-    else {
-        _connected = _http.Connect(_ip);
-    }
-
+    
     //Get Controller Info
     auto const data = GetControllerData(1100);
     if (!data.empty()) {
