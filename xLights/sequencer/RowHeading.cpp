@@ -62,6 +62,7 @@ const long RowHeading::ID_ROW_MNU_COLLAPSEALLMODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_COLLAPSEALLLAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
@@ -395,6 +396,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     menu_pastem->Enable(false);
                 }
                 rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
+                rowMenu->Append(ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS, "Create Timing From Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
                 mnuLayer.AppendSubMenu(modelMenu, "Model");
                 mnuLayer.AppendSubMenu(rowMenu, "Row");
@@ -1020,6 +1022,42 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int i = ((ri->strandIndex << 16) & 0xFFFF0000) + (ri->nodeIndex & 0xFFFF);
         evt.SetInt(i);
         wxPostEvent(GetParent(), evt);
+    }
+    else if (id == ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS) {
+        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+
+        wxString selectedTiming = "FromEffects";
+        auto base = selectedTiming;
+
+        int suffix = 2;
+        while (xml_file->TimingAlreadyExists(selectedTiming, mSequenceElements->GetXLightsFrame())) {
+            selectedTiming = wxString::Format("%s-%d", base, suffix++);
+        }
+        xml_file->AddFixedTimingSection(selectedTiming, mSequenceElements->GetXLightsFrame());
+        auto te = mSequenceElements->GetTimingElement(selectedTiming);
+        auto tl = te->GetEffectLayer(0);
+
+        if (layer_index < element->GetEffectLayerCount()) {
+            EffectLayer* el = nullptr;
+            if (ri->nodeIndex == -1) {
+                el = element->GetEffectLayer(layer_index);
+            }
+            else {
+                StrandElement* se = (StrandElement*)element;
+                if (se != nullptr) {
+                    el = se->GetNodeLayer(ri->nodeIndex, false);
+                }
+            }
+
+            if (el != nullptr) {
+                for (const auto& ef : el->GetAllEffects()) {
+                    tl->AddEffect(0, "", "", "", ef->GetStartTimeMS(), ef->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                }
+            }
+
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
     }
     else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
         wxCommandEvent evt(EVT_PROMOTE_EFFECTS);

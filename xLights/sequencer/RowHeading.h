@@ -96,6 +96,7 @@ private:
     static const long ID_ROW_MNU_COLLAPSEALLLAYERS;
     static const long ID_ROW_MNU_TOGGLE_NODES;
     static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
+    static const long ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS;
     static const long ID_ROW_MNU_PROMOTE_EFFECTS;
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
