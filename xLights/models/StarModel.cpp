@@ -82,12 +82,6 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
                 BufferWi = w;
             }
         }
-        for (int x = 0; x < BufferHi; x++) {
-            int w = GetStarSize(x);
-            for (int z = 0; z < w; z++) {
-
-            }
-        }
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
         }
@@ -103,12 +97,11 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
                 int n;
                 if (!SingleNode) {
                     n = cnt + start;
-                }
-                else {
+                } else {
                     n = cur;
-                    if (n >= Nodes.size()) {
-                        n = Nodes.size() - 1;
-                    }
+                }
+                if (n >= Nodes.size()) {
+                    n = Nodes.size() - 1;
                 }
                 for (auto& it : newNodes[n]->Coords) {
                     it.bufY = cur;

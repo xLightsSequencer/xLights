@@ -105,6 +105,9 @@ void ShockwaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     double radius2 = end_radius;
     double radius_center = radius1 + (radius2 - radius1) * eff_pos_adj;
     double half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
+    if (half_width < 0.25) {
+        half_width = 0.25;
+    }
     radius1 = radius_center - half_width;
     radius2 = radius_center + half_width;
     radius1 = std::max(0.0, radius1);
