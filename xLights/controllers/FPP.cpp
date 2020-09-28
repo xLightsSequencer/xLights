@@ -840,15 +840,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     if (type == 3) {
         ctype = ::FSEQFile::CompressionType::none;
     }
-    int clevel = 2;
-    if (model.find(" Zero") != std::string::npos
-        || model.find("Pi Model A") != std::string::npos
-        || model.find("Pi Model B") != std::string::npos) {
-        clevel = 1;
-        if (ZSTD_versionNumber() > 10305) {
-            clevel = -5;
-        }
-    }
+
 
     bool doSeqUpload = true;
     int currentMaxChannel = 0;
@@ -893,12 +885,14 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         }
     }
     
+    int channelCount = 0;
     if (type <= 1) {
         //full file, non sparse
         if (currentMaxChannel != file.getMaxChannel()) doSeqUpload = true;
         if (currentChannelCount != file.getMaxChannel()) doSeqUpload = true;
         if (!currentRanges.empty()) doSeqUpload = true;
-        
+        channelCount = file.getMaxChannel();
+
         // at this point, if we are uploading a full file, we know if something has changed or not
         // and can bail quickly if not
     } else if (ranges != "") {
@@ -912,6 +906,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
                     len = wxAtoi(r[1]) - start + 1;
                 }
                 newRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
+                channelCount += len;
             }
             if (newRanges != currentRanges) doSeqUpload = true;
         }
@@ -932,7 +927,24 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
     }
     baseSeqName = baseName;
-
+    
+    int clevel = 2;
+    if (model.find(" Zero") != std::string::npos
+        || model.find("Pi Model A") != std::string::npos
+        || model.find("Pi Model B") != std::string::npos) {
+        clevel = 1;
+        if (ZSTD_versionNumber() > 10305) {
+            clevel = -5;
+        }
+    } else if (model.find("Beagle") != std::string::npos && channelCount > 75000) {
+        // lots of channels actually needed.  Possibly a P# panel or similar
+        // where we'll need CPU to actually process the channels so
+        // drop to lower compression, faster decommpression
+        clevel = 1;
+        if (ZSTD_versionNumber() > 10305) {
+            clevel = -5;
+        }
+    }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
     if (type >= 2 && !newRanges.empty()) {

@@ -169,13 +169,11 @@ double xlOSXGetMainScreenContentScaleFactor()
 {
     
     double displayScale = 1.0;
-    if ( [ [NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)] ) {
-        NSArray *screens = [NSScreen screens];
-        for (int i = 0; i < [screens count]; i++) {
-            float s = [[screens objectAtIndex:i] backingScaleFactor];
-            if (s > displayScale)
-                displayScale = s;
-        }
+    NSArray *screens = [NSScreen screens];
+    for (int i = 0; i < [screens count]; i++) {
+        float s = [[screens objectAtIndex:i] backingScaleFactor];
+        if (s > displayScale)
+            displayScale = s;
     }
     return displayScale;
 }
@@ -290,19 +288,15 @@ AppNapSuspender::~AppNapSuspender()
 
 void AppNapSuspender::suspend()
 {
-    if ([[NSProcessInfo processInfo] respondsToSelector:@selector(beginActivityWithOptions:reason:)]) {
-        p->activityId = [[NSProcessInfo processInfo ] beginActivityWithOptions: NSActivityUserInitiated | NSActivityLatencyCritical
-                                                                        reason:@"Outputting to lights"];
-        [p->activityId retain];
-    }
+    p->activityId = [[NSProcessInfo processInfo ] beginActivityWithOptions: NSActivityUserInitiated | NSActivityLatencyCritical
+                                                                    reason:@"Outputting to lights"];
+    [p->activityId retain];
 }
 
 void AppNapSuspender::resume()
 {
-    if ([[NSProcessInfo processInfo] respondsToSelector:@selector(beginActivityWithOptions:reason:)]) {
-        [[NSProcessInfo processInfo ] endActivity:p->activityId];
-        [p->activityId release];
-    }
+    [[NSProcessInfo processInfo ] endActivity:p->activityId];
+    [p->activityId release];
 }
 
 wxString GetOSXFormattedClipboardData() {

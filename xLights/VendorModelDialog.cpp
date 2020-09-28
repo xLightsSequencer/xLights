@@ -1156,8 +1156,6 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
 
 void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (TreeCtrl_Navigator->GetSelection().IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
