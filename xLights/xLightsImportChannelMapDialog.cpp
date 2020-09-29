@@ -1486,9 +1486,8 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
     _dragItem = wxDataViewItem(nullptr);
     if (ListCtrl_Available->GetSelectedItemCount() == 0) return;
 
-    wxString drag = "Map";
     int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    drag += "," + ListCtrl_Available->GetItemText(itemIndex, 0);
+    wxString drag = "Map," + ListCtrl_Available->GetItemText(itemIndex, 0);
 
     wxTextDataObject my_data(drag);
     MDDropSource dragSource(this);
@@ -1510,8 +1509,24 @@ void xLightsImportChannelMapDialog::OnDragDrop(wxDataViewEvent& event) {
         wxDataViewItem  item = event.GetItem();
         wxDataObjectComposite *comp = (wxDataObjectComposite*)event.GetDataObject();
         wxTextDataObject *obj = (wxTextDataObject*)comp->GetObject(wxDF_TEXT);
-        wxArrayString parms = wxSplit(obj->GetText(), ',');
-        Map(item, parms[1]);
+        wxString txt = obj->GetText();
+        txt.Trim(true).Trim(false);
+        if (txt.length() < 4) {
+            return;
+        }
+        // this looks strange, but drag drop on OSX sometimes will but a unicode BOM mark in txt[0]
+        // and we need to strip that off
+        if (txt[1] == 'M' && txt[2] == 'a' && txt[3] == 'p') {
+            txt = txt.substr(1);
+        }
+        size_t idx =txt.find(',');
+        if (idx != std::string::npos) {
+            wxString pfx = txt.Left(idx);
+            wxString model = txt.substr(idx + 1);
+            if (pfx == "Map") {
+                Map(item, model);
+            }
+        }
     }
 }
 
@@ -1522,14 +1537,13 @@ void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
     if (event.GetItem().IsOk())
     {
         _dragItem = event.GetItem();
-        wxString drag = "Map";
         wxVariant vvalue;
         event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
         std::string mapped = vvalue.GetString().ToStdString();
 
         if (mapped != "")
         {
-            drag += "," + mapped;
+            wxString drag = "Map," + mapped;
 
             wxTextDataObject my_data(drag);
             MDDropSource dragSource(this);
