@@ -1180,7 +1180,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : _pixelPorts) {
             if (protocol == "") protocol = it.second->GetProtocol();
 
-            if (protocol != it.second->GetProtocol()) {
+            if (Lower(protocol) != Lower(it.second->GetProtocol())) {
                 res += wxString::Format("ERR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
@@ -1190,7 +1190,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : _serialPorts) {
             if (protocol == "") protocol = it.second->GetProtocol();
 
-            if (protocol != it.second->GetProtocol()) {
+            if (Lower(protocol) != Lower(it.second->GetProtocol())) {
                 res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
