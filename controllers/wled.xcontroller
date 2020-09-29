@@ -16,6 +16,7 @@
 			<SerialProtocols/>
 			<InputProtocols>
 				<Protocol>e131</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 		</Variant>	
 	</Controller>
