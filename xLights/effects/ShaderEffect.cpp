@@ -1189,6 +1189,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char *>(audioFFTName.c_str()));
             }
         }
+        else if (type == "text") {
+            // ignore these
+            if (inputs[i].HasMember("NAME")) {
+                logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
+            }
+        }
         else if (type == "event")
         {
             // ignore these
