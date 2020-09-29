@@ -374,7 +374,7 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
 
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
        
         list = curl_slist_append(list, "Content-type: text/plain");
         logger_base.debug("Row='%d'.", rowIndex);
@@ -520,7 +520,17 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     
     //Get Controller Info
-    auto const data = GetControllerData(1100);
+    wxString  data;
+
+    for (int x = 0; x < 3; x++)
+    {
+        data = GetControllerData(1100);
+        if (!data.empty())
+        {
+            break;
+        }
+    }
+
     if (!data.empty()) {
         auto const controlInfo = StringToMap(data);
 
