@@ -3308,7 +3308,14 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         for (int x = firstNode; x < newNodes.size();) {
             if (cnt >= strandLen) {
                 strand++;
-                strandLen = GetStrandLength(strand);
+                if (strand < GetNumStrands()) {
+                    strandLen = GetStrandLength(strand);
+                }
+                else {
+                    // not sure what to do here ... we have more nodes than strands ... so lets just start again
+                    strandLen = GetStrandLength(0);
+                    strand = 0;
+                }
                 cnt = 0;
             }
             else {
