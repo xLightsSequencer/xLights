@@ -119,7 +119,7 @@
 			<fpp6>41,8</fpp6>
 		</Variant>
         <Variant Name="Revision F" ID="RGBCape48F" Base="FPP:FPPStringCape">
-			<MaxPixelPort>24</MaxPixelPort>
+			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<fpp>6</fpp>
