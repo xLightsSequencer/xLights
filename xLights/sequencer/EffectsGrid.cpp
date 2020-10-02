@@ -74,6 +74,8 @@ const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_LOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNLOCK = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_RENDERDISABLE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_RENDERENABLE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
@@ -350,11 +352,15 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
         wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
         wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
+        wxMenuItem* menu_effect_renderdisable = mnuLayer.Append(ID_GRID_MNU_RENDERDISABLE, "Disable Render");
+        wxMenuItem* menu_effect_renderenable = mnuLayer.Append(ID_GRID_MNU_RENDERENABLE, "Enable Render");
         if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected())
         {
             menu_effect_description->Enable(false);
             menu_effect_unlock->Enable(false);
             menu_effect_lock->Enable(false);
+            menu_effect_renderdisable->Enable(false);
+            menu_effect_renderenable->Enable(false);
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
@@ -468,6 +474,14 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         logger_base.debug("OnGridPopup - UNLOCK");
         LockEffects(false);
+    }
+    else if (id == ID_GRID_MNU_RENDERDISABLE) {
+        logger_base.debug("OnGridPopup - RENDERDISABLE");
+        DisableRenderEffects(true);
+    }
+    else if (id == ID_GRID_MNU_RENDERENABLE) {
+        logger_base.debug("OnGridPopup - RENDERENABLE");
+        DisableRenderEffects(false);
     }
     else if (id == ID_GRID_MNU_TIMING)
     {
@@ -807,7 +821,7 @@ Effect* EffectsGrid::FillRandomEffects()
                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                 RaiseSelectedEffectChanged(ef, true);
                 mSelectedEffect = ef;
-                if (!ef->GetPaletteMap().empty()) {
+                if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
                     sendRenderEvent(el->GetParentElement()->GetModelName(),
                         mDropStartTimeMS,
                         mDropEndTimeMS, true);
@@ -3393,7 +3407,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                             adjustMS(startDirty, min, max);
                             adjustMS(endDirty, min, max);
                         }
-                        sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
+                        if (!effect->IsRenderDisabled()) {
+                            sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
+                        }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
                     }
                 }
@@ -4307,6 +4323,35 @@ void EffectsGrid::LockEffects(bool lock)
     }
 }
 
+void EffectsGrid::DisableRenderEffects(bool disable)
+{
+    if (mSequenceElements == nullptr) return;
+
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected()) {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr) {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                if ((*it) == mSelectedEffect) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        if (efs.size() > 0) {
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                (*it)->SetRenderDisabled(disable);
+            }
+        }
+    }
+}
+
 void EffectsGrid::SetEffectsDescription()
 {
     if (mSequenceElements == nullptr) return;
@@ -4754,7 +4799,7 @@ Effect* EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVer
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                                if (!ef->GetPaletteMap().empty()) {
+                                if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
                                     sendRenderEvent(el->GetParentElement()->GetModelName(),
                                         new_start_time,
                                         new_end_time, true);
@@ -4818,7 +4863,7 @@ Effect* EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVer
                             }
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                            if (!ef->GetPaletteMap().empty()) {
+                            if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
                                 sendRenderEvent(el->GetParentElement()->GetModelName(),
                                     mDropStartTimeMS,
                                     mDropEndTimeMS, true);
@@ -4932,7 +4977,7 @@ Effect* EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVer
                                         xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                     }
                                     mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                                    if (!ef->GetPaletteMap().empty()) {
+                                    if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
                                         sendRenderEvent(el->GetParentElement()->GetModelName(),
                                             start_time,
                                             end_time, true);
@@ -5748,7 +5793,7 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const
 {
     if (eff != nullptr)
     {
-        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription());
+        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsRenderDisabled() ? _("DISABLED") : _(""));
         xlights->SetStatusText(e, true);
     }
     else
@@ -6252,6 +6297,7 @@ void EffectsGrid::DrawEffects()
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectFocusLines.PreAlloc(16);
             selectFocusLinesLocked.PreAlloc(16);
+            selectedLinesDisabled.PreAlloc(16);
 
             DrawGLUtils::xlVertexAccumulator * linesRight;
             DrawGLUtils::xlVertexAccumulator * linesLeft;
@@ -6328,7 +6374,14 @@ void EffectsGrid::DrawEffects()
                 // Draw Left line
                 if( e == mSelectedEffect )
                 {
-                    if (effectLayer->GetEffect(effectIndex)->IsLocked())
+                    if (effectLayer->GetEffect(effectIndex)->IsRenderDisabled())                         {
+                        linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &selectedLinesDisabled : &selectFocusLines;
+                        linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &selectedLinesDisabled : &selectFocusLines;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectFocusLines : &selectedLinesDisabled;
+                    }
+                    else if (effectLayer->GetEffect(effectIndex)->IsLocked())
                     {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                             effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectFocusLinesLocked;
@@ -6347,7 +6400,14 @@ void EffectsGrid::DrawEffects()
                 }
                 else
                 {
-                    if (effectLayer->GetEffect(effectIndex)->IsLocked())
+                    if (effectLayer->GetEffect(effectIndex)->IsRenderDisabled())                         {
+                        linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectedLinesDisabled;
+                        linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectedLinesDisabled;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLinesDisabled : &lines;
+                    }
+                    else if (effectLayer->GetEffect(effectIndex)->IsLocked())
                     {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                             effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectedLinesLocked;
@@ -6484,6 +6544,7 @@ void EffectsGrid::DrawEffects()
     DrawGLUtils::Draw(selectedLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_LOCKED), GL_LINES);
     DrawGLUtils::Draw(selectedLinesFixed, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_FIXED), GL_LINES);
     DrawGLUtils::Draw(selectFocusLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_LOCKED), GL_LINES);
+    DrawGLUtils::Draw(selectedLinesDisabled, xlights->color_mgr.GetColor(ColorManager::COLOR_DISABLED_EFFECT), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
     DrawGLUtils::Draw(timingEffLines, xlights->color_mgr.GetColor(ColorManager::COLOR_TIMING_DEFAULT), GL_LINES);
@@ -6510,6 +6571,8 @@ void EffectsGrid::DrawEffects()
     selectedLines.Reset();
     selectFocusLines.Reset();
     selectFocusLinesLocked.Reset();
+    selectedLinesDisabled.Reset();
+
     lines.Reset();
 }
 

@@ -133,6 +133,7 @@ public:
     Element* GetActiveTimingElement() const;
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);
+    void DisableRenderEffects(bool disable);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -256,6 +257,7 @@ private:
     DrawGLUtils::xlVertexAccumulator selectedLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLinesLocked;
+    DrawGLUtils::xlVertexAccumulator selectedLinesDisabled;
     DrawGLUtils::xlAccumulator backgrounds;
     DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
     DrawGLUtils::xlVertexColorAccumulator selectedBoxes;
@@ -300,6 +302,8 @@ private:
     static const long ID_GRID_MNU_DESCRIPTION;
     static const long ID_GRID_MNU_LOCK;
     static const long ID_GRID_MNU_UNLOCK;
+    static const long ID_GRID_MNU_RENDERDISABLE;
+    static const long ID_GRID_MNU_RENDERENABLE;
     static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_REDO;

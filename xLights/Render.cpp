@@ -1910,6 +1910,9 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
 
+    // dont render disabled effects
+    if (effectObj != nullptr && effectObj->IsRenderDisabled()) return false;
+
     if (layer >= buffer.GetLayerCount()) {
         logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).", 
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer+1, buffer.GetLayerCount());

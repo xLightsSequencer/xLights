@@ -405,6 +405,23 @@ void Effect::ConvertTo(int effectIndex)
     }
 }
 
+bool Effect::IsRenderDisabled() const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    return mSettings.Contains("X_Effect_RenderDisabled");
+}
+
+void Effect::SetRenderDisabled(bool disabled)
+{
+    std::unique_lock<std::recursive_mutex> getlock(settingsLock);
+    if (disabled) {
+        mSettings["X_Effect_RenderDisabled"] = "True";
+    }
+    else {
+        mSettings.erase("X_Effect_RenderDisabled");
+    }
+}
+
 bool Effect::IsLocked() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);

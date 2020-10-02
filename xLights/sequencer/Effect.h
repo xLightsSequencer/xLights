@@ -100,6 +100,9 @@ public:
     bool GetProtected() const { return mProtected; }
     void SetProtected(bool Protected) { mProtected = Protected; }
 
+    bool IsRenderDisabled() const;
+    void SetRenderDisabled(bool disabled);
+
     bool IsLocked() const;
     void SetLocked(bool lock);
 

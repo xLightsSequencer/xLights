@@ -53,6 +53,7 @@ class ColorManager
             COLOR_WAVEFORM_BACKGROUND,
             COLOR_WAVEFORM_SELECTED,
             COLOR_WAVEFORM_SELECTEDEFFECT,
+            COLOR_DISABLED_EFFECT,
             NUM_COLORS
         };
 
@@ -140,7 +141,8 @@ class ColorManager
             {COLOR_WAVEFORM,            "Waveform",           "Waveform",            xlColor(130, 178, 207), COLOR_CAT_EFFECT_GRID},
             {COLOR_WAVEFORM_BACKGROUND, "WaveformBackground", "Waveform Background", xlColor(212, 208, 200), COLOR_CAT_EFFECT_GRID, wxSYS_COLOUR_BTNFACE},
             {COLOR_WAVEFORM_SELECTED,   "WaveformSelected",   "Waveform Selected",   xlColor(0, 0, 200, 45), COLOR_CAT_EFFECT_GRID},
-            {COLOR_WAVEFORM_SELECTEDEFFECT,   "WaveformSelectedEffect",   "Waveform Selected Effect",   xlORANGE, COLOR_CAT_EFFECT_GRID}
+            {COLOR_WAVEFORM_SELECTEDEFFECT,   "WaveformSelectedEffect",   "Waveform Selected Effect",   xlORANGE, COLOR_CAT_EFFECT_GRID},
+            {COLOR_DISABLED_EFFECT,   "DisabledEffect",   "Disabled Effects",   xlYELLOW, COLOR_CAT_EFFECT_GRID}
         };
 
     protected:

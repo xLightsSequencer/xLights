@@ -211,7 +211,8 @@ void FPP::setupCurl() {
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError)  {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
@@ -221,7 +222,8 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     }
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-    
+    logger_curl.info("URL: %s", fullUrl.c_str());
+
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -233,6 +235,9 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     long response_code = 0;
     if (i == CURLE_OK) {
         val = curlInputBuffer;
+        logger_curl.debug("RESPONSE START ---------");
+        logger_curl.debug(val.c_str());
+        logger_curl.debug("RESPONSE END ---------");
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 401) {
             curlInputBuffer.clear();
@@ -269,10 +274,11 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
         logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d", fullUrl.c_str(), i, response_code);
     }
     return retValue;
-
 }
+
 int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
@@ -280,6 +286,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     if (!isFPP) {
         fullUrl = "http://" + ipAddress + "/fpp?path=" +  url;
     }
+    logger_curl.info("URL: %s", fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
@@ -288,6 +295,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
     
+    logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
     struct curl_slist *chunk = nullptr;
     chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
     std::string ct = "Content-Type: " + contentType;
@@ -296,6 +304,15 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     FPPWriteData data;
     data.data = (uint8_t*)val.GetData();
     data.dataSize = val.GetDataLen();
+
+    if (logger_curl.isInfoEnabled()) {
+        char temp[8192];
+        strncpy(temp, (char*)data.data, std::min(data.dataSize, sizeof(temp) - 1));
+        logger_base.info("BODY START -----------");
+        logger_base.info(temp);
+        logger_base.info("BODY END -----------");
+    }
+
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
@@ -324,7 +341,6 @@ bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordErro
     }
     return false;
 }
-
 
 std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 {

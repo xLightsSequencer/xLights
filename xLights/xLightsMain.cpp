@@ -5994,6 +5994,7 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "Effect problems");
 
         // check all effects
+        bool disabledEffects = false;
         bool videoCacheWarning = false;
         std::list<std::pair<std::string, std::string>> faces;
         std::list<std::pair<std::string, std::string>> states;
@@ -6004,7 +6005,7 @@ void xLightsFrame::CheckSequence(bool display)
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
 
                 if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
@@ -6013,7 +6014,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -6021,7 +6022,7 @@ void xLightsFrame::CheckSequence(bool display)
                             for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
                                 Effect* ef = nl->GetEffect(l);
-                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, faces, states, viewPoints);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, disabledEffects, faces, states, viewPoints);
                                 RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
                                 allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
                             }
@@ -6032,7 +6033,7 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
                         }
                     }
                 }
@@ -6057,6 +6058,12 @@ void xLightsFrame::CheckSequence(bool display)
         if (videoCacheWarning)
         {
             wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+
+        if (disabledEffects) {
+            wxString msg = wxString::Format("    WARN: Seqeuence has one or more effects which are disabled. They are being ignored.");
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -6210,7 +6217,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
@@ -6229,6 +6236,8 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
             warncount++;
         }
     }
+
+    if (ef->IsRenderDisabled()) disabledEffects = true;
 
     // check we are not doing sub-buffers on Per Model* buffer styles
     bool isPerModel = false;
@@ -6390,7 +6399,10 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, 
+                                bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, 
+                                std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, 
+                                std::list<std::string>& allfiles)
 {
     int layer = 0;
     for (const auto& el : e->GetEffectLayers())
@@ -6445,7 +6457,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
                 }
             }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, faces, states, viewPoints);
+            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, disabledEffects, faces, states, viewPoints);
             if (ef->GetEffectName() == "Shader")
             {
                 usesShader = true;
