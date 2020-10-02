@@ -80,10 +80,8 @@ public:
 
     static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
-#ifdef _DEBUG
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug(url.c_str());
-#endif
+        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+        logger_curl.info("URL: %s", url.c_str());
 
         CURL* curl = curl_easy_init();
 
@@ -93,6 +91,7 @@ public:
             static const char buf[] = "Expect:";
             headerlist = curl_slist_append(headerlist, buf);
 
+            logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
             if (contentType == "JSON")
             {
                 static const char buf2[] = "Content-Type: application/json";
@@ -124,10 +123,13 @@ public:
                 headerlist = curl_slist_append(headerlist, buf2);
             }
 
+            logger_curl.info("HEADER START ----------");
             for (const auto& it : customHeaders) {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
+                logger_curl.info("    %s", s.c_str());
             }
+            logger_curl.info("HEADER END ----------");
 
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
@@ -145,6 +147,9 @@ public:
 
             curl_easy_setopt(curl, CURLOPT_POST, 1);
 
+            logger_curl.info("BODY START ----------");
+            logger_curl.info(body.c_str());
+            logger_curl.info("BODY END ----------");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -161,6 +166,9 @@ public:
             }
             if (res == CURLE_OK)
             {
+                logger_curl.debug("RESPONSE START ------");
+                logger_curl.debug(buffer.c_str());
+                logger_curl.debug("RESPONSE END ------");
                 return buffer;
             }
         }
@@ -170,10 +178,8 @@ public:
 
     static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
-#ifdef _DEBUG
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug(url.c_str());
-#endif
+        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+        logger_curl.info("URL: %s", url.c_str());
 
         CURL* curl = curl_easy_init();
 
@@ -182,6 +188,7 @@ public:
             struct curl_httppost *formpost = nullptr;
             struct curl_httppost *lastptr = nullptr;
 
+            logger_curl.info("FORM START ------");
             for (const auto& it : vars)
             {
                 curl_formadd(&formpost,
@@ -189,7 +196,9 @@ public:
                     CURLFORM_COPYNAME, it.key.c_str(),
                     CURLFORM_COPYCONTENTS, it.value.c_str(),
                     CURLFORM_END);
+                logger_curl.info("    %s : %s", it.key.c_str(), it.value.c_str());
             }
+            logger_curl.info("FORM END ------");
 
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             if (user != "" || password != "")
@@ -202,10 +211,13 @@ public:
             struct curl_slist* headerlist = nullptr;
             static const char buf[] = "Expect:";
             headerlist = curl_slist_append(headerlist, buf);
+            logger_curl.info("HEADER START ----------");
             for (const auto& it : customHeaders) {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
+                logger_curl.info("    %s", s.c_str());
             }
+            logger_curl.info("HEADER END ----------");
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
             curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
@@ -228,6 +240,9 @@ public:
             }
             if (res == CURLE_OK)
             {
+                logger_curl.debug("RESPONSE START ----------");
+                logger_curl.debug(buffer.c_str());
+                logger_curl.debug("RESPONSE END ----------");
                 return buffer;
             }
         }
@@ -237,10 +252,9 @@ public:
 
     static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
     {
+        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#ifdef _DEBUG
-        logger_base.debug(s.c_str());
-#endif
+        logger_curl.info("URL: %s", s.c_str());
 
         std::string res;
         CURL* curl = curl_easy_init();
@@ -263,10 +277,13 @@ public:
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
             struct curl_slist* headerlist = nullptr;
+            logger_curl.info("HEADER START ----------");
             for (const auto& it : customHeaders)                 {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
+                logger_curl.info("    %s", s.c_str());
             }
+            logger_curl.info("HEADER END ----------");
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
             std::string response_string;
@@ -291,6 +308,9 @@ public:
             else
             {
                 res = response_string;
+                logger_curl.debug("RESPONSE START ----------");
+                logger_curl.debug(res.c_str());
+                logger_curl.debug("RESPONSE END ----------");
             }
 
             /* always cleanup */
