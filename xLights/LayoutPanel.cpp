@@ -9,19 +9,19 @@
  **************************************************************/
 
  //(*InternalHeaders(LayoutPanel)
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/font.h>
-#include <wx/intl.h>
-#include <wx/notebook.h>
-#include <wx/scrolbar.h>
-#include <wx/settings.h>
-#include <wx/sizer.h>
-#include <wx/splitter.h>
-#include <wx/stattext.h>
-#include <wx/string.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/font.h>
+ #include <wx/intl.h>
+ #include <wx/notebook.h>
+ #include <wx/scrolbar.h>
+ #include <wx/settings.h>
+ #include <wx/sizer.h>
+ #include <wx/splitter.h>
+ #include <wx/stattext.h>
+ #include <wx/string.h>
+ //*)
 
 #include <wx/clipbrd.h>
 #include <wx/propgrid/propgrid.h>
@@ -464,7 +464,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetItemComparator(&comparator);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
-
+    
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
@@ -8134,11 +8134,14 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 {
-    UnSelectAllModelsInTree(); // this will also call UnSelectAllModels() for 3D Objects
+#ifdef __WXOSX__
+    UnSelectAllModels();
+#else
+    UnSelectAllModelsInTree();
+#endif
     if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
         editing_models = true;
-    }
-    else {
+    } else {
         editing_models = false;
     }
 }
