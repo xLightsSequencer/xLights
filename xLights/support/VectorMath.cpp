@@ -344,7 +344,8 @@ glm::mat4 VectorMath::rotationMatrixFromXAxisToVector2(const glm::vec3 &o, const
     glm::vec3 b(1.0f, 0.0f, 0.0f);
     if (o.y != p.y || o.z != p.z) {
         glm::vec3 v = glm::vec3(0, -a.z, a.y);
-        float angle = acos(a.x / glm::length(a));
+        float len = glm::length(a);
+        float angle = len == 0.0f ? 0.0 : acos(a.x / len);
         return glm::rotate(angle, v);
     }
     else
