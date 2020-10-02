@@ -127,7 +127,7 @@ public:
             for (const auto& it : customHeaders) {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
-                logger_curl.info("    %s", s.c_str());
+                logger_curl.info("    %s", (const char *)s.c_str());
             }
             logger_curl.info("HEADER END ----------");
 
@@ -215,7 +215,7 @@ public:
             for (const auto& it : customHeaders) {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
-                logger_curl.info("    %s", s.c_str());
+                logger_curl.info("    %s", (const char *)s.c_str());
             }
             logger_curl.info("HEADER END ----------");
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -281,7 +281,7 @@ public:
             for (const auto& it : customHeaders)                 {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
-                logger_curl.info("    %s", s.c_str());
+                logger_curl.info("    %s", (const char *)s.c_str());
             }
             logger_curl.info("HEADER END ----------");
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);

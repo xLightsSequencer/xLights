@@ -513,7 +513,6 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             bool isMedia = false;
             std::string mediaName;
 
-
             while (!done) {
                 if (!event) {
                     size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
@@ -653,6 +652,16 @@ void FPPConnectDialog::LoadSequences()
         if (!found) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
+            FSEQFile *file = FSEQFile::openFSEQFile(v);
+            for (auto & header : file->getVariableHeaders()) {
+                if (header.code[0] == 'm' && header.code[1] == 'f') {
+                    wxString mediaName = (const char *)(&header.data[0]);
+                    mediaName = FixFile("", mediaName);
+                    if (wxFileExists(mediaName)) {
+                        CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+                    }
+                }
+            }
         }
         fcont = directory.GetNext(&file);
     }
