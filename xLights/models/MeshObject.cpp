@@ -393,6 +393,9 @@ void MeshObject::loadObject() {
         logger_base.debug("Loading mesh model '%s' file '%s'.",
                           (const char *)GetName().c_str(),
                           (const char *)_objFile.c_str());
+
+        diffuse_colours_override = false;
+
         wxFileName fn(_objFile);
         std::string base_path = fn.GetPath();
         std::string err;
@@ -401,7 +404,7 @@ void MeshObject::loadObject() {
 
         // Append `default` material
         materials.push_back(tinyobj::material_t());
-        
+
         bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
         bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
         
@@ -454,7 +457,7 @@ void MeshObject::loadObject() {
                         if (!wxFileExists(texture_filename)) {
                             texture_filename = fn.GetPath() + "/" + m.diffuse_texname;
                             if (!wxFileExists(texture_filename)) {
-                                logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
+                                logger_base.warn("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
                                 continue;
                             }
                         }
@@ -462,6 +465,17 @@ void MeshObject::loadObject() {
                     textures[m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
             }
+        }
+
+        // create a default grey texture
+        if (textures.find("") == textures.end()) {
+            wxImage i(16, 16);
+            i.SetRGB(wxRect(0, 0, 16, 16), 128, 128, 128);
+            textures[""] = new Image(i);
+        }
+
+        if (textures.size() == 0)             {
+            diffuse_colours_override = true;
         }
     }
 }
@@ -656,7 +670,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
                         float green = c[1] * 0.5 + 0.5;
                         float blue = c[2] * 0.5 + 0.5;
 
-                        if (diffuse_colors) {
+                        if (diffuse_colors || diffuse_colours_override) {
                             // just use diffuse color for now
                             red = diffuse[0];
                             green = diffuse[1];

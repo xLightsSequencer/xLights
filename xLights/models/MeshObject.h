@@ -52,6 +52,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         bool obj_loaded;
         bool mesh_only;
         bool diffuse_colors;
+        bool diffuse_colours_override = false;
 
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
