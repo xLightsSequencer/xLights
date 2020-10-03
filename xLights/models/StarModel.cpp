@@ -271,94 +271,165 @@ void StarModel::InitModel()
 
     uint32_t chan = 0;
     int currentNode = 0;
-    for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
-
-        if (currentNode >= Nodes.size()) break;
-
-        int layerNodes = GetLayerSize(l);
-
-        if (layerNodes == 0) continue;
-
-        double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
-
-        bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
-
-        // segments are all the same length so i can calculate length once
-        wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
-        wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
-        double segmentLength = LineLength(start, end);
-        double totalSegmentLength = starSegments * segmentLength;
-        double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
-
-        double curPos = 0; // This is our position along the stretched out lines of the star
-        double curAngle = startAngle; // This is the angle on the circle of the starting point for each segment
-        for (int s = 0; s < starSegments; s++) {
+    if (!SingleNode) {
+        for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
 
             if (currentNode >= Nodes.size()) break;
 
-            start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
-            end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
-            double segStartLen = s * segmentLength;
-            double segEndLen = segStartLen + segmentLength;
+            int layerNodes = GetLayerSize(l);
 
-            while (curPos < segEndLen) {
+            if (layerNodes == 0) continue;
 
-                int currentString = currentNode / parm2;
-                int nodeInString = currentNode % parm2;
-                if (nodeInString == 0 && currentString < GetNumStrings()) {
-                    chan = stringStartChan[currentString];
-                }
-                if (!SingleNode) {
-                    Nodes[currentNode]->ActChan = chan;
-                }
-                else {
-                    Nodes[currentNode]->ActChan = chan + l;
-                }
+            double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
 
-                for (int c = 0; c < coordsPerNode; c++) {
-                    wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+            bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
-                    Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
-                    Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2;
+            // segments are all the same length so i can calculate length once
+            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            double segmentLength = LineLength(start, end);
+            double totalSegmentLength = starSegments * segmentLength;
+            double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
 
-                    curPos += coordGap;
-                }
+            double curPos = 0; // This is our position along the stretched out lines of the star
+            double curAngle = startAngle; // This is the angle on the circle of the starting point for each segment
+            for (int s = 0; s < starSegments; s++) {
 
-                if (!SingleNode) {
-                    chan += channelsPerNode;
-                }
-
-
-                currentNode++;
                 if (currentNode >= Nodes.size()) break;
+
+                start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
+                end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
+                double segStartLen = s * segmentLength;
+                double segEndLen = segStartLen + segmentLength;
+
+                while (curPos < segEndLen) {
+
+                    int currentString = currentNode / parm2;
+                    int nodeInString = currentNode % parm2;
+                    if (nodeInString == 0 && currentString < GetNumStrings()) {
+                        chan = stringStartChan[currentString];
+                    }
+                    Nodes[currentNode]->ActChan = chan;
+
+                    for (int c = 0; c < coordsPerNode; c++) {
+                        wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+
+                        Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
+                        Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2;
+
+                        curPos += coordGap;
+                    }
+
+                    chan += channelsPerNode;
+
+
+                    currentNode++;
+                    if (currentNode >= Nodes.size()) break;
+                }
+
+                // move to the next arm
+                curAngle += (pointAngleGap * directionUnit) / 2.0;
+                startOuter = !startOuter;
             }
 
-            // move to the next arm
-            curAngle += (pointAngleGap * directionUnit) / 2.0;
-            startOuter = !startOuter;
+            // step in
+            outerRadius -= layerRadiusDelta;
+            innerRadius = outerRadius / starRatio;
         }
 
-        // step in
-        outerRadius -= layerRadiusDelta;
-        innerRadius = outerRadius / starRatio;
+        // handle any left over nodes
+        for (int n = currentNode; n < Nodes.size(); n++) {
+            int currentString = n / parm2;
+            int nodeInString = n % parm2;
+            if (nodeInString == 0) {
+                chan = stringStartChan[currentString];
+            }
+            Nodes[n]->ActChan = chan;
+
+            for (int c = 0; c < coordsPerNode; c++) {
+                Nodes[n]->Coords[c].bufX = 0;
+                Nodes[n]->Coords[c].bufY = 0;
+            }
+
+            if (!SingleNode) {
+                chan += channelsPerNode;
+            }
+        }
     }
+    else {
+        for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
 
-    // handle any left over nodes
-    for (int n = currentNode; n < Nodes.size(); n++) {
-        int currentString = n / parm2;
-        int nodeInString = n % parm2;
-        if (nodeInString == 0) {
-            chan = stringStartChan[currentString];
-        }
-        Nodes[n]->ActChan = chan;
+            wxRealPoint lastCoord; // we remember this so any excess coords are placed with the last coord
 
-        for (int c = 0; c < coordsPerNode; c++) {
-            Nodes[n]->Coords[c].bufX = 0;
-            Nodes[n]->Coords[c].bufY = 0;
-        }
+            if (currentNode >= Nodes.size()) break;
 
-        if (!SingleNode) {
-            chan += channelsPerNode;
+            int layerNodes = 1;
+
+            // we need to use the min of layer size and string length
+            int coordsPerNode = std::min(GetLayerSize(l), (int)GetCoordCount(currentNode));
+            if (coordsPerNode == 0) continue;
+
+            chan = stringStartChan[currentNode];
+
+            double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
+
+            bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
+
+            // segments are all the same length so i can calculate length once
+            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            double segmentLength = LineLength(start, end);
+            double totalSegmentLength = starSegments * segmentLength;
+            double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
+
+            int currentCoord = 0;
+            double curPos = 0; // This is our position along the stretched out lines of the star
+            double curAngle = startAngle; // This is the angle on the circle of the starting point for each segment
+            for (int s = 0; s < starSegments; s++) {
+
+                if (currentCoord >= coordsPerNode) break;
+
+                start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
+                end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
+                double segStartLen = s * segmentLength;
+                double segEndLen = segStartLen + segmentLength;
+
+                while (curPos < segEndLen) {
+
+                    Nodes[currentNode]->ActChan = chan;
+
+                    wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+
+                    Nodes[currentNode]->Coords[currentCoord].bufX = point.x + BufferWi / 2;
+                    Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2;
+                    lastCoord = wxPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
+
+                    curPos += coordGap;
+
+                    currentCoord++;
+                    if (currentCoord >= coordsPerNode) break;
+                }
+
+                // move to the next arm
+                curAngle += (pointAngleGap * directionUnit) / 2.0;
+                startOuter = !startOuter;
+            }
+
+            coordsPerNode = GetCoordCount(currentNode);
+
+            // handle any left over nodes
+            for (int c = currentCoord; c < coordsPerNode; c++) {
+                Nodes[currentNode]->ActChan = chan;
+
+                Nodes[currentNode]->Coords[c].bufX = lastCoord.x;
+                Nodes[currentNode]->Coords[c].bufY = lastCoord.y;
+            }
+
+            currentNode++;
+
+            // step in
+            outerRadius -= layerRadiusDelta;
+            innerRadius = outerRadius / starRatio;
         }
     }
 
