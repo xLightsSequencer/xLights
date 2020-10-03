@@ -22,7 +22,26 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
+#include <math.h>
+
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
+
+// Converts from the old start position formats into the new one
+std::string StarModel::ConvertFromDirStartSide(const wxString& dir, const wxString& startSide)
+{
+    if (dir == "L" && startSide == "B") {
+        return "Bottom Ctr-CW";
+    }
+    if (dir == "L") {
+        return "Top Ctr-CCW";
+    }
+
+    if (startSide == "B") {
+        return "Bottom Ctr-CCW";
+    }
+
+    return "Top Ctr-CW";
+}
 
 StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034f)
 {
@@ -32,6 +51,19 @@ StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBase
         node->AddAttribute("LayerSizes", node->GetAttribute("starSizes", ""));
         node->DeleteAttribute("starSizes");
     }
+
+    auto dir = node->GetAttribute("Dir", "");
+    auto startSide = node->GetAttribute("StartSide", "");
+
+    if (dir != "" || startSide != "") {
+        if (dir == "") dir = "L";
+        if (startSide == "") startSide = "B";
+
+        node->DeleteAttribute("Dir");
+        node->DeleteAttribute("StartSide");
+        node->AddAttribute("StarStartLocation", ConvertFromDirStartSide(dir, startSide));
+    }
+
     SetFromXml(node, zeroBased);
 }
 
@@ -82,8 +114,8 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
                 BufferWi = w;
             }
         }
-        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        for (const auto& it : Nodes) {
+            newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
         }
 
         int start = 0;
@@ -124,7 +156,7 @@ int StarModel::GetStrandLength(int strand) const {
 int StarModel::MapToNodeIndex(int strand, int node) const
 {
     int idx = 0;
-    for (int x = 0; x < strand; x++) {
+    for (int x = GetLayerSizeCount() - 1; x > strand; x--) {
         idx += GetStrandLength(x);
     }
     idx += node;
@@ -148,9 +180,27 @@ bool StarModel::AllNodesAllocated() const
 // parm3 is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
+wxRealPoint StarModel::GetPointOnCircle(double radius, double angle)
+{
+    return wxRealPoint(radius * std::sin(angle), radius * std::cos(angle));
+}
+
+double StarModel::LineLength(wxRealPoint start, wxRealPoint end)
+{
+    return std::sqrt((end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y));
+}
+
+wxRealPoint StarModel::GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance)
+{
+    if (LineLength(start, end) == 0) return start;
+    double t = distance / LineLength(start, end);
+    return wxRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
+}
+
 void StarModel::InitModel()
 {
     starRatio = wxAtof(ModelXml->GetAttribute("starRatio", "2.618034"));
+    _starStartLocation = ModelXml->GetAttribute("StarStartLocation", "Bottom Ctr-CW");
 
     if (parm3 < 2) parm3 = 2; // need at least 2 arms
     SetNodeCount(parm1, parm2, rgbOrder);
@@ -166,9 +216,13 @@ void StarModel::InitModel()
     //    starSizes.resize(Nodes.size());
     //}
 
-    int maxLights = 0;
+    // stars are drawn using pairs of circles. The outer radius touches the edge of the grid.
+    // the inside is proportionate to the ratio
+    // each layer is then applied inside the prior one by some factor
+    // the radius of the outer circle starts are bufferWi / 2
+
     int numlights = parm1 * parm2;
-    int cnt = 0;
+    if (numlights == 0) return;
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
     }
@@ -176,137 +230,136 @@ void StarModel::InitModel()
         SetLayerSize(0, numlights);
     }
 
-    bool duplicateSized = false;
-    std::list<int> duplicateSizedLayers;
-    for (int x = 0; x < GetLayerSizeCount(); x++) {
+    int maxLightsOnLayer = 0;
+    for (int l = 0; l < GetLayerSizeCount(); l++) {
+        // we inflate a layer for every layer outside it by 1 / number of layers ... so 5th layer of 10 should be inflated by 50%
+        int layersoutside = GetLayerSizeCount() - l - 1;
+        maxLightsOnLayer = std::max(maxLightsOnLayer, (int)((float)GetLayerSize(l) * (1.0 + ((float)layersoutside / (float)GetLayerSizeCount()))));
+    }
+    SetBufferSize(maxLightsOnLayer, maxLightsOnLayer);
 
-        if (std::find(begin(duplicateSizedLayers), end(duplicateSizedLayers), GetLayerSize(x)) == duplicateSizedLayers.end()) {
-            duplicateSizedLayers.push_back(GetLayerSize(x));
-        }
-        else {
-            duplicateSized = true;
-        }
-
-        if ((cnt + GetLayerSize(x)) > numlights) {
-            if (cnt > numlights) {
-                SetLayerSize(x, 0);
-            }
-            else {
-                SetLayerSize(x, numlights - cnt);
-            }
-        }
-        cnt += GetLayerSize(x);
-        if (GetLayerSize(x) > maxLights) {
-            maxLights = GetLayerSize(x);
+    double outerRadius = (double)BufferWi / 2.0; // stars are 2 circles ... and inner and an outer with lines travelling between them
+    if (starRatio < 1) starRatio = 1;
+    double innerRadius = outerRadius / starRatio;
+    double layerRadiusDelta = outerRadius / GetLayerSizeCount(); // space between the outer layer radii
+    if (parm3 == 0) parm3 = 1;
+    double pointAngleGap = (M_PI * 2.0) / parm3; // angle between star points
+    double directionUnit = Contains(_starStartLocation, "-CCW") ? -1.0 : 1.0; // which way the angle should be applied
+    double startAngle;
+    if (Contains(_starStartLocation, "Top")) { // head
+        startAngle = (M_PI * 2.0 * 0.0) / 4.0;
+    }
+    else if (Contains(_starStartLocation, "Bottom Ctr")) { // crotch
+        startAngle = (M_PI * 2.0 * 2.0) / 4.0;
+    }
+    else if (Contains(_starStartLocation, "Left")) { // left leg
+        startAngle = (M_PI * 2.0 * 2.0) / 4.0;
+        if (parm3 % 2 == 1) {
+            startAngle += pointAngleGap / 2.0;
         }
     }
-
-    // This is used to separate layers with equal numbers of nodes
-    const int SEPERATION_FACTOR = 10;
-    if (duplicateSized) {
-        int size = maxLights + 1 + SEPERATION_FACTOR * GetLayerSizeCount();
-        SetBufferSize(size, size);
+    else { // Right leg
+        startAngle = (M_PI * 2.0 * 2.0) / 4.0;
+        if (parm3 % 2 == 1) {
+            startAngle -= pointAngleGap / 2.0;
+        }
     }
-    else {
-        SetBufferSize(maxLights + 1, maxLights + 1);
-    }
-    int LastStringNum = -1;
-    int chan = 0;
-    int start = 0;
-    double scale = (double)(maxLights + 1) / (double)(maxLights + 1 + SEPERATION_FACTOR * GetLayerSizeCount());
+    int starSegments = 2 * parm3; // parm3 is points
+    int channelsPerNode = GetNodeChannelCount(StringType);
+    int coordsPerNode = GetCoordCount(0);
+    if (coordsPerNode == 0) return;
 
-    for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
-        numlights = GetLayerSize(cur);
-        if (numlights <= 0) {
-            continue;
-        }
+    uint32_t chan = 0;
+    int currentNode = 0;
+    for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
 
-        double offset = 0.0;
-        double coffset = 0.0;
+        if (currentNode >= Nodes.size()) break;
 
-        if (duplicateSized) {
-            // we do funky things if there are duplicate layers with the same number of pixels as the orignal code 
-            // forced the pixels into order largest to smallest ... at least on the display
-            // I have kept the old code for stars without duplicate sized layers to minimise impacts on users.
-            double sep = (double)(SEPERATION_FACTOR * (GetLayerSizeCount() - cur));
-            offset = ((double)(numlights) / 2.0 + sep) * scale + SEPERATION_FACTOR * GetLayerSizeCount() / 4 * scale;
-            coffset = ((double)(maxLights - numlights) / 2.0 - sep) * scale + SEPERATION_FACTOR * GetLayerSizeCount() / 4 * scale;
-        }
-        else {
-            offset = (double)numlights / 2.0;
-            coffset = (double)(maxLights - numlights) / 2.0;
-        }
+        int layerNodes = GetLayerSize(l);
 
-        int numsegments = parm3 * 2;
-        double dpct = 1.0 / (double)numsegments;
-        double OuterRadius = offset;
-        double InnerRadius = OuterRadius / starRatio; // divide by ratio (default is golden ratio squared)
-        double pct = isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
-        double pctIncr = 1.0 / (double)numlights;     // this is cw
-        if (IsLtoR != isBotToTop) pctIncr *= -1.0;    // adjust to ccw
-        int ChanIncr = GetNodeChannelCount(StringType);
-        for (size_t cnt2 = 0; cnt2 < numlights; cnt2++) {
-            int n;
-            if (!SingleNode) {
-                n = start + cnt2;
-            }
-            else {
-                n = cur;
-            }
-            if (n >= Nodes.size()) {
-                n = Nodes.size() - 1;
-            }
-            if (Nodes[n]->StringNum != LastStringNum) {
-                LastStringNum = Nodes[n]->StringNum;
-                chan = stringStartChan[LastStringNum];
-            }
-            Nodes[n]->ActChan = chan;
-            if (!SingleNode) {
-                chan += ChanIncr;
-            }
-            size_t CoordCount = GetCoordCount(n);
-            int lastx = 0;
-            int lasty = 0;
-            if (duplicateSized) {
-                lastx = offset;
-                lasty = offset;
-            }
-            for (size_t c = 0; c < CoordCount; c++) {
-                if (c >= numlights) {
-                    Nodes[n]->Coords[c].bufX = lastx;
-                    Nodes[n]->Coords[c].bufY = lasty;
+        if (layerNodes == 0) continue;
+
+        double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
+
+        bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
+
+        // segments are all the same length so i can calculate length once
+        wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+        wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+        double segmentLength = LineLength(start, end);
+        double totalSegmentLength = starSegments * segmentLength;
+        double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
+
+        double curPos = 0; // This is our position along the stretched out lines of the star
+        double curAngle = startAngle; // This is the angle on the circle of the starting point for each segment
+        for (int s = 0; s < starSegments; s++) {
+
+            if (currentNode >= Nodes.size()) break;
+
+            start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
+            end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
+            double segStartLen = s * segmentLength;
+            double segEndLen = segStartLen + segmentLength;
+
+            while (curPos < segEndLen) {
+
+                int currentString = currentNode / parm2;
+                int nodeInString = currentNode % parm2;
+                if (nodeInString == 0 && currentString < GetNumStrings()) {
+                    chan = stringStartChan[currentString];
+                }
+                if (!SingleNode) {
+                    Nodes[currentNode]->ActChan = chan;
                 }
                 else {
-                    int cursegment = (int)((double)numsegments * pct) % numsegments;
-                    int nextsegment = (cursegment + 1) % numsegments;
-                    double segstart_pct = (double)cursegment / numsegments;
-                    double segend_pct = (double)nextsegment / numsegments;
-                    double dseg = pct - segstart_pct;
-                    double segpct = dseg / dpct;
-                    double r = cursegment % 2 == 0 ? OuterRadius : InnerRadius;
-                    double segstart_x = r * sin(segstart_pct * 2.0 * M_PI);
-                    double segstart_y = r * cos(segstart_pct * 2.0 * M_PI);
-                    r = nextsegment % 2 == 0 ? OuterRadius : InnerRadius;
-                    double segend_x = r * sin(segend_pct * 2.0 * M_PI);
-                    double segend_y = r * cos(segend_pct * 2.0 * M_PI);
-                    // now interpolate between segstart and segend
-                    int x = (segend_x - segstart_x) * segpct + segstart_x + offset + 0.5 + coffset;
-                    int y = (segend_y - segstart_y) * segpct + segstart_y + offset + 0.5 + coffset;
-                    if (duplicateSized) {
-                        x += (SEPERATION_FACTOR * GetLayerSizeCount()) / 2;
-                        y += (SEPERATION_FACTOR * GetLayerSizeCount()) / 2;
-                    }
-                    Nodes[n]->Coords[c].bufX = x;
-                    Nodes[n]->Coords[c].bufY = y;
-                    lastx = x;
-                    lasty = y;
-                    pct += pctIncr;
-                    if (pct >= 1.0) pct -= 1.0;
-                    if (pct < 0.0) pct += 1.0;
+                    Nodes[currentNode]->ActChan = chan + l;
                 }
+
+                for (int c = 0; c < coordsPerNode; c++) {
+                    wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+
+                    Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
+                    Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2;
+
+                    curPos += coordGap;
+                }
+
+                if (!SingleNode) {
+                    chan += channelsPerNode;
+                }
+
+
+                currentNode++;
+                if (currentNode >= Nodes.size()) break;
             }
+
+            // move to the next arm
+            curAngle += (pointAngleGap * directionUnit) / 2.0;
+            startOuter = !startOuter;
         }
-        start += numlights;
+
+        // step in
+        outerRadius -= layerRadiusDelta;
+        innerRadius = outerRadius / starRatio;
+    }
+
+    // handle any left over nodes
+    for (int n = currentNode; n < Nodes.size(); n++) {
+        int currentString = n / parm2;
+        int nodeInString = n % parm2;
+        if (nodeInString == 0) {
+            chan = stringStartChan[currentString];
+        }
+        Nodes[n]->ActChan = chan;
+
+        for (int c = 0; c < coordsPerNode; c++) {
+            Nodes[n]->Coords[c].bufX = 0;
+            Nodes[n]->Coords[c].bufY = 0;
+        }
+
+        if (!SingleNode) {
+            chan += channelsPerNode;
+        }
     }
 
     CopyBufCoord2ScreenCoord();
@@ -317,10 +370,14 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
         "Top Ctr-CCW",
         "Top Ctr-CW",
         "Bottom Ctr-CW",
-        "Bottom Ctr-CCW"
+        "Bottom Ctr-CCW",
+        "Left Bottom-CW",
+        "Left Bottom-CCW",
+        "Right Bottom-CW",
+        "Right Bottom-CCW"
 };
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(8, TOP_BOT_LEFT_RIGHT_VALUES));
 
 void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
 {
@@ -348,7 +405,15 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
 
-    grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    int ssl = 0;
+    for (int i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)         {
+        if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation)             {
+            ssl = i;
+            break;
+        }        
+    }
+
+    grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
     AddLayerSizeProperty(grid);
 
     p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", starRatio));
@@ -397,10 +462,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         return 0;
     }
     else if ("StarStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
-        ModelXml->DeleteAttribute("StartSide");
-        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        ModelXml->DeleteAttribute("StarStartLocation");
+        ModelXml->AddAttribute("StarStartLocation", TOP_BOT_LEFT_RIGHT_VALUES[event.GetValue().GetLong()]);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStart");
@@ -456,8 +519,7 @@ void StarModel::ExportXlightsModel()
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ls = ModelXml->GetAttribute("LayersSizes");
     wxString sr = ModelXml->GetAttribute("starRatio", "2.618034");
-    wxString sts = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString ssl = ModelXml->GetAttribute("StarStartLocation");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
@@ -473,10 +535,9 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
     f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", sts));
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("starRatio=\"%s\" ", sr));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StarStartLocation=\"%s\" ", ssl));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
@@ -525,6 +586,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             }
             wxString sr = root->GetAttribute("starRatio");
             wxString dir = root->GetAttribute("Dir");
+            wxString ssl = root->GetAttribute("StarStartLocation");
             wxString sn = root->GetAttribute("StrandNames");
             wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");
@@ -546,16 +608,21 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("Transparency", t);
             SetProperty("ModelBrightness", mb);
             SetProperty("Antialias", a);
-            SetProperty("StartSide", sts);
             SetProperty("LayerSizes", ls);
             SetProperty("starRatio", sr);
-            SetProperty("Dir", dir);
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
             SetProperty("DisplayAs", da);
             SetProperty("PixelCount", pc);
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
+
+            if (ssl != "")                 {
+                SetProperty("StarStartLocation", ssl);
+            }
+            else {
+                SetProperty("StarStartLocation", ConvertFromDirStartSide(dir, sts));
+            }
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

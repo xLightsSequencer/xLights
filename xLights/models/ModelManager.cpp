@@ -983,6 +983,9 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     if (type == "Star") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "5");
+        node->AddAttribute("StarStartLocation", "Bottom Ctr-CW");
+        node->DeleteAttribute("Dir");
+        node->DeleteAttribute("StartSide");
         model = new StarModel(node, *this, false);
     } else if (type == "Arches") {
         model = new ArchesModel(node, *this, false);

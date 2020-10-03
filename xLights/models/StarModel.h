@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "Model.h"
+#include <string>
 
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -46,8 +47,13 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         static std::vector<std::string> STAR_BUFFER_STYLES;
         virtual void InitModel() override;
+        wxRealPoint GetPointOnCircle(double radius, double angle);
+        double LineLength(wxRealPoint start, wxRealPoint end);
+        wxRealPoint GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance);
+        std::string ConvertFromDirStartSide(const wxString& dir, const wxString& startSide);
 
     private:
         // The ratio between the inner and outer radius of the star; default is 2.618034.
         float starRatio;
+        std::string _starStartLocation = "Bottom Ctr-CW";
 };
