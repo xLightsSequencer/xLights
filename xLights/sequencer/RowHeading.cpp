@@ -763,7 +763,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                             wxString td = wxString(tee->GetExport().c_str());
                             f.Write("<timing ");
-                            f.Write(wxString::Format("name=\"%s\" ", tee->GetName()));
+                            f.Write(wxString::Format("name=\"%s\" ", XmlSafe(tee->GetName())));
                             f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
                             f.Write(td);
                             f.Write("</timing>\n");

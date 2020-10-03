@@ -1808,7 +1808,7 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
 
 void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent)
 {
-    wxString name = node->GetAttribute("name");
+    wxString name = UnXmlSafe(node->GetAttribute("name"));
     wxString v = node->GetAttribute("SourceVersion");
 
     name = UniqueTimingName(xLightsParent, name);
@@ -1853,7 +1853,7 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
             {
                 if (effects->GetName() == "Effect")
                 {
-                    wxString label = effects->GetAttribute("label");
+                    wxString label = UnXmlSafe(effects->GetAttribute("label"));
                     wxString start = effects->GetAttribute("starttime");
                     wxString end = effects->GetAttribute("endtime");
                     if (sequence_loaded)

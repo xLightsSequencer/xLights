@@ -565,22 +565,19 @@ std::string TimingElement::GetExport() const
 {
     std::string res = "";
 
-    for (const auto& l : mEffectLayers)
-    {
+    for (const auto& l : mEffectLayers) {
         res += "   <EffectLayer>\n";
-        for (int i = 0; i < l->GetEffectCount(); i++)
-        {
-            res += "      <Effect label=\"" + l->GetEffect(i)->GetEffectName()+
-                              "\" starttime=\"" + std::string(wxString::Format("%d",l->GetEffect(i)->GetStartTimeMS()))+
-                              "\" endtime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetEndTimeMS())) + 
-                              "\" />\n";
+        for (int i = 0; i < l->GetEffectCount(); i++) {
+            res += "      <Effect label=\"" + XmlSafe(l->GetEffect(i)->GetEffectName()) +
+                "\" starttime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetStartTimeMS())) +
+                "\" endtime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetEndTimeMS())) +
+                "\" />\n";
         }
         res += "   </EffectLayer>\n";
     }
 
     return res;
 }
-
 
 void ModelElement::SetSelected(bool active)
 {
