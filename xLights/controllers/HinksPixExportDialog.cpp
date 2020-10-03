@@ -649,7 +649,7 @@ void HinksPixExportDialog::CreateDriveList()
     bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
     while (fcont)
     {
-        _drives.push_back("/Volumes/" + dir + "/");
+        _drives.push_back("/Volumes/" + dir);
         fcont = d.GetNext(&dir);
     }
 #else
