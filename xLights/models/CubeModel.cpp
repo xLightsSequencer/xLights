@@ -957,9 +957,14 @@ void CubeModel::InitModel()
         }
     }
 
-    _strandLength = width * height;
-    _strands = depth;
-
+    if (Contains(CUBE_STYLES_VALUES[GetStyleIndex()], "Left/Right")) {
+        _strandLength = width * height;
+        _strands = depth;
+    }
+    else         {
+        _strandLength = depth * height;
+        _strands = width;
+    }
     screenLocation.SetRenderSize(width, height, depth);
 
     // save the default model size
