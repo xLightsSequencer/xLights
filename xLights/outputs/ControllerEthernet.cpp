@@ -152,10 +152,16 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
     if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP) {
         if (_type == OUTPUT_ZCPP) {
-            _outputs.push_back(new ZCPPOutput());
+            auto zo = new ZCPPOutput();
+            zo->SetId(oldoutputs.front()->GetUniverse());
+            _outputs.push_back(zo);
+            SetId(zo->GetId());
         }
         else if (_type == OUTPUT_DDP) {
-            _outputs.push_back(new DDPOutput());
+            auto ddpo = new DDPOutput();
+            ddpo->SetId(oldoutputs.front()->GetUniverse());
+            _outputs.push_back(ddpo);
+            SetId(ddpo->GetId());
         }
         _outputs.front()->SetChannels(totchannels);
         _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
