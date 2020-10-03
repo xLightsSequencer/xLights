@@ -16,6 +16,7 @@
 #include "DrawGLUtils.h"
 #include "ModelPreview.h"
 #include "Model.h"
+#include "RulerObject.h"
 
 GridlinesObject::GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), line_spacing(50), gridColor(xlColor(0,128, 0)),
@@ -65,6 +66,14 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
     p->SetAttribute("UseCheckbox", true);
+
+    if (RulerObject::GetRuler() != nullptr) {
+        p = grid->Append(new wxStringProperty("Grid Spacing", "RealSpacing",
+            RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing))
+        ));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    }
 }
 
 int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -72,6 +81,9 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         line_spacing = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridLineSpacing");
         ModelXml->AddAttribute("GridLineSpacing", wxString::Format("%d", line_spacing));
+        if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
+            grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing)));
+        }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
