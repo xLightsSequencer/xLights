@@ -103,6 +103,7 @@ public:
     void SetEffectsDescription();
     void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
+    void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers);
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;

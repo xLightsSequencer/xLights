@@ -152,6 +152,7 @@ wxDECLARE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
@@ -1505,6 +1506,7 @@ private:
     void TurnOnOutputToLights(wxCommandEvent& event);
     void PlayJukeboxItem(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
+    void CutModelEffects(wxCommandEvent& event);
     void CopyModelEffects(wxCommandEvent& event);
     void PasteModelEffects(wxCommandEvent& event);
     void ModelSelected(wxCommandEvent& event);

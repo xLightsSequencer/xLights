@@ -1362,6 +1362,12 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::CutModelEffects(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CutModelEffects(event.GetInt(), event.GetString() == "All");
+    UnselectEffect();
+}
+
 void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString() == "All");

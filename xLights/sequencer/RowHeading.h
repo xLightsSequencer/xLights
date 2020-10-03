@@ -98,6 +98,8 @@ private:
     static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
     static const long ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS;
     static const long ID_ROW_MNU_PROMOTE_EFFECTS;
+    static const long ID_ROW_MNU_CUT_ROW;
+    static const long ID_ROW_MNU_CUT_MODEL;
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
     static const long ID_ROW_MNU_PASTE_ROW;
