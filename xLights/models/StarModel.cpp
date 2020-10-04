@@ -269,14 +269,28 @@ void StarModel::InitModel()
     int coordsPerNode = GetCoordCount(0);
     if (coordsPerNode == 0) return;
 
+    int startLayer = GetLayerSizeCount() - 1;
+    int endLayer = -1;
+    int layerIncr = -1;
+    if (Contains(_starStartLocation, "Inside"))         {
+        // when inside we process the layers in reverse
+        startLayer = 0;
+        endLayer = GetLayerSizeCount();
+        layerIncr = 1;
+        outerRadius -= layerRadiusDelta * (GetLayerSizeCount() - 1);
+        innerRadius = outerRadius / starRatio;
+        layerRadiusDelta *= -1;
+    }
+
     uint32_t chan = 0;
     int currentNode = 0;
     if (!SingleNode) {
-        for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
+        for (int l = startLayer; l != endLayer; l+= layerIncr) {
 
             if (currentNode >= Nodes.size()) break;
 
             int layerNodes = GetLayerSize(l);
+            int endNodeForLayer = currentNode + layerNodes;
 
             if (layerNodes == 0) continue;
 
@@ -302,7 +316,7 @@ void StarModel::InitModel()
                 double segStartLen = s * segmentLength;
                 double segEndLen = segStartLen + segmentLength;
 
-                while (curPos < segEndLen) {
+                while (curPos < segEndLen && currentNode < endNodeForLayer) {
 
                     int currentString = currentNode / parm2;
                     int nodeInString = currentNode % parm2;
@@ -357,7 +371,7 @@ void StarModel::InitModel()
         }
     }
     else {
-        for (int l = GetLayerSizeCount() - 1; l >= 0; l--) {
+        for (int l = startLayer; l != endLayer; l += layerIncr) {
 
             wxRealPoint lastCoord; // we remember this so any excess coords are placed with the last coord
 
@@ -440,15 +454,19 @@ void StarModel::InitModel()
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
         "Top Ctr-CCW",
         "Top Ctr-CW",
+        "Top Ctr-CCW Inside",
+        "Top Ctr-CW Inside",
         "Bottom Ctr-CW",
         "Bottom Ctr-CCW",
+        "Bottom Ctr-CW Inside",
+        "Bottom Ctr-CCW Inside",
         "Left Bottom-CW",
         "Left Bottom-CCW",
         "Right Bottom-CW",
         "Right Bottom-CCW"
 };
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(8, TOP_BOT_LEFT_RIGHT_VALUES));
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
 
 void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
 {
