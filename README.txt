@@ -11,9 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.41 October 4 2020
+   -- enh (keith)  Rewrite star model so multiple layers of the same size actually work
+   -- enh (keith)  Add option to start a star model on the left or right leg of the star closest to vertical at the bottom
+   -- enh (keith)  On grid object in 3D display grid spacing in real world units if ruler is defined
+   -- enh (keith)  Add ability to disable rendering of individual effects
+   -- enh (keith)  Add ability to create a timing track from a row of effects
+   -- enh (nickk)  Add cut effects to row and model
+   -- enh (dkulp)  Have FPP look for media file using FSEQ headers if xsq not found
    -- bug (scott)  Fix HinksPix Controller Upload
    -- bug (scott)  Fix Controller Protocol Dropdown in Model Tab
    -- bug (scott)  Fix On Effect with DMX Models
+   -- bug (dkulp)  Fix missing serial protocols prevent drag and drop on visualiser
+   -- bug (dkulp)  Fix crash on OSX if 3D object is selected
+   -- bug (dkulp)  Fix dragging 3D model it occasionally disappears
+   -- bug (dkulp)  Fix RGBCape48 does not allow 48 outputs
+   -- bug (dkulp)  Fix crash when dragging from outside xLights onto mapping dialog
+   -- bug (dkulp)  Fix some shaders that wont compile
+   -- bug (keith)  Display mesh models in grey if materials files are all missing
+   -- bug (keith)  Support xtiming files containing lyrics with quotes and other xml illegal characters
+   -- bug (keith)  Fix when changing controller protocol ID becomes really large
+   -- bug (keith)  Fix cube model strands when left to right is chosen are not the same as when front to back is chosen
+   -- bug (keith)  Fix crash with Horizontal and Vertical per strand/node
+   -- bug (paular) Add DDP to WLED controllers
+   -- bug (nickk)  Fix when no internet access check for updates hangs
 2020.40 September 25 2020
    -- enh (keith)  Remember expanded property state on controller tab
    -- enh (dkulp)  Expand controllers (DDP/NULL) to support 2 Million channels
