@@ -360,6 +360,7 @@ wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
@@ -412,6 +413,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
+    EVT_COMMAND(wxID_ANY, EVT_CUT_MODEL_EFFECTS, xLightsFrame::CutModelEffects)
     EVT_COMMAND(wxID_ANY, EVT_COPY_MODEL_EFFECTS, xLightsFrame::CopyModelEffects)
     EVT_COMMAND(wxID_ANY, EVT_PASTE_MODEL_EFFECTS, xLightsFrame::PasteModelEffects)
     EVT_COMMAND(wxID_ANY, EVT_MODEL_SELECTED, xLightsFrame::ModelSelected)

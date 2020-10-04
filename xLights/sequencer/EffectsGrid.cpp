@@ -7101,6 +7101,26 @@ void EffectsGrid::StretchAllSelectedEffects(int deltaMS, bool offset) const
     }
 }
 
+void EffectsGrid::CutModelEffects(int row_number, bool allLayers)
+{
+    CopyModelEffects(row_number, allLayers);
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    if (!allLayers) {
+        EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
+        effectLayer->SelectAllEffects();
+        effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+    }
+    else {
+        Element* element = mSequenceElements->GetVisibleRowInformation(row_number)->element;
+        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+            EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(i);
+            effectLayer->SelectAllEffects();
+            effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        }
+    }
+}
+
 void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 {
     if (!allLayers)

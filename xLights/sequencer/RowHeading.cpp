@@ -64,6 +64,8 @@ const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_CUT_ROW = wxNewId();
+const long RowHeading::ID_ROW_MNU_CUT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
@@ -387,6 +389,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
                 rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
+                rowMenu->Append(ID_ROW_MNU_CUT_ROW, "Cut Effects");
+                modelMenu->Append(ID_ROW_MNU_CUT_MODEL, "Cut Effects");
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
                 wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
@@ -879,6 +883,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent playEvent(EVT_PLAY_MODEL);
         playEvent.SetString(element->GetModelName());
         wxPostEvent(GetParent(), playEvent);
+    }
+    else if (id == ID_ROW_MNU_CUT_ROW) {
+        wxCommandEvent cutRowEvent(EVT_CUT_MODEL_EFFECTS);
+        cutRowEvent.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), cutRowEvent);
+        mCanPaste = true;
+    }
+    else if (id == ID_ROW_MNU_CUT_MODEL) {
+        wxCommandEvent cutRowEvent(EVT_CUT_MODEL_EFFECTS);
+        cutRowEvent.SetInt(mSelectedRow);
+        cutRowEvent.SetString("All");
+        wxPostEvent(GetParent(), cutRowEvent);
+        mCanPaste = true;
     }
     else if (id == ID_ROW_MNU_COPY_ROW) {
         wxCommandEvent copyRowEvent(EVT_COPY_MODEL_EFFECTS);
