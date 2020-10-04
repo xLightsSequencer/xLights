@@ -1555,7 +1555,7 @@ private:
     void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();
-    bool CheckForUpdate(bool force);
+    bool CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
     void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
     void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();

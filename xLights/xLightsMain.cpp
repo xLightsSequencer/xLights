@@ -1898,7 +1898,7 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     // dont check for updates if batch rendering
     if (!_renderMode) {
         if (!IsFromAppStore()) {
-            CheckForUpdate(false);
+            CheckForUpdate(1, true, false);
         }
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
@@ -8574,13 +8574,13 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
-    bool update_found = CheckForUpdate(true);
+    bool update_found = CheckForUpdate(3, false, true);
     if (!update_found) {
         DisplayInfo("Update check complete: No update found", this);
     }
 }
 
-bool xLightsFrame::CheckForUpdate(bool force)
+bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -8612,17 +8612,29 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxHTTP get;
     get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
     get.SetHeader("Cache-Control", "no-cache");
-
-    if (force) {
-        while (!get.Connect(hostname))  // only the server, no pages here yet ...
-            wxSleep(5);
-    }
-    else {
-        if (!get.Connect(hostname))
-        {
-            logger_base.debug("Version update check failed. Unable to connect.");
-            return true;
+    
+    bool didConnect = false;
+    
+    for (int retry = 0; retry < maxRetries; retry++) {
+        logger_base.debug("Attempting version update check %d/%d...", retry + 1, maxRetries);
+        if (get.Connect(hostname)) {
+            didConnect = true;
+            break;
+        } else {
+            // If another retry is possible, sleep for N seconds
+            // This avoids overloading the remote server with repeat requests
+            if (retry < maxRetries - 1) {
+                wxSleep(3);
+            }
         }
+    }
+    
+    if (!didConnect) {
+        logger_base.debug("Version update check failed. Unable to connect.");
+        if (showMessageBoxes) {
+            wxMessageBox("Unable to connect.", "Version update check failed");
+        }
+        return true;
     }
 
     wxInputStream *httpStream = get.GetInputStream(path);
@@ -8672,7 +8684,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
 #endif
 
         wxConfigBase* config = wxConfigBase::Get();
-        if (!force && (config != nullptr))
+        if (canSkipUpdates && (config != nullptr))
         {
             config->Read("SkipVersion", &configver);
         }
@@ -8689,7 +8701,6 @@ bool xLightsFrame::CheckForUpdate(bool force)
             UpdaterDialog *dialog = new UpdaterDialog(this);
 
             dialog->urlVersion = urlVersion;
-            dialog->force = force;
             dialog->downloadUrl = downloadUrl;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights "
                 + xlights_version_string + "\n"
@@ -8699,7 +8710,9 @@ bool xLightsFrame::CheckForUpdate(bool force)
     }
     else {
         logger_base.debug("Version update check failed. Unable to read available versions.");
-        //wxMessageBox(_T("Unable to connect!"));
+        if (showMessageBoxes) {
+            wxMessageBox("Unable to read available versions.", "Version update check failed");
+        }
     }
 
     wxDELETE(httpStream);

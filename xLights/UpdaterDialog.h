@@ -25,7 +25,6 @@ class UpdaterDialog: public wxDialog
 		virtual ~UpdaterDialog();
 		wxString urlVersion = "";
 		wxString downloadUrl = "";
-		bool force = false;
 
 		//(*Declarations(UpdaterDialog)
 		wxButton* ButtonUpDownload;
