@@ -588,7 +588,7 @@ void StarModel::ExportXlightsModel()
     wxString t = ModelXml->GetAttribute("Transparency");
     wxString mb = ModelXml->GetAttribute("ModelBrightness");
     wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ls = ModelXml->GetAttribute("LayersSizes");
+    wxString ls = ModelXml->GetAttribute("LayerSizes");
     wxString sr = ModelXml->GetAttribute("starRatio", "2.618034");
     wxString ssl = ModelXml->GetAttribute("StarStartLocation");
     wxString sn = ModelXml->GetAttribute("StrandNames");
