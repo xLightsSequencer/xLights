@@ -792,6 +792,36 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/nb4dvzssz3zlqnffzqkj</image>
 		<rating>3</rating>
         </shader>
+        <shader>
+		<name>Vector From Hell</name>
+		<id>5e7a7fe17c113618206de63b</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/gnbip0uuctfjjw2ujbr4</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Black Hole Sun</name>
+		<id>5ec156239a2c7b001769385f</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/hf7jmf18es0gt7bzkqpm</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Hyperbolic Space</name>
+		<id>5e7a7fbe7c113618206de3ab</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/lfhb1lc5dv6mfwdm441p</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Cloud Toonscape</name>
+		<id>5e7a7fc27c113618206de3e3</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/qx386vpfmq8fji2xru1c</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Lightning Flash</name>
+		<id>5e7a7fd87c113618206de592</id>
+		<image></image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>
