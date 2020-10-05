@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.42 October 5 2020
+   -- enh (keith)  Add support for shader events tied to a timing track (see Ligtning shader as an example)
+   -- bug (keith)  Fix star where start is on the inside of the star is not working
+                   The problem with this fix is it is NOT automatic. Changes will need to be manually made to the start location drop down
+   -- bug (keith)  Star model for some sizes includes the wrong number of nodes in each layer
+   -- bug (keith)  Fix file locations not working in xSchedule
+   -- bug (keith)  Fix crash in FPP connect when FSEQ file is not valid
 2020.41 October 4 2020
    -- enh (keith)  Rewrite star model so multiple layers of the same size actually work
    -- enh (keith)  Add option to start a star model on the left or right leg of the star closest to vertical at the bottom
