@@ -323,8 +323,6 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         return file;
     }
 
-    logger_base.debug("File not found ... attempting to fix location : " + file);
-
     wxString sd;
 	if (ShowDir == "") {
 		sd = RememberShowDir;
@@ -336,6 +334,9 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 		}
 		sd = ShowDir;
 	}
+
+    logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
+
     // I dont know what this is trying to fix but it blows up on windows
     wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fnWin(file, wxPATH_WIN);

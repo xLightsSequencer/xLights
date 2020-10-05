@@ -732,6 +732,12 @@
 		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1592018257/polar_visualizer_nq7is5.png</image>
 		<rating>3</rating>
         </shader>
+        <shader>
+		<name>Circuits Explorer</name>
+		<id>5f756600d4849b0013135b6d</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/g22wzps9wernkjwjvokp</image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>
