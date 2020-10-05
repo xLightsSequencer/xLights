@@ -382,27 +382,6 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
 
-        // still no media file?  look for an XSEQ file and load if found
-        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable() )
-        {
-            wxFileName xseq_file = selected_file;
-            xseq_file.SetExt("xseq");
-            if( xseq_file.FileExists() )
-            {
-                wxString mf;
-                ReadXlightsFile(xseq_file.GetFullPath(), &mf);
-                if( mf != "" )
-                {
-                    media_file = mapFileName(wxFileName::FileName(mf));
-                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
-                }
-                DisplayXlightsFilename(xlightsFilename);
-                SeqBaseChannel=1;
-                SeqChanCtrlBasic=false;
-                SeqChanCtrlColor=false;
-            }
-        }
-
         if (media_file != "") {
             // double-check file existence
             if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable()) {
@@ -475,7 +454,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
-        // if fseq or xseq had media update xml
+        // if fseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia()
            && wxFileName(media_file).Exists()
            && wxFileName(media_file).IsFileReadable())

@@ -71,7 +71,7 @@
 									<object class="sizeritem">
 										<object class="wxChoice" name="ID_CHOICE_OUTPUT_FORMAT" variable="ChoiceOutputFormat" member="yes">
 											<content>
-												<item>Falcon Pi Player, *.fseq</item>
+												<item>xLights/FPP, *.fseq</item>
 												<item>Lynx Conductor, *.seq</item>
 												<item>Vix,Vixen 2.1 *.vix sequence file</item>
 												<item>Vir, Vixen 2.1 *.vir routine file</item>
@@ -270,7 +270,7 @@
 		</object>
 		<object class="wxFileDialog" variable="FileDialogConvert" member="yes">
 			<message>Select file</message>
-			<wildcard>xLights Sequences(*.xseq)|*.xseq|&#x0A;&#x0A;&#x09;&#x09;&#x09;LOR Music Sequences (*.lms)|*.lms|&#x0A;&#x0A;&#x09;&#x09;&#x09;LOR Animation Sequences (*.las)|*.las|&#x0A;&#x0A;&#x09;&#x09;&#x09;Vixen Sequences (*.vix)|*.vix|&#x0A;&#x0A;&#x09;&#x09;&#x09;Falcon Pi Player Sequences (*.fseq)|*.fseq|&#x0A;&#x0A;&#x09;&#x09;&#x09;Glediator Record File (*.gled)|*.gled)|&#x0A;&#x0A;&#x09;&#x09;&#x09;Lynx Conductor Sequences (*.seq)|*.seq|&#x0A;&#x0A;&#x09;&#x09;&#x09;HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
+			<wildcard>xLights/FPP Sequences(*.fseq)|*.fseq|&#x0A;&#x0A;&#x09;&#x09;&#x09;LOR Music Sequences (*.lms)|*.lms|&#x0A;&#x0A;&#x09;&#x09;&#x09;LOR Animation Sequences (*.las)|*.las|&#x0A;&#x0A;&#x09;&#x09;&#x09;Vixen Sequences (*.vix)|*.vix|&#x0A;&#x0A;&#x09;&#x09;&#x09;Glediator Record File (*.gled)|*.gled)|&#x0A;&#x0A;&#x09;&#x09;&#x09;Lynx Conductor Sequences (*.seq)|*.seq|&#x0A;&#x0A;&#x09;&#x09;&#x09;HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 	</object>

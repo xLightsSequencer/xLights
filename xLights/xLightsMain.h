@@ -179,7 +179,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
-static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
+static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xsq)|*.xsq|Old xLights Sequences(*.xml)|*.xml";
 
 typedef SequenceData SeqDataType;
@@ -1290,7 +1290,6 @@ protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
-    void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);

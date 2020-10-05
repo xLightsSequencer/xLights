@@ -109,7 +109,7 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT7, _("Output Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer4->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ChoiceOutputFormat = new wxChoice(this, ID_CHOICE_OUTPUT_FORMAT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_OUTPUT_FORMAT"));
-	ChoiceOutputFormat->SetSelection( ChoiceOutputFormat->Append(_("Falcon Pi Player, *.fseq")) );
+	ChoiceOutputFormat->SetSelection( ChoiceOutputFormat->Append(_("xLights/FPP, *.fseq")) );
 	ChoiceOutputFormat->Append(_("Lynx Conductor, *.seq"));
 	ChoiceOutputFormat->Append(_("Vix,Vixen 2.1 *.vix sequence file"));
 	ChoiceOutputFormat->Append(_("Vir, Vixen 2.1 *.vir routine file"));
@@ -174,7 +174,7 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 	FlexGridSizer7->Add(ButtonClose, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizerConvert->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizerConvert);
-	FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+	FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights/FPP Sequences(*.fseq)|*.fseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 	FlexGridSizerConvert->Fit(this);
 	FlexGridSizerConvert->SetSizeHints(this);
 
@@ -475,43 +475,6 @@ bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
     }
 
     return doc.Save(filename);
-}
-
-void ConvertDialog::WriteXLightsFile(const wxString& filename) const
-{
-    wxFile file;
-    char hdr[512];
-    memset(hdr, 0, 512);
-    if (!file.Create(filename, true))
-    {
-        _parent->ConversionError(wxString("Unable to create file: ") + filename);
-        return;
-    }
-    if (mediaFilename.size() > 470)
-    {
-        _parent->ConversionError(wxString("Media file name is too long"));
-        return;
-    }
-    if (SeqData.FrameTime() != 50) {
-        _parent->ConversionError(wxString("xseq file must be 50ms timing"));
-        return;
-    }
-    int xseq_format_version = 1;
-
-    wxFileOutputStream fout(file);
-    wxBufferedOutputStream f(fout, SeqData.NumFrames() > 4096 ? SeqData.NumFrames() : 4096);
-
-    sprintf(hdr, "xLights %2d %8d %8d", xseq_format_version, SeqData.NumChannels(), SeqData.NumFrames());
-    strncpy(&hdr[32], mediaFilename.c_str(), 470);
-    f.Write(hdr, 512);
-    for (size_t x = 0; x < SeqData.NumChannels(); x++) {
-        for (size_t p = 0; p < SeqData.NumFrames(); p++) {
-            f.Write(&SeqData[p][x], 1);
-        }
-    }
-    f.Sync();
-    f.Close();
-    fout.Close();
 }
 
 void ConvertDialog::WriteLSPFile(const wxString& filename) const
@@ -2067,17 +2030,9 @@ void ConvertDialog::DoConversion(const wxString& Filename, const wxString& Outpu
 
     if (Out3 == "xLi")
     {
-        oName.SetExt(wxString(XLIGHTS_SEQUENCE_EXT));
-        wxString fullpath = oName.GetFullPath();
-        AppendConvertStatus(wxString("Writing xLights sequence\n"));
-        WriteXLightsFile(fullpath);
-        AppendConvertStatus(wxString("Finished writing new file: ") + fullpath + wxString("\n"));
-    }
-    else if (Out3 == "Fal")
-    {
         oName.SetExt(wxString("fseq"));
         wxString fullpath = oName.GetFullPath();
-        AppendConvertStatus(wxString("Writing Falcon Player sequence\n"));
+        AppendConvertStatus(wxString("Writing FSEQ file\n"));
         _parent->WriteFalconPiFile(fullpath);
         AppendConvertStatus(wxString("Finished writing new file: ") + fullpath + wxString("\n"));
     }

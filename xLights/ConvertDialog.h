@@ -52,7 +52,6 @@ class ConvertDialog: public wxDialog
     bool WriteVixenFile(const wxString& filename);
     void WriteVirFile(const wxString& filename) const;
     void WriteHLSFile(const wxString& filename) const;
-    void WriteXLightsFile(const wxString& filename) const;
     void WriteLSPFile(const wxString& filename) const;
     void WriteLorFile(const wxString& filename);
     void WriteLcbFile(const wxString& filename) const;

@@ -62,7 +62,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
     ChoiceFormat->Append(_("LSP, Light Show Pro "));
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
-    ChoiceFormat->Append(_("Falcon, *.fseq"));
+    ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.avi"));
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
@@ -117,10 +117,9 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
-    //ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
-    ChoiceFormat->Delete(ChoiceFormat->FindString(_("Falcon, *.fseq")));
-    ChoiceFormat->Append(_("Falcon Pi Sub sequence. *.eseq"));
-    ChoiceFormat->Append(_("Falcon Pi Compressed Sub sequence. *.eseq"));
+    ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights/FPP, *.fseq")));
+    ChoiceFormat->Append(_("FPP Sub sequence. *.eseq"));
+    ChoiceFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
 
     wxString let;
     wxConfigBase* config = wxConfigBase::Get();
@@ -161,11 +160,11 @@ void SeqExportDialog::SetDefaultName()
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model);
     } else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".hlsnc");
-    } else if (fmt == "Falcon Pi Sub sequence. *.eseq") {
+    } else if (fmt == "FPP Sub sequence. *.eseq") {
         TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".eseq");
-    } else if (fmt == "Falcon Pi Compressed Sub sequence. *.eseq") {
+    } else if (fmt == "FPP Compressed Sub sequence. *.eseq") {
         TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".eseq");
-    } else if (fmt == "Falcon, *.fseq") {
+    } else if (fmt == "xLights/FPP, *.fseq") {
         TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".fseq");
     } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".avi");
@@ -205,12 +204,12 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Falcon Pi Sub sequence. *.eseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Falcon Pi Compressed Sub sequence. *.eseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Falcon, *.fseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "FPP Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "FPP Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "FPP Compressed Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "FPP Compresses Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "xLights/FPP, *.fseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "xLights/FPP (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {

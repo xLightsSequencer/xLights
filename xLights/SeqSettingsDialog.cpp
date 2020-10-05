@@ -1075,12 +1075,6 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
             new_data_layer->SetLORConvertParams( (int)conv_params.channels_off_at_end | ((int)conv_params.map_empty_channels << 1) | ((int)conv_params.map_no_network_channels << 2) );
             FileConverter::ReadLorFile(conv_params);
         }
-        else if( full_name.GetExt() == "xseq" )
-        {
-            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
-            FileConverter::ReadXlightsFile(conv_params);
-        }
         else if( full_name.GetExt() == "hlsIdata" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
@@ -1157,10 +1151,6 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     if( full_name.GetExt() == "lms" || full_name.GetExt() == "las")
     {
         FileConverter::ReadLorFile(conv_params);
-    }
-    else if( full_name.GetExt() == "xseq" )
-    {
-        FileConverter::ReadXlightsFile(conv_params);
     }
     else if( full_name.GetExt() == "hlsIdata" )
     {
@@ -1529,7 +1519,7 @@ void SeqSettingsDialog::OnBitmapButton_lynxClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_xlightsClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
-    const wxString strFileTypes = "xLights Sequences(*.xseq, *.iseq, *.fseq)|*.xseq;*.iseq;*.fseq";
+    const wxString strFileTypes = "xLights/FPP Sequences(*.iseq, *.fseq)|*.iseq;*.fseq";
     if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }

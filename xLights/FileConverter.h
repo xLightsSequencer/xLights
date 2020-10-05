@@ -81,7 +81,6 @@ class FileConverter
         FileConverter();
 
         static void ReadLorFile(ConvertParameters& params);
-        static void ReadXlightsFile(ConvertParameters& params);
         static void ReadHLSFile(ConvertParameters& params);
         static void ReadVixFile(ConvertParameters& params);
         static void ReadGlediatorFile(ConvertParameters& params);

@@ -57,24 +57,6 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 	EnableSequenceControls(true);
 }
 
-// load the specified .?seq binary file
-void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
-{
-    // read xlights file
-    wxFileName fn(filename);
-    if (fn.GetExt() == "xseq") {
-        ReadXlightsFile(filename);
-        fn.SetExt("fseq");
-    }
-    else {
-        ReadFalconFile(filename, nullptr);
-    }
-    DisplayXlightsFilename(fn.GetFullPath());
-    SeqBaseChannel = 1;
-    SeqChanCtrlBasic = false;
-    SeqChanCtrlColor = false;
-}
-
 void xLightsFrame::ResetEffectsXml()
 {
     _sequenceViewManager.Reset();
