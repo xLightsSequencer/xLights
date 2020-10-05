@@ -738,12 +738,12 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/g22wzps9wernkjwjvokp</image>
 		<rating>3</rating>
         </shader>
-        <shader>
+        <!--shader>
 		<name>Optical Flow Distort</name>
 		<id>5e7a80297c113618206debe7</id>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/cfwrmessublckxon01qo</image>
 		<rating>3</rating>
-        </shader>
+        </shader-->
         <shader>
 		<name>Image Stretcher</name>
 		<id>5f3cf45ab1ed0d0014c0003d</id>
@@ -817,9 +817,34 @@
 		<rating>3</rating>
         </shader>
         <shader>
+		<!-- I know this doesnt work but i would like to get the button to be triggered by a timing track -->
 		<name>Lightning Flash</name>
 		<id>5e7a7fd87c113618206de592</id>
 		<image></image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Cosmic Flare</name>
+		<id>5f2c05e6b1ed0d0014c0002a</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/xvkrdzzic1wptkgie9kh</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Wavey Striped</name>
+		<id>5f2833f40c6c470015d2fea9</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/pxuxphm65d5b2btgflxb</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Gum</name>
+		<id>5ef1bfa60779c10013931491</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/hyxbcfwvepxirjyc4y0n</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Rosaic</name>
+		<id>5e7a7ff97c113618206de821</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/gd3nisnwecyebjhyx7za</image>
 		<rating>3</rating>
         </shader>
 	<!--shader>
