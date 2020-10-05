@@ -10,6 +10,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/colour.h>
 #include <wx/xml/xml.h>
 
 #include <map>
@@ -38,6 +39,7 @@ public:
     std::string effectSettingsId;
     std::string type;
     std::map<std::string, std::string> settings;
+    std::vector<wxColor> colours;
 };
 
 class Vixen3 {

@@ -11,15 +11,40 @@
 #include "Vixen3.h"
 
 #include <list>
+#include <math.h>
 
 #include <wx/wx.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <log4cpp/Category.hh>
 
+double CorrectForGamma(double value)
+{
+    if (value > 0.0031308)
+        return 1.055 * pow(value, 1.0 / 2.4) - 0.055;
+    else
+        return 12.92 * value;
+}
+
+wxColour ConvertXYZToColour(double x, double y, double z)
+{
+    return wxColour(std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.032406 + y * -0.015372 + z * -0.004986))),
+                    std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * -0.009689 + y * +0.018758 + z * +0.000415))),
+                    std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.000557 + y * -0.002040 + z * +0.010570)))
+                   );
+}
+
 std::string VixenEffect::GetPalette() const
 {
     std::string res;
+
+    for (int i = 0; i < colours.size(); i++) {
+        wxString n = wxString::Format("%d", i + 1);
+
+        if (res != "") res += ",";
+        res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x", colours[i].Red(), colours[i].Green(), colours[i].Blue());
+        res += ",C_CHECKBOX_Palette" + n + "=1";
+    }
 
     return res;
 }
@@ -543,9 +568,69 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                 e->type = es->second->GetAttribute("i:type").AfterFirst(':').ToStdString();
                 for (auto n = es->second->GetChildren(); n != nullptr; n = n->GetNext())
                 {
-                    if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr)
-                    {
-                        e->settings[n->GetName().AfterFirst(':').ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                    if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
+                        auto nm = n->GetName().AfterFirst(':');
+                        e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                        if (nm == "color") {
+                            int r = 0;
+                            int g = 0;
+                            int b = 0;
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "_r") {
+                                    r = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                }
+                                else if (nm2 == "_g") {
+                                    g = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                }
+                                else if (nm2 == "_b") {
+                                    b = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                }
+                            }
+                            e->colours.push_back(wxColor(r, g, b));
+                        }
+                        else if (nm == "ColorGradient") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "_colors")                                     {
+                                    std::vector<wxColour> gradCol;
+                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                        if (nm3 == "ColorPoint") {
+                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                if (nm4 == "_color") {
+                                                    int x = 0;
+                                                    int y = 0;
+                                                    int z = 0;
+                                                    for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
+                                                        auto nm5 = nnnnn->GetName().AfterFirst(':');
+                                                        if (nm5 == "_x") {
+                                                            x = wxAtof(nnnnn->GetChildren()->GetContent());
+                                                        }
+                                                        else if (nm5 == "_y") {
+                                                            y = wxAtof(nnnnn->GetChildren()->GetContent());
+                                                        }
+                                                        else if (nm5 == "_z") {
+                                                            z = wxAtof(nnnnn->GetChildren()->GetContent());
+                                                        }
+                                                    }
+                                                    gradCol.push_back(ConvertXYZToColour(x, y, z));
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (gradCol.size() == 1)                                         {
+                                        e->colours.push_back(gradCol[0]);
+                                    }
+                                    else if (gradCol.size() > 1)                                         {
+                                        // TODO we dont handle gradients yet so just push back the first colour
+
+                                        e->colours.push_back(gradCol[0]);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
