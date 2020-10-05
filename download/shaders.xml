@@ -744,6 +744,54 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/cfwrmessublckxon01qo</image>
 		<rating>3</rating>
         </shader>
+        <shader>
+		<name>Image Stretcher</name>
+		<id>5f3cf45ab1ed0d0014c0003d</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/srxumetfyc8nrzwckna4</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Solarise</name>
+		<id>5e7a7fc97c113618206de44f</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/fymductjvfjkkx2jtlmu</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Hoop Dreams</name>
+		<id>5e7a80127c113618206dea13</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/sspswi0mxmkcqgujxvvh</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>z33d</name>
+		<id>5e7a7fc97c113618206de443</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/c26dlbv2z0k2fxeiwvll</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Voronoi Lines</name>
+		<id>5e7a802f7c113618206dec62</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/ogfkzzgdlwlvxwvfrwg1</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Hypno Worm</name>
+		<id>5e7a802f7c113618206dec66</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/zxqr2pshq3ueuthterva</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Zebre</name>
+		<id>5e7a7fd57c113618206de546</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/ekbysimxibqbtbf3kcmb</image>
+		<rating>3</rating>
+        </shader>
+        <shader>
+		<name>Cell Mod</name>
+		<id>5e7a7fcf7c113618206de4c8</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/nb4dvzssz3zlqnffzqkj</image>
+		<rating>3</rating>
+        </shader>
 	<!--shader>
 		<name></name>
 		<id></id>
