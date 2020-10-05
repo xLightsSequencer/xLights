@@ -299,6 +299,10 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 
     static std::map<wxString, wxString> __fileMap;
 
+    if (ShowDir != RememberShowDir && ShowDir != "") {
+        RememberShowDir = ShowDir;
+    }
+
     if (file == "") {
         return file;
     }

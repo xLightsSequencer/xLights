@@ -57,7 +57,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     logger_base.info("Loading schedule from %s.", (const char *)showDir.c_str());
 
     // prime fix file with our show directory for any filename fixups
-    FixFile(showDir, "");
+    SetFixFileShowDir(showDir);
 
     _syncManager = std::make_unique<SyncManager>(this);
     _testMode = false;
