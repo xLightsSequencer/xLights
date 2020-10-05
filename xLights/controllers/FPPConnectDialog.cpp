@@ -653,12 +653,14 @@ void FPPConnectDialog::LoadSequences()
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
             FSEQFile *file = FSEQFile::openFSEQFile(v);
-            for (auto & header : file->getVariableHeaders()) {
-                if (header.code[0] == 'm' && header.code[1] == 'f') {
-                    wxString mediaName = (const char *)(&header.data[0]);
-                    mediaName = FixFile("", mediaName);
-                    if (wxFileExists(mediaName)) {
-                        CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+            if (file != nullptr) {
+                for (auto& header : file->getVariableHeaders()) {
+                    if (header.code[0] == 'm' && header.code[1] == 'f') {
+                        wxString mediaName = (const char*)(&header.data[0]);
+                        mediaName = FixFile("", mediaName);
+                        if (wxFileExists(mediaName)) {
+                            CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+                        }
                     }
                 }
             }
