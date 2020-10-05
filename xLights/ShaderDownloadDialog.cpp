@@ -50,11 +50,11 @@ public:
     int _rating = 0;
     std::string _imageURL = "";
     std::string _imageFile = "";
+    std::string _comment = "";
 
     std::string GetDownload()
     {
-        if (__downloadPattern != "" && _id != "")
-        {
+        if (__downloadPattern != "" && _id != "") {
             wxString s(__downloadPattern);
             s.Replace("{id}", _id);
             return s.ToStdString();
@@ -64,8 +64,7 @@ public:
 
     std::string GetWebpage()
     {
-        if (__webpagePattern != "" && _id != "")
-        {
+        if (__webpagePattern != "" && _id != "") {
             wxString s(__webpagePattern);
             s.Replace("{id}", _id);
             return s.ToStdString();
@@ -75,35 +74,30 @@ public:
 
     MShader(wxXmlNode* n)
     {
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
-        {
+        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
             wxString nn = l->GetName().Lower().ToStdString();
-            if (nn == "name")
-            {
+            if (nn == "name") {
                 _name = l->GetNodeContent().ToStdString();
             }
-            else if (nn == "link")
-            {
+            else if (nn == "link") {
                 _webpage = l->GetNodeContent().ToStdString();
             }
-            else if (nn == "download")
-            {
+            else if (nn == "download") {
                 _download = l->GetNodeContent().ToStdString();
             }
-            else if (nn == "image")
-            {
+            else if (nn == "image") {
                 _imageURL = l->GetNodeContent().ToStdString();
             }
-            else if (nn == "id")
-            {
+            else if (nn == "id") {
                 _id = l->GetNodeContent().ToStdString();
             }
-            else if (nn == "rating")
-            {
+            else if (nn == "rating") {
                 _rating = wxAtoi(l->GetNodeContent().ToStdString());
             }
-            else
-            {
+            else if (nn == "comment") {
+                _comment = l->GetNodeContent().ToStdString();
+            }
+            else {
                 wxASSERT(false);
             }
         }
@@ -124,12 +118,10 @@ public:
     {
         std::string desc;
 
-        if (_name != "")
-        {
+        if (_name != "") {
             desc += PadTitle("Name:") + _name + "\n";
         }
-        if (_rating != 0)
-        {
+        if (_rating != 0) {
             desc += PadTitle(wxString::Format("Rating: %d/5", _rating));
         }
 
@@ -138,8 +130,7 @@ public:
 
     void DownloadImages()
     {
-        if (_imageURL != "")
-        {
+        if (_imageURL != "") {
             _imageFile = ShaderDownloadDialog::GetCache().GetFile(wxURI(_imageURL), CACHEFOR::CACHETIME_LONG, "jpg");
         }
     }
@@ -151,10 +142,8 @@ public:
         wxFileInputStream fin(zipFile);
         wxZipInputStream zin(fin);
         wxZipEntry* ent = zin.GetNextEntry();
-        while (ent != nullptr)
-        {
-            if (wxFileName(ent->GetName()).GetExt().Lower() == "fs")
-            {
+        while (ent != nullptr) {
+            if (wxFileName(ent->GetName()).GetExt().Lower() == "fs") {
                 fn = xLightsFrame::CurrentDir + "/Shaders/" + ent->GetName();
                 wxFileOutputStream fout(fn);
                 zin.Read(fout);
@@ -176,45 +165,37 @@ public:
 
         auto download = GetDownload();
 
-        if (download != "")
-        {
+        if (download != "") {
             // make sure the shaders folder is there
             wxMkDir(xLightsFrame::CurrentDir + "/Shaders", wxS_DIR_DEFAULT);
             std::string fn = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".fs";
-            if (Curl::HTTPSGetFile(download, fn))
-            {
+            if (Curl::HTTPSGetFile(download, fn)) {
                 wxFile f;
-                if (f.Open(fn))
-                {
+                if (f.Open(fn)) {
                     char token[3];
                     memset(token, 0x00, sizeof(token));
                     f.Read(token, sizeof(token) - 1);
                     f.Close();
-                    if (strcmp(token, "PK") == 0)
-                    {
+                    if (strcmp(token, "PK") == 0) {
                         wxRenameFile(fn, xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip", true);
                         fn = ExtractFSFromZip(xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip");
                     }
-                    else if (strcmp(token, "<!") == 0)
-                    {
+                    else if (strcmp(token, "<!") == 0) {
                         wxRemoveFile(fn);
                         fn = "";
                         logger_base.debug("Shader file download failed and returned a non fs file.");
                     }
-                    else if (strcmp(token, "{\\\""))
-                    {
+                    else if (strcmp(token, "{\\\"")) {
                         wxString newFile = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".json";
                         wxRenameFile(fn, newFile, true);
 
                         wxFile ff(newFile);
-                        if (!ff.IsOpened())
-                        {
+                        if (!ff.IsOpened()) {
                             wxRemoveFile(fn);
                             fn = "";
                             logger_base.debug("Shader file download failed load fs file.");
                         }
-                        else
-                        {
+                        else {
                             wxString json;
                             ff.ReadAll(&json);
                             ff.Close();
@@ -225,19 +206,16 @@ public:
                             auto shader = root["rawFragmentSource"].AsString();
 
                             wxFile fff(fn, wxFile::OpenMode::write);
-                            if (fff.IsOpened())
-                            {
+                            if (fff.IsOpened()) {
                                 fff.Write(shader);
                                 fff.Close();
                             }
-                            else
-                            {
+                            else {
                                 logger_base.debug("Shader file download failed load to create fs file.");
                             }
                         }
                     }
-                    else
-                    {
+                    else {
                         wxRemoveFile(fn);
                         fn = "";
                         logger_base.debug("Shader file download failed and returned a non fs file.");

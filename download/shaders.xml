@@ -817,7 +817,6 @@
 		<rating>3</rating>
         </shader>
         <shader>
-		<!-- I know this doesnt work but i would like to get the button to be triggered by a timing track -->
 		<name>Lightning Flash</name>
 		<id>5e7a7fd87c113618206de592</id>
 		<image></image>

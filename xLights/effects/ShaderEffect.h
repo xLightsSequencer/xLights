@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+class SequenceElements;
+
 #define SHADER_SPEED_MIN -1000
 #define SHADER_SPEED_MAX 1000
 #define SHADER_SPEED_DIVISOR 100
@@ -37,7 +39,8 @@ enum class ShaderCtrlType
     SHADER_CTRL_CHECKBOX,
     SHADER_CTRL_TEXTCTRL,
     SHADER_CTRL_CHOICE,
-    SHADER_CTRL_VALUECURVE
+    SHADER_CTRL_VALUECURVE,
+    SHADER_CTRL_TIMING
 };
 
 struct ShaderPass
@@ -123,6 +126,8 @@ struct ShaderParm
             return wxString::Format("ID_VALUECURVE_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_CHOICE:
             return wxString::Format("ID_CHOICE_%s", _name);
+        case ShaderCtrlType::SHADER_CTRL_TIMING:
+            return wxString::Format("ID_CHOICE_%s", _name);
         }
         wxASSERT(false);
         return "NONAME";
@@ -140,6 +145,7 @@ struct ShaderParm
         return _type == ShaderParmType::SHADER_PARM_FLOAT ||
             _type == ShaderParmType::SHADER_PARM_BOOL ||
             _type == ShaderParmType::SHADER_PARM_LONGCHOICE ||
+            _type == ShaderParmType::SHADER_PARM_EVENT ||
             _type == ShaderParmType::SHADER_PARM_POINT2D;
     }
 };
@@ -157,7 +163,7 @@ class ShaderConfig
     bool _hasTime = false;
 
 public:
-    ShaderConfig(const wxString& filename, const wxString& code, const wxString& json);
+    ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
     std::list<ShaderPass> GetPasses() const { return _passes; }
     std::list<ShaderParm> GetParms() const { return _parms; }
     std::string GetFilename() const { return _filename; }
@@ -167,6 +173,7 @@ public:
     bool IsAudioFFTShader() const { return _audioFFTMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
+    bool UsesEvents() const;
 };
 class ShaderRenderCache;
 
@@ -181,7 +188,7 @@ public:
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;
-    static ShaderConfig* ParseShader(const std::string& filename);
+    static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
     virtual std::list<std::string> GetFileReferences(const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;

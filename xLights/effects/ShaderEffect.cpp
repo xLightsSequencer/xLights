@@ -243,7 +243,7 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
     return rc;
 }
 
-ShaderConfig* ShaderEffect::ParseShader(const std::string& filename)
+ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements)
 {
     if (!wxFile::Exists(filename)) return nullptr;
 
@@ -260,7 +260,7 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename)
 
     if (!re.Matches(code)) return nullptr;
 
-    return new ShaderConfig(filename, code, re.GetMatch(code, 1));
+    return new ShaderConfig(filename, code, re.GetMatch(code, 1), sequenceElements);
 }
 
 void ShaderEffect::SetDefaultParameters()
@@ -532,9 +532,9 @@ public:
     int s_rbHeight = 0;
     long _timeMS = 0;
 
-    void InitialiseShaderConfig(const wxString& filename) {
+    void InitialiseShaderConfig(const wxString& filename, SequenceElements* sequenceElements) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
-        _shaderConfig = ShaderEffect::ParseShader(filename);
+        _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
     }
 
     void DestroyResources() {
@@ -731,7 +731,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
-            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
+            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
             if (_shaderConfig != nullptr)
             {
                 recompileFromShaderConfig(_shaderConfig, s_programId);
@@ -894,6 +894,29 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
                 glUniform1f(loc, b);
                 break;
             }
+            case ShaderParmType::SHADER_PARM_EVENT:
+            {
+                auto timingtrack = SettingsMap.Get(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TIMING), "");
+
+                EffectLayer* el = GetTiming(timingtrack);
+
+                bool b = false;
+                if (el != nullptr) {
+                    int ms = buffer.curPeriod * buffer.frameTimeInMs;
+                    bool effectPresent = false;
+                    for (int j = 0; j < el->GetEffectCount(); j++) {
+                        int ems = el->GetEffect(j)->GetStartTimeMS();
+                        if (ems == ms) {
+                            b = true;
+                            break;
+                        }
+                        else if (ems > ms) break;
+                    }
+                }
+
+                glUniform1f(loc, b);
+                break;
+            }
             case ShaderParmType::SHADER_PARM_LONGCHOICE:
             {
                 long l = it.EncodeChoice(SettingsMap[it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHOICE)]);
@@ -1053,7 +1076,7 @@ wxString SafeFloat(const wxString& s)
     return s;
 }
 
-ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)
+ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxJSONReader reader;
@@ -1198,6 +1221,25 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         else if (type == "event")
         {
             // ignore these
+            _parms.push_back(ShaderParm(
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                ShaderParmType::SHADER_PARM_EVENT,
+                0.0f,
+                0.0f,
+                0.0f)
+            );
+
+            // Add timing tracks
+            if (sequenceElements != nullptr) {
+                int tt = 0;
+                for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+                    Element* e = sequenceElements->GetElement(i);
+                    if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                        _parms.back()._valueOptions[tt++] = e->GetName();
+                    }
+                }
+            }
         }
         else
         {
@@ -1233,7 +1275,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "out vec4 fragmentColor;\n"
     "uniform vec4 DATE;\n\n");
 
-    for (auto p : _parms)
+    for (const auto& p : _parms)
     {
         wxString name(p._name);
         wxString str;
@@ -1246,6 +1288,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             break;
         }
         case ShaderParmType::SHADER_PARM_BOOL:
+        case ShaderParmType::SHADER_PARM_EVENT:
         {
             str = wxString::Format("uniform bool %s;\n", name);
             prependText += str;
@@ -1349,4 +1392,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         s.close();
     }
 #endif
+}
+
+bool ShaderConfig::UsesEvents() const
+{
+    for (const auto& p : _parms) {
+        if (p._type == ShaderParmType::SHADER_PARM_EVENT) return true;
+    }
+    return false;
 }

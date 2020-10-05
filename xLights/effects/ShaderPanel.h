@@ -15,6 +15,7 @@
 #include "EffectPanelUtils.h"
 
 class ShaderConfig;
+class SequenceEelements;
 
 class ShaderPreview : public xlGLCanvas
 {
@@ -94,7 +95,7 @@ class ShaderPanel: public wxPanel
 		void OnButton_DownloadClick(wxCommandEvent& event);
 		//*)
 
-        bool BuildUI(const wxString& filename);
+        bool BuildUI(const wxString& filename, SequenceElements* sequenceElements);
 
 		DECLARE_EVENT_TABLE()
 };

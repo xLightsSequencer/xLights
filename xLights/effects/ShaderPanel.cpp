@@ -147,9 +147,9 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
     wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
     ObtainAccessToURL(newf.ToStdString());
+
     // if shader name hasnt changed dont reset
-    if (newf == last && (newf == "" || wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath())))
-    {
+    if (newf == last && newf == "") {
         return;
     }
 
@@ -162,7 +162,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
     if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
     {
-        if (BuildUI(FilePickerCtrl1->GetFileName().GetFullPath()))
+        if (BuildUI(FilePickerCtrl1->GetFileName().GetFullPath(), &((xLightsFrame*)xLightsApp::GetFrame())->GetSequenceElements()))
         {
             last = newf;
         }
@@ -177,10 +177,9 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     }
 }
 
-bool ShaderPanel::BuildUI(const wxString& filename)
+bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceElements)
 {
-    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename)
-    {
+    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename && !_shaderConfig->UsesEvents()) {
         return false;
     }
 
@@ -189,7 +188,8 @@ bool ShaderPanel::BuildUI(const wxString& filename)
     FlexGridSizer_Dynamic->DeleteWindows();
     FilePickerCtrl1->UnsetToolTip();
 
-    _shaderConfig = ShaderEffect::ParseShader(filename);
+    if (_shaderConfig != nullptr) delete _shaderConfig;
+    _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
 
     if (_shaderConfig != nullptr)
     {
@@ -264,6 +264,18 @@ bool ShaderPanel::BuildUI(const wxString& filename)
                     auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE));
                     for (auto it2 : it.GetChoices())
                     {
+                        choice->AppendString(it2);
+                    }
+                    choice->SetSelection(it._default);
+                    FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                }
+                else if (it._type == ShaderParmType::SHADER_PARM_EVENT) {
+                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
+                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+                    auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE));
+                    for (auto it2 : it.GetChoices()) {
                         choice->AppendString(it2);
                     }
                     choice->SetSelection(it._default);
