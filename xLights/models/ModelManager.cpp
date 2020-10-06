@@ -1354,9 +1354,12 @@ std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end, int 
 
 void ModelManager::Delete(const std::string &name) {
 
+    // some layouts end up with illegal names
+    std::string mn = Model::SafeModelName(name);
+
     if( xlights->CurrentSeqXmlFile != nullptr )
     {
-        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
+        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(mn);
         if (elem_to_delete != nullptr)
         {
             // does model have any effects on it
@@ -1376,13 +1379,13 @@ void ModelManager::Delete(const std::string &name) {
             }
 
             // Delete the model from the sequencer grid and views
-            xlights->GetSequenceElements().DeleteElement(name);
+            xlights->GetSequenceElements().DeleteElement(mn);
         }
     }
 
     // now delete the model
     for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->first == name) {
+        if (it->first == mn) {
             Model *model = it->second;
 
             if (model != nullptr) {
@@ -1391,7 +1394,7 @@ void ModelManager::Delete(const std::string &name) {
                 for (auto& it2 : models) {
                     if (it2.second->GetDisplayAs() == "ModelGroup") {
                         ModelGroup *group = (ModelGroup*)it2.second;
-                        group->ModelRemoved(name);
+                        group->ModelRemoved(mn);
                     }
                 }
                 models.erase(it);
