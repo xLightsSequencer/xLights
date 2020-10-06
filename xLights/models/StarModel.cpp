@@ -329,7 +329,7 @@ void StarModel::InitModel()
                         wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                         Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
-                        Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2;
+                        Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2 - 1;
 
                         curPos += coordGap;
                     }
@@ -415,7 +415,7 @@ void StarModel::InitModel()
                     wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                     Nodes[currentNode]->Coords[currentCoord].bufX = point.x + BufferWi / 2;
-                    Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2;
+                    Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2 - 1;
                     lastCoord = wxPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
 
                     curPos += coordGap;

@@ -141,6 +141,10 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
 
 
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
+
+    wxString nd = newdir;
+    if (nd.EndsWith(wxFileName::GetPathSeparator())) nd = nd.SubString(0, nd.size() - 2);
+
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
         return false;
@@ -160,7 +164,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     // remove any 3d viewpoints
     viewpoint_mgr.Clear();
 
-    if (newdir != CurrentDir && "" != CurrentDir) {
+    if (nd != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
         kbf.AssignDir(CurrentDir);
         kbf.SetFullName("xlights_keybindings.xml");
@@ -177,7 +181,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     EffectTreeDlg = nullptr;
 
     // update most recently used array
-    int idx = mruDirectories.Index(newdir);
+    int idx = mruDirectories.Index(nd);
     if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
     if (!CurrentDir.IsEmpty()) {
         idx = mruDirectories.Index(CurrentDir);
@@ -201,12 +205,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     */
 
     // save config
-    bool DirExists = wxFileName::DirExists(newdir);
+    bool DirExists = wxFileName::DirExists(nd);
     wxString value;
     wxConfigBase* config = wxConfigBase::Get();
     if (permanent) {
-        if (DirExists) config->Write(_("LastDir"), newdir);
-        _permanentShowFolder = newdir;
+        if (DirExists) config->Write(_("LastDir"), nd);
+        _permanentShowFolder = nd;
     }
     for (size_t i = 0; i < MRUD_LENGTH; i++) {
         wxString mru_name = wxString::Format("mru%d", (int)i);
@@ -243,19 +247,19 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->Enable(cnt != 0);
 
     if (!DirExists) {
-        wxString msg = _("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
+        wxString msg = _("The show directory '") + nd + ("' no longer exists.\nPlease choose a new show directory.");
         DisplayError(msg, this);
         return false;
     }
 
-    ObtainAccessToURL(newdir.ToStdString());
+    ObtainAccessToURL(nd.ToStdString());
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
     _outputManager.StopOutput();
     _outputManager.DeleteAllControllers();
-    CurrentDir = newdir;
-    showDirectory = newdir;
+    CurrentDir = nd;
+    showDirectory = nd;
     UpdateRecentFilesList(true);
 
     SetFixFileShowDir(CurrentDir);
@@ -370,7 +374,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
-    FileNameText->SetLabel(newdir);
+    FileNameText->SetLabel(nd);
     
     if (AllModels.ReworkStartChannel() || UnsavedRgbEffectsChanges) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
