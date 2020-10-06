@@ -3660,6 +3660,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3710,8 +3711,10 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
+				STRIP_STYLE = debugging;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
 			};
 			name = Debug;
@@ -3745,6 +3748,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/lib/osx";
@@ -3795,8 +3799,10 @@
 					"-lwxzlib-3.1",
 				);
 				OTHER_TAPI_FLAGS = "";
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
+				STRIP_STYLE = debugging;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
 			};
 			name = Release;
@@ -3896,6 +3902,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/lib/osx";
@@ -3946,8 +3953,10 @@
 					"-lwxregexu-3.1",
 				);
 				OTHER_TAPI_FLAGS = "";
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
+				STRIP_STYLE = debugging;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
 			};
 			name = Archive;

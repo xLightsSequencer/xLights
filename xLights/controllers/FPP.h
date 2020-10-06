@@ -139,7 +139,13 @@ private:
     void parseProxies(wxJSONValue& v);
 
 
-    std::map<std::string, std::string> sequences;
+    class PlaylistEntry {
+    public:
+        std::string sequence;
+        std::string media;
+        float duration = 0;
+    };
+    std::map<std::string, PlaylistEntry> sequences;
     std::string tempFileName;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;

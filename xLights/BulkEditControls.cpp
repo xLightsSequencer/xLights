@@ -92,6 +92,17 @@ BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxStri
     _supportsBulkEdit = true;
     ID_SPINCTRL_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSpinCtrl::OnRightDown, nullptr, this);
+#ifdef __WXOSX__
+    if (min > 1 && max > 10) {
+        // at least a 2 digit number.  We need to keep the min a 1
+        // or we won't be able to type numbers into the field.  For example
+        // min:50 max:1000
+        // if you try  to type "100" into the field, the validator
+        // fires on the first "1", it's out of range, and thus
+        // blocks the entry preventing typing the number
+        SetRange(1, max);
+    }
+#endif
 }
 
 BulkEditValueCurveButton::BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : ValueCurveButton(parent, id, bitmap, pos, size, style, validator, name)

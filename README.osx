@@ -29,10 +29,36 @@ been added since then.  We also have several other fixes in place for background
 
 To get the latest code that we've tested, do:
 
-git clone  --recurse-submodules -b xlights_2020.31 https://github.com/dkulp/wxWidgets
+git clone  --recurse-submodules -b xlights_2020.41 https://github.com/dkulp/wxWidgets
 
-Then, from inside a Terminal window:
 
+If you are planning on being able to build Release builds, you will need to a release build
+wxWidgets first.  If not doing release builds, this can be skipped.
+
+  export BINARY_PLATFORMS="x86_64"
+  # export BINARY_PLATFORMS="x86_64,arm64"
+  export CXXFLAGS=""
+  export OBJCXXFLAGS=""
+  export CPPFLAGS="-g -flto=thin"
+  export LDFLAGS="-flto=thin"
+  export CXX=clang++
+  export CXXCPP="clang++ -E"
+  export CC=clang
+  export CPP="clang -E"
+  export CFLAGS="-g"
+  ../configure  --disable-debug_flag --enable-optimise --prefix=/opt/local --enable-universal_binary=${BINARY_PLATFORMS} \
+                --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
+                --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
+                --disable-webview --disable-webkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
+                --disable-xrc --disable-stc --disable-ribbon --disable-htmlhelp \
+                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
+                --enable-backtrace --enable-exceptions --disable-shared
+  make -j 8
+  sudo make install
+  make clean
+
+For debug builds:
   cd <wxMac base dir>
   cd build
   export BINARY_PLATFORMS=x86_64
@@ -50,34 +76,14 @@ Then, from inside a Terminal window:
                 --enable-debug --enable-debug_info --disable-optimise --enable-universal_binary=${BINARY_PLATFORMS} \
                 --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
                 --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
+                --disable-webview --disable-webkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
+                --disable-xrc --disable-stc --disable-ribbon --disable-htmlhelp \
                 --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
                 --enable-backtrace --enable-exceptions
   make -j 8
-  make install
+  sudo make install
 
-
-If you are planning on being able to build Release builds, you will ALSO need to do:
-
-  export BINARY_PLATFORMS="x86_64"
-  # export BINARY_PLATFORMS="x86_64,arm64"
-  export CXXFLAGS=""
-  export OBJCXXFLAGS=""
-  export CPPFLAGS="-g -flto=thin"
-  export LDFLAGS="-flto=thin"
-  export CXX=clang++ 
-  export CXXCPP="clang++ -E" 
-  export CC=clang 
-  export CPP="clang -E" 
-  export CFLAGS="-g"
-  ../configure  --disable-debug_flag --enable-optimise --prefix=/opt/local --enable-universal_binary=${BINARY_PLATFORMS} \
-                --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
-                --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
-                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
-                --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
-                --enable-backtrace --enable-exceptions --disable-shared
-  make -j 8
-  make install
 
 
 Next, you will use Xcode to compile xLights. Most of the steps are listed here:
@@ -260,3 +266,4 @@ July 27, 2019 - d50b91554ada145c8031db4540008b0f641bed28 fixes for some openGL i
 Nov 17, 2019 - 099a4c8b77ccca16870d8761ba724be4e4d13643 Update to wxWidget 3.1.3
 July 9, 2020 - tag: xlights_2020.28 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds
 July 16, 2020 - tag: xlights_2020.29 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds, fixes socket issues
+Oct  6, 2020 - tag: xlights_2020.41 - Fixes some Big Sur issues with fonts, colors

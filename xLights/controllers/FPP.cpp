@@ -308,9 +308,9 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     if (logger_curl.isInfoEnabled()) {
         char temp[8192];
         strncpy(temp, (char*)data.data, std::min(data.dataSize, sizeof(temp) - 1));
-        logger_base.info("BODY START -----------");
-        logger_base.info(temp);
-        logger_base.info("BODY END -----------");
+        logger_curl.info("BODY START -----------");
+        logger_curl.info(temp);
+        logger_curl.info("BODY END -----------");
     }
 
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -842,7 +842,9 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             return cancelled;
         }
     }
-    sequences[baseName] = mediaBaseName;
+    sequences[baseName].sequence = baseName;
+    sequences[baseName].media = mediaBaseName;
+    sequences[baseName].duration = ((float)(file.getStepTime() * file.getNumFrames())) / 1000.0f;
 
     std::string fileName;
     if (IsDrive()) {
@@ -1004,23 +1006,25 @@ bool FPP::UploadPlaylist(const std::string &name) {
         fn = (ipAddress + wxFileName::GetPathSeparator() + "playlists" + wxFileName::GetPathSeparator() + name + ".json");
         GetPathAsJSON(fn, origJson);
     } else if (IsVersionAtLeast(2, 6)) {
-        GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson);
+        GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson, false);
     }
 
     for (const auto& info : sequences) {
         wxJSONValue entry;
-        if (info.second != "") {
+        if (info.second.media != "") {
             entry["type"] = wxString("both");
             entry["enabled"] = 1;
             entry["playOnce"] = 0;
             entry["sequenceName"] = info.first;
-            entry["mediaName"] = info.second;
+            entry["mediaName"] = info.second.media;
             entry["videoOut"] = wxString("--Default--");
+            entry["duration"] = info.second.duration;
         } else {
             entry["type"] = wxString("sequence");
             entry["enabled"] = 1;
             entry["playOnce"] = 0;
             entry["sequenceName"] = info.first;
+            entry["duration"] = info.second.duration;
         }
         origJson["mainPlaylist"].Append(entry);
     }
@@ -2441,7 +2445,10 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
     if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
         char ip[64];
         sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
+        //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("FPP Discovery - Received Ping response from %s", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!
@@ -2574,11 +2581,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         });
     }
 
+    discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
+        ProcessFPPPingPacket(discovery, buffer, len);
+    });
     if (broadcastPing) {
-        discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
-            ProcessFPPPingPacket(discovery, buffer, len);
-        });
         discovery.SendBroadcastData(FPP_CTRL_PORT, buffer, 207);
+        discovery.SendData(FPP_CTRL_PORT, "239.70.80.80", buffer, 207);
+    }
+    for (auto & a : addresses) {
+        // go ahead and send a unicast ping as well
+        discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
     }
 }
 
@@ -2621,8 +2633,10 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
 }
 
 void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
         if (supportedForFPPConnect(res, outputManager))  {
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s", res->ip.c_str());
             FPP *fpp = nullptr;
             
             for (auto f : instances) {
@@ -2672,6 +2686,8 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 fpp->isFPP = res->typeId < 0x80;
             }
+        } else {
+            logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
         }
     }
 }

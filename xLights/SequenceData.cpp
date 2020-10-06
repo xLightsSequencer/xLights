@@ -54,10 +54,23 @@ SequenceData::SequenceData() : _invalidFrame()
     if (firstSeq) {
         firstSeq = false;
         std::thread([]{
-            size_t sizeRemaining = MAX_BLOCK_SIZE;
+            _hugePageAllocSize = 32 * 1024 * 1024;
             size_t blockSize = 0;
             BlockType type = BlockType::NORMAL;
-            unsigned char* block = AllocBlock(sizeRemaining, blockSize, type);
+            unsigned char* block = AllocBlock(32 * 1024 * 1024, blockSize, type);
+            if (type == BlockType::HUGE_PAGE) {
+                _hugePageAllocSize = MAX_BLOCK_SIZE;
+                std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
+                HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
+                lock.unlock();
+            } else {
+                // couldn't even get a small block, don't waste time trying larger blocks
+                munmap(block, blockSize);
+                return;
+            }
+            
+            size_t sizeRemaining = MAX_BLOCK_SIZE;
+            block = AllocBlock(sizeRemaining, blockSize, type);
             while (block) {
                 if (type == BlockType::HUGE_PAGE) {
                     std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
@@ -74,7 +87,6 @@ SequenceData::SequenceData() : _invalidFrame()
                     block = nullptr;
                 }
             }
-
         }).detach();
     }
 #endif
@@ -157,7 +169,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
         if (data != MAP_FAILED) {
             sz = szToAlloc;
         }
-        while (data == MAP_FAILED && (_hugePageAllocSize > 16 * 1024 * 1024)) {
+        while (data == MAP_FAILED && (_hugePageAllocSize >= 16 * 1024 * 1024)) {
             _hugePageAllocSize /= 2;
             data = (unsigned char*)mmap(nullptr, _hugePageAllocSize,
                 PROT_READ | PROT_WRITE,
