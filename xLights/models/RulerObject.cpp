@@ -83,11 +83,11 @@ int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 
 void RulerObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if (!IsActive()) { return; }
-
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
-	xlColor colour = xlColor(255,0,255);
+    if (!IsActive()) { return; }
+
+    xlColor colour = xlColor(255,0,255);
 
     auto start = screenLocation.GetPoint1();
     auto end = screenLocation.GetPoint2();
