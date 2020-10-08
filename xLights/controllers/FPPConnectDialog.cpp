@@ -27,6 +27,7 @@
 #include "../FSEQFile.h"
 #include "../Parallel.h"
 #include "../Discovery.h"
+#include "../osxMacUtils.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -209,7 +210,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     // show network to be easier to do
     for (auto &it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr) {
+        if (eth != nullptr && eth->GetIP() != "") {
             startAddresses.push_back(eth->GetIP());
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(eth->GetFPPProxy());
@@ -968,7 +969,18 @@ void FPPConnectDialog::CreateDriveList()
             wxJSONValue system;
             wxJSONReader reader;
             wxString str;
-            wxFile file(a + "/fpp-info.json");
+            wxString drive = a;
+            if (!ObtainAccessToURL(drive)) {
+                wxDirDialog dlg(this, "Select FPP Directory", drive,
+                                wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                if (dlg.ShowModal() == wxID_OK) {
+                    drive = dlg.GetPath();
+                }
+                if (!ObtainAccessToURL(drive)) {
+                    continue;
+                }
+            }
+            wxFile file(drive + "/fpp-info.json");
             if (!file.IsOpened()) {
                 //could not open the file, likely not readable/writable
                 continue;

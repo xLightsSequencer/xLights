@@ -36,6 +36,7 @@ ImageObject::~ImageObject()
 
 void ImageObject::InitModel() {
 	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
+    ObtainAccessToURL(_imageFile);
 
     if (ModelXml->HasAttribute("Transparency")) {
         transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));

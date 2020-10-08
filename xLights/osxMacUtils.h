@@ -19,7 +19,7 @@ class wxMenu;
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
 double xlTranslateToRetina(xlGLCanvas &win, double x);
-void ObtainAccessToURL(const std::string &path);
+bool ObtainAccessToURL(const std::string &path);
 void EnableSleepModes();
 void DisableSleepModes();
 
@@ -43,7 +43,7 @@ bool IsFromAppStore();
 #define xlSetOpenGLRetina(a)
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
-#define ObtainAccessToURL(x)
+inline bool ObtainAccessToURL(const std::string &path) { return true; }
 #define EnableSleepModes()
 #define DisableSleepModes()
 #define ModalPopup(p, a) p->PopupMenu(&a)

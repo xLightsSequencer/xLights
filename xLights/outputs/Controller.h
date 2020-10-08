@@ -13,6 +13,7 @@
 #include <wx/wx.h>
 
 #include <list>
+#include <map>
 #include <string>
 #include <functional>
 
@@ -62,6 +63,8 @@ protected:
     std::string _variant;                    // the variant of the controller
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
+    
+    std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
 #pragma endregion
 
 public:
@@ -147,6 +150,15 @@ public:
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
 
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
+    
+    const std::string &GetRuntimeProperty(const std::string &p, const std::string &def = "") const {
+        const auto &a = _runtimeProperties.find(p);
+        if (a != _runtimeProperties.end()) {
+            return a->second;
+        }
+        return def;
+    }
+    void SetRuntimeProperty(const std::string &p, const std::string &v) { _runtimeProperties[p] = v;}
     #pragma endregion
 
     #pragma region Virtual Functions

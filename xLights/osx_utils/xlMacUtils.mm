@@ -80,9 +80,9 @@ static void LoadGroupEntries(wxConfig *config, const wxString &grp, std::list<st
 }
 
 
-void ObtainAccessToURL(const std::string &path) {
+bool ObtainAccessToURL(const std::string &path) {
     if ("" == path) {
-        return;
+        return true;
     }
     
     std::unique_lock<std::mutex> lock(URL_LOCK);
@@ -93,7 +93,11 @@ void ObtainAccessToURL(const std::string &path) {
         LoadGroupEntries(config, "/", removes, grpRemoves);
         if (!removes.empty() || !grpRemoves.empty()) {
             for (auto &a : removes) {
-                config->DeleteEntry(a, true);
+                if (a.rfind("/Volumes/", 0) != 0) {
+                    // don't remove entries that start with /Volumes as its likely just an SD card
+                    // that isn't mounted right now.   It might be there later
+                    config->DeleteEntry(a, true);
+                }
             }
             for (auto &a : grpRemoves) {
                 config->DeleteGroup(a);
@@ -103,10 +107,10 @@ void ObtainAccessToURL(const std::string &path) {
         delete config;
     }
     if (ACCESSIBLE_URLS.find(path) != ACCESSIBLE_URLS.end()) {
-        return;
+        return true;
     }
     if (!wxFileName::Exists(path)) {
-        return;
+        return false;
     }
     wxFileName fn(path);
     if (!fn.IsDir()) {
@@ -121,14 +125,14 @@ void ObtainAccessToURL(const std::string &path) {
             // file is in a directory we already have access to, don't need to record it
             printf("Using dir %s for %s\n", (const char *)ps.c_str(), (const char *)path.c_str());
             ACCESSIBLE_URLS.insert(path);
-            return;
+            return true;
         }
     }
     
     std::string pathurl = path;
     wxConfig *config = new wxConfig("xLights-Bookmarks");
     wxString data = config->Read(pathurl);
-    NSError *error;
+    NSError *error = nil;
     if ("" == data) {
         NSString *filePath = [NSString stringWithCString:pathurl.c_str()
                                                 encoding:[NSString defaultCStringEncoding]];
@@ -163,6 +167,7 @@ void ObtainAccessToURL(const std::string &path) {
         [nsdata release];
     }
     delete config;
+    return data.length() > 0;
 }
 
 double xlOSXGetMainScreenContentScaleFactor()

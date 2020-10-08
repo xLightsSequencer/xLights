@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  FPP - don't upload UDP Inputs file if there are no UDP inputs defined/needed (DDP)
+   -- enh (dkulp)  FPP AutoConfigure on output - restore FPP mode when output disabled
+   -- bug (dkulp)  OSX - when loading meshes, if mtl/texture cannot be accessed, query for access to the directory
+   -- bug (dkulp)  Add extra tracing to perspective loading to hopefully help track issues with it
+   -- enh/bug (dkulp) Move all "Turn on outputs" and "Turn off outputs" to common methods on xLightsFrame to keep the button/bitmaps in sync
+   -- bug (dkulp)  Fix obscure crash when changing away from Sequencer tab might cause recursive loop
+   -- bug (dkulp)  Fix crash with CustomModelDialog if background image is not a valid image
+   -- bug (dkulp)  OSX - Fix HinksPix export and FPP Connect not being able to write to mounted SD cards/volumes
 2020.42 October 5 2020
    -- enh (keith)  Add support for shader events tied to a timing track (see Ligtning shader as an example)
    -- bug (keith)  Fix star where start is on the inside of the star is not working

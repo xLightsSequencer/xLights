@@ -1384,10 +1384,21 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadPixelOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
     std::string val;
+    controller->SetRuntimeProperty("FPPMode", curMode);
     if (restartNeeded || curMode != "bridge") {
         Restart("bridge");
     }
     return b;
+}
+bool FPP::ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    std::string md = controller->GetRuntimeProperty("FPPMode");
+    if (md != "bridge" && md != "") {
+        bool b = AuthenticateAndUpdateVersions();
+        if (!b) return b;
+        Restart(md);
+        controller->SetRuntimeProperty("FPPMode", "");
+    }
+    return true;
 }
 
 wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input) {
@@ -1500,6 +1511,7 @@ bool FPP::Restart(const std::string &mode, bool ifNeeded) {
         return false;
     }
     GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
+    GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=0", val);
     restartNeeded = false;
     return false;
 }
@@ -1517,11 +1529,13 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     if (c == nullptr) return false;
 
     wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ c }), true);
-    if (IsDrive()) {
-        std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
-        WriteJSONToPath(fn, udp);
-    } else if (IsVersionAtLeast(2, 4)) {
-        PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeInputs", udp);
+    if (!udp["channelInputs"][0]["universes"].IsNull()) {
+        if (IsDrive()) {
+            std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
+            WriteJSONToPath(fn, udp);
+        } else if (IsVersionAtLeast(2, 4)) {
+            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeInputs", udp);
+        }
     }
     return false;
 }

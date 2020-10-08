@@ -12,6 +12,7 @@
 #include <wx/dir.h>
 #include <wx/wfstream.h>
 
+#include "osxMacUtils.h"
 #include "HinksPixExportDialog.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
@@ -881,13 +882,23 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
             }
         } 
 
-        wxString const drive = GetChoiceValue(DISK_COL + rowStr);
+        wxString drive = GetChoiceValue(DISK_COL + rowStr);
 
-        if (drive.IsEmpty())
-        {
+        if (drive.IsEmpty()) {
             error = true; 
             errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
             continue;
+        }
+        if (!ObtainAccessToURL(drive)) {
+            wxDirDialog dlg(this, "Select SD Directory", drive,
+                            wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            if (dlg.ShowModal() == wxID_OK) {
+                drive = dlg.GetPath();
+            }
+            if (!ObtainAccessToURL(drive)) {
+                errorMsg = wxString::Format("Could not obtain write access for '%s'", drive);
+                continue;
+            }
         }
 
         std::vector<std::tuple<wxString, wxString>> songs;

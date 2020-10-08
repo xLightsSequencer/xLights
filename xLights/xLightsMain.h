@@ -1097,7 +1097,10 @@ public:
     void SetRandomEffectsToUse(const wxArrayString &e);
 
     bool EnableOutputs(bool ignoreCheck = false);
+    bool ToggleOutputs(bool ignoreCheck = false);
+    bool DisableOutputs();
     void CycleOutputsIfOn();
+    
     bool ForceEnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);

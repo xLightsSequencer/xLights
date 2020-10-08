@@ -41,7 +41,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         virtual void IncrementChangeCount() override;
 
     protected:
-
+        void checkAccessToFile(const std::string &url);
         void loadObject();
     private:
         std::string _objFile;

@@ -29,6 +29,7 @@
 #include "xLightsXmlFile.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
+#include "xLightsMain.h"
 
 #include <log4cpp/Category.hh>
 
@@ -181,8 +182,9 @@ BEGIN_EVENT_TABLE(GenerateCustomModelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
+GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _parent = parent;
     _outputManager = outputManager;
     _busy = false;
 
@@ -835,13 +837,9 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     // Remember our outputting state
     bool outputting = _outputManager->IsOutputting();
-
-    if (_outputManager->IsOutputOpenInAnotherProcess())
-    {
-        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
+    if (!outputting) {
+        _parent->EnableOutputs();
     }
-
-    _outputManager->StartOutput();
 
     int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);
 
@@ -871,10 +869,8 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     pd.Update(100);
 
     _outputManager->AllOff();
-
-    if (!outputting)
-    {
-        _outputManager->StopOutput();
+    if (!outputting) {
+        _parent->DisableOutputs();
     }
 
     pd.Update(100);

@@ -44,6 +44,8 @@ class OutputManager;
 
 #pragma region xlPoint
 
+class xLightsFrame;
+
 // This is required so I can use points in std::maps
 class xlPoint : public wxPoint
 {
@@ -196,6 +198,7 @@ class GenerateCustomModelDialog: public wxDialog
     int _MI_CurrentNode;
     wxImage _MI_CurrentFrame;
     int _MI_CurrentTime;
+    xLightsFrame *_parent;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     wxImage CreateImageFromFrame(AVFrame* frame);
@@ -260,7 +263,7 @@ class GenerateCustomModelDialog: public wxDialog
     void ValidateWindow();
 
     public:
-		GenerateCustomModelDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		GenerateCustomModelDialog(xLightsFrame* parent, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)

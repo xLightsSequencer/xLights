@@ -88,6 +88,7 @@
 #include "outputs/ControllerEthernet.h"
 #include "outputs/ControllerSerial.h"
 #include "KeyBindingEditDialog.h"
+#include "TraceLog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -1950,8 +1951,8 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString entries = wxSplit(perspective, '|');
-    for (const auto& it : entries)
-    {
+    for (const auto& it : entries) {
+        TraceLog::AddTraceMessage(it.ToStdString());
         logger_base.debug("    %s", (const char *)it.c_str());
     }
 }
@@ -2138,33 +2139,34 @@ void xLightsFrame::RecalcModels()
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
+    static bool isChanging = false;
     if (layoutPanel == nullptr) {
         event.Veto();
         return;
     }
 
-    if (event.GetOldSelection() == NEWSEQUENCER)
-    {
+    // In some cases on OSX, the ShowHideAllSequencerWindows can cause this
+    // method ot be re-called recursively and thus trigger a stack overflow eventually.
+    // If we are already changing, we'll bail.
+    if (isChanging) {
+        event.Veto();
+        return;
+    }
+    isChanging = true;
+    if (event.GetOldSelection() == NEWSEQUENCER) {
         layoutPanel->Set3d(_housePreviewPanel->Is3d());
         ShowHideAllSequencerWindows(false);
-    }
-    else if (event.GetOldSelection() == SETUPTAB)
-    {
+    } else if (event.GetOldSelection() == SETUPTAB) {
         layoutPanel->UnSelectAllModels();
-    }
-    else if (event.GetOldSelection() == LAYOUTTAB)
-    {
+    } else if (event.GetOldSelection() == LAYOUTTAB) {
         _housePreviewPanel->Set3d(layoutPanel->Is3d());
     }
-
-    if (event.GetSelection() == SETUPTAB)
-    {
+    if (event.GetSelection() == SETUPTAB) {
         DoSetupWork();
-    }
-    else if (event.GetSelection() == LAYOUTTAB)
-    {
+    } else if (event.GetSelection() == LAYOUTTAB) {
         DoLayoutWork();
     }
+    isChanging = false;
 }
 
 void xLightsFrame::RenderLayout()
@@ -2205,16 +2207,8 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     SetAudioControls();
 }
 
-void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
-{
-    if (_outputManager.IsOutputting())
-    {
-        CheckBoxLightOutput->SetValue(false);
-        _outputManager.AllOff();
-        _outputManager.StopOutput();
-        CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")), wxART_TOOLBAR));
-        EnableNetworkChanges();
-    }
+void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event) {
+    DisableOutputs();
 }
 void xLightsFrame::CycleOutputsIfOn() {
     if (_outputManager.IsOutputting()) {
@@ -2256,30 +2250,58 @@ bool xLightsFrame::ForceEnableOutputs() {
 }
 
 
-bool xLightsFrame::EnableOutputs(bool ignoreCheck)
-{
-    bool ok = true;
-    if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting()) {
-        if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
-            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
-        }
-        ok = ForceEnableOutputs();
-        if (ok) {
-            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
-        }
-    } else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting()) {
-        _outputManager.AllOff();
-        _outputManager.StopOutput();
-        CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
+bool xLightsFrame::EnableOutputs(bool ignoreCheck) {
+    if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
+        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
+    bool ok = ForceEnableOutputs();
+    CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
+    CheckBoxLightOutput->SetValue(true);
     EnableNetworkChanges();
     return ok;
 }
+bool xLightsFrame::DisableOutputs() {
+    if (_outputManager.IsOutputting()) {
+        _outputManager.AllOff();
+        _outputManager.StopOutput();
+        
+        for (auto &controller : _outputManager.GetControllers()) {
+            if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
+                ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);
+                auto ip = eCont->GetResolvedIP();
+                if (ip == "MULTICAST" || eCont->GetProtocol() == OUTPUT_ZCPP) {
+                    continue;
+                }
+                BaseController* bc = BaseController::CreateBaseController(eCont);
+                if (bc != nullptr && bc->IsConnected()) {
+                    bc->ResetAfterOutput(&_outputManager, eCont, this);
+                }
+                if (bc) {
+                    delete bc;
+                }
+            }
+        }
+    }
+    CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
+    CheckBoxLightOutput->SetValue(false);
+    EnableNetworkChanges();
+    return true;
+}
+bool xLightsFrame::ToggleOutputs(bool ignoreCheck) {
+    if (CheckBoxLightOutput->IsChecked()) {
+       return DisableOutputs();
+    }
+    return EnableOutputs(ignoreCheck);
+}
+
 
 void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 {
-    EnableOutputs();
-    //CheckChannelList=true;  // cause status bar to be updated if in test mode
+    if (event.GetInt()) {
+        EnableOutputs();
+    } else {
+        DisableOutputs();
+    }
 }
 
 //factored out from below so it can be reused by play/pause button -DJ
@@ -3335,11 +3357,9 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
-	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
-	{
+	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr) {
 		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
-		if (mps == MEDIAPLAYINGSTATE::PLAYING)
-		{
+		if (mps == MEDIAPLAYINGSTATE::PLAYING) {
             logger_base.debug("Test: Suspending play.");
 			CurrentSeqXmlFile->GetMedia()->Pause();
 			SetAudioControls();
@@ -3350,12 +3370,9 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 
 	// save the output state and turn it off
 	bool output = CheckBoxLightOutput->IsChecked();
-	if (output)
-	{
+	if (output) {
         logger_base.debug("Test: Turning off output to lights.");
-        _outputManager.AllOff();
-        CheckBoxLightOutput->SetValue(false);
-        EnableOutputs();
+        DisableOutputs();
 	}
 
 	// creating the dialog can take some time so display an hourglass
@@ -3376,10 +3393,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	SetCursor(wxCURSOR_DEFAULT);
 
 	// resume output if it was set
-	if (output)
-	{
+	if (output) {
         logger_base.debug("Test: Turning back on output to lights.");
-        CheckBoxLightOutput->SetValue(true);
         EnableOutputs();
 	}
 
@@ -3387,8 +3402,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	Timer1.Start();
 
 	// resume playing the media if it was playing
-	if (mps == MEDIAPLAYINGSTATE::PLAYING)
-	{
+	if (mps == MEDIAPLAYINGSTATE::PLAYING) {
         logger_base.debug("Test: Resuming play.");
         CurrentSeqXmlFile->GetMedia()->Play();
 		SetAudioControls();
@@ -3449,11 +3463,8 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
 
     // save the output state and turn it off
     bool output = CheckBoxLightOutput->IsChecked();
-    if (output)
-    {
-        _outputManager.AllOff();
-        CheckBoxLightOutput->SetValue(false);
-        EnableOutputs();
+    if (output) {
+        DisableOutputs();
     }
 
     // creating the dialog can take some time so display an hourglass
@@ -3466,9 +3477,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     SetCursor(wxCURSOR_DEFAULT);
 
     // resume output if it was set
-    if (output)
-    {
-        CheckBoxLightOutput->SetValue(true);
+    if (output) {
         EnableOutputs();
     }
 
@@ -9095,16 +9104,13 @@ wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
     if (msg == "TURN_LIGHTS_ON")
     {
         logger_base.debug("xFade turning lights on.");
-        CheckBoxLightOutput->SetValue(true);
         EnableOutputs(true);
         return "SUCCESS";
     }
     else if (msg == "TURN_LIGHTS_OFF")
     {
         logger_base.debug("xFade turning lights off.");
-        _outputManager.AllOff();
-        CheckBoxLightOutput->SetValue(false);
-        EnableOutputs();
+        DisableOutputs();
         return "SUCCESS";
     }
     else if (msg.StartsWith("PLAY_JUKEBOX_BUTTON "))
@@ -9277,8 +9283,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         }
         else if (type == "LIGHTS_TOGGLE")
         {
-            CheckBoxLightOutput->SetValue(!CheckBoxLightOutput->IsChecked());
-            EnableOutputs();
+            ToggleOutputs();
             m_mgr->Update();
             OutputToolBar->Refresh();
         }

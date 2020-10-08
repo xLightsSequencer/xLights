@@ -2388,13 +2388,14 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
         ObtainAccessToURL(background_image);
         if (wxFile::Exists(background_image)) {
             bkg_image = new wxImage(background_image);
-        }
-        else
-        {
+            if (!bkg_image->IsOk()) {
+                delete bkg_image;
+                bkg_image = nullptr;
+            }
+        } else {
             bkg_image = nullptr;
         }
-        for (auto r : _renderers)
-        {
+        for (auto r : _renderers) {
             r->SetImage(bkg_image);
         }
         UpdateBackground();

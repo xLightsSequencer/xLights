@@ -190,8 +190,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     if (viewsNode == nullptr) {
         UnsavedRgbEffectsChanges = true;
-    }
-    else {
+    } else {
         _sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
     }
 
@@ -656,9 +655,10 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    if (!backup)
-    {
+    if (!backup)  {
+#ifndef __WXOSX__
         SaveModelsFile();
+#endif
         UnsavedRgbEffectsChanges = false;
     }
 

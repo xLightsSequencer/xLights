@@ -1745,10 +1745,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             wxConfigBase* config = wxConfigBase::Get();
             config->Write("xLightsLocalIP", wxString(mLocalIP));
             config->Flush();
-            if (_outputManager.IsOutputting()) {
-                _outputManager.StopOutput();
-                _outputManager.StartOutput();
-            }
+            CycleOutputsIfOn();
         }
     }
 

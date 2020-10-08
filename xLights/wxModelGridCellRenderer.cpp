@@ -58,24 +58,26 @@ void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_, int l
 
 void wxModelGridCellRenderer::CreateImage()
 {
-    if( image != nullptr )
+    if( image != nullptr && image->IsOk())
     {
         wxImage img(*image);
         img.Rescale(width, height);
 
-        img.InitAlpha();
-        int alpha = (100 - lightness) * 255 / 100;
+        if (img.IsOk()) {
+            img.InitAlpha();
+            int alpha = (100 - lightness) * 255 / 100;
 
-        for (int x = 0; x < img.GetWidth(); x++)
-        {
-            for (int y = 0; y < img.GetHeight(); y++)
+            for (int x = 0; x < img.GetWidth(); x++)
             {
-                //int temp = img.GetAlpha(x, y);
-                img.SetAlpha(x, y, alpha);
+                for (int y = 0; y < img.GetHeight(); y++)
+                {
+                    //int temp = img.GetAlpha(x, y);
+                    img.SetAlpha(x, y, alpha);
+                }
             }
-        }
 
-        bmp = wxBitmap(img);
+            bmp = wxBitmap(img);
+        }
     }
 }
 

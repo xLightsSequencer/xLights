@@ -52,6 +52,7 @@ MeshObject::~MeshObject()
 
 void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
+    checkAccessToFile(_objFile);
     mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
     diffuse_colors = ModelXml->GetAttribute("Diffuse", "0") == "1";
 
@@ -95,7 +96,7 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         textures.clear();
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
-        ObtainAccessToURL(_objFile);
+        checkAccessToFile(_objFile);
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::ObjFile");
@@ -281,6 +282,19 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
     return BaseObject::CleanupFileLocations(frame) || rc;
 }
 
+void MeshObject::checkAccessToFile(const std::string &url) {
+    if (!ObtainAccessToURL(url) && wxFileExists(url)) {
+        wxMessageBox("Could not obtain access to " + url + "\n\nTry giving xLights permission to access to the directory.",
+                     "Access Denied");
+        wxFileName fn(url);
+        wxDirDialog dlg(nullptr, "Select Directory For Mesh Resources", fn.GetPath());
+        if (dlg.ShowModal()) {
+            ObtainAccessToURL(url);
+        }
+    }
+}
+
+
 std::list<std::string> MeshObject::CheckModelSettings()
 {
     std::list<std::string> res;
@@ -293,9 +307,12 @@ std::list<std::string> MeshObject::CheckModelSettings()
         }
 
         wxFileName fn(_objFile);
+        checkAccessToFile(_objFile);
         fn.SetExt("mtl");
         if (!fn.Exists()) {
             res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+        } else {
+            checkAccessToFile(fn.GetFullPath());
         }
 
         std::string base_path = fn.GetPath();
@@ -337,9 +354,9 @@ std::list<std::string> MeshObject::GetFileReferences()
         wxFileName mtl(_objFile);
         mtl.SetExt("mtl");
 
-        if (mtl.Exists())
-        {
+        if (mtl.Exists()) {
             res.push_back(mtl.GetFullPath());
+            checkAccessToFile(mtl.GetFullPath());
         }
 
         wxFileName fn(_objFile);
@@ -397,6 +414,13 @@ void MeshObject::loadObject() {
         diffuse_colours_override = false;
 
         wxFileName fn(_objFile);
+        
+        wxFileName mtl(_objFile);
+        mtl.SetExt("mtl");
+        if (mtl.Exists()) {
+            checkAccessToFile(mtl.GetFullPath());
+        }
+        
         std::string base_path = fn.GetPath();
         std::string err;
         tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
@@ -462,6 +486,7 @@ void MeshObject::loadObject() {
                             }
                         }
                     }
+                    checkAccessToFile(texture_filename);
                     textures[m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
             }

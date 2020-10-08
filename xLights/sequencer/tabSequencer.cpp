@@ -2716,9 +2716,12 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         LogPerspective(settings);
     }
     logger_base.debug("Loading perspective %s", (const char *)name.c_str());
+    PushTraceContext();
+    AddTraceMessage(settings);
     LogPerspective(settings);
     m_mgr->LoadPerspective(settings, true);
-    
+    PopTraceContext();
+
     //perspectives may have been saved without the maximize button flag, we'll
     //make sure it's turned on
     m_mgr->GetPane("ModelPreview").MaximizeButton(true);
@@ -2833,7 +2836,6 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
 
 void xLightsFrame::TurnOnOutputToLights(wxCommandEvent& event)
 {
-    CheckBoxLightOutput->SetValue(true);
     EnableOutputs(true);
 }
 

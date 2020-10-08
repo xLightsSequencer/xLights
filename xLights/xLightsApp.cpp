@@ -857,12 +857,9 @@ bool xLightsApp::OnInit()
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
     }
 
-    if (parser.Found("o"))
-    {
+    if (parser.Found("o")) {
         logger_base.info("-o: Turning on output to lights");
-
         // Turn on output to lights - ignore if another xLights/xSchedule is already outputting
-        topFrame->CheckBoxLightOutput->SetValue(true);
         topFrame->EnableOutputs(true);
     }
 
