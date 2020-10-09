@@ -52,6 +52,7 @@
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<SupportsLEDPanelMatrix/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -65,6 +66,7 @@
             <MaxSerialPortChannels>0</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
+			<SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
