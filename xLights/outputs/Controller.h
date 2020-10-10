@@ -133,6 +133,8 @@ public:
     virtual bool IsActive() const;
     void SetActive(const std::string& active);
 
+    virtual bool CanVisualise() const;
+
     bool IsOk() const { return _ok; }
 
     const std::string &GetVendor() const { return _vendor; }

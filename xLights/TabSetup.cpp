@@ -1538,7 +1538,7 @@ void xLightsFrame::SetControllersProperties() {
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
 
-            if (usingip == 1) {
+            if (usingip == 1 && controller->CanVisualise()) {
                 ButtonVisualise->Enable();
             }
             else {

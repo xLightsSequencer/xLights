@@ -354,6 +354,15 @@ void Controller::SetActive(const std::string& active)  {
     } 
 }
 
+bool Controller::CanVisualise() const
+{
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->GetMaxPixelPort() > 0 || caps->GetMaxSerialPort() > 0;
+    }
+    return false;
+}
+
 std::string Controller::GetVMV() const {
 
     std::string res = GetVendor();
