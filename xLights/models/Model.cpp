@@ -94,6 +94,7 @@ static wxArrayString CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
 
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLERS;
+static wxArrayString OTHERMODELLIST;
 
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
@@ -681,6 +682,22 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
     }
 
+    int shadowModelFor = 0;
+    OTHERMODELLIST.clear();
+    OTHERMODELLIST.Add("");
+
+    for (const auto& it : modelManager) {
+        auto da = it.second->GetDisplayAs();
+        if (da != "ModelGroup" && it.first != GetName()) {
+            if (GetShadowModelFor() == it.first) {
+                shadowModelFor = OTHERMODELLIST.size();
+            }
+            OTHERMODELLIST.Add(it.first);
+        }
+    }
+
+    grid->Append(new wxEnumProperty("Shadow Model For", "ShadowModelFor", OTHERMODELLIST, wxArrayInt(), shadowModelFor));
+
     int layout_group_number = 0;
     for (int grp = 0; grp < LAYOUT_GROUPS.Count(); grp++)
     {
@@ -1229,6 +1246,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelChain");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelChain");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelChain");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "ShadowModelFor") {
+        if (GetShadowModelFor() != OTHERMODELLIST[event.GetValue().GetInteger()]) {
+            SetShadowModelFor(OTHERMODELLIST[event.GetValue().GetInteger()]);
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
         return 0;
     }
     else if (event.GetPropertyName() == "Controller") {
@@ -2102,6 +2126,11 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
             ModelXml->AddAttribute("StartChannel", sc);
             changed = true;
         }
+    }
+
+    if (GetShadowModelFor() == oldName) {
+        SetShadowModelFor(newName);
+        changed = true;
     }
 
     std::string mc = ModelXml->GetAttribute("ModelChain", "").ToStdString();
@@ -5907,6 +5936,14 @@ void Model::SetSuperStringColour(int index, xlColor c)
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSuperStringColour");
 }
 
+void Model::SetShadowModelFor(const std::string& shadowModelFor)
+{
+    ModelXml->DeleteAttribute("ShadowModelFor");
+    ModelXml->AddAttribute("ShadowModelFor", shadowModelFor);
+    //AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::SetControllerName");
+    IncrementChangeCount();
+}
+
 void Model::SetControllerName(const std::string& controller)
 {
     auto n = Trim(controller);
@@ -5998,6 +6035,16 @@ bool Model::IsControllerBrightnessSet() const
 int Model::GetControllerBrightness() const
 {
     return wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
+}
+
+bool Model::IsShadowModel() const
+{
+    return ModelXml->GetAttribute("ShadowModelFor", "").size() > 0;
+}
+
+std::string Model::GetShadowModelFor() const
+{
+    return ModelXml->GetAttribute("ShadowModelFor", "").ToStdString();
 }
 
 std::string Model::GetControllerName() const

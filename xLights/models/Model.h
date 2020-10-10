@@ -261,12 +261,15 @@ public:
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
+    void SetShadowModelFor(const std::string& shadowFor);
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
     void SetControllerBrightness(int brightness);
     void ClearControllerBrightness();
     bool IsControllerBrightnessSet() const;
+    bool IsShadowModel() const;
+    std::string GetShadowModelFor() const;
     std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
     int GetControllerBrightness() const;

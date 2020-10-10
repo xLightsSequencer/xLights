@@ -4179,7 +4179,7 @@ void xLightsFrame::ExportModels(wxString filename)
     uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
-    const std::string modelTitle = _("Model Name,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
+    const std::string modelTitle = _("Model Name,Shadowing,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
     //int cols = wxSplit(modelTitle, ',').size();
     f.Write(modelTitle);
 
@@ -4203,13 +4203,10 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,,%lu,,%lu,,%lu,%d x %d,%s\n",
+            f.Write(wxString::Format("\"%s\",,\"%s\",\"%s\",,,,,,,,,,,,,%d x %d,%s\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
-                model->GetChanCount(),
-                model->GetFirstChannel() + 1,
-                model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup()
             ));
@@ -4249,8 +4246,10 @@ void xLightsFrame::ExportModels(wxString filename)
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i,\"%s\",%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
+            // I had to split this because wxString::Format can only process 31 variables
+            std::string outRec = wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i",
                 EscapeCSV(model->name),
+                EscapeCSV(model->GetShadowModelFor()),
                 EscapeCSV(model->description),
                 EscapeCSV(model->GetDisplayAs()),
                 model->GetDimension(),
@@ -4265,7 +4264,9 @@ void xLightsFrame::ExportModels(wxString filename)
                 ch,
                 stu, stuc,
                 model->GetLastChannel() + 1,
-                w, h,
+                w, h);
+
+            outRec += wxString::Format(",\"%s\",%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
                 EscapeCSV(model->GetLayoutGroup()),
                 model->GetControllerConnectionRangeString(),
                 EscapeCSV(controllername),
@@ -4277,7 +4278,9 @@ void xLightsFrame::ExportModels(wxString filename)
                 universe,
                 stuc,
                 channeloffset,
-                inactive));
+                inactive);
+
+            f.Write(outRec);
             if (ch < minchannel)
             {
                 minchannel = ch;
@@ -5327,7 +5330,7 @@ void xLightsFrame::CheckSequence(bool display)
 
             for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2)
             {
-                if (it2->second->GetDisplayAs() != "ModelGroup")
+                if (it2->second->GetDisplayAs() != "ModelGroup" && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first)
                 {
                     auto m2start = it2->second->GetFirstChannel() + 1;
                     auto m2end = it2->second->GetLastChannel() + 1;
