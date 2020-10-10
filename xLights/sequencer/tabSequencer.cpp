@@ -991,6 +991,7 @@ void xLightsFrame::UnselectEffect(){
         playStartTime = -1;
         playEndTime = -1;
         playStartMS = -1;
+        _outputManager.AllOff(); // Force clear all outputs just in case we are sending data
     }
     sEffectAssist->SetPanel(nullptr);
     selectedEffect = nullptr;
