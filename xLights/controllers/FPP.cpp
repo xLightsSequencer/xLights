@@ -208,6 +208,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
+    curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError)  {
@@ -231,7 +232,11 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     }
     
     bool retValue = false;
-    int i = ::curl_easy_perform(curl);
+    int i = curl_easy_perform(curl);
+    if (i != CURLE_OK) {
+        //simple retry
+        i = curl_easy_perform(curl);
+    }
     long response_code = 0;
     if (i == CURLE_OK) {
         val = curlInputBuffer;
@@ -318,6 +323,11 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
     int i = curl_easy_perform(curl);
+    if (i != CURLE_OK) {
+        //simple retry
+        data.curPos = 0;
+        i = curl_easy_perform(curl);
+    }
     curl_slist_free_all(chunk);
     long response_code = 0;
     if (i == CURLE_OK) {
