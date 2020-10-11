@@ -7220,6 +7220,8 @@ void LayoutPanel::PreviewSaveImage()
 
 void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup)
 {
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     //add models first
     for (auto const& it2 : models)
     {
@@ -7234,6 +7236,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelXml()->AddAttribute("name", newName);
             it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);
             xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
+            logger_base.debug("Imported model '%s' as '%s'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
 
@@ -7250,8 +7253,10 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                     return (xlights->AllModels.GetModel(s) == nullptr);
                 }), models.end());
 
-            if (models.empty())
+            if (models.empty()) {
+                logger_base.warn("Import model group '%s' failed as no models in the group exist in this display.", (const char*)it2->GetName().c_str());
                 continue;
+            }
 
             wxString const name = it2->GetName();
             Model* model = xlights->AllModels.GetModel(name);
@@ -7259,10 +7264,14 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                 it2->GetModelXml()->DeleteAttribute("LayoutGroup");
                 it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);                
                 model = xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
-            }            
+                logger_base.debug("Imported model group '%s'.", (const char*)name.c_str());
+            }
 
             if (model->GetDisplayAs() == "ModelGroup") {
                 dynamic_cast<ModelGroup*>(model)->AddModel(wxJoin(models, ','));
+                for (const auto& m : models) {
+                    logger_base.debug("    Models model group '%s' added model '%s'.", (const char*)name.c_str(), (const char*)m.c_str());
+                }
             }
         }
     }
@@ -7316,7 +7325,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             }
             ImportModelsFromPreview(dlg.GetModelsInPreview(it), it);
         }
-        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");
     }
 }
