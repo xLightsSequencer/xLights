@@ -10,8 +10,6 @@
 
 #include <wx/wx.h>
 
-#include "SequenceData.h"
-#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -25,6 +23,9 @@
 #else
 //Windows
 #endif
+
+#include "SequenceData.h"
+#include "UtilFunctions.h"
 
 const unsigned char FrameData::_constzero = 0;
 

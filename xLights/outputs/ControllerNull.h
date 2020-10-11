@@ -61,7 +61,7 @@ public:
 
     virtual std::string GetColumn1Label() const override { return "NULL"; }
 
-    virtual bool CanVisualise() const { return false; }
+    virtual bool CanVisualise() const override { return false; }
 
     virtual std::string GetExport() const override;
     #pragma endregion 

@@ -1869,7 +1869,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             oName.SetExt(_("hlsnc"));
             fullpath = oName.GetFullPath();
             WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
-        } else if (Out3 == "Fal") {
+        } else if (Out3 == "FPP") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("eseq"));
             fullpath = oName.GetFullPath();
