@@ -694,6 +694,17 @@ int32_t OutputManager::GetTotalChannels() const {
     return _controllers.back()->GetEndChannel();
 }
 
+int32_t OutputManager::GetOutputsAbsoluteChannel(int universeIndex, int32_t startChannel) const
+{
+    auto o = GetAllOutputs();
+
+    if (universeIndex >= (int)o.size()) return -1;
+
+    auto it = o.begin();
+    std::advance(it, universeIndex);
+    return (*it)->GetStartChannel() + startChannel;
+}
+
 int32_t OutputManager::GetAbsoluteChannel(int controllerIndex, int32_t startChannel) const {
 
     if (controllerIndex >= (int)_controllers.size()) return -1;

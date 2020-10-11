@@ -118,6 +118,7 @@ public:
     int32_t GetTotalChannels() const;
 
     //both outputNumber and startChannel are 0 based
+    int32_t GetOutputsAbsoluteChannel(int universeIndex, int32_t startChannel) const;
     int32_t GetAbsoluteChannel(int controllerIndex, int32_t startChannel) const;
     int32_t GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const;
     int32_t DecodeStartChannel(const std::string& startChannelString);

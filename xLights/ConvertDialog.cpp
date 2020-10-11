@@ -1685,7 +1685,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                 cnt = context.size();
                 if (cnt == 2)
                 {
-                    if (empty && curchannel != -1)
+                    if (empty && curchannel >= 0)
                     {
                         chindex--;
                         AppendConvertStatus(wxString("WARNING: ") + ChannelNames[curchannel] + " is empty\n");
@@ -1737,7 +1737,11 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         chindex = circuit - 1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex) - 1;
+                        curchannel = _outputManager->GetOutputsAbsoluteChannel(network, chindex) - 1;
+                        if (curchannel < 0)                             {
+                            AppendConvertStatus(string_format(wxString("WARNING: invalid LOR network: %d, Only %d defined in xLights.\n"), network + 1, _outputManager->GetOutputCount()));
+                            curchannel = -1;
+                        }
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -1762,7 +1766,11 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             chindex += lorUnitSizes[network][z];
                         }
                         chindex += circuit - 1;
-                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex) - 1;
+                        curchannel = _outputManager->GetOutputsAbsoluteChannel(network, chindex) - 1;
+                        if (curchannel < 0) {
+                            AppendConvertStatus(string_format(wxString("WARNING: invalid LOR network: %d, Only %d defined in xLights.\n"), network + 1, _outputManager->GetOutputCount()));
+                            curchannel = -1;
+                        }
                     }
                     else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
                         curchannel = -1;

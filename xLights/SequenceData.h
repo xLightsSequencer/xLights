@@ -68,8 +68,9 @@ class SequenceData {
         size_t size;
         BlockType type;
     };
+#ifdef USE_MMAP_BLOCKS
     static std::list<std::unique_ptr<DataBlock>> HUGE_BLOCK_CACHE;
-    
+#endif    
     FrameData _invalidFrame;
     std::vector<FrameData> _frames;
     std::list<std::unique_ptr<DataBlock>> _dataBlocks;

@@ -34,10 +34,8 @@ const unsigned char FrameData::_constzero = 0;
 // memory.  Most users sequences will likely fit in this anyway
 static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
 
-
-std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CACHE;
-
 #ifdef USE_MMAP_BLOCKS
+std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CACHE;
 #include <thread>
 // OSX/Linux allows 2MB huge pages (or Superpages as they call them on OSX)
 static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
@@ -46,7 +44,6 @@ static std::mutex HUGE_BLOCK_LOCK;
 static size_t _hugePageAllocSize = MAX_BLOCK_SIZE;
 static bool _hugePagesFailed;
 #endif
-
 
 SequenceData::SequenceData() : _invalidFrame()
 {
@@ -115,16 +112,17 @@ SequenceData::DataBlock::~DataBlock()
 void SequenceData::Cleanup()
 {
     _frames.clear();
+#ifdef USE_MMAP_BLOCKS
     for (auto& p : _dataBlocks) {
         if (p.get() && p.get()->type == BlockType::HUGE_PAGE) {
             //save these for later, HUGE_PAGE blocks are limitted and hard to come by
             //so if we get any, we'll hold onto them
-#ifdef USE_MMAP_BLOCKS
             std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
-#endif
             HUGE_BLOCK_CACHE.emplace_back(std::move(p));
         }
     }
+#endif
+
     _dataBlocks.clear();
     _invalidFrame._numChannels = 0;
     free(_invalidFrame._data);
