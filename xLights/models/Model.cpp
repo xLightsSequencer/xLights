@@ -978,11 +978,18 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
 void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
 
+    auto caps = GetControllerCaps();
+
     auto p = grid->GetPropertyByName("ModelControllerConnectionPort");
     if (p != nullptr) {
         if (GetControllerName() != "" && _controller != 0 && GetControllerPort(1) == 0) {
-            p->SetHelpString("When using controller name instead of start channels then port must be specified.");
-            p->SetBackgroundColour(*wxRED);
+            if (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0) {
+                // we let this be 0
+            }
+            else {
+                p->SetHelpString("When using controller name instead of start channels then port must be specified if the controller has ports.");
+                p->SetBackgroundColour(*wxRED);
+            }
         }
         else {
             p->SetHelpString("");

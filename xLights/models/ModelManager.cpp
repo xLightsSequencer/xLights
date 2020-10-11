@@ -45,6 +45,7 @@
 #include "UtilFunctions.h"
 #include "outputs/Output.h"
 #include "outputs/Controller.h"
+#include "../controllers/ControllerCaps.h"
 #include "Parallel.h"
 #include <log4cpp/Category.hh>
 
@@ -597,13 +598,14 @@ bool ModelManager::ReworkStartChannel() const
     OutputManager* outputManager = xlights->GetOutputManager();
     for (const auto& it : outputManager->GetControllers())
     {
+        auto caps = it->GetControllerCaps();
         std::map<std::string, std::list<Model*>> cmodels;
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models)
         {
             if (itm.second->GetControllerName() == it->GetName() &&
-                itm.second->GetControllerPort() != 0 &&
-                itm.second->GetControllerProtocol() != ""
+                ((itm.second->GetControllerPort() != 0 && itm.second->GetControllerProtocol() != "") ||
+                 (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0))
                 ) // we dont muck with unassigned models or no protocol models
             {
                 wxString cc;
