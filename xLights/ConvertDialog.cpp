@@ -1727,22 +1727,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     networkAsString = getAttributeValueSafe(stagEvent, "network");
                     int network = getAttributeValueAsInt(stagEvent, "network");
 
-                    int unit = getAttributeValueAsInt(stagEvent, "unit");
-                    
-                    // LOR supports up to 240 unit IDs, starting at 0x01
-                    // see https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#unit-ids
-                    const int MinLORUnitId = 0x01;
-                    const int MaxLORUnitId = 0xF0;
-                    
-                    if (unit < MinLORUnitId || unit > MaxLORUnitId)
-                    {
-                        AppendConvertStatus(string_format(wxString("WARNING: invalid LOR unit id: %d, must be within %d-%d\n"), unit, MinLORUnitId, MaxLORUnitId));
-                        
-                        // bind the invalid unit value within the upper and lower bounds
-                        // this ensures out of bounds unit ids will always be pushed into the lowest, or highest, values
-                        unit = std::clamp(unit, MinLORUnitId, MaxLORUnitId);
-                    }
-
                     int circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
@@ -1757,6 +1741,21 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
+                        int unit = getAttributeValueAsInt(stagEvent, "unit");
+
+                        // LOR supports up to 240 unit IDs, starting at 0x01
+                        // see https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#unit-ids
+                        const int MinLORUnitId = 0x01;
+                        const int MaxLORUnitId = 0xF0;
+
+                        if (unit < MinLORUnitId || unit > MaxLORUnitId) {
+                            AppendConvertStatus(string_format(wxString("WARNING: invalid LOR unit id: %d, must be within %d-%d\n"), unit, MinLORUnitId, MaxLORUnitId));
+
+                            // bind the invalid unit value within the upper and lower bounds
+                            // this ensures out of bounds unit ids will always be pushed into the lowest, or highest, values
+                            unit = std::clamp(unit, MinLORUnitId, MaxLORUnitId);
+                        }
+
                         chindex = 0;
                         for (int z = 0; z < (unit - 1); z++)
                         {

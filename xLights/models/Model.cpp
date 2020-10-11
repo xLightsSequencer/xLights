@@ -472,8 +472,7 @@ void Model::SetStartChannel(std::string startChannel)
 
 void Model::SetProperty(wxString property, wxString value, bool apply)
 {
-    wxString val = ModelXml->GetAttribute(property);
-    if (val != "")
+    if (ModelXml->HasAttribute(property))
     {
         ModelXml->DeleteAttribute(property);
         ModelXml->AddAttribute(property, value);
