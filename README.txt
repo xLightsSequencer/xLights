@@ -11,14 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.43 October 12 2020
    -- enh (dkulp)  FPP - don't upload UDP Inputs file if there are no UDP inputs defined/needed (DDP)
    -- enh (dkulp)  FPP AutoConfigure on output - restore FPP mode when output disabled
+   -- enh (keith)  Add the ability to tag shadow models and suppress overlapping channel warnings
+   -- enh (keith)  Add some colour handling to Vixen 3 import
+   -- bug (dkulp)  Move all "Turn on outputs" and "Turn off outputs" to common methods on xLightsFrame to keep the button/bitmaps in sync
    -- bug (dkulp)  OSX - when loading meshes, if mtl/texture cannot be accessed, query for access to the directory
    -- bug (dkulp)  Add extra tracing to perspective loading to hopefully help track issues with it
-   -- enh/bug (dkulp) Move all "Turn on outputs" and "Turn off outputs" to common methods on xLightsFrame to keep the button/bitmaps in sync
    -- bug (dkulp)  Fix obscure crash when changing away from Sequencer tab might cause recursive loop
    -- bug (dkulp)  Fix crash with CustomModelDialog if background image is not a valid image
    -- bug (dkulp)  OSX - Fix HinksPix export and FPP Connect not being able to write to mounted SD cards/volumes
+   -- bug (dkulp)  OSX - Fix ESEQ export not working
+   -- bug (keith)  Fix autosize does not work on LED panels and virtual matrix controllers - also stop visualiser
+   -- bug (keith)  A bunch of fixes for LOR convert
+   -- bug (keith)  Clear output data when clicking off an effect and outputting to lights
+   -- bug (keith)  Fix inactive ruler stops it measuring
+   -- bug (keith)  Fix star chops off top node
 2020.42 October 5 2020
    -- enh (keith)  Add support for shader events tied to a timing track (see Ligtning shader as an example)
    -- bug (keith)  Fix star where start is on the inside of the star is not working
