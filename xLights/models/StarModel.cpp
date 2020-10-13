@@ -120,7 +120,13 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
 
         int start = 0;
         for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
-            int numlights = GetLayerSize(cur);
+
+            int layer = cur;
+            if (!Contains(_starStartLocation, "Inside")) {
+                layer = (GetLayerSizeCount() - cur) - 1;
+            }
+
+            int numlights = GetLayerSize(layer);
             if (numlights == 0) {
                 continue;
             }
@@ -136,7 +142,7 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
                     n = Nodes.size() - 1;
                 }
                 for (auto& it : newNodes[n]->Coords) {
-                    it.bufY = cur;
+                    it.bufY = layer;
                     it.bufX = cnt * BufferWi / numlights;
                 }
             }
@@ -272,7 +278,7 @@ void StarModel::InitModel()
     int startLayer = GetLayerSizeCount() - 1;
     int endLayer = -1;
     int layerIncr = -1;
-    if (Contains(_starStartLocation, "Inside"))         {
+    if (Contains(_starStartLocation, "Inside")) {
         // when inside we process the layers in reverse
         startLayer = 0;
         endLayer = GetLayerSizeCount();
