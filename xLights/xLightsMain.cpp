@@ -1739,6 +1739,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
 
+    // app store review is complaining as this isn't an in-app purchase
+    MenuItem_Donate->SetItemLabel("xLights Homepage");
+
     VideoReader::InitHWAcceleration();
 #endif
 
@@ -7705,7 +7708,11 @@ void xLightsFrame::DoDonate()
 
 void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 {
+#ifdef __WXOSX__
+    ::wxLaunchDefaultBrowser("https://xlights.org");
+#else
     DoDonate();
+#endif
 }
 
 #pragma endregion Help Menu
