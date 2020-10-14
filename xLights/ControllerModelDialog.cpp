@@ -43,6 +43,10 @@
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
+const long ControllerModelDialog::ID_STATICTEXT1 = wxNewId();
+const long ControllerModelDialog::ID_SLIDER_BOX_SCALE = wxNewId();
+const long ControllerModelDialog::ID_STATICTEXT2 = wxNewId();
+const long ControllerModelDialog::ID_SLIDER_FONT_SCALE = wxNewId();
 const long ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
 const long ControllerModelDialog::ID_PANEL3 = wxNewId();
 const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
@@ -70,15 +74,14 @@ BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 END_EVENT_TABLE()
 
 #pragma region Drawing Constants
-#define TOP_BOTTOM_MARGIN ScaleWithSystemDPI(GetSystemContentScaleFactor(), 10)
-#define VERTICAL_GAP ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5)
-#define VERTICAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 40)
+#define TOP_BOTTOM_MARGIN ScaleWithSystemDPI(GetSystemContentScaleFactor(), 10 * _scale )
+#define VERTICAL_GAP ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5 * _scale )
+#define VERTICAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 40 * _scale)
 #define LEFT_RIGHT_MARGIN TOP_BOTTOM_MARGIN
 #define HORIZONTAL_GAP VERTICAL_GAP
-#define HORIZONTAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 120)
-#define CORNER_ROUNDING ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5)
-#define FONT_PIXEL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 15)
-#define MODEL_ICON_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 16)
+#define HORIZONTAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 120 * _scale)
+#define CORNER_ROUNDING ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5 * _scale)
+#define MODEL_ICON_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 16 * _scale)
 #pragma endregion
 
 #pragma region Colours
@@ -114,23 +117,26 @@ protected:
     bool _selectable = false;
     bool _selected = false;
     bool _dragging = false;
+    double _scale = 1;
     wxPoint _location = wxPoint(0,0);
-    wxSize _size = wxSize(ScaleWithSystemDPI(GetSystemContentScaleFactor(), 100),
-                          ScaleWithSystemDPI(GetSystemContentScaleFactor(), 40));
+    wxSize _size = wxSize(ScaleWithSystemDPI(GetSystemContentScaleFactor(), _scale * 100),
+                          ScaleWithSystemDPI(GetSystemContentScaleFactor(), _scale * 40));
     UDController* _cud = nullptr;
     ControllerCaps* _caps = nullptr;
     HITLOCATION _over = HITLOCATION::NONE;
     int _style;
     bool _invalid;
 
+
 public:
 
-    BaseCMObject(UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style) {
+    BaseCMObject(UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) {
         _style = style;
         _cud = cud;
         _caps = caps;
         _location = location;
         _size = size;
+        _scale = scale;
         _invalid = false;
     }
     virtual ~BaseCMObject() {}
@@ -177,8 +183,8 @@ protected:
     PORTTYPE _type = PORTTYPE::PIXEL;
 public:
 
-    PortCMObject(PORTTYPE type, int port, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, bool invalid) :
-        BaseCMObject(cud, caps, location, size, style) {
+    PortCMObject(PORTTYPE type, int port, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, bool invalid, double scale) :
+        BaseCMObject(cud, caps, location, size, style, scale) {
         _invalid = invalid;
         _port = port;
         _type = type;
@@ -402,8 +408,8 @@ protected:
     UDControllerPort* _port = nullptr;
     int _virtualString;
 public:
-    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style) :
-        BaseCMObject(cud, caps, location, size, style), _mm(mm), _port(port), _virtualString(virtualString) {
+    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
+        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString) {
         _name = name;
         _main = name == displayName;
         _displayName = displayName;
@@ -643,7 +649,13 @@ public:
 class CMDTextDropTarget : public wxTextDropTarget
 {
 public:
-    CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target, bool anywhere) { _owner = owner; _objects = objects; _target = target; _anywhere = anywhere; };
+    CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target, bool anywhere, double& scale)
+        : _scale(scale),
+        _owner(owner),
+        _objects(objects),
+        _target(target),
+        _anywhere(anywhere)
+    { };
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override {
         if (data == "") return false;
@@ -715,6 +727,7 @@ public:
     ControllerModelDialog* _owner = nullptr;
     wxPanel* _target = nullptr;
     bool _anywhere = false;
+    double& _scale;
 };
 #pragma endregion
 
@@ -742,6 +755,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	//(*Initialize(ControllerModelDialog)
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -756,7 +770,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(0);
-	PanelController = new wxPanel(Panel3, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_PANEL1"));
+	PanelController = new wxPanel(Panel3, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL1"));
 	FlexGridSizer5->Add(PanelController, 1, wxALL|wxEXPAND, 0);
 	ScrollBar_Controller_V = new wxScrollBar(Panel3, ID_SCROLLBAR1, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR1"));
 	ScrollBar_Controller_V->SetScrollbar(0, 1, 10, 1);
@@ -765,9 +779,24 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	ScrollBar_Controller_H->SetScrollbar(0, 1, 10, 1);
 	FlexGridSizer5->Add(ScrollBar_Controller_H, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	StaticText1 = new wxStaticText(Panel3, ID_STATICTEXT1, _("Box Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	BoxSizer1->Add(StaticText1, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	Slider_Box_Scale = new wxSlider(Panel3, ID_SLIDER_BOX_SCALE, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BOX_SCALE"));
+	Slider_Box_Scale->SetTickFreq(1);
+	Slider_Box_Scale->SetToolTip(_("Box Size"));
+	BoxSizer1->Add(Slider_Box_Scale, 1, wxALL|wxEXPAND, 1);
+	StaticText2 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Font Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	BoxSizer1->Add(StaticText2, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	Slider_Font_Scale = new wxSlider(Panel3, ID_SLIDER_FONT_SCALE, 15, 1, 72, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FONT_SCALE"));
+	Slider_Font_Scale->SetTickFreq(1);
+	Slider_Font_Scale->SetToolTip(_("Font Size"));
+	BoxSizer1->Add(Slider_Font_Scale, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 3);
+	FlexGridSizer5->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Check = new wxTextCtrl(Panel3, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer5->Add(TextCtrl_Check, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(Panel3);
 	FlexGridSizer5->SetSizeHints(Panel3);
@@ -782,7 +811,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
-	PanelModels = new wxPanel(Panel4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_PANEL2"));
+	PanelModels = new wxPanel(Panel4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL2"));
 	FlexGridSizer2->Add(PanelModels, 1, wxALL|wxEXPAND, 0);
 	ScrollBar_Models = new wxScrollBar(Panel4, ID_SCROLLBAR3, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR3"));
 	ScrollBar_Models->SetScrollbar(0, 1, 10, 1);
@@ -813,6 +842,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScroll);
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollThumbTrack);
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollChanged);
+	Connect(ID_SLIDER_BOX_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
+	Connect(ID_SLIDER_FONT_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick);
 	PanelModels->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsPaint,0,this);
 	PanelModels->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsKeyDown,0,this);
@@ -845,13 +876,17 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     SetMinSize(wxSize(800, 400));
     SetSize(wxSize(1200, 800));
 
-    if (_cud == nullptr)         {
+    if (_cud == nullptr) {
         logger_base.crit("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
     }
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
+    if (config != nullptr) {
         CheckBox_HideOtherControllerModels->SetValue(config->ReadBool("ControllerModelHideOtherControllerModels", false));
+        Slider_Box_Scale->SetValue(config->ReadLong("ControllerModelBoxScale", 10));
+        Slider_Font_Scale->SetValue(config->ReadLong("ControllerModelFontScale", 15));
+        _scale = Slider_Box_Scale->GetValue() / 10.0;
+    }
 
     _autoLayout = _controller->IsAutoLayout();
 
@@ -860,10 +895,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
     _caps = ControllerCaps::GetControllerConfig(_controller);
 
-    CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController, false);
+    CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController, false, _scale);
     PanelController->SetDropTarget(cmdt);
 
-    cmdt = new CMDTextDropTarget(&_models, this, PanelModels, true);
+    cmdt = new CMDTextDropTarget(&_models, this, PanelModels, true, _scale);
     PanelModels->SetDropTarget(cmdt);
 
     bool changed = false;
@@ -949,12 +984,12 @@ void ControllerModelDialog::ReloadModels()
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
-                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS));
+                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
                 y += VERTICAL_GAP + VERTICAL_SIZE;
             }
         }
     }
-
+    _scale = (Slider_Box_Scale->GetValue() / 10.0);
     _modelsy = y;
 
     int panely = PanelModels->GetSize().y;
@@ -969,7 +1004,7 @@ void ControllerModelDialog::ReloadModels()
 
     int maxx = 0;
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPixelPort()), _cud->GetMaxPixelPort()); i++) {
-        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i+1 > (_caps == nullptr ? _cud->GetMaxPixelPort() : _caps->GetMaxPixelPort()));
+        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i+1 > (_caps == nullptr ? _cud->GetMaxPixelPort() : _caps->GetMaxPixelPort()),_scale);
         _controllers.push_back(cmp);
 
         auto pp = _cud->GetControllerPixelPort(i + 1);
@@ -985,7 +1020,7 @@ void ControllerModelDialog::ReloadModels()
                         for (const auto& it2 : it->_models) {
                             if (it2->GetModel() != nullptr) {
                                 if (it2->GetModel()->GetSmartRemote() != 0) pixelPortsWithSmartRemotes.push_back(i + 1);
-                                auto cmm = new ModelCMObject(pp, vs, it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                                auto cmm = new ModelCMObject(pp, vs, it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
                                 _controllers.push_back(cmm);
                                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                             }
@@ -1004,7 +1039,7 @@ void ControllerModelDialog::ReloadModels()
                 int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                 for (const auto& it : pp->GetModels()) {
                     if (it->GetModel() != nullptr) {
-                        auto cmm = new ModelCMObject(pp, 0, it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                        auto cmm = new ModelCMObject(pp, 0, it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
                         _controllers.push_back(cmm);
                         x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                     }
@@ -1016,12 +1051,12 @@ void ControllerModelDialog::ReloadModels()
     }
 
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxSerialPort()), _cud->GetMaxSerialPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort())));
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort()), _scale));
         auto sp = _cud->GetControllerSerialPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS);
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, _scale);
                 _controllers.push_back(cmm);
                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
             }
@@ -1678,7 +1713,7 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
 
         if (tt == "") {
             for (const auto& it : _controllers) {
-                if (it->HitYTest(mouse))   
+                if (it->HitYTest(mouse))
                 {
                     auto port = dynamic_cast<PortCMObject*>(it);
                     if (port != nullptr)                         {
@@ -1962,7 +1997,7 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     wxPoint mouse = PanelController->ScreenToClient(wxGetMousePosition());
     mouse += GetScrollPosition(PanelController);
 
-    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     for (const auto& it : _controllers) {
@@ -1982,7 +2017,7 @@ void ControllerModelDialog::Draw(wxPanel* panel, BaseCMObject* object, wxPoint m
         yOffset = ScrollBar_Models->GetThumbPosition();
     }
     dc.SetDeviceOrigin(-xOffset, -yOffset);
-    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     object->Draw(dc, mouse, wxSize(0, 0), 1, false);
@@ -2038,7 +2073,7 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 
     wxPoint mouse = PanelModels->ScreenToClient(wxGetMousePosition());
     mouse += GetScrollPosition(PanelModels);
-    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     for (const auto& it : _models) {
@@ -2242,4 +2277,17 @@ void ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick(wxCommandE
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ControllerModelHideOtherControllerModels", CheckBox_HideOtherControllerModels->IsChecked());
     ReloadModels();
+}
+
+void ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("ControllerModelBoxScale", Slider_Box_Scale->GetValue());
+    config->Write("ControllerModelFontScale", Slider_Font_Scale->GetValue());
+    ReloadModels();
+}
+
+double ControllerModelDialog::getFontSize()
+{
+    return ScaleWithSystemDPI(GetSystemContentScaleFactor(), Slider_Font_Scale->GetValue());
 }

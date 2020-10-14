@@ -18,7 +18,7 @@
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
 							<object class="wxPanel" name="ID_PANEL1" variable="PanelController" member="yes">
-								<style>wxSIMPLE_BORDER</style>
+								<style>wxBORDER_SIMPLE</style>
 								<handler function="OnPanelControllerPaint" entry="EVT_PAINT" />
 								<handler function="OnPanelControllerKeyDown" entry="EVT_KEY_DOWN" />
 								<handler function="OnPanelControllerLeftDown" entry="EVT_LEFT_DOWN" />
@@ -65,6 +65,58 @@
 							<option>1</option>
 						</object>
 						<object class="sizeritem">
+							<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+										<label>Box Size:</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+									<border>5</border>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_BOX_SCALE" variable="Slider_Box_Scale" member="yes">
+										<value>10</value>
+										<min>1</min>
+										<max>50</max>
+										<tickfreq>1</tickfreq>
+										<tooltip>Box Size</tooltip>
+										<handler function="OnSlider_ScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+										<label>Font Size:</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+									<border>5</border>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_FONT_SCALE" variable="Slider_Font_Scale" member="yes">
+										<value>15</value>
+										<min>1</min>
+										<max>72</max>
+										<tickfreq>1</tickfreq>
+										<tooltip>Font Size</tooltip>
+										<handler function="OnSlider_ScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+							</object>
+							<flag>wxALL|wxEXPAND</flag>
+							<border>3</border>
+							<option>1</option>
+						</object>
+						<object class="spacer">
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
 							<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Check" member="yes">
 								<size>-1,100</size>
 								<style>wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB</style>
@@ -106,7 +158,7 @@
 								<growablerows>0</growablerows>
 								<object class="sizeritem">
 									<object class="wxPanel" name="ID_PANEL2" variable="PanelModels" member="yes">
-										<style>wxSIMPLE_BORDER</style>
+										<style>wxBORDER_SIMPLE</style>
 										<handler function="OnPanelModelsPaint" entry="EVT_PAINT" />
 										<handler function="OnPanelModelsKeyDown" entry="EVT_KEY_DOWN" />
 										<handler function="OnPanelModelsLeftDown" entry="EVT_LEFT_DOWN" />

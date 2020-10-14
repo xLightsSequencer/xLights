@@ -16,6 +16,8 @@
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
 #include <wx/colour.h>
@@ -55,6 +57,7 @@ class ControllerModelDialog: public wxDialog
 	int _modelsy = 1;
 	int _controllersy = 1;
 	int _controllersx = 1;
+	double _scale = 1;
 	#pragma endregion
 
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
@@ -80,6 +83,10 @@ class ControllerModelDialog: public wxDialog
 		wxScrollBar* ScrollBar_Controller_H;
 		wxScrollBar* ScrollBar_Controller_V;
 		wxScrollBar* ScrollBar_Models;
+		wxSlider* Slider_Box_Scale;
+		wxSlider* Slider_Font_Scale;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrl_Check;
 		//*)
 
@@ -110,6 +117,10 @@ class ControllerModelDialog: public wxDialog
 		static const long ID_PANEL1;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_BOX_SCALE;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_FONT_SCALE;
 		static const long ID_TEXTCTRL1;
 		static const long ID_PANEL3;
 		static const long ID_CHECKBOX1;
@@ -153,12 +164,14 @@ class ControllerModelDialog: public wxDialog
 		void OnPanelModelsMouseLeave(wxMouseEvent& event);
 		void OnPanelControllerMouseWheel(wxMouseEvent& event);
 		void OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event);
+		void OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnPopupCommand(wxCommandEvent & event);
 		void SaveCSV();
+		double getFontSize();
 
 		DECLARE_EVENT_TABLE()
 };
