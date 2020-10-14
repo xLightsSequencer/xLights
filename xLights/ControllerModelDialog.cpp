@@ -2241,12 +2241,18 @@ void ControllerModelDialog::OnPanelModelsMouseLeave(wxMouseEvent& event)
 
 #pragma region Controller Ports Panel
 void ControllerModelDialog::OnPanelControllerMouseWheel(wxMouseEvent& event) {
-    if (event.ShiftDown()) {
-        int position = ScrollBar_Controller_H->GetThumbPosition();
-        position -= event.GetWheelRotation();
-        ScrollBar_Controller_H->SetThumbPosition(position);
+    bool vertical = true;
+    if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
+        vertical = false;
     }
-    else {
+    if (event.ShiftDown()) {
+        vertical = !vertical;
+    }
+    if (!vertical) {
+        int position = ScrollBar_Controller_H->GetThumbPosition();
+        position += event.GetWheelRotation();
+        ScrollBar_Controller_H->SetThumbPosition(position);
+    } else {
         int position = ScrollBar_Controller_V->GetThumbPosition();
         position -= event.GetWheelRotation();
         ScrollBar_Controller_V->SetThumbPosition(position);

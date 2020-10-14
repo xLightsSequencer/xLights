@@ -1830,6 +1830,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["reverse"] = 0;
                     if (pvs->_channelsPerPixel == 4) {
                         vs["colorOrder"] = wxString("RGBW");
+                    } else if (pvs->_channelsPerPixel == 1) {
+                        vs["colorOrder"] = wxString("W");
                     } else {
                         vs["colorOrder"] = wxString("RGB");
                     }
@@ -1858,6 +1860,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 if (pvs->_colourOrderSet) {
                     vs["colorOrder"] = pvs->_colourOrder;
+                }
+                if (pvs->_channelsPerPixel == 1) {
+                    vs["colorOrder"] = wxString("W");
                 }
                 if (pvs->_groupCountSet) {
                     vs["groupCount"] = pvs->_groupCount;
