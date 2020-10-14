@@ -53,6 +53,7 @@ const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ControllerModelDialog::ID_PANEL2 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
 const long ControllerModelDialog::ID_PANEL4 = wxNewId();
+const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
@@ -763,10 +764,13 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
 	Create(parent, wxID_ANY, _("Controller Visualiser"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxSize(500,500));
-	FlexGridSizer1 = new wxFlexGridSizer(2, 2, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	Panel3 = new wxPanel(this, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxTAB_TRAVERSAL, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(50);
+	SplitterWindow1->SetSashGravity(1);
+	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(0);
@@ -793,15 +797,14 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Slider_Font_Scale->SetToolTip(_("Font Size"));
 	BoxSizer1->Add(Slider_Font_Scale, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 3);
-	FlexGridSizer5->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Check = new wxTextCtrl(Panel3, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer5->Add(TextCtrl_Check, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(Panel3);
 	FlexGridSizer5->SetSizeHints(Panel3);
-	FlexGridSizer1->Add(Panel3, 1, wxALL|wxEXPAND, 5);
-	Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	Panel4 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
@@ -820,7 +823,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Panel4->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel4);
 	FlexGridSizer3->SetSizeHints(Panel4);
-	FlexGridSizer1->Add(Panel4, 1, wxALL|wxEXPAND, 5);
+	SplitterWindow1->SplitVertically(Panel3, Panel4);
+	SplitterWindow1->SetSashPosition(1000);
+	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
@@ -875,6 +880,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Panel4->SetMinSize(panel4Size);
     SetMinSize(wxSize(800, 400));
     SetSize(wxSize(1200, 800));
+    SplitterWindow1->SetSashPosition(1000);
 
     if (_cud == nullptr) {
         logger_base.crit("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
@@ -886,6 +892,19 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         Slider_Box_Scale->SetValue(config->ReadLong("ControllerModelBoxScale", 10));
         Slider_Font_Scale->SetValue(config->ReadLong("ControllerModelFontScale", 15));
         _scale = Slider_Box_Scale->GetValue() / 10.0;
+
+        SplitterWindow1->SetSashPosition(config->ReadLong("ControllerModelSashPosition", 1000));
+
+        wxPoint loc;
+        wxSize sz;
+        LoadWindowPosition("ControllerModelDialogPosition", sz, loc);
+        if (loc.x != -1)
+        {
+            SetPosition(loc);
+            SetSize(sz);
+            Layout();
+        }
+        EnsureWindowHeaderIsOnScreen(this);
     }
 
     _autoLayout = _controller->IsAutoLayout();
@@ -942,6 +961,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 }
 
 ControllerModelDialog::~ControllerModelDialog() {
+    SaveWindowPosition("ControllerModelDialogPosition", this);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());
+
     while (_models.size() > 0) {
         delete _models.front();
         _models.pop_front();

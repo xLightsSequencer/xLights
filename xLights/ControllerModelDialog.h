@@ -17,6 +17,7 @@
 #include <wx/scrolbar.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -85,6 +86,7 @@ class ControllerModelDialog: public wxDialog
 		wxScrollBar* ScrollBar_Models;
 		wxSlider* Slider_Box_Scale;
 		wxSlider* Slider_Font_Scale;
+		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrl_Check;
@@ -127,6 +129,7 @@ class ControllerModelDialog: public wxDialog
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR3;
 		static const long ID_PANEL4;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 	private:
