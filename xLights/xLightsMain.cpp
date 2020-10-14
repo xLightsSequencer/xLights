@@ -4179,7 +4179,7 @@ void xLightsFrame::ExportModels(wxString filename)
     uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
-    const std::string modelTitle = _("Model Name,Shadowing,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
+    const std::string modelTitle = _("Model Name,Shadowing,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Ports,Connection Protocol,Connection Attributes,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
     //int cols = wxSplit(modelTitle, ',').size();
     f.Write(modelTitle);
 
@@ -4266,9 +4266,11 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLastChannel() + 1,
                 w, h);
 
-            outRec += wxString::Format(",\"%s\",%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
+            outRec += wxString::Format(",\"%s\",%s,%s,%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
                 EscapeCSV(model->GetLayoutGroup()),
-                model->GetControllerConnectionRangeString(),
+                model->GetControllerConnectionPortRangeString(),
+                model->GetControllerProtocol(),
+                model->GetControllerConnectionAttributeString(),
                 EscapeCSV(controllername),
                 type,
                 protocol,
@@ -4392,11 +4394,12 @@ void xLightsFrame::ExportModels(wxString filename)
 void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Export Models", wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty()) return;
 
     ExportModels(filename);
+    SetStatusText("Model CSV saved at " + filename);
 }
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
@@ -6708,11 +6711,12 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
     }
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, CurrentSeqXmlFile->GetName(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty()) return;
 
     ExportEffects(filename);
+    SetStatusText("Effects CSV saved at " + filename);
 }
 
 void xLightsFrame::ExportEffects(wxString filename)

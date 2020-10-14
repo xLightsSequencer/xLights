@@ -2626,16 +2626,7 @@ std::string Model::GetControllerConnectionString() const
     if (GetControllerProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
 
-    wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
-    while (att != nullptr) {
-        if (att->GetName() == "SmartRemote") {
-            ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
-        }
-        else if (att->GetName() != "Port" && att->GetName() != "Protocol") {
-            ret += ":" + att->GetName() + "=" + att->GetValue();
-        }
-        att = att->GetNext();
-    }
+    ret += GetControllerConnectionAttributeString();
     return ret;
 }
 
@@ -2652,6 +2643,24 @@ std::string Model::GetControllerConnectionRangeString() const
         ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
 
+    ret += GetControllerConnectionAttributeString();
+
+    return ret;
+}
+
+std::string Model::GetControllerConnectionPortRangeString() const
+{
+    std::string ret = wxString::Format("%d", GetControllerPort(1)).ToStdString();
+    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
+    {
+        ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
+    }
+    return ret;
+}
+
+std::string Model::GetControllerConnectionAttributeString() const
+{
+    std::string ret;
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
         if (att->GetName() == "SmartRemote") {

@@ -244,6 +244,8 @@ public:
     wxXmlNode* GetControllerConnection() const;
     std::string GetControllerConnectionString() const;
     std::string GetControllerConnectionRangeString() const;
+    std::string GetControllerConnectionPortRangeString() const;
+    std::string GetControllerConnectionAttributeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     static std::string DecodeSmartRemote(int sr);
 
