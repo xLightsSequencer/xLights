@@ -35,10 +35,26 @@ class PortCMObject;
 
 class ControllerModelPrintout : public wxPrintout
 {
-    ControllerModelDialog* _controllerDialog;
+	wxPageSetupDialogData _page_setup;
+	ControllerModelDialog* _controllerDialog;
+	int _page_count;
+	int _orient;
+	wxPaperSize _paper_type;
+	int _max_x, _max_y;
+	int _box_size;
+	int _panel_y;
+
 public:
-    ControllerModelPrintout(ControllerModelDialog* controllerDialog);
-    virtual bool OnPrintPage(int pageNum) override;
+	ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, int boxSize, int panelY);
+	virtual bool OnPrintPage(int pageNum) override;
+	virtual bool HasPage(int page) override;
+	virtual void OnBeginPrinting() override;
+
+	void preparePrint(const bool showPageSetupDialog = false);
+
+	wxPrintData getPrintData() {
+		return _page_setup.GetPrintData();
+	}
 };
 
 class ControllerModelDialog: public wxDialog
@@ -105,7 +121,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_BRIGHTNESS;
 		static const long CONTROLLER_BRIGHTNESSCLEAR;
 
-        void RenderPicture(wxBitmap& bitmap, bool printer);
+		wxBitmap RenderPicture(int startY, int width, int height);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
 		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
@@ -173,6 +189,7 @@ class ControllerModelDialog: public wxDialog
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnPopupCommand(wxCommandEvent & event);
+		void PrintScreen();
 		void SaveCSV();
 		double getFontSize();
 

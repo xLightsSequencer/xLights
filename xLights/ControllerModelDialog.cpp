@@ -25,6 +25,7 @@
 #include <wx/numdlg.h>
 #include <wx/artprov.h>
 #include <wx/config.h>
+#include "wx/printdlg.h"
 
 #include "ControllerModelDialog.h"
 #include "xLightsMain.h"
@@ -732,22 +733,79 @@ public:
 };
 #pragma endregion
 
-ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog) {
-    _controllerDialog = controllerDialog;
-}
+ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, int boxSize, int panelY) :
+	_box_size(boxSize), 
+    _panel_y(panelY),
+    _controllerDialog(controllerDialog),
+    _orient(wxPORTRAIT),
+    _paper_type(wxPAPER_LETTER),
+    _page_count(1),
+    _max_x(600),
+    _max_y(800)
+{ }
 
 bool ControllerModelPrintout::OnPrintPage(int pageNum) {
-    if (pageNum != 1) return false;
-
+    int startY = (pageNum - 1) * _max_y;
     wxRect rect = GetLogicalPageRect();
-    wxBitmap bmp;
-    bmp.Create(rect.GetWidth() * 0.95f, rect.GetHeight() * 0.95f);
-    _controllerDialog->RenderPicture(bmp, true);
-
+    wxBitmap bmp = _controllerDialog->RenderPicture(startY,_max_x,_max_y);
+    //bmp.ConvertToImage().SaveFile(wxString::Format("C:/temp/test_%d.png", pageNum), wxBITMAP_TYPE_PNG);
     wxDC* dc = GetDC();
-    dc->DrawBitmap(bmp, 0, 0);
 
+    MapScreenSizeToPage();
+    FitThisSizeToPaper(bmp.GetSize());
+    dc->DrawBitmap(bmp, 0, 0);
     return true;
+}
+
+bool ControllerModelPrintout::HasPage(int pageNum) {
+    if (pageNum >= 1 && pageNum <= _page_count)
+        return true;
+    else
+        return false;
+}
+
+void ControllerModelPrintout::OnBeginPrinting() {
+    wxSize paperSize = _page_setup.GetPaperSize();
+
+    // I'm using arbitrary scale factors
+    if (_orient == wxPORTRAIT) {
+        _max_x = paperSize.GetWidth() * 3.0;
+        _max_y = paperSize.GetHeight() * 3.0;
+    }
+    else {
+        _max_x = paperSize.GetHeight() * 3.0;
+        _max_y = paperSize.GetWidth() * 3.0;
+    }
+
+    FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
+
+    int boxPerPage = _max_y / _box_size;
+    _max_y = (boxPerPage) * _box_size;
+
+    _page_count = std::ceil((float)_panel_y / (float)_max_y);
+}
+
+void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog) {
+    if (showPageSetupDialog) {
+        wxPageSetupDialog dialog(NULL);
+        if (dialog.ShowModal() == wxID_OK) {
+            _page_setup = dialog.GetPageSetupData();
+            _orient = _page_setup.GetPrintData().GetOrientation();
+            _paper_type = _page_setup.GetPrintData().GetPaperId();
+        }
+    }
+    else {
+        // don't show page setup dialog, use default values
+        wxPrintData printdata;
+        printdata.SetPrintMode(wxPRINT_MODE_PRINTER);
+        printdata.SetOrientation(wxPORTRAIT); // wxPORTRAIT, wxLANDSCAPE
+        printdata.SetNoCopies(1);
+        printdata.SetPaperId(wxPAPER_LETTER);
+
+        _page_setup = wxPageSetupDialogData(printdata);
+        _orient = printdata.GetOrientation();
+        _paper_type = printdata.GetPaperId();
+    }
 }
 
 ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id,const wxPoint& pos,const wxSize& size) :
@@ -1130,19 +1188,7 @@ void ControllerModelDialog::ReloadModels()
 void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
     int id = event.GetId();
     if (id == CONTROLLERModel_PRINT) {
-        static wxPrintDialogData printDialogData;
-        wxPrinter printer(&printDialogData);
-
-        ControllerModelPrintout printout(this);
-
-        if (!printer.Print(this, &printout, true)) {
-            if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
-                DisplayError(wxString::Format("Problem printing controller layout. %d", wxPrinter::GetLastError()).ToStdString(), this);
-            }
-        }
-        else {
-            printDialogData = printer.GetPrintDialogData();
-        }
+        PrintScreen();
     }
     else if (id == CONTROLLERModel_SAVE_CSV) {
         SaveCSV();
@@ -1158,12 +1204,32 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
     }
 }
 
-void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer) {
+void ControllerModelDialog::PrintScreen()
+{
+    int panY = ScrollBar_Controller_V->GetRange();
+    ControllerModelPrintout printout(this, _title, VERTICAL_SIZE + VERTICAL_GAP, panY);
+    printout.preparePrint(true);
+    wxPrintDialogData printDialogData(printout.getPrintData());
+    wxPrinter printer(&printDialogData);
 
-    float maxx = ScrollBar_Controller_H->GetRange();
-    float maxy = ScrollBar_Controller_V->GetRange();
-    wxSize dcSize = bitmap.GetSize() - wxSize(10 * LEFT_RIGHT_MARGIN, 10 * TOP_BOTTOM_MARGIN);
-    float scale = std::min((float)dcSize.x / maxx, (float)dcSize.y / maxy);
+    if (!printer.Print(this, &printout, true)) {
+        if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
+            DisplayError(wxString::Format("Problem printing controller layout. %d", wxPrinter::GetLastError()).ToStdString(), this);
+        }
+    }
+    else {
+        printDialogData = printer.GetPrintDialogData();
+    }
+}
+
+wxBitmap ControllerModelDialog::RenderPicture(int startY, int width, int height) {
+
+    wxBitmap bitmap;
+
+	float maxx = width * 1.1;
+	float maxy = height * 1.1;
+
+    bitmap.Create(maxx, maxy);
 
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
@@ -1173,21 +1239,26 @@ void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer) {
     dc.SetPen(*wxWHITE_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
 
-    dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
+    dc.DrawRectangle(wxPoint(0, 0), bitmap.GetSize());
 
     dc.SetDeviceOrigin(0, 0);
 
-    int fontSize = 10 * scale;
-    wxFont font = wxFont(wxSize(0, fontSize), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
-    int rowPos = TOP_BOTTOM_MARGIN * scale;
-    dc.DrawText(_title, LEFT_RIGHT_MARGIN * scale, rowPos);
-    rowPos += ((VERTICAL_SIZE / 2) * scale) + (VERTICAL_GAP * scale);
+    int rowPos = TOP_BOTTOM_MARGIN;
+    dc.DrawText(_title, LEFT_RIGHT_MARGIN, rowPos);
+    rowPos += ((VERTICAL_SIZE / 2)) + (VERTICAL_GAP );
+
+    int endY = startY + height;
 
     for (const auto& it : _controllers) {
-        it->Draw(dc, wxPoint(0, 0), wxSize(0, rowPos), scale, true);
+        if (it->GetRect().GetY()> startY && it->GetRect().GetY() < endY) {
+            it->Draw(dc, wxPoint(0, 0), wxSize(0, rowPos - startY), 1, true);
+        }
     }
+
+    return bitmap;
 }
 
 void ControllerModelDialog::SaveCSV() {
