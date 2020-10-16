@@ -38,14 +38,16 @@ class ControllerModelPrintout : public wxPrintout
 	wxPageSetupDialogData _page_setup;
 	ControllerModelDialog* _controllerDialog;
 	int _page_count;
+	int _page_count_w;
+	int _page_count_h;
 	int _orient;
 	wxPaperSize _paper_type;
 	int _max_x, _max_y;
-	int _box_size;
-	int _panel_y;
+	wxSize _box_size;
+	wxSize _panel_size;
 
 public:
-	ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, int boxSize, int panelY);
+	ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, wxSize boxSize, wxSize panelSize);
 	virtual bool OnPrintPage(int pageNum) override;
 	virtual bool HasPage(int page) override;
 	virtual void OnBeginPrinting() override;
@@ -121,7 +123,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_BRIGHTNESS;
 		static const long CONTROLLER_BRIGHTNESSCLEAR;
 
-		wxBitmap RenderPicture(int startY, int width, int height);
+		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
 		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }

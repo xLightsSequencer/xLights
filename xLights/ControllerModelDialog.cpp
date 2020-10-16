@@ -733,21 +733,30 @@ public:
 };
 #pragma endregion
 
-ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, int boxSize, int panelY) :
-	_box_size(boxSize), 
-    _panel_y(panelY),
+ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, wxSize boxSize, wxSize panelSize) :
+    _box_size(boxSize), 
+    _panel_size(panelSize),
     _controllerDialog(controllerDialog),
     _orient(wxPORTRAIT),
     _paper_type(wxPAPER_LETTER),
     _page_count(1),
+    _page_count_w(1),
+    _page_count_h(1),
     _max_x(600),
     _max_y(800)
 { }
 
 bool ControllerModelPrintout::OnPrintPage(int pageNum) {
-    int startY = (pageNum - 1) * _max_y;
+
+    int x_page = (pageNum - 1) % _page_count_w;
+    int y_page = (pageNum - 1) / _page_count_w;
+    int startX = x_page * _max_x;
+    int startY = y_page * _max_y;
+
+    wxString pagename = wxString::Format("Page %d-%d", y_page + 1, x_page + 1);
+
     wxRect rect = GetLogicalPageRect();
-    wxBitmap bmp = _controllerDialog->RenderPicture(startY,_max_x,_max_y);
+    wxBitmap bmp = _controllerDialog->RenderPicture(startY, startX, _max_x,_max_y, pagename);
     //bmp.ConvertToImage().SaveFile(wxString::Format("C:/temp/test_%d.png", pageNum), wxBITMAP_TYPE_PNG);
     wxDC* dc = GetDC();
 
@@ -779,15 +788,22 @@ void ControllerModelPrintout::OnBeginPrinting() {
 
     FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
 
-    int boxPerPage = _max_y / _box_size;
-    _max_y = (boxPerPage) * _box_size;
+    int boxPerPageH = _max_y / _box_size.GetY();
+    _max_y = (boxPerPageH) * _box_size.GetY();
+    _page_count_h = std::ceil((float)_panel_size.GetY() / (float)_max_y);
 
-    _page_count = std::ceil((float)_panel_y / (float)_max_y);
+    int boxPerPageW = _max_x / _box_size.GetX();
+    _max_x = (boxPerPageW)*_box_size.GetX();
+    _page_count_w = std::ceil((float)_panel_size.GetX() / (float)_max_x);
+
+    _page_count = _page_count_w * _page_count_h;
 }
 
 void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog) {
+    _page_setup.SetMarginTopLeft(wxPoint(16, 16));
+    _page_setup.SetMarginBottomRight(wxPoint(16, 16));
     if (showPageSetupDialog) {
-        wxPageSetupDialog dialog(NULL);
+        wxPageSetupDialog dialog(NULL, &_page_setup);
         if (dialog.ShowModal() == wxID_OK) {
             _page_setup = dialog.GetPageSetupData();
             _orient = _page_setup.GetPrintData().GetOrientation();
@@ -1207,7 +1223,8 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
 void ControllerModelDialog::PrintScreen()
 {
     int panY = ScrollBar_Controller_V->GetRange();
-    ControllerModelPrintout printout(this, _title, VERTICAL_SIZE + VERTICAL_GAP, panY);
+    int panX = ScrollBar_Controller_H->GetRange();
+    ControllerModelPrintout printout(this, _title, wxSize(HORIZONTAL_SIZE + HORIZONTAL_GAP, VERTICAL_SIZE + VERTICAL_GAP), wxSize(panX, panY));
     printout.preparePrint(true);
     wxPrintDialogData printDialogData(printout.getPrintData());
     wxPrinter printer(&printDialogData);
@@ -1222,7 +1239,7 @@ void ControllerModelDialog::PrintScreen()
     }
 }
 
-wxBitmap ControllerModelDialog::RenderPicture(int startY, int width, int height) {
+wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width, int height, wxString const& pageName) {
 
     wxBitmap bitmap;
 
@@ -1247,14 +1264,16 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int width, int height)
     dc.SetFont(font);
 
     int rowPos = TOP_BOTTOM_MARGIN;
-    dc.DrawText(_title, LEFT_RIGHT_MARGIN, rowPos);
+    dc.DrawText(wxString::Format("%s %s", _title, pageName), LEFT_RIGHT_MARGIN, rowPos);
     rowPos += ((VERTICAL_SIZE / 2)) + (VERTICAL_GAP );
 
     int endY = startY + height;
+    int endX = startX + width;
 
     for (const auto& it : _controllers) {
-        if (it->GetRect().GetY()> startY && it->GetRect().GetY() < endY) {
-            it->Draw(dc, wxPoint(0, 0), wxSize(0, rowPos - startY), 1, true);
+        if (it->GetRect().GetY()> startY && it->GetRect().GetY() < endY &&
+            it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
+            it->Draw(dc, wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true);
         }
     }
 
