@@ -1222,8 +1222,18 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
 
 void ControllerModelDialog::PrintScreen()
 {
-    int panY = ScrollBar_Controller_V->GetRange();
-    int panX = ScrollBar_Controller_H->GetRange();
+    int panX = 0;
+    int panY = 0;
+    for (const auto& it : _controllers) {
+        if ((it->GetRect().GetY() + it->GetRect().GetHeight()) > panY) {
+            panY = it->GetRect().GetY() + it->GetRect().GetHeight() + 5;
+        }
+
+        if ((it->GetRect().GetX() + it->GetRect().GetWidth()) > panX) {
+            panX = it->GetRect().GetY() + it->GetRect().GetHeight() + 5;
+        }
+    }
+
     ControllerModelPrintout printout(this, _title, wxSize(HORIZONTAL_SIZE + HORIZONTAL_GAP, VERTICAL_SIZE + VERTICAL_GAP), wxSize(panX, panY));
     printout.preparePrint(true);
     wxPrintDialogData printDialogData(printout.getPrintData());
