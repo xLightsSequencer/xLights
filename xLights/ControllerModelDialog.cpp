@@ -761,7 +761,7 @@ bool ControllerModelPrintout::OnPrintPage(int pageNum) {
     wxDC* dc = GetDC();
 
     MapScreenSizeToPage();
-    FitThisSizeToPaper(bmp.GetSize());
+    FitThisSizeToPageMargins(bmp.GetSize(), _page_setup);
     dc->DrawBitmap(bmp, 0, 0);
     return true;
 }
