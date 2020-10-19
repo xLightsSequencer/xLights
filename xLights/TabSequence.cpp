@@ -1043,7 +1043,11 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
     if (fseqDirectory != showDirectory) {
-        ObtainAccessToURL(fseqDirectory);
+        if (!ObtainAccessToURL(fseqDirectory)) {
+            wxMessageBox("Could not obtain read/write access to FSEQ directory " + fseqDirectory + ". "
+                         + "Try re-selecting the FSEQ directory in Preferences.", "Error",
+                         wxOK | wxICON_ERROR);
+        }
         wxFileName fn(xlightsFilename);
         fn.SetPath(fseqDirectory);
         xlightsFilename = fn.GetFullPath();
@@ -1146,7 +1150,11 @@ void xLightsFrame::SaveSequence()
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
 	// Only Change FSEQ save folder if the FSEQ Folder Setting is NOT the Show Dir
     if (fseqDirectory != showDirectory) {
-        ObtainAccessToURL(fseqDirectory);
+        if (!ObtainAccessToURL(fseqDirectory)) {
+            wxMessageBox("Could not obtain read/write access to FSEQ directory " + fseqDirectory + ". "
+                         + "Try re-selecting the FSEQ directory in Preferences.", "Error",
+                         wxOK | wxICON_ERROR);
+        }
         wxFileName fn(xlightsFilename);
         fn.SetPath(fseqDirectory);
         xlightsFilename = fn.GetFullPath();
@@ -1223,16 +1231,13 @@ void xLightsFrame::SaveSequence()
         return;
     }
     wxString display_name;
-    if (mSaveFseqOnSave)
-    {
+    if (mSaveFseqOnSave) {
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
         WriteFalconPiFile(xlightsFilename);
         logger_base.info("fseq file done.");
         DisplayXlightsFilename(xlightsFilename);
         display_name = xlightsFilename;
-    }
-    else
-    {
+    } else {
         display_name = CurrentSeqXmlFile->GetFullPath();
     }
     float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
