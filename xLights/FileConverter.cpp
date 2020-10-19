@@ -1645,10 +1645,9 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     
     FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, ctype, clevel);
     if (!file) {
-        params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
+        params.ConversionError(wxString("Unable to create file: ") + params.out_filename + ". Check directory and file permissions.");
         return;
     }
-
     size_t stepSize = roundTo4(params.seq_data.NumChannels());
     wxUint16 stepTime = params.seq_data.FrameTime();
 

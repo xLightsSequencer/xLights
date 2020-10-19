@@ -259,9 +259,19 @@ FSEQFile* FSEQFile::createFSEQFile(const std::string &fn,
                                    CompressionType ct,
                                    int level) {
     if (version == V1FSEQ_MAJOR_VERSION) {
-        return new V1FSEQFile(fn);
+        V1FSEQFile *f = new V1FSEQFile(fn);
+        if (!f->m_seqFile) {
+            delete f;
+            f = nullptr;
+        }
+        return f;
     } else if (version == V2FSEQ_MAJOR_VERSION) {
-        return new V2FSEQFile(fn, ct, level);
+        V2FSEQFile *f = new V2FSEQFile(fn, ct, level);
+        if (!f->m_seqFile) {
+            delete f;
+            f = nullptr;
+        }
+        return f;
     }
     LogErr(VB_SEQUENCE, "Error creating FSEQ file. Unknown version: %d", version);
     return nullptr;
