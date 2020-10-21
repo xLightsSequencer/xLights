@@ -705,8 +705,7 @@ int SequenceElements::LoadEffects(EffectLayer *effectLayer,
             else
             {
                 // store timing labels in name attribute
-                effectName = XmlSafe(effect->GetAttribute(STR_LABEL));
-
+                effectName = UnXmlSafe(effect->GetAttribute(STR_LABEL));
             }
             std::string pal = STR_EMPTY;
             if (palette != -1)
