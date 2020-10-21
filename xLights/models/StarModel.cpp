@@ -240,7 +240,7 @@ void StarModel::InitModel()
     for (int l = 0; l < GetLayerSizeCount(); l++) {
         // we inflate a layer for every layer outside it by 1 / number of layers ... so 5th layer of 10 should be inflated by 50%
         int layersoutside = GetLayerSizeCount() - l - 1;
-        maxLightsOnLayer = std::max(maxLightsOnLayer, (int)((float)GetLayerSize(l) * (1.0 + ((float)layersoutside / (float)GetLayerSizeCount()))));
+        maxLightsOnLayer = std::max(maxLightsOnLayer, 1 + (int)((float)GetLayerSize(l) * (1.0 + ((float)layersoutside / (float)GetLayerSizeCount()))));
     }
     SetBufferSize(maxLightsOnLayer, maxLightsOnLayer);
 
@@ -313,14 +313,20 @@ void StarModel::InitModel()
 
             double curPos = 0; // This is our position along the stretched out lines of the star
             double curAngle = startAngle; // This is the angle on the circle of the starting point for each segment
+            double segStartLen = 0;
+            double segEndLen = 0;
             for (int s = 0; s < starSegments; s++) {
 
                 if (currentNode >= Nodes.size()) break;
 
                 start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
                 end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
-                double segStartLen = s * segmentLength;
-                double segEndLen = segStartLen + segmentLength;
+                segStartLen = segEndLen;
+                segEndLen = segStartLen + segmentLength;
+                if (s == starSegments - 1)                     {
+                    // last segment so beware rounding issues ... so bump it slightly
+                    segEndLen += 0.001;
+                }
 
                 while (curPos < segEndLen && currentNode < endNodeForLayer) {
 
