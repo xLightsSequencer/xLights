@@ -618,11 +618,17 @@ static std::list<std::list<std::string>> __projectorCodes =
     {
         "NAME", "Optoma_H181X_GT760",
         "PROTOCOL", "SERIAL",
-        "ON", "\\x7E\\x30\\x30\\x30\\x30\\x20\\x31\\x0D",
-        "OFF", "\\x7E\\x30\\x30\\x30\\x30\\x20\\x30\\x0D",
-        "HDMI", "\\x7E\\x30\\x30\\x31\\x32\\x20\\x31\\x0D",
-        "VGA", "\\x7E\\x30\\x30\\x31\\x32\\x20\\x35\\x0D",
-        "VIDEO", "\\x7E\\x30\\x30\\x31\\x32\\x20\\x31\\x30\\x0D",
+        "ON",          "\\x7E\\x30\\x30\\x30\\x30\\x20\\x31\\x0D",
+        "OFF",         "\\x7E\\x30\\x30\\x30\\x30\\x20\\x30\\x0D",
+        "HDMI",        "\\x7E\\x30\\x30\\x31\\x32\\x20\\x31\\x0D",
+        "VGA",         "\\x7E\\x30\\x30\\x31\\x32\\x20\\x35\\x0D",
+        "VGA2",        "\\x7E\\x30\\x30\\x31\\x32\\x20\\x36\\x0D",
+        "SVIDEO",      "\\x7E\\x30\\x30\\x31\\x32\\x20\\x39\\x0D",
+        "VIDEO",       "\\x7E\\x30\\x30\\x31\\x32\\x20\\x31\\x30\\x0D",
+        "MUTE ON",     "\\x7E\\x30\\x30\\x30\\x33\\x20\\x31\\x0D",
+        "MUTE OFF",    "\\x7E\\x30\\x30\\x30\\x33\\x20\\x30\\x0D",
+        "AV MUTE ON",  "\\x7E\\x30\\x30\\x30\\x32\\x20\\x31\\x0D",
+        "AV MUTE OFF", "\\x7E\\x30\\x30\\x30\\x32\\x20\\x30\\x0D",
         "BAUD_RATE", "9600",
         "CHAR_BITS", "8",
         "STOP_BITS", "1",
@@ -731,5 +737,5 @@ static std::list<std::list<std::string>> __projectorCodes =
         "CHAR_BITS", "8",
         "STOP_BITS", "1",
         "PARITY", "NONE"
-    }
+    },
 };
