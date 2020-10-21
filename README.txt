@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.44 October 21 2020
+   -- enh (keith)  Add copy and mirror to the warp effect
+   -- enh (keith)  When importing groups from other layouts optionally allow importing of empty groups
+   -- enh (scott)  Enhance visualiser print to be multi page
+   -- enh (scott)  Save visualiser window properties between openings
+   -- enh (scott)  Separate some controller connection properties on the model export into their own columns
+   -- enh (scott)  Add control over box size and font size in visualiser
+   -- enh (dklup)  Add left/right scroll wheel support to visualiser
+   -- enh (dkulp)  Add suppport to upload single channel pixel configs to FPP
+   -- bug (scott)  Fix layered star isnt working as it used to
+   -- bug (keith)  Fix 5 node star only shows 4 nodes
+   -- bug (keith)  Fix timing track with quote does not open correctly
 2020.43 October 12 2020
    -- enh (dkulp)  FPP - don't upload UDP Inputs file if there are no UDP inputs defined/needed (DDP)
    -- enh (dkulp)  FPP AutoConfigure on output - restore FPP mode when output disabled
