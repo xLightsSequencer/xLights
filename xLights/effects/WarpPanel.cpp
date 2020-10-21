@@ -85,7 +85,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer3 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL1, _("The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work."), wxDefaultPosition, wxDLG_UNIT(this,wxSize(99,32)), wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL1, _("The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work."), wxDefaultPosition, wxDLG_UNIT(this,wxSize(99,32)), wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxBORDER_NONE, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	TextCtrl1->Disable();
 	FlexGridSizer3->Add(TextCtrl1, 1, wxEXPAND, 2);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 2);
@@ -106,6 +106,8 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	Choice_Warp_Type->Append(_("drop"));
 	Choice_Warp_Type->Append(_("wavy"));
 	Choice_Warp_Type->Append(_("sample on"));
+	Choice_Warp_Type->Append(_("mirror"));
+	Choice_Warp_Type->Append(_("copy"));
 	FlexGridSizer5->Add(Choice_Warp_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
@@ -126,7 +128,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer7->AddGrowableCol(0);
 	Slider_Warp_X = new BulkEditSlider(this, ID_SLIDER_Warp_X, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Warp_X"));
 	FlexGridSizer7->Add(Slider_Warp_X, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Warp_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Warp_X, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Warp_X"));
+	BitmapButton_Warp_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Warp_X, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Warp_X"));
 	FlexGridSizer7->Add(BitmapButton_Warp_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Warp_X = new BulkEditTextCtrl(this, ID_TEXTCTRL_Warp_X, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Warp_X"));
 	FlexGridSizer7->Add(TextCtrl_Warp_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -137,7 +139,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer8->AddGrowableCol(0);
 	Slider_Warp_Y = new BulkEditSlider(this, ID_SLIDER_Warp_Y, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Warp_Y"));
 	FlexGridSizer8->Add(Slider_Warp_Y, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Warp_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Warp_Y, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Warp_Y"));
+	BitmapButton_Warp_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Warp_Y, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Warp_Y"));
 	FlexGridSizer8->Add(BitmapButton_Warp_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Warp_Y = new BulkEditTextCtrl(this, ID_TEXTCTRL_Warp_Y, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Warp_Y"));
 	FlexGridSizer8->Add(TextCtrl_Warp_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -204,7 +206,7 @@ void WarpPanel::CheckTypeTreatment()
     wxString warpType = Choice_Warp_Type->GetStringSelection();
     wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
 
-    bool constantOnly = warpType == "water drops" || warpType == "single water drop" || warpType == "wavy" || warpType == "sample on";
+    bool constantOnly = warpType == "water drops" || warpType == "single water drop" || warpType == "wavy" || warpType == "sample on" || warpType == "copy" || warpType == "mirror";
     if (constantOnly && warpTreatment != "constant")
     {
         Choice_Warp_Treatment->SetStringSelection("constant");
@@ -252,7 +254,7 @@ void WarpPanel::ValidateWindow()
         BitmapButton_Warp_Y->Enable();
     }
 
-    bool supportsCycleCount = !(warpType == "water drops" || warpType == "wavy" || warpType == "sample on");
+    bool supportsCycleCount = !(warpType == "water drops" || warpType == "wavy" || warpType == "sample on" || warpType == "mirror" || warpType == "transpose");
     if (warpTreatment != "constant")
         supportsCycleCount = false;
     if (supportsCycleCount)

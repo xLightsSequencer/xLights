@@ -416,6 +416,31 @@ namespace
       return lerp( foo, bar, u.y );
    }
 
+   xlColor mirror(const ColorBuffer& cb, double s, double t, const WarpEffectParams& params)
+   {
+       Vec2D uv(s, t);
+       Vec2D pos2(uv);
+       if (uv.x > params.xy.x)            {
+           pos2.x = 2 * params.xy.x - uv.x;
+       }
+       if (uv.y > params.xy.y) {
+           pos2.y = 2 * params.xy.y - uv.y;
+       }
+
+       return tex2D(cb, pos2.x, pos2.y, xlBLACK);
+   }
+
+   xlColor copy(const ColorBuffer& cb, double s, double t, const WarpEffectParams& params)
+   {
+       Vec2D uv(s, t);
+       Vec2D pos2(uv);
+
+       if (pos2.x > params.xy.x) pos2.x -= params.xy.x;
+       if (pos2.y > params.xy.y) pos2.y -= params.xy.y;
+
+       return tex2D(cb, pos2.x, pos2.y, xlBLACK);
+   }
+
    xlColor wavy( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       Vec2D uv( s, t );
@@ -583,6 +608,12 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
       params.speed = interpolate( params.speed, 0.0,0.5, 40.0,5.0, interpolater );
 
       RenderPixelTransform( wavy, buffer, params );
+   }
+   else if (warpType == "mirror") {
+       RenderPixelTransform(mirror, buffer, params);
+   }
+   else if (warpType == "copy") {
+       RenderPixelTransform(copy, buffer, params);
    }
    else if ( warpType == "single water drop" )
    {
