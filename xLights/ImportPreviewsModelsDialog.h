@@ -12,6 +12,7 @@
 
 //(*Headers(ImportPreviewsModelsDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 //*)
@@ -59,17 +60,20 @@ class ImportPreviewsModelsDialog: public wxDialog
 
 		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ImportPreviewsModelsDialog();
+        bool GetIncludeEmptyGroups() const;
         wxArrayString GetPreviews() const;
         std::list<impTreeItemData*> GetModelsInPreview(wxString preview) const;
 		//(*Declarations(ImportPreviewsModelsDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_IncludeEmptyModelGroups;
 		wxFlexGridSizer* FlexGridSizer2;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ImportPreviewsModelsDialog)
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

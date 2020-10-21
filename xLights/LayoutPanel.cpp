@@ -7218,7 +7218,7 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
-void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup)
+void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups)
 {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -7253,7 +7253,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                     return (xlights->AllModels.GetModel(s) == nullptr);
                 }), models.end());
 
-            if (models.empty()) {
+            if (!includeEmptyGroups && models.empty()) {
                 logger_base.warn("Import model group '%s' failed as no models in the group exist in this display.", (const char*)it2->GetName().c_str());
                 continue;
             }
@@ -7298,7 +7298,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         wxString lg = ChoiceLayoutGroups->GetStringSelection();
         if (lg == "All Models") lg = "Default";
 
-        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg);
+        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups());
 
         for (const auto& it : dlg.GetPreviews())
         {
@@ -7323,7 +7323,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->AddPreviewOption(grp);
                 AddPreviewChoice(it.ToStdString());
             }
-            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it);
+            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups());
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");

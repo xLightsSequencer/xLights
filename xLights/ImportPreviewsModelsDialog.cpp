@@ -24,6 +24,7 @@
 #include "UtilFunctions.h"
 
 //(*IdInit(ImportPreviewsModelsDialog)
+const long ImportPreviewsModelsDialog::ID_CHECKBOX1 = wxNewId();
 const long ImportPreviewsModelsDialog::ID_BUTTON1 = wxNewId();
 const long ImportPreviewsModelsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -60,6 +61,9 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	CheckBox_IncludeEmptyModelGroups = new wxCheckBox(this, ID_CHECKBOX1, _("Include empty model groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_IncludeEmptyModelGroups->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_IncludeEmptyModelGroups, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();
@@ -237,6 +241,11 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
 void ImportPreviewsModelsDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 {
     ValidateWindow();
+}
+
+bool ImportPreviewsModelsDialog::GetIncludeEmptyGroups() const
+{
+	return CheckBox_IncludeEmptyModelGroups->IsChecked();
 }
 
 ImportPreviewsModelsDialog::~ImportPreviewsModelsDialog()
