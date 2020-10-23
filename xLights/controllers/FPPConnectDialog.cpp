@@ -924,12 +924,13 @@ void FPPConnectDialog::CreateDriveList()
     d.Open("/Volumes");
     wxString dir;
     bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
-    while (fcont)
-    {
-        if (wxDir::Exists("/Volumes/" + dir + "/sequences")) { //raw USB drive mounted
+    while (fcont) {
+        if ((dir[0] != '.')
+            && (dir != "Recovery")
+            && (dir != "Macintosh HD")
+            && wxDir::Exists("/Volumes/" + dir + "/sequences")) { //raw USB drive mounted
+            
             drives.push_back("/Volumes/" + dir + "/");
-        } else if (wxDir::Exists("/Volumes/" + dir + "/media/sequences")) { // 1.x Mounted via SMB/NFS
-            drives.push_back("/Volumes/" + dir + "/media/");
         }
         fcont = d.GetNext(&dir);
     }
