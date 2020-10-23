@@ -155,8 +155,19 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
     }
 }
 
-int StarModel::GetStrandLength(int strand) const {
-    return SingleNode ? 1 : GetStarSize(strand);
+int StarModel::GetStrandLength(int strand) const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    else {
+        if (Contains(_starStartLocation, "Inside")) {
+            return GetStarSize(GetLayerSizeCount() - 1 - strand);
+        }
+        else {
+            return GetStarSize(strand);
+        }
+    }
 }
 
 int StarModel::MapToNodeIndex(int strand, int node) const
