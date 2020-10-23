@@ -130,7 +130,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>16</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>
@@ -151,7 +151,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>32</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>
@@ -172,7 +172,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>8</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>
@@ -193,7 +193,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>4</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>
@@ -214,7 +214,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>16</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>
@@ -235,7 +235,7 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>8</MaxSerialPortChannels>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
 			<PixelProtocols>

@@ -647,7 +647,12 @@ int32_t UDControllerPort::GetStartChannel() const {
         return -1;
     }
     else {
-        return GetFirstModel()->GetStartChannel();
+        if (_type == "USB/Serial") {
+            return GetFirstModel()->GetStartChannel() - GetFirstModel()->GetDMXChannelOffset() + 1;
+        }
+        else {
+            return GetFirstModel()->GetStartChannel();
+        }
     }
 }
 
