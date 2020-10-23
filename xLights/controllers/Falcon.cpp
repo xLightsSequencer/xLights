@@ -1234,17 +1234,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
             if (cud.HasSerialPort(sp)) {
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
-                logger_base.info("Serial Port %d Protocol %s.", sp, (const char*)port->GetProtocol().c_str());
-
-                int dmxOffset = 1;
-                UDControllerPortModel* m = port->GetFirstModel();
-                if (m != nullptr) {
-                    dmxOffset = m->GetDMXChannelOffset();
-                    if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
-                }
-
-                int sc = port->GetStartChannel() - dmxOffset + 1;
-                logger_base.debug("    sc:%d - offset:%d -> %d", port->GetStartChannel(), dmxOffset, sc);
+                int sc = port->GetStartChannel();
+                logger_base.info("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
                 uri += "&";
                 uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);

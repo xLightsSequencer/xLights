@@ -1955,13 +1955,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
             isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx"));
 
-            int dmxOffset = 1;
-            UDControllerPortModel* m = port->GetFirstModel();
-            if (m != nullptr) {
-                dmxOffset = m->GetDMXChannelOffset();
-                if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
-            }
-            int sc = port->GetStartChannel() - dmxOffset + 1;
+            //int dmxOffset = 1;
+            //UDControllerPortModel* m = port->GetFirstModel();
+            //if (m != nullptr) {
+            //    dmxOffset = m->GetDMXChannelOffset();
+            //    if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
+            //}
+            int sc = port->GetStartChannel();
             int mx = port->GetEndChannel() - sc + 1;
             maxChan = std::max(mx, maxChan);
         }
@@ -1975,13 +1975,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         std::string portType = rules->GetCustomPropertyByPath("fppSerialPort" + std::to_string(sp), "BBBSerial");
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
-            int dmxOffset = 1;
-            UDControllerPortModel* m = vport->GetFirstModel();
-            if (m != nullptr) {
-                dmxOffset = m->GetDMXChannelOffset();
-                if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
-            }
-            int sc = vport->GetStartChannel() - dmxOffset + 1;
+            //int dmxOffset = 1;
+            //UDControllerPortModel* m = vport->GetFirstModel();
+            //if (m != nullptr) {
+            //    dmxOffset = m->GetDMXChannelOffset();
+            //    if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
+            //}
+            int sc = vport->GetStartChannel();
             port["startChannel"] = sc;
             if (portType == "BBBSerial") {
                 port["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
