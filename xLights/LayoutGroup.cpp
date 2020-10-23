@@ -19,10 +19,10 @@
 
 #include <log4cpp/Category.hh>
 
-LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node)
-: mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),
-   mModelPreview(nullptr), xlights(xl), LayoutGroupXml(node), id_menu_item(wxNewId()), mPreviewPane(nullptr),
-   mPosX(-1), mPosY(-1), mPaneWidth(-1), mPaneHeight(-1), ignore_size_and_pos(false)
+LayoutGroup::LayoutGroup(const std::string& name, xLightsFrame* xl, wxXmlNode* node)
+    : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),
+    mModelPreview(nullptr), xlights(xl), LayoutGroupXml(node), id_menu_item(wxNewId()), mPreviewPane(nullptr),
+    mPosX(-1), mPosY(-1), mPaneWidth(-1), mPaneHeight(-1), ignore_size_and_pos(false)
 
 {
     SetFromXml(node);
@@ -33,15 +33,15 @@ LayoutGroup::~LayoutGroup()
     previewModels.clear();
 }
 
-void LayoutGroup::SetBackgroundImage(const wxString &filename)
+void LayoutGroup::SetBackgroundImage(const wxString& filename)
 {
     if (mBackgroundImage != filename) {
         mBackgroundImage = filename;
         LayoutGroupXml->DeleteAttribute("backgroundImage");
         LayoutGroupXml->AddAttribute("backgroundImage", mBackgroundImage);
-        if( mModelPreview != nullptr ) {
+        if (mModelPreview != nullptr) {
             mModelPreview->SetbackgroundImage(mBackgroundImage);
-            if( !mPreviewHidden ) {
+            if (!mPreviewHidden) {
                 mModelPreview->Refresh();
                 mModelPreview->Update();
             }
@@ -56,10 +56,10 @@ void LayoutGroup::SetBackgroundBrightness(int i, int a)
         mBackgroundBrightness = i;
         mBackgroundAlpha = a;
         LayoutGroupXml->DeleteAttribute("backgroundBrightness");
-        LayoutGroupXml->AddAttribute("backgroundBrightness", wxString::Format("%d",mBackgroundBrightness));
+        LayoutGroupXml->AddAttribute("backgroundBrightness", wxString::Format("%d", mBackgroundBrightness));
         LayoutGroupXml->DeleteAttribute("backgroundAlpha");
-        LayoutGroupXml->AddAttribute("backgroundAlpha", wxString::Format("%d",mBackgroundAlpha));
-        if( mModelPreview != nullptr ) {
+        LayoutGroupXml->AddAttribute("backgroundAlpha", wxString::Format("%d", mBackgroundAlpha));
+        if (mModelPreview != nullptr) {
             mModelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetBackgroundBrightness");
@@ -71,8 +71,8 @@ void LayoutGroup::SetBackgroundScaled(bool scaled)
     if (mScaleBackgroundImage != scaled) {
         mScaleBackgroundImage = scaled;
         LayoutGroupXml->DeleteAttribute("scaleImage");
-        LayoutGroupXml->AddAttribute("scaleImage", wxString::Format("%d",scaled));
-        if( mModelPreview != nullptr ) {
+        LayoutGroupXml->AddAttribute("scaleImage", wxString::Format("%d", scaled));
+        if (mModelPreview != nullptr) {
             mModelPreview->SetScaleBackgroundImage(scaled);
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetBackgroundScaled");
@@ -81,22 +81,22 @@ void LayoutGroup::SetBackgroundScaled(bool scaled)
 
 void LayoutGroup::SetPreviewPosition(wxPoint point)
 {
-    if( !ignore_size_and_pos ) {
+    if (!ignore_size_and_pos) {
         LayoutGroupXml->DeleteAttribute("PosX");
-        LayoutGroupXml->AddAttribute("PosX", wxString::Format("%d",point.x));
+        LayoutGroupXml->AddAttribute("PosX", wxString::Format("%d", point.x));
         LayoutGroupXml->DeleteAttribute("PosY");
-        LayoutGroupXml->AddAttribute("PosY", wxString::Format("%d",point.y));
+        LayoutGroupXml->AddAttribute("PosY", wxString::Format("%d", point.y));
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetPreviewPosition");
     }
 }
 
 void LayoutGroup::SetPreviewSize(wxSize size_)
 {
-    if( !ignore_size_and_pos ) {
+    if (!ignore_size_and_pos) {
         LayoutGroupXml->DeleteAttribute("PaneWidth");
-        LayoutGroupXml->AddAttribute("PaneWidth", wxString::Format("%d",size_.GetWidth()));
+        LayoutGroupXml->AddAttribute("PaneWidth", wxString::Format("%d", size_.GetWidth()));
         LayoutGroupXml->DeleteAttribute("PaneHeight");
-        LayoutGroupXml->AddAttribute("PaneHeight", wxString::Format("%d",size_.GetHeight()));
+        LayoutGroupXml->AddAttribute("PaneHeight", wxString::Format("%d", size_.GetHeight()));
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetPreviewSize");
     }
 }

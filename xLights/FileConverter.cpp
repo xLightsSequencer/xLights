@@ -1622,8 +1622,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.debug("Start fseq write");
-    
-    
+       
     const wxUint8 fType = params.xLightsFrm->_fseqVersion;
     int vMajor = 2;
     int clevel = 2;

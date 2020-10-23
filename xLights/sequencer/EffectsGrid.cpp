@@ -6015,12 +6015,10 @@ void EffectsGrid::SetRCToolTip()
         mPartialCellSelected ||
         mRangeStartCol < 0 ||
         (x == 1 && y == 1) ||
-        mSequenceElements->GetSelectedTimingRow() < 0)
-    {
+        mSequenceElements->GetSelectedTimingRow() < 0) {
         UnsetToolTip();
     }
-    else
-    {
+    else {
         SetToolTip(wxString::Format("%dC x %dR", x, y));
     }
 }

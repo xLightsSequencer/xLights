@@ -464,6 +464,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     for (auto m : models) {
         if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
 
+            if (xlights->IsNewModel(m)) {
+                xlights->AddTraceMessage("ModelPreview::RenderModels IsNewModel was true.");
+            }
+
             if (m->GroupSelected) {
                 group = true;
             }
@@ -542,6 +546,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         }
         else
         {
+            xlights->AddTraceMessage("ModelPreview::RenderModels found an invalid model ... skipped.");
             wxASSERT(false); // why did we get here
         }
     }

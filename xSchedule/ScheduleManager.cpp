@@ -5796,6 +5796,8 @@ bool ScheduleManager::IsTest() const
 
 void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
 {
+    if (GetOptions() == nullptr || GetOptions()->GetTestOptions() == nullptr || totalChannels == 0) return;
+
     auto mode = GetOptions()->GetTestOptions()->GetModeCode();
     auto interval = GetOptions()->GetTestOptions()->GetInterval();
     auto level1 = GetOptions()->GetTestOptions()->GetLevel1();

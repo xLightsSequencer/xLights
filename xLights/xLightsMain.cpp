@@ -6844,6 +6844,7 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
                                 "Note: Will be rounded to the nearest timing interval.\n"
                                 "      This operation cannot be reversed with Undo.\n"

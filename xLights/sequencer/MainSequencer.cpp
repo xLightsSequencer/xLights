@@ -331,6 +331,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
 
 MainSequencer::~MainSequencer()
 {
+    mSequenceElements->SetTimeLine(nullptr);
     timeDisplay = nullptr; // wxWidgets will delete it
     if (effectGridTouchbar) delete effectGridTouchbar;
 
