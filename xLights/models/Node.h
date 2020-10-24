@@ -391,6 +391,7 @@ public:
         return new NodeClassWhite(*this);
     }
 };
+
 class NodeClassRGBW : public NodeBaseClass
 {
 public:

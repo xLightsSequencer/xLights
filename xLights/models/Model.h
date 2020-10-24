@@ -137,6 +137,7 @@ public:
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);
+    bool FourChannelNodes() const;
 
     void SetStartChannel(std::string startChannel);
     void ReloadModelXml() override

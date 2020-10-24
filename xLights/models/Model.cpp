@@ -3638,6 +3638,25 @@ std::string Model::GetNextName() {
     return "";
 }
 
+bool Model::FourChannelNodes() const
+{
+    // true if string contains WRGB or any variant thereof
+    // I do the W search first to try to abort quickly for strings unlikely to be 4 channel
+    return (Contains(StringType, "W") && 
+        (Contains(StringType, "RGBW") ||
+         Contains(StringType, "WRGB") ||
+         Contains(StringType, "WRBG") ||
+         Contains(StringType, "RBGW") ||
+         Contains(StringType, "WGRB") ||
+         Contains(StringType, "GRBW") ||
+         Contains(StringType, "WGBR") ||
+         Contains(StringType, "GBRW") ||
+         Contains(StringType, "WBRG") ||
+         Contains(StringType, "BRGW") ||
+         Contains(StringType, "WBGR") ||
+         Contains(StringType, "BGRW")));
+} 
+
 // set size of Nodes vector and each Node's Coords vector
 void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder) {
     size_t n;
@@ -3703,7 +3722,13 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
             }
         }
     } else if (NodesPerString == 0) {
-        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
+        if (FourChannelNodes()) {
+            bool wLast = StringType[3] == 'W';
+            Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(0, 0, rgbOrder, wLast, rgbwHandlingType, GetNextName())));
+        }
+        else {
+            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
+        }
         Nodes.back()->model = this;
     } else if (StringType[3] == ' ') {
         size_t numnodes = NumStrings * NodesPerString;
@@ -3721,8 +3746,8 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
     } else {
         bool wLast = StringType[3] == 'W';
         size_t numnodes = NumStrings * NodesPerString;
-        for(n = 0; n < numnodes; n++) {
-            Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n/NodesPerString, 1, rgbOrder, wLast, rgbwHandlingType, GetNextName())));
+        for (n = 0; n < numnodes; n++) {
+            Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n / NodesPerString, 1, rgbOrder, wLast, rgbwHandlingType, GetNextName())));
             Nodes.back()->model = this;
         }
     }
