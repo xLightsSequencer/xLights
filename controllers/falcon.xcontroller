@@ -100,10 +100,20 @@
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
+		<Variant Name="No Expansion + Serial Port Remotes" Base="Falcon:BaseFalconV3Settings">
+			<MaxPixelPort>20</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<NumberOfBanks>2</NumberOfBanks>
+		</Variant>
 		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 			<NumberOfBanks>2</NumberOfBanks>
+		</Variant>
+		<Variant Name="One Expansion + Serial Port Remotes" Base="Falcon:BaseFalconV3Settings">
+			<MaxPixelPort>36</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<NumberOfBanks>3</NumberOfBanks>
 		</Variant>
 		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>48</MaxPixelPort>
