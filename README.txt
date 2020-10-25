@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.45 October 26 2020
+   -- enh (keith)  Add specific variants to falcon controllers where receivers are added to the serial port
+   -- enh (pault)  Increase icicles maximum pixels to 2000
+   -- bug (keith)  Fix internally wired layer star
+   -- bug (keith)  Fix custom model does not work correctly with 4 channel pixels
+   -- bug (keith)  Show serial port channels correctly in visualiser when channels are skipped
 2020.44 October 21 2020
    -- enh (keith)  Add copy and mirror to the warp effect
    -- enh (keith)  When importing groups from other layouts optionally allow importing of empty groups
