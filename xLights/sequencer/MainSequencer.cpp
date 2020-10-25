@@ -438,22 +438,61 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
         HorizontalScrollChanged(eventScroll);
     } else {
         int position = ScrollBarEffectsVertical->GetThumbPosition();
-        if(i<0)
-        {
-            if(position < ScrollBarEffectsVertical->GetRange()-1)
-            {
-                position++;
-                ScrollBarEffectsVertical->SetThumbPosition(position);
-                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
-                PanelEffectGrid->ScrollBy(scroll);
+        int positionAdj = 1;
+        if (fromTrackPad) {
+            static int accumulated = 0;
+            static long long lastEventTime = 0;
+            long long eventTime = event.GetTimestamp();
+            long long diffTime = eventTime - lastEventTime;
+            lastEventTime = eventTime;
+            if (diffTime > 500) {
+                accumulated = 0;
             }
-        } else if (i > 0) {
-            if(position > 0)
-            {
-                position--;
-                ScrollBarEffectsVertical->SetThumbPosition(position);
-                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
-                PanelEffectGrid->ScrollBy(scroll);
+            if (accumulated < 0 && event.GetWheelRotation() > 0) {
+                if (std::abs(accumulated) > DEFAULT_ROW_HEADING_HEIGHT) {
+                    positionAdj = std::abs(accumulated) / DEFAULT_ROW_HEADING_HEIGHT;
+                }
+                accumulated = i;
+                i = -1;
+            } else if (accumulated > 0 && event.GetWheelRotation() < 0) {
+                if (std::abs(accumulated) > DEFAULT_ROW_HEADING_HEIGHT) {
+                    positionAdj = std::abs(accumulated) / DEFAULT_ROW_HEADING_HEIGHT;
+                }
+                accumulated = i;
+                i = 1;
+            } else {
+                accumulated += event.GetWheelRotation();
+                if (std::abs(accumulated) > DEFAULT_ROW_HEADING_HEIGHT) {
+                    positionAdj = std::abs(accumulated) / DEFAULT_ROW_HEADING_HEIGHT;
+                    if (accumulated > 0) {
+                        accumulated -= positionAdj * DEFAULT_ROW_HEADING_HEIGHT;
+                    } else {
+                        accumulated += positionAdj * DEFAULT_ROW_HEADING_HEIGHT;
+                    }
+                } else {
+                    positionAdj = 0;
+                }
+                if (event.GetWheelRotation() == 0) {
+                    accumulated = 0;
+                }
+            }
+        }
+        
+        if (positionAdj) {
+            if (i < 0) {
+                if (position < ScrollBarEffectsVertical->GetRange()-1) {
+                    position += positionAdj;
+                    ScrollBarEffectsVertical->SetThumbPosition(position);
+                    int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                    PanelEffectGrid->ScrollBy(scroll);
+                }
+            } else if (i > 0) {
+                if (position > 0) {
+                    position -= positionAdj;
+                    ScrollBarEffectsVertical->SetThumbPosition(position);
+                    int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                    PanelEffectGrid->ScrollBy(scroll);
+                }
             }
         }
         mSequenceElements->PopulateVisibleRowInformation();

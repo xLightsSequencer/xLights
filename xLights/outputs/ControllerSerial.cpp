@@ -287,7 +287,7 @@ void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
 
 std::string ControllerSerial::GetChannelMapping(int32_t ch) const
 {
-    return wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %ld\n%s",
+    return wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %d\n%s",
         ch, 
         GetProtocol(), 
         GetName(), 
@@ -304,7 +304,7 @@ Output::PINGSTATE ControllerSerial::Ping() {
 
 std::string ControllerSerial::GetExport() const {
 
-    return wxString::Format("%s,%ld,%ld,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s",
+    return wxString::Format("%s,%d,%d,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
