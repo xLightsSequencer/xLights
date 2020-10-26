@@ -419,8 +419,12 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     ListBoxModelsInGroup->Thaw();
     ListBoxAddToModelGroup->Thaw();
 
-    ListBoxAddToModelGroup->EnsureVisible(spam);
-    ListBoxModelsInGroup->EnsureVisible(spig);
+    if (!ListBoxAddToModelGroup->IsEmpty()) {
+        ListBoxAddToModelGroup->EnsureVisible(spam);
+    }
+    if (!ListBoxModelsInGroup->IsEmpty()) {
+        ListBoxModelsInGroup->EnsureVisible(spig);
+    }
 
     if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount())         {
         _lastFirstSelectedModelIndex = ListBoxAddToModelGroup->GetItemCount() - 1;
