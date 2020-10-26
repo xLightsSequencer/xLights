@@ -594,12 +594,26 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             }
             logger_base.debug("XML:  %s   IsSeq:  %d    FSEQ:  %s   Media:  %s", file.ToStdString().c_str(), isSequence, fseqName.c_str(), mediaName.c_str());
             if (isSequence) {
-                wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
-                                                                         fseqName);
-                
-                DisplayDateModified(fseqName, item);
-                if (mediaName != "") {
-                    CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+
+                // where you have show folders within show folders and sequences with the same name
+                // such as when you have an imported subfolder this can create duplicates ... so lets first check
+                // we dont already have the fseq file in the list
+
+                bool found = false;
+                for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item))                     {
+                    if (fseqName == CheckListBox_Sequences->GetItemText(item)) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
+                        fseqName);
+
+                    DisplayDateModified(fseqName, item);
+                    if (mediaName != "") {
+                        CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+                    }
                 }
             }
         }
