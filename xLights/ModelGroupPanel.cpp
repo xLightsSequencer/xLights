@@ -9,12 +9,12 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+ #include <wx/artprov.h>
+ #include <wx/bitmap.h>
+ #include <wx/image.h>
+ #include <wx/intl.h>
+ #include <wx/string.h>
+ //*)
 
 #include <wx/xml/xml.h>
 #include <wx/time.h>
@@ -130,6 +130,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	Panel_Sizer = new wxFlexGridSizer(0, 1, 0, 0);
 	Panel_Sizer->AddGrowableCol(0);
+	Panel_Sizer->AddGrowableRow(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
@@ -211,7 +212,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	FlexGridSizer11->Add(ButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer11->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer12->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer12->Add(FlexGridSizer11, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
 	ListBoxModelsInGroup = new wxListCtrl(this, ID_LISTCTRL2, wxDefaultPosition, wxDLG_UNIT(this,wxSize(65,-1)), wxLC_REPORT|wxLC_NO_HEADER, wxDefaultValidator, _T("ID_LISTCTRL2"));
 	ListBoxModelsInGroup->SetMinSize(wxSize(65,-1));
 	FlexGridSizer12->Add(ListBoxModelsInGroup, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 0);
