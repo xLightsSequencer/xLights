@@ -1076,6 +1076,12 @@ void LayoutPanel::resetPropertyGrid() {
 }
 
 void LayoutPanel::clearPropGrid() {
+
+    // remember last selected item
+    if (propertyEditor->GetSelection() != nullptr) {
+        _lastSelProp = propertyEditor->GetSelection()->GetName();
+    }
+
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
     if (p != nullptr) {
         appearanceVisible = propertyEditor->IsPropertyExpanded(p);
@@ -1380,6 +1386,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     int width = 0;
     if (full_refresh) {
+
         UnSelectAllModels();
 
         //turn off the sorting as that is ALSO really slow
@@ -1440,7 +1447,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->SetColumnWidth(2, width);
             TreeListViewModels->SetColumnWidth(3, width);
         }
-
 
         //turn the sorting back on
         TreeListViewModels->SetItemComparator(&comparator);
@@ -2271,6 +2277,10 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
     if (base_object == nullptr || propertyEditor == nullptr) return;
 
+    if (propertyEditor->GetSelection() != nullptr) {
+        _lastSelProp = propertyEditor->GetSelection()->GetName();
+    }
+
     auto frozen = propertyEditor->IsFrozen();
     if (!frozen) propertyEditor->Freeze();
     clearPropGrid();
@@ -2334,6 +2344,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         }
     }
     if (!frozen) propertyEditor->Thaw();
+
+    if (_lastSelProp != "") {
+        auto p = propertyEditor->GetPropertyByName(_lastSelProp);
+        if (p != nullptr) propertyEditor->EnsureVisible(p);
+    }
 }
 
 void LayoutPanel::SelectBaseObject3D()

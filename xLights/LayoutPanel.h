@@ -83,6 +83,8 @@ public:
 
 class LayoutPanel: public wxPanel
 {
+    std::string _lastSelProp = ""; // last selected property
+
     public:
 
 		LayoutPanel(wxWindow* parent, xLightsFrame *xlights, wxPanel* sequencer);
