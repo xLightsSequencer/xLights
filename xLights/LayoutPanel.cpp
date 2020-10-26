@@ -2583,6 +2583,9 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     }
 
     SaveEffects();
+    if (xlights->IsControllersAndLayoutTabSaveLinked()) {
+        xlights->SaveNetworksFile();
+    }
 }
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
@@ -8116,6 +8119,9 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "SAVE_LAYOUT") {
             SaveEffects();
+            if (xlights->IsControllersAndLayoutTabSaveLinked()) {
+                xlights->SaveNetworksFile();
+            }
         }
         else if (type == "MODEL_ALIGN_TOP") {
             PreviewModelAlignTops();

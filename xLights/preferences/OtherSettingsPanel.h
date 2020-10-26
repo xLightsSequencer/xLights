@@ -13,6 +13,7 @@
 //(*Headers(OtherSettingsPanel)
 #include <wx/panel.h>
 class wxCheckBox;
+class wxChoice;
 class wxGridBagSizer;
 class wxStaticBoxSizer;
 class wxStaticText;
@@ -31,6 +32,10 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
+		wxChoice* Choice_LinkControllerUpload;
+		wxChoice* Choice_LinkSave;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -40,10 +45,14 @@ class OtherSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(OtherSettingsPanel)
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
+		static const long ID_CHOICE2;
 		//*)
 
 	private:

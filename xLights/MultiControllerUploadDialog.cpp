@@ -170,7 +170,8 @@ void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
             CheckListBox_Controllers->Check(i);
         }
         ValidateWindow();
-    } else if (event.GetId() == ID_MCU_SELECTNONE) {
+    }
+    else if (event.GetId() == ID_MCU_SELECTNONE) {
         for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i, false);
         }

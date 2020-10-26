@@ -814,6 +814,9 @@ bool xLightsFrame::SaveNetworksFile() {
 void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event) {
 
     SaveNetworksFile();
+    if (IsControllersAndLayoutTabSaveLinked()) {
+        layoutPanel->SaveEffects();
+    }
 }
 
 void xLightsFrame::SetSyncUniverse(int syncUniverse) {
@@ -1150,6 +1153,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work.debug("    WORK_SAVE_NETWORKS.");
         // write the networks file to disk and clears the dirty flag
         SaveNetworksFile();
+        if (IsControllersAndLayoutTabSaveLinked()) {
+            layoutPanel->SaveEffects();
+        }
     }
 
     // ensure all model groups have all valid model pointers
@@ -2059,40 +2065,62 @@ void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event) {
     }
 }
 
-void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event) {
-
+void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    SetStatusText("");
+    if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
+        SetStatusText("Uploading inputs and outputs.");
+    }
+    else {
+        SetStatusText("Uploading inputs.");
+    }
+
     SetCursor(wxCURSOR_WAIT);
 
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     logger_base.debug("Uploading controller inputs to" + name);
-
     auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-    UploadInputToController(controller);
+
+    if (UploadInputToController(controller)) {
+        if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
+            UploadOutputToController(controller);
+        }
+    }
+
     SetCursor(wxCURSOR_ARROW);
 }
 
-void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event) {
-
+void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    SetStatusText("");
     SetCursor(wxCURSOR_WAIT);
-
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     logger_base.debug("Uploading controller outputs to" + name);
 
     auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-    UploadOutputToController(controller);
+
+    bool ok = true;
+    if (IsControllerUploadLinked() && ButtonUploadInput->IsEnabled()) {
+        SetStatusText("Uploading inputs and outputs.");
+        ok = UploadInputToController(controller);
+    }
+    else {
+        SetStatusText("Uploading outputs");
+    }
+
+    if (ok) UploadOutputToController(controller);
+
     SetCursor(wxCURSOR_ARROW);
 }
 
-void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
+bool xLightsFrame::UploadInputToController(ControllerEthernet* controller) 
+{
+    bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (controller == nullptr) return;
+    if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
@@ -2105,7 +2133,7 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
                     SetCursor(wxCURSOR_ARROW);
-                    return;
+                    return res;
                 }
                 ip = dlg.GetValue();
             }
@@ -2117,6 +2145,7 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
                     if (bc->SetInputUniverses(controller, this)) {
                         logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         SetStatusText(vendor + " Input Upload complete.");
+                        res = true;
                     }
                     else {
                         logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2144,12 +2173,15 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
         SetStatusText("Upload not supported.");
         wxASSERT(false);
     }
+    return res;
 }
 
-void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
+bool xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
+
+    bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (controller == nullptr) return;
+    if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
@@ -2162,7 +2194,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
                     SetCursor(wxCURSOR_ARROW);
-                    return;
+                    return res;
                 }
                 ip = dlg.GetValue();
             }
@@ -2174,6 +2206,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
                 if (bc->IsConnected()) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         SetStatusText(vendor + " Output Upload Complete.");
+                        res = true;
                     }
                     else {
                         SetStatusText(vendor + " Output Upload Failed.");
@@ -2196,6 +2229,8 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
         logger_base.error("Unable to find controller capabilities info.");
         wxASSERT(false);
     }
+
+    return res;
 }
 #pragma endregion
 

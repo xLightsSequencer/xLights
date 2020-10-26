@@ -353,6 +353,8 @@ public:
     };
 
     wxString _userEmail;
+    wxString _linkedSave = "None";
+    wxString _linkedControllerUpload = "None";
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -1043,8 +1045,14 @@ public:
     bool HardwareVideoAccelerated() const { return _hwVideoAccleration; }
     void SetHardwareVideoAccelerated(bool b);
 
-    const wxString &UserEMAIL() const { return _userEmail;}
+    const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
+
+    const wxString& LinkedSave() const { return _linkedSave; }
+    void SetLinkedSave(const wxString& e);
+
+    const wxString& LinkedControllerUpload() const { return _linkedControllerUpload; }
+    void SetLinkedControllerUpload(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
@@ -1130,8 +1138,8 @@ public:
     void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
     ControllerCaps* GetControllerCaps(const std::string& name);
-    void UploadInputToController(ControllerEthernet* controller);
-    void UploadOutputToController(ControllerEthernet* controller);
+    bool UploadInputToController(ControllerEthernet* controller);
+    bool UploadOutputToController(ControllerEthernet* controller);
     int GetFirstSelectedControllerIndex() const;
     std::list<std::string> GetSelectedControllerNames() const;
     void OnListControllerPopup(wxCommandEvent& event);
@@ -1153,6 +1161,8 @@ public:
     void UpdateRecentFilesList(bool reload);
     bool PromptForShowDirectory(bool permanent);
     bool SaveNetworksFile();
+    bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }
+    bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
     void NetworkChange();
     void NetworkChannelsChange();
 	void PingController(Controller* e);

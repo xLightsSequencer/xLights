@@ -1754,6 +1754,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     config->Read("xLightsUserEmail", &_userEmail, "");
 
+    config->Read("xLightsLinkedSave", &_linkedSave, "None");
+    logger_base.debug("Linked save: %s.", (const char*)_linkedSave.c_str());
+
+    config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "None");
+    logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -8766,9 +8772,15 @@ void xLightsFrame::SaveCurrentTab()
     switch (Notebook1->GetSelection()) {
     case SETUPTAB:
         SaveNetworksFile();
+        if (IsControllersAndLayoutTabSaveLinked()) {
+            layoutPanel->SaveEffects();
+        }
         break;
     case LAYOUTTAB:
         layoutPanel->SaveEffects();
+        if (IsControllersAndLayoutTabSaveLinked()) {
+            SaveNetworksFile();
+        }
         break;
     case NEWSEQUENCER:
         SaveSequence();
@@ -9981,6 +9993,26 @@ void xLightsFrame::SetUserEMAIL(const wxString &e) {
     config->Write("xLightsUserEmail", _userEmail);
     config->Flush();
     logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
+}
+
+void xLightsFrame::SetLinkedSave(const wxString& e)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _linkedSave = e;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsLinkedSave", _linkedSave);
+    config->Flush();
+    logger_base.info("Linked save set to %s", (const char*)_linkedSave.c_str());
+}
+
+void xLightsFrame::SetLinkedControllerUpload(const wxString& e)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _linkedControllerUpload = e;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsLinkedControllerUpload", _linkedSave);
+    config->Flush();
+    logger_base.info("Linked controller upload set to %s", (const char*)_linkedControllerUpload.c_str());
 }
 
 void xLightsFrame::CollectUserEmail()
