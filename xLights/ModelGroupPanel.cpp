@@ -311,6 +311,25 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    int spam = ListBoxAddToModelGroup->GetTopItem();
+    int spig = ListBoxModelsInGroup->GetTopItem();
+
+    if (spam < 0) spam = 0;
+    if (spig < 0) spig = 0;
+
+    if (_lastFirstSelectedModelIndex >= 0)         {
+        spam = _lastFirstSelectedModelIndex;
+    }
+
+    if (_lastFirstSelectedModelInGroupIndex >= 0) {
+        spig = _lastFirstSelectedModelInGroupIndex;
+    }
+
+    if (group != mGroup)         {
+        spam = 0;
+        spig = 0;
+    }
+
     mModels.ResetModelGroups(); // make sure all our pointers are valid
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
@@ -398,9 +417,32 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     ResizeColumns();
 
     ListBoxModelsInGroup->Thaw();
-    ListBoxModelsInGroup->Refresh();
     ListBoxAddToModelGroup->Thaw();
+
+    ListBoxAddToModelGroup->EnsureVisible(spam);
+    ListBoxModelsInGroup->EnsureVisible(spig);
+
+    if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount())         {
+        _lastFirstSelectedModelIndex = ListBoxAddToModelGroup->GetItemCount() - 1;
+    }
+    if (_lastFirstSelectedModelIndex >= 0 && _lastFirstSelectedModelIndex < ListBoxAddToModelGroup->GetItemCount())         {
+        ListBoxAddToModelGroup->SetItemState(_lastFirstSelectedModelIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        ListBoxAddToModelGroup->EnsureVisible(_lastFirstSelectedModelIndex);
+    }
+
+    if (_lastFirstSelectedModelInGroupIndex >= ListBoxModelsInGroup->GetItemCount()) {
+        _lastFirstSelectedModelInGroupIndex = ListBoxModelsInGroup->GetItemCount() - 1;
+    }
+    if (_lastFirstSelectedModelInGroupIndex >= 0 && _lastFirstSelectedModelInGroupIndex < ListBoxModelsInGroup->GetItemCount()) {
+        ListBoxModelsInGroup->SetItemState(_lastFirstSelectedModelInGroupIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        ListBoxModelsInGroup->EnsureVisible(_lastFirstSelectedModelInGroupIndex);
+    }
+
+    _lastFirstSelectedModelIndex = -1;
+    _lastFirstSelectedModelInGroupIndex = -1;
+
     ListBoxAddToModelGroup->Refresh();
+    ListBoxModelsInGroup->Refresh();
 
     ValidateWindow();
 }
@@ -431,6 +473,7 @@ void ModelGroupPanel::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
 {
     int first = GetFirstSelectedModel(ListBoxAddToModelGroup);
+    _lastFirstSelectedModelIndex = first;
 
     AddSelectedModels(-1);
 
@@ -445,6 +488,17 @@ void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
     }
 
     ValidateWindow();
+}
+
+int ModelGroupPanel::GetModelsVisibleInList(wxListCtrl* list)
+{
+    if (list->GetItemCount() == 0) return 0;
+
+    wxRect rect;
+    list->GetItemRect(0, rect);
+    int itemSize = rect.GetHeight();
+
+    return list->GetRect().GetHeight() / itemSize;
 }
 
 int ModelGroupPanel::GetFirstSelectedModel(wxListCtrl* list)
@@ -463,6 +517,8 @@ int ModelGroupPanel::GetFirstSelectedModel(wxListCtrl* list)
 void ModelGroupPanel::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
 {
     int first = GetFirstSelectedModel(ListBoxModelsInGroup);
+
+    _lastFirstSelectedModelInGroupIndex = first;
 
     RemoveSelectedModels();
 

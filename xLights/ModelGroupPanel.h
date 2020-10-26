@@ -43,6 +43,11 @@ public:
 
 class ModelGroupPanel: public wxPanel
 {
+	int _lastFirstSelectedModelIndex = -1;
+	int _lastFirstSelectedModelInGroupIndex = -1;
+
+	int GetModelsVisibleInList(wxListCtrl* list);
+
 	public:
 
 		ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPanel *xl,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
