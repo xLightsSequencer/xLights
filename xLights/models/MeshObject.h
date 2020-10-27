@@ -22,6 +22,8 @@ namespace DrawGLUtils {
 
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
+    std::string ReadMaterialFileFromObj(const std::string& filename);
+
     public:
         MeshObject(wxXmlNode *node, const ViewObjectManager &manager);
         virtual ~MeshObject();
