@@ -3347,6 +3347,7 @@ void xLightsFrame::UpdateSequenceLength()
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = wxAtoi(mss);
 
+        AbortRender();
         SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         mSequenceElements.IncrementChangeCount(nullptr);
 

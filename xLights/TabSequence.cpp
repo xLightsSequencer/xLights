@@ -1191,6 +1191,9 @@ void xLightsFrame::SaveSequence()
             (SeqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
             logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
+            
+            //need to abort any render going on in order to change the SeqData size
+            AbortRender();
 
             wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
             int ms = wxAtoi(mss);
@@ -1255,6 +1258,7 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
 
     if (SeqData.FrameTime() != timingMS)
     {
+        AbortRender();
         SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
     }
 }
