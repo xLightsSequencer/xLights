@@ -631,7 +631,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
         if (success) {
 
             // get the string ports to the right size
-            while (_stringPorts.size() < maxPorts)                 {
+            while (_stringPorts.size() < maxPorts) {
                 _stringPorts.push_back(new MinleonString(_stringPorts.size(), 0, false, 0, 1));
             }
             while (_stringPorts.size() > maxPorts) {
@@ -643,7 +643,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             bool usingSmartTs = false;
             bool allsameorzero = true;
             int allsame = -1;
-            for (const auto& it : _stringPorts)                 {
+            for (const auto& it : _stringPorts) {
                 auto p = cud.GetControllerPixelPort(it->_port + 1);
                 if (p != nullptr) {
                     p->CreateVirtualStrings(true);
@@ -678,7 +678,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                         }
                         it->_startChannel = vs->_startChannel - controller->GetStartChannel() + 1;
 
-                        if (vs->Channels() / 3 > maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2))                             {
+                        if (vs->Channels() / 3 > maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2)) {
                             check += wxString::Format("Port %d has %d pixels but can only suppoort %d.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
                             success = false;
                         }
@@ -688,14 +688,14 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                 if (allsame == -1 && it->_nodes != 0) {
                     allsame = it->_nodes;
                 }
-                else                     {
-                    if (it->_nodes != 0 && it->_nodes != allsame)                         {
+                else {
+                    if (it->_nodes != 0 && it->_nodes != allsame) {
                         allsameorzero = false;
                     }
                 }
             }
 
-            if (usingSmartTs && !allsameorzero)                 {
+            if (usingSmartTs && !allsameorzero) {
                 check += "When using smart Ts all ports must be zero or the same size.\n";
                 success = false;
             }

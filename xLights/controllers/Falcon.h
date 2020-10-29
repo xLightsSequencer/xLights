@@ -34,17 +34,17 @@ class Falcon : public BaseController
 
     #pragma region Strings.xml Handling
     int CountStrings(const wxXmlDocument& stringsDoc) const;
-    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData) const;
+    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness) const;
     int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
     #pragma endregion
 
     #pragma region FalconString Handling
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse) const;
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness) const;
     std::string BuildStringPort(FalconString* string) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     int GetPixelCount(const std::vector<FalconString*>& stringData, int port) const;
     int GetMaxPixelPort(const std::vector<FalconString*>& stringData) const;
-    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse);
+    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness);
     void RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port);
     void DumpStringData(std::vector<FalconString*> stringData) const;
     #pragma endregion
@@ -52,7 +52,7 @@ class Falcon : public BaseController
     #pragma region Port Handling
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse);
+    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness);
     std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     #pragma endregion
 

@@ -45,6 +45,9 @@ public:
     std::string colourOrder;
     std::string direction;
     int brightness = 100;
+
+    FalconString(int defaultBrightness) : brightness(defaultBrightness) {}
+
     void Dump() const {
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -83,7 +86,7 @@ public:
 };
 
 #define MINIMUMPIXELS 0
-void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse) const {
+void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Filling in missing strings.");
@@ -101,7 +104,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
             }
         }
         if (!added) {
-            FalconString* string = new FalconString();
+            FalconString* string = new FalconString(defaultBrightness);
             string->startChannel = 1;
             string->virtualStringIndex = 0;
             string->pixels = MINIMUMPIXELS;
@@ -194,7 +197,7 @@ void Falcon::RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int po
     }
 }
 
-void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse) {
+void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -208,7 +211,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
 
     if (!found) {
         logger_base.debug("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
-        FalconString* string = new FalconString();
+        FalconString* string = new FalconString(defaultBrightness);
         string->startChannel = 1;
         string->virtualStringIndex = 0;
         string->pixels = 0;
@@ -267,9 +270,7 @@ int Falcon::NumConfiguredStrings() {
     return CountStrings(stringsDoc);
 }
 
-
-
-void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData) const {
+void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -309,7 +310,7 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         // b = brightness (index 0 - 100, 1 - 95, 2 - 90, 3 - 85, 4 - 80, 5 - 75, 6 - 70, 7 - 65, 8 - 60, 9 - 50, 10 - 40, 11 - 30, 12 - 20, 13 - 10)
         // bl = blank (1 if checked) - IGNORED
         // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
-        FalconString* string = new FalconString();
+        FalconString* string = new FalconString(defaultBrightness);
         string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
         if (!_usingAbsolute) {
             if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
@@ -379,7 +380,7 @@ void Falcon::UploadStringPort(const std::string& request, bool final) {
     PutURL("/StringPorts.htm", r);
 }
 
-void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse) {
+void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -406,7 +407,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
             for (int k = 0; k < 4; k++) {
                 RemoveNonSmartRemote(stringData, i * 4 + k);
                 for (int j = 0; j < maxRemote; j++) {
-                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse);
+                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness);
                 }
             }
         }
@@ -832,6 +833,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         progress->Show();
     }
 
+    int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
@@ -907,7 +910,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
         logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
 
-        ReadStringData(stringsDoc, stringData);
+        ReadStringData(stringsDoc, stringData, defaultBrightness);
 
         logger_base.debug("Downloaded string data.");
         DumpStringData(stringData);
@@ -928,7 +931,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     else {
         logger_base.info("String port count needs to be %d.", GetDaughter1Threshold());
     }
-    InitialiseStrings(stringData, totalPixelPorts, minuniverse);
+    InitialiseStrings(stringData, totalPixelPorts, minuniverse, defaultBrightness);
 
     //logger_base.debug("Missing strings added.");
     //DumpStringData(stringData);
@@ -974,7 +977,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     first = false;
                 }
                 else {
-                    fs = new FalconString();
+                    fs = new FalconString(defaultBrightness);
                 }
 
                 // ignore index ... we will fix them up when done
@@ -1207,7 +1210,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
 
         logger_base.info("Uploading string ports.");
-        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse);
+        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness);
     }
     else {
         if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
