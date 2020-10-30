@@ -6230,6 +6230,16 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						if (!editing_models)//dont paste model in View Object mode
 							return;
 
+                        // Remove any existing controller port config
+                        nd->DeleteAttribute("ModelChain");
+                        for (auto n = nd->GetChildren(); n != nullptr; n = n->GetNext()) {
+                            if (n->GetName() == "ControllerConnection") {
+                                nd->RemoveChild(n);
+                                delete n;
+                                break;
+                            }
+                        }
+
 						if (xlights->AllModels[lastModelName] != nullptr) {
 							nd->DeleteAttribute("StartChannel");
 							nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
