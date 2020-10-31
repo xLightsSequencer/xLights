@@ -6232,6 +6232,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                         // Remove any existing controller port config
                         nd->DeleteAttribute("ModelChain");
+                        nd->DeleteAttribute("Controller");
                         for (auto n = nd->GetChildren(); n != nullptr; n = n->GetNext()) {
                             if (n->GetName() == "ControllerConnection") {
                                 nd->RemoveChild(n);
