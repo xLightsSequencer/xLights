@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.46 November 1 2020
+   -- enh (keith)  When xLights has full control allow definition of the default brightness of unused ports
+   -- enh (keith)  Optionally link controller tab and layout tab save buttons so both buttons save both files
+   -- enh (keith)  Optionally link both upload inputs and upload outputs buttons
+   -- bug (keith)  Fix double click on effect deselects effect
+   -- bug (keith)  Fix model property change scrolls back to the top of the property list instead of holding position
+   -- bug (keith)  Fix model group lists scroll back to the top instead of holding position
+   -- bug (keith)  Fix Hanson boards should be opendmx
+   -- bug (keith)  Fix clear model controller properties when copied
+   -- bug (keith)  Handle material files where the name is not the same as the obj file correctly
+   -- bug (keith)  Fix model groups panels lists dont resize with panel
+   -- bug (keith)  Fix FPP connect duplicates sequences for upload in some scenarios
 2020.45 October 26 2020
    -- enh (keith)  Add specific variants to falcon controllers where receivers are added to the serial port
    -- enh (pault)  Increase icicles maximum pixels to 2000
