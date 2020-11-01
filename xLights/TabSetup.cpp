@@ -1150,12 +1150,16 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_SAVE_NETWORKS) {
-        logger_work.debug("    WORK_SAVE_NETWORKS.");
+
+        // I am disabling this. It was originally added when ZCPP was introduced to ensure autosize was not lost but
+        // in hindsight i think this is actually confusing and should not happen automatically
+
+        //logger_work.debug("    WORK_SAVE_NETWORKS.");
         // write the networks file to disk and clears the dirty flag
-        SaveNetworksFile();
-        if (IsControllersAndLayoutTabSaveLinked()) {
-            layoutPanel->SaveEffects();
-        }
+        //SaveNetworksFile();
+        //if (IsControllersAndLayoutTabSaveLinked()) {
+        //    layoutPanel->SaveEffects();
+        //}
     }
 
     // ensure all model groups have all valid model pointers
