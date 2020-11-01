@@ -165,6 +165,7 @@ EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endT
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
     int update_time = -1;
+    _doubleClick = true;
 
     if (mSequenceElements == nullptr) {
         return;
@@ -1065,7 +1066,6 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
-
     if (!mIsInitialized || mSequenceElements == nullptr) {
         return;
     }
@@ -1272,6 +1272,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     mPartialCellSelected = false;
+
+    _doubleClick = false;
 
     // if no shift key clear any cell range selections
     if (!event.ShiftDown()) {
@@ -3450,7 +3452,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     mSequenceElements->UnSelectAllEffects();
                     UnselectEffect(true);
                 }
-                else if (!mCellRangeSelected)
+                else if (!mCellRangeSelected && !_doubleClick)
                 {
                     EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                     if (el != nullptr) {
@@ -3495,6 +3497,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
         mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
     }
+    _doubleClick = false;
 }
 
 void EffectsGrid::CheckForPartialCell(int x_pos)
