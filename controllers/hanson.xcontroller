@@ -12,6 +12,7 @@
 			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
+				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
 			</InputProtocols>
 		</Variant>
@@ -29,6 +30,7 @@
 			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
+				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
 			</InputProtocols>
 		</Variant>
@@ -46,6 +48,7 @@
 			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
+				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
 			</InputProtocols>
 		</Variant>
@@ -63,6 +66,7 @@
 			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
+				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
 			</InputProtocols>
 		</Variant>

@@ -10010,7 +10010,7 @@ void xLightsFrame::SetLinkedControllerUpload(const wxString& e)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _linkedControllerUpload = e;
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xLightsLinkedControllerUpload", _linkedSave);
+    config->Write("xLightsLinkedControllerUpload", _linkedControllerUpload);
     config->Flush();
     logger_base.info("Linked controller upload set to %s", (const char*)_linkedControllerUpload.c_str());
 }
