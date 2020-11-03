@@ -203,6 +203,7 @@ class ScheduleOptions
     bool _hardwareAcceleratedVideo;
     bool _lateStartingScheduleUsesTime;
     int _SMPTEMode;
+    bool _minimiseUIUpdates = false;
 
     public:
 
@@ -234,6 +235,7 @@ class ScheduleOptions
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
         void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
+        void SetMinimiseUIUpdates(bool minimiseUIUpdates) { if (_minimiseUIUpdates != minimiseUIUpdates) { _minimiseUIUpdates = minimiseUIUpdates; _changeCount++; } }
         void SetKeepScreenOn(bool keepScreenOn) { if (_keepScreenOn != keepScreenOn) { _keepScreenOn = keepScreenOn; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
         void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
@@ -244,6 +246,7 @@ class ScheduleOptions
         bool IsParallelTransmission() const { return _parallelTransmission; }
         bool IsRemoteAllOff() const { return _remoteAllOff; }
         bool IsKeepScreenOn() const { return _keepScreenOn; }
+        bool IsMinimiseUIUpdates() const { return _minimiseUIUpdates; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
         int GetSMPTEMode() const { return _SMPTEMode; }
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }

@@ -40,6 +40,7 @@ const long OptionsDialog::ID_CHECKBOX9 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX10 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX11 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX12 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -134,6 +135,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_KeepScreenOn = new wxCheckBox(this, ID_CHECKBOX12, _("Keep computer screen on"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX12"));
 	CheckBox_KeepScreenOn->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_KeepScreenOn, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_MinimiseUI = new wxCheckBox(this, ID_CHECKBOX14, _("Minimise runtime UI updates for performance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX14"));
+	CheckBox_MinimiseUI->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_MinimiseUI, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -171,7 +175,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer8->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_DefaultPage = new wxTextCtrl(this, ID_TEXTCTRL3, _("index.html"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer8->Add(TextCtrl_DefaultPage, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer8->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	CheckBox_APIOnly = new wxCheckBox(this, ID_CHECKBOX1, _("API Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_APIOnly->SetValue(false);
@@ -292,6 +296,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
     CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
     CheckBox_KeepScreenOn->SetValue(options->IsKeepScreenOn());
+    CheckBox_MinimiseUI->SetValue(options->IsMinimiseUIUpdates());
     CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
     CheckBox_HWAcceleratedVideo->SetValue(options->IsHardwareAcceleratedVideo());
     CheckBox_LastStartingSequenceUsesTime->SetValue(options->IsLateStartingScheduleUsesTime());
@@ -399,6 +404,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
     _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
     _options->SetKeepScreenOn(CheckBox_KeepScreenOn->GetValue());
+    _options->SetMinimiseUIUpdates(CheckBox_MinimiseUI->GetValue());
     _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
     _options->SetLateStartingScheduleUsesTime(CheckBox_LastStartingSequenceUsesTime->GetValue());
 

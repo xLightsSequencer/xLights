@@ -102,6 +102,14 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX14" variable="CheckBox_MinimiseUI" member="yes">
+							<label>Minimise runtime UI updates for performance</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

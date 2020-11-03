@@ -3208,7 +3208,7 @@ void xScheduleFrame::UpdateUI(bool force)
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("        Update UI");
 
-    StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+    bool minimiseUIUpdates = __schedule->GetOptions()->IsMinimiseUIUpdates();
 
     UpdateStatus(force);
 
@@ -3216,37 +3216,34 @@ void xScheduleFrame::UpdateUI(bool force)
 
     Brightness->SetValue(__schedule->GetBrightness());
 
-    if (__schedule->GetWebRequestToggle())
-    {
-        if (!_webIconDisplayed)
-        {
-            StaticBitmap_WebIcon->SetBitmap(_webicon);
-            _webIconDisplayed = true;
-        }
-    }
-    else
-    {
-        if (_webIconDisplayed)
-        {
-            StaticBitmap_WebIcon->SetBitmap(_nowebicon);
-            _webIconDisplayed = false;
-        }
-    }
+    if (!minimiseUIUpdates) {
 
-    if (wxGetUTCTimeMillis() - _lastSlow < SLOW_FOR_MS)
-    {
-        if (!_slowDisplayed)
-        {
-            StaticBitmap_Slow->SetBitmap(_slowicon);
-            _slowDisplayed = true;
+        StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+
+        if (__schedule->GetWebRequestToggle()) {
+            if (!_webIconDisplayed) {
+                StaticBitmap_WebIcon->SetBitmap(_webicon);
+                _webIconDisplayed = true;
+            }
         }
-    }
-    else
-    {
-        if (_slowDisplayed)
-        {
-            StaticBitmap_Slow->SetBitmap(_nowebicon);
-            _slowDisplayed = false;
+        else {
+            if (_webIconDisplayed) {
+                StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+                _webIconDisplayed = false;
+            }
+        }
+
+        if (wxGetUTCTimeMillis() - _lastSlow < SLOW_FOR_MS) {
+            if (!_slowDisplayed) {
+                StaticBitmap_Slow->SetBitmap(_slowicon);
+                _slowDisplayed = true;
+            }
+        }
+        else {
+            if (_slowDisplayed) {
+                StaticBitmap_Slow->SetBitmap(_nowebicon);
+                _slowDisplayed = false;
+            }
         }
     }
 
@@ -3293,7 +3290,7 @@ void xScheduleFrame::UpdateUI(bool force)
 
     logger_frame.debug("        Updated mode %ldms", sw.Time());
 
-    if (_pinger != nullptr)
+    if (!minimiseUIUpdates && _pinger != nullptr)
     {
         ListView_Ping->Freeze();
         auto pingresults = _pinger->GetPingers();
