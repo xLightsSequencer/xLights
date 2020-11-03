@@ -495,7 +495,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
     wxHTTP::Initialize();
-    Bind(wxEVT_IDLE, &xLightsFrame::OnIdle, this);
 
     //(*Initialize(xLightsFrame)
     wxBoxSizer* BoxSizer1;
@@ -1760,6 +1759,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "None");
     logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
 
+    
+    std::thread th([this]() {
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+    });
+    th.detach();
+    wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
+    
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -1902,10 +1909,9 @@ xLightsFrame::~xLightsFrame()
     reenter = false;
 }
 
-void xLightsFrame::OnIdle(wxIdleEvent& event) {
+void xLightsFrame::DoPostStartupCommands() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Idle event called");
-    Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
+    logger_base.debug("In Post Startup");
 
     // dont check for updates if batch rendering
     if (!_renderMode) {
@@ -1915,7 +1921,6 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
-    wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {

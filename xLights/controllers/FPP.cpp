@@ -217,10 +217,17 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
-    std::string fullUrl = "http://" + ipAddress + url;
+
+    std::string fullUrl = ipAddress + url;
     if (!isFPP) {
-        fullUrl = "http://" + ipAddress + "/fpp?path=" +  url;
+        fullUrl = ipAddress + "/fpp?path=" +  url;
     }
+    if (!_fppProxy.empty()) {
+        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+    } else {
+        fullUrl = "http://" + fullUrl;
+    }
+
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     logger_curl.info("URL: %s", fullUrl.c_str());
@@ -287,9 +294,14 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
-    std::string fullUrl = "http://" + ipAddress + url;
+    std::string fullUrl = ipAddress + url;
     if (!isFPP) {
-        fullUrl = "http://" + ipAddress + "/fpp?path=" +  url;
+        fullUrl = ipAddress + "/fpp?path=" +  url;
+    }
+    if (!_fppProxy.empty()) {
+        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+    } else {
+        fullUrl = "http://" + fullUrl;
     }
     logger_curl.info("URL: %s", fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
@@ -651,11 +663,18 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
 
     curlInputBuffer.clear();
     char error[1024];
-    std::string fullUrl = "http://" + ipAddress + "/jqupload.php";
+    
+    
+    std::string fullUrl = ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
     if (!isFPP) {
-        fullUrl = "http://" + ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         usingJqUpload = false;
+    }
+    if (!_fppProxy.empty()) {
+        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+    } else {
+        fullUrl = "http://" + fullUrl;
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
@@ -1653,7 +1672,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
                     if (origJson["channelOutputs"][x].HasMember("startChannel")
-                        && origJson["channelOutputs"][x]["startChannel"].AsInt() == startChannel) {
+                        && origJson["channelOutputs"][x]["startChannel"].AsLong() == startChannel) {
                         changed = false;
                     } else {
                         origJson["channelOutputs"][x]["startChannel"] = startChannel;

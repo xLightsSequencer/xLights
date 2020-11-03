@@ -570,7 +570,6 @@ private:
 
     //void OnMenuItem53Selected(wxCommandEvent& event);
 
-    void OnIdle(wxIdleEvent& event);
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
 	void ResetAllSequencerWindows();
@@ -1171,6 +1170,9 @@ public:
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
+    
+    void DoPostStartupCommands();
+    
     std::list<RenderProgressInfo *>renderProgressInfo;
     std::queue<RenderEvent*> mainThreadRenderEvents;
     std::mutex renderEventLock;
