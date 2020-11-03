@@ -76,8 +76,8 @@ private:
         bool HandleWeb(const std::string& plugin, const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
         void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
         void NotifyStatus(const std::string& statusJSON);
-        void FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam);
-        void FireEvent(const std::string& eventType, const std::string& eventParam);
+        bool FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam);
+        bool FireEvent(const std::string& eventType, const std::string& eventParam);
         bool IsStarted(const std::string& plugin) const;
         std::string GetPluginFromLabel(const std::string& label) const;
         bool SendCommand(const std::string& plugin, const std::string& command, const std::string& parameters, bool* success, std::string* msg);

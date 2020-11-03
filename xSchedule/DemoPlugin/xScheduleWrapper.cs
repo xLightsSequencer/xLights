@@ -191,9 +191,9 @@ namespace xScheduleWrapper
         }
 
         [DllExport("xSchedule_FireEvent", CallingConvention = CallingConvention.StdCall)]
-        public static void xSchedule_FireEvent([MarshalAs(UnmanagedType.LPStr)]string type, [MarshalAs(UnmanagedType.LPStr)]string parameters)
+        public static bool xSchedule_FireEvent([MarshalAs(UnmanagedType.LPStr)]string type, [MarshalAs(UnmanagedType.LPStr)]string parameters)
         {
-            _plugin.FireEvent(type, parameters);
+            return _plugin.FireEvent(type, parameters);
         }
 
         [DllExport("xSchedule_SendCommand", CallingConvention = CallingConvention.StdCall)]

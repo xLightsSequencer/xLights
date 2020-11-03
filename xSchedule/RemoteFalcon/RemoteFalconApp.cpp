@@ -250,9 +250,9 @@ static void InitialiseLogging(bool fromMain)
         ((RemoteFalconFrame*)wxTheApp->GetTopWindow())->NotifyStatus(status);
     }
 
-    void RemoteFalcon_xSchedule_FireEvent(const char* eventType, const char* eventParameters)
+    bool RemoteFalcon_xSchedule_FireEvent(const char* eventType, const char* eventParameters)
     {
-        ((RemoteFalconFrame*)wxTheApp->GetTopWindow())->FireEvent(eventType, eventParameters);
+        return ((RemoteFalconFrame*)wxTheApp->GetTopWindow())->FireEvent(eventType, eventParameters);
     }
 
     void RemoteFalcon_xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
@@ -310,9 +310,9 @@ extern "C" {
     void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
         RemoteFalcon_xSchedule_ManipulateBuffer(buffer, bufferSize);
     }
-    void WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
+    bool WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
     {
-        RemoteFalcon_xSchedule_FireEvent(eventType, eventParameter);
+        return RemoteFalcon_xSchedule_FireEvent(eventType, eventParameter);
     }
     bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
     {

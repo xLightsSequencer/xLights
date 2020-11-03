@@ -242,9 +242,10 @@ static void InitialiseLogging(bool fromMain)
         // we dont care about status
     }
 
-    void xSMSDaemon_xSchedule_FireEvent(const char* eventType, const char* eventParameters)
+    bool xSMSDaemon_xSchedule_FireEvent(const char* eventType, const char* eventParameters)
     {
         // we dont care about events
+		return false;
     }
 
     bool xSMSDaemon_xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
@@ -310,9 +311,9 @@ extern "C" {
     void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
         xSMSDaemon_xSchedule_ManipulateBuffer(buffer, bufferSize);
     }
-    void WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
+    bool WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
     {
-        xSMSDaemon_xSchedule_FireEvent(eventType, eventParameter);
+        return xSMSDaemon_xSchedule_FireEvent(eventType, eventParameter);
     }																						
     bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
     {

@@ -80,9 +80,10 @@ namespace Plugin
                 buffer.SetPixel(i, Color.Magenta);
         }
 
-        public void FireEvent(string type, string parameters)
+        public bool FireEvent(string type, string parameters)
         {
             MessageBox.Show(parameters);
+            return true;
         }
 
         public bool SendCommand(string command, string parameters, out string msg)

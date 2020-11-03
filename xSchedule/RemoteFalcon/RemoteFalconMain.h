@@ -82,7 +82,7 @@ public:
         RemoteFalconFrame(wxWindow* parent, const std::string& showdir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id = -1);
         virtual ~RemoteFalconFrame();
         void NotifyStatus(const std::string& status);
-        void FireEvent(const std::string& eventType, const std::string& eventParameter) {}
+        bool FireEvent(const std::string& eventType, const std::string& eventParameter) { return false; }
         bool SendCommand(const std::string& command, const std::string& parameters, std::string& msg);
 
     private:

@@ -75,7 +75,7 @@ public:
         bool Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
         void NotifyStatus(const std::string& status);
         void UpdateModeration();
-        void FireEvent(const std::string& eventType, const std::string& eventParameter) {}
+        bool FireEvent(const std::string& eventType, const std::string& eventParameter) { return false; }
 
     private:
 

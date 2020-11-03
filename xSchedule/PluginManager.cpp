@@ -191,24 +191,30 @@ void PluginManager::NotifyStatus(const std::string& statusJSON)
     }
 }
 
-void PluginManager::FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam)
+bool PluginManager::FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_plugins.find(plugin) == _plugins.end()) return;
-    if (!_plugins.at(plugin)->_started) return;
+    if (_plugins.find(plugin) == _plugins.end()) return false;
+    if (!_plugins.at(plugin)->_started) return false;
+
+    bool res = false;
 
     p_xSchedule_FireEvent fn = _plugins.at(plugin)->_fireEventFn;
     if (fn != nullptr) {
-        fn((const char*)eventType.c_str(), (const char*)eventParam.c_str());
-        logger_base.debug("Fired event to plugin %s %s:%s", (const char*)plugin.c_str(), (const char*)eventType.c_str(), (const char*)eventParam.c_str());
+        res = fn((const char*)eventType.c_str(), (const char*)eventParam.c_str());
+        logger_base.debug("Fired event to plugin %s %s:%s -> %d", (const char*)plugin.c_str(), (const char*)eventType.c_str(), (const char*)eventParam.c_str(), res);
     }
+
+    return res;
 }
 
-void PluginManager::FireEvent(const std::string& eventType, const std::string& eventParam)
+bool PluginManager::FireEvent(const std::string& eventType, const std::string& eventParam)
 {
+	bool res = false;
     for (auto it : _plugins) {
-        FirePluginEvent(it.first, eventType, eventParam);
+        res |= FirePluginEvent(it.first, eventType, eventParam);
     }
+    return res;
 }
 
 std::string PluginManager::GetPluginFromLabel(const std::string& label) const
