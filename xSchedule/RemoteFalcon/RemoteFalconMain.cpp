@@ -608,7 +608,11 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 
     if (!val.IsNull()) {
 
-        auto playing = val["step"].AsString();
+        std::string playing = "";
+        if (!val["step"].IsNull()) {
+            playing = val["step"].AsString();
+        }
+
         if (_lastPlaying != playing) {
             SendPlayingSong(playing);
             _lastPlaying = playing;
