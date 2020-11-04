@@ -55,7 +55,7 @@ wxWidgets first.  If not doing release builds, this can be skipped.
                 --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
                 --enable-backtrace --enable-exceptions --disable-shared
   make -j 8
-  sudo make install
+  make install
   make clean
 
 For debug builds:
@@ -82,7 +82,7 @@ For debug builds:
                 --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
                 --enable-backtrace --enable-exceptions
   make -j 8
-  sudo make install
+  make install
 
 
 
@@ -96,41 +96,26 @@ However, if you have the XCode command line tools installed, you should just be 
 
 Other library notes:
 Note:  These instructions now assume Xcode 12 with support for Arm64.
+You must set the env variables at the top first to setup the architecture and version targets
 
-x264 - needed for ffmpeg
-grab latest from:
-https://www.videolan.org/developers/x264.html
-git clone https://code.videolan.org/videolan/x264.git
-./configure --disable-asm --enable-static --bit-depth=8 --disable-cli --enable-lto  --enable-strip --extra-cflags="-target x86_64-apple-macos10.10 -target arm64-apple-macos10.10 -arch arm64 -arch x86_64"
-make
-# that make will fail as make deps will not work with multiple arch flags
-make
-make install
-
-ffmpeg:   currently using 4.3.1 - needs x264 installed as above
-brew install yasm
+#setup permissions on /opt/local
+sudo chgrp -R staff /opt/local*
+sudo chmod -R g+w /opt/local*
 
 export MACOSX_DEPLOYMENT_TARGET=10.10
-export CXXFLAGS="-stdlib=libc++ -std=c++1z"
-export OBJCXXFLAGS="-stdlib=libc++ -std=c++1z"
-export CPPFLAGS="-stdlib=libc++"
-export LDFLAGS="-stdlib=libc++"
-export CXX=clang++
-export CXXCPP="clang++ -E"
-export CC=clang
-export CPP="clang -E"
-export CFLAGS=""
-./configure  --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl
-make
-mkdir -p /tmp/ffmpeglibs_x86_64
-cp ./libavcodec/libavcodec.58.dylib ./libswresample/libswresample.3.dylib ./libswscale/libswscale.5.dylib ./libavformat/libavformat.58.dylib ./libavutil/libavutil.56.dylib /tmp/ffmpeglibs_x86_64
-./configure  --disable-asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -target arm64-apple-macos10.10 -arch arm64 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl --arch=arm64
-mkdir -p /tmp/ffmpeglibs
-lipo -create -output /tmp/ffmpeglibs/libavcodec.58.dylib  /tmp/ffmpeglibs_x86_64/libavcodec.58.dylib  ./libavcodec/libavcodec.58.dylib
-lipo -create -output /tmp/ffmpeglibs/libswresample.3.dylib /tmp/ffmpeglibs_x86_64/libswresample.3.dylib  ./libswresample/libswresample.3.dylib
-lipo -create -output /tmp/ffmpeglibs/libswscale.5.dylib  /tmp/ffmpeglibs_x86_64/libswscale.5.dylib  ./libswscale/libswscale.5.dylib
-lipo -create -output /tmp/ffmpeglibs/libavformat.58.dylib  /tmp/ffmpeglibs_x86_64/libavformat.58.dylib  ./libavformat/libavformat.58.dylib
-lipo -create -output /tmp/ffmpeglibs/libavutil.56.dylib /tmp/ffmpeglibs_x86_64/libavutil.56.dylib  ./libavutil/libavutil.56.dylib
+export OSX_VERSION_MIN="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
+export ARM64_TARGETS="-target arm64-apple-macos10.10 -arch arm64"
+export X86_64_TARGETS="-target x86_64-apple-macos10.10 -arch x86_64"
+
+#need ONE of these lines
+#export XL_TARGETS="${X86_64_TARGETS} ${ARM64_TARGETS}"
+export XL_TARGETS="${X86_64_TARGETS}"
+#export XL_TARGETS="${ARM64_TARGETS}"
+
+# need ONE of these
+export BUILD_HOST=x86_64
+# export BUILD_HOST=arm
+
 
 
 libzstd:
@@ -138,74 +123,126 @@ git clone https://github.com/facebook/zstd
 cd zstd
 # need to move any local libraries from homebrew out of the way
 sudo mv /usr/local/lib /usr/local/l2
-export MACOSX_DEPLOYMENT_TARGET=11
-export CFLAGS="-target arm64-apple-macos11"
-make
-mv lib/libzstd.a lib/libzstd.a.arm
+export CFLAGS="-g -flto=thin  ${OSX_VERSION_MIN} ${XL_TARGETS}"
+export LDFLAGS="-flto=thin  ${OSX_VERSION_MIN} ${XL_TARGETS} "
 make clean
-export MACOSX_DEPLOYMENT_TARGET=10.10
-export CFLAGS="-target x86_64-apple-macos10.10"
-make
-mv lib/libzstd.a lib/libzstd.a.x86_64
-lipo -create -output lib/libzstd.a  lib/libzstd.a.x86_64 lib/libzstd.a.arm
+make -j 8
+cp lib/libzstd.a /opt/local/lib
+export CFLAGS="-g  ${OSX_VERSION_MIN} ${XL_TARGETS}"
+export LDFLAGS=" ${OSX_VERSION_MIN} ${XL_TARGETS}"
+make clean
+make -j 8
+cp lib/libzstd.a /opt/local/libdbg
 # restore any local libraries from homebrew
 sudo mv /usr/local/l2 /usr/local/lib
+unset CFLAGS
+unset LDFLAGS
+
 
 
 log4cpp:
 Download latest src release (current 1.1.3)
 patch -p1 < ~/working/xLights/lib/osx/log4cpp.patch
-export HOST=x86_64
-# export HOST=arm
-export MACOSX_DEPLOYMENT_TARGET=10.10
-export OBJCXXFLAGS=""
-export CPPFLAGS=""
-export CXX=clang++
-export CXXCPP="clang++ -E"
-export CC=clang
-export CPP="clang++ -E"
-export CFLAGS=""
-export CXXFLAGS="-g -O2 -target x86_64-apple-macos10.10 -target arm64-apple-macos10.10 -arch arm64 -arch x86_64 -std=c++11 -stdlib=libc++ -fvisibility-inlines-hidden"
-export LDFLAGS="-target x86_64-apple-macos10.10 -target arm64-apple-macos10.10 -arch arm64 -arch x86_64 "
-./configure --prefix=/opt/local -host ${HOST}
+export CXXFLAGS="-g -O2 -flto=thin ${OSX_VERSION_MIN} ${XL_TARGETS} -std=c++11 -stdlib=libc++ -fvisibility-inlines-hidden"
+export LDFLAGS="-flto=thin ${XL_TARGETS} "
+./configure --prefix=/opt/local -host ${BUILD_HOST}
 make clean
-make
-cp src/.libs/liblog4cpp.a ~/working/xLights/lib/osx/
+make -j 8
+cp src/.libs/liblog4cpp.a /opt/local/lib
+export CXXFLAGS="-g ${OSX_VERSION_MIN} ${XL_TARGETS} -std=c++11 -stdlib=libc++ -fvisibility-inlines-hidden"
+export LDFLAGS="${XL_TARGETS} "
+./configure --prefix=/opt/local -host ${BUILD_HOST}
+make clean
+make -j 8
+cp src/.libs/liblog4cpp.a /opt/local/libdbg
+unset CXXFLAGS
+unset LDFLAGS
 
 
 liquidfun:
 # requires cmake to be installed, most likely need to have
-# homebrew isntalled and then "brew install cmake"
+# homebrew installed and then "brew install cmake"
 git clone https://github.com/google/liquidfun
-cd liquidfun/Box2D
+cd liquidfun/liquidfun/Box2D
+git status --ignored -s | colrm 1 2 | xargs rm -rf
 export CXX=clang++
-export MACOSX_DEPLOYMENT_TARGET=10.10
-export CXXFLAGS="-target x86_64-apple-macos10.10"
+export CXXFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBOX2D_BUILD_EXAMPLES=OFF
-make
-mv ./Box2D/Release/libliquidfun.a ./Box2D/Release/libliquidfun.a.x86_64
-rm -rf CMakeFiles CMakeCache.txt Box2D/CMakeFiles
-export CXXFLAGS="-target arm64-apple-macos11"
-unset MACOSX_DEPLOYMENT_TARGET
+make clean
+make -j 8
+cp ./Box2D/Release/libliquidfun.a /opt/local/lib
+git status --ignored -s | colrm 1 2 | xargs rm -rf
+export CXXFLAGS="-g ${XL_TARGETS} ${OSX_VERSION_MIN}"
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBOX2D_BUILD_EXAMPLES=OFF
-make
-mv ./Box2D/Release/libliquidfun.a ./Box2D/Release/libliquidfun.a.arm
-lipo -create -output ./Box2D/Release/libliquidfun.a   ./Box2D/Release/libliquidfun.a.x86_64 ./Box2D/Release/libliquidfun.a.arm
+make clean
+make -j 8
+cp ./Box2D/Release/libliquidfun.a /opt/local/libdbg
+unset CXXFLAGS
+unset CXX
 
 
 SDL2:  currently using 2.0.12
-export MACOSX_DEPLOYMENT_TARGET=10.10
-export CXXFLAGS="-target x86_64-apple-macos10.10"
-./configure
-make
-cp build/.libs/libSDL2-2.0.0.dylib /tmp
-export CXXFLAGS="-target arm64-apple-macos11 -arch arm64"
-export CFLAGS="-target arm64-apple-macos11 -arch arm64"
-export LDFLAGS="-target arm64-apple-macos11 -arch arm64"
-// host of x86-apple-darwin is bogus, but any 'arm-apple-darwin' is detected as iOS which is wrong
-./configure --host=x86-apple-darwin  --disable-render-metal --disable-video-opengl --disable-video-opengles --disable-video-opengles2 --disable-video-vulkan
- lipo -create -output libSDL2-2.0.0.dylib /tmp/libSDL2-2.0.0.dylib build/.libs/libSDL2-2.0.0.dylib
+git clone https://github.com/SDL-mirror/SDL
+cd SDL
+git checkout release-2.0.12
+export CXXFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
+export CFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
+export LDFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
+./configure --disable-shared --enable-static --disable-render-metal --disable-video-opengl --disable-video-opengles --disable-video-opengles2 --disable-video-vulkan --disable-haptic --disable-joystick
+make clean
+make -j 8
+cp ./build/.libs/libSDL2.a /opt/local/lib
+export CXXFLAGS="-g ${XL_TARGETS} ${OSX_VERSION_MIN}"
+export CFLAGS="-g ${XL_TARGETS} ${OSX_VERSION_MIN}"
+export LDFLAGS="-g ${XL_TARGETS} ${OSX_VERSION_MIN}"
+./configure --disable-shared --enable-static --disable-render-metal --disable-video-opengl --disable-video-opengles --disable-video-opengles2 --disable-video-vulkan --disable-haptic --disable-joystick
+make clean
+make -j 8
+cp ./build/.libs/libSDL2.a /opt/local/libdbg
+unset CXXFLAGS
+unset CFLAGS
+unset LDFLAGS
 
+
+x264 - needed for ffmpeg
+git clone https://code.videolan.org/videolan/x264.git
+cd x264
+./configure --disable-asm --enable-static --bit-depth=8 --disable-cli --enable-strip --extra-cflags="${XL_TARGETS} ${OSX_VERSION_MIN}"
+make clean
+make
+# that make will fail as make deps will not work with multiple arch flags
+make -j 8
+make install
+cp ./libx264.a /opt/local/lib
+cp ./libx264.a /opt/local/libdbg
+
+
+ffmpeg:   currently using 4.3.1 - needs x264 installed as above
+brew install yasm
+git clone https://git.ffmpeg.org/ffmpeg.git
+cd ffmpeg
+git checkout n4.3.1
+./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="-Dx264_bit_depth=8 ${OSX_VERSION_MIN}" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl --disable-programs
+sed -i -e "s/^CFLAGS=/CFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
+sed -i -e "s/^CXXFLAGS=/CXXFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
+sed -i -e "s/^LDFLAGS=/LDFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
+make clean
+make -j 16
+find . -name "*.a" -exec cp {} /opt/local/lib/ \;
+make clean
+./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="-Dx264_bit_depth=8 ${OSX_VERSION_MIN}" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl --disable-programs
+sed -i -e "s/^CFLAGS=/CFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak
+sed -i -e "s/^CXXFLAGS=/CXXFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak
+sed -i -e "s/^LDFLAGS=/LDFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak
+make -j 8
+find . -name "*.a" -exec cp {} /opt/local/libdbg/ \;
+
+
+
+
+
+
+//TODO - stuff below is still todo
 
 portmidi:
 git clone https://github.com/AndrewBelt/portmidi

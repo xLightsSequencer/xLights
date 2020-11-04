@@ -470,7 +470,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this), AllObjects(this),
-    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool")
+    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool"), mainSequencer(nullptr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1187,23 +1187,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     logger_base.debug("xLightsFrame constructor UI code done.");
 
-#ifdef __WXOSX__
-    //temporary workaround for running on Big Sur which has different
-    //fonts that wxWidgets doesn't know about yet
-    Notebook1->Freeze();
-    wxFont norm(wxOSX_SYSTEM_FONT_NORMAL);
-    wxFont bold(wxOSX_SYSTEM_FONT_BOLD);
-    Notebook1->SetNormalFont(norm);
-    Notebook1->SetMeasuringFont(bold);
-    Notebook1->SetSelectedFont(bold);
-    wxAuiTabArt *ap  = Notebook1->GetArtProvider()->Clone();
-    ap->SetNormalFont(norm);
-    ap->SetMeasuringFont(bold);
-    ap->SetSelectedFont(bold);
-    Notebook1->SetArtProvider(ap);
-    Notebook1->Thaw();
-#endif
-
     //need to direct these menu items to different places depending on what is active
     Connect(wxID_UNDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_REDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
@@ -1732,19 +1715,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
 #ifdef __WXOSX__
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, true);
-#else
-    config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
-#endif
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
+    VideoReader::InitHWAcceleration();
 
-#ifdef __WXOSX__
-    // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
 
     // app store review is complaining as this isn't an in-app purchase
     MenuItem_Donate->SetItemLabel("xLights Homepage");
-
-    VideoReader::InitHWAcceleration();
+#else
+    config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
+    VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
 #endif
 
     DrawingContext::Initialize(this);
@@ -3683,7 +3663,7 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
@@ -4437,7 +4417,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     }
     wxString filename = dir + "/" + fileName;
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
@@ -6079,36 +6059,24 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
 
-        if (usesShader)
-        {
-            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3)
-            {
-#ifdef __WXOSX__
-                std::string type = "WARN";
-#else
-                std::string type = "ERR";
-#endif
-                wxString msg = wxString::Format("    %s: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.", (const char *)type.c_str());
-                LogAndWrite(f, msg.ToStdString());
+        if (usesShader) {
+            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
+                LogAndWrite(f, "    ERR: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.");
                 errcount++;
             }
         }
 
-        if (videoCacheWarning)
-        {
-            wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
-            LogAndWrite(f, msg.ToStdString());
+        if (videoCacheWarning) {
+            LogAndWrite(f, "    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
             warncount++;
         }
 
         if (disabledEffects) {
-            wxString msg = wxString::Format("    WARN: Seqeuence has one or more effects which are disabled. They are being ignored.");
-            LogAndWrite(f, msg.ToStdString());
+            LogAndWrite(f, "    WARN: Seqeuence has one or more effects which are disabled. They are being ignored.");
             warncount++;
         }
 
-        if (errcount + warncount == errcountsave + warncountsave)
-        {
+        if (errcount + warncount == errcountsave + warncountsave) {
             LogAndWrite(f, "    No problems found");
         }
         errcountsave = errcount;
@@ -6546,8 +6514,7 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
     ::wxLaunchDefaultBrowser(loc);
 #else
     wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-    if (ft)
-    {
+    if (ft) {
         wxString command = ft->GetOpenCommand("README.txt");
         wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
@@ -8636,7 +8603,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     wxString downloadUrl = wxT("https://github.com/smeighan/xLights/releases/latest");
     MenuItem_Update->Enable(true);
 #else
-#ifdef  __WXOSX_MAC__
+#ifdef  __WXOSX__
     wxString hostname = _T("dankulp.com");
     wxString path = _T("/xLightsLatest.php");
     wxString downloadUrl = wxT("http://dankulp.com/xlights/");

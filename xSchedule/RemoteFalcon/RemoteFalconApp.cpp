@@ -86,18 +86,13 @@
 #pragma comment(lib, "libcurl.lib")
 #endif
 
-#ifndef __WXOSX__
 IMPLEMENT_APP_NO_MAIN(RemoteFalconApp)
-#endif
 
 static std::string __showDir;
 static std::string __xScheduleURL;
 static bool __started = false;
 static p_xSchedule_Action __action;
 
-#ifdef __WXOSX__
-static RemoteFalconFrame* _remoteFalconFrame = nullptr;
-#endif
 
 static void WipeSettings()
 {
@@ -118,7 +113,7 @@ static void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
         std::string initFileName = "xschedule.mac.properties";
         std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -205,15 +200,10 @@ static void InitialiseLogging(bool fromMain)
 
         InitialiseLogging(false);
 
-#ifdef __WXOSX__
-        _remoteFalconFrame = new RemoteFalconFrame(0, __showDir, __xScheduleURL, __action);
-        _remoteFalconFrame->Show();
-#else
         int argc = 0;
         char** argv = NULL;
         if (!wxEntryStart(argc, argv) || !wxTheApp || !wxTheApp->CallOnInit())
             return false;
-#endif
 
         __started = true;
         return true;
@@ -226,12 +216,7 @@ static void InitialiseLogging(bool fromMain)
 
         if (!__started) return;
 
-#ifdef __WXOSX__
-        delete _remoteFalconFrame;
-        _remoteFalconFrame = nullptr;
-#else
         wxEntryCleanup();
-#endif
 
         __started = false;
     }
@@ -259,26 +244,6 @@ static void InitialiseLogging(bool fromMain)
         // we dont manipulate pixel data directly
     }
 
-#ifdef __WXOSX__
-#include "../PluginManager.h"
-PluginManager::PluginState *CreateRemoteFalconPluginState() {
-    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr, "RemoteFalcon");
-    ret->_filename = "RemoteFalcon";
-    ret->_loadFn = RemoteFalcon_xSchedule_Load;
-    ret->_getVirtualWebFolderFn = RemoteFalcon_xSchedule_GetVirtualWebFolder;
-    ret->_getMenuLabelFn = RemoteFalcon_xSchedule_GetMenuLabel;
-    ret->_handleWebFn = RemoteFalcon_xSchedule_HandleWeb;
-    ret->_startFn = RemoteFalcon_xSchedule_Start;
-    ret->_stopFn = RemoteFalcon_xSchedule_Stop;
-    ret->_wipeFn = RemoteFalcon_xSchedule_WipeSettings;
-    ret->_unloadFn = RemoteFalcon_xSchedule_Unload;
-    ret->_notifyStatusFn = RemoteFalcon_xSchedule_NotifyStatus;
-    ret->_manipulateBufferFn = RemoteFalcon_xSchedule_ManipulateBuffer;
-    ret->_fireEventFn = RemoteFalcon_xSchedule_FireEvent;
-    ret->_sendCommandFn = RemoteFalcon_xSchedule_SendCommand;
-    return ret;
-}
-#else
 extern "C" {
     bool WXEXPORT xSchedule_Load(char* showDir) {
         return RemoteFalcon_xSchedule_Load(showDir);
@@ -341,8 +306,6 @@ bool RemoteFalconApp::OnInit()
 
     return true;
 }
-
-#endif
 
 #ifdef __WXMSW__
 BOOL APIENTRY DllMain(HANDLE hModule,

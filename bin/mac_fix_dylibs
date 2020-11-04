@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script primarily grabs the version number from xLightsVersion.h or xlights_build_version.h
+# and uses that to set the CFBundleVersion strings that are needed for the app store upload.
+# This really just prevents having to adjust the xcodeproject version numbers every build
+
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 if [ -f "${SCRIPTDIR}/../xLights/xlights_build_version.h" ]; then
@@ -8,7 +12,8 @@ else
     XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
 fi
 
-#  XLVERSION=2020.42.1
+# iff need to manually force a version number
+#XLVERSION=2020.46.1
 
 SHORTVER="${XLVERSION//./0}"
 SHORTVERPFX=${SHORTVER:2:5}
@@ -23,85 +28,13 @@ SHORTVER="${SHORTVERPFX}${SHORTVERPO}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SHORTVER" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
 
-if [ "$CONFIGURATION" != "Debug" ]; then
+#if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
+#    exit 0
+#fi
 
-
-TARGETVER=3.1
-
-if [ -f "/opt/local/lib/libwx_baseu-3.1.5.0.0.dylib" ]; then
-SRCVER=3.1.5.0.0
-elif [ -f "/opt/local/lib/libwx_baseu-3.1.4.0.0.dylib" ]; then
-SRCVER=3.1.4.0.0
-else
-SRCVER=""
-fi
-
-
-if [ -f "/opt/local/lib/libwx_baseu-$SRCVER.dylib" ]; then
-    LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html osx_cocoau_aui osx_cocoau_qa osx_cocoau_propgrid"
-
-    mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-    for L in $LIBS
-    do
-        rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$SRCVER.dylib"
-        rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$TARGETVER.dylib"
-        cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-        # cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-
-        install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-        install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-    done
-
-
-    for LS in $LIBS
-    do
-        for LT in $LIBS
-        do
-	        install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
-	        install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
-        done
-    done
-fi
-
-fi
-
-if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dylib" ]; then
-
-    LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5 libSDL2-2.0.0"
-    if [ "$CONFIGURATION" != "Debug" ]; then
-        for LS in $LIBS
-        do
-            if [ "$ARCHS" == "arm64" ]; then
-                lipo -output "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LS.dylib" -extract arm64 "$SOURCE_ROOT/lib/osx/$LS.dylib"
-            fi
-            if [ "$ARCHS" == "x86_64" ]; then
-                lipo -output "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LS.dylib" -extract x86_64 "$SOURCE_ROOT/lib/osx/$LS.dylib"
-            fi
-        done
-    fi
-    for LS in $LIBS
-    do
-        for LT in $LIBS
-        do
-            install_name_tool -change /usr/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LT.dylib"
-        done
-        install_name_tool -change /usr/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-    done
-fi
-
-LIBS="liblog4cpp.5 libSDL2-2.0.0"
-for LS in $LIBS
-do
-    install_name_tool -change /opt/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-done
-
-if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
-    exit 0
-fi
-
-if [ "$CONFIGURATION" != "Debug" ]; then
-    cd $TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks
-    ls -1 *.dylib | xargs -n 1  /usr/bin/codesign  -f -v -s "$EXPANDED_CODE_SIGN_IDENTITY"
-fi
+#if [ "$CONFIGURATION" != "Debug" ]; then
+#    cd $TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks
+#    ls -1 *.dylib | xargs -n 1  /usr/bin/codesign  -f -v -s "$EXPANDED_CODE_SIGN_IDENTITY"
+#fi
 
 

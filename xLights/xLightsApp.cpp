@@ -129,7 +129,7 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xlights.windows.properties";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
         std::string initFileName = "xlights.mac.properties";
         if (!wxFile::Exists(initFileName)) {
             if (fromMain) {
@@ -443,7 +443,7 @@ void handleCrash(void *data) {
     wxGetEnv("APPDATA", &dir);
     std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

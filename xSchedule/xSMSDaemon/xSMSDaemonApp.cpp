@@ -85,18 +85,12 @@
 #pragma comment(lib, "libcurl.lib")
 #endif
 
-#ifndef __WXOSX__
 IMPLEMENT_APP_NO_MAIN(xSMSDaemonApp)
-#endif
 
 static std::string __showDir;
 static std::string __xScheduleURL;
 static bool __started = false;
 static p_xSchedule_Action __action;
-
-#ifdef __WXOSX__
-static xSMSDaemonFrame* _smsFrame = nullptr;
-#endif
 
 static void WipeSettings()
 {
@@ -117,7 +111,7 @@ static void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
         std::string initFileName = "xschedule.mac.properties";
         std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -197,15 +191,10 @@ static void InitialiseLogging(bool fromMain)
 
         InitialiseLogging(false);
 
-#ifdef __WXOSX__
-        _smsFrame = new xSMSDaemonFrame(0, __showDir, __xScheduleURL, __action);
-        _smsFrame->Show();
-#else
         int argc = 0;
         char** argv = NULL;
         if (!wxEntryStart(argc, argv) || !wxTheApp || !wxTheApp->CallOnInit())
             return false;
-#endif
 
         __started = true;
         return true;
@@ -218,12 +207,7 @@ static void InitialiseLogging(bool fromMain)
 
         if (!__started) return;
 
-#ifdef __WXOSX__
-        delete _smsFrame;
-        _smsFrame = nullptr;
-#else
         wxEntryCleanup();
-#endif
 
         __started = false;
     }
@@ -260,26 +244,6 @@ static void InitialiseLogging(bool fromMain)
         // we dont manipulate pixel data directly
     }
 
-#ifdef __WXOSX__
-#include "../PluginManager.h"
-PluginManager::PluginState *CreateSMSPluginState() {
-    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr, "xSMSMDaemon");
-    ret->_filename = "SMSDaemon";
-    ret->_loadFn = xSMSDaemon_xSchedule_Load;
-    ret->_getVirtualWebFolderFn = xSMSDaemon_xSchedule_GetVirtualWebFolder;
-    ret->_getMenuLabelFn = xSMSDaemon_xSchedule_GetMenuLabel;
-    ret->_handleWebFn = xSMSDaemon_xSchedule_HandleWeb;
-    ret->_startFn = xSMSDaemon_xSchedule_Start;
-    ret->_stopFn = xSMSDaemon_xSchedule_Stop;
-    ret->_wipeFn = xSMSDaemon_xSchedule_WipeSettings;
-    ret->_unloadFn = xSMSDaemon_xSchedule_Unload;
-    ret->_notifyStatusFn = xSMSDaemon_xSchedule_NotifyStatus;					
-    ret->_manipulateBufferFn = xSMSDaemon_xSchedule_ManipulateBuffer;
-    ret->_fireEventFn = xSMSDaemon_xSchedule_FireEvent;
-    ret->_sendCommandFn = xSMSDaemon_xSchedule_SendCommand;
-    return ret;
-}
-#else
 extern "C" {
     bool WXEXPORT xSchedule_Load(char* showDir) {
         return xSMSDaemon_xSchedule_Load(showDir);
@@ -342,8 +306,6 @@ bool xSMSDaemonApp::OnInit()
 
     return true;
 }
-
-#endif
 
 #ifdef __WXMSW__
 BOOL APIENTRY DllMain(HANDLE hModule,

@@ -178,7 +178,7 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xcapture.windows.properties";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
         std::string initFileName = "xcapture.mac.properties";
         std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xcapture.mac.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -284,7 +284,7 @@ void handleCrash(void *data) {
     wxGetEnv("APPDATA", &dir);
     std::string filename = std::string(dir.c_str()) + "/xcapture_l4cpp.log";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

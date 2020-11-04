@@ -129,17 +129,8 @@ void wxFastComboEditor::BeginEdit(int row, int col, wxGrid* grid)
     Combo()->SetFocus();
 
     Combo()->Popup();
-/*
-#ifdef __WXOSX_COCOA__
-    // This is a work around for the combobox being simply dismissed when a
-    // choice is made in it under OS X. The bug is almost certainly due to a
-    // problem in focus events generation logic but it's not obvious to fix and
-    // for now this at least allows to use wxGrid.
-    Combo()->Popup();
-#endif
-*/
-    if (evtHandler)
-    {
+
+    if (evtHandler) {
         // When dropping down the menu, a kill focus event
         // happens after this point, so we can't reset the flag yet.
 #if !defined(__WXGTK20__)

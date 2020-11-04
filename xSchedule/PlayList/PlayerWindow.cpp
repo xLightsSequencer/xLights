@@ -37,9 +37,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     _image = wxImage(size, true);
     _inputImage = wxImage(1, 1, true);
     _imageChanged = false;
-#ifndef __WXOSX__
     SetDoubleBuffered(true);
-#endif
     _dragging = false;
 
     wxWindow* wind = FindFocus();

@@ -197,7 +197,7 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
         std::string initFileName = "xschedule.mac.properties";
         std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -347,7 +347,7 @@ void handleCrash(void *data) {
     wxGetEnv("APPDATA", &dir);
     std::string filename = std::string(dir.c_str()) + "/xSchedule_l4cpp.log";
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

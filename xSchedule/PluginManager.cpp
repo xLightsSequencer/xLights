@@ -342,19 +342,7 @@ std::string PluginManager::GetMenuLabel(const std::string& plugin) const
     return std::string(buffer);
 }
 
-
-#ifdef __WXOSX__
-PluginManager::PluginState* CreateSMSPluginState();
-PluginManager::PluginState* CreateRemoteFalconPluginState();
-#endif
-
 void PluginManager::RegisterStaticPlugins() {
-#ifdef __WXOSX__
-    PluginManager::PluginState *p = CreateSMSPluginState();
-    if (p) _plugins[p->_filename] = p;
-    p = CreateRemoteFalconPluginState();
-    if (p) _plugins[p->_filename] = p;
-#endif
 }
 
 

@@ -895,10 +895,12 @@ void xLightsFrame::TimeSelected( wxCommandEvent& event)
 
 void xLightsFrame::MousePositionUpdated( wxCommandEvent& event)
 {
-    mainSequencer->PanelTimeLine->SetMousePositionMS(event.GetInt());
-    mainSequencer->PanelTimeLine->Update();
-    mainSequencer->PanelWaveForm->Refresh();
-    mainSequencer->PanelWaveForm->Update();
+    if (mainSequencer) {
+        mainSequencer->PanelTimeLine->SetMousePositionMS(event.GetInt());
+        mainSequencer->PanelTimeLine->Update();
+        mainSequencer->PanelWaveForm->Refresh();
+        mainSequencer->PanelWaveForm->Update();
+    }
 }
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)

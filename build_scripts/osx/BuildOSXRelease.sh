@@ -41,9 +41,6 @@ fi
 
 cd build/Release
 
-if [ ! -f xSchedule.app/Contents/MacOS/xSchedule ]; then
-    rm -rf xSchedule.app
-fi
 if [ -f xCapture.app/Contents/MacOS/xCapture ]; then
     rm -rf xCapture.app
 fi
@@ -64,9 +61,6 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
 
     # attache the notarization stamps to the apps
     xcrun stapler staple -v xLights.app
-    if [ -f xSchedule.app/Contents/MacOS/xSchedule ]; then
-        xcrun stapler staple -v xSchedule.app
-    fi
     if [ -f xFade.app/Contents/MacOS/xFade ]; then
         xcrun stapler staple -v xFade.app
     fi
@@ -77,7 +71,7 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     rm -f xLights.dmg
 fi
 
-./BuildDMG.sh $VER xLights.app xSchedule.app xCapture.app xFade.app
+./BuildDMG.sh $VER xLights.app xCapture.app xFade.app
 
 # cleanup the build version file
 cd ../..

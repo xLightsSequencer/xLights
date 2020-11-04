@@ -875,9 +875,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
-#ifdef __WXOSX__
     Menu6->Remove(MenuItem_SMPTE);
-#endif
 
     RemoteWarning();
 
@@ -1951,7 +1949,7 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

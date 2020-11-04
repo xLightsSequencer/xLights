@@ -46,7 +46,6 @@
 #include "voip_ms.h"
 #include "Twilio.h"
 
-#ifndef __WXOSX__
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -72,7 +71,6 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
     return wxbuild;
 }
-#endif
 
 //(*IdInit(xSMSDaemonFrame)
 const long xSMSDaemonFrame::ID_STATICTEXT9 = wxNewId();
@@ -432,12 +430,8 @@ void xSMSDaemonFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xSMSDaemonFrame::OnButton_CloseClick");
-#ifdef __WXOSX__
-    Hide();
-#else
     Stop();
     Close();
-#endif
 }
 
 void xSMSDaemonFrame::OnButton_PauseClick(wxCommandEvent& event)
@@ -478,7 +472,7 @@ void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

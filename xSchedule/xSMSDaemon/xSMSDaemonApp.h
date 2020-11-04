@@ -14,7 +14,6 @@
 
 typedef bool (*p_xSchedule_Action)(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize);
 
-#ifndef __WXOSX__
 class xSMSDaemonApp : public wxApp
 {
 public:
@@ -23,5 +22,4 @@ public:
 };
 
 DECLARE_APP(xSMSDaemonApp)
-#endif
 

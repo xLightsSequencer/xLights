@@ -42,7 +42,6 @@
 
 #include <log4cpp/Category.hh>
 
-#ifndef __WXOSX__
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -68,7 +67,6 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
     return wxbuild;
 }
-#endif
 
 //(*IdInit(RemoteFalconFrame)
 const long RemoteFalconFrame::ID_TEXTCTRL1 = wxNewId();
@@ -372,12 +370,8 @@ void RemoteFalconFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("RemoteFalconFrame::OnButton_CloseClick");
-#ifdef __WXOSX__
-    Hide();
-#else
     Stop();
     Close();
-#endif
 }
 
 void RemoteFalconFrame::OnButton_PauseClick(wxCommandEvent& event)
@@ -403,7 +397,7 @@ void RemoteFalconFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
 #endif
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();

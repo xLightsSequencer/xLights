@@ -31,9 +31,6 @@ class OutputManager;
 #include <wx/textctrl.h>
 //*)
 
-#ifdef __WXOSX__
-#include "osxMacUtils.h"
-#endif
 
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
