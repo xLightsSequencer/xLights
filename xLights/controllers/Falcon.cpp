@@ -113,7 +113,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
             string->description = "";
             string->port = i;
             string->index = index++;
-            string->brightness = 100;
+            //string->brightness = 100;//set in initializer list
             string->nullPixels = 0;
             string->gamma = 1.0;
             string->colourOrder = "RGB";
