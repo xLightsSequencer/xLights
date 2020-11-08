@@ -91,7 +91,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if (!_renderMode && wxFile::Exists(asfile)) {
+        if ((!_renderMode || _promptBatchRenderIssues) && wxFile::Exists(asfile)) {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();
             wxFileName asfn(asfile);
@@ -1004,6 +1004,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (origFilenames.IsEmpty()) {
+        _renderMode = false;
         EnableSequenceControls(true);
         logger_base.debug("Batch render done.");
         printf("Done All Files\n");

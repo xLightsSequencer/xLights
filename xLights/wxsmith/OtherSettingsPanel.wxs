@@ -125,6 +125,17 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_BatchRenderPromptIssues" member="yes">
+					<label>Prompt issues during batch render</label>
+					<checked>1</checked>
+				</object>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

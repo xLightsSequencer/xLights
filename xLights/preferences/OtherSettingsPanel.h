@@ -29,6 +29,7 @@ class OtherSettingsPanel: public wxPanel
 		virtual ~OtherSettingsPanel();
 
 		//(*Declarations(OtherSettingsPanel)
+		wxCheckBox* CheckBox_BatchRenderPromptIssues;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
@@ -53,6 +54,7 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE2;
+		static const long ID_CHECKBOX4;
 		//*)
 
 	private:

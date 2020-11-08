@@ -239,7 +239,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (!_renderMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
+        if ((!_renderMode || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
         {
             wxFileName fn(filename);
             wxFileName xx = fn;

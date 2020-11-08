@@ -959,6 +959,7 @@ public:
     bool _backupSubfolders = true;
     bool _excludePresetsFromPackagedSequences = true;
     bool _excludeAudioFromPackagedSequences = true;
+    bool _promptBatchRenderIssues = true;
     bool _hwVideoAccleration = false;
     bool _showACLights = false;
     bool _showACRamps = false;
@@ -1061,6 +1062,9 @@ public:
 
     bool ExcludeAudioFromPackagedSequences() const { return _excludeAudioFromPackagedSequences;}
     void SetExcludeAudioFromPackagedSequences(bool b) {_excludeAudioFromPackagedSequences = b;}
+
+    bool GetPromptBatchRenderIssues() const { return _promptBatchRenderIssues; }
+    void SetPromptBatchRenderIssues(bool b) { _promptBatchRenderIssues = b; }
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}

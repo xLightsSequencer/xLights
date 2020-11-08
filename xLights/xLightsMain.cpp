@@ -1468,6 +1468,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
     logger_base.debug("Exclude Presets From Packaged Sequences: %s.", _excludePresetsFromPackagedSequences ? "true" : "false");
 
+    config->Read("xLightsPromptBatchRenderIssues", &_promptBatchRenderIssues, true);
+    logger_base.debug("Prompt for issues during batch render: %s.", _promptBatchRenderIssues ? "true" : "false");
+
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
     logger_base.debug("Exclude Audio From Packaged Sequences: %s.", _excludeAudioFromPackagedSequences ? "true" : "false");
 
@@ -1816,6 +1819,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsSaveFseqOnSave", mSaveFseqOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
+    config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
@@ -3821,6 +3825,9 @@ void xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
     if (CurrentSeqXmlFile == nullptr) return;
+
+    // dont save if batch rendering
+    if (_renderMode) return;
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -8601,7 +8608,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
         if (filesToRender.size() > 0) {
             _renderMode = true;
             OpenRenderAndSaveSequences(filesToRender, false);
-            _renderMode = false;
+            if (filesToRender.size() == 0) _renderMode = false;
         }
         else
         {

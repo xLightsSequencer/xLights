@@ -33,6 +33,7 @@ const long OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -79,6 +80,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	Choice_LinkControllerUpload->SetSelection( Choice_LinkControllerUpload->Append(_("None")) );
 	Choice_LinkControllerUpload->Append(_("Inputs and Outputs"));
 	GridBagSizer1->Add(Choice_LinkControllerUpload, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	CheckBox_BatchRenderPromptIssues = new wxCheckBox(this, ID_CHECKBOX4, _("Prompt issues during batch render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_BatchRenderPromptIssues->SetValue(true);
+	GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -108,6 +112,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetUserEMAIL(eMailTextControl->GetValue());
 	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
+	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
     return true;
 }
 
@@ -118,6 +123,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     eMailTextControl->SetValue(frame->UserEMAIL());
 	Choice_LinkSave->SetStringSelection(frame->LinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->LinkedControllerUpload());
+	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
     return true;
 }
 
