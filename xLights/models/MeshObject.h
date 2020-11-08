@@ -23,6 +23,7 @@ namespace DrawGLUtils {
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
     std::string ReadMaterialFileFromObj(const std::string& filename);
+    std::vector<std::string> _warnedTextures;
 
     public:
         MeshObject(wxXmlNode *node, const ViewObjectManager &manager);

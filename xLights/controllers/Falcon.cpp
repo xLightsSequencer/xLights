@@ -327,7 +327,7 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
         string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
         string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
-        string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
+        string->groupCount = std::min(1, wxAtoi(e->GetAttribute("g", "1")));
         int sr = wxAtoi(e->GetAttribute("sr", "-1"));
         if (sr == -1) {
             string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
@@ -1026,11 +1026,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs->direction = firstString->direction;
                 }
                 if (vs->_groupCountSet) {
-                    fs->groupCount = vs->_groupCount;
+                    fs->groupCount = std::min(1, vs->_groupCount);
                     fs->pixels *= vs->_groupCount;
                 }
                 else {
-                    fs->groupCount = firstString->groupCount;
+                    fs->groupCount = std::min(1, firstString->groupCount);
                     fs->pixels *= firstString->groupCount;
                 }
                 newStringData.push_back(fs);

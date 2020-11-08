@@ -531,6 +531,7 @@ void MeshObject::loadObject() {
                             }
                         }
                     }
+                    logger_base.debug("Loading texture: %s", texture_filename.c_str());
                     checkAccessToFile(texture_filename);
                     textures[m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
@@ -539,6 +540,7 @@ void MeshObject::loadObject() {
 
         // create a default grey texture
         if (textures.find("") == textures.end()) {
+            logger_base.debug("Added in grey texture because no-name texture did not exist");
             wxImage i(16, 16);
             i.SetRGB(wxRect(0, 0, 16, 16), 128, 128, 128);
             textures[""] = new Image(i);
@@ -552,6 +554,7 @@ void MeshObject::loadObject() {
 
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if( !IsActive() ) { return; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
@@ -601,6 +604,10 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
                         if (textures.find(diffuse_texname) != textures.end()) {
                             image_id = textures[diffuse_texname]->getID();
                         } else {
+                            if (std::find(_warnedTextures.begin(), _warnedTextures.end(), diffuse_texname) == _warnedTextures.end()) {
+                                logger_base.warn("Texture not found: %s", (const char*)diffuse_texname.c_str());
+                                _warnedTextures.push_back(diffuse_texname);
+                            }
                             image_id = -1;
                         }
                     }
