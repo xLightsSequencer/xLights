@@ -1399,7 +1399,7 @@ bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin)
 bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     parent = parent;
-    return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller);
+    return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller) && !Restart("");
 }
 bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     parent = parent;
