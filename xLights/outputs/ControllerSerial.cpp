@@ -194,7 +194,9 @@ void ControllerSerial::SetProtocol(const std::string& type)
             }
             else if (type == OUTPUT_LOR_OPT) {
                 o = new LOROptimisedOutput();
+#ifndef EXCLUDENETWORKUI
                 SetAutoSize(false, nullptr);
+#endif
             }
             else if (type == OUTPUT_OPENDMX) {
                 o = new OpenDMXOutput();

@@ -116,7 +116,6 @@ public:
     const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
     
-    void SetAutoSize(bool autosize, OutputModelManager* omm);
     bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
 
     void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }
@@ -241,6 +240,7 @@ public:
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded);
+        void SetAutoSize(bool autosize, OutputModelManager* omm);
     #endif
     #pragma endregion
 };

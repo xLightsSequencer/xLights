@@ -72,7 +72,6 @@ public:
     void SetPriority(int priority);
 
     bool AllSameSize() const;
-    void SetAllSameSize(bool allSame, OutputModelManager* omm);
 #pragma endregion
 
 #pragma region Virtual Functions
@@ -124,6 +123,7 @@ public:
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
+        void SetAllSameSize(bool allSame, OutputModelManager* omm);
     #endif
 #pragma endregion UI
 };

@@ -327,21 +327,6 @@ void Controller::EnsureUniqueId() {
     _id = _outputManager->UniqueId();
 }
 
-void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
-{ 
-    if (_autoSize != autosize) 
-    { 
-        _autoSize = autosize; 
-        _dirty = true; 
-        if (_autoSize)             {
-            ControllerEthernet* ce = dynamic_cast<ControllerEthernet*>(this);
-            if (ce != nullptr) {
-                ce->SetAllSameSize(true, omm);
-            }
-        }
-    } 
-}
-
 void Controller::SetAutoLayout(bool autoLayout) {
     if (_autoLayout != autoLayout) {
         _autoLayout = autoLayout;
@@ -712,6 +697,20 @@ void Controller::HandleExpanded(wxPropertyGridEvent& event, bool expanded)
 {
     if (_outputs.size() > 0) {
         _outputs.front()->HandleExpanded(event, expanded);
+    }
+}
+
+void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
+{
+    if (_autoSize != autosize) {
+        _autoSize = autosize;
+        _dirty = true;
+        if (_autoSize) {
+            ControllerEthernet* ce = dynamic_cast<ControllerEthernet*>(this);
+            if (ce != nullptr) {
+                ce->SetAllSameSize(true, omm);
+            }
+        }
     }
 }
 

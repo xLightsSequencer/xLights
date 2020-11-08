@@ -630,10 +630,10 @@ void ModelGroupPanel::SaveGroupChanges()
     case 1:
         e->AddAttribute("layout", "minimalGrid");
         break;
-    case 2:
+    case 6:
         e->AddAttribute("layout", "horizontal");
         break;
-    case 3:
+    case 7:
         e->AddAttribute("layout", "vertical");
         break;
     default:
