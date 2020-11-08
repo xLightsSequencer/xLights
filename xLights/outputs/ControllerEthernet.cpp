@@ -26,6 +26,7 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#include "../xLightsMain.h"
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
@@ -735,6 +736,25 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     }
 }
 
+void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
+{
+    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET) {
+        _forceSizes = !allSame;
+
+        if (allSame) {
+            for (auto& it : _outputs) {
+                it->SetChannels(_outputs.front()->GetChannels());
+            }
+        }
+        if (omm != nullptr) {
+            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::SetAllSameSize");
+            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::SetAllSameSize", nullptr);
+            omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::SetAllSameSize", nullptr);
+            omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
+        }
+    }
+}
+
 bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
@@ -848,16 +868,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
             }
         }
 
-        if (!_forceSizes) {
-            for (auto& it : _outputs) {
-                it->SetChannels(_outputs.front()->GetChannels());
-            }
-        }
-
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::IndivSizes");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::IndivSizes", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::IndivSizes", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::IndivSizes", nullptr);
+        SetAllSameSize(!_forceSizes, outputModelManager);
         return true;
     }
     else if (name == "Channels") {

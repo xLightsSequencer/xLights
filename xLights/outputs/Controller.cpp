@@ -327,6 +327,21 @@ void Controller::EnsureUniqueId() {
     _id = _outputManager->UniqueId();
 }
 
+void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
+{ 
+    if (_autoSize != autosize) 
+    { 
+        _autoSize = autosize; 
+        _dirty = true; 
+        if (_autoSize)             {
+            ControllerEthernet* ce = dynamic_cast<ControllerEthernet*>(this);
+            if (ce != nullptr) {
+                ce->SetAllSameSize(true, omm);
+            }
+        }
+    } 
+}
+
 void Controller::SetAutoLayout(bool autoLayout) {
     if (_autoLayout != autoLayout) {
         _autoLayout = autoLayout;
@@ -620,7 +635,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "AutoSize") {
-        SetAutoSize(event.GetValue().GetBool());
+        SetAutoSize(event.GetValue().GetBool(), outputModelManager);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");

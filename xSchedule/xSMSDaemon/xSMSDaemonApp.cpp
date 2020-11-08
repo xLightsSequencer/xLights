@@ -263,7 +263,7 @@ static void InitialiseLogging(bool fromMain)
 #ifdef __WXOSX__
 #include "../PluginManager.h"
 PluginManager::PluginState *CreateSMSPluginState() {
-    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr);
+    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr, "xSMSMDaemon");
     ret->_filename = "SMSDaemon";
     ret->_loadFn = xSMSDaemon_xSchedule_Load;
     ret->_getVirtualWebFolderFn = xSMSDaemon_xSchedule_GetVirtualWebFolder;

@@ -422,7 +422,7 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     if (htmlBuffer[idx] == '0') {
                         ce->GetOutput(0)->SetChannels(510);
                         ce->SetProtocol(OUTPUT_E131);
-                        ce->SetAutoSize(true);
+                        ce->SetAutoSize(true, nullptr);
                         ce->SetAutoLayout(true);
                         ce->SetFullxLightsControl(true);
                         ce->GetOutput(0)->SetChannels(512);

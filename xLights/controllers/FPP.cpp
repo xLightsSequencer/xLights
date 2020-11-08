@@ -2147,7 +2147,7 @@ static void SetControllerType(DiscoveredData *inst) {
         ControllerCaps *caps = inst->controller->GetControllerCaps();
         if (caps != nullptr && caps->SupportsAutoLayout()) {
             inst->controller->SetAutoLayout(true);
-            inst->controller->SetAutoSize(true);
+            inst->controller->SetAutoSize(true, nullptr);
         }
         if (caps != nullptr && caps->SupportsAutoUpload()) {
             inst->controller->SetAutoUpload(true);

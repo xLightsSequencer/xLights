@@ -72,6 +72,7 @@ public:
     void SetPriority(int priority);
 
     bool AllSameSize() const;
+    void SetAllSameSize(bool allSame, OutputModelManager* omm);
 #pragma endregion
 
 #pragma region Virtual Functions

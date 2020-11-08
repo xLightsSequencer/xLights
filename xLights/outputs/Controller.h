@@ -28,6 +28,7 @@ class OutputModelManager;
 class ModelManager;
 class ControllerCaps;
 class BaseController;
+class OutputModelManager;
 
 #pragma region Controller Constants
 // These are used to identify each output type
@@ -115,7 +116,7 @@ public:
     const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
     
-    void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
+    void SetAutoSize(bool autosize, OutputModelManager* omm);
     bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
 
     void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }

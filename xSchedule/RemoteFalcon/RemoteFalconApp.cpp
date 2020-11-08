@@ -262,7 +262,7 @@ static void InitialiseLogging(bool fromMain)
 #ifdef __WXOSX__
 #include "../PluginManager.h"
 PluginManager::PluginState *CreateRemoteFalconPluginState() {
-    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr);
+    PluginManager::PluginState *ret = new PluginManager::PluginState(nullptr, "RemoteFalcon");
     ret->_filename = "RemoteFalcon";
     ret->_loadFn = RemoteFalcon_xSchedule_Load;
     ret->_getVirtualWebFolderFn = RemoteFalcon_xSchedule_GetVirtualWebFolder;
