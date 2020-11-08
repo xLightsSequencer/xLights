@@ -105,7 +105,7 @@
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
