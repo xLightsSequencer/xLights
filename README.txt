@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.47 November 8 2020
+   -- enh (keith)  Optionally suppress xbkp newer and model missing errors when batch rendering
+   -- enh (keith)  Add option to minimise non essential xSchedule UI updates to squeeze out better performance
+   -- bug (keith)  Prevent upload of 0 sized group to falcon controller
+   -- bug (keith)  Force remove smart remote when dragging a model in visualiser onto a controller that does not support them
+   -- bug (keith)  Fix P12S max channels per output
+   -- bug (keith)  Fix model group default to vertical stack does not work 
+   -- bug (keith)  When controller is set to autosize clear the individual universe sizes
+   -- bug (keith)  If nothing is playing in xSchedule send blank to remote falcon
+   -- bug (keith)  Fix bug in saving link controller/layout save
+   -- bug (scott)  Fix default falcon brightess not working   
+   -- bug (dkulp)  Delay check for updates to prevent some crashes on startup
+   -- bug (dkulp)  Fix some crashes when sequence data buffers change while rendering   
 2020.46 November 1 2020
    -- enh (keith)  When xLights has full control allow definition of the default brightness of unused ports
    -- enh (keith)  Optionally link controller tab and layout tab save buttons so both buttons save both files
