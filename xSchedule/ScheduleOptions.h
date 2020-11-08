@@ -176,7 +176,7 @@ class ScheduleOptions
     int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
-    std::string _defaultPage;
+    std::string _defaultPage = "index.html";
     bool _allowUnauth = false;
     std::string _crashBehaviour;
     int _passwordTimeout = 0;

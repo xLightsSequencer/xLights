@@ -257,6 +257,7 @@ ScheduleOptions::ScheduleOptions()
     _city = "Sydney";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
+    _defaultPage = "index.html";
     _audioDevice = "";
     _inputAudioDevice = "";
     _hardwareAcceleratedVideo = true;
