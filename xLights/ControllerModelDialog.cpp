@@ -1413,6 +1413,9 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                 }
+                if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
+                    m->SetSmartRemote(0);
+                }
             }
             else {
                 if (port->GetModelCount() == 0) {
