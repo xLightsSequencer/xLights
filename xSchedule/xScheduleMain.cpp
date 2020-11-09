@@ -2399,9 +2399,11 @@ void xScheduleFrame::UpdateStatus(bool force)
     PlayListStep* step = nullptr;
     if (playlist != nullptr) {
         int selected = ListView_Running->GetFirstSelected();
-        int stepid = (int)ListView_Running->GetItemData(selected);
-        if (selected >= 0 && stepid >= 0) {
-            step = playlist->GetStep(stepid);
+        if (selected >= 0) {
+            int stepid = (int)ListView_Running->GetItemData(selected);
+            if (stepid >= 0) {
+                step = playlist->GetStep(stepid);
+            }
         }
     }
 
