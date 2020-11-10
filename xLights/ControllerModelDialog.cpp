@@ -549,7 +549,7 @@ public:
                     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
                 }
                 if (_style & STYLE_CHANNELS) {
-                    DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, sz - wxSize(4, 4));
+                    DrawTextLimited(dc, wxString::Format("Channels: %ld [%d]", (long)chs, udcpm->GetDMXChannelOffset()), pt, sz - wxSize(4, 4));
                     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
                 }
             }
