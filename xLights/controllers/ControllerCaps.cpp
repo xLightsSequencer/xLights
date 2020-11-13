@@ -299,6 +299,11 @@ bool ControllerCaps::SupportsInputOnlyUpload() const {
     return DoesXmlNodeExist(_config, "SupportsInputOnlyUpload");
 }
 
+bool ControllerCaps::NeedsDDPInputUpload() const
+{
+    return DoesXmlNodeExist(_config, "NeedsDDPInputUpload");
+}
+
 bool ControllerCaps::SupportsLEDPanelMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsLEDPanelMatrix");

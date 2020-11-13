@@ -23,6 +23,8 @@ class Falcon : public BaseController
 {
     #pragma region Member Variables
     std::string _firmwareVersion;
+    int _majorFirmwareVersion;
+    int _minorFirmwareVersion;
     bool _usingAbsolute = false;
     int _versionnum = -1;
     std::string _modelString;
@@ -32,6 +34,11 @@ class Falcon : public BaseController
 
     #pragma region Private Functions
 
+    bool IsFirmwareEqualOrGreaterThan(int major, int minor)
+    {
+        return _majorFirmwareVersion > major || (_majorFirmwareVersion == major && _minorFirmwareVersion >= minor);
+    }
+
     #pragma region Strings.xml Handling
     int CountStrings(const wxXmlDocument& stringsDoc) const;
     void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness) const;
@@ -39,12 +46,12 @@ class Falcon : public BaseController
     #pragma endregion
 
     #pragma region FalconString Handling
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness) const;
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel) const;
     std::string BuildStringPort(FalconString* string) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     int GetPixelCount(const std::vector<FalconString*>& stringData, int port) const;
     int GetMaxPixelPort(const std::vector<FalconString*>& stringData) const;
-    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness);
+    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness, int32_t firstchannel);
     void RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port);
     void DumpStringData(std::vector<FalconString*> stringData) const;
     #pragma endregion
@@ -52,7 +59,7 @@ class Falcon : public BaseController
     #pragma region Port Handling
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness);
+    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel);
     std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     #pragma endregion
 

@@ -53,7 +53,9 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
             <Protocol>zcpp</Protocol>
+            <Protocol>ddp</Protocol>
         </InputProtocols>
+		<NeedsDDPInputUpload/>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">

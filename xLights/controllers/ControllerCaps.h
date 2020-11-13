@@ -57,6 +57,7 @@ public:
     bool SupportsUpload() const;
     bool SupportsFullxLightsControl() const;
     bool SupportsInputOnlyUpload() const;
+    bool NeedsDDPInputUpload() const;
     bool SupportsLEDPanelMatrix() const;
     bool SupportsVirtualMatrix() const;
     bool SupportsVirtualStrings() const;

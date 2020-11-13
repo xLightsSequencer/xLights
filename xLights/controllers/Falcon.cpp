@@ -21,6 +21,7 @@
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
+#include "../outputs/DDPOutput.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
 
@@ -86,7 +87,7 @@ public:
 };
 
 #define MINIMUMPIXELS 0
-void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness) const {
+void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Filling in missing strings.");
@@ -105,7 +106,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
         }
         if (!added) {
             FalconString* string = new FalconString(defaultBrightness);
-            string->startChannel = 1;
+            string->startChannel = firstchannel;
             string->virtualStringIndex = 0;
             string->pixels = MINIMUMPIXELS;
             string->protocol = 0;
@@ -197,7 +198,7 @@ void Falcon::RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int po
     }
 }
 
-void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness) {
+void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness, int32_t firstchannel) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -212,7 +213,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
     if (!found) {
         logger_base.debug("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
         FalconString* string = new FalconString(defaultBrightness);
-        string->startChannel = 1;
+        string->startChannel = firstchannel;
         string->virtualStringIndex = 0;
         string->pixels = 0;
         string->protocol = 0;
@@ -380,7 +381,7 @@ void Falcon::UploadStringPort(const std::string& request, bool final) {
     PutURL("/StringPorts.htm", r);
 }
 
-void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness) {
+void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -407,7 +408,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
             for (int k = 0; k < 4; k++) {
                 RemoveNonSmartRemote(stringData, i * 4 + k);
                 for (int j = 0; j < maxRemote; j++) {
-                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness);
+                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchannel);
                 }
             }
         }
@@ -675,6 +676,8 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController
     _model = "";
     _versionnum = 0;
     _modelnum = 0;
+    _majorFirmwareVersion = 0;
+    _minorFirmwareVersion = 0;
     _usingAbsolute = false;
 
     logger_base.debug("Connecting to Falcon on %s.", (const char*)_ip.c_str());
@@ -734,6 +737,15 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController
             }
         }
 
+        if (_firmwareVersion != "")             {
+            static wxRegEx majminregex("(\\d+)\\.(\\d+)(.*)", wxRE_ADVANCED);
+            if (majminregex.Matches(wxString(_firmwareVersion))) {
+                _majorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 1));
+                _minorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 2));
+                logger_base.error("    Parsed firmware version %d.%d.", _majorFirmwareVersion, _minorFirmwareVersion);
+            }
+        }
+
         logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)GetModel().c_str(), (const char*)_firmwareVersion.c_str(), _modelnum, _versionnum);
     }
 
@@ -785,7 +797,6 @@ bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* ou
     return true;
 }
 
-
 bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
 
     wxString request;
@@ -794,35 +805,93 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
-    if (outputs.size() > 96) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
-        return false;
+    int cm = -1;
+    std::string strings = GetURL("/strings.xml");
+    wxStringInputStream stream(strings);
+    wxXmlDocument xml(stream);
+    if (!xml.IsOk() || xml.GetRoot() == nullptr) {
+    }
+    else {
+        wxXmlNode* node = xml.GetRoot();
+        if (node != nullptr) {
+            cm = wxAtoi(node->GetAttribute("cm", "-1"));
+        }
     }
 
-    for (const auto& it : outputs) {
-        int t = -1;
-        if (it->GetType() == OUTPUT_E131) {
-            t = 0;
-        }
-        else if (it->GetType() == OUTPUT_ARTNET) {
-            t = 1;
-        }
-        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-            output, it->GetUniverse(),
-            output, (int)it->GetChannels(),
-            output, (int)it->GetStartChannel(),
-            output, t);
-        output++;
-    }
+    if (outputs.size() > 0 && outputs.front()->GetType() == OUTPUT_DDP) {
 
-    request = wxString::Format("z=%d&a=%d", output, (_usingAbsolute ? 0 : 1)) + request;
-    std::string response = PutURL("/E131.htm", request.ToStdString());
-    return (response != "");
+        if (!IsFirmwareEqualOrGreaterThan(2, 58))             {
+            DisplayError("Attempt to set controller to DDP mode but firmware installed does not support DDP. Install 2.58 or higher.");
+            return false;
+        }
+
+        DDPOutput* ddp = (DDPOutput*)outputs.front();
+
+        _usingAbsolute = true;
+
+        request = wxString::Format("c=64&d=%d", ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1);
+        std::string response = PutURL("/index.htm", request.ToStdString());
+
+        if ((cm & 0xFE) != 64) {
+            std::unique_ptr<wxProgressDialog> progress;
+            progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", controller->GetName()), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+            progress->Show();
+
+            for (int i = 0; i < 100; i++)                 {
+                progress->Update(i);
+                Sleep(20000 / 100);
+            }
+        }
+
+        return (response != "");
+    }
+    else {
+        if (outputs.size() > 96) {
+            DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
+            return false;
+        }
+
+        if ((cm & 0xFE) != 0) {
+            // need to switch to e131 mode
+            request = "c=0";
+            std::string response = PutURL("/index.htm", request.ToStdString());
+
+            std::unique_ptr<wxProgressDialog> progress;
+            progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", controller->GetName()), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+            progress->Show();
+
+            for (int i = 0; i < 100; i++) {
+                progress->Update(i);
+                Sleep(20000 / 100);
+            }
+        }
+
+        for (const auto& it : outputs) {
+            int t = -1;
+            if (it->GetType() == OUTPUT_E131) {
+                t = 0;
+            }
+            else if (it->GetType() == OUTPUT_ARTNET) {
+                t = 1;
+            }
+            request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+                output, it->GetUniverse(),
+                output, (int)it->GetChannels(),
+                output, (int)it->GetStartChannel(),
+                output, t);
+            output++;
+        }
+
+        request = wxString::Format("z=%d&a=%d", output, (_usingAbsolute ? 0 : 1)) + request;
+        std::string response = PutURL("/E131.htm", request.ToStdString());
+        return (response != "");
+    }
 }
 
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     return SetOutputs(allmodels, outputManager, controller, parent, true);
 }
+
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress) {
 
     //ResetStringOutputs(); // this shouldnt be used normally
@@ -859,6 +928,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int daughter1Pixels = 0;
     int daughter2Pixels = 0;
     int minuniverse = controller->GetFirstOutput()->GetUniverse();
+    bool absoluteonebased = (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && !dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers());
+    int32_t firstchannel = 1;
+    if (absoluteonebased) firstchannel = controller->GetFirstOutput()->GetStartChannel();
+    int32_t firstchanneloncontroller = 1;
+    if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers())         {
+        firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
+    }
 
     if (caps != nullptr) {
         fullcontrol = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
@@ -931,7 +1007,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     else {
         logger_base.info("String port count needs to be %d.", GetDaughter1Threshold());
     }
-    InitialiseStrings(stringData, totalPixelPorts, minuniverse, defaultBrightness);
+    InitialiseStrings(stringData, totalPixelPorts, minuniverse, defaultBrightness, firstchanneloncontroller);
 
     //logger_base.debug("Missing strings added.");
     //DumpStringData(stringData);
@@ -1209,8 +1285,17 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             check = ""; // to suppress double display
         }
 
+        if (absoluteonebased) {
+            logger_base.info("Applying one based adjustment, Subtracting = %d", firstchannel - 1);
+            for (auto& it : stringData) {
+                if (it->startChannel >= firstchannel - 1) {
+                    it->startChannel -= (firstchannel - 1);
+                }
+            }
+        }
+
         logger_base.info("Uploading string ports.");
-        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness);
+        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness, firstchanneloncontroller);
     }
     else {
         if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
