@@ -1008,6 +1008,8 @@
 		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
 		<Unit filename="models/DMX/DmxFloodlight.h" />
+		<Unit filename="models/DMX/DmxGeneral.cpp" />
+		<Unit filename="models/DMX/DmxGeneral.h" />
 		<Unit filename="models/DMX/DmxImage.cpp" />
 		<Unit filename="models/DMX/DmxImage.h" />
 		<Unit filename="models/DMX/DmxModel.cpp" />
