@@ -836,6 +836,9 @@
     <ClCompile Include="models\RulerObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxGeneral.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1678,6 +1681,9 @@
     <ClInclude Include="Discovery.h" />
     <ClInclude Include="models\RulerObject.h">
       <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxGeneral.h">
+      <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -188,6 +188,7 @@ const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_GENERAL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SKULL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO_3D = wxNewId();
@@ -195,7 +196,6 @@ const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
-
 
 // OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
 // se we mimic it by calling HandleSelectionChanged as needed
@@ -1247,7 +1247,8 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
         } else if (type == "DMXFloodlight" ||
                    type == "DMXMovingHead" ||
                    type == "DMXMovingHead3D" ||
-                   type == "DMXSkull" ) {
+                   type == "DMXSkull" ||
+                   type == "DMXGeneral") {
             return Icon_Dmx;
         } else if( type == "Image" ) {
             return Icon_Image;
@@ -5549,6 +5550,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
 
 void LayoutPanel::DisplayAddDmxPopup() {
     wxMenu mnuObjects;
+    AddObjectButton(mnuObjects, ID_ADD_DMX_GENERAL, "General", add_dmx_general_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODAREA, "Area Flood", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
@@ -5571,6 +5573,11 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
     if (id == ID_ADD_DMX_FLOODLIGHT) {
         logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");
         selectedDmxModelType = "DmxFloodlight";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_GENERAL) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_GENERAL");
+        selectedDmxModelType = "DmxGeneral";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_FLOODAREA) {

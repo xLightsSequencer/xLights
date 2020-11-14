@@ -272,6 +272,7 @@
     <ClCompile Include="models\DMX\DmxColorAbility.cpp" />
     <ClCompile Include="models\DMX\DmxFloodArea.cpp" />
     <ClCompile Include="models\DMX\DmxFloodlight.cpp" />
+    <ClCompile Include="models\DMX\DmxGeneral.cpp" />
     <ClCompile Include="models\DMX\DmxImage.cpp" />
     <ClCompile Include="models\DMX\DmxModel.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
@@ -688,6 +689,7 @@
     <ClInclude Include="models\DMX\DmxColorAbility.h" />
     <ClInclude Include="models\DMX\DmxFloodArea.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h" />
+    <ClInclude Include="models\DMX\DmxGeneral.h" />
     <ClInclude Include="models\DMX\DmxImage.h" />
     <ClInclude Include="models\DMX\DmxModel.h" />
     <ClInclude Include="models\DMX\DmxMovingHead.h" />

@@ -22,6 +22,7 @@
 #include "TreeModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "DMX/DmxGeneral.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkull.h"
@@ -1022,6 +1023,16 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxMovingHead(node, *this, false);
+    }
+    else if (type == "DmxGeneral") {
+        protocol = "";
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "8");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxGeneral(node, *this, false);
     } else if (type == "DmxMovingHead3D") {
         protocol = "";
         node->DeleteAttribute("parm1");
@@ -1236,6 +1247,9 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new CircleModel(node, *this, zeroBased);
     } else if (type == "DmxMovingHead") {
         model = new DmxMovingHead(node, *this, zeroBased);
+    }
+    else if (type == "DmxGeneral") {
+        model = new DmxGeneral(node, *this, zeroBased);
     } else if (type == "DmxMovingHead3D") {
         model = new DmxMovingHead3D(node, *this, zeroBased);
     } else if (type == "DmxFloodlight") {
