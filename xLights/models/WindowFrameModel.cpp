@@ -43,11 +43,74 @@ int WindowFrameModel::NodesPerString() const
     }
 }
 
+void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool TtoB, float& x, float& y, float& screenx, float& screeny)
+{
+    // sides - left, top, right, bottom
+
+    float left = parm2;
+    float top = parm1;
+    float bottom = parm3;
+
+    float width = std::max(top, bottom) + 2;
+    float height = parm2;
+
+    int lengths[] = { (int)left, (int)top, (int)left, (int)bottom };
+
+    if (LtoR) {
+        if (TtoB) {
+            y = height - 1;
+            screenx = -width / 2;
+            screeny = height / 2;
+            if (clockwise) {
+                x = 1;
+            }
+            else {
+                x = 0;
+            }
+        } 
+        else {
+            y = 0;
+            screenx = -width / 2;
+            screeny = -height / 2;
+            if (clockwise) {
+                x = 0;
+            }
+            else {
+                x = 1;
+            }
+        }
+    }
+    else {
+        if (TtoB) {
+            y = height - 1;
+            screenx = width / 2;
+            screeny = height / 2;
+            if (clockwise) {
+                x = width;
+            }
+            else {
+                x = width - 1;
+            }
+        }
+        else {
+            y = 0;
+            screenx = width / 2;
+            screeny = -height / 2;
+            if (clockwise) {
+                x = width -1;
+            }
+            else {
+                x = width;
+            }
+        }
+    }
+}
+
 // initialize buffer coordinates
 // parm1=Nodes on Top
 // parm2=Nodes left and right
 // parm3=Nodes on Bottom
-void WindowFrameModel::InitFrame() 
+void WindowFrameModel::InitFrame()
 {
     SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
 
@@ -60,155 +123,166 @@ void WindowFrameModel::InitFrame()
 
     SetBufferSize(height, width);   // treat as outside of matrix
     screenLocation.SetRenderSize(width, height);
+
+    if (left + top + bottom == 0) return;
+
     int chan = stringStartChan[0];
     int ChanIncr = GetNodeChannelCount(StringType);
 
-    float top_incr = (float)(width - 1) / (float)(top + 1);
-    float bot_incr = -1 * (float)(width - 1) / (float)(bottom + 1);
-
-    float screenxincr[4]= {0.0f, top_incr, 0.0f, bot_incr}; // indexed by side
-    int xincr[4] = { 0, 1, 0, -1}; // indexed by side
-    int yincr[4] = { 1, 0, -1, 0};
-
-    int x;
-    int y;
-    int start;
-    if (IsLtoR)
-    {
-        x = 0;
-        if (isBotToTop)
-        {
-            y = 0;
-            if (bottom == 0)
-            {
-                start = 0;
-            }
-            else
-            {
-                start = 3; // bottom
-            }
-        }
-        else
-        {
-            y = height - 1;
-            start = 0; // left
-        }
-    }
-    else
-    {
-        x = width - 1;
-        if (isBotToTop)
-        {
-            y = 0;
-            start = 2; // right
-        }
-        else
-        {
-            y = height - 1;
-            if (top == 0)
-            {
-                start = 2;
-            }
-            else
-            {
-                start = 1; // top
-            }
-        }
-    }
-
     float dir = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 1.0 : -1.0;
 
-    int xoffset = BufferWi/2;
-    int yoffset = BufferHt/2;
+    float top_screenincr = (float)(width) / (float)(top + 1.0);
+    float bot_screenincr = -1.0 * (float)(width) / (float)(bottom + 1.0);
+    float top_incr = (float)(width-1) / (float)(top + 1.0);
+    float bot_incr = -1.0 * (float)(width-1) / (float)(bottom + 1.0);
+    wxASSERT(top_incr >= 1.0);
+    wxASSERT(bot_incr <= -1.0);
 
-    float screenx = x - xoffset;
+    int lengths[] = { left, top, left, bottom };
+    float xscreenincr[] = { 0, top_screenincr, 0, bot_screenincr };
+    float yscreenincr[] = { 1, 0, -1, 0 };
+    float xincr[] = { 0, top_incr, 0, bot_incr };
+    float yincr[] = { 1, 0, -1, 0 };
+    float xStart[] = { 0, 1, (float)width - 1, (float)width - 2 };
+    float yStart[] = { 0, (float)height - 1, (float)height - 1, 0 };
+    float xScreenStart[] = { -(float)width / 2, -(float)width / 2 + top_screenincr, (float)width / 2, (float)width / 2 + bot_screenincr };
+    float yScreenStart[] = { -(float)(height-1) / 2, (float)(height-1) / 2, (float)(height-1) / 2, -(float)(height-1) / 2 };
+
+    int indexes[] = { 0, 1, 2, 3 };
+
+    if (dir == -1) {
+        xStart[0] = 0;
+        xStart[1] = (float)width - 2;
+        xStart[2] = (float)width - 1;
+        xStart[3] = 1;
+        yStart[0] = (float)height - 1;
+        yStart[1] = (float)height - 1;
+        yStart[2] = 0;
+        yStart[3] = 0;
+        xScreenStart[0] = -(float)width / 2;
+        xScreenStart[1] = (float)width / 2 - top_screenincr;
+        xScreenStart[2] = (float)width / 2;
+        xScreenStart[3] = -(float)width / 2 - bot_screenincr;
+        yScreenStart[0] = (float)(height - 1) / 2;
+        yScreenStart[1] = (float)(height - 1) / 2;
+        yScreenStart[2] = -(float)(height - 1) / 2;
+        yScreenStart[3] = -(float)(height - 1) / 2;
+    }
+
+    if (IsLtoR) {
+        // L to R
+        if (isBotToTop) {
+            // Bottom left
+            if (dir == 1.0) {
+                // CW
+                indexes[0] = 0;
+                indexes[1] = 1;
+                indexes[2] = 2;
+                indexes[3] = 3;
+            }
+            else {
+                // CCW
+                indexes[0] = 3;
+                indexes[1] = 2;
+                indexes[2] = 1;
+                indexes[3] = 0;
+            }
+        }
+        else {
+            // Top left
+            if (dir == 1.0) {
+                // CW
+                indexes[0] = 1;
+                indexes[1] = 2;
+                indexes[2] = 3;
+                indexes[3] = 0;
+            }
+            else {
+                // CCW
+                indexes[0] = 0;
+                indexes[1] = 3;
+                indexes[2] = 2;
+                indexes[3] = 1;
+            }
+        }
+    }
+    else {
+        // R to L
+        if (isBotToTop) {
+            // Bottom right
+            if (dir == 1.0) {
+                // CW
+                indexes[0] = 3;
+                indexes[1] = 0;
+                indexes[2] = 1;
+                indexes[3] = 2;
+            }
+            else {
+                // CCW
+                indexes[0] = 2;
+                indexes[1] = 1;
+                indexes[2] = 0;
+                indexes[3] = 3;
+            }
+        }
+        else {
+            // Top right
+            if (dir == 1.0) {
+                // CW
+                indexes[0] = 2;
+                indexes[1] = 3;
+                indexes[2] = 0;
+                indexes[3] = 1;
+            }
+            else {
+                // CCW
+                indexes[0] = 1;
+                indexes[1] = 0;
+                indexes[2] = 3;
+                indexes[3] = 2;
+            }
+        }
+    }
+
+    int side = 0;
+    while (lengths[indexes[side]] == 0) side++;
+
+    float x = xStart[indexes[side]];
+    float y = yStart[indexes[side]];
+    float screenx = xScreenStart[indexes[side]];
+    float screeny = yScreenStart[indexes[side]];
+    int curLen = lengths[indexes[side]];
 
     size_t NodeCount = GetNodeCount();
-    for(size_t n = 0; n < NodeCount; n++) {
+    for (size_t n = 0; n < NodeCount; n++) {
+        wxASSERT(curLen > 0);
         Nodes[n]->ActChan = chan;
         chan += ChanIncr;
-        size_t CoordCount = GetCoordCount(n);
-        for (size_t c = 0; c < CoordCount; c++) {
+        size_t coordCount = GetCoordCount(n);
+        wxASSERT(coordCount == 1); // only one coord supported by this code
+        for (size_t c = 0; c < coordCount; c++) {
             Nodes[n]->Coords[c].bufX = x;
             Nodes[n]->Coords[c].bufY = y;
             Nodes[n]->Coords[c].screenX = screenx;
-            Nodes[n]->Coords[c].screenY = y - yoffset;
-            float new_screenx = screenx + (screenxincr[start] * dir);
-            int newx = x + xincr[start] * dir;
-            int newy = y + yincr[start] * dir;
-            if (newx < 0 || newx >= width || newy < 0 || newy >= height) {
-                // move to the next side
-                start = (int)(4 + start + dir) % 4;
-                if ((start == 1 && top == 0) ||
-                    (start == 3 && bottom == 0) ||
-                    (left == 0 && (start == 0 || start == 2)))
-                {
-                    // skip over zero pixel sides
-                    start = (int)(4 + start + dir) % 4;
-                    switch(start)
-                    {
-                    case 0: // left
-                        newx = 0;
-                        if (dir == 1)
-                        {
-                            newy = 0;
-                            new_screenx = screenx + screenxincr[3];
-                        }
-                        else
-                        {
-                            newy = height - 1;
-                            new_screenx = screenx - screenxincr[1];
-                        }
-                        break;
-                    case 1: // top
-                        newy = height - 1;
-                        if (dir == 1)
-                        {
-                            newx = 0;
-                        }
-                        else
-                        {
-                            newx = width - 1;
-                        }
-                        break;
-                    case 2: // right
-                        newx = width - 1;
-                        if (dir == 1)
-                        {
-                            newy = height - 1;
-                            new_screenx = screenx + screenxincr[1];
-                        }
-                        else
-                        {
-                            newy = 0;
-                            new_screenx = screenx - screenxincr[3];
-                        }
-                        break;
-                    case 3: // bottom
-                        newy = 0;
-                        if (dir == 1)
-                        {
-                            newx = width - 1;
-                        }
-                        else
-                        {
-                            newx = 0;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                }
-                else
-                {
-                    newx = x + xincr[start] * dir;
-                    newy = y + yincr[start] * dir;
-                    new_screenx = screenx + (screenxincr[start] * dir);
-                }
+            Nodes[n]->Coords[c].screenY = screeny;
+        }
+        screenx = screenx + (xscreenincr[indexes[side]] * dir);
+        screeny = screeny + (yscreenincr[indexes[side]] * dir);
+        x = x + xincr[indexes[side]] * dir;
+        y = y + yincr[indexes[side]] * dir;
+        curLen--;
+        if (curLen <= 0) {
+            side++;
+            if (side >= 4) side = 0;
+            while (lengths[indexes[side]] == 0) {
+                side++;
+                if (side >= 4) side = 0;
             }
-            x = newx;
-            y = newy;
-            screenx = new_screenx;
+            x = xStart[indexes[side]];
+            y = yStart[indexes[side]];
+            screenx = xScreenStart[indexes[side]];
+            screeny = yScreenStart[indexes[side]];
+            curLen = lengths[indexes[side]];
         }
     }
 }

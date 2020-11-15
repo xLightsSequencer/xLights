@@ -27,6 +27,7 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        void GetCoordinates(int side, bool clockwise, bool LtoR, bool TtoB, float& x, float& y, float& screenx, float& screeny);
 
     private:
         void InitFrame();
