@@ -458,8 +458,8 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 	int startvalue = endparamname + 2;
 	int endvalue = parametervalue.find(",", startvalue) - 1;
 	wxString file = parametervalue.SubString(startvalue, endvalue);
-	wxString newfile = FixFile(ShowDir, UnXmlSafe(file));
-	wxString rc = parametervalue.Left(startvalue) + XmlSafe(newfile) + parametervalue.Right(parametervalue.Length() - endvalue - 1);
+	wxString newfile = FixFile(ShowDir, file);
+	wxString rc = parametervalue.Left(startvalue) + newfile + parametervalue.Right(parametervalue.Length() - endvalue - 1);
 	return rc;
 }
 
