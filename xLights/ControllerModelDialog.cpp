@@ -103,6 +103,8 @@ wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxBrush __modelSRBBrush(__lightPurple);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
 wxBrush __modelSRCBrush(__lightOrange);
+wxPen __backgroundPen(*wxWHITE);
+wxBrush __backgroundBrush(*wxWHITE);
 #pragma endregion
 
 #pragma region Object Classes
@@ -141,6 +143,11 @@ public:
         _scale = scale;
         _invalid = false;
     }
+    void SetLocationY(int y)
+    {
+        _location = wxPoint(_location.x, y);
+    }
+    int GetDisplayWidth() const { return _size.GetWidth(); }
     virtual ~BaseCMObject() {}
     void SetInvalid(bool invalid) { _invalid = invalid; }
     HITLOCATION GetOver() const { return _over; }
@@ -163,7 +170,7 @@ public:
     bool BelowHitYTest(wxPoint mouse) {
         return (mouse.y < _location.y);
     }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) = 0;
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
     virtual bool HandlePopup(wxWindow* parent, int id) { return false; }
@@ -245,7 +252,7 @@ public:
     PORTTYPE GetPortType() const { return _type; }
     int GetPort() const { return _port; }
     virtual std::string GetType() const override { return "PORT"; }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
@@ -449,7 +456,7 @@ public:
     bool IsMain() const { return _main; }
     bool IsOutline() const { return _outline; }
     virtual std::string GetType() const override { return "MODEL"; }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
@@ -490,7 +497,7 @@ public:
         if (_dragging && !printing) {
             dc.SetBrush(wxColour(255, 255, 128));
         }
-        else if (HitTest(mouse) != HITLOCATION::NONE && !printing) {
+        else if (mouse.x > portMargin && HitTest(adjustedMouse) != HITLOCATION::NONE && !printing) {
             _outline = true;
             dc.SetPen(wxPen(dc.GetPen().GetColour(), 3));
         }
@@ -701,27 +708,29 @@ public:
         wxPoint mouse(x, y);
         mouse +=_owner->GetScrollPosition(_target);
 
+        int portMargin = _objects->front()->GetRect().GetRight() + 2;
+
         for (const auto& it : *_objects) {
+            it->SetOver(BaseCMObject::HITLOCATION::NONE);
             auto m = dynamic_cast<ModelCMObject*>(it);
-            if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m) && (m == nullptr || m->IsMain())) {
+            // we can only be over a model if we are to the right of the port labels
+            if (x > portMargin && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m) && (m == nullptr || m->IsMain())) {
                 it->SetOver(it->HitTest(mouse));
-                _owner->Draw(_target, it, mouse);
                 res  = wxDragMove;
+                port = nullptr;
             }
-            else if (it->GetType() == "PORT" && it->HitYTest(mouse)) {
+            else if (it->GetType() == "PORT" && it->HitYTest(wxPoint(x, y + _owner->GetScrollPosition(_target).y))) {
                 port = it;
-            }
-            else if (it->GetOver() != BaseCMObject::HITLOCATION::NONE) {
-                it->SetOver(BaseCMObject::HITLOCATION::NONE);
-                _owner->Draw(_target, it, wxPoint(LEFT_RIGHT_MARGIN + 5, y));
             }
         }
 
         if (res == wxDragNone && port != nullptr) {
             port->SetOver(BaseCMObject::HITLOCATION::RIGHT);
-            _owner->Draw(_target, port, wxPoint(LEFT_RIGHT_MARGIN + 5, y));
             res = wxDragMove;
         }
+
+        _target->Refresh();
+
         return res;
     }
 
@@ -940,6 +949,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
 	//*)
 
+    PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
     Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnKeyDown, 0, this);
     TextCtrl_Check->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
     CheckBox_HideOtherControllerModels->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
@@ -1053,6 +1065,23 @@ ControllerModelDialog::~ControllerModelDialog() {
 	//*)
 }
 
+bool ModelSortName(const BaseCMObject* first, const BaseCMObject* second)
+{
+    auto mm1 = dynamic_cast<const ModelCMObject*>(first);
+    auto mm2 = dynamic_cast<const ModelCMObject*>(second);
+
+    if (mm1 == nullptr || mm2 == nullptr)         {
+        return first->GetType() < second->GetType();
+    }
+
+    wxString m1 = mm1->GetName();
+    m1.LowerCase();
+    wxString m2 = mm2->GetName();
+    m2.LowerCase();
+
+    return NumberAwareStringCompare(m1, m2) < 0;
+}
+
 void ControllerModelDialog::ReloadModels()
 {
     _cud->Rescan(true);
@@ -1074,18 +1103,25 @@ void ControllerModelDialog::ReloadModels()
 
     FixDMXChannels();
 
-    int y = TOP_BOTTOM_MARGIN;
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
-                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
-                y += VERTICAL_GAP + VERTICAL_SIZE;
+                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
             }
         }
     }
+
+    _models.sort(ModelSortName);
+
+    int y = TOP_BOTTOM_MARGIN;
+    for (auto it : _models) {
+        it->SetLocationY(y);
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
+
     _scale = (Slider_Box_Scale->GetValue() / 10.0);
     _modelsy = y;
 
@@ -1283,7 +1319,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     for (const auto& it : _controllers) {
         if (it->GetRect().GetY()> startY && it->GetRect().GetY() < endY &&
             it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-            it->Draw(dc, wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true);
+            it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true);
         }
     }
 
@@ -1432,7 +1468,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetControllerName(_controller->GetName());
             }
 
-            auto ob = GetControllerCMObjectAt(location);
+            auto ob = GetControllerToDropOn();
             ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
             BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
             if (ob != nullptr) hit = ob->HitTest(location);
@@ -1554,6 +1590,13 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
         logger_base.debug("   onto the models pane ... so remove the model from the controller.");
         // Removing a model from the controller
         if (_autoLayout) {
+
+            // get the model after this model
+            Model* nextFrom = _cud->GetModelAfter(m);
+            if (nextFrom != nullptr) {
+                nextFrom->SetModelChain(m->GetModelChain());
+            }
+
             m->SetControllerName("");
             m->SetModelChain("");
         }
@@ -1589,12 +1632,15 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 m->SetControllerName(_controller->GetName());
             }
 
-            auto ob = GetControllerCMObjectAt(location);
+            auto ob = GetControllerToDropOn();
             ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
             BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
             if (ob != nullptr) hit = ob->HitTest(location);
 
-            if (mob == nullptr || !mob->IsMain()) {
+            if (mob != nullptr && mob->GetModel() == m)                 {
+                // dropped onto ourselves ... nothing to do
+            }
+            else if (mob == nullptr || !mob->IsMain()) {
                 logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
 
                 // dropped on a port .. or not on the first string of a model
@@ -1741,7 +1787,12 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
 
 void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 {
+    int portMargin = _controllers.front()->GetRect().GetRight() + 2;
+
     wxPoint mouse = event.GetPosition();
+
+    if (mouse.x < portMargin) return;
+
     mouse += GetScrollPosition(PanelController);
 
     for (const auto& it : _controllers) {
@@ -1753,7 +1804,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 wxBitmap bmp(32, 32);
                 wxMemoryDC dc;
                 dc.SelectObject(bmp);
-                it->Draw(dc, wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false);
+                it->Draw(dc, portMargin, wxPoint(-4,-4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false);
 
 #ifdef __linux__
                 wxIcon dragCursor;
@@ -1797,55 +1848,73 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
     mouse += GetScrollPosition(PanelController);
 
     if (_dragging != nullptr) {
+
+        bool handled = false;
+        // handle ports first
         for (const auto& it : _controllers) {
-            auto hit = it->HitTest(mouse);
-            if (hit != BaseCMObject::HITLOCATION::NONE) {
-                if (it->GetType() == "PORT") {
+            if (it->GetType() == "PORT") {
+                auto hit = it->HitTest(mouse);
+                if (hit != BaseCMObject::HITLOCATION::NONE) {
+                    handled = true;
                     it->SetOver(BaseCMObject::HITLOCATION::RIGHT);
                     wxRect rect = it->GetRect();
                     rect.Offset(-1 * GetScrollPosition(PanelController));
                     PanelController->RefreshRect(rect);
                 }
                 else {
+                    ClearOver(PanelController, _controllers);
+                }
+            }
+        }
+
+        // now models if not handled
+        for (const auto& it : _controllers) {
+            if (it->GetType() != "PORT") {
+                auto hit = it->HitTest(mouse);
+                if (!handled && hit != BaseCMObject::HITLOCATION::NONE) {
                     if (it->GetOver() != hit) {
                         it->SetOver(hit);
                         wxRect rect = it->GetRect();
                         rect.Offset(-1 * GetScrollPosition(PanelController));
                         PanelController->RefreshRect(rect);
                     }
-                }
             }
-            else {
-                ClearOver(PanelController, _controllers);
+                else {
+                    ClearOver(PanelController, _controllers);
+                }
             }
         }
     }
     else {
         std::string tt = "";
-        for (const auto& it : _controllers) {
-            bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
-            auto m = dynamic_cast<ModelCMObject*>(it);
-            if (ishit || (m != nullptr && m->IsOutline())) {
-                wxRect rect = it->GetRect();
-                rect.Offset(-1 * GetScrollPosition(PanelController));
-                PanelController->RefreshRect(rect);
-                if (ishit) {
-                    if (m != nullptr) {
-                        tt = GetModelTooltip(m);
+
+        if (event.GetPosition().x < _controllers.front()->GetRect().GetRight() + 2)             {
+            for (const auto& it : _controllers) {
+                if (it->GetType() == "PORT") {
+                    if (it->HitYTest(mouse)) {
+                        auto port = dynamic_cast<PortCMObject*>(it);
+                        if (port != nullptr) {
+                            tt = GetPortTooltip(port->GetUDPort(), port->GetVirtualStringFromMouse(mouse));
+                        }
+                        break;
                     }
                 }
             }
         }
-
-        if (tt == "") {
+        else {
             for (const auto& it : _controllers) {
-                if (it->HitYTest(mouse))
-                {
-                    auto port = dynamic_cast<PortCMObject*>(it);
-                    if (port != nullptr)                         {
-                        tt = GetPortTooltip(port->GetUDPort(), port->GetVirtualStringFromMouse(mouse));
+                bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
+                auto m = dynamic_cast<ModelCMObject*>(it);
+                if (ishit || (m != nullptr && m->IsOutline())) {
+                    wxRect rect = it->GetRect();
+                    rect.Offset(-1 * GetScrollPosition(PanelController));
+                    PanelController->RefreshRect(rect);
+                    if (ishit) {
+                        if (m != nullptr) {
+                            tt = GetModelTooltip(m);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -2094,13 +2163,14 @@ wxPoint ControllerModelDialog::GetScrollPosition(wxPanel* panel) const
 void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 {
     wxPoint mouse = event.GetPosition();
-    mouse += GetScrollPosition(PanelController);
+    wxPoint adjustedMouse = mouse + GetScrollPosition(PanelController);
+    mouse += wxPoint(0, GetScrollPosition(PanelController).y);
 
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
 
-    BaseCMObject* cm = GetControllerCMObjectAt(mouse);
+    BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);
     if (cm != nullptr) {
         cm->AddRightClickMenu(mnu);
     }
@@ -2112,8 +2182,11 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
 {
-    //wxAutoBufferedPaintDC dc(PanelController);
-    wxPaintDC dc(PanelController);
+    wxAutoBufferedPaintDC dc(PanelController);
+
+    dc.SetPen(__backgroundPen);
+    dc.SetBrush(__backgroundBrush);
+    dc.DrawRectangle(0, 0, PanelController->GetSize().GetWidth(), PanelController->GetSize().GetHeight());
 
     int xOffset = ScrollBar_Controller_H->GetThumbPosition();
     int yOffset = ScrollBar_Controller_V->GetThumbPosition();
@@ -2121,32 +2194,30 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     dc.SetDeviceOrigin(-xOffset, -yOffset);
 
     wxPoint mouse = PanelController->ScreenToClient(wxGetMousePosition());
-    mouse += GetScrollPosition(PanelController);
+    wxPoint adjustedMouse = mouse + GetScrollPosition(PanelController);
+    mouse += wxPoint(0, GetScrollPosition(PanelController).y);
+    int portMargin = _controllers.front()->GetRect().GetRight() + 2;
 
     wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
+    // draw the models first
     for (const auto& it : _controllers) {
-        it->Draw(dc, mouse, wxSize(0,0), 1, false);
+        if (it->GetType() != "PORT") {
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false);
+        }
     }
-}
 
-void ControllerModelDialog::Draw(wxPanel* panel, BaseCMObject* object, wxPoint mouse)
-{
-    wxClientDC dc(panel);
-
-    int xOffset = ScrollBar_Controller_H->GetThumbPosition();
-    int yOffset = ScrollBar_Controller_V->GetThumbPosition();
-
-    if (panel == PanelModels) {
-        xOffset = 0;
-        yOffset = ScrollBar_Models->GetThumbPosition();
+    // now undo the offset and draw the ports
+    dc.SetDeviceOrigin(0, -yOffset);
+    dc.SetPen(__backgroundPen);
+    dc.SetBrush(__backgroundBrush);
+    dc.DrawRectangle(0,0, _controllers.front()->GetRect().GetRight() + 2, PanelController->GetSize().GetHeight());
+    for (const auto& it : _controllers) {
+        if (it->GetType() == "PORT") {
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false);
+        }
     }
-    dc.SetDeviceOrigin(-xOffset, -yOffset);
-    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
-    dc.SetFont(font);
-
-    object->Draw(dc, mouse, wxSize(0, 0), 1, false);
 }
 
 void ControllerModelDialog::OnScrollBar_Controller_HScroll(wxScrollEvent& event) {
@@ -2190,8 +2261,11 @@ void ControllerModelDialog::OnScrollBar_ModelsScrollChanged(wxScrollEvent& event
 
 void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 {
-    //wxAutoBufferedPaintDC dc(PanelModels);
-    wxPaintDC dc(PanelModels);
+    wxAutoBufferedPaintDC dc(PanelModels);
+
+    dc.SetPen(__backgroundPen);
+    dc.SetBrush(__backgroundBrush);
+    dc.DrawRectangle(0, 0, PanelModels->GetSize().GetWidth(), PanelModels->GetSize().GetHeight());
 
     int yOffset = ScrollBar_Models->GetThumbPosition();
 
@@ -2203,7 +2277,7 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
     dc.SetFont(font);
 
     for (const auto& it : _models) {
-        it->Draw(dc, mouse, wxSize(0, 0), 1, false);
+        it->Draw(dc, 0, mouse, mouse, wxSize(0, 0), 1, false);
     }
 }
 
@@ -2236,6 +2310,7 @@ void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
 
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
     wxPoint mouse = event.GetPosition();
+
     mouse += GetScrollPosition(PanelModels);
 
     for (const auto& it : _models) {
@@ -2245,7 +2320,7 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
             wxBitmap bmp(32,32);
             wxMemoryDC dc;
             dc.SelectObject(bmp);
-            it->Draw(dc, wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false);
+            it->Draw(dc, 0, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false);
 
 #ifdef __linux__
             wxIcon dragCursor;
@@ -2378,9 +2453,32 @@ void ControllerModelDialog::OnPanelControllerResize(wxSizeEvent& event) {
 }
 #pragma endregion
 
-BaseCMObject* ControllerModelDialog::GetControllerCMObjectAt(wxPoint mouse) {
+// gets the object which has its highlight set
+BaseCMObject* ControllerModelDialog::GetControllerToDropOn()
+{
     for (const auto& it : _controllers) {
-        if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) return it;
+        if (it->GetOver() != BaseCMObject::HITLOCATION::NONE)             {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+BaseCMObject* ControllerModelDialog::GetControllerCMObjectAt(wxPoint mouse, wxPoint adjustedMouse) {
+
+    // look for ports first
+    for (const auto& it : _controllers) {
+        if (it->GetType() == "PORT") {
+            if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) return it;
+        }
+    }
+
+    // if in the port region and nothing found then we hit nothing
+    if (mouse.x < _controllers.front()->GetRect().GetRight() + 2) return nullptr;
+
+    // now any match will do
+    for (const auto& it : _controllers) {
+        if (it->HitTest(adjustedMouse) != BaseCMObject::HITLOCATION::NONE) return it;
     }
     return nullptr;
 }

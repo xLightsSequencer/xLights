@@ -79,7 +79,8 @@ class ControllerModelDialog: public wxDialog
 	double _scale = 1;
 	#pragma endregion
 
-	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
+	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse, wxPoint adjustedMouse);
+	BaseCMObject* GetControllerToDropOn();
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
 	PortCMObject* GetControllerPortAtLocation(wxPoint mouse);
 	void ReloadModels();
@@ -127,7 +128,6 @@ class ControllerModelDialog: public wxDialog
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
 		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
-		void Draw(wxPanel* panel, BaseCMObject* object, wxPoint mouse);
 		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
 		wxPoint GetScrollPosition(wxPanel* panel) const;
 
