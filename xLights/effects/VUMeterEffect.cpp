@@ -582,7 +582,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 
 	// We limit bars to the width of the model in some effects
 	int usebars = bars;
-    if (nType == RenderType::TIMING_EVENT_JUMP || nType == RenderType::TIMING_EVENT_PULSE || nType == RenderType::TIMING_EVENT_JUMP_100)
+    if (nType == RenderType::TIMING_EVENT_JUMP || nType == RenderType::TIMING_EVENT_PULSE || nType == RenderType::TIMING_EVENT_PULSE_COLOR || nType == RenderType::TIMING_EVENT_JUMP_100)
     {
         // dont limit
     }

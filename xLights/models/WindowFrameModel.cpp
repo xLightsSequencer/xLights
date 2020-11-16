@@ -114,7 +114,7 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 // parm3=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
 
@@ -355,7 +355,7 @@ void WindowFrameModel::InitFrame()
         for (size_t c = 0; c < coordCount; c++) {
             Nodes[n]->Coords[c].bufX = (dir == 1.0 ? std::floor(x) : std::ceil(x));
             Nodes[n]->Coords[c].bufY = y;
-            logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+            //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
             Nodes[n]->Coords[c].screenX = screenx;
             Nodes[n]->Coords[c].screenY = screeny;
         }
