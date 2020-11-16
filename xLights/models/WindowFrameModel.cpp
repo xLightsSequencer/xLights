@@ -15,6 +15,8 @@
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 
+#include <log4cpp/Category.hh>
+
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     rotation = (node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
@@ -112,6 +114,8 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 // parm3=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
 
     int left = parm2;
@@ -131,42 +135,130 @@ void WindowFrameModel::InitFrame()
 
     float dir = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 1.0 : -1.0;
 
-    float top_screenincr = (float)(width) / (float)(top + 1.0);
-    float bot_screenincr = -1.0 * (float)(width) / (float)(bottom + 1.0);
-    float top_incr = (float)(width-1) / (float)(top + 1.0);
-    float bot_incr = -1.0 * (float)(width-1) / (float)(bottom + 1.0);
+    int wadj = 0;
+    int hadj = 0;
+    if (dir == -1) {
+        if ((isBotToTop && IsLtoR) || (!isBotToTop && !IsLtoR)) {
+            wadj = 2;
+            hadj = -2;
+        }
+    }
+    else         {
+        if ((!isBotToTop && IsLtoR) || (isBotToTop && !IsLtoR)) {
+            wadj = 2;
+            hadj = -2;
+        }
+    }
+
+    float top_screenincr = 1;
+    if (top + wadj - 1 != 0) top_screenincr = (float)(width) / (float)(top + 1);
+    float bot_screenincr = 1;
+    if (bottom + wadj - 1  != 0) bot_screenincr = -1.0 * (float)(width) / (float)(bottom + 1);
+
+    float top_incr = 1;
+    if (top == 0) top_incr = width - 1;
+    else if (top + wadj + 1 != 0) top_incr = (float)(width + wadj) / (float)(top + wadj + 1);
+    
+    float bot_incr = 1;
+    if (bottom == 0) bot_incr = -(width - 1);
+    else if (bottom + wadj + 1 != 0) bot_incr = -1.0 * (float)(width + wadj) / (float)(bottom + wadj + 1);
+
     wxASSERT(top_incr >= 1.0);
     wxASSERT(bot_incr <= -1.0);
 
-    int lengths[] = { left, top, left, bottom };
+    int lengths[] = { left + hadj, top + wadj, left + hadj , bottom + wadj };
     float xscreenincr[] = { 0, top_screenincr, 0, bot_screenincr };
     float yscreenincr[] = { 1, 0, -1, 0 };
     float xincr[] = { 0, top_incr, 0, bot_incr };
     float yincr[] = { 1, 0, -1, 0 };
-    float xStart[] = { 0, 1, (float)width - 1, (float)width - 2 };
-    float yStart[] = { 0, (float)height - 1, (float)height - 1, 0 };
-    float xScreenStart[] = { -(float)width / 2, -(float)width / 2 + top_screenincr, (float)width / 2, (float)width / 2 + bot_screenincr };
-    float yScreenStart[] = { -(float)(height-1) / 2, (float)(height-1) / 2, (float)(height-1) / 2, -(float)(height-1) / 2 };
-
+    float xStart[4];
+    float yStart[4];
+    float xScreenStart[4];
+    float yScreenStart[4];
+    
     int indexes[] = { 0, 1, 2, 3 };
 
     if (dir == -1) {
-        xStart[0] = 0;
-        xStart[1] = (float)width - 2;
-        xStart[2] = (float)width - 1;
-        xStart[3] = 1;
-        yStart[0] = (float)height - 1;
-        yStart[1] = (float)height - 1;
-        yStart[2] = 0;
-        yStart[3] = 0;
-        xScreenStart[0] = -(float)width / 2;
-        xScreenStart[1] = (float)width / 2 - top_screenincr;
-        xScreenStart[2] = (float)width / 2;
-        xScreenStart[3] = -(float)width / 2 - bot_screenincr;
-        yScreenStart[0] = (float)(height - 1) / 2;
-        yScreenStart[1] = (float)(height - 1) / 2;
-        yScreenStart[2] = -(float)(height - 1) / 2;
-        yScreenStart[3] = -(float)(height - 1) / 2;
+        // handle bottom left and top right differently
+        if ((isBotToTop && IsLtoR) || (!isBotToTop && !IsLtoR)) {
+            xStart[0] = 0;
+            xStart[1] = (float)width - 1;
+            xStart[2] = (float)width - 1;
+            xStart[3] = 0;
+            yStart[0] = (float)height - 2;
+            yStart[1] = (float)height - 1;
+            yStart[2] = 1;
+            yStart[3] = 0;
+
+            xScreenStart[0] = -(float)(width) / 2.0;
+            xScreenStart[1] = (float)(width) / 2.0;
+            xScreenStart[2] = xScreenStart[1];
+            xScreenStart[3] = xScreenStart[0];
+            yScreenStart[0] = (float)(height - 1) / 2.0 - 1.0;
+            yScreenStart[1] = (float)(height - 1) / 2.0;
+            yScreenStart[2] = -(float)(height - 1) / 2.0 + 1.0;
+            yScreenStart[3] = -(float)(height - 1) / 2.0;
+        }
+        else             {
+            xStart[0] = 0;
+            xStart[1] = (float)width - 2;
+            xStart[2] = (float)width - 1;
+            xStart[3] = 1;
+            yStart[0] = (float)height - 1;
+            yStart[1] = (float)height - 1;
+            yStart[2] = 0;
+            yStart[3] = 0;
+
+            xScreenStart[0] = -(float)(width) / 2.0;
+            xScreenStart[1] = (float)(width) / 2.0 - top_screenincr;
+            xScreenStart[2] = (float)(width) / 2.0;
+            xScreenStart[3] = xScreenStart[0] - bot_screenincr;
+            yScreenStart[0] = (float)(height - 1) / 2.0;
+            yScreenStart[1] = (float)(height - 1) / 2.0;
+            yScreenStart[2] = -(float)(height - 1) / 2.0;
+            yScreenStart[3] = -(float)(height - 1) / 2.0;
+        }
+    }
+    else         {
+        // handle top left and bottom right differently
+        if ((!isBotToTop && IsLtoR) || (isBotToTop && !IsLtoR)) {
+            xStart[0] = 0;
+            xStart[1] = 0;
+            xStart[2] = (float)width - 1;
+            xStart[3] = (float)width - 1;
+            yStart[0] = 1;
+            yStart[1] = (float)height - 1;
+            yStart[2] = (float)height - 2;
+            yStart[3] = 0;
+
+            xScreenStart[0] = -(float)(width) / 2.0;
+            xScreenStart[1] = xScreenStart[0];
+            xScreenStart[2] = (float)(width) / 2.0;
+            xScreenStart[3] = xScreenStart[2];
+            yScreenStart[0] = -(float)(height - 1) / 2.0 + 1;
+            yScreenStart[1] = (float)(height - 1) / 2.0;
+            yScreenStart[2] = (float)(height - 1) / 2.0 - 1;
+            yScreenStart[3] = -(float)(height - 1) / 2.0;
+        }
+        else {
+            xStart[0] = 0;
+            xStart[1] = 1;
+            xStart[2] = (float)width - 1;
+            xStart[3] = (float)width - 2;
+            yStart[0] = 0;
+            yStart[1] = (float)height - 1;
+            yStart[2] = (float)height - 1;
+            yStart[3] = 0;
+
+            xScreenStart[0] = -(float)width / 2;
+            xScreenStart[1] = -(float)width / 2 + top_screenincr;
+            xScreenStart[2] = (float)width / 2;
+            xScreenStart[3] = (float)width / 2 + bot_screenincr;
+            yScreenStart[0] = -(float)(height - 1) / 2;
+            yScreenStart[1] = (float)(height - 1) / 2;
+            yScreenStart[2] = (float)(height - 1) / 2;
+            yScreenStart[3] = -(float)(height - 1) / 2;
+        }
     }
 
     if (IsLtoR) {
@@ -261,8 +353,9 @@ void WindowFrameModel::InitFrame()
         size_t coordCount = GetCoordCount(n);
         wxASSERT(coordCount == 1); // only one coord supported by this code
         for (size_t c = 0; c < coordCount; c++) {
-            Nodes[n]->Coords[c].bufX = x;
+            Nodes[n]->Coords[c].bufX = (dir == 1.0 ? std::floor(x) : std::ceil(x));
             Nodes[n]->Coords[c].bufY = y;
+            logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
             Nodes[n]->Coords[c].screenX = screenx;
             Nodes[n]->Coords[c].screenY = screeny;
         }
