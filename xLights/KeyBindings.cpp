@@ -195,7 +195,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("F9"), false, _("SELECT_SHOW_FOLDER")),
     KeyBinding(_(""), true, _("LIGHTS_TOGGLE")),
     KeyBinding(_("o"), false, _("OPEN_SEQUENCE"), true),
-    KeyBinding(_(""), true, _("CLOSE_SEQUENCE")),
+    KeyBinding(_("w"), false, _("CLOSE_SEQUENCE"), true),
     KeyBinding(_("n"), false, _("NEW_SEQUENCE"), true),
     KeyBinding(_(""), true, _("RENDER_ALL")),
     KeyBinding(_(""), true, _("PASTE_BY_CELL")),
