@@ -528,6 +528,7 @@
 		67FC881323D743F100D457CB /* EffectsGridSettingsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FC881123D743F000D457CB /* EffectsGridSettingsPanel.cpp */; };
 		67FC881623D7688300D457CB /* RandomEffectsSettingsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FC881423D7688300D457CB /* RandomEffectsSettingsPanel.cpp */; };
 		67FC881923D7751600D457CB /* ColorManagerSettingsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FC881723D7751600D457CB /* ColorManagerSettingsPanel.cpp */; };
+		67FCB9B42560C78D008CEC51 /* DmxGeneral.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FCB9B32560C78D008CEC51 /* DmxGeneral.cpp */; };
 		67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
@@ -1496,6 +1497,8 @@
 		67FC881523D7688300D457CB /* RandomEffectsSettingsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RandomEffectsSettingsPanel.h; sourceTree = "<group>"; };
 		67FC881723D7751600D457CB /* ColorManagerSettingsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorManagerSettingsPanel.cpp; sourceTree = "<group>"; };
 		67FC881823D7751600D457CB /* ColorManagerSettingsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorManagerSettingsPanel.h; sourceTree = "<group>"; };
+		67FCB9B22560C78D008CEC51 /* DmxGeneral.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxGeneral.h; sourceTree = "<group>"; };
+		67FCB9B32560C78D008CEC51 /* DmxGeneral.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxGeneral.cpp; sourceTree = "<group>"; };
 		67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FadeExcludeDialog.cpp; sourceTree = "<group>"; };
 		67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FadeExcludeDialog.h; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
@@ -1735,40 +1738,42 @@
 		67503C4E23C3261F0033449B /* DMX */ = {
 			isa = PBXGroup;
 			children = (
-				673ED25123E1C27C00C07472 /* DmxSkull.cpp */,
-				673ED25023E1C27B00C07472 /* DmxSkull.h */,
-				673ED25223E1C27C00C07472 /* SkullConfigDialog.cpp */,
-				673ED24F23E1C27B00C07472 /* SkullConfigDialog.h */,
-				67367C7323DDD80E00B185E2 /* ServoConfigDialog.cpp */,
-				67367C7223DDD80E00B185E2 /* ServoConfigDialog.h */,
-				67BB68E923CE2084002C5483 /* Servo.cpp */,
-				67BB68EA23CE2084002C5483 /* Servo.h */,
+				67503C5223C3261F0033449B /* DmxColorAbility.cpp */,
+				67503C5A23C3261F0033449B /* DmxColorAbility.h */,
 				6716574223CAAA45000B47D3 /* DmxFloodArea.cpp */,
 				6716574023CAAA45000B47D3 /* DmxFloodArea.h */,
+				67503C5323C3261F0033449B /* DmxFloodlight.cpp */,
+				67503C5C23C3261F0033449B /* DmxFloodlight.h */,
+				67FCB9B32560C78D008CEC51 /* DmxGeneral.cpp */,
+				67FCB9B22560C78D008CEC51 /* DmxGeneral.h */,
 				6716573E23CAAA44000B47D3 /* DmxImage.cpp */,
 				6716574523CAAA45000B47D3 /* DmxImage.h */,
+				67503C5623C3261F0033449B /* DmxModel.cpp */,
+				67503C5723C3261F0033449B /* DmxModel.h */,
+				67503C5423C3261F0033449B /* DmxMovingHead.cpp */,
+				67503C5B23C3261F0033449B /* DmxMovingHead.h */,
+				67503C5123C3261F0033449B /* DmxMovingHead3D.cpp */,
+				67503C5823C3261F0033449B /* DmxMovingHead3D.h */,
+				67503C4F23C3261F0033449B /* DmxPanTiltAbility.cpp */,
+				67503C5023C3261F0033449B /* DmxPanTiltAbility.h */,
 				6716573D23CAAA44000B47D3 /* DmxServo.cpp */,
 				6716574323CAAA45000B47D3 /* DmxServo.h */,
 				6716574123CAAA45000B47D3 /* DmxServo3D.cpp */,
 				6716574423CAAA45000B47D3 /* DmxServo3D.h */,
-				6716574623CAAA45000B47D3 /* Mesh.cpp */,
-				6716573F23CAAA44000B47D3 /* Mesh.h */,
 				675CA16623C93FBE007432C6 /* DmxShutterAbility.cpp */,
 				675CA16723C93FBE007432C6 /* DmxShutterAbility.h */,
-				67503C4F23C3261F0033449B /* DmxPanTiltAbility.cpp */,
-				67503C5023C3261F0033449B /* DmxPanTiltAbility.h */,
-				67503C5123C3261F0033449B /* DmxMovingHead3D.cpp */,
-				67503C5223C3261F0033449B /* DmxColorAbility.cpp */,
-				67503C5323C3261F0033449B /* DmxFloodlight.cpp */,
-				67503C5423C3261F0033449B /* DmxMovingHead.cpp */,
-				67503C5523C3261F0033449B /* DmxSkulltronix.h */,
-				67503C5623C3261F0033449B /* DmxModel.cpp */,
-				67503C5723C3261F0033449B /* DmxModel.h */,
-				67503C5823C3261F0033449B /* DmxMovingHead3D.h */,
+				673ED25123E1C27C00C07472 /* DmxSkull.cpp */,
+				673ED25023E1C27B00C07472 /* DmxSkull.h */,
 				67503C5923C3261F0033449B /* DmxSkulltronix.cpp */,
-				67503C5A23C3261F0033449B /* DmxColorAbility.h */,
-				67503C5B23C3261F0033449B /* DmxMovingHead.h */,
-				67503C5C23C3261F0033449B /* DmxFloodlight.h */,
+				67503C5523C3261F0033449B /* DmxSkulltronix.h */,
+				6716574623CAAA45000B47D3 /* Mesh.cpp */,
+				6716573F23CAAA44000B47D3 /* Mesh.h */,
+				67BB68E923CE2084002C5483 /* Servo.cpp */,
+				67BB68EA23CE2084002C5483 /* Servo.h */,
+				67367C7323DDD80E00B185E2 /* ServoConfigDialog.cpp */,
+				67367C7223DDD80E00B185E2 /* ServoConfigDialog.h */,
+				673ED25223E1C27C00C07472 /* SkullConfigDialog.cpp */,
+				673ED24F23E1C27B00C07472 /* SkullConfigDialog.h */,
 			);
 			path = DMX;
 			sourceTree = "<group>";
@@ -3390,6 +3395,7 @@
 				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
 				67B2CF861C39D98A003C17CA /* SnowflakesPanel.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
+				67FCB9B42560C78D008CEC51 /* DmxGeneral.cpp in Sources */,
 				67503CAE23C3261F0033449B /* Model.cpp in Sources */,
 				67503C9423C3261F0033449B /* SingleLineModel.cpp in Sources */,
 				67B2B23A1E1947BE0024F0BB /* TestPreset.cpp in Sources */,

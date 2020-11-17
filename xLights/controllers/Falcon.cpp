@@ -839,7 +839,7 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
 
             for (int i = 0; i < 100; i++)                 {
                 progress->Update(i);
-                Sleep(20000 / 100);
+                std::this_thread::sleep_for(std::chrono::milliseconds(20000 / 100));
             }
         }
 
@@ -862,7 +862,7 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
 
             for (int i = 0; i < 100; i++) {
                 progress->Update(i);
-                Sleep(20000 / 100);
+                std::this_thread::sleep_for(std::chrono::milliseconds(20000 / 100));
             }
         }
 
