@@ -2260,8 +2260,10 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     wxFileInputStream fin(xml_doc);
     FixXMLInputStream bufIn(fin);
 
-    if( !input_xml.Load(bufIn) )  return;
-
+    if (!input_xml.Load(bufIn)) {
+        DisplayError("Problem loading superstar file.");
+        return;
+    }
 
     if (dlg.TimeAdjSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjSpinCtrl->GetValue();
