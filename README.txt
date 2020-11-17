@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.48 November 17 2020
+   -- enh (keith)  Add support for Falcon firmware 2.58
+   -- enh (keith)  On visualiser freeze the port names on the left of the panel when scrolling right
+   -- enh (keith)  On visualise models panel improve model sorting
+   -- enh (keith)  Add a simpler generic DMX model
+   -- enh (keith)  Show DMX channel number on main panel in visualiser
+   -- bug (keith)  Fix issues with window frame model when top and bottom have different numbers of nodes
+   -- bug (keith)  Fix issue removing model from a port in visualiser
+   -- bug (keith)  Fix VU Meter Timing event pulse colour clamps max fade frames to model size
+   -- bug (keith)  Fix xSchedule web site not defaulting correctly to index.html
+   -- bug (scott)  Fix video/picture effect does not store filenames as xml safe
+   -- bug (scott)  Fix FPPD neets restart on outputs upload
+   -- bug (dkulp)  Limit render buffers to 2048 to prevent run away render times
 2020.47 November 8 2020
    -- enh (keith)  Optionally suppress xbkp newer and model missing errors when batch rendering
    -- enh (keith)  Add option to minimise non essential xSchedule UI updates to squeeze out better performance
