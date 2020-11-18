@@ -534,6 +534,10 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
     if (!data.empty()) {
         auto const controlInfo = StringToMap(data);
 
+        //get output type options
+        _outputTypes[0] = wxAtoi(controlInfo.at("A"));
+        _outputTypes[1] = wxAtoi(controlInfo.at("B"));
+        _outputTypes[2] = wxAtoi(controlInfo.at("C"));
         _connected = true;
         _Flex = wxAtoi(controlInfo.at("E"));
 
@@ -602,7 +606,7 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
     }
 
     auto out = outputs.front();
-    int type = 0;
+    int type = 0;//e131=0, ddp=1, artnet=2
     int multi = 0;
     int DDPStart = 0;
     if (out->GetType() == OUTPUT_E131) {

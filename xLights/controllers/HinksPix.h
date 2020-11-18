@@ -84,7 +84,6 @@ public:
 class HinksPix : public BaseController
 {
     #pragma region Member Variables
-    int _inputMode;//e131=0, ddp=1, artnet=2
     int _outputTypes[3];
     int _Flex;
     int _numberOfOutputs;
