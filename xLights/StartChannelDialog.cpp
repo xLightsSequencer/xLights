@@ -354,7 +354,7 @@ void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
         ChoiceController->Disable();
     }
 
-    if (ModelButton->GetValue()) {
+    if (ModelButton->GetValue() || StartModelButton->GetValue()) {
         StartChannel->SetValue(1);
     }
 }
