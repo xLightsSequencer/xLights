@@ -214,6 +214,7 @@ void CircleModel::InitCircle()
         SetLayerSizeCount(1);
         SetLayerSize(0, numLights);
     }
+
     for (int x = 0; x < GetLayerSizeCount(); x++) {
         if ((cnt + GetLayerSize(x)) > numLights) {
             if (cnt > numLights) {
@@ -281,9 +282,6 @@ void CircleModel::SetCircleCoord()
     for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
-        if (insideOut) {
-            circle = GetLayerSizeCount() - circle - 1;
-        }
         double radius = (GetLayerSizeCount() == 1) ? maxRadius : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
         for (size_t n = 0; n < loop_count; n++) {
             size_t CoordCount = GetCoordCount(node);
