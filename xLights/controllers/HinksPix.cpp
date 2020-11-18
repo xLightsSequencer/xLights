@@ -515,7 +515,7 @@ int HinksPix::EncodeGamma(int gamma) const
 #pragma endregion
 
 #pragma region Constructors and Destructors
-HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy), _numberOfOutputs(0), _Flex(false)
+HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy), _numberOfOutputs(48), _Flex(false)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     
@@ -534,16 +534,11 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
     if (!data.empty()) {
         auto const controlInfo = StringToMap(data);
 
-        //get output type options
-        _outputTypes[0] = wxAtoi(controlInfo.at("A"));
-        _outputTypes[1] = wxAtoi(controlInfo.at("B"));
-        _outputTypes[2] = wxAtoi(controlInfo.at("C"));
-        for (int const mode : _outputTypes) {
-            if (mode != 0)
-                _numberOfOutputs += 16;
-        }
         _connected = true;
         _Flex = wxAtoi(controlInfo.at("E"));
+
+        if (!_Flex)
+            _numberOfOutputs = 16;
     }
     else {
         _connected = false;
