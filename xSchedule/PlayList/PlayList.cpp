@@ -727,13 +727,24 @@ void PlayList::Stop()
 
 PlayListStep* PlayList::GetNextStep(bool& didloop)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     didloop = false;
-    if (_stopAtEndOfCurrentStep) return nullptr;
-    if (_currentStep == nullptr) return nullptr;
+    if (_stopAtEndOfCurrentStep) {
+        logger_base.debug("Get next step returning nothing because we have been asked to stop at the end of the current step.");
+        return nullptr;
+    }
+    if (_currentStep == nullptr) {
+        // Commenting out because this just fills the log with an entry every second - uncomment for testing only
+        //logger_base.debug("Get next step returning nothing because there is no current step.");
+        return nullptr;
+    }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        if (_lastOnlyOnce && _steps.back() == _currentStep) return nullptr;
+        if (_lastOnlyOnce && _steps.back() == _currentStep) {
+            logger_base.debug("Get next step returning nothing because we are playing last step only once and the last step was playing.");
+            return nullptr;
+        }
 
         // this will contain a step name if this is to be our forced next step
         if (_forceNextStep != "")
@@ -766,7 +777,11 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
 
         if (IsRandom() && !_lastLoop)
         {
-            return GetRandomStep();
+            auto ns = GetRandomStep();
+            if (ns == nullptr)                 {
+                logger_base.debug("Stopping because GetRandomStep returned no step.");
+            }
+            return ns;
         }
 
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
@@ -776,10 +791,15 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
                 ++it;
                 if (_jumpToEndStepsAtEndOfCurrentStep)
                 {
-                    if (_steps.size() == 1) return nullptr;
+                    logger_base.debug("Jumping to end because step finished.");
+                    if (_steps.size() == 1) {
+                        logger_base.debug("   but only one step so ending now.");
+                        return nullptr;
+                    }
 
                     if (_lastOnlyOnce)
                     {
+                        logger_base.debug("    But playing last step because play last only once is set.");
                         return last;
                     }
                     else
@@ -793,7 +813,10 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
                     didloop = true;
                     if (_firstOnlyOnce)
                     {
-                        if (_steps.size() == 1) return nullptr;
+                        if (_steps.size() == 1) {
+                            logger_base.debug("Looping is set but only one step that is meant to play only once so this makes no sense so we are done.");
+                            return nullptr;
+                        }
                         auto it2 = _steps.begin();
                         ++it2;
                         return *it2;
@@ -803,6 +826,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
                 }
                 else if (it == _steps.end())
                 {
+                    logger_base.debug("We reached the end and we are not looping.");
                     return nullptr;
                 }
                 else
@@ -813,6 +837,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
         }
     }
 
+    logger_base.debug("Get next step fell through to the end so returning nothing.");
     return nullptr;
 }
 
@@ -1030,6 +1055,7 @@ bool PlayList::MoveToNextStep(bool suppressNext)
     }
     else
     {
+        logger_base.debug("Moved nothing because suppress next was set.");
         _currentStep = nullptr;
     }
 
