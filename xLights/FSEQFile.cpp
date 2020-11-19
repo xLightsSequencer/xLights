@@ -1471,6 +1471,9 @@ V2FSEQFile::V2FSEQFile(const std::string &fn, FILE *file, const std::vector<uint
 m_compressionType(none),
 m_handler(nullptr)
 {
+    if (m_seqVersionMajor == 2 && m_seqVersionMinor > 1) {
+        LogErr(VB_SEQUENCE, "Unknown minor version: %d.  FSEQ may not load properly.\n", m_seqVersionMinor);
+    }
     if (header[0] == V1ESEQ_HEADER_IDENTIFIER) {
         m_compressionType = CompressionType::none;
 

@@ -71,6 +71,7 @@ public:
     virtual FrameData *getFrame(uint32_t frame) = 0;
     
     //For writing to the fseq file
+    virtual void enableMinorVersionFeatures(uint8_t ver) {}
     virtual void initializeFromFSEQ(const FSEQFile& fseq);
     virtual void writeHeader() = 0;
     virtual void addFrame(uint32_t frame,
@@ -174,8 +175,17 @@ public:
 
     virtual uint32_t getMaxChannel() const override;
 
-    void allowExtendedBlocks(bool a = true) { m_allowExtendedBlocks = a; }
-    
+    virtual void enableMinorVersionFeatures(uint8_t ver) override {
+        if (ver == 0) {
+            m_allowExtendedBlocks = false;
+            m_seqVersionMinor = 0;
+        }
+        if (ver >= 1) {
+            m_allowExtendedBlocks = true;
+            m_seqVersionMinor = 1;
+        }
+    }
+
     CompressionType m_compressionType;
     int             m_compressionLevel;
     std::vector<std::pair<uint32_t, uint32_t>> m_sparseRanges;
