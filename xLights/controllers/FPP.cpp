@@ -2284,6 +2284,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
             }
         } else {
             found = discovery.FindByIp(address, hostName, true);
+            found->extraData["httpConnected"] = false;
             found->hostname = inst.hostname;
             found->platform = inst.platform;
             found->platformModel = inst.platformModel;
@@ -2298,21 +2299,25 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
             std::string ipAddr = inst.ip;
             CreateController(discovery, found);
             if (found->typeId > 0 && found->typeId < 0x80) {
-                discovery.AddCurl(ipAddr, "/fppjson.php?command=getFPPSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/fppjson.php?command=getFPPSystems", [&discovery, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
+                        found->extraData["httpConnected"] = true;
                         ProcessFPPSystems(discovery, buffer);
                     }
                     return true;
                 });
-                discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
                     }
                     return true;
                 });
             } else if (found->typeId >= 0xD0) {
-                discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr](int rc, const std::string &buffer, const std::string &err) {
-                    discovery.DetectControllerType(ipAddr, "", buffer);
+                discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr, found](int rc, const std::string &buffer, const std::string &err) {
+                    if (buffer != "") {
+                        found->extraData["httpConnected"] = true;
+                        discovery.DetectControllerType(ipAddr, "", buffer);
+                    }
                     return true;
                 });
             }
@@ -2327,19 +2332,24 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
         return;
     }
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
+    ipinst->extraData["httpConnected"] = true;
     for (int x = 0; x < origJson.Size(); x++) {
         std::string proxy = origJson[x].AsString();
         DiscoveredData *inst = discovery.FindByIp(proxy, "", true);
+        if (!inst->extraData.HasMember("httpConnected")) {
+            inst->extraData["httpConnected"] = false;
+        }
         inst->SetProxy(ip);
         inst->hostname = "";
         inst->username = ipinst->username;
         inst->password = ipinst->password;
-        discovery.AddCurl(ip, "/proxy/" + proxy + "/", [&discovery, proxy, ip](int rc, const std::string &buffer, const std::string &err) {
+        discovery.AddCurl(ip, "/proxy/" + proxy + "/", [&discovery, proxy, ip, inst](int rc, const std::string &buffer, const std::string &err) {
             if (buffer.find("Falcon Player - FPP") != std::string::npos) {
                 //detected another FPP behind the proxy, strange, but valid
                 std::string p = proxy;
                 std::string i = ip;
-                
+                inst->extraData["httpConnected"] = true;
+
                 discovery.AddCurl(ip, "/proxy/" + proxy + "//fppjson.php?command=getSysInfo&simple", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
                     ProcessFPPSysinfo(discovery, p, i, buffer);
                     return true;
@@ -2361,6 +2371,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
         return;
     }
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
+    inst->extraData["httpConnected"] = true;
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
@@ -2399,6 +2410,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
 }
 static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const std::string &proxy, const std::string &sysInfo) {
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
+    inst->extraData["httpConnected"] = true;
     if (proxy != "") {
         inst->SetProxy(proxy);
     }
@@ -2642,8 +2654,12 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return false;
     }
     if (res->typeId < 0x80)  {
-        // genuine FPP instance
-        return true;
+        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true ) {
+            // genuine FPP instance and able to connect via http
+            return true;
+        } else {
+            return false;
+        }
     }
     if ((res->typeId >= 0xC2) && (res->typeId <= 0xC3)) {
         if (res->ranges == "") {

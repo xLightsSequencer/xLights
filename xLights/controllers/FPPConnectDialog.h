@@ -20,6 +20,7 @@
 #include "FPP.h"
 
 class OutputManager;
+class wxProgressDialog;
 
 
 class FPPConnectDialog: public wxDialog
@@ -89,7 +90,7 @@ class FPPConnectDialog: public wxDialog
         void CreateDriveList();
         void LoadSequencesFromFolder(wxString dir) const;
         void LoadSequences();
-        void PopulateFPPInstanceList();
+        void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
         void AddInstanceRow(const FPP &inst);
         wxPanel *AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
 

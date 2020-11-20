@@ -242,8 +242,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     prgs.Pulse("Checking for mounted media drives");
     CreateDriveList();
-    prgs.Update(100);
-    prgs.Hide();
 
     AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     wxPanel *p = AddInstanceHeader("Location", "Host and IP Address.");
@@ -258,7 +256,10 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
     AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
 
-    PopulateFPPInstanceList();
+    prgs.Pulse("Populating FPP instance list");
+    PopulateFPPInstanceList(&prgs);
+    prgs.Update(100);
+    prgs.Hide();
     GetFolderList(xLightsFrame::CurrentDir);
 
     if (config != nullptr) {
@@ -309,7 +310,7 @@ void FPPConnectDialog::LocationPopupMenu(wxContextMenuEvent& event) {
     PopupMenu(&mnu);
 }
 
-void FPPConnectDialog::PopulateFPPInstanceList() {
+void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     FPPInstanceList->Freeze();
     //remove all the children from the first upload checkbox on
     wxWindow *w = FPPInstanceList->FindWindow(CHECK_COL + "0");
@@ -357,6 +358,9 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
         }
 
         if (inst->isFPP) {
+            if (prgs) {
+                prgs->Pulse("Probing information from " + l);
+            }
             CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);

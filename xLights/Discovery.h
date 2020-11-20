@@ -18,6 +18,7 @@
 #include <curl/curl.h>
 
 #include "outputs/ControllerEthernet.h"
+#include "../xSchedule/wxJSON/jsonval.h"
 #include <wx/secretstore.h>
 
 class wxWindow;
@@ -96,6 +97,8 @@ public:
     std::string proxy;
     std::string username;
     std::string password;
+    
+    wxJSONValue extraData;
 };
 
 class Discovery
