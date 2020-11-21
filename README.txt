@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fix Group Count for Falcon Upload
 2020.48 November 17 2020
    -- enh (keith)  Add support for Falcon firmware 2.58
    -- enh (keith)  On visualiser freeze the port names on the left of the panel when scrolling right
