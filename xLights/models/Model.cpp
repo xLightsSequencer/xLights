@@ -952,7 +952,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
                 wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
             sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 50);
+            sp2->SetAttribute("Max", 500);
             sp2->SetEditor("SpinCtrl");
             if (!node->HasAttribute("groupCount")) {
                 grid->DisableProperty(sp2);
