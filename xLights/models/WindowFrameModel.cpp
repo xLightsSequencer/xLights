@@ -353,7 +353,7 @@ void WindowFrameModel::InitFrame()
         size_t coordCount = GetCoordCount(n);
         wxASSERT(coordCount == 1); // only one coord supported by this code
         for (size_t c = 0; c < coordCount; c++) {
-            Nodes[n]->Coords[c].bufX = (dir == 1.0 ? std::floor(x) : std::ceil(x));
+            Nodes[n]->Coords[c].bufX = (xincr[indexes[side]] * dir > 0 ? std::floor(x) : std::ceil(x));
             Nodes[n]->Coords[c].bufY = y;
             //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
             Nodes[n]->Coords[c].screenX = screenx;
