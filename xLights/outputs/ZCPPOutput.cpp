@@ -536,6 +536,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
             }
 
             controller->SetAutoSize(true, nullptr);
+            controller->SetAutoLayout(true);
             o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
 
             logger_base.info("ZCPP Discovery adding controller %s.", (const char*)controller->GetIP().c_str());
