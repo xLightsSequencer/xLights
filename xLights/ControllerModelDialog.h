@@ -83,6 +83,7 @@ class ControllerModelDialog: public wxDialog
 	BaseCMObject* GetControllerToDropOn();
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
 	PortCMObject* GetControllerPortAtLocation(wxPoint mouse);
+	PortCMObject* GetPixelPort(int port) const;
 	void ReloadModels();
 	void ClearOver(wxPanel* panel, std::list<BaseCMObject*> list);
 	std::string GetModelTooltip(ModelCMObject* m);

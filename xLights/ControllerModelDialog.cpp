@@ -2188,6 +2188,8 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     dc.SetBrush(__backgroundBrush);
     dc.DrawRectangle(0, 0, PanelController->GetSize().GetWidth(), PanelController->GetSize().GetHeight());
 
+    if (_controllers.size() == 0) return;
+
     int xOffset = ScrollBar_Controller_H->GetThumbPosition();
     int yOffset = ScrollBar_Controller_V->GetThumbPosition();
 
@@ -2212,12 +2214,39 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     dc.SetDeviceOrigin(0, -yOffset);
     dc.SetPen(__backgroundPen);
     dc.SetBrush(__backgroundBrush);
-    dc.DrawRectangle(0,0, _controllers.front()->GetRect().GetRight() + 2, PanelController->GetSize().GetHeight());
+    dc.DrawRectangle(0, 0, _controllers.front()->GetRect().GetRight() + 2, _controllers.back()->GetRect().GetBottom() + 10);
     for (const auto& it : _controllers) {
         if (it->GetType() == "PORT") {
             it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false);
         }
     }
+
+    if (_caps != nullptr && _caps->GetNumberOfBanks() > 1) {
+        wxColor colours[] = { *wxRED, *wxGREEN, *wxBLUE, *wxYELLOW, wxColour(0xFF, 0x00, 0xFF) };
+        int bankSize = _caps->GetMaxPixelPort() / _caps->GetNumberOfBanks();
+        int barX = GetPixelPort(1)->GetRect().GetLeft() - 2;
+        for (int i = 0; i < _caps->GetNumberOfBanks(); i++)             {
+            int topPort = i * bankSize + 1;
+            int bottomPort = (i + 1) * bankSize;
+            int topPortY = GetPixelPort(topPort)->GetRect().GetTop();
+            int bottomPortY = GetPixelPort(bottomPort)->GetRect().GetBottom();
+            dc.SetBrush(wxBrush(colours[i]));
+            dc.DrawRectangle(0, topPortY, barX, bottomPortY - topPortY);
+        }
+    }
+}
+
+PortCMObject* ControllerModelDialog::GetPixelPort(int port) const
+{
+    for (const auto& it : _controllers) {
+        if (it->GetType() == "PORT") {
+            auto p = dynamic_cast<PortCMObject*>(it);
+            if (p->GetPortType() == PortCMObject::PORTTYPE::PIXEL && p->GetPort() == port)                 {
+                return p;
+            }
+        }
+    }
+    return nullptr;
 }
 
 void ControllerModelDialog::OnScrollBar_Controller_HScroll(wxScrollEvent& event) {
