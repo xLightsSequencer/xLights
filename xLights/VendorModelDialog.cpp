@@ -1204,6 +1204,8 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
         }
     }
 
+    SetCursor(wxCURSOR_DEFAULT);
+
     ValidateWindow();
 }
 
