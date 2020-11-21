@@ -1138,17 +1138,29 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int maxMain = 0;
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
+    int largestMainPort = -1;
+    int largestDaughter1Port = -1;
+    int largestDaughter2Port = -1;
 
     for (auto pp = 0; pp < totalPixelPorts; ++pp) {
         int pixels = GetPixelCount(stringData, pp);
         if (pp < GetBank1Threshold()) {
-            if (pixels > maxMain) maxMain = pixels;
+            if (pixels > maxMain) {
+                maxMain = pixels;
+                largestMainPort = pp + 1;
+            }
         }
         else if (pp < GetDaughter2Threshold()) {
-            if (pixels > maxDaughter1) maxDaughter1 = pixels;
+            if (pixels > maxDaughter1) {
+                maxDaughter1 = pixels;
+                largestDaughter1Port = pp + 1;
+            }
         }
         else {
-            if (pixels > maxDaughter2) maxDaughter2 = pixels;
+            if (pixels > maxDaughter2) {
+                maxDaughter2 = pixels;
+                largestDaughter2Port = pp + 1;
+            }
         }
     }
 
@@ -1205,6 +1217,15 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
+            if (largestDaughter2Port >= 0)                 {
+                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d, Bank 3 Port %d\n", largestMainPort, largestDaughter1Port, largestDaughter2Port);
+            }
+            else if (largestDaughter1Port >= 0)                 {
+                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d\n", largestMainPort, largestDaughter1Port);
+            }
+            else                 {
+                check += wxString::Format("       Bank 1 Port %d\n", largestMainPort);
+            }
 
             logger_base.warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
 
