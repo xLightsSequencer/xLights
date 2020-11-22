@@ -1081,7 +1081,7 @@ void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxStr
         main.Add(wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":5}", std::get<0>(song), audio));
     }
 
-    wxString const filename = drive + "MAIN.ply";
+    wxString const filename = drive + wxFileName::GetPathSeparator() + "MAIN.ply";
     wxFile f;
 
     f.Open(filename, wxFile::write);
@@ -1101,7 +1101,7 @@ void HinksPixExportDialog::createSchedule(wxString const& drive)
     for (auto const &day : days)
     {
         wxFile f;
-        wxString const filename = drive + day + ".sched";
+        wxString const filename = drive + wxFileName::GetPathSeparator() + day + ".sched";
 
         f.Open(filename, wxFile::write);
 
@@ -1119,7 +1119,7 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
 {
     //0=Master, 1=Slave
     wxFile f;
-    wxString const filename = drive + "SD_StandAlone.sys";
+    wxString const filename = drive + wxFileName::GetPathSeparator()+ "SD_StandAlone.sys";
 
     if (mode == 2)//2=Skip, delete file that sets mode
     {
