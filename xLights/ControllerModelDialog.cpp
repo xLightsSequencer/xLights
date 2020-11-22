@@ -2222,16 +2222,51 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     }
 
     if (_caps != nullptr && _caps->GetNumberOfBanks() > 1) {
-        wxColor colours[] = { *wxRED, *wxGREEN, *wxBLUE, *wxYELLOW, wxColour(0xFF, 0x00, 0xFF) };
+        std::vector<wxColor> colours = { *wxRED, *wxGREEN, *wxBLUE, *wxYELLOW, wxColour(0xFF, 0x00, 0xFF) };
         int bankSize = _caps->GetMaxPixelPort() / _caps->GetNumberOfBanks();
-        int barX = GetPixelPort(1)->GetRect().GetLeft() - 2;
-        for (int i = 0; i < _caps->GetNumberOfBanks(); i++)             {
+        int barX = (GetPixelPort(1)->GetRect().GetLeft() - 2) / 2;
+        for (int i = 0; i < _caps->GetNumberOfBanks(); i++) {
             int topPort = i * bankSize + 1;
             int bottomPort = (i + 1) * bankSize;
-            int topPortY = GetPixelPort(topPort)->GetRect().GetTop();
-            int bottomPortY = GetPixelPort(bottomPort)->GetRect().GetBottom();
-            dc.SetBrush(wxBrush(colours[i]));
-            dc.DrawRectangle(0, topPortY, barX, bottomPortY - topPortY);
+            auto tp = GetPixelPort(topPort);
+            auto bp = GetPixelPort(bottomPort);
+            if (tp != nullptr && bp != nullptr) {
+                int topPortY = tp->GetRect().GetTop();
+                int bottomPortY = bp->GetRect().GetBottom();
+                dc.SetBrush(wxBrush(colours[i % colours.size()]));
+                dc.DrawRectangle(0, topPortY, barX, bottomPortY - topPortY);
+            }
+        }
+    }
+
+    if (_caps != nullptr && _caps->SupportsRemotes()) {
+#define PORTS_PER_REMOTE 4
+        std::vector<wxColor> colours = { *wxRED, *wxGREEN, *wxBLUE, *wxYELLOW, wxColour(0xFF, 0x00, 0xFF) };
+        wxColor replacementColour = *wxCYAN;
+        int barX1 = (GetPixelPort(1)->GetRect().GetLeft() - 2) / 2;
+        int barX2 = GetPixelPort(1)->GetRect().GetLeft() - 2;
+        int bankSize = -1;
+        if (_caps->GetNumberOfBanks() > 1) {
+            bankSize = _caps->GetMaxPixelPort() / _caps->GetNumberOfBanks();
+        }
+        for (int i = 0; i < _caps->GetMaxPixelPort() / PORTS_PER_REMOTE; i++) {
+            int topPort = i * PORTS_PER_REMOTE + 1;
+            int bottomPort = (i + 1) * PORTS_PER_REMOTE;
+            auto tp = GetPixelPort(topPort);
+            auto bp = GetPixelPort(bottomPort);
+            if (tp != nullptr && bp != nullptr) {
+                int topPortY = tp->GetRect().GetTop();
+                int bottomPortY = bp->GetRect().GetBottom();
+                wxColor c = colours[i % colours.size()];
+                if (bankSize != -1) {
+                    int bank = i / bankSize;
+                    if (colours[bank % colours.size()] == c) {
+                        c = replacementColour;
+                    }
+                }
+                dc.SetBrush(wxBrush(c));
+                dc.DrawRectangle(barX1, topPortY, barX2 - barX1, bottomPortY - topPortY);
+            }
         }
     }
 }

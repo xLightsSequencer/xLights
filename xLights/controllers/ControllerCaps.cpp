@@ -323,6 +323,11 @@ bool ControllerCaps::SupportsSmartRemotes() const {
     return DoesXmlNodeExist(_config, "SupportsSmartRemotes");
 }
 
+bool ControllerCaps::SupportsRemotes() const
+{
+    return DoesXmlNodeExist(_config, "SupportsRemotes");
+}
+
 bool ControllerCaps::SupportsAutoLayout() const {
     return DoesXmlNodeExist(_config, "SupportsAutoLayout");
 }

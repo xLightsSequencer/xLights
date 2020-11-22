@@ -17,6 +17,7 @@
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
+		<SupportsRemotes/>
         <SupportsSmartRemotes/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -31,6 +32,7 @@
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
+		<SupportsRemotes/>
         <SupportsSmartRemotes/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>

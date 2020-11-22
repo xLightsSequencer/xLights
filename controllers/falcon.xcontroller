@@ -19,6 +19,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
+		<SupportsRemotes/>
 
         <MaxInputUniverses>96</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>

@@ -62,6 +62,7 @@ public:
     bool SupportsVirtualMatrix() const;
     bool SupportsVirtualStrings() const;
     bool SupportsSmartRemotes() const;
+    bool SupportsRemotes() const;
     bool SupportsAutoLayout() const;
     bool SupportsAutoUpload() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
