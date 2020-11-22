@@ -66,6 +66,7 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
@@ -602,8 +603,10 @@ public:
         else if (GetModel() != nullptr && GetModel()->IsSerialProtocol()) {
             mnu.AppendSeparator();
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
+            mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN, "Set Channel and Chain");
         }
     }
+
     virtual bool HandlePopup(wxWindow* parent, int id) override {
         if (GetModel() == nullptr) return false;
 
@@ -635,6 +638,22 @@ public:
             wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerDMXChannel(dlg.GetValue());
+            }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN) {
+            wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
+            if (dlg.ShowModal() == wxID_OK) {
+                auto port = _cud->GetPortContainingModel(GetModel());
+                bool start = false;
+                auto ch = dlg.GetValue();
+                for (const auto& it : port->GetModels())                     {
+                    if (start || it->GetModel() == GetModel())                         {
+                        it->GetModel()->SetControllerDMXChannel(ch);
+                        ch += it->Channels();
+                        start = true;
+                    }
+                }
             }
             return true;
         }
@@ -2259,7 +2278,7 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
                 int bottomPortY = bp->GetRect().GetBottom();
                 wxColor c = colours[i % colours.size()];
                 if (bankSize != -1) {
-                    int bank = i / bankSize;
+                    int bank = topPort / bankSize;
                     if (colours[bank % colours.size()] == c) {
                         c = replacementColour;
                     }

@@ -233,7 +233,8 @@ class UDController
     #pragma region Port Handling
     UDControllerPort* GetControllerPixelPort(int port);
 	UDControllerPort* GetControllerSerialPort(int port);
-    UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str);
+    UDControllerPort* GetPortContainingModel(Model* model) const;
+    UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str) const;
     #pragma endregion
 
     #pragma region Getters and Setters

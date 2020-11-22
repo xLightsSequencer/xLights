@@ -325,7 +325,7 @@ bool UDControllerPort::ContainsModel(Model* m, int string) const {
 
     for (const auto& it : _models)
     {
-        if (it->GetModel() == m && string == it->GetString()) {
+        if (it->GetModel() == m && (string == it->GetString() || (string == 0 && it->GetString() == -1))) {
             return true;
         }
     }
@@ -939,7 +939,19 @@ UDControllerPort* UDController::GetControllerSerialPort(int port) {
     }
     return _serialPorts[port];
 }
-UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName, int str)
+
+UDControllerPort* UDController::GetPortContainingModel(Model* model) const
+{
+    for (const auto& it : _pixelPorts) {
+        if (it.second->ContainsModel(model, 0)) return it.second;
+    }
+    for (const auto& it : _serialPorts) {
+        if (it.second->ContainsModel(model, 0)) return it.second;
+    }
+    return nullptr;
+}
+
+UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName, int str) const
 {
     for (const auto& it : _pixelPorts)
     {
