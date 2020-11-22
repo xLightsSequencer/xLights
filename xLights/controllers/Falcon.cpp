@@ -814,7 +814,7 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
     else {
         wxXmlNode* node = xml.GetRoot();
         if (node != nullptr) {
-            cm = wxAtoi(node->GetAttribute("cm", "-1"));
+            cm = wxAtoi(node->GetAttribute("m", "-1"));
         }
     }
 
