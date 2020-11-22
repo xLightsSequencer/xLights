@@ -6308,7 +6308,11 @@ void Model::RestoreDisplayDimensions()
     if ((DisplayAs.rfind("Dmx", 0) != 0) && DisplayAs != "Image")
     {
         SetWidth(_savedWidth, true);
-        SetHeight(_savedHeight, true);
+        // We dont want to set the height of three point models
+        if (dynamic_cast<const ThreePointScreenLocation*>(&(GetModelScreenLocation())) == nullptr)
+        {
+            SetHeight(_savedHeight, true);
+        }
         SetDepth(_savedDepth, true);
     }
 }
