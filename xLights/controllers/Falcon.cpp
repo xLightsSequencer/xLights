@@ -160,15 +160,31 @@ FalconString* Falcon::FindPort(const std::vector<FalconString*>& stringData, int
     return nullptr;
 }
 
-int Falcon::GetPixelCount(const std::vector<FalconString*>& stringData, int port) const {
+int Falcon::GetPixelCount(const std::vector<FalconString*>& stringData, int port) const
+{
 
     int count = 0;
+    bool smrA = false;
+    bool smrB = false;
+    bool smrC = false;
     for (const auto& sd : stringData) {
         if (sd->port == port) {
             // have to include any null pixels in the count
             count += sd->pixels + sd->nullPixels;
+            if (sd->smartRemote == 1 && sd->pixels > 0) smrA = true;
+            if (sd->smartRemote == 2 && sd->pixels > 0) smrB = true;
+            if (sd->smartRemote == 3 && sd->pixels > 0) smrC = true;
         }
     }
+
+    if (smrC) {
+        if (!smrB) count++;
+        if (!smrA) count++;
+    }
+    else if (smrB)         {
+        if (!smrA) count++;
+    }
+
     return count;
 }
 
