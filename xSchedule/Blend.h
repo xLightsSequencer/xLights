@@ -26,7 +26,8 @@ typedef enum {
     METHOD_OVERWRITEIFBLACK,
     METHOD_MASKPIXEL,
     METHOD_UNMASKPIXEL,
-    METHOD_MIN
+    METHOD_MIN,
+    METHOD_BRIGHTNESS
 } APPLYMETHOD;
 
 void PopulateBlendModes(wxChoice* choice);
@@ -40,6 +41,7 @@ void Unmask(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
 void Average(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
 void Maximum(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
 void Minimum(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
+void Brightness(uint8_t* buffer, uint8_t* blendBuffer, size_t channels);
 void OverwriteIfBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
 void MaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);
 void UnmaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels);

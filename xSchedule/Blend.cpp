@@ -40,64 +40,55 @@ void PopulateBlendModes(wxChoice* choice)
     choice->AppendString("Mask out if not black");
     choice->AppendString("Mask out if black");
     choice->AppendString("Minimum");
+    choice->AppendString("Brightness");
 }
 
 APPLYMETHOD EncodeBlendMode(const std::string blendMode)
 {
     std::string bm = wxString(blendMode).Lower().ToStdString();
 
-    if (bm == "overwrite")
-    {
+    if (bm == "overwrite") {
         return APPLYMETHOD::METHOD_OVERWRITE;
     }
-    else if (bm == "overwrite if zero")
-    {
+    else if (bm == "overwrite if zero") {
         return APPLYMETHOD::METHOD_OVERWRITEIFZERO;
     }
-    else if (bm == "overwrite if black")
-    {
+    else if (bm == "overwrite if black") {
         return APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     }
-    else if (bm == "mask out if not zero")
-    {
+    else if (bm == "mask out if not zero") {
         return APPLYMETHOD::METHOD_MASK;
     }
-    else if (bm == "mask out if not black")
-    {
+    else if (bm == "mask out if not black") {
         return APPLYMETHOD::METHOD_MASKPIXEL;
     }
-    else if (bm == "mask out if black")
-    {
+    else if (bm == "mask out if black") {
         return APPLYMETHOD::METHOD_UNMASKPIXEL;
     }
-    else if (bm == "mask out if zero")
-    {
+    else if (bm == "mask out if zero") {
         return APPLYMETHOD::METHOD_UNMASK;
     }
-    else if (bm == "average")
-    {
+    else if (bm == "average") {
         return APPLYMETHOD::METHOD_AVERAGE;
     }
-    else if (bm == "maximum")
-    {
+    else if (bm == "maximum") {
         return APPLYMETHOD::METHOD_MAX;
     }
-    else if (bm == "minimum")
-    {
+    else if (bm == "minimum") {
         return APPLYMETHOD::METHOD_MIN;
     }
-    else if(bm == "overwrite skip black")
-    {
+    else if (bm == "overwrite skip black") {
         return APPLYMETHOD::METHOD_OVERWRITESKIPBLACK;
     }
-
+    else if (bm == "brightness") {
+        return APPLYMETHOD::METHOD_BRIGHTNESS;
+    }
     return APPLYMETHOD::METHOD_OVERWRITE;
 }
 
 std::string DecodeBlendMode(APPLYMETHOD blendMode)
 {
-    switch(blendMode)
-    {
+    switch (blendMode) {
     case APPLYMETHOD::METHOD_OVERWRITE:
         return "Overwrite";
     case APPLYMETHOD::METHOD_OVERWRITEIFZERO:
@@ -120,6 +111,8 @@ std::string DecodeBlendMode(APPLYMETHOD blendMode)
         return "Maximum";
     case APPLYMETHOD::METHOD_MIN:
         return "Minimum";
+    case APPLYMETHOD::METHOD_BRIGHTNESS:
+        return "Brightness";
     }
 
     return "Overwrite";
@@ -132,8 +125,7 @@ void Blend(uint8_t* buffer, size_t bufferSize, uint8_t* blendBuffer, size_t blen
     size_t bytesToUse = std::min(bufferSize - offset, blendBufferSize);
     uint8_t* pb = buffer + offset;
 
-    switch (applyMethod)
-    {
+    switch (applyMethod) {
     case APPLYMETHOD::METHOD_OVERWRITE:
         return Overwrite(pb, blendBuffer, bytesToUse);
     case APPLYMETHOD::METHOD_OVERWRITEIFZERO:
@@ -156,6 +148,8 @@ void Blend(uint8_t* buffer, size_t bufferSize, uint8_t* blendBuffer, size_t blen
         return Minimum(pb, blendBuffer, bytesToUse);
     case APPLYMETHOD::METHOD_OVERWRITESKIPBLACK:
         return OverwriteSkipBlack(pb, blendBuffer, bytesToUse / 3);
+    case APPLYMETHOD::METHOD_BRIGHTNESS:
+        return Brightness(pb, blendBuffer, bytesToUse / 3);
     }
 }
 
@@ -507,6 +501,21 @@ void OverwriteSkipBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
             *p = *pp;
             *(p + 1) = *(pp + 1);
             *(p + 2) = *(pp + 2);
+        }
+    }
+}
+
+// apply the input data as if it was (inputvalue / 255) * currentvalue ... ie a brightness
+void Brightness(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
+{
+    uint8_t* p = buffer;
+    uint8_t* pp = blendBuffer;
+    for (size_t i = 0; i < pixels * 3; ++i)         {
+        if (*pp == 0)             {
+            *p = 0;
+        }
+        else if (*pp != 255)             {
+            *p = ((int)*p * (int)*pp) / 255;
         }
     }
 }
