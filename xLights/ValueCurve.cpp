@@ -1709,39 +1709,76 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
     // If we are music trigger fade and we dont have values ... calculate them on the fly
     if (_type == "Music Trigger Fade") {
         // Just generate what we need on the fly
-        if (__audioManager != nullptr) {
+        if (__audioManager != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
             int step = (endMS - startMS) / VC_X_POINTS;
             int frameMS = __audioManager->GetFrameInterval();
             if (step < frameMS) step = frameMS;
+            int fadeFrames = GetParameter4();
+            float yperFrame = (max - min) / fadeFrames;
+            float perPoint = vcSortablePoint::perPoint();
+            int msperPoint = perPoint * (endMS - startMS);
+            if (msperPoint < frameMS) msperPoint = frameMS;
+            if (yperFrame <= 0) yperFrame = 0.0001f;
 
-            long time = (float)startMS + offset * (endMS - startMS);
+            // build what is esentially a sawtooth curve which peaks when audio exceeds the level or drops when it doesnt.
+            // this could hpothetically create 2 points per frame
 
-            float last = -1000.0;
-            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)); cur <= time + frameMS; cur += step) {
-                float x = (float)(cur - startMS) / (float)(endMS - startMS);
+            float lastx = 0.0; // last time the threshold was hit
+            float runningy = min;
+
+            // this just ensures the curve is complete
+            _values.push_back(vcSortablePoint(0, min, _wrap));
+
+            for (long time = startMS; time < endMS; time += msperPoint) {
+
+                float x = vcSortablePoint::Normalise((float)(time - startMS) / (float)(endMS - startMS));
+                float prex = vcSortablePoint::Normalise((float)(time - startMS - msperPoint) / (float)(endMS - startMS));
+
+                // find the maximum of any intervening frames
                 float f = 0.0;
-                auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", cur);
-                if (pf != nullptr) {
-                    f = *pf->begin();
-                }
-
-                float y = min;
-                if (f * 100.0 > GetParameter3()) {
-                    y = min + 1.0 * (max - min);
-                    last = x;
-                }
-                else {
-                    float fadeFrames = (x - last) * (endMS - startMS) / frameMS;
-                    if (fadeFrames < GetParameter4()) {
-                        float fadeamt = 1.0 - fadeFrames / GetParameter4();
-                        y = (min + 1.0 * (max - min)) * fadeamt;
+                for (long ms = time; ms < time + msperPoint; ms += frameMS) {
+                    auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", ms + frameMS);
+                    if (pf != nullptr) {
+                        if (*pf->begin() > f) {
+                            f = *pf->begin();
+                        }
                     }
                 }
 
-                _values.push_back(vcSortablePoint(x, y, _wrap));
+                if (f * 100.0 > GetParameter3()) {
+                    if (time == startMS)                         {
+                        runningy = max;
+                        _values.back().y = runningy;
+                    }
+                    else if (runningy != max) {
+                        _values.push_back(vcSortablePoint(x, runningy, _wrap));
+                        runningy = max;
+                        _values.push_back(vcSortablePoint(x, runningy, _wrap));
+                    }
+                }
+                else {
+                    if (runningy <= min)                         {
+                        // do nothing
+                        runningy = min;
+                    }
+                    else {
+                        if (runningy == max) {
+                            if (_values.back().x < prex || _values.back().y != runningy) {
+                                _values.push_back(vcSortablePoint(prex, runningy, _wrap));
+                            }
+                        }
+                        runningy -= yperFrame;
+                        if (runningy <= min) {
+                            runningy = min;
+                            _values.push_back(vcSortablePoint(x, runningy, _wrap));
+                        }
+                    }
+                }
             }
+            // this just ensures the curve is complete
+            _values.push_back(vcSortablePoint(1.0, runningy, _wrap));
         }
     }
 

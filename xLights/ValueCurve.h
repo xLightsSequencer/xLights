@@ -33,6 +33,10 @@ public:
     {
         return std::round(v * VC_X_POINTS) / VC_X_POINTS;
     }
+    static float perPoint()
+    {
+        return (float)(1.0f / VC_X_POINTS);
+    }
     float x;
     float y;
     bool wrapped;
