@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="xLightsImportChannelMapDialog">
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE</style>
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -16,7 +16,7 @@
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>4</growablerows>
+							<growablerows>5</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
 									<cols>2</cols>
@@ -40,7 +40,7 @@
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>1</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -57,7 +57,7 @@
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>1</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -74,7 +74,31 @@
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
+								<border>1</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer_Blend_Mode" member="yes">
+									<cols>2</cols>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Import_Blend_Mode" member="yes">
+											<label>Import Model Blend Mode</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_BLEND_TYPE" variable="StaticText_Blend_Type" member="yes">
+											<label>Blend Mode</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>1</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">

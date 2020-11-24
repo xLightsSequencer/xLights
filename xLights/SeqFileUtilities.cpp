@@ -1218,12 +1218,14 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     se.LoadSequencerFile(xlf, GetShowDirectory());
     xlf.AdjustEffectSettingsForVersion(se, this);
 
+    bool supportsModelBlending = xlf.supportsModelBlending();
+
     std::vector<Element *> elements;
     for (size_t e = 0; e < se.GetElementCount(); e++) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, filename);
+    ImportXLights(se, elements, filename, supportsModelBlending, true);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1241,13 +1243,15 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
 }
 
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
-                                 bool allowAllModels, bool clearSrc) {
+                                                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
+    if(showModelBlending)
+        dlg.SetModelBlending(modelBlending);
     std::vector<EffectLayer *> mapped;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, bool> timingTrackAlreadyExists;
@@ -1321,6 +1325,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
+    }
+
+    if (showModelBlending && dlg.GetImportModelBlending()) {
+        CurrentSeqXmlFile->setSupportsModelBlending(modelBlending);
+        GetSequenceElements().SetSupportsModelBlending(modelBlending);
     }
 
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
@@ -1735,7 +1744,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -2740,7 +2749,7 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
@@ -4413,7 +4422,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
     LOREdit lorEdit(input_xml, CurrentSeqXmlFile->GetFrequency());
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, true);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -4570,7 +4579,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what it was when it was converted\n\
         - what you changed it to.\n", this);
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
@@ -4758,7 +4767,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         return false;
     }
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 

@@ -419,6 +419,8 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX11 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
@@ -439,7 +441,7 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id, const wxPoint& pos, const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     TreeListCtrl_Mapping = nullptr;
     _dataModel = nullptr;
@@ -448,6 +450,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     _allowTimingTrack = allowTimingTrack;
     _allowColorChoice = allowColorChoice;
     _allowCCRStrand = allowCCRStrand;
+    _allowImportBlend = allowImportBlend;
     _filename = filename;
     _dragItem = wxDataViewItem(nullptr);
 
@@ -456,7 +459,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     wxButton* Button02;
     wxFlexGridSizer* FlexGridSizer2;
 
-    Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE, _T("wxID_ANY"));
     OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
     OldSizer->AddGrowableCol(0);
     OldSizer->AddGrowableRow(0);
@@ -466,25 +469,32 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer1->AddGrowableCol(0);
-    Sizer1->AddGrowableRow(4);
+    Sizer1->AddGrowableRow(5);
     Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TimeAdjustSpinCtrl = new wxSpinCtrl(Panel1, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 600000, 0, _T("ID_SPINCTRL1"));
     TimeAdjustSpinCtrl->SetValue(_T("0"));
     Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_MapCCRStrand = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_MapCCRStrand->SetValue(false);
     FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer11->AddGrowableCol(0);
     CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
     CheckBox_EraseExistingEffects->SetValue(false);
     FlexGridSizer11->Add(CheckBox_EraseExistingEffects, 1, wxALL|wxEXPAND, 5);
-    Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
+    Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
+    FlexGridSizer_Blend_Mode = new wxFlexGridSizer(0, 2, 0, 0);
+    CheckBox_Import_Blend_Mode = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Import Model Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    CheckBox_Import_Blend_Mode->SetValue(false);
+    FlexGridSizer_Blend_Mode->Add(CheckBox_Import_Blend_Mode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_Blend_Type = new wxStaticText(Panel1, ID_STATICTEXT_BLEND_TYPE, _("Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BLEND_TYPE"));
+    FlexGridSizer_Blend_Mode->Add(StaticText_Blend_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizer_Blend_Mode, 1, wxALL|wxEXPAND, 1);
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
     TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
@@ -658,6 +668,9 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (!checkboxText.empty())
         CheckBox_MapCCRStrand->SetLabelText(checkboxText);
 
+    if (!_allowImportBlend)
+        Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
+ 
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -719,6 +732,17 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     }
 
     return true;
+}
+
+void xLightsImportChannelMapDialog::SetModelBlending(bool enabled) 
+{
+    wxString text = wxString::Format("Blending Between Models is %s.",( enabled ? "ENABLED" : "DISABLED"));
+    StaticText_Blend_Type->SetLabelText(text);
+}
+
+bool xLightsImportChannelMapDialog::GetImportModelBlending() 
+{
+    return CheckBox_Import_Blend_Mode->IsChecked();
 }
 
 void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)

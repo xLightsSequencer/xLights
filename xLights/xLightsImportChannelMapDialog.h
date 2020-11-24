@@ -352,14 +352,17 @@ class xLightsImportChannelMapDialog: public wxDialog
     int _sortOrder;
     wxDataViewItem _dragItem;
     bool _allowCCRStrand;
+    bool _allowImportBlend;
 
 	public:
    
-		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
+		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
         bool InitImport(std::string checkboxText = "");
+        void SetModelBlending(bool enabled);
+        bool GetImportModelBlending();
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
@@ -367,10 +370,12 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_EraseExistingEffects;
+		wxCheckBox* CheckBox_Import_Blend_Mode;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
 		wxFlexGridSizer* FlexGridSizer11;
 		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* FlexGridSizer_Blend_Mode;
 		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
 		wxFlexGridSizer* Sizer2;
@@ -382,6 +387,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticBoxSizer* TimingTrackPanel;
+		wxStaticText* StaticText_Blend_Type;
 		wxStaticText* StaticText_TimeAdjust;
 		//*)
 
@@ -402,6 +408,8 @@ protected:
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX11;
+		static const long ID_CHECKBOX2;
+		static const long ID_STATICTEXT_BLEND_TYPE;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;

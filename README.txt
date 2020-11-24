@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Import Model Blend Mode to xLights Sequence Import
    -- bug (scott)  Fix Group Count for Falcon Upload
 2020.48 November 17 2020
    -- enh (keith)  Add support for Falcon firmware 2.58

@@ -591,7 +591,7 @@ void xLightsFrame::CheckForValidModels()
                 }
             }
 
-            ImportXLights(mSequenceElements, modelElements, wxFileName(), true, true);
+            ImportXLights(mSequenceElements, modelElements, wxFileName(), false, false, true, true);
 
             for (auto it = toMap.begin(); it != toMap.end(); ++it)
             {
