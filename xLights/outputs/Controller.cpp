@@ -499,7 +499,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetEditor("CheckBox");
 
         if (IsFullxLightsControl()) {
-            p = propertyGrid->Append(new wxUIntProperty("Unused Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
+            p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
             p->SetAttribute("Min", 5);
             p->SetAttribute("Max", 100);
             p->SetEditor("SpinCtrl");
