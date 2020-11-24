@@ -11,8 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.49 November 24 2020
    -- enh (scott)  Added Import Model Blend Mode to xLights Sequence Import
+   -- enh (keith)  Allow remote falcon to only work while some playlists are playing
+   -- enh (keith)  Add to port tooltip in visualiser an estimate of the current draw on the port
+   -- enh (keith)  Add a brightness blend mode to xSchedule blend modes
+   -- enh (keith)  Add a way to renumber a DMX channel of a prop in the visualiser and then cascade to the rest of the models
+   -- enh (keith)  Add to visualiser colour bars to left of ports showing banks and smart remote groups
+   -- enh (keith)  When controller port limits are broken on the falcon show the largest port in each bank to ease troubleshooting
+   -- enh (dkulp)  Extend FSEQ file definition to support larger numbers of compression blocks
    -- bug (scott)  Fix Group Count for Falcon Upload
+   -- bug (keith)  Allow xlights import to import from sequences that only contain timing tracks
+   -- bug (keith)  Fix an issue with music fade value curve which can create insane render times
+   -- bug (keith)  Fix unused smart remote throws off falcon upload setting of bank sizes
+   -- bug (keith)  Fix cant change height of 3 point models in model properties
+   -- bug (keith)  Fix unnecessary reboot of falcon on upload
+   -- bug (keith)  Fix double click on model category in model download seems to hang mouse pointer
+   -- bug (keith)  Fix window frame model sometimes loses a corner node
+   -- bug (keith)  Fix ZCPP does not default to auto layout when discovered
+   -- bug (keith)  Fix circle model wired from the inside   
+   -- bug (keith)  When start of model is chosen default the channel offset to 1 as this is the most common choice
 2020.48 November 17 2020
    -- enh (keith)  Add support for Falcon firmware 2.58
    -- enh (keith)  On visualiser freeze the port names on the left of the panel when scrolling right

@@ -484,7 +484,7 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
     auto devs = GetControllers().GetControllers();
     auto p = propertyGrid->Append(new wxUIntProperty("Devices", "Devices", devs.size()));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 32);
+    p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
     int i = 0;
