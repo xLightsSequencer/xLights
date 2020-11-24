@@ -19,6 +19,7 @@
 #include "../models/Model.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -704,6 +705,20 @@ int UDControllerPort::GetUniverseStartChannel() const {
 
 bool UDControllerPort::IsPixelProtocol() const {
     return Model::IsPixelProtocol(_protocol);
+}
+
+float UDControllerPort::GetAmps(int defaultBrightness) const
+{
+    float amps = 0.0f;
+    int currentBrightness = defaultBrightness;
+
+    if (_type == "Pixel") {
+        for (const auto& m : _models) {
+            currentBrightness = m->GetBrightness(currentBrightness);
+            amps += ((float)AMPS_PER_PIXEL * (m->Channels() / 3.0f) * currentBrightness) / 100.0f;
+        }
+    }
+    return amps;
 }
 
 std::string UDControllerPort::GetPortName() const {

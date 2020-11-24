@@ -190,6 +190,8 @@ class UDControllerPort
     std::string GetProtocol() const { return _protocol; }
     bool IsPixelProtocol() const;
 	
+    float GetAmps(int defaultBrightness) const;
+
     std::string GetPortName() const;
 	int GetPort() const { return _port; }
     

@@ -4242,7 +4242,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
             if (stype.Contains("Node") || stype.Contains("Channel RGB"))
             {
-                current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
+                current = wxString::Format("%0.2f", (float)lightcount * AMPS_PER_PIXEL).ToStdString();
             }
 
             int w, h;

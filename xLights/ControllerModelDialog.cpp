@@ -1973,11 +1973,16 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     std::string vs;
     std::string sc;
     std::string sr;
+    std::string sa;
 
     if (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings() && port->GetVirtualStringCount() > 1) {
         vs = wxString::Format("Virtual Strings: %d\n", port->GetVirtualStringCount());
     } else if (port->GetVirtualStringCount() > 1) {
         vs = wxString::Format("Virtual String: %d\n", virtualString + 1);
+    }
+
+    if (port->Channels() > 0 && port->GetType() == "Pixel") {
+        sa = wxString::Format("Estimated Current Draw: %0.2fA\n", port->GetAmps(_controller->GetDefaultBrightnessUnderFullControl()));
     }
 
     if (port->GetVirtualStringCount() <= 1 || virtualString < 0 || (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings())) {
@@ -2016,7 +2021,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         }
     }
 
-    return wxString::Format("Port: %d\nType: %s\n%s%s%s%s", port->GetPort(), port->GetType(), protocol, sr, vs, sc);
+    return wxString::Format("Port: %d\nType: %s\n%s%s%s%s%s", port->GetPort(), port->GetType(), sa, protocol, sr, vs, sc);
 }
 
 std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
