@@ -28,6 +28,7 @@ void RemoteFalconOptions::Load()
 {
     wxConfigBase* config = wxConfigBase::Get();
     _token = config->Read(_("RemoteFalconToken"), wxEmptyString).ToStdString();
+    _playDuring = config->Read(_("RemoteFalconPlayDuring"), wxEmptyString).ToStdString();
     _playlist = config->Read(_("RemoteFalconPlaylist"), -1);
     _immediatelyInterrupt = config->Read(_("RemoteFalconImmediatelyInterrupt"), true);
     _leadTime = config->Read(_("RemoteFalconLeadTime"), 5);
@@ -38,6 +39,7 @@ void RemoteFalconOptions::Save()
 {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write(_("RemoteFalconToken"), wxString(_token));
+    config->Write(_("RemoteFalconPlayDuring"), wxString(_playDuring));
     config->Write(_("RemoteFalconPlaylist"), _playlist);
     config->Write(_("RemoteFalconLeadTime"), _leadTime);
     config->Write(_("RemoteFalconImmediatelyInterrupt"), _immediatelyInterrupt);
@@ -47,6 +49,11 @@ void RemoteFalconOptions::Save()
 bool RemoteFalconOptions::IsValid() const
 {
     return _token != "" && _playlist != -1;
+}
+
+bool RemoteFalconOptions::IsPlayDuring(const std::string& playlist)
+{
+	return _playDuring == "" || Contains(_playDuring, "|" + playlist + "|");
 }
 
 bool RemoteFalconOptions::IsDirty() const

@@ -52,6 +52,7 @@ class RemoteFalconFrame : public wxFrame
     std::atomic<bool> _running;
     std::string _oldSteps;
     std::string _playlist;
+    std::string _playingPlaylist;
     std::string _mode;
     std::string _subdomain;
     std::future<void> _sendPlaylistFuture;

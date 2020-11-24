@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="RemoteFalconSettingsDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -10,7 +11,8 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 					<cols>2</cols>
-					<growablecols>0</growablecols>
+					<growablecols>1</growablecols>
+					<growablerows>5</growablerows>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_Token" member="yes">
 							<label>Token:</label>
@@ -73,9 +75,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-							<label>Time to grab next song (seconds)</label>
+							<label>Time to grab next song (seconds):</label>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -84,6 +86,22 @@
 							<value>5</value>
 							<min>1</min>
 							<max>20</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label>Play during playlists:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="CheckListBox_Playlists" member="yes">
+							<handler function="OnCheckListBox_PlaylistsToggled" entry="EVT_CHECKLISTBOX" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

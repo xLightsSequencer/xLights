@@ -21,6 +21,7 @@ class RemoteFalconOptions
     int _lastSavedChangeCount = 0;
 
     std::string _token = "";
+    std::string _playDuring = "";
     int _playlist = -1;
     int _leadTime = 5;
     bool _immediatelyInterrupt = true;
@@ -42,6 +43,10 @@ class RemoteFalconOptions
 
         int GetLeadTime() const { return _leadTime; }
         void SetLeadTime(int leadTime) { if (leadTime != _leadTime) { _leadTime = leadTime; _changeCount++; } }
+
+        void SetPlayDuring(const std::string& playDuring) { if (playDuring != _playDuring) { _playDuring = playDuring; _changeCount++; } }
+        std::string GetPlayDuring() const { return _playDuring; }
+        bool IsPlayDuring(const std::string& playlist);
 
         bool IsDirty() const;
         void ClearDirty();

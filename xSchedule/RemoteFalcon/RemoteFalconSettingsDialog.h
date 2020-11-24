@@ -13,6 +13,7 @@
 //(*Headers(RemoteFalconSettingsDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/checklst.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
@@ -27,6 +28,7 @@ class RemoteFalconSettingsDialog: public wxDialog
 {
     RemoteFalconOptions* _options;
 	std::vector<int> _plids;
+	std::list<std::pair<std::string, int>> _playlists;
 
 	public:
 
@@ -38,10 +40,12 @@ class RemoteFalconSettingsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_ClearQueue;
 		wxCheckBox* CheckBox_ImmediatelyInterrupt;
+		wxCheckListBox* CheckListBox_Playlists;
 		wxChoice* Choice_Playlists;
 		wxSpinCtrl* SpinCtrl_LeadTime;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText_Token;
 		wxTextCtrl* TextCtrl_Token;
 		//*)
@@ -57,28 +61,31 @@ class RemoteFalconSettingsDialog: public wxDialog
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT3;
+		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
+
+		static const long ID_MNU_SELECTALL;
+		static const long ID_MNU_SELECTNONE;
+		static const long ID_MNU_SELECTHIGH;
+		static const long ID_MNU_DESELECTHIGH;
 
 	private:
 
 		//(*Handlers(RemoteFalconSettingsDialog)
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnTextCtrl_xScheduleIPAddressText(wxCommandEvent& event);
-		void OnTextCtrl_TargetMatrixText(wxCommandEvent& event);
-		void OnTextCtrl_TwilioSIDText(wxCommandEvent& event);
-		void OnTextCtrl_TwilioTokenText(wxCommandEvent& event);
-		void OnTextCtrl_TwilioPhoneText(wxCommandEvent& event);
-		void OnTextCtrl_UserText(wxCommandEvent& event);
-		void OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event);
-		void OnChoice_RemoteFalconServiceSelect(wxCommandEvent& event);
 		void OnTextCtrl_TokenText(wxCommandEvent& event);
 		void OnChoice_PlaylistsSelect(wxCommandEvent& event);
+		void OnCheckListBox_PlaylistsToggled(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
+
+		void OnPreviewRightDown(wxMouseEvent& event);
+		void OnPopupCommand(wxCommandEvent& event);
 
         void ValidateWindow();
 };
