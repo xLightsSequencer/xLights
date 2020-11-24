@@ -635,9 +635,9 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 }
 
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
-    if (channelNames.size() == 0)
+    if (channelNames.size() == 0 && timingTracks.size() == 0)
     {
-        DisplayError("No models to import from. Source sequence had no data.");
+        DisplayError("No models/timing tracks to import from. Source sequence had no data.");
         return false;
     }
 
