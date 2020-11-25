@@ -31,6 +31,7 @@ void RemoteFalconOptions::Load()
     _playDuring = config->Read(_("RemoteFalconPlayDuring"), wxEmptyString).ToStdString();
     _playlist = config->Read(_("RemoteFalconPlaylist"), -1);
     _immediatelyInterrupt = config->Read(_("RemoteFalconImmediatelyInterrupt"), true);
+    _sendEnableDisable = config->Read(_("RemoteFalconSendEnableDisable"), true);
     _leadTime = config->Read(_("RemoteFalconLeadTime"), 5);
     ClearDirty();
 }
@@ -43,6 +44,7 @@ void RemoteFalconOptions::Save()
     config->Write(_("RemoteFalconPlaylist"), _playlist);
     config->Write(_("RemoteFalconLeadTime"), _leadTime);
     config->Write(_("RemoteFalconImmediatelyInterrupt"), _immediatelyInterrupt);
+    config->Write(_("RemoteFalconSendEnableDisable"), _sendEnableDisable);
     ClearDirty();
 }
 

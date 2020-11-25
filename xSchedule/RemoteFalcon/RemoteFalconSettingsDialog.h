@@ -40,6 +40,7 @@ class RemoteFalconSettingsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_ClearQueue;
 		wxCheckBox* CheckBox_ImmediatelyInterrupt;
+		wxCheckBox* CheckBox_SendEnableDisable;
 		wxCheckListBox* CheckListBox_Playlists;
 		wxChoice* Choice_Playlists;
 		wxSpinCtrl* SpinCtrl_LeadTime;
@@ -59,6 +60,7 @@ class RemoteFalconSettingsDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX3;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;

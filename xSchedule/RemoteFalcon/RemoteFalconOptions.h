@@ -26,6 +26,7 @@ class RemoteFalconOptions
     int _leadTime = 5;
     bool _immediatelyInterrupt = true;
     bool _clearQueueOnStart = true;
+    bool _sendEnableDisable = false;
 
     public:
 
@@ -40,6 +41,9 @@ class RemoteFalconOptions
 
         bool GetClearQueueOnStart() const { return _clearQueueOnStart; }
         void SetClearQueueOnStart(bool clearQueue) { if (clearQueue != _clearQueueOnStart) { _clearQueueOnStart = clearQueue; _changeCount++; } }
+
+        bool IsEnableDisable() const { return _sendEnableDisable; }
+        void SetEnableDisable(bool sendEnableDisable) { if (_sendEnableDisable != sendEnableDisable) { _sendEnableDisable = sendEnableDisable; _changeCount++; } }
 
         int GetLeadTime() const { return _leadTime; }
         void SetLeadTime(int leadTime) { if (leadTime != _leadTime) { _leadTime = leadTime; _changeCount++; } }

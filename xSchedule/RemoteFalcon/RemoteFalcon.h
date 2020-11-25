@@ -69,6 +69,12 @@ class RemoteFalcon
             return Curl::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
+        std::string EnableViewerControl(bool enable)
+        {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"viewerControlEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
+            return Curl::HTTPSPost(_URLBase + "/updateViewerControl", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+        }
+
         std::string SendPlayingSong(const std::string& playing)
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", __token, playing);
