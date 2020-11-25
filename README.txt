@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Export Controller Connections to Tool Menu. This exports a CSV file with all
+					the ethernet type controllers and the models attached to each port.
+   -- bug (scott)  Fix Check Sequence Connection Error for Auto Configure Panel Controllers
 2020.49 November 24 2020
    -- enh (scott)  Added Import Model Blend Mode to xLights Sequence Import
    -- enh (keith)  Allow remote falcon to only work while some playlists are playing
