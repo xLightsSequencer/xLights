@@ -345,20 +345,38 @@ void WindowFrameModel::InitFrame()
     float screeny = yScreenStart[indexes[side]];
     int curLen = lengths[indexes[side]];
 
-    size_t NodeCount = GetNodeCount();
-    for (size_t n = 0; n < NodeCount; n++) {
+    size_t nd = 0;
+    size_t cd = 0;
+    size_t loops = GetNodeCount();
+    size_t coordCount = 1;
+    if (SingleNode) {
+        wxASSERT(GetNodeCount() == 1);
+        coordCount = GetCoordCount(0);
+        loops = coordCount;
+    }
+    else {
+        wxASSERT(GetCoordCount(0) == 1); // only one coord supported by this code
+    }
+
+    for (size_t n = 0; n < loops; n++) {
         wxASSERT(curLen > 0);
-        Nodes[n]->ActChan = chan;
-        chan += ChanIncr;
-        size_t coordCount = GetCoordCount(n);
-        wxASSERT(coordCount == 1); // only one coord supported by this code
-        for (size_t c = 0; c < coordCount; c++) {
-            Nodes[n]->Coords[c].bufX = (xincr[indexes[side]] * dir > 0 ? std::floor(x) : std::ceil(x));
-            Nodes[n]->Coords[c].bufY = y;
-            //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
-            Nodes[n]->Coords[c].screenX = screenx;
-            Nodes[n]->Coords[c].screenY = screeny;
+
+        Nodes[nd]->ActChan = chan;
+
+        if (SingleNode) {
+            Nodes[nd]->Coords[cd].bufX = 0;
+            Nodes[nd]->Coords[cd].bufY = 0;
         }
+        else {
+            Nodes[nd]->Coords[cd].bufX = (xincr[indexes[side]] * dir > 0 ? std::floor(x) : std::ceil(x));
+            Nodes[nd]->Coords[cd].bufY = y;
+            chan += ChanIncr;
+        }
+
+        //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+        Nodes[nd]->Coords[cd].screenX = screenx;
+        Nodes[nd]->Coords[cd].screenY = screeny;
+
         screenx = screenx + (xscreenincr[indexes[side]] * dir);
         screeny = screeny + (yscreenincr[indexes[side]] * dir);
         x = x + xincr[indexes[side]] * dir;
@@ -376,6 +394,13 @@ void WindowFrameModel::InitFrame()
             screenx = xScreenStart[indexes[side]];
             screeny = yScreenStart[indexes[side]];
             curLen = lengths[indexes[side]];
+        }
+
+        if (SingleNode) {
+            cd++;
+        }
+        else {
+            nd++;
         }
     }
 }
