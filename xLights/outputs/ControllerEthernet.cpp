@@ -312,6 +312,20 @@ std::string ControllerEthernet::GetLongDescription() const {
     return res;
 }
 
+std::string ControllerEthernet::GetShortDescription() const {
+
+	std::string res = "";
+
+	if (!IsActive()) res += "INACTIVE ";
+	res += GetName() + " " + GetProtocol() + " " + GetIP();
+    if (!_description.empty()) {
+        res += " ";
+        res += _description;
+    }
+
+	return res;
+}
+
 void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
 
     _outputs.push_back(Output::Create(this, node, showDir));

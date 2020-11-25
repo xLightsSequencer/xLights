@@ -185,6 +185,9 @@ public:
     // Used on test dialog
     virtual std::string GetLongDescription() const { return GetName() + "\n" + GetDescription(); }
 
+    // Long Description without Channels
+    virtual std::string GetShortDescription() const { return GetLongDescription(); }
+
     // Used in xSchedule
     virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)"); }
 

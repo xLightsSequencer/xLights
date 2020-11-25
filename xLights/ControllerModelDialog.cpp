@@ -1347,46 +1347,9 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
 
 void ControllerModelDialog::SaveCSV() {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _title, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _controller->GetShortDescription(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty()) return;
-
-    std::vector<wxString> lines;
-    int columnSize = 0;
-
-    for (int i = 1; i <= _cud->GetMaxPixelPort(); i++) {
-        wxString line = wxString::Format("Pixel Port %d,", i);
-
-        if (columnSize < _cud->GetControllerPixelPort(i)->GetModels().size())
-            columnSize = _cud->GetControllerPixelPort(i)->GetModels().size();
-
-        for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels()) {
-            if (it->GetSmartRemote() > 0) {
-                char remote = ('@' + it->GetSmartRemote());
-                line += "Remote ";
-                line += remote;
-                line += ":";
-            }
-            line += it->GetName();
-            line += ",";
-        }
-
-        line += "\n";
-        lines.push_back(line);
-    }
-    lines.push_back("\n");
-    for (int i = 1; i <= _cud->GetMaxSerialPort(); i++) {
-        if (columnSize < _cud->GetControllerSerialPort(i)->GetModels().size())
-            columnSize = _cud->GetControllerSerialPort(i)->GetModels().size();
-
-        wxString line = wxString::Format("Serial Port %d,", i);
-        for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels()) {
-            line += it->GetName();
-            line += ",";
-        }
-        line += "\n";
-        lines.push_back(line);
-    }
 
     wxFile f(filename);
 
@@ -1395,12 +1358,9 @@ void ControllerModelDialog::SaveCSV() {
         return;
     }
 
-    wxString header = _title + "\nOutput,";
-    for (int i = 1; i <= columnSize; i++) {
-        header += wxString::Format("Model %d,", i);
-    }
-    header += "\n";
+    wxString const header = _controller->GetShortDescription() + "\n";
     f.Write(header);
+    std::vector<std::string> const lines = _cud->ExportAsCSV();
     for (const auto& line : lines) {
         f.Write(line);
     }

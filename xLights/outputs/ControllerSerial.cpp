@@ -251,9 +251,23 @@ std::string ControllerSerial::GetLongDescription() const {
 
     if (!IsActive()) res += "INACTIVE ";
     res += GetName() + " " + GetProtocol() + " " + GetPort();
-    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
+    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += _description;
 
     return res;
+}
+
+std::string ControllerSerial::GetShortDescription() const {
+	std::string res = "";
+
+	if (!IsActive()) res += "INACTIVE ";
+	res += GetName() + " " + GetProtocol() + " " + GetPort();
+	if (!_description.empty()) {
+		res += " ";
+		res += _description;
+	}
+
+	return res;
 }
 
 void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {

@@ -66,6 +66,8 @@ public:
 
     virtual std::string GetLongDescription() const override;
 
+    virtual std::string GetShortDescription() const override;
+
     virtual std::string GetType() const override { return CONTROLLER_SERIAL; }
 
     void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node

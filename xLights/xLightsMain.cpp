@@ -248,6 +248,7 @@ const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
 const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
@@ -857,6 +858,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(mExportModelsMenuItem);
     MenuItem_ExportEffects = new wxMenuItem(Menu1, ID_MNU_EXPORT_EFFECTS, _("Export &Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ExportEffects);
+    MenuItem_ExportControllerConnections = new wxMenuItem(Menu1, ID_MNU_EXPORT_CONTROLLER_CONNECTIONS, _("Export Controller Connections"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_ExportControllerConnections);
     Menu1->AppendSeparator();
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
@@ -1106,6 +1109,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_HINKSPIX_EXPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHinksPixExportSelected);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
+    Connect(ID_MNU_EXPORT_CONTROLLER_CONNECTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected);
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(iD_MNU_VENDORCACHEPURGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeVendorCacheSelected);
@@ -1298,12 +1302,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     {
         logger_base.error("Null config ... this wont end well.");
     }
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.", 
-        (const char *)config->GetAppName().c_str(), 
-        (const char *)config->GetPath().c_str(), 
-        (int)config->GetNumberOfEntries(), 
-        (int)config->GetNumberOfGroups(), 
-        config->GetStyle(), 
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
+        (const char *)config->GetAppName().c_str(),
+        (const char *)config->GetPath().c_str(),
+        (int)config->GetNumberOfEntries(),
+        (int)config->GetNumberOfGroups(),
+        config->GetStyle(),
         (const char*)config->GetVendorName().c_str());
 
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
@@ -1402,7 +1406,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_TOOLBAR));
-        
+
     logger_base.debug("xLightsFrame constructor loading config.");
 
     dir.clear();
@@ -1643,7 +1647,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         logger_base.debug("xLights Crash Menu item not removed.");
     }
 #endif
-    
+
     if (IsFromAppStore()) {
         MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
         MenuItem_Update = nullptr;
@@ -1742,14 +1746,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "None");
     logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
 
-    
+
     std::thread th([this]() {
         std::this_thread::sleep_for(std::chrono::seconds(3));
         this->CallAfter(&xLightsFrame::DoPostStartupCommands);
     });
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
-    
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -2262,7 +2266,7 @@ bool xLightsFrame::DisableOutputs() {
     if (_outputManager.IsOutputting()) {
         _outputManager.AllOff();
         _outputManager.StopOutput();
-        
+
         for (auto &controller : _outputManager.GetControllers()) {
             if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
                 ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);
@@ -3513,7 +3517,7 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
 
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
 
-    
+
     wxString qualifier = GetBitness();
 #ifdef __WXOSX__
 #if defined(__x86_64__)
@@ -3998,7 +4002,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 void xLightsFrame::SetMediaFolders(const std::list<std::string> &folders) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
-    
+
     wxString setting;
     mediaDirectories.clear();
     for (auto &dir: folders) {
@@ -4810,9 +4814,10 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 auto c = _outputManager.GetController(it.second->GetControllerName());
                 auto eth = dynamic_cast<ControllerEthernet*>(c);
+                auto caps = c->GetControllerCaps();
                 if (eth != nullptr)
                 {
-                    if (!it.second->IsControllerConnectionValid())
+                    if (!it.second->IsControllerConnectionValid() && (caps != nullptr && caps->GetMaxPixelPort() != 0 && caps->GetMaxSerialPort() != 0))
                     {
                         wxString msg = wxString::Format("    ERR: Model %s on %s controller '%s:%s' has invalid controller connection '%s'.",
                             (const char*)it.second->GetName().c_str(),
@@ -6406,9 +6411,9 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, 
-                                bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, 
-                                std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, 
+void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName,
+                                bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces,
+                                std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader,
                                 std::list<std::string>& allfiles)
 {
     int layer = 0;
@@ -8624,9 +8629,9 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     wxHTTP get;
     get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
     get.SetHeader("Cache-Control", "no-cache");
-    
+
     bool didConnect = false;
-    
+
     for (int retry = 0; retry < maxRetries; retry++) {
         logger_base.debug("Attempting version update check %d/%d...", retry + 1, maxRetries);
         if (get.Connect(hostname)) {
@@ -8640,7 +8645,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
             }
         }
     }
-    
+
     if (!didConnect) {
         logger_base.debug("Version update check failed. Unable to connect.");
         if (showMessageBoxes) {
@@ -10053,4 +10058,39 @@ void xLightsFrame::OnMenuItem_KeyBindingsSelected(wxCommandEvent& event)
     KeyBindingEditDialog dlg(this, &GetMainSequencer()->keyBindings, &effectManager);
 
     dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Controller_Connections", wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    auto controllers = GetOutputManager()->GetControllers();
+    for (const auto& it : controllers) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+
+        if (eth != nullptr) {
+            std::string check;
+            UDController cud(eth, &_outputManager, &AllModels, check, false);
+            wxString const header = eth->GetShortDescription() + "\n";
+            f.Write(header);
+            std::vector<std::string> const lines = cud.ExportAsCSV();
+            for (const auto& line : lines) {
+                f.Write(line);
+            }
+            f.Write("\n");
+        }
+    }
+
+    f.Close();
+    SetStatusText("Controller Connections CSV saved at " + filename);
 }

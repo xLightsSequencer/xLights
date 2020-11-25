@@ -1162,6 +1162,10 @@
 					<label>Export &amp;Effects</label>
 					<handler function="OnMenuItem_ExportEffectsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_EXPORT_CONTROLLER_CONNECTIONS" variable="MenuItem_ExportControllerConnections" member="yes">
+					<label>Export Controller Connections</label>
+					<handler function="OnMenuItem_ExportControllerConnectionsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
 					<label>&amp;View Log</label>

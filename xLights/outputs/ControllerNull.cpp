@@ -55,6 +55,18 @@ std::string ControllerNull::GetLongDescription() const {
     return res;
 }
 
+std::string ControllerNull::GetShortDescription() const {
+
+	std::string res = "";
+	if (!IsActive()) res += "INACTIVE ";
+	res += GetName() + "  NULL";
+	if (!_description.empty()) {
+		res += " ";
+		res += _description;
+	}
+	return res;
+}
+
 void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
 
     Controller::Convert(node, showDir);

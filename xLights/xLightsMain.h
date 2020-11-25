@@ -564,6 +564,7 @@ public:
     void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
+    void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -691,6 +692,7 @@ public:
     static const long ID_MENU_HINKSPIX_EXPORT;
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
+    static const long ID_MNU_EXPORT_CONTROLLER_CONNECTIONS;
     static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
     static const long iD_MNU_VENDORCACHEPURGE;
@@ -846,6 +848,7 @@ public:
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
+    wxMenuItem* MenuItem_ExportControllerConnections;
     wxMenuItem* MenuItem_ExportEffects;
     wxMenuItem* MenuItem_FPP_Connect;
     wxMenuItem* MenuItem_File_Close_Sequence;

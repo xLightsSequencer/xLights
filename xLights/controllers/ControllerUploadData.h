@@ -16,6 +16,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <vector>
 
 class UDControllerPort;
 class UDController;
@@ -203,6 +204,7 @@ class UDControllerPort
 
     void Dump() const;
     bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
+    std::string ExportAsCSV() const;
     #pragma endregion
 };
 
@@ -255,6 +257,7 @@ class UDController
     bool IsValid(ControllerCaps* rules) const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
+    std::vector<std::string> ExportAsCSV();
         
     Output* GetFirstOutput() const;
     
