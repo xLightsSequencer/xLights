@@ -15,6 +15,7 @@
 #ifdef __WXOSX__
 class xlGLCanvas;
 class wxMenu;
+class wxWindow;
 
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
@@ -33,6 +34,7 @@ void RemoveAudioDeviceChangeListener(AudioManager *am);
 void AdjustColorToDeviceColorspace(const wxColor &c, xlColor &xlc);
 bool IsFromAppStore();
 
+bool DoInAppPurchases(wxWindow *w);
 
 
 #define AdjustModalDialogParent(par) par = nullptr

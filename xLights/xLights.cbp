@@ -433,6 +433,8 @@
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
 		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
+		<Unit filename="AboutDialog.cpp" />
+		<Unit filename="AboutDialog.h" />
 		<Unit filename="AlignmentDialog.cpp" />
 		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
@@ -1249,6 +1251,7 @@
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BackupSettingsPanel.wxs" />
@@ -1610,8 +1613,13 @@
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/InAppPurchaseDialog.wxs" src="InAppPurchaseDialog.cpp" hdr="InAppPurchaseDialog.h" fwddecl="0" i18n="1" name="InAppPurchaseDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

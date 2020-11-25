@@ -89,6 +89,7 @@
 #include "outputs/ControllerSerial.h"
 #include "KeyBindingEditDialog.h"
 #include "TraceLog.h"
+#include "AboutDialog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -1723,9 +1724,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     VideoReader::InitHWAcceleration();
 
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
-
-    // app store review is complaining as this isn't an in-app purchase
-    MenuItem_Donate->SetItemLabel("xLights Homepage");
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -1962,8 +1960,28 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
     wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
-    wxString ver = wxString::Format(_("xLights\nVersion: %s\n\n"), GetDisplayVersionString());
-    wxMessageDialog dlg(this, ver + XLIGHTS_LICENSE, hdg);
+    wxString ver = wxString::Format(_("Version: %s"), GetDisplayVersionString());
+    AboutDialog dlg(this);
+    
+    dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
+    
+    dlg.VersionLabel->SetLabel(ver);
+    dlg.SetTitle(hdg);
+    dlg.LegalTextLabel->SetLabel(XLIGHTS_LICENSE);
+    dlg.MainSizer->Fit(&dlg);
+    dlg.MainSizer->SetSizeHints(&dlg);
+    
+    dlg.LegalTextLabel->Wrap(dlg.LegalTextLabel->GetClientSize().GetWidth() - 10);
+    dlg.MainSizer->Fit(&dlg);
+    dlg.MainSizer->SetSizeHints(&dlg);
+    
+    if (IsFromAppStore()) {
+        dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
+        dlg.EULAHyperlinkCtrl->SetLabel("End User License Agreement");
+        dlg.EULAHyperlinkCtrl->SetURL("http://kulplights.com/xlights/eula.html");
+        dlg.EULAHyperlinkCtrl->Show();
+    }
+
     dlg.ShowModal();
 }
 
@@ -7701,7 +7719,8 @@ void xLightsFrame::DoDonate()
 void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    ::wxLaunchDefaultBrowser("https://xlights.org");
+    DoInAppPurchases(this);
+    //::wxLaunchDefaultBrowser("https://xlights.org");
 #else
     DoDonate();
 #endif

@@ -61,6 +61,7 @@
 		671805A524F3090D002DEC46 /* GenericSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671805A424F3090D002DEC46 /* GenericSerialOutput.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
+		6719709B25719E21008F0294 /* AboutDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719709A25719E21008F0294 /* AboutDialog.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
 		6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF491CCB1D8800899A4B /* MusicPanel.cpp */; };
 		6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */; };
@@ -493,6 +494,8 @@
 		67DC3609242B2CC900467C2D /* BulkEditColourPickerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */; };
 		67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */; };
 		67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
+		67E00449256D878100E12C81 /* osxInAppPurchases.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67E00448256D878100E12C81 /* osxInAppPurchases.mm */; };
+		67E00458256DBA6D00E12C81 /* InAppPurchaseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E00457256DBA6C00E12C81 /* InAppPurchaseDialog.cpp */; };
 		67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
@@ -622,6 +625,8 @@
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
 		6718EE721CDA4BD400A6E842 /* SubBufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubBufferPanel.h; sourceTree = "<group>"; };
 		6718EE741CDA600B00A6E842 /* xlCustomControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlCustomControl.h; sourceTree = "<group>"; };
+		6719709925719E21008F0294 /* AboutDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AboutDialog.h; sourceTree = "<group>"; };
+		6719709A25719E21008F0294 /* AboutDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AboutDialog.cpp; sourceTree = "<group>"; };
 		6719BF471CCB1D8800899A4B /* MusicEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicEffect.cpp; path = effects/MusicEffect.cpp; sourceTree = "<group>"; };
 		6719BF481CCB1D8800899A4B /* MusicEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicEffect.h; path = effects/MusicEffect.h; sourceTree = "<group>"; };
 		6719BF491CCB1D8800899A4B /* MusicPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicPanel.cpp; path = effects/MusicPanel.cpp; sourceTree = "<group>"; };
@@ -1420,6 +1425,10 @@
 		67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImportPreviewsModelsDialog.h; sourceTree = "<group>"; };
 		67DD179420167D4A001E7A8B /* DDPOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDPOutput.h; path = outputs/DDPOutput.h; sourceTree = "<group>"; };
 		67DD179520167D4A001E7A8B /* DDPOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = outputs/DDPOutput.cpp; sourceTree = "<group>"; };
+		67E00443256D6FA900E12C81 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		67E00448256D878100E12C81 /* osxInAppPurchases.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = osxInAppPurchases.mm; sourceTree = "<group>"; };
+		67E00456256DBA6C00E12C81 /* InAppPurchaseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InAppPurchaseDialog.h; sourceTree = "<group>"; };
+		67E00457256DBA6C00E12C81 /* InAppPurchaseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InAppPurchaseDialog.cpp; sourceTree = "<group>"; };
 		67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerConnectionDialog.cpp; sourceTree = "<group>"; };
 		67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerConnectionDialog.h; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
@@ -1787,6 +1796,7 @@
 				67582EC71C73643900850363 /* osx_shared_mutex.cpp */,
 				679DD2851DDE3BA000A389E6 /* TouchBars.h */,
 				679DD28D1DDE493900A389E6 /* TouchBars.cpp */,
+				67E00448256D878100E12C81 /* osxInAppPurchases.mm */,
 			);
 			name = osx_utils;
 			sourceTree = "<group>";
@@ -2278,6 +2288,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67E00443256D6FA900E12C81 /* StoreKit.framework */,
 				67290011255304A100C83C71 /* libx264.a */,
 				6729000C2553046400C83C71 /* libbz2.tbd */,
 				67290003255303D500C83C71 /* VideoToolbox.framework */,
@@ -2354,6 +2365,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6719709A25719E21008F0294 /* AboutDialog.cpp */,
+				6719709925719E21008F0294 /* AboutDialog.h */,
+				67E00457256DBA6C00E12C81 /* InAppPurchaseDialog.cpp */,
+				67E00456256DBA6C00E12C81 /* InAppPurchaseDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3073,6 +3088,7 @@
 				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
 				67BF80031F278956002F118D /* SanDevices.cpp in Sources */,
 				6765D1E62338E6EF006A7378 /* Vixen3.cpp in Sources */,
+				67E00458256DBA6D00E12C81 /* InAppPurchaseDialog.cpp in Sources */,
 				67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */,
 				67B2CFDB1C3A186A003C17CA /* TextEffect.cpp in Sources */,
 				67B2B2321E1947BE0024F0BB /* PixelNetOutput.cpp in Sources */,
@@ -3279,6 +3295,7 @@
 				67FC880723D6410400D457CB /* xLightsPreferences.cpp in Sources */,
 				679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */,
 				1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */,
+				6719709B25719E21008F0294 /* AboutDialog.cpp in Sources */,
 				67B2CFEA1C3A186A003C17CA /* LightningEffect.cpp in Sources */,
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
 				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,
@@ -3341,6 +3358,7 @@
 				67BCD1551E6DAF9100F99935 /* xLightsVersion.cpp in Sources */,
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,
+				67E00449256D878100E12C81 /* osxInAppPurchases.mm in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
 				6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */,
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
@@ -3618,11 +3636,14 @@
 					"-headerpad_max_install_names",
 					"-Wl,-keep_dwarf_unwind",
 					"-Wl,-no_compact_unwind",
+					"-framework",
+					StoreKit,
 				);
 				OTHER_TAPI_FLAGS = "";
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = debugging;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
 			};
@@ -3701,18 +3722,16 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
-					"-lwxexpat-3.1",
-					"-lwxjpeg-3.1",
-					"-lwxpng-3.1",
-					"-lwxregexu-3.1",
-					"-lwxzlib-3.1",
 					"-Wl,-keep_dwarf_unwind",
 					"-Wl,-no_compact_unwind",
+					"-framework",
+					StoreKit,
 				);
 				OTHER_TAPI_FLAGS = "";
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = debugging;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
 			};
@@ -3725,10 +3744,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLightsDebug.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 200471;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = U8ZT9RPC6S;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -3741,6 +3760,7 @@
 					"-IxLights",
 					"-IxLights/ffmpeg-dev/include/",
 				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3755,9 +3775,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 200471;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = U8ZT9RPC6S;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -3771,6 +3792,14 @@
 					"-IxLights/ffmpeg-dev/include/",
 				);
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lwxexpat-3.1",
+					"-lwxjpeg-3.1",
+					"-lwxpng-3.1",
+					"-lwxregexu-3.1",
+					"-lwxzlib-3.1",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3851,13 +3880,10 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
-					"-lwxexpat-3.1",
-					"-lwxjpeg-3.1",
-					"-lwxpng-3.1",
-					"-lwxzlib-3.1",
-					"-lwxregexu-3.1",
 					"-Wl,-keep_dwarf_unwind",
 					"-Wl,-no_compact_unwind",
+					"-framework",
+					StoreKit,
 				);
 				OTHER_TAPI_FLAGS = "";
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
@@ -3892,6 +3918,14 @@
 					"-IxLights/ffmpeg-dev/include/",
 				);
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lwxexpat-3.1",
+					"-lwxjpeg-3.1",
+					"-lwxpng-3.1",
+					"-lwxzlib-3.1",
+					"-lwxregexu-3.1",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
