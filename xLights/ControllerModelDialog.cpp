@@ -762,16 +762,16 @@ public:
 #pragma endregion
 
 ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog, const wxString& title, wxSize boxSize, wxSize panelSize) :
-    _box_size(boxSize), 
-    _panel_size(panelSize),
     _controllerDialog(controllerDialog),
-    _orient(wxPORTRAIT),
-    _paper_type(wxPAPER_LETTER),
     _page_count(1),
     _page_count_w(1),
     _page_count_h(1),
+    _orient(wxPORTRAIT),
+    _paper_type(wxPAPER_LETTER),
     _max_x(600),
-    _max_y(800)
+    _max_y(800),
+    _box_size(boxSize), 
+    _panel_size(panelSize)
 { }
 
 bool ControllerModelPrintout::OnPrintPage(int pageNum) {
@@ -783,9 +783,7 @@ bool ControllerModelPrintout::OnPrintPage(int pageNum) {
 
     wxString pagename = wxString::Format("Page %d-%d", y_page + 1, x_page + 1);
 
-    wxRect rect = GetLogicalPageRect();
     wxBitmap bmp = _controllerDialog->RenderPicture(startY, startX, _max_x,_max_y, pagename);
-    //bmp.ConvertToImage().SaveFile(wxString::Format("C:/temp/test_%d.png", pageNum), wxBITMAP_TYPE_PNG);
     wxDC* dc = GetDC();
 
     MapScreenSizeToPage();
@@ -853,7 +851,11 @@ void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog) {
 }
 
 ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id,const wxPoint& pos,const wxSize& size) :
-    _cud(cud), _mm(mm), _controller(controller), _xLights((xLightsFrame*)parent) {
+    _cud(cud),
+    _controller(controller),
+    _mm(mm),
+    _xLights((xLightsFrame*)parent) 
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1708,7 +1710,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                             if (m->GetControllerDMXChannel() < nextch) {
                                 m->SetControllerDMXChannel(nextch);
                             }
-                            else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel())                                 {
+                            else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
                                 m->SetControllerDMXChannel(nextch);
                             }
                             Model* next = droppedOn;
