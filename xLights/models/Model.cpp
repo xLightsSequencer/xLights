@@ -800,6 +800,15 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     DisableUnusedProperties(grid);
 }
 
+void Model::ClearIndividualStartChannels()
+{
+    ModelXml->DeleteAttribute("Advanced");
+    // remove per strand start channels if individual isnt selected
+    for (int x = 0; x < 100; x++) {
+        ModelXml->DeleteAttribute(StartChanAttrName(x));
+    }
+}
+
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
 
     auto caps = GetControllerCaps();

@@ -398,6 +398,8 @@ public:
     void SaveDisplayDimensions();
     void RestoreDisplayDimensions();
 
+    void ClearIndividualStartChannels();
+
     void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;
     std::string GetStrandName(int x, bool def = false) const

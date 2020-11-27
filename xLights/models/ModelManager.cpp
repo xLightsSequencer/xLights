@@ -771,6 +771,7 @@ bool ModelManager::ReworkStartChannel() const
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
+                        itm->ClearIndividualStartChannels();
                         last = itm->GetName();
                         ch += itm->GetChanCount();
                         if (osc != itm->ModelStartChannel)
@@ -783,6 +784,7 @@ bool ModelManager::ReworkStartChannel() const
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
+                        itm->ClearIndividualStartChannels();
                         last = itm->GetName();
                         ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
                         if (osc != itm->ModelStartChannel)
@@ -801,6 +803,7 @@ bool ModelManager::ReworkStartChannel() const
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
+                        itm->ClearIndividualStartChannels();
                         last = itm->GetName();
                         ch += itm->GetChanCount();
                         if (osc != itm->ModelStartChannel)
@@ -815,6 +818,7 @@ bool ModelManager::ReworkStartChannel() const
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
                         itm->SetStartChannel(sc);
+                        itm->ClearIndividualStartChannels();
                         last = itm->GetName();
                         ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
                         if (osc != itm->ModelStartChannel)
