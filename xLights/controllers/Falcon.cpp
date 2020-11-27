@@ -867,7 +867,7 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
             return false;
         }
 
-        if ((cm & 0xFE) != 0) {
+        if (IsFirmwareEqualOrGreaterThan(2, 58) && (cm & 0xFE) != 0) {
             // need to switch to e131 mode
             request = "c=0";
             std::string response = PutURL("/index.htm", request.ToStdString());
