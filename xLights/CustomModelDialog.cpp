@@ -82,6 +82,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FIND = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
@@ -1390,6 +1391,28 @@ void CustomModelDialog::Rotate()
     }
 }
 
+void CustomModelDialog::GetMinMaxNode(long& min, long& max)
+{
+    max = 0;
+    min = 99999999;
+
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (s.IsEmpty() == false) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        max = std::max(v, max);
+                        min = std::min(v, min);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
@@ -1897,6 +1920,9 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_COMPRESS)
     {
         Compress();
+    }
+    else if (id == CUSTOMMODELDLGMNU_FIND) {
+        Find();
     }
     else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
     {
@@ -2467,6 +2493,8 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
     mnu.Append(CUSTOMMODELDLGMNU_DELETE, "Clear Cells");
     mnu.AppendSeparator();
+    mnu.Append(CUSTOMMODELDLGMNU_FIND, "Find Node");
+    mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
@@ -2592,8 +2620,33 @@ void CustomModelDialog::AddPage()
     Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
     Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
     Connect(id, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellSelected);
+    grid->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&CustomModelDialog::OnGridKeyDown, 0, this);
 
     Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
+}
+
+void CustomModelDialog::OnGridKeyDown(wxKeyEvent& event)
+{
+    if (event.ControlDown()) {
+        if (event.GetKeyCode() == 'F') {
+            Find();
+        }
+        else if (event.GetKeyCode() == 'X') {
+            CutOrCopyToClipboard(true);
+        }
+        else if (event.GetKeyCode() == 'C') {
+            CutOrCopyToClipboard(false);
+        }
+        else if (event.GetKeyCode() == 'V') {
+            Paste();
+        }
+        else {
+            event.Skip(true);
+        }
+    }
+    else {
+        event.Skip(true);
+    }
 }
 
 CopyPasteGrid* CustomModelDialog::GetActiveGrid() const
@@ -2683,6 +2736,7 @@ void CustomModelDialog::DeleteCells()
     }
     UpdatePreview();
 }
+
 void CustomModelDialog::WireSelectedHorizontal(long const id)
 {
     auto grid = GetActiveGrid();
@@ -2754,4 +2808,44 @@ void CustomModelDialog::WireSelectedVertical(long const id)
         }
     }
     UpdatePreview();
+}
+
+void CustomModelDialog::Find()
+{
+    long minNode;
+    long maxNode;
+    GetMinMaxNode(minNode, maxNode);
+
+    if (minNode == 0)         {
+        wxMessageBox("No nodes present.");
+        return;
+    }
+
+    wxNumberEntryDialog dlg(this, "Node to find.", "Node to find", "Node", 0, minNode, maxNode);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto find = dlg.GetValue();
+
+        int g = 0;
+        bool foundStart = false;
+        for (auto grid : _grids) {
+            for (auto c = 0; c < grid->GetNumberCols(); c++) {
+                for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                    wxString s = grid->GetCellValue(r, c);
+                    if (s.IsEmpty() == false) {
+                        long v;
+                        if (s.ToCLong(&v) == true) {
+                            if (v == find) {
+                                // make this sell active
+                                Notebook1->ChangeSelection(g);
+                                grid->SetGridCursor(r, c);
+                                grid->MakeCellVisible(r, c);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            g++;
+        }
+    }
 }

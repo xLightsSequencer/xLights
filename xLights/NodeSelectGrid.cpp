@@ -24,6 +24,7 @@
 #include <wx/filedlg.h>
 #include <wx/config.h>
 #include <wx/clipbrd.h>
+#include <wx/numdlg.h>
 
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
@@ -49,6 +50,7 @@ const long NodeSelectGrid::ID_TEXTCTRL1 = wxNewId();
 const long NodeSelectGrid::NODESELECT_CUT = wxNewId();
 const long NodeSelectGrid::NODESELECT_COPY = wxNewId();
 const long NodeSelectGrid::NODESELECT_PASTE = wxNewId();
+const long NodeSelectGrid::NODESELECT_FIND = wxNewId();
 
 
 BEGIN_EVENT_TABLE(NodeSelectGrid,wxDialog)
@@ -321,6 +323,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     GridNodes->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&NodeSelectGrid::OnCut, 0, this);
     GridNodes->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&NodeSelectGrid::OnCopy, 0, this);
     GridNodes->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&NodeSelectGrid::OnPaste, 0, this);
+    GridNodes->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&NodeSelectGrid::OnKeyDown, 0, this);
 
 #if defined(EVT_GRID_CMD_RANGE_SELECTED)
 	GridNodes->Connect(wxEVT_GRID_RANGE_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellSelect, 0, this);
@@ -949,17 +952,21 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
 
 void NodeSelectGrid::OnGridNodesCellRightClick(wxGridEvent& event)
 {
+    wxMenu mnu;
+
     if (!CheckBox_OrderedSelection->IsChecked())
     {
-        wxMenu mnu;
         // Copy / Paste / Delete
         mnu.Append(NODESELECT_CUT, "Cut");
         mnu.Append(NODESELECT_COPY, "Copy");
         mnu.Append(NODESELECT_PASTE, "Paste");
-
-        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridPopup, nullptr, this);
-        PopupMenu(&mnu);
+        mnu.AppendSeparator();
     }
+
+    mnu.Append(NODESELECT_FIND, "Find Node");
+
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridPopup, nullptr, this);
+    PopupMenu(&mnu);
 }
 
 void NodeSelectGrid::OnCut(wxCommandEvent& event)
@@ -995,16 +1002,54 @@ void NodeSelectGrid::OnGridPopup(wxCommandEvent& event)
     {
         Paste();
     }
+    else if (id == NODESELECT_FIND) {
+        Find();
+    }
+}
+
+void NodeSelectGrid::Find()
+{
+    long minNode;
+    long maxNode;
+    GetMinMaxNode(minNode, maxNode);
+
+    if (minNode == 0) {
+        wxMessageBox("No nodes present.");
+        return;
+    }
+
+    wxNumberEntryDialog dlg(this, "Node to find.", "Node to find", "Node", 0, minNode, maxNode);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto find = dlg.GetValue();
+
+        bool foundStart = false;
+        for (auto c = 0; c < GridNodes->GetNumberCols(); c++) {
+            for (auto r = 0; r < GridNodes->GetNumberRows(); ++r) {
+                wxString s = GridNodes->GetCellValue(r, c);
+                if (s.IsEmpty() == false) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        if (v == find) {
+                            // make this sell active
+                            GridNodes->SetGridCursor(r, c);
+                            GridNodes->MakeCellVisible(r, c);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
 {
     wxString copy_data;
 
-    for (int i = 0; i< GridNodes->GetNumberRows(); i++)        // step through all lines
+    for (int i = 0; i < GridNodes->GetNumberRows(); i++)        // step through all lines
     {
         bool something_in_this_line = false;             // nothing found yet
-        for (int k = 0; k<GridNodes->GetNumberCols(); k++)     // step through all colums
+        for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all colums
         {
             if (GridNodes->IsInSelection(i, k))     // this field is selected!!!
             {
@@ -1372,6 +1417,26 @@ wxString NodeSelectGrid::ExpandNodes(const wxString& nodes) const
     return res;
 }
 
+void NodeSelectGrid::GetMinMaxNode(long& min, long& max)
+{
+    max = 0;
+    min = 99999999;
+
+    for (auto c = 0; c < GridNodes->GetNumberCols(); c++) {
+        for (auto r = 0; r < GridNodes->GetNumberRows(); ++r) {
+            wxString s = GridNodes->GetCellValue(r, c);
+
+            if (s.IsEmpty() == false) {
+                long v;
+                if (s.ToCLong(&v) == true) {
+                    max = std::max(v, max);
+                    min = std::min(v, min);
+                }
+            }
+        }
+    }
+}
+
 void NodeSelectGrid::AddNode(int col, int row)
 {
     if (!CheckBox_OrderedSelection->IsChecked()) return;
@@ -1438,5 +1503,29 @@ void NodeSelectGrid::SaveSettings()
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         config->Write("NodeSelectGridOrderedSelection", CheckBox_OrderedSelection->GetValue());
+    }
+}
+
+void NodeSelectGrid::OnKeyDown(wxKeyEvent& event)
+{
+    if (event.ControlDown()) {
+        if (event.GetKeyCode() == 'F') {
+            Find();
+        }
+        else if (event.GetKeyCode() == 'X') {
+            CutOrCopyToClipboard(true);
+        }
+        else if (event.GetKeyCode() == 'C') {
+            CutOrCopyToClipboard(false);
+        }
+        else if (event.GetKeyCode() == 'V') {
+            Paste();
+        }
+        else {
+            event.Skip(true);
+        }
+    }
+    else {
+        event.Skip(true);
     }
 }
