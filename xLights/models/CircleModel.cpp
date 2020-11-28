@@ -254,12 +254,12 @@ void CircleModel::InitCircle()
             for (size_t c = 0; c < CoordCount; c++) {
                 if (loop_count == 1) {
                     Nodes[node]->Coords[c].bufX = idx;
-                    Nodes[node]->Coords[c].bufY = circle;
+                    Nodes[node]->Coords[c].bufY = insideOut ? GetLayerSizeCount() - circle - 1 : circle;
                 }
                 else {
                     int x_pos = (GetStrandLength(circle) == maxLights) ? idx : std::round(pct * (double)(maxLights - 1));
                     Nodes[node]->Coords[c].bufX = x_pos;
-                    Nodes[node]->Coords[c].bufY = circle;
+                    Nodes[node]->Coords[c].bufY = insideOut? GetLayerSizeCount() - circle - 1 : circle;
                     idx++;
                 }
             }
@@ -282,7 +282,7 @@ void CircleModel::SetCircleCoord()
     for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
-        double radius = (GetLayerSizeCount() == 1) ? maxRadius : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
+        double radius = (GetLayerSizeCount() == 1) ? maxRadius : insideOut ? (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)(GetLayerSizeCount() - circle - 1) / (double)(GetLayerSizeCount() - 1)) : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
         for (size_t n = 0; n < loop_count; n++) {
             size_t CoordCount = GetCoordCount(node);
             for (size_t c = 0; c < CoordCount; c++) {
