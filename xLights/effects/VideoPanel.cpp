@@ -248,6 +248,12 @@ VideoPanel::~VideoPanel()
 
 void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
     std::unique_lock<std::mutex> locker(lock);
+
+	wxFileName file = FilePicker_Video_Filename->GetFileName();
+	std::string current = file.GetFullPath().ToStdString();
+	if (current != fn)	//prevent event looping when selecting different video effects
+		return;
+
     videoTimeCache[fn] = ms;
 
 	// If it is not correct then set it
