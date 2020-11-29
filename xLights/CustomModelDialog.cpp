@@ -2909,9 +2909,6 @@ void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
     auto col = GetActiveGrid()->GetGridCursorCol();
     auto row = GetActiveGrid()->GetGridCursorRow();
 
-    auto col = GetActiveGrid()->GetGridCursorCol();
-    auto row = GetActiveGrid()->GetGridCursorRow();
-
     if (moveVal > 0) {
         if (Notebook1->GetSelection() != 0) {
             int newLayer = Notebook1->GetSelection() - 1;
