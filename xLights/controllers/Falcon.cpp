@@ -237,7 +237,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         string->description = "";
         string->port = port;
         string->index = stringData.size();
-        string->brightness = 100;
+        string->brightness = defaultBrightness;
         string->nullPixels = 0;
         string->gamma = 1.0;
         string->colourOrder = "RGB";
@@ -1072,8 +1072,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs = new FalconString(defaultBrightness);
                 }
 
+                // if we have switched smart remotes all settings should reset
+                if (firstString->smartRemote != vs->_smartRemote) {
+                    firstString = fs;
+                }
+
                 // ignore index ... we will fix them up when done
-                fs->port = firstString->port;
+                fs->port = pp - 1;
                 fs->index = index++;
                 fs->virtualStringIndex = vs->_index;
                 fs->protocol = DecodeStringPortProtocol(vs->_protocol);
