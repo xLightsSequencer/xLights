@@ -11,11 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.50 November 29 2020
    -- enh (scott)  Added Export Controller Connections to Tool Menu. This exports a CSV file with all
 					the ethernet type controllers and the models attached to each port.
    -- enh (scott)  Added "Scale Keep Aspect Ratio Crop" to the Picture Effect.
    -- enh (scott)  Added "Ctrl/Cmd + Scroll Wheel" Page Scrolling to Custom Model Dialog .
+   -- enh (keith)  Add bulk move and bulk remove to visualiser right click menus
+   -- enh (keith)  Add node find right click menu options to custom model dialog and submodel node selection dialog
+   -- enh (keith)  Add option to set remote falcon into enable mode when not playing supported playlists
    -- bug (scott)  Fix Check Sequence Connection Error for Auto Configure Panel Controllers.
+   -- bug (keith)  When a controller is in auto layout mode then recalc before saving controller tab and when opening visualiser
+   -- bug (keith)  When switching between virtual strings falcon upload should reset overridden properties to the default
+   -- bug (keith)  Fix circle model inside start location generates incorrect buffer/wiring
+   -- bug (keith)  Fix incorrect controller rebooting message when uploading to old firmware on F48 controllers
+   -- bug (keith)  When using auto layout remove individual start channels from models as these cause issues
+   -- bug (keith)  Fix single channel window frames display as a single dot
 2020.49 November 24 2020
    -- enh (scott)  Added Import Model Blend Mode to xLights Sequence Import
    -- enh (keith)  Allow remote falcon to only work while some playlists are playing
