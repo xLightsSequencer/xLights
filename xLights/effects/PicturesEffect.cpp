@@ -693,11 +693,13 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
     }
-    else if (scale_to_fit == "Scale Keep Aspect Ratio") {
+    else if (scale_to_fit == "Scale Keep Aspect Ratio" || scale_to_fit == "Scale Keep Aspect Ratio Crop") {
         image = rawimage;
         float xr = (float)BufferWi / (float)image.GetWidth();
         float yr = (float)BufferHt / (float)image.GetHeight();
         float sc = std::min(xr, yr);
+        if(scale_to_fit.find("Crop") != std::string::npos)
+            sc = std::max(xr, yr);
         image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
         imgwidth = image.GetWidth();
         imght = image.GetHeight();

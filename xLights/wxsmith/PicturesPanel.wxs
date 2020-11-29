@@ -79,7 +79,7 @@
 							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -118,7 +118,7 @@
 							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -157,7 +157,7 @@
 							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -190,6 +190,7 @@
 										<item>No Scaling</item>
 										<item>Scale To Fit</item>
 										<item>Scale Keep Aspect Ratio</item>
+										<item>Scale Keep Aspect Ratio Crop</item>
 									</content>
 									<selection>0</selection>
 								</object>
