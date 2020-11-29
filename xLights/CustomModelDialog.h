@@ -45,6 +45,7 @@ class ImageFilePickerCtrl;
 class ModelPreview;
 
 wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
@@ -235,6 +236,7 @@ class CustomModelDialog: public wxDialog
 		void OnGridLabelRightClick(wxGridEvent& event);
 		void OnGridCustomCellLeftClick(wxGridEvent& event);
 		void OnGridKeyDown(wxKeyEvent& event);
+		void OnSwitchGrid(wxCommandEvent& event);
 
 		void GetMinMaxNode(long& min, long& max);
 		void Reverse();

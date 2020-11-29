@@ -110,11 +110,13 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALTOP = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_GRID_KEY, CustomModelDialog::OnGridKey)
+    EVT_COMMAND(wxID_ANY, EVT_SWITCH_GRID, CustomModelDialog::OnSwitchGrid)
 END_EVENT_TABLE()
 
 class CustomNotebook : public wxNotebook
@@ -173,6 +175,15 @@ class CopyPasteGrid : public wxGrid
                 {
                     newEvent.SetOrientation(wxVERTICAL);
                 }
+            }
+
+            if (event.ControlDown()|| event.CmdDown())
+            {
+                wxCommandEvent keyEvent(EVT_SWITCH_GRID);
+                keyEvent.SetInt(lines);
+                wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+                return;
             }
 
             newEvent.SetEventObject(m_win);
@@ -2890,4 +2901,25 @@ void CustomModelDialog::FindLast()
         }
         g++;
     }
+}
+
+void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
+{
+    int moveVal = event.GetInt();
+
+    if (moveVal > 0) {
+        if (Notebook1->GetSelection() != 0) {
+            int newLayer = Notebook1->GetSelection() - 1;
+            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+    }
+    else {
+        if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1) {
+            int newLayer = Notebook1->GetSelection() + 1;
+            Notebook1->SetSelection(newLayer);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+    }
+    UpdateHighlight(-1, -1);
 }
