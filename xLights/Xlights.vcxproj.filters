@@ -839,6 +839,7 @@
     <ClCompile Include="models\DMX\DmxGeneral.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="AboutDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1685,6 +1686,7 @@
     <ClInclude Include="models\DMX\DmxGeneral.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="AboutDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
