@@ -802,6 +802,9 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
 void Model::ClearIndividualStartChannels()
 {
+    // dont clear custom models
+    if (IsCustom()) return;
+
     ModelXml->DeleteAttribute("Advanced");
     // remove per strand start channels if individual isnt selected
     for (int x = 0; x < 100; x++) {
