@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.51 November 30 2020
+   -- enh (scott)  Add white on all to RGBW handling
+   -- bug (keith)  Fix custom model with indiv start nodes being incorrectly cleared
 2020.50 November 29 2020
    -- enh (scott)  Added Export Controller Connections to Tool Menu. This exports a CSV file with all
 					the ethernet type controllers and the models attached to each port.
