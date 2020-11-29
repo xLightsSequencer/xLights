@@ -927,125 +927,125 @@ void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog) {
     }
 }
 
-ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id,const wxPoint& pos,const wxSize& size) :
+ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id, const wxPoint& pos, const wxSize& size) :
     _cud(cud),
     _controller(controller),
     _mm(mm),
-    _xLights((xLightsFrame*)parent) 
+    _xLights((xLightsFrame*)parent)
 {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-	//(*Initialize(ControllerModelDialog)
-	wxBoxSizer* BoxSizer1;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
+    //(*Initialize(ControllerModelDialog)
+    wxBoxSizer* BoxSizer1;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer5;
 
-	Create(parent, wxID_ANY, _("Controller Visualiser"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
-	SetClientSize(wxSize(500,500));
-	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxTAB_TRAVERSAL, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(50);
-	SplitterWindow1->SetSashGravity(1);
-	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer5->AddGrowableRow(0);
-	PanelController = new wxPanel(Panel3, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL1"));
-	FlexGridSizer5->Add(PanelController, 1, wxALL|wxEXPAND, 0);
-	ScrollBar_Controller_V = new wxScrollBar(Panel3, ID_SCROLLBAR1, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR1"));
-	ScrollBar_Controller_V->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer5->Add(ScrollBar_Controller_V, 1, wxALL|wxEXPAND, 0);
-	ScrollBar_Controller_H = new wxScrollBar(Panel3, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
-	ScrollBar_Controller_H->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer5->Add(ScrollBar_Controller_H, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-	StaticText1 = new wxStaticText(Panel3, ID_STATICTEXT1, _("Box Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	BoxSizer1->Add(StaticText1, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	Slider_Box_Scale = new wxSlider(Panel3, ID_SLIDER_BOX_SCALE, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BOX_SCALE"));
-	Slider_Box_Scale->SetTickFreq(1);
-	Slider_Box_Scale->SetToolTip(_("Box Size"));
-	BoxSizer1->Add(Slider_Box_Scale, 1, wxALL|wxEXPAND, 1);
-	StaticText2 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Font Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	BoxSizer1->Add(StaticText2, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	Slider_Font_Scale = new wxSlider(Panel3, ID_SLIDER_FONT_SCALE, 15, 1, 72, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FONT_SCALE"));
-	Slider_Font_Scale->SetTickFreq(1);
-	Slider_Font_Scale->SetToolTip(_("Font Size"));
-	BoxSizer1->Add(Slider_Font_Scale, 1, wxALL|wxEXPAND, 1);
-	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 3);
-	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Check = new wxTextCtrl(Panel3, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer5->Add(TextCtrl_Check, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Panel3->SetSizer(FlexGridSizer5);
-	FlexGridSizer5->Fit(Panel3);
-	FlexGridSizer5->SetSizeHints(Panel3);
-	Panel4 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(1);
-	CheckBox_HideOtherControllerModels = new wxCheckBox(Panel4, ID_CHECKBOX1, _("Hide models assigned to other controllers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	CheckBox_HideOtherControllerModels->SetValue(false);
-	FlexGridSizer3->Add(CheckBox_HideOtherControllerModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	FlexGridSizer2->AddGrowableRow(0);
-	PanelModels = new wxPanel(Panel4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL2"));
-	FlexGridSizer2->Add(PanelModels, 1, wxALL|wxEXPAND, 0);
-	ScrollBar_Models = new wxScrollBar(Panel4, ID_SCROLLBAR3, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR3"));
-	ScrollBar_Models->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer2->Add(ScrollBar_Models, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer3->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
-	Panel4->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel4);
-	FlexGridSizer3->SetSizeHints(Panel4);
-	SplitterWindow1->SplitVertically(Panel3, Panel4);
-	SplitterWindow1->SetSashPosition(1000);
-	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+    Create(parent, wxID_ANY, _("Controller Visualiser"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxCLOSE_BOX | wxMAXIMIZE_BOX, _T("wxID_ANY"));
+    SetClientSize(wxSize(500, 500));
+    FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableRow(0);
+    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D | wxTAB_TRAVERSAL, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindow1->SetMinimumPaneSize(50);
+    SplitterWindow1->SetSashGravity(1);
+    Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+    FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer5->AddGrowableCol(0);
+    FlexGridSizer5->AddGrowableRow(0);
+    PanelController = new wxPanel(Panel3, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL1"));
+    FlexGridSizer5->Add(PanelController, 1, wxALL | wxEXPAND, 0);
+    ScrollBar_Controller_V = new wxScrollBar(Panel3, ID_SCROLLBAR1, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR1"));
+    ScrollBar_Controller_V->SetScrollbar(0, 1, 10, 1);
+    FlexGridSizer5->Add(ScrollBar_Controller_V, 1, wxALL | wxEXPAND, 0);
+    ScrollBar_Controller_H = new wxScrollBar(Panel3, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
+    ScrollBar_Controller_H->SetScrollbar(0, 1, 10, 1);
+    FlexGridSizer5->Add(ScrollBar_Controller_H, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer5->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+    BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+    StaticText1 = new wxStaticText(Panel3, ID_STATICTEXT1, _("Box Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    BoxSizer1->Add(StaticText1, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxFIXED_MINSIZE, 5);
+    Slider_Box_Scale = new wxSlider(Panel3, ID_SLIDER_BOX_SCALE, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BOX_SCALE"));
+    Slider_Box_Scale->SetTickFreq(1);
+    Slider_Box_Scale->SetToolTip(_("Box Size"));
+    BoxSizer1->Add(Slider_Box_Scale, 1, wxALL | wxEXPAND, 1);
+    StaticText2 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Font Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    BoxSizer1->Add(StaticText2, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxFIXED_MINSIZE, 5);
+    Slider_Font_Scale = new wxSlider(Panel3, ID_SLIDER_FONT_SCALE, 15, 1, 72, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FONT_SCALE"));
+    Slider_Font_Scale->SetTickFreq(1);
+    Slider_Font_Scale->SetToolTip(_("Font Size"));
+    BoxSizer1->Add(Slider_Font_Scale, 1, wxALL | wxEXPAND, 1);
+    FlexGridSizer5->Add(BoxSizer1, 1, wxALL | wxEXPAND, 3);
+    FlexGridSizer5->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Check = new wxTextCtrl(Panel3, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1, 100), wxTE_MULTILINE | wxTE_READONLY | wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer5->Add(TextCtrl_Check, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Panel3->SetSizer(FlexGridSizer5);
+    FlexGridSizer5->Fit(Panel3);
+    FlexGridSizer5->SetSizeHints(Panel3);
+    Panel4 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer3->AddGrowableCol(0);
+    FlexGridSizer3->AddGrowableRow(1);
+    CheckBox_HideOtherControllerModels = new wxCheckBox(Panel4, ID_CHECKBOX1, _("Hide models assigned to other controllers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_HideOtherControllerModels->SetValue(false);
+    FlexGridSizer3->Add(CheckBox_HideOtherControllerModels, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer2->AddGrowableCol(0);
+    FlexGridSizer2->AddGrowableRow(0);
+    PanelModels = new wxPanel(Panel4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE, _T("ID_PANEL2"));
+    FlexGridSizer2->Add(PanelModels, 1, wxALL | wxEXPAND, 0);
+    ScrollBar_Models = new wxScrollBar(Panel4, ID_SCROLLBAR3, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR3"));
+    ScrollBar_Models->SetScrollbar(0, 1, 10, 1);
+    FlexGridSizer2->Add(ScrollBar_Models, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer3->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 0);
+    Panel4->SetSizer(FlexGridSizer3);
+    FlexGridSizer3->Fit(Panel4);
+    FlexGridSizer3->SetSizeHints(Panel4);
+    SplitterWindow1->SplitVertically(Panel3, Panel4);
+    SplitterWindow1->SetSashPosition(1000);
+    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL | wxEXPAND, 5);
+    SetSizer(FlexGridSizer1);
+    SetSizer(FlexGridSizer1);
+    Layout();
 
-	PanelController->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerPaint,0,this);
-	PanelController->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerKeyDown,0,this);
-	PanelController->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftDown,0,this);
-	PanelController->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftUp,0,this);
-	PanelController->Connect(wxEVT_LEFT_DCLICK,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftDClick,0,this);
-	PanelController->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerRightDown,0,this);
-	PanelController->Connect(wxEVT_MOTION,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseMove,0,this);
-	PanelController->Connect(wxEVT_ENTER_WINDOW,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseEnter,0,this);
-	PanelController->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseLeave,0,this);
-	PanelController->Connect(wxEVT_MOUSEWHEEL,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseWheel,0,this);
-	PanelController->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerResize,0,this);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScroll);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScrollThumbTrack);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScrollChanged);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScroll);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollThumbTrack);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollChanged);
-	Connect(ID_SLIDER_BOX_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
-	Connect(ID_SLIDER_FONT_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick);
-	PanelModels->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsPaint,0,this);
-	PanelModels->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsKeyDown,0,this);
-	PanelModels->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDown,0,this);
-	PanelModels->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftUp,0,this);
-	PanelModels->Connect(wxEVT_LEFT_DCLICK,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDClick,0,this);
-	PanelModels->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsRightDown,0,this);
-	PanelModels->Connect(wxEVT_MOTION,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseMove,0,this);
-	PanelModels->Connect(wxEVT_ENTER_WINDOW,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseEnter,0,this);
-	PanelModels->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseLeave,0,this);
-	PanelModels->Connect(wxEVT_MOUSEWHEEL,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseWheel,0,this);
-	PanelModels->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsResize,0,this);
-	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScroll);
-	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack);
-	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
-	//*)
+    PanelController->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerPaint, 0, this);
+    PanelController->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerKeyDown, 0, this);
+    PanelController->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftDown, 0, this);
+    PanelController->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftUp, 0, this);
+    PanelController->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerLeftDClick, 0, this);
+    PanelController->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerRightDown, 0, this);
+    PanelController->Connect(wxEVT_MOTION, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseMove, 0, this);
+    PanelController->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseEnter, 0, this);
+    PanelController->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseLeave, 0, this);
+    PanelController->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerMouseWheel, 0, this);
+    PanelController->Connect(wxEVT_SIZE, (wxObjectEventFunction)&ControllerModelDialog::OnPanelControllerResize, 0, this);
+    Connect(ID_SCROLLBAR1, wxEVT_SCROLL_TOP | wxEVT_SCROLL_BOTTOM | wxEVT_SCROLL_LINEUP | wxEVT_SCROLL_LINEDOWN | wxEVT_SCROLL_PAGEUP | wxEVT_SCROLL_PAGEDOWN | wxEVT_SCROLL_THUMBTRACK | wxEVT_SCROLL_THUMBRELEASE | wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScroll);
+    Connect(ID_SCROLLBAR1, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScrollThumbTrack);
+    Connect(ID_SCROLLBAR1, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_VScrollChanged);
+    Connect(ID_SCROLLBAR2, wxEVT_SCROLL_TOP | wxEVT_SCROLL_BOTTOM | wxEVT_SCROLL_LINEUP | wxEVT_SCROLL_LINEDOWN | wxEVT_SCROLL_PAGEUP | wxEVT_SCROLL_PAGEDOWN | wxEVT_SCROLL_THUMBTRACK | wxEVT_SCROLL_THUMBRELEASE | wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScroll);
+    Connect(ID_SCROLLBAR2, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollThumbTrack);
+    Connect(ID_SCROLLBAR2, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollChanged);
+    Connect(ID_SLIDER_BOX_SCALE, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
+    Connect(ID_SLIDER_FONT_SCALE, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick);
+    PanelModels->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsPaint, 0, this);
+    PanelModels->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsKeyDown, 0, this);
+    PanelModels->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDown, 0, this);
+    PanelModels->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftUp, 0, this);
+    PanelModels->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDClick, 0, this);
+    PanelModels->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsRightDown, 0, this);
+    PanelModels->Connect(wxEVT_MOTION, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseMove, 0, this);
+    PanelModels->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseEnter, 0, this);
+    PanelModels->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseLeave, 0, this);
+    PanelModels->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsMouseWheel, 0, this);
+    PanelModels->Connect(wxEVT_SIZE, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsResize, 0, this);
+    Connect(ID_SCROLLBAR3, wxEVT_SCROLL_TOP | wxEVT_SCROLL_BOTTOM | wxEVT_SCROLL_LINEUP | wxEVT_SCROLL_LINEDOWN | wxEVT_SCROLL_PAGEUP | wxEVT_SCROLL_PAGEDOWN | wxEVT_SCROLL_THUMBTRACK | wxEVT_SCROLL_THUMBRELEASE | wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScroll);
+    Connect(ID_SCROLLBAR3, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack);
+    Connect(ID_SCROLLBAR3, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
+    //*)
 
     PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -1082,8 +1082,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         wxPoint loc;
         wxSize sz;
         LoadWindowPosition("ControllerModelDialogPosition", sz, loc);
-        if (loc.x != -1)
-        {
+        if (loc.x != -1) {
             SetPosition(loc);
             SetSize(sz);
             Layout();
@@ -1114,20 +1113,23 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
             changed = true;
         }
     }
-    else
-    {
+    else {
         CheckBox_HideOtherControllerModels->SetValue(false);
         CheckBox_HideOtherControllerModels->Enable(false);
     }
 
-    if (_caps != nullptr)
-    {
+    if (_caps != nullptr) {
         changed |= _cud->SetAllModelsToValidProtocols(_caps->GetPixelProtocols(), _caps->GetSerialProtocols(), !_caps->SupportsMultipleSimultaneousOutputProtocols());
 
-        if (!_caps->SupportsSmartRemotes())
-        {
+        if (!_caps->SupportsSmartRemotes()) {
             changed |= _cud->ClearSmartRemoteOnAllModels();
         }
+    }
+
+    // force all models to be re-laid out if auto layout models is selected
+    if (_controller->IsAutoLayout()) {
+        _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerModelDialog::ControllerModelDialog");
+        _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerModelDialog::ControllerModelDialog");
     }
 
     if (changed) {

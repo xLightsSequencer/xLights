@@ -2909,11 +2909,11 @@ void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
     auto col = GetActiveGrid()->GetGridCursorCol();
     auto row = GetActiveGrid()->GetGridCursorRow();
 
+    auto col = GetActiveGrid()->GetGridCursorCol();
+    auto row = GetActiveGrid()->GetGridCursorRow();
+
     if (moveVal > 0) {
         if (Notebook1->GetSelection() != 0) {
-            int row = GetLayerGrid(Notebook1->GetSelection())->GetGridCursorRow();
-            int col = GetLayerGrid(Notebook1->GetSelection())->GetGridCursorCol();
-
             int newLayer = Notebook1->GetSelection() - 1;
             Notebook1->SetSelection(Notebook1->GetSelection() - 1);
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
@@ -2921,9 +2921,6 @@ void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
     }
     else {
         if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1) {
-            int row = GetLayerGrid(Notebook1->GetSelection())->GetGridCursorRow();
-            int col = GetLayerGrid(Notebook1->GetSelection())->GetGridCursorCol();
-
             int newLayer = Notebook1->GetSelection() + 1;
             Notebook1->SetSelection(newLayer);
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
