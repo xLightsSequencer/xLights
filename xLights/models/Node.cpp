@@ -89,11 +89,13 @@ const std::string &NodeClassRGBW::GetNodeType() const {
 #define RGB_HANDLING_RGB      1
 #define RGB_HANDLING_WHITE    2
 #define RGB_HANDLING_ADVANCED 3
+#define RGB_HANDLING_ALL      4
 
 void NodeClassRGBW::SetFromChannels(const unsigned char* buf)
 {
     switch (rgbwHandling) {
     case RGB_HANDLING_RGB:
+    case RGB_HANDLING_ALL:
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255) {
                 c[x] = buf[offsets[x] + wOffset];
@@ -141,6 +143,17 @@ void NodeClassRGBW::GetForChannels(unsigned char* buf) const
     case RGB_HANDLING_WHITE:
         if (c[0] == c[1] && c[1] == c[2]) {
             buf[wIndex] = c[0];
+        }
+        break;
+    case RGB_HANDLING_ALL:
+        if (c[0] == c[1] && c[1] == c[2]) {
+            buf[wIndex] = c[0];
+        }
+
+        for (int x = 0; x < 3; x++) {
+            if (offsets[x] != 255) {
+                buf[offsets[x] + wOffset] = c[x];
+            }
         }
         break;
     case RGB_HANDLING_ADVANCED:
