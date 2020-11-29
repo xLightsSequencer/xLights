@@ -1058,6 +1058,24 @@ Model* UDController::GetModelAfter(Model* m) const
     return nullptr;
 }
 
+bool UDController::HasModels() const
+{
+    for (const auto& it : _pixelPorts) {
+        if (it.second->GetFirstModel() != nullptr)
+        {
+            return true;
+        }
+    }
+
+    for (const auto& it : _serialPorts) {
+        if (it.second->GetFirstModel() != nullptr) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool UDController::SetAllModelsToControllerName(const std::string& controllerName)
 {
     bool changed = false;

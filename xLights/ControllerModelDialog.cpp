@@ -68,8 +68,11 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
+const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -230,108 +233,181 @@ public:
             mouse.y <= _location.y + totaly);
     }
 
-    int GetVirtualStringFromMouse(wxPoint mouse)
-    {
-        int vs = -1;
-        int y = _location.y;
+int GetVirtualStringFromMouse(wxPoint mouse)
+{
+    int vs = -1;
+    int y = _location.y;
 
-        while (mouse.y >= y) {
-            y += VERTICAL_SIZE + VERTICAL_GAP;
-            vs++;
+    while (mouse.y >= y) {
+        y += VERTICAL_SIZE + VERTICAL_GAP;
+        vs++;
+    }
+
+    return vs;
+}
+
+int GetModelCount() const
+{
+    return GetUDPort()->GetModels().size();
+}
+Model* GetFirstModel() const
+{
+    if (GetModelCount() == 0) return nullptr;
+    return GetUDPort()->GetModels().front()->GetModel();
+}
+PORTTYPE GetPortType() const { return _type; }
+int GetPort() const { return _port; }
+virtual std::string GetType() const override { return "PORT"; }
+virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) override
+{
+    auto origBrush = dc.GetBrush();
+    auto origPen = dc.GetPen();
+    auto origText = dc.GetTextForeground();
+
+    wxSize sz = _size;
+    sz = sz.Scale(scale, scale);
+    dc.SetTextForeground(*wxBLACK);
+
+    UDControllerPort* p = GetUDPort();
+    if (!border) {
+        dc.SetPen(*wxTRANSPARENT_PEN);
+    }
+    else if (_type == PORTTYPE::PIXEL) {
+        dc.SetPen(__pixelPortOutlinePen);
+    }
+    else {
+        dc.SetPen(__serialPortOutlinePen);
+    }
+
+    if (_over != HITLOCATION::NONE && !printing) {
+        dc.SetBrush(__dropTargetBrush);
+    }
+    else if (_invalid) {
+        dc.SetBrush(__invalidBrush);
+    }
+
+    auto location = _location * scale;
+    dc.DrawRoundedRectangle(location + offset, sz, CORNER_ROUNDING * scale);
+
+    wxPoint pt = location + offset + wxSize(2, 2);
+    if (_type == PORTTYPE::PIXEL) {
+        DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, sz - wxSize(4, 4));
+    }
+    else {
+        DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
+    }
+    pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+
+    if (_style & STYLE_PIXELS) {
+        std::string label = "Pixels: ";
+        wxSize szp = dc.GetTextExtent(label);
+        DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
+        pt += wxSize(szp.GetWidth(), 0);
+        if (p->Channels() > GetMaxPortChannels()) {
+            dc.SetTextForeground(*wxRED);
         }
-
-        return vs;
-    }
-
-    int GetModelCount() const {
-        return GetUDPort()->GetModels().size();
-    }
-    Model* GetFirstModel() const {
-        if (GetModelCount() == 0) return nullptr;
-        return GetUDPort()->GetModels().front()->GetModel();
-    }
-    PORTTYPE GetPortType() const { return _type; }
-    int GetPort() const { return _port; }
-    virtual std::string GetType() const override { return "PORT"; }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
-        auto origBrush = dc.GetBrush();
-        auto origPen = dc.GetPen();
-        auto origText = dc.GetTextForeground();
-
-        wxSize sz = _size;
-        sz = sz.Scale(scale, scale);
+        DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, sz - wxSize(pt.x + 2, 4));
         dc.SetTextForeground(*wxBLACK);
-
-        UDControllerPort* p = GetUDPort();
-        if (!border) {
-            dc.SetPen(*wxTRANSPARENT_PEN);
-        }
-        else if (_type == PORTTYPE::PIXEL) {
-            dc.SetPen(__pixelPortOutlinePen);
-        }
-        else {
-            dc.SetPen(__serialPortOutlinePen);
-        }
-
-        if (_over != HITLOCATION::NONE && !printing) {
-            dc.SetBrush(__dropTargetBrush);
-        }
-        else if (_invalid) {
-            dc.SetBrush(__invalidBrush);
-        }
-
-        auto location = _location * scale;
-        dc.DrawRoundedRectangle(location + offset, sz, CORNER_ROUNDING * scale);
-
-        wxPoint pt = location + offset + wxSize(2, 2);
-        if (_type == PORTTYPE::PIXEL) {
-            DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, sz - wxSize(4,4));
-        } else {
-            DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
-        }
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
-
-        if (_style & STYLE_PIXELS) {
-            std::string label = "Pixels: ";
-            wxSize szp = dc.GetTextExtent(label);
-            DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
-            pt += wxSize(szp.GetWidth(), 0);
-            if (p->Channels() > GetMaxPortChannels()) {
-                dc.SetTextForeground(*wxRED);
-            }
-            DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, sz - wxSize(pt.x + 2, 4));
-            dc.SetTextForeground(*wxBLACK);
-            pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
-        }
-        if (_style & STYLE_CHANNELS) {
-            std::string label = "Channels: ";
-            wxSize szp = dc.GetTextExtent(label);
-            DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
-            pt += wxSize(szp.GetWidth(), 0);
-            if (p->Channels() > GetMaxPortChannels()) {
-                dc.SetTextForeground(*wxRED);
-            }
-            DrawTextLimited(dc, wxString::Format("%d", p->Channels()), pt, sz - wxSize(pt.x + 2, 4));
-            dc.SetTextForeground(*wxBLACK);
-            pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
-        }
-
-        dc.SetBrush(origBrush);
-        dc.SetPen(origPen);
-        dc.SetTextForeground(origText);
     }
-    virtual void AddRightClickMenu(wxMenu& mnu) override
-    {
-        if (_caps != nullptr)
-        {
-            if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
-            if (_type == PORTTYPE::SERIAL && _caps->GetSerialProtocols().size() == 0) return;
+    if (_style & STYLE_CHANNELS) {
+        std::string label = "Channels: ";
+        wxSize szp = dc.GetTextExtent(label);
+        DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
+        pt += wxSize(szp.GetWidth(), 0);
+        if (p->Channels() > GetMaxPortChannels()) {
+            dc.SetTextForeground(*wxRED);
         }
-        mnu.AppendSeparator();
-        mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+        DrawTextLimited(dc, wxString::Format("%d", p->Channels()), pt, sz - wxSize(pt.x + 2, 4));
+        dc.SetTextForeground(*wxBLACK);
+        pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
     }
+
+    dc.SetBrush(origBrush);
+    dc.SetPen(origPen);
+    dc.SetTextForeground(origText);
+}
+virtual void AddRightClickMenu(wxMenu& mnu) override
+{
+    if (_caps != nullptr) {
+        if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
+        if (_type == PORTTYPE::SERIAL && _caps->GetSerialProtocols().size() == 0) return;
+    }
+    mnu.AppendSeparator();
+    mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+    mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove all models from port");
+    if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
+        mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move all models to port");
+    }
+}
+
     virtual bool HandlePopup(wxWindow* parent, int id) override {
-        if (id == ControllerModelDialog::CONTROLLER_PROTOCOL)
+        if (id == ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS) {
+            if (_type == PORTTYPE::PIXEL) {
+                auto port = _cud->GetControllerPixelPort(GetPort());
+                for (const auto& it : port->GetModels()) {
+                    it->GetModel()->SetModelChain("");
+                    it->GetModel()->SetControllerName("");
+                    it->GetModel()->SetControllerPort(0);
+                }
+            }
+            else                 {
+                auto port = _cud->GetControllerSerialPort(GetPort());
+                for (const auto& it : port->GetModels()) {
+                    it->GetModel()->SetModelChain("");
+                    it->GetModel()->SetControllerName("");
+                    it->GetModel()->SetControllerPort(0);
+                }
+            }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT) {
+
+            int max = _caps->GetMaxPixelPort();
+            if (_type == PORTTYPE::SERIAL) max = _caps->GetMaxSerialPort();
+
+            wxNumberEntryDialog dlg(parent, "Enter the port to move the models to", "Port", "Port", GetPort(), 1, max);
+            if (dlg.ShowModal() == wxID_OK) {
+                if (_type == PORTTYPE::SERIAL)                     {
+                    auto from = _cud->GetControllerSerialPort(GetPort());
+                    auto to = _cud->GetControllerSerialPort(dlg.GetValue());
+                    if (from->GetPort() != to->GetPort()) {
+                        auto last = to->GetLastModel();
+                        bool first = true;
+                        for (const auto& it : from->GetModels()) {
+                            if (first) {
+                                it->GetModel()->SetModelChain("");
+                                first = false;
+                                if (last != nullptr) {
+                                    it->GetModel()->SetModelChain(last->GetName());
+                                }
+                            }
+                            it->GetModel()->SetControllerPort(to->GetPort());
+                        }
+                    }
+                }
+                else {
+                    auto from = _cud->GetControllerPixelPort(GetPort());
+                    auto to = _cud->GetControllerPixelPort(dlg.GetValue());
+                    if (from->GetPort() != to->GetPort()) {
+                        auto last = to->GetLastModel();
+                        bool first = true;
+                        for (const auto& it : from->GetModels()) {
+                            if (first) {
+                                it->GetModel()->SetModelChain("");
+                                first = false;
+                                if (last != nullptr) {
+                                    it->GetModel()->SetModelChain(last->GetName());
+                                }
+                            }
+                            it->GetModel()->SetControllerPort(to->GetPort());
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_PROTOCOL)
         {
             wxArrayString choices;
             if (_caps != nullptr)
@@ -571,6 +647,7 @@ public:
         dc.SetPen(origPen);
         dc.SetTextForeground(origText);
     }
+
     virtual void AddRightClickMenu(wxMenu& mnu) override {
         if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
@@ -604,7 +681,7 @@ public:
             mnu.AppendSeparator();
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN, "Set Channel and Chain");
-        }
+        }        
     }
 
     virtual bool HandlePopup(wxWindow* parent, int id) override {
@@ -1258,13 +1335,33 @@ void ControllerModelDialog::ReloadModels()
     PanelModels->Refresh();
 }
 
-void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
+void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) 
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int id = event.GetId();
     if (id == CONTROLLERModel_PRINT) {
         PrintScreen();
     }
     else if (id == CONTROLLERModel_SAVE_CSV) {
         SaveCSV();
+    }
+    else if (id == CONTROLLER_REMOVEALLMODELS) {
+
+        logger_base.debug("removing all models from controller.");
+        for (const auto& it : _controllers) {
+            ModelCMObject* m = dynamic_cast<ModelCMObject*>(it);
+            if (m != nullptr) {
+                // Removing a model from the controller
+                if (_autoLayout) {
+
+                    m->GetModel()->SetModelChain("");
+                    m->GetModel()->SetControllerName("");
+                }
+                m->GetModel()->SetControllerPort(0);
+            }
+        }
+        ReloadModels();
     }
     else if (_popup != nullptr) {
         if (_popup->HandlePopup(this, id)) {
@@ -2155,6 +2252,10 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
+
+    if (_cud->HasModels()) {
+        mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove all models from controller");
+    }
 
     BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);
     if (cm != nullptr) {

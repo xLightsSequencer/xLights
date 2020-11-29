@@ -249,6 +249,7 @@ class UDController
     int GetMaxPixelPortChannels() const;
 
     Model* GetModelAfter(Model* m) const;
+    bool HasModels() const;
 
     bool SetAllModelsToControllerName(const std::string& controllerName);
     bool SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame);
