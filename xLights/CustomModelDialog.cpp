@@ -2906,6 +2906,8 @@ void CustomModelDialog::FindLast()
 void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
 {
     int moveVal = event.GetInt();
+    auto col = GetActiveGrid()->GetGridCursorCol();
+    auto row = GetActiveGrid()->GetGridCursorRow();
 
     if (moveVal > 0) {
         if (Notebook1->GetSelection() != 0) {
