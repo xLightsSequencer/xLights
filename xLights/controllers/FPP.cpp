@@ -630,8 +630,6 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
     return PostToURL(url, memBuffPost, contentType);
 }
 
-
-
 bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

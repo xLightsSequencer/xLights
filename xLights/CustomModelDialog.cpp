@@ -83,6 +83,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FIND = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FINDLAST = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
@@ -1924,6 +1925,9 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_FIND) {
         Find();
     }
+    else if (id == CUSTOMMODELDLGMNU_FINDLAST) {
+        FindLast();
+    }
     else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
     {
         TrimSpace();
@@ -2494,6 +2498,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_DELETE, "Clear Cells");
     mnu.AppendSeparator();
     mnu.Append(CUSTOMMODELDLGMNU_FIND, "Find Node");
+    mnu.Append(CUSTOMMODELDLGMNU_FINDLAST, "Find Last Node");
     mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
@@ -2847,5 +2852,42 @@ void CustomModelDialog::Find()
             }
             g++;
         }
+    }
+}
+
+void CustomModelDialog::FindLast()
+{
+    long minNode;
+    long maxNode;
+    GetMinMaxNode(minNode, maxNode);
+
+    if (minNode == 0) {
+        wxMessageBox("No nodes present.");
+        return;
+    }
+
+    auto find = maxNode;
+
+    int g = 0;
+    bool foundStart = false;
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+                if (s.IsEmpty() == false) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        if (v == find) {
+                            // make this sell active
+                            Notebook1->ChangeSelection(g);
+                            grid->SetGridCursor(r, c);
+                            grid->MakeCellVisible(r, c);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        g++;
     }
 }

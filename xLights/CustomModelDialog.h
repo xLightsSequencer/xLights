@@ -84,6 +84,7 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_INSERT;
 	static const long CUSTOMMODELDLGMNU_COMPRESS;
 	static const long CUSTOMMODELDLGMNU_FIND;
+	static const long CUSTOMMODELDLGMNU_FINDLAST;
 	static const long CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE10;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE50;
@@ -247,6 +248,7 @@ class CustomModelDialog: public wxDialog
         void Shift();
         void Compress();
 		void Find();
+		void FindLast();
 		bool AdjustNodeBy(int node, int adjust);
         void TrimSpace();
         void ShrinkSpace(float min);
