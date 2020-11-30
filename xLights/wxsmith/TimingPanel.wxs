@@ -40,7 +40,7 @@
 											<object class="sizeritem">
 												<object class="wxSpinCtrl" name="ID_SPINCTRL_SuppressEffectUntil" subclass="BulkEditSpinCtrl" variable="SpinCtrl_SuppressEffectUntil" member="yes">
 													<value>0</value>
-													<max>99999</max>
+													<max>999999</max>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
 												<border>2</border>
@@ -61,8 +61,8 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxSpinCtrl" name="ID_SPINCTRL_FreezeEffectAtFrame" subclass="BulkEditSpinCtrl" variable="SpinCtrl_FreezeEffectAtFrame" member="yes">
-													<value>99999</value>
-													<max>99999</max>
+													<value>999999</value>
+													<max>999999</max>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
 												<border>2</border>

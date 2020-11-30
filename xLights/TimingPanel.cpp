@@ -112,14 +112,14 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT1, _("Suppress Effect Until Frame"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	SpinCtrl_SuppressEffectUntil = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_SuppressEffectUntil, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 0, _T("ID_SPINCTRL_SuppressEffectUntil"));
+	SpinCtrl_SuppressEffectUntil = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_SuppressEffectUntil, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 999999, 0, _T("ID_SPINCTRL_SuppressEffectUntil"));
 	SpinCtrl_SuppressEffectUntil->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_SuppressEffectUntil, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Freeze Effect At Frame"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	SpinCtrl_FreezeEffectAtFrame = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_FreezeEffectAtFrame, _T("99999"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 99999, _T("ID_SPINCTRL_FreezeEffectAtFrame"));
-	SpinCtrl_FreezeEffectAtFrame->SetValue(_T("99999"));
+	SpinCtrl_FreezeEffectAtFrame = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_FreezeEffectAtFrame, _T("999999"), wxDefaultPosition, wxDefaultSize, 0, 0, 999999, 999999, _T("ID_SPINCTRL_FreezeEffectAtFrame"));
+	SpinCtrl_FreezeEffectAtFrame->SetValue(_T("999999"));
 	FlexGridSizer2->Add(SpinCtrl_FreezeEffectAtFrame, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_LayerMorph = new BulkEditCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
@@ -365,7 +365,7 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         Slider_Out_Adjust->SetValue(50);
         Choice_In_Transition_Type->SetSelection(0);
         Choice_Out_Transition_Type->SetSelection(0);
-		SpinCtrl_FreezeEffectAtFrame->SetValue(99999);
+		SpinCtrl_FreezeEffectAtFrame->SetValue(999999);
 		SpinCtrl_SuppressEffectUntil->SetValue(0);
 
 		BitmapButton_In_Transition_Adjust->GetValue()->SetDefault(0.0f, 100.0f);
@@ -401,7 +401,7 @@ wxString TimingPanel::GetTimingString()
         }
     }
 
-	if (SpinCtrl_FreezeEffectAtFrame->GetValue() != 99999)
+	if (SpinCtrl_FreezeEffectAtFrame->GetValue() != 999999)
 	{
 		s += wxString::Format("T_SPINCTRL_FreezeEffectAtFrame=%d,", SpinCtrl_FreezeEffectAtFrame->GetValue());
 	}
