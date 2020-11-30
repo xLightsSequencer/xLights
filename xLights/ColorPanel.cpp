@@ -579,7 +579,7 @@ void ColorPanel::LoadAllPalettes()
 
 void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 {
-    static wxRegEx cregex("^\\$color([0-9]): rgba\\(([^)]*)\\)");
+    static wxRegEx cregex("^\\$[^:]*: rgba\\(([^)]*)\\)");
 
     wxString filename;
     bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
@@ -627,8 +627,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                 wxString line = text.ReadLine();
                 if (cregex.Matches(line))
                 {
-                    wxString cnum = cregex.GetMatch(line, 1);
-                    wxString rgb = cregex.GetMatch(line, 2);
+                    wxString rgb = cregex.GetMatch(line, 1);
                     wxArrayString comp = wxSplit(rgb, ',');
                     if (comp.size() == 4)
                     {
