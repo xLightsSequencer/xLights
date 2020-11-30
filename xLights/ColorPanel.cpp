@@ -667,6 +667,46 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
         cont = directory.GetNext(&filename);
     }
 
+    filename = "";
+    cont = directory.GetFirst(&filename, "*.svg", wxDIR_FILES);
+    while (cont) {
+
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        wxXmlDocument svg;
+        svg.Load(directory.GetNameWithSep() + filename);
+
+        if (svg.IsOk()) {
+            wxString pal;
+            int cols = 0;
+            for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                if (n->GetName() == "rect") {
+                    if (n->HasAttribute("fill")) {
+                        pal += n->GetAttribute("fill") + ",";
+                        cols++;
+                    }
+                }
+            }
+            if (cols > 0) {
+                while (cols < 8) {
+                    pal += "#FFFFFF,";
+                    cols++;
+                }
+                bool found = false;
+                for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                    wxString p(*it);
+                    if (p.BeforeLast(',') == pal) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                }
+            }
+        }
+        cont = directory.GetNext(&filename);
+    }
+
     if (subdirs)
     {
         cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
