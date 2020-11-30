@@ -1322,11 +1322,11 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
         int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
         if (sum > rules->GetMaxPixelPortChannels()) {
-            res += wxString::Format("ERR: Controllers 'Bank' channel count(%d) is over the maximum(%d).\n", sum, rules->GetMaxPixelPortChannels()).ToStdString();
+            res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
             res += "     Largest ports on banks: ";
-            for (int i = 0; i < rules->GetNumberOfBanks(); i++)                 {
+            for (int i = 0; i < rules->GetNumberOfBanks(); i++) {
                 if (i != 0) res += ", ";
-                res += wxString::Format(" Bank %d - Port %d", i + 1, bankLargestPort[i]);
+                res += wxString::Format(" Bank %d - Port %d [%d (%d)]", i + 1, bankLargestPort[i], bankSizes[i], bankSizes[i] / 3);
             }
             res += "\n";
             success = false;
