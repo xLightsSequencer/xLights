@@ -1760,12 +1760,15 @@ xLightsFrame::~xLightsFrame()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static bool reenter = false;
 
-    if (reenter)
-    {
+    if (reenter) {
         logger_base.error("~xLightsFrame re-entered ... this wont end well ... so bailing now.");
         return;
     }
     reenter = true;
+    //make sure we abort any render that is going on or we could crash as things get destroyed
+    //however, only wait 2000ms to avoid complete hang on shutdown if a
+    //render thread is completely stuck
+    AbortRender(2000);
 
     Timer_AutoSave.Stop();
     EffectSettingsTimer.Stop();
