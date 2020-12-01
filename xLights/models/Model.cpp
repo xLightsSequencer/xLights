@@ -3548,7 +3548,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 }
             }
         }
-        if (((maxX - minX) > 2048) || ((maxY - minY) > 2048)){
+        if ((type !=  PER_PREVIEW_NO_OFFSET) && (((maxX - minX) > 2048) || ((maxY - minY) > 2048))){
             // this will result in a GIANT render buffer, lets reduce to something we can reasonably render
             float fx = ((float)(maxX - minX)) / 2048.0f;
             float fy = ((float)(maxY - minY)) / 2048.0f;
