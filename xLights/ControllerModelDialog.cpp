@@ -2051,7 +2051,12 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
             sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
                 port->GetStartChannel(),
                 port->GetUniverse(),
-                port->GetUniverseStartChannel(),
+                // There is a risk this will be negative ... under auto layout that should not happen often ... but it could
+                // to fix i would need to get the absolute ... apply the dmx adjustment then go back to the output manager to get the Universe/startChannel
+                // Given this is just a tooltip I am going to do without it for now
+                // An example where it could occur. 2 serial ports in use. First one uses say 500 of 512 channels. Second has first model on start channel 20 ... so absolute channel 520
+                // would be in the 2nd universe at sc 8. 8 - 20 + 1 = -11 ... not valid
+                port->GetType() == "PIXEL" ? port->GetUniverseStartChannel() : port->GetUniverseStartChannel() - port->GetFirstModel()->GetDMXChannelOffset() + 1,
                 port->Channels());
         }
     } else {
