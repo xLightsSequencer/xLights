@@ -239,6 +239,9 @@ Discovery::~Discovery() {
     for (int x = 0; x < results.size(); x++) {
         delete results[x];
     }
+    for (auto &dg : datagrams) {
+        delete dg;
+    }
 }
 
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
