@@ -131,8 +131,6 @@ class NodeSelectGrid: public wxDialog
 		void UpdateTextFromGrid();
 		void AddNode(int col, int row);
 		void RemoveNode(int col, int row);
-		wxString ExpandNodes(const wxString& nodes) const;
-		wxString CompressNodes(const wxString& nodes) const;
 		void OnTextCtrl_NodesLoseFocus(wxFocusEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 

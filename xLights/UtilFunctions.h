@@ -56,6 +56,10 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress = "127.0.0.1");
+
+wxString ExpandNodes(const wxString& nodes);
+wxString CompressNodes(const wxString& nodes);
+
 inline long roundTo4(long i) {
     long remainder = i % 4;
     if (remainder == 0) {

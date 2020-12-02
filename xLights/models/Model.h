@@ -335,6 +335,7 @@ public:
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() { return 0; }
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
+    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
 
     virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;

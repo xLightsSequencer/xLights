@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added click-and-drag & double-click select to SubModel Preview
 2020.51 November 30 2020
    -- enh (scott)  Add white on all to RGBW handling
    -- bug (keith)  Fix custom model with indiv start nodes being incorrectly cleared

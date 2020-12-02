@@ -335,16 +335,16 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     }
 
     wxString sd;
-	if (ShowDir == "") {
-		sd = RememberShowDir;
+    if (ShowDir == "") {
+        sd = RememberShowDir;
     } else {
         if (!recurse) {
-			if (ShowDir != RememberShowDir) {
-				RememberShowDir = ShowDir;
-			}
-		}
-		sd = ShowDir;
-	}
+            if (ShowDir != RememberShowDir) {
+                RememberShowDir = ShowDir;
+            }
+        }
+        sd = ShowDir;
+    }
 
     logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
 
@@ -459,19 +459,19 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     logger_base.debug("   could not find a fixed file location for : " + file);
     logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
     __nonExistentFiles.push_back(file.ToStdString());
-   	return file;
+    return file;
 }
 
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir)
 {
-	int startparamname = parametervalue.Find(paramname);
-	int endparamname = parametervalue.find("=", startparamname) - 1;
-	int startvalue = endparamname + 2;
-	int endvalue = parametervalue.find(",", startvalue) - 1;
-	wxString file = parametervalue.SubString(startvalue, endvalue);
-	wxString newfile = FixFile(ShowDir, file);
-	wxString rc = parametervalue.Left(startvalue) + newfile + parametervalue.Right(parametervalue.Length() - endvalue - 1);
-	return rc;
+    int startparamname = parametervalue.Find(paramname);
+    int endparamname = parametervalue.find("=", startparamname) - 1;
+    int startvalue = endparamname + 2;
+    int endvalue = parametervalue.find(",", startvalue) - 1;
+    wxString file = parametervalue.SubString(startvalue, endvalue);
+    wxString newfile = FixFile(ShowDir, file);
+    wxString rc = parametervalue.Left(startvalue) + newfile + parametervalue.Right(parametervalue.Length() - endvalue - 1);
+    return rc;
 }
 
 std::string UnXmlSafe(const wxString &res)
@@ -1034,7 +1034,7 @@ bool IsValidLocalIP(const std::string& ip)
         if (it == ip) return true;
     }
 
-	return false;
+    return false;
 }
 
 bool DeleteDirectory(std::string directory)
@@ -1308,39 +1308,39 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
 
 void ViewTempFile(const wxString& content, const wxString& name,  const wxString& type)
 {
-	wxFile f;
-	const wxString filename = wxFileName::CreateTempFileName(name) + "." + type;
+    wxFile f;
+    const wxString filename = wxFileName::CreateTempFileName(name) + "." + type;
 
-	f.Open(filename, wxFile::write);
-	if (!f.IsOpened())
-	{
-		DisplayError("Unable to create " + filename + " file. skip.");
-		return;
-	}
+    f.Open(filename, wxFile::write);
+    if (!f.IsOpened())
+    {
+        DisplayError("Unable to create " + filename + " file. skip.");
+        return;
+    }
 
-	if (f.IsOpened())
-	{
-		f.Write(content);
+    if (f.IsOpened())
+    {
+        f.Write(content);
 
-		f.Close();
+        f.Close();
 
-		wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(type);
-		if (ft != nullptr)
-		{
-			const wxString command = ft->GetOpenCommand(filename);
+        wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(type);
+        if (ft != nullptr)
+        {
+            const wxString command = ft->GetOpenCommand(filename);
 
-			if (command.IsEmpty())
-			{
-				DisplayError(wxString::Format("Unable to show " + name + " file '%s'.", filename).ToStdString());
-			}
-			else
-			{
-				wxUnsetEnv("LD_PRELOAD");
-				wxExecute(command);
-			}
-			delete ft;
-		}
-	}
+            if (command.IsEmpty())
+            {
+                DisplayError(wxString::Format("Unable to show " + name + " file '%s'.", filename).ToStdString());
+            }
+            else
+            {
+                wxUnsetEnv("LD_PRELOAD");
+                wxExecute(command);
+            }
+            delete ft;
+        }
+    }
 }
 
 uint64_t GetPhysicalMemorySizeMB() {
@@ -1444,3 +1444,128 @@ void CleanupIpAddress(wxString& IpAddr)
         leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
     }
 }
+
+wxString CompressNodes(const wxString& nodes)
+{
+    wxString res = "";
+    if (nodes.IsEmpty())
+        return res;
+    // make sure it is fully expanded first
+    auto s = ExpandNodes(nodes);
+    int dir = 0;
+    int start = -1;
+    int last = -1;
+    auto as = wxSplit(s, ',');
+
+    for (const auto& i : as)
+    {
+        if (start == -1)
+        {
+            start = wxAtoi(i);
+            last = start;
+            dir = 0;
+        }
+        else
+        {
+            int j = wxAtoi(i);
+            if (dir == 0)
+            {
+                if (j == last + 1)
+                {
+                    dir = 1;
+                }
+                else if (j == last - 1)
+                {
+                    dir = -1;
+                }
+                else
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d", start);
+                    start = j;
+                    dir = 0;
+                }
+                last = j;
+            }
+            else
+            {
+                if (j == last + dir)
+                {
+                }
+                else
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d-%d", start, last);
+                    start = j;
+                    dir = 0;
+                }
+                last = j;
+            }
+        }
+    }
+
+    if (start == -1)
+    {
+        // nothing to do
+    }
+    if (start == last)
+    {
+        if (res != "") res += ",";
+        res += wxString::Format("%d", start);
+    }
+    else
+    {
+        if (res != "") res += ",";
+        res += wxString::Format("%d-%d", start, last);
+    }
+
+    return res;
+}
+
+wxString ExpandNodes(const wxString& nodes)
+{
+    wxString res = "";
+
+    auto as = wxSplit(nodes, ',');
+
+    for (const auto& i : as)
+    {
+        if (i.Contains("-"))
+        {
+            auto as2 = wxSplit(i, '-');
+            if (as2.size() == 2)
+            {
+                int start = wxAtoi(as2[0]);
+                int end = wxAtoi(as2[1]);
+                if (start < end)
+                {
+                    for (int j = start; j <= end; j++)
+                    {
+                        if (res != "") res += ",";
+                        res += wxString::Format("%d", j);
+                    }
+                }
+                else if (start == end)
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d", start);
+                }
+                else
+                {
+                    for (int j = start; j >= end; j--)
+                    {
+                        if (res != "") res += ",";
+                        res += wxString::Format("%d", j);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (res != "") res += ",";
+            res += i;
+        }
+    }
+    return res;
+}
+
