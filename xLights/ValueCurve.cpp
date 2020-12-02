@@ -2013,11 +2013,11 @@ float ValueCurve::FindMinPointLessThan(float point)
 {
     float res = 0.0;
 
-    for (auto it = _values.begin(); it != _values.end(); ++it)
+    for (const auto& it : _values)
     {
-        if (it->x < point)
+        if (it.x < point)
         {
-            res = it->x + 0.025;
+            res = it.x + (1.0 / VC_X_POINTS);
         }
     }
 
@@ -2028,11 +2028,11 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
 {
     float res = 1.0;
 
-    for (auto it = _values.begin(); it != _values.end(); ++it)
+    for (const auto& it : _values)
     {
-        if (it->x > point)
+        if (it.x > point)
         {
-            res = it->x - 0.025;
+            res = it.x - (1.0 / VC_X_POINTS);
             break;
         }
     }
