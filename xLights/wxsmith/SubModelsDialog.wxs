@@ -295,6 +295,15 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
+																	<object class="wxButton" name="ID_BUTTON_SORT_ROW" variable="Button_SortRow" member="yes">
+																		<label>Sort Row</label>
+																		<handler function="OnButton_SortRowClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
 																	<object class="wxButton" name="ID_BUTTON_DRAW_MODEL" variable="Button_Draw_Model" member="yes">
 																		<label>Draw Model</label>
 																		<handler function="OnButton_Draw_ModelClick" entry="EVT_BUTTON" />

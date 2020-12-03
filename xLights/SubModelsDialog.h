@@ -123,6 +123,7 @@ public:
     wxButton* Button_ReverseNodes;
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
+    wxButton* Button_SortRow;
     wxButton* Button_Sub_Import;
     wxButton* Button_importCustom;
     wxButton* DeleteButton;
@@ -168,6 +169,7 @@ protected:
     static const long ID_BUTTON_MOVE_UP;
     static const long ID_BUTTON_MOVE_DOWN;
     static const long ID_BUTTON7;
+    static const long ID_BUTTON_SORT_ROW;
     static const long ID_BUTTON_DRAW_MODEL;
     static const long ID_PANEL2;
     static const long ID_PANEL3;
@@ -242,6 +244,7 @@ private:
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
     void OnButton_importCustomClick(wxCommandEvent& event);
     void OnButton_ExportCustomClick(wxCommandEvent& event);
+    void OnButton_SortRowClick(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);

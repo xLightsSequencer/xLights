@@ -69,6 +69,7 @@ const long SubModelsDialog::ID_BUTTON2 = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_UP = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_DOWN = wxNewId();
 const long SubModelsDialog::ID_BUTTON7 = wxNewId();
+const long SubModelsDialog::ID_BUTTON_SORT_ROW = wxNewId();
 const long SubModelsDialog::ID_BUTTON_DRAW_MODEL = wxNewId();
 const long SubModelsDialog::ID_PANEL2 = wxNewId();
 const long SubModelsDialog::ID_PANEL3 = wxNewId();
@@ -206,6 +207,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ReverseRow = new wxButton(Panel1, ID_BUTTON7, _("Reverse Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	FlexGridSizer5->Add(Button_ReverseRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_SortRow = new wxButton(Panel1, ID_BUTTON_SORT_ROW, _("Sort Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SORT_ROW"));
+	FlexGridSizer5->Add(Button_SortRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Draw_Model = new wxButton(Panel1, ID_BUTTON_DRAW_MODEL, _("Draw Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DRAW_MODEL"));
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
@@ -271,6 +274,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveUpClick);
 	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveDownClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
+	Connect(ID_BUTTON_SORT_ROW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_SortRowClick);
 	Connect(ID_BUTTON_DRAW_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
 	//*)
 
@@ -953,6 +957,7 @@ void SubModelsDialog::ValidateWindow()
                 }
             }
             Button_ReverseRow->Enable();
+            Button_SortRow->Enable();
         }
         else
         {
@@ -960,6 +965,7 @@ void SubModelsDialog::ValidateWindow()
             Button_MoveUp->Disable();
             Button_MoveDown->Disable();
             Button_ReverseRow->Disable();
+            Button_SortRow->Disable();
         }
 
         if (NodesGrid->GetNumberRows() == 1)
@@ -1443,6 +1449,42 @@ void SubModelsDialog::OnButton_ReverseRowClick(wxCommandEvent& event)
     int row = NodesGrid->GetGridCursorRow();
 
     sm->strands[sm->strands.size() - 1 - row] = ReverseRow(sm->strands[sm->strands.size() - 1 - row]);
+
+    Select(GetSelectedName());
+
+    NodesGrid->SetGridCursor(row, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::OnButton_SortRowClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    wxArrayString oldNodeArrray = wxSplit(oldnodes, ',');
+   
+    std::vector<int> iNodes;
+    std::transform(oldNodeArrray.begin(), oldNodeArrray.end(), std::back_inserter(iNodes),
+        [](const std::string& str) { return std::stoi(str); });
+
+    std::sort(iNodes.begin(), iNodes.end());
+
+    wxArrayString newNodeArrray;
+
+    std::transform(iNodes.begin(), iNodes.end(), std::back_inserter(newNodeArrray),
+        [](int i) { return std::to_string(i); });
+
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(newNodeArrray, ','));
 
     Select(GetSelectedName());
 
@@ -2112,7 +2154,7 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
-        
+
         SelectAllInBoundingRect(event.ShiftDown());
         m_creating_bound_rect = false;
 
@@ -2138,7 +2180,7 @@ void SubModelsDialog::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_end_y = m_bound_start_y;
 }
 
-void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event) 
+void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -2185,7 +2227,7 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     ValidateWindow();
 }
 
-void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event) 
+void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
 {
     if (m_creating_bound_rect) {
         glm::vec3 ray_origin;
@@ -2312,3 +2354,5 @@ void SubModelsDialog::RemoveNodes()
     SelectRow(row >= 0 ? row : 0);
     ValidateWindow();
 }
+
+
