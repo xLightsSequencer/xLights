@@ -84,6 +84,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FIND = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FINDLAST = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_MAKESINGLENODE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
@@ -1425,6 +1426,22 @@ void CustomModelDialog::GetMinMaxNode(long& min, long& max)
     }
 }
 
+void CustomModelDialog::MakeSingleNode()
+{
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (s.IsEmpty() == false) {
+                    grid->SetCellValue(r, c, "1");
+                }
+            }
+        }
+    }
+    UpdatePreview();
+}
+
 void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
@@ -1938,6 +1955,9 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == CUSTOMMODELDLGMNU_FINDLAST) {
         FindLast();
+    }
+    else if (id == CUSTOMMODELDLGMNU_MAKESINGLENODE) {
+        MakeSingleNode();
     }
     else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
     {
@@ -2524,6 +2544,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    mnu.Append(CUSTOMMODELDLGMNU_MAKESINGLENODE, "Convert to Single Node");
     if (SpinCtrl_Depth->GetValue() > 1)
     {
         mnu.AppendSeparator();
