@@ -2123,6 +2123,7 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
 void SubModelsDialog::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_creating_bound_rect = false;
+    RenderModel();
 }
 
 void SubModelsDialog::OnPreviewLeftDown(wxMouseEvent& event)
@@ -2192,8 +2193,7 @@ void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
-        //modelPreview->RenderModel(model);
-        //RenderModel();
+        RenderModel();
     }
 }
 
@@ -2201,10 +2201,10 @@ void SubModelsDialog::RenderModel()
 {
     if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
 
-    modelPreview->RenderModel(model);
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
+    model->DisplayEffectOnWindow(modelPreview, 2);
     modelPreview->EndDrawing();
 }
 
