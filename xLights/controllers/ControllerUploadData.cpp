@@ -1231,7 +1231,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     for (const auto& o : outputs) {
-        if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
+        if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_KINET) {
             if (o->GetChannels() > rules->GetMaxInputUniverseChannels()) {
                 res += wxString::Format("ERR: Controller limits universe sizes to max of %d but you are trying to use %d. Universe %d.\n", rules->GetMaxInputUniverseChannels(), o->GetChannels(), o->GetUniverse()).ToStdString();
                 success = false;

@@ -15,6 +15,7 @@
 #include "E131Output.h"
 #include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
+#include "KinetOutput.h"
 #include "DDPOutput.h"
 #include "NullOutput.h"
 #include "LOROutput.h"
@@ -114,6 +115,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_ARTNET) {
         return new ArtNetOutput(node);
+    }
+    else if (type == OUTPUT_KINET) {
+        return new KinetOutput(node);
     }
     else if (type == OUTPUT_DDP) {
         return new DDPOutput(node);

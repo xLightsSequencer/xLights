@@ -37,6 +37,7 @@ protected:
     std::string _type;
     bool _forceSizes = false;
     int _priority = 100;
+    int _version = 1;
     bool _managed = true;
     std::string _fppProxy;
     bool _expanded = false;
@@ -71,13 +72,16 @@ public:
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);
 
+    int GetVersion() const { return _version; }
+    void SetVersion(int version);
+
     bool AllSameSize() const;
 #pragma endregion
 
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
     virtual int GetId() const override;
-    virtual bool IsNeedsId() const override { return (GetProtocol() != OUTPUT_E131 && GetProtocol() != OUTPUT_ARTNET && GetProtocol() != OUTPUT_xxxETHERNET && GetProtocol() != OUTPUT_OPC); }
+    virtual bool IsNeedsId() const override { return (GetProtocol() != OUTPUT_E131 && GetProtocol() != OUTPUT_ARTNET && GetProtocol() != OUTPUT_xxxETHERNET && GetProtocol() != OUTPUT_OPC && GetProtocol() != OUTPUT_KINET); }
 
     virtual bool IsManaged() const override { return _managed; }
 

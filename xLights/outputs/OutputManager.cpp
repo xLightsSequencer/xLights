@@ -232,6 +232,9 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                     else if (type == OUTPUT_ARTNET) {
                         cu = new ControllerEthernet(this, dups);
                     }
+                    else if (type == OUTPUT_KINET) {
+                        cu = new ControllerEthernet(this, dups);
+                    }
                     else if (type == OUTPUT_xxxETHERNET) {
                         cu = new ControllerEthernet(this, dups);
                     }
@@ -665,7 +668,7 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const {
 
     for (const auto& it : _controllers) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_E131 || eth->GetProtocol() == OUTPUT_ARTNET || eth->GetProtocol() == OUTPUT_xxxETHERNET || eth->GetProtocol() == OUTPUT_OPC)) {
+        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_E131 || eth->GetProtocol() == OUTPUT_ARTNET || eth->GetProtocol() == OUTPUT_KINET  || eth->GetProtocol() == OUTPUT_xxxETHERNET || eth->GetProtocol() == OUTPUT_OPC)) {
             if (ip == "" || ip == eth->GetIP() || ip == eth->GetResolvedIP()) {
                 for (const auto& it2 : eth->GetOutputs()) {
                     if (it2->GetUniverse() == universe) {
@@ -879,12 +882,12 @@ void OutputManager::UpdateUnmanaged() {
     {
         auto eth1 = dynamic_cast<ControllerEthernet*>(*it1);
         // only need to look at managed items
-        if (eth1 != nullptr && eth1->IsManaged() && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_xxxETHERNET || eth1->GetProtocol() == OUTPUT_OPC) && eth1->GetIP() != "MULTICAST") {
+        if (eth1 != nullptr && eth1->IsManaged() && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_KINET || eth1->GetProtocol() == OUTPUT_xxxETHERNET || eth1->GetProtocol() == OUTPUT_OPC) && eth1->GetIP() != "MULTICAST") {
             auto it2 = it1;
             ++it2;
             while (it2 != _controllers.end()) {
                 auto eth2 = dynamic_cast<ControllerEthernet*>(*it2);
-                if (eth2 != nullptr && (eth2->GetProtocol() == OUTPUT_E131 || eth2->GetProtocol() == OUTPUT_ARTNET || eth2->GetProtocol() == OUTPUT_xxxETHERNET || eth2->GetProtocol() == OUTPUT_OPC)) {
+                if (eth2 != nullptr && (eth2->GetProtocol() == OUTPUT_E131 || eth2->GetProtocol() == OUTPUT_ARTNET || eth2->GetProtocol() == OUTPUT_KINET || eth2->GetProtocol() == OUTPUT_xxxETHERNET || eth2->GetProtocol() == OUTPUT_OPC)) {
                     if (eth1->GetIP() == eth2->GetIP()) {
                         eth1->SetManaged(false);
                         eth2->SetManaged(false);

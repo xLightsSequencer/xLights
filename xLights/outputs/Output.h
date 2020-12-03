@@ -28,6 +28,7 @@ class Controller;
 #pragma region Output Constants
 // These are used to identify each output type
 #define OUTPUT_E131 "E131"
+#define OUTPUT_KINET "KINET"
 #define OUTPUT_ZCPP "ZCPP"
 #define OUTPUT_ARTNET "ArtNet"
 #define OUTPUT_DDP "DDP"

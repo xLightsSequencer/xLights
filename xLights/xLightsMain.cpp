@@ -4742,7 +4742,7 @@ void xLightsFrame::CheckSequence(bool display)
     std::list<std::string> used;
     for (const auto& o : _outputManager.GetAllOutputs())
     {
-        if (o->IsIpOutput() && (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET))
+        if (o->IsIpOutput() && (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_KINET))
         {
             std::string usedval = o->GetIP() + "|" + o->GetUniverseString();
 

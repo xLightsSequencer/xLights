@@ -475,6 +475,7 @@
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="outputs\GenericSerialOutput.cpp" />
+    <ClCompile Include="outputs\KinetOutput.cpp" />
     <ClCompile Include="outputs\LorController.cpp" />
     <ClCompile Include="outputs\LorControllers.cpp" />
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
@@ -891,6 +892,7 @@
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
     <ClInclude Include="outputs\GenericSerialOutput.h" />
+    <ClInclude Include="outputs\KinetOutput.h" />
     <ClInclude Include="outputs\LorController.h" />
     <ClInclude Include="outputs\LorControllers.h" />
     <ClInclude Include="outputs\LOROptimisedOutput.h" />

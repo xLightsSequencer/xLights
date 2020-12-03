@@ -840,6 +840,9 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="outputs\KinetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1687,6 +1690,9 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="outputs\KinetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

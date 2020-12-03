@@ -389,7 +389,7 @@ bool ControllerCaps::SupportsPixelPortColourOrder() const {
 bool ControllerCaps::SupportsEthernetInputProtols() const
 {
     for (const auto& it : GetInputProtocols()) {
-        if (it == "e131" || it == "artnet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet") return true;
+        if (it == "e131" || it == "artnet" || it == "kinet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet") return true;
     }
     return false;
 }
