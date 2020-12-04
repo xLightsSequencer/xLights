@@ -61,6 +61,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
     _hardwareAcceleratedVideo = node->GetAttribute("HardwareAcceleratedVideo", "TRUE") == "TRUE";
     _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
+    _disableOutputOnPingFailure = node->GetAttribute("DisableOutputOnPingFailure", "FALSE") == "TRUE";
+
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
 #else
@@ -262,6 +264,7 @@ ScheduleOptions::ScheduleOptions()
     _inputAudioDevice = "";
     _hardwareAcceleratedVideo = true;
     _lateStartingScheduleUsesTime = false;
+    _disableOutputOnPingFailure = false;
 #ifdef __WXMSW__
     _port = 80;
 #else
@@ -341,6 +344,9 @@ wxXmlNode* ScheduleOptions::Save()
     if (_lateStartingScheduleUsesTime)
     {
         res->AddAttribute("LateStartingScheduleUsesTime", "TRUE");
+    }
+    if (_disableOutputOnPingFailure) {
+        res->AddAttribute("DisableOutputOnPingFailure", "TRUE");
     }
     if (_hardwareAcceleratedVideo)
     {

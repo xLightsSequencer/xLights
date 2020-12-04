@@ -41,6 +41,7 @@ const long OptionsDialog::ID_CHECKBOX10 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX11 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX12 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX15 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -138,6 +139,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_MinimiseUI = new wxCheckBox(this, ID_CHECKBOX14, _("Minimise runtime UI updates for performance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX14"));
 	CheckBox_MinimiseUI->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_MinimiseUI, 1, wxALL|wxEXPAND, 5);
+	CheckBox_DisableOutputOnPingFailure = new wxCheckBox(this, ID_CHECKBOX15, _("Disable output on local ping failure"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX15"));
+	CheckBox_DisableOutputOnPingFailure->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_DisableOutputOnPingFailure, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -300,6 +304,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
     CheckBox_HWAcceleratedVideo->SetValue(options->IsHardwareAcceleratedVideo());
     CheckBox_LastStartingSequenceUsesTime->SetValue(options->IsLateStartingScheduleUsesTime());
+    CheckBox_DisableOutputOnPingFailure->SetValue(options->IsDisableOutputOnPingFailure());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -407,6 +412,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetMinimiseUIUpdates(CheckBox_MinimiseUI->GetValue());
     _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
     _options->SetLateStartingScheduleUsesTime(CheckBox_LastStartingSequenceUsesTime->GetValue());
+    _options->SetDisableOutputOnPingFailure(CheckBox_DisableOutputOnPingFailure->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

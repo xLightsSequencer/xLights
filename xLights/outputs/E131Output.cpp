@@ -419,7 +419,7 @@ void E131Output::EndFrame(int suppressFrames) {
 
     wxASSERT(!IsOutputCollection_CONVERT());
 
-    if (!_enabled || _suspend) return;
+    if (!_enabled || _suspend || _tempDisable) return;
 
     if (_fppProxyOutput) {
         _fppProxyOutput->EndFrame(suppressFrames);

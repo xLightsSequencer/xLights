@@ -32,6 +32,9 @@ class APinger
     std::string _why;
     ListenerManager* _listenerManager = nullptr;
     std::atomic<int> _failCount;
+    bool _isLocal = false;
+
+    void CheckLocal();
 
     public:
 
@@ -49,6 +52,10 @@ class APinger
     void Stop();
     std::string GetIP() const { return _ip; }
     int GetFailCount() const { return  _failCount; }
+    bool IsLocal() const
+    {
+        return _isLocal;
+    }
 };
 
 class Pinger
@@ -62,4 +69,5 @@ class Pinger
         std::list<APinger*> GetPingers() const { return _pingers; }
         void AddIP(const std::string ip, const std::string why);
         void RemoveNonOutputIPs();
+        APinger* GetPinger(const std::string& ip) const;
 };

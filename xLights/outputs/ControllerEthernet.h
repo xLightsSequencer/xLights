@@ -97,6 +97,8 @@ public:
 
     virtual bool IsLookedUpByControllerName() const override { return true; }
 
+    virtual bool CanTempDisable() const { return true; }
+
     virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
     virtual bool SupportsFullxLightsControl() const override;
 

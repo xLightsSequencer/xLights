@@ -53,6 +53,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
 		wxCheckBox* CheckBox_AlllowPageBypass;
+		wxCheckBox* CheckBox_DisableOutputOnPingFailure;
 		wxCheckBox* CheckBox_HWAcceleratedVideo;
 		wxCheckBox* CheckBox_KeepScreenOn;
 		wxCheckBox* CheckBox_LastStartingSequenceUsesTime;
@@ -108,6 +109,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX11;
 		static const long ID_CHECKBOX12;
 		static const long ID_CHECKBOX14;
+		static const long ID_CHECKBOX15;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;

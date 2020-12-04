@@ -13,6 +13,7 @@
 #include "events/ListenerManager.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/outputs/ControllerSerial.h"
+#include "../xLights/UtilFunctions.h"
 
 #include <atomic>
 
@@ -102,6 +103,9 @@ APinger::APinger(ListenerManager* lm, Controller* controller)
     {
         _ip = dynamic_cast<ControllerEthernet*>(controller)->GetIP();
     }
+
+    CheckLocal();
+
     _lastResult = Output::PINGSTATE::PING_UNKNOWN;
     _failCount = 0;
     _pingThread = new PingThread(this);
@@ -116,6 +120,9 @@ APinger::APinger(ListenerManager* lm, const std::string ip, const std::string wh
     _ip = ip;
     _why = why;
     _lastResult = Output::PINGSTATE::PING_UNKNOWN;
+
+    CheckLocal();
+
     _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
@@ -178,6 +185,20 @@ Output::PINGSTATE APinger::Ping()
     return IPOutput::Ping(_ip, "");
 }
 
+void APinger::CheckLocal()
+{
+    _isLocal = false;
+
+    auto ips = GetLocalIPs();
+
+    for (const auto& it : ips) {
+        if (IsInSameSubnet(_ip, it, "255.255.255.0")) {
+            _isLocal = true;
+            break;
+        }
+    }
+}
+
 void APinger::SetPingResult(Output::PINGSTATE result)
 {
     _lastResult = result;
@@ -194,7 +215,7 @@ std::string APinger::GetName() const
     {
         return _controller->GetPingDescription();
     }
-    return _ip + " " + _why;
+    return _ip + " " + _why + (_lastResult == Output::PINGSTATE::PING_ALLFAILED && IsLocal() ? _(" (Down)") : _(""));
 }
 
 void APinger::Stop()
@@ -302,4 +323,13 @@ void Pinger::RemoveNonOutputIPs()
         }
     }
     _pingers = newPingers;
+}
+
+APinger* Pinger::GetPinger(const std::string& ip) const
+{
+    for (const auto& it : _pingers) {
+        if (it->GetIP() == ip) return it;
+    }
+
+    return nullptr;
 }

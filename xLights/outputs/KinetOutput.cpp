@@ -229,7 +229,7 @@ void KinetOutput::StartFrame(long msec) {
 
 void KinetOutput::EndFrame(int suppressFrames) {
 
-    if (!_enabled || _suspend || _datagram == nullptr) return;
+    if (!_enabled || _suspend || _tempDisable|| _datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames)) {
 		if (_version == 2) {

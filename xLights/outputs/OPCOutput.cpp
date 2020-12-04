@@ -211,7 +211,7 @@ void OPCOutput::EndFrame(int suppressFrames) {
     // on really low end controllers I have seen this get so backed up it re-enters
     static bool reentry = false;
 
-    if (!_enabled || _suspend) return;
+    if (!_enabled || _suspend || _tempDisable) return;
 
     //if (_fppProxyOutput) {
     //    _fppProxyOutput->EndFrame(suppressFrames);

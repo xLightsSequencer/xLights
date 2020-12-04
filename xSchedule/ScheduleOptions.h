@@ -202,6 +202,7 @@ class ScheduleOptions
     bool _suppressAudioOnRemotes;
     bool _hardwareAcceleratedVideo;
     bool _lateStartingScheduleUsesTime;
+    bool _disableOutputOnPingFailure = false;
     int _SMPTEMode;
     bool _minimiseUIUpdates = false;
 
@@ -256,6 +257,8 @@ class ScheduleOptions
         bool IsHardwareAcceleratedVideo() const { return _hardwareAcceleratedVideo; }
         void SetLateStartingScheduleUsesTime(bool lateStartingScheduleUsesTime) { if (_lateStartingScheduleUsesTime != lateStartingScheduleUsesTime) { _lateStartingScheduleUsesTime = lateStartingScheduleUsesTime; _changeCount++; } }
         bool IsLateStartingScheduleUsesTime() const { return _lateStartingScheduleUsesTime; }
+        void SetDisableOutputOnPingFailure(bool disableOutputOnPingFailure) { if (_disableOutputOnPingFailure != disableOutputOnPingFailure) { _disableOutputOnPingFailure = disableOutputOnPingFailure; _changeCount++; } }
+        bool IsDisableOutputOnPingFailure() const { return _disableOutputOnPingFailure; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
         TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }

@@ -65,6 +65,7 @@
 #include "../xLights/VideoReader.h"
 #include "../xLights/SpecialOptions.h"
 #include "../xLights/outputs/Output.h"
+#include "../xLights/outputs/ControllerEthernet.h"
 #include "RemoteModeConfigDialog.h"
 
 #include "../include/xs_save.xpm"
@@ -1748,6 +1749,10 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             _webServer->SetDefaultPage(__schedule->GetOptions()->GetDefaultPage());
         }
 
+        for (const auto c : __schedule->GetOutputManager()->GetControllers()) {
+            c->TempDisable(false);
+        }
+
         Schedule::SetCity(__schedule->GetOptions()->GetCity());
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
@@ -3289,6 +3294,21 @@ void xScheduleFrame::UpdateUI(bool force)
     ModeToUI();
 
     logger_frame.debug("        Updated mode %ldms", sw.Time());
+
+    // disable any outputs where the ping has failed
+    if (_pinger != nullptr && __schedule->GetOptions()->IsDisableOutputOnPingFailure()) {
+        for (const auto c : __schedule->GetOutputManager()->GetControllers()) {
+            auto eth = dynamic_cast<ControllerEthernet*>(c);
+            if (eth != nullptr) {
+                auto p = _pinger->GetPinger(eth->GetIP());
+                if (p != nullptr) {
+                    if (p->IsLocal()) {
+                        c->TempDisable(p->GetPingResult() == Output::PINGSTATE::PING_ALLFAILED);
+                    }
+                }
+            }
+        }
+    }
 
     if (!minimiseUIUpdates && _pinger != nullptr)
     {

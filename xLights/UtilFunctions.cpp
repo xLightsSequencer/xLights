@@ -1037,6 +1037,20 @@ bool IsValidLocalIP(const std::string& ip)
     return false;
 }
 
+bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask)
+{
+    wxIPV4address i1;
+    wxIPV4address i2;
+    wxIPV4address m;
+
+    i1.Hostname(ip1);
+    i2.Hostname(ip2);
+    m.Hostname(mask);
+
+    return ((((sockaddr_in*)i1.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr) ==
+            (((sockaddr_in*)i2.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr));
+}
+
 bool DeleteDirectory(std::string directory)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

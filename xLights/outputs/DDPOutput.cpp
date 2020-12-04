@@ -400,7 +400,7 @@ void DDPOutput::StartFrame(long msec) {
 
 void DDPOutput::EndFrame(int suppressFrames) {
 
-    if (!_enabled || _suspend) return;
+    if (!_enabled || _suspend || _tempDisable) return;
     if (_fppProxyOutput) {
         _fppProxyOutput->EndFrame(suppressFrames);
         return;

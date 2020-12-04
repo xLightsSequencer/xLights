@@ -65,6 +65,7 @@ protected:
     int32_t _startChannel = -1; // cached start channel of this output ... may change when reordered or other output are changed
     long _timer_msec = 0;
     bool _ok = false;
+    bool _tempDisable = false;
     bool _suppressDuplicateFrames = false;
     wxLongLong _lastOutputTime = 0;
     int _skippedFrames = 9999;
@@ -140,6 +141,9 @@ public:
 
     int32_t GetStartChannel() const { return _startChannel; }
     int32_t GetEndChannel() const { return _startChannel + _channels - 1; }
+
+    void TempDisable(bool disable) { _tempDisable = disable; }
+    bool IsTempDisable() const { return _tempDisable; }
 
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
