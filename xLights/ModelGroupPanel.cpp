@@ -25,6 +25,7 @@
 #include "LayoutPanel.h"
 #include "OutputModelManager.h"
 #include "xLightsMain.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -97,6 +98,9 @@ const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
+const long ModelGroupPanel::ID_TEXTCTRL1 = wxNewId();
+const long ModelGroupPanel::ID_BUTTON1 = wxNewId();
 const long ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
@@ -122,6 +126,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	//(*Initialize(ModelGroupPanel)
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticText* StaticText4;
@@ -187,7 +193,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	CheckBox_ShowModelGroups->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowModelGroups, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer12 = new wxFlexGridSizer(2, 3, 0, 0);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
 	FlexGridSizer12->AddGrowableCol(2);
 	FlexGridSizer12->AddGrowableRow(1);
@@ -196,9 +202,22 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models in Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(1);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+	TextCtrl_Filter = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer2->Add(TextCtrl_Filter, 1, wxALL|wxEXPAND, 1);
+	ButtonClearFilter = new wxButton(this, ID_BUTTON1, _("x"), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer2->Add(ButtonClearFilter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	ListBoxAddToModelGroup = new wxListCtrl(this, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(65,-1)), wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTCTRL1"));
 	ListBoxAddToModelGroup->SetMinSize(wxSize(65,-1));
-	FlexGridSizer12->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer12->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
 	ButtonAddModel = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_FORWARD")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(ButtonAddModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
@@ -229,6 +248,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect);
@@ -355,6 +376,8 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
             modelsInGroup.push_back(it);
         }
 
+        auto filter = TextCtrl_Filter->GetValue().Lower();
+
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {
             if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
@@ -362,9 +385,10 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
                 // dont add this group
                 // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
             }
-            else
-            {
-                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
+            else {
+                if (filter == "" || Contains(::Lower(it.first), filter)) {
+                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
+                }
             }
             if (CheckBox_ShowSubmodels->GetValue())
             {
@@ -372,7 +396,9 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
                     Model* sm = smit;
 
                     if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                        ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                        if (filter == "" || Contains(it.first, filter)) {
+                            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                        }
                     }
                 }
             }
@@ -1121,7 +1147,7 @@ void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
         mnu.Append(ID_MNU_SORTBYNAME, "Sort By Name");
         mnu.AppendSeparator();
         mnu.Append(ID_MNU_CLEARALL, "Clear");
-    }    
+    }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ModelGroupPanel::OnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -1204,4 +1230,15 @@ wxArrayString ModelGroupPanel::getGroupList()
         choices.Add(g->Name());
     }
     return choices;
+}
+
+void ModelGroupPanel::OnButtonClearFilterClick(wxCommandEvent& event)
+{
+    TextCtrl_Filter->SetValue("");
+    UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnTextCtrl_FilterText(wxCommandEvent& event)
+{
+    UpdatePanel(mGroup);
 }

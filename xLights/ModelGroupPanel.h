@@ -14,6 +14,7 @@
 
 //(*Headers(ModelGroupPanel)
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/listctrl.h>
@@ -21,6 +22,7 @@
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class ModelManager;
@@ -62,6 +64,7 @@ class ModelGroupPanel: public wxPanel
 		wxBitmapButton* ButtonMoveDown;
 		wxBitmapButton* ButtonMoveUp;
 		wxBitmapButton* ButtonRemoveModel;
+		wxButton* ButtonClearFilter;
 		wxCheckBox* CheckBox_ShowModelGroups;
 		wxCheckBox* CheckBox_ShowSubmodels;
 		wxChoice* ChoiceModelLayoutType;
@@ -80,6 +83,8 @@ class ModelGroupPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Filter;
 		//*)
 
 	protected:
@@ -99,6 +104,9 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT9;
+		static const long ID_TEXTCTRL1;
+		static const long ID_BUTTON1;
 		static const long ID_LISTCTRL1;
 		static const long ID_BITMAPBUTTON4;
 		static const long ID_BITMAPBUTTON3;
@@ -139,6 +147,8 @@ class ModelGroupPanel: public wxPanel
 		void OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event);
 		void OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event);
 		void OnListBoxModelsInGroupItemRClick(wxListEvent& event);
+		void OnButtonClearFilterClick(wxCommandEvent& event);
+		void OnTextCtrl_FilterText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

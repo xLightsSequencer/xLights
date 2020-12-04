@@ -176,7 +176,6 @@
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 							<cols>3</cols>
-							<rows>2</rows>
 							<growablecols>0,2</growablecols>
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
@@ -200,16 +199,59 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListBoxAddToModelGroup" member="yes">
-									<size>65,-1d</size>
-									<minsize>65,-1</minsize>
-									<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
-									<handler function="OnListBoxAddToModelGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
-									<handler function="OnListBoxAddToModelGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-									<handler function="OnListBoxAddToModelGroupItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
-									<handler function="OnListBoxAddToModelGroupItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+								<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+									<cols>1</cols>
+									<growablecols>0</growablecols>
+									<growablerows>1</growablerows>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+											<cols>3</cols>
+											<growablecols>1</growablecols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText9" member="yes">
+													<label>Filter:</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Filter" member="yes">
+													<handler function="OnTextCtrl_FilterText" entry="EVT_TEXT" />
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>1</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON1" variable="ButtonClearFilter" member="yes">
+													<label>x</label>
+													<size>20,-1</size>
+													<handler function="OnButtonClearFilterClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListBoxAddToModelGroup" member="yes">
+											<size>65,-1d</size>
+											<minsize>65,-1</minsize>
+											<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
+											<handler function="OnListBoxAddToModelGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+											<handler function="OnListBoxAddToModelGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+											<handler function="OnListBoxAddToModelGroupItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
+											<handler function="OnListBoxAddToModelGroupItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
