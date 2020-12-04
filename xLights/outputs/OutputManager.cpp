@@ -764,6 +764,19 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
                 return o->GetStartChannel() + sc - 1;
             }
         }
+        else if (startChannelString[0] == '!') {
+            auto parts = wxSplit(&startChannelString[1], ':');
+            if (parts.size() == 2) {
+                auto controller = GetController(parts[0]);
+                if (controller == nullptr) return 0;
+                long sc = wxAtol(parts[1]);
+                if (sc < 1) return 0;
+                return controller->GetStartChannel() + sc - 1;
+            }
+            else {
+                return 0;
+            }
+        }
         else {
             auto parts = wxSplit(startChannelString, ':');
             if (parts.size() > 2) return 0;
