@@ -1006,6 +1006,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         BaseObject* mm = m;
         if (mm == nullptr) mm = _outputModelManager.GetModelToReload();
         if (mm != nullptr) {
+            //abort any render as it might crash if the model changes
+            AbortRender();
             mm->ReloadModelXml();
             //must unselect any effect as it might now be pointing at an invalid model/submodel/strand
             UnselectEffect();
@@ -1044,6 +1046,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     if (work & OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS) {
         logger_work.debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
         // Moves all the models around optimally
+        
+        //abort any render as it will crash if the model changes
+        AbortRender();
         if (AllModels.ReworkStartChannel())
         {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "DoWork");

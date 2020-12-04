@@ -2150,9 +2150,11 @@ void xLightsFrame::RecalcModels()
     if (IsExiting()) return;
 
     SetCursor(wxCURSOR_WAIT);
-    // Now notify the layout as the model start numbers may have been impacted
-    if (AllModels.RecalcStartChannels())
-    {
+    
+    //abort any render as it will crash if the model changes
+    AbortRender();
+    if (AllModels.RecalcStartChannels()) {
+        // Now notify the layout as the model start numbers may have been impacted
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcModels");
     }

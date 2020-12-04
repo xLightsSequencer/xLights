@@ -876,6 +876,9 @@ void xLightsFrame::UpdateModelsList()
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
     if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
 
+    //abort any render as it will crash if the model changes
+    AbortRender();
+
     playModel = nullptr;
     PreviewModels.clear();
     UnselectEffect();

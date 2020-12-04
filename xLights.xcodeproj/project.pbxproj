@@ -52,6 +52,7 @@
 		671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142EB207BACF200F45296 /* ESPixelStick.cpp */; };
 		671142EF207BAD5400F45296 /* WebSocketClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142EE207BAD5400F45296 /* WebSocketClient.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
+		6713B9FB257A825A00EB79EA /* KinetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6713B9F9257A825A00EB79EA /* KinetOutput.cpp */; };
 		6715B4FA1F5F15CF00D60087 /* HousePreviewPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */; };
 		6716574723CAAA45000B47D3 /* DmxServo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716573D23CAAA44000B47D3 /* DmxServo.cpp */; };
 		6716574823CAAA45000B47D3 /* DmxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716573E23CAAA44000B47D3 /* DmxImage.cpp */; };
@@ -606,6 +607,8 @@
 		671142EE207BAD5400F45296 /* WebSocketClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebSocketClient.cpp; path = controllers/WebSocketClient.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
+		6713B9F9257A825A00EB79EA /* KinetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KinetOutput.cpp; path = outputs/KinetOutput.cpp; sourceTree = "<group>"; };
+		6713B9FA257A825A00EB79EA /* KinetOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KinetOutput.h; path = outputs/KinetOutput.h; sourceTree = "<group>"; };
 		6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HousePreviewPanel.h; sourceTree = "<group>"; };
 		6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HousePreviewPanel.cpp; sourceTree = "<group>"; };
 		6716573D23CAAA44000B47D3 /* DmxServo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxServo.cpp; sourceTree = "<group>"; };
@@ -2143,6 +2146,8 @@
 				671805A324F3090D002DEC46 /* GenericSerialOutput.h */,
 				67B2B2051E1947BE0024F0BB /* IPOutput.cpp */,
 				67B2B2061E1947BE0024F0BB /* IPOutput.h */,
+				6713B9F9257A825A00EB79EA /* KinetOutput.cpp */,
+				6713B9FA257A825A00EB79EA /* KinetOutput.h */,
 				670827F42024C19C0002B617 /* LorController.cpp */,
 				670827ED2024C19A0002B617 /* LorController.h */,
 				670827EE2024C19A0002B617 /* LorControllers.cpp */,
@@ -3126,6 +3131,7 @@
 				67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */,
 				675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */,
 				67B2CFDD1C3A186A003C17CA /* TwinkleEffect.cpp in Sources */,
+				6713B9FB257A825A00EB79EA /* KinetOutput.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67503C9923C3261F0033449B /* DmxColorAbility.cpp in Sources */,
 				67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */,
