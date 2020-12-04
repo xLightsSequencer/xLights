@@ -199,6 +199,7 @@
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
     <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\KinetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LorController.cpp" />
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
@@ -436,6 +437,7 @@
     <ClInclude Include="..\xLights\outputs\E131Output.h" />
     <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\IPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\KinetOutput.h" />
     <ClInclude Include="..\xLights\outputs\LorController.h" />
     <ClInclude Include="..\xLights\outputs\LorControllers.h" />
     <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />

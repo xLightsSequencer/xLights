@@ -544,6 +544,9 @@
     <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\outputs\KinetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1079,6 +1082,9 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1116,6 +1116,8 @@
 		<Unit filename="outputs/GenericSerialOutput.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
+		<Unit filename="outputs/KinetOutput.cpp" />
+		<Unit filename="outputs/KinetOutput.h" />
 		<Unit filename="outputs/LOROptimisedOutput.cpp" />
 		<Unit filename="outputs/LOROptimisedOutput.h" />
 		<Unit filename="outputs/LOROutput.cpp" />
@@ -1617,9 +1619,6 @@
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

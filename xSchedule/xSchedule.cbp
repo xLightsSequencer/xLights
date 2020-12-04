@@ -345,6 +345,8 @@
 		<Unit filename="../xLights/outputs/GenericSerialOutput.h" />
 		<Unit filename="../xLights/outputs/IPOutput.cpp" />
 		<Unit filename="../xLights/outputs/IPOutput.h" />
+		<Unit filename="../xLights/outputs/KinetOutput.cpp" />
+		<Unit filename="../xLights/outputs/KinetOutput.h" />
 		<Unit filename="../xLights/outputs/LOROptimisedDialog.h" />
 		<Unit filename="../xLights/outputs/LOROptimisedOutput.cpp" />
 		<Unit filename="../xLights/outputs/LOROptimisedOutput.h" />
@@ -509,14 +511,14 @@
 		<Unit filename="PlayList/PlayListItemAudio.h" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.h" />
-		<Unit filename="PlayList/PlayListItemColourOrgan.cpp" />
-		<Unit filename="PlayList/PlayListItemColourOrgan.h" />
-		<Unit filename="PlayList/PlayListItemColourOrganPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemColourOrganPanel.h" />
 		<Unit filename="PlayList/PlayListItemCURL.cpp" />
 		<Unit filename="PlayList/PlayListItemCURL.h" />
 		<Unit filename="PlayList/PlayListItemCURLPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemCURLPanel.h" />
+		<Unit filename="PlayList/PlayListItemColourOrgan.cpp" />
+		<Unit filename="PlayList/PlayListItemColourOrgan.h" />
+		<Unit filename="PlayList/PlayListItemColourOrganPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemColourOrganPanel.h" />
 		<Unit filename="PlayList/PlayListItemDelay.cpp" />
 		<Unit filename="PlayList/PlayListItemDelay.h" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.cpp" />
@@ -787,13 +789,12 @@
 		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
-		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemARTNetTriggerPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemColourOrganPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemColourOrganPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDimPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
@@ -822,6 +823,7 @@
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
 		<Unit filename="wxsmith/PlayListSimpleDialog.wxs" />
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
+		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/ProjectorDetailsDialog.wxs" />
 		<Unit filename="wxsmith/RemapDialog.wxs" />
 		<Unit filename="wxsmith/RemoteModeConfigDialog.wxs" />
@@ -839,9 +841,6 @@
 		<Unit filename="xScheduleMain.h" />
 		<Unit filename="xSchedulePlugin.h" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="xScheduleApp.cpp" main="xScheduleFrame" init_handlers="necessary" language="CPP" />
