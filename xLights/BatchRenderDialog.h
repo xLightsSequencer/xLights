@@ -11,13 +11,14 @@
  **************************************************************/
 
  //(*Headers(BatchRenderDialog)
-#include <wx/dialog.h>
-class wxButton;
-class wxCheckListBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxStaticText;
-//*)
+ #include <wx/dialog.h>
+ class wxButton;
+ class wxCheckListBox;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 class wxMouseEvent;
 class wxCommandEvent;
@@ -35,6 +36,8 @@ class BatchRenderDialog: public wxDialog
 		wxCheckListBox* SequenceList;
 		wxChoice* FilterChoice;
 		wxChoice* FolderChoice;
+		wxStaticText* StaticText3;
+		wxTextCtrl* TextCtrl_Selected;
 		//*)
 
         bool Prepare(const wxString &dir);
@@ -53,6 +56,8 @@ protected:
 		//(*Identifiers(BatchRenderDialog)
 		static const long ID_CHOICE_FILTER;
 		static const long ID_CHOICE_FOLDER;
+		static const long ID_STATICTEXT1;
+		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKLISTBOX_SEQUENCES;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -74,6 +79,7 @@ protected:
 		//*)
 
         void ValidateWindow();
-            
+		void UpdateCount();
+
         DECLARE_EVENT_TABLE()
 };

@@ -18,6 +18,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <wx/dir.h>
@@ -29,6 +30,8 @@
 //(*IdInit(BatchRenderDialog)
 const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
 const long BatchRenderDialog::ID_CHOICE_FOLDER = wxNewId();
+const long BatchRenderDialog::ID_STATICTEXT1 = wxNewId();
+const long BatchRenderDialog::ID_TEXTCTRL1 = wxNewId();
 const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
 const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
 const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
@@ -66,9 +69,13 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FilterChoice->Append(_("Only Show Directory"));
 	FlexGridSizer2->Add(FilterChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Folder:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FolderChoice = new wxChoice(this, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer2->Add(FolderChoice, 1, wxALL|wxEXPAND, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("Selected:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Selected = new wxTextCtrl(this, ID_TEXTCTRL1, _("Text"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer2->Add(TextCtrl_Selected, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
@@ -280,6 +287,7 @@ void BatchRenderDialog::OnFolderChoiceSelect(wxCommandEvent& event)
 
 void BatchRenderDialog::ValidateWindow()
 {
+    UpdateCount();
     wxArrayInt sel;
     SequenceList->GetCheckedItems(sel);
     if (sel.size() == 0) {
@@ -330,4 +338,11 @@ bool BatchRenderDialog::isFileInFolder(const wxString &file) const
     if (file.StartsWith( folder + "\\") || file.StartsWith( folder + "/"))
         return true;
     return false;
+}
+
+void BatchRenderDialog::UpdateCount()
+{
+    wxArrayInt sel;
+    SequenceList->GetCheckedItems(sel);
+    TextCtrl_Selected->SetValue(wxString::Format("%d", (int)sel.size()));
 }
