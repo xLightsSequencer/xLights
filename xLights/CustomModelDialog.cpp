@@ -218,7 +218,7 @@ class CopyPasteGrid : public wxGrid
 
     void DoOnChar(wxKeyEvent& event)
     {
-        wxChar uc = event.GetUnicodeKey();
+        wxChar uc = event.GetKeyCode();
 
         switch (uc)
         {
@@ -255,6 +255,17 @@ class CopyPasteGrid : public wxGrid
             if (event.CmdDown() || event.ControlDown()) {
                 wxCommandEvent keyEvent(EVT_GRID_KEY);
                 keyEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+            }
+            break;
+        case WXK_F4: // move fwd & stay
+        case WXK_F5: // move back & stay
+        case WXK_F7: // move fwd & go
+        case WXK_F8: // move back & go
+            if (!event.ShiftDown() && !event.CmdDown() && !event.ControlDown() && !event.AltDown()) {
+                wxCommandEvent keyEvent(EVT_GRID_KEY);
+                keyEvent.SetInt(event.GetKeyCode());
                 wxPostEvent(this, keyEvent);
                 event.StopPropagation();
             }
@@ -839,6 +850,11 @@ void CustomModelDialog::CopyLayer(bool forward, int layers)
     }
 
     // trigger update of what cells are used on other grids
+    UpdateGridColours();
+}
+
+void CustomModelDialog::UpdateGridColours()
+{
     wxBookCtrlEvent e;
     e.SetSelection(Notebook1->GetSelection());
     OnNotebook1PageChanged(e);
@@ -1882,6 +1898,18 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         Notebook1->SetSelection(Notebook1->GetPageCount()-1);
         GetLayerGrid(Notebook1->GetPageCount()-1)->SetGridCursor(row, col);
         break;
+    case WXK_F3:
+        PushPull(true, true); // fwd and stay
+        break;
+    case WXK_F4:
+        PushPull(false, true); // back and stay
+        break;
+    case WXK_F7:
+        PushPull(true, false); // fwd and go
+        break;
+    case WXK_F8:
+        PushPull(false, false); // back and go
+        break;
     default:
         wxASSERT(false);
         break;
@@ -2660,6 +2688,41 @@ void CustomModelDialog::AddPage()
     grid->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&CustomModelDialog::OnGridKeyDown, 0, this);
 
     Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
+}
+
+void CustomModelDialog::PushPull(bool forward, bool stayOnLayer)
+{
+    auto current = GetActiveGrid();
+    int layer = Notebook1->GetSelection();
+    auto col = current->GetGridCursorCol();
+    auto row = current->GetGridCursorRow();
+
+    if (current->GetCellValue(row, col) == "") return;
+
+    CopyPasteGrid* target = nullptr;
+    int targetLayer = -1;
+
+    if (forward)         {
+        if (layer == 0) return;
+        targetLayer = layer - 1;
+    }
+    else         {
+        if (layer == Notebook1->GetPageCount() - 1) return;
+        targetLayer = layer + 1;
+    }
+
+    target = GetLayerGrid(targetLayer);
+    if (target->GetCellValue(row, col) != "") return;
+
+    target->SetCellValue(row, col, current->GetCellValue(row, col));
+    current->SetCellValue(row, col, "");
+
+    if (!stayOnLayer)         {
+        target->SetGridCursor(row, col);
+        Notebook1->SetSelection(targetLayer);
+    }
+
+    UpdateGridColours();
 }
 
 void CustomModelDialog::OnGridKeyDown(wxKeyEvent& event)
