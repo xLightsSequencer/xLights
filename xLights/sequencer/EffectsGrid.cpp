@@ -7115,7 +7115,7 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers)
     else {
         Element* element = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
-            EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(i);
+            EffectLayer* effectLayer = element->GetEffectLayer(i);
             effectLayer->SelectAllEffects();
             effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
