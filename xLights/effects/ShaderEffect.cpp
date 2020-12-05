@@ -650,6 +650,106 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
             if (!cache->s_glContext) {
                 return false;
             }
+
+            struct GLRendererInfo {
+              GLint rendererID;       // RendererID number
+              GLint accelerated;      // Whether Hardware accelerated
+              GLint online;           // Whether renderer (/GPU) is onilne. Second GPU on Mac Pro is offline
+              GLint virtualScreen;    // Virtual screen number
+              GLint videoMemoryMB;
+              GLint textureMemoryMB;
+              GLint eGpu;
+              const GLubyte *vendor;
+            };
+            WXGLSetCurrentContext(cache->s_glContext);
+
+            // Grab the GLFW context and pixel format for future calls
+            CGLContextObj contextObject = CGLGetCurrentContext();
+            CGLPixelFormatObj pixel_format = CGLGetPixelFormat(contextObject);
+
+            // Number of renderers
+            CGLRendererInfoObj rend;
+            GLint nRenderers = 0;
+            CGLQueryRendererInfo(0xffffffff, &rend, &nRenderers);
+
+            // Number of virtual screens
+            GLint nVirtualScreens = 0;
+            CGLDescribePixelFormat(pixel_format, 0, kCGLPFAVirtualScreenCount, &nVirtualScreens);
+
+            int maxMem = 0;
+
+            // Get renderer information
+            std::vector<GLRendererInfo> Renderers(nRenderers);
+            for (GLint i = 0; i < nRenderers; ++i) {
+                CGLDescribeRenderer(rend, i, kCGLRPOnline, &(Renderers[i].online));
+                CGLDescribeRenderer(rend, i, kCGLRPAcceleratedCompute, &(Renderers[i].accelerated));
+                CGLDescribeRenderer(rend, i, kCGLRPRendererID,  &(Renderers[i].rendererID));
+                CGLDescribeRenderer(rend, i, kCGLRPVideoMemoryMegabytes, &(Renderers[i].videoMemoryMB));
+                CGLDescribeRenderer(rend, i, kCGLRPTextureMemoryMegabytes, &(Renderers[i].textureMemoryMB));
+                CGLDescribeRenderer(rend, i, (CGLRendererProperty)142, &(Renderers[i].eGpu));
+            }
+
+            // Get corresponding virtual screen
+            for (GLint i = 0; i != nVirtualScreens; ++i) {
+                CGLSetVirtualScreen(contextObject, i);
+                GLint r;
+                CGLGetParameter(contextObject, kCGLCPCurrentRendererID, &r);
+
+                for (GLint j = 0; j < nRenderers; ++j) {
+                    if (Renderers[j].rendererID == r) {
+                        Renderers[j].virtualScreen = i;
+                        Renderers[j].vendor = glGetString(GL_VENDOR);
+                    }
+                }
+            }
+
+            // Print out information of renderers
+            bool found = false;
+            //printf("No. renderers: %d\n", nRenderers);
+            //printf(" No. virtual screens: %d\n", nVirtualScreens);
+            for (GLint i = 0; i < nRenderers; ++i) {
+                /*
+                printf("Renderer: %d\n", i);
+                printf(" Virtual Screen: %d\n", Renderers[i].virtualScreen);
+                printf(" Renderer ID: %d\n", Renderers[i].rendererID);
+                printf(" Vendor: %s\n", Renderers[i].vendor);
+                printf(" Accelerated: %d\n", Renderers[i].accelerated);
+                printf(" Online: %d\n", Renderers[i].online);
+                printf(" Video Memory MB: %d\n", Renderers[i].videoMemoryMB);
+                printf(" Texture Memory MB: %d\n", Renderers[i].textureMemoryMB);
+                printf(" eGpu: %d\n", Renderers[i].eGpu);
+                */
+                if (Renderers[i].eGpu) {
+                    //prefer an eGPU if we find one
+                    CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
+                    found = true;
+                } else {
+                    // otherwise, use the one with the most video memory
+                    // as we'll assume that's the best option
+                    maxMem = std::max(maxMem, Renderers[i].videoMemoryMB);
+                }
+            }
+
+            // Set the context to our desired virtual screen (and therefore OpenGL renderer)
+            if (!found) {
+                for (GLint i = 0; i < nRenderers; ++i) {
+                    if (maxMem == Renderers[i].videoMemoryMB) {
+                        CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
+                    }
+                }
+            }
+            
+            const GLubyte* str = glGetString(GL_VERSION);
+            const GLubyte* rendn = glGetString(GL_RENDERER);
+            const GLubyte* vend = glGetString(GL_VENDOR);
+            wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
+                                                (const char *)str,
+                                                (const char *)rendn,
+                                                (const char *)vend);
+
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info(configs);
+            //printf("%s\n", (const char *)configs.c_str());
         } else {
             return false;
         }
