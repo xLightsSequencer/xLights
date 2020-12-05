@@ -11,7 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.52 December 5 2020
    -- enh (scott)  Added click-and-drag & double-click select to SubModel Preview
+   -- enh (scott)  Add sort of nodes to rows in submodel dialog
+   -- enh (keith)  Added experimental KiNet support
+   -- enh (keith)  Add F4/F5 and F7/F8 to move nodes forward/backward between layers in custom model dialog
+   -- enh (keith)  Add option to disable sending of data to controllers that are not responding to ping to reduce ARP failure delays
+   -- enh (keith)  Add support for !controller:startChannel format in xSchedule for defining matrix start channels
+   -- enh (keith)  Add a filter to the model group panel to quickly find models to add into a group
+   -- enh (keith)  On batch render dialog show the number of sequences selected
+   -- enh (keith)  Add a right click option on custom model data grid to convert a pixel model to a single channel model
+   -- enh (keith)  Increase the x axis granularity for custom value curves
+   -- enh (keith)  Add support for SVG colour palettes
+   -- enh (keith)  Further improve visulaliser bank error messages
+   -- enh (dkulp)  Try to use the best GPU for shaders and support eGPUs on OSX
+   -- bug (keith)  Fix backup fails when recovering an rgbeffects xbkp file
+   -- bug (keith)  Fix serial port start channel is incorrect in visualiser where first model does not start on channel 1
+   -- bug (keith)  Fix custom value curve editor does not allow editing of all points
+   -- bug (keith)  Fix an LMS import crash
+   -- bug (keith)  Fix opening of SCSS colour palettes
+   -- bug (keith)  Fix freeze frame is not large enough and can limit length of effects
+   -- bug (dkulp)  Fix some rendering crashes if you manipulate models
+   -- bug (dkulp)  Fix FPP dicovery fails on all but the first attempt
+   -- bug (dkulp)  Fix model in group can move relative to the rest of the group in the model preview due to double scaling
+   -- bug (pete)   Fix random number generator is not as random as it should be
 2020.51 November 30 2020
    -- enh (scott)  Add white on all to RGBW handling
    -- bug (keith)  Fix custom model with indiv start nodes being incorrectly cleared
