@@ -825,38 +825,39 @@ void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
 
 void SubModelsDialog::ApplySubmodelName()
 {
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int index = GetSelectedIndex();
     wxASSERT(index >= 0);
 
     wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
 
-    if (name.IsEmpty())
-    {
+    if (name.IsEmpty()) {
         TextCtrl_Name->SetBackgroundColour(*wxRED);
         return;
     }
 
-    if (name != TextCtrl_Name->GetValue())
-    {
+    if (name != TextCtrl_Name->GetValue()) {
         TextCtrl_Name->SetValue(name);
     }
 
     SubModelInfo* sm = (SubModelInfo*)ListCtrl_SubModels->GetItemData(index);
+    if (sm != nullptr) {
+        bool clash = false;
+        for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++) {
+            if (index != i && ListCtrl_SubModels->GetItemText(i) == name) {
+                clash = true;
+                break;
+            }
+        }
 
-    bool clash = false;
-    for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
-    {
-        if (index != i && ListCtrl_SubModels->GetItemText(i) == name)
-        {
-            clash = true;
-            break;
+        if (!clash) {
+            sm->name = name;
+            ListCtrl_SubModels->SetItemText(index, name);
         }
     }
-
-    if (!clash)
-    {
-        sm->name = name;
-        ListCtrl_SubModels->SetItemText(index, name);
+    else {
+        logger_base.warn("SubModelsDialog::ApplySubmodelName submodel not found for index %d.", index);
     }
 
     ValidateWindow();
