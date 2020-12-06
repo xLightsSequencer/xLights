@@ -70,4 +70,5 @@ class Pinger
         void AddIP(const std::string ip, const std::string why);
         void RemoveNonOutputIPs();
         APinger* GetPinger(const std::string& ip) const;
+        APinger* GetPingerByIndex(int index) const;
 };

@@ -333,3 +333,13 @@ APinger* Pinger::GetPinger(const std::string& ip) const
 
     return nullptr;
 }
+
+APinger* Pinger::GetPingerByIndex(int index) const
+{
+    int i = 0;
+    for (const auto& it : _pingers)         {
+        if (i == index) return it;
+        i++;
+    }
+    return nullptr;
+}
