@@ -708,6 +708,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
+    ListView_Ping->Connect(wxEVT_MOTION, (wxObjectEventFunction)&xScheduleFrame::OnListView_PingMouseMove, nullptr, this);
+
     wxString userEmail;
     wxConfig* xlconfig = new wxConfig(_("xLights"));
     if (xlconfig != nullptr)
@@ -2032,6 +2034,31 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
     }
 
     Layout();
+}
+
+void xScheduleFrame::OnListView_PingMouseMove(wxMouseEvent& event)
+{
+    int flags = wxLIST_HITTEST_ONITEM;
+    long item = ListView_Ping->HitTest(event.GetPosition(), flags, nullptr);
+    if (item != wxNOT_FOUND) {
+        auto p = _pinger->GetPingerByIndex(item);
+        if (p != nullptr) {
+            if (ListView_Ping->GetToolTipText() != p->GetIP()) {
+                ListView_Ping->SetToolTip(p->GetIP());
+            }
+        }
+        else {
+            if (ListView_Ping->GetToolTipText() != "") {
+                ListView_Ping->SetToolTip("");
+            }
+        }
+    }
+    else {
+        if (ListView_Ping->GetToolTipText() != "") {
+            ListView_Ping->SetToolTip("");
+        }
+    }
+    event.Skip();
 }
 
 void xScheduleFrame::OnListView_RunningItemSelected(wxListEvent& event)
