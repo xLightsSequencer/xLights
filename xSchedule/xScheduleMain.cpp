@@ -850,7 +850,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.Start(rate / 2, false, "FrameTimer");
     _timerSchedule.Start(500, false, "ScheduleTimer");
 
-    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
+    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
     StaticBitmap_WebIcon->SetBitmap(_nowebicon);
     StaticBitmap_Slow->SetBitmap(_nowebicon);
@@ -1757,6 +1757,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
         __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
+
+        StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
         VideoReader::SetHardwareAcceleratedVideo(__schedule->GetOptions()->IsHardwareAcceleratedVideo());
 
