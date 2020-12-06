@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.53 December 6 2020
+   -- enh (keith)  Show ip address in tooltip in xSchedule ping results, show web listening port
+   -- enh (keith)  Add the model description to the model tooltip in visualiser if present
+   -- bug (keith)  Fix opening custom model data looks like it hangs but really just runs really slowly
+   -- bug (keith)  When double clicking ping results use the IP to open the controller web page
+   -- bug (keith)  Fix model filter does not filter submodels
+   -- bug (scott)  Fix model cut
 2020.52 December 5 2020
    -- enh (scott)  Added click-and-drag & double-click select to SubModel Preview
    -- enh (scott)  Add sort of nodes to rows in submodel dialog
