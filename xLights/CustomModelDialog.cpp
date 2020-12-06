@@ -2940,7 +2940,6 @@ void CustomModelDialog::Find()
         auto find = dlg.GetValue();
 
         int g = 0;
-        bool foundStart = false;
         for (auto grid : _grids) {
             for (auto c = 0; c < grid->GetNumberCols(); c++) {
                 for (auto r = 0; r < grid->GetNumberRows(); ++r) {
@@ -2978,7 +2977,6 @@ void CustomModelDialog::FindLast()
     auto find = maxNode;
 
     int g = 0;
-    bool foundStart = false;
     for (auto grid : _grids) {
         for (auto c = 0; c < grid->GetNumberCols(); c++) {
             for (auto r = 0; r < grid->GetNumberRows(); ++r) {

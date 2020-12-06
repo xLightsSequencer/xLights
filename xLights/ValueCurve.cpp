@@ -1725,7 +1725,6 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             // build what is esentially a sawtooth curve which peaks when audio exceeds the level or drops when it doesnt.
             // this could hpothetically create 2 points per frame
 
-            float lastx = 0.0; // last time the threshold was hit
             float runningy = min;
 
             // this just ensures the curve is complete

@@ -1003,7 +1003,6 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
                 bool b = false;
                 if (el != nullptr) {
                     int ms = buffer.curPeriod * buffer.frameTimeInMs;
-                    bool effectPresent = false;
                     for (int j = 0; j < el->GetEffectCount(); j++) {
                         int ems = el->GetEffect(j)->GetStartTimeMS();
                         if (ems == ms) {

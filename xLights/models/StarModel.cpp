@@ -311,8 +311,6 @@ void StarModel::InitModel()
 
             if (layerNodes == 0) continue;
 
-            double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
-
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
             // segments are all the same length so i can calculate length once
@@ -407,8 +405,6 @@ void StarModel::InitModel()
             if (coordsPerNode == 0) continue;
 
             chan = stringStartChan[currentNode];
-
-            double coordsPerSegment = ((double)layerNodes * coordsPerNode) / (double)starSegments;
 
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 

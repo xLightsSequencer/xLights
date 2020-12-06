@@ -1022,7 +1022,6 @@ void NodeSelectGrid::Find()
     if (dlg.ShowModal() == wxID_OK) {
         auto find = dlg.GetValue();
 
-        bool foundStart = false;
         for (auto c = 0; c < GridNodes->GetNumberCols(); c++) {
             for (auto r = 0; r < GridNodes->GetNumberRows(); ++r) {
                 wxString s = GridNodes->GetCellValue(r, c);

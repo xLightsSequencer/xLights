@@ -49,14 +49,11 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 {
     // sides - left, top, right, bottom
 
-    float left = parm2;
     float top = parm1;
+    float height = parm2;
     float bottom = parm3;
 
     float width = std::max(top, bottom) + 2;
-    float height = parm2;
-
-    int lengths[] = { (int)left, (int)top, (int)left, (int)bottom };
 
     if (LtoR) {
         if (TtoB) {
