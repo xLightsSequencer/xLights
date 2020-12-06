@@ -65,6 +65,7 @@ public:
             m_model->RestoreDisplayDimensions();
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
+            m_model->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
         }
         m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
         return res;
