@@ -2139,6 +2139,11 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         shadow = "Shadowing '" + m->GetShadowModelFor() + "'\n";
     }
 
+    std::string mdescription;
+    if (m->description != "")         {
+        mdescription = "\nDescription: '" + m->description + "'";
+    }
+
     std::string dmx;
     std::string stringSettings;
     if (m->IsSerialProtocol()) {
@@ -2179,15 +2184,15 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     auto om = _xLights->GetOutputManager();
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s",
+        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om),
             m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, stringSettings).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
     }
     else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s",
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, universe, m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, stringSettings).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
     }
 }
 
