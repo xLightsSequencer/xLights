@@ -91,19 +91,6 @@
     <ClCompile Include="SeqFileUtilities.cpp" />
     <ClCompile Include="SeqSettingsDialog.cpp" />
     <ClCompile Include="SequenceData.cpp" />
-    <ClCompile Include="sequencer\DragEffectBitmapButton.cpp" />
-    <ClCompile Include="sequencer\Effect.cpp" />
-    <ClCompile Include="sequencer\EffectDropTarget.cpp" />
-    <ClCompile Include="sequencer\EffectLayer.cpp" />
-    <ClCompile Include="sequencer\EffectsGrid.cpp" />
-    <ClCompile Include="sequencer\Element.cpp" />
-    <ClCompile Include="sequencer\MainSequencer.cpp" />
-    <ClCompile Include="sequencer\RowHeading.cpp" />
-    <ClCompile Include="sequencer\SequenceElements.cpp" />
-    <ClCompile Include="sequencer\tabSequencer.cpp" />
-    <ClCompile Include="sequencer\TimeLine.cpp" />
-    <ClCompile Include="sequencer\UndoManager.cpp" />
-    <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
@@ -843,6 +830,45 @@
     <ClCompile Include="outputs\KinetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\DragEffectBitmapButton.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\Effect.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\EffectDropTarget.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\EffectLayer.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\EffectsGrid.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\Element.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\MainSequencer.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\RowHeading.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\SequenceElements.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\tabSequencer.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\TimeLine.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\UndoManager.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\Waveform.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -924,19 +950,6 @@
     <ClInclude Include="SeqExportDialog.h" />
     <ClInclude Include="SeqSettingsDialog.h" />
     <ClInclude Include="SequenceData.h" />
-    <ClInclude Include="sequencer\DragEffectBitmapButton.h" />
-    <ClInclude Include="sequencer\Effect.h" />
-    <ClInclude Include="sequencer\EffectDropTarget.h" />
-    <ClInclude Include="sequencer\EffectLayer.h" />
-    <ClInclude Include="sequencer\EffectsGrid.h" />
-    <ClInclude Include="sequencer\Element.h" />
-    <ClInclude Include="sequencer\ElementLayers.h" />
-    <ClInclude Include="sequencer\MainSequencer.h" />
-    <ClInclude Include="sequencer\RowHeading.h" />
-    <ClInclude Include="sequencer\SequenceElements.h" />
-    <ClInclude Include="sequencer\TimeLine.h" />
-    <ClInclude Include="sequencer\UndoManager.h" />
-    <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="SplashDialog.h" />
@@ -1693,6 +1706,45 @@
     <ClInclude Include="outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="sequencer\DragEffectBitmapButton.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\Effect.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\EffectDropTarget.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\EffectLayer.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\EffectsGrid.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\Element.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\ElementLayers.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\MainSequencer.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\RowHeading.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\SequenceElements.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\TimeLine.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\UndoManager.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\Waveform.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1712,6 +1764,9 @@
     </Filter>
     <Filter Include="Preferences">
       <UniqueIdentifier>{deb253e2-d6a8-4b5f-909d-9a98e9e667e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sequencer">
+      <UniqueIdentifier>{3f511f30-f755-4c36-bc33-eaba751cc83e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
