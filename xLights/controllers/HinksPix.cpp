@@ -670,6 +670,13 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
                 it++;
                 index++;
             }
+            else if(index <= maxUnv) {
+                if (i != 0)
+                    msg += ",";
+                msg += wxString::Format("%d", index);
+                msg += ",0,0,0,0,0";
+                index++;
+            }
             else {
                 msg += ",0,0,0,0,0,0";
             }
