@@ -4720,7 +4720,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     }
 }
 
-wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
+wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 {
     int w, h;
     preview->GetSize(&w, &h);
@@ -4740,7 +4740,9 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
     }
 
     float px = pt.x;
-    float py = /*h -*/ pt.y;
+    float py = pt.y;
+    if(flip)
+        py = h - pt.y;
 
     int i = 1;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {

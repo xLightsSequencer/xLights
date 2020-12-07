@@ -197,7 +197,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         x += (double)w / 2.0;
         y += (double)h / 2.0;
 
-        wxString tip = model->GetNodeNear(this, wxPoint(x,y));
+        wxString tip = model->GetNodeNear(this, wxPoint(x,y), true);
         SetToolTip(tip);
     }
 

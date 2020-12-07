@@ -2188,7 +2188,7 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
     int x = ray_origin.x;
     int y = ray_origin.y;
-    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y));
+    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
     if (stNode.IsEmpty())
         return;
     wxString name = GetSelectedName();
@@ -2230,6 +2230,8 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
 
 void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
 {
+    event.ResumePropagation(1);
+    event.Skip();
     if (m_creating_bound_rect) {
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
