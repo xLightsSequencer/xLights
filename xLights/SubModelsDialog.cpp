@@ -1474,18 +1474,13 @@ void SubModelsDialog::OnButton_SortRowClick(wxCommandEvent& event)
     wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
     wxArrayString oldNodeArrray = wxSplit(oldnodes, ',');
    
-    std::vector<int> iNodes;
-    std::transform(oldNodeArrray.begin(), oldNodeArrray.end(), std::back_inserter(iNodes),
-        [](const std::string& str) { return std::stoi(str); });
+    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+        [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
 
-    std::sort(iNodes.begin(), iNodes.end());
-
-    wxArrayString newNodeArrray;
-
-    std::transform(iNodes.begin(), iNodes.end(), std::back_inserter(newNodeArrray),
-        [](int i) { return std::to_string(i); });
-
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(newNodeArrray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
 
     Select(GetSelectedName());
 

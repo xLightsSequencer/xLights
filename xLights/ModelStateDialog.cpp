@@ -19,6 +19,7 @@
 #include "xLightsApp.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
+#include "support/VectorMath.h"
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -85,7 +86,13 @@ enum {
 #endif
 
 
-ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
+    m_creating_bound_rect(false),
+    m_bound_start_x(0),
+    m_bound_start_y(0),
+    m_bound_end_x(0),
+    m_bound_end_y(0),
+    mPointSize(2)
 {
 	//(*Initialize(ModelStateDialog)
 	wxButton* AddButton;
@@ -231,6 +238,12 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     PreviewSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewSizer->Fit(ModelPreviewPanelLocation);
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
+
+    modelPreview->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftDown, nullptr, this);
+    modelPreview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftUp, nullptr, this);
+    modelPreview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&ModelStateDialog::OnPreviewMouseMove, nullptr, this);
+    modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnPreviewMouseLeave, nullptr, this);
+    modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftDClick, nullptr, this);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -987,4 +1000,222 @@ wxArrayString ModelStateDialog::getModelList(ModelManager * modelManager)
         choices.Add(m->Name());
     }
     return choices;
+}
+
+void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
+{
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+
+        SelectAllInBoundingRect(event.ShiftDown());
+        m_creating_bound_rect = false;
+    }
+}
+
+void ModelStateDialog::OnPreviewMouseLeave(wxMouseEvent& event)
+{
+    m_creating_bound_rect = false;
+    RenderModel();
+}
+
+void ModelStateDialog::OnPreviewLeftDown(wxMouseEvent& event)
+{
+    m_creating_bound_rect = true;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    m_bound_start_x = ray_origin.x;
+    m_bound_start_y = ray_origin.y;
+    m_bound_end_x = m_bound_start_x;
+    m_bound_end_y = m_bound_start_y;
+}
+
+void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    int x = ray_origin.x;
+    int y = ray_origin.y;
+    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
+    if (stNode.IsEmpty())
+        return;
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+
+    if (stateData[name]["Type"] == "SingleNode") {
+        int row = SingleNodeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+
+        std::string node = model->GetNodeName(wxAtoi(stNode) - 1, true);
+        SingleNodeGrid->SetCellValue(row, CHANNEL_COL, node);
+        SingleNodeGrid->Refresh();
+        GetValue(SingleNodeGrid, row, CHANNEL_COL, stateData[name]);
+    }
+    else if (stateData[name]["Type"] == "NodeRange") {
+        int row = NodeRangeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+        wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+        auto oldNodeArrray = wxSplit(oldnodes, ',');
+
+        //toggle nodes if double click
+        bool found = false;
+        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+            if (*it == stNode) {
+                oldNodeArrray.erase(it);//remove if in list
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            oldNodeArrray.push_back(stNode);//add if not in list
+        }
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+
+        NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+        NodeRangeGrid->Refresh();
+        GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
+    }
+}
+
+void ModelStateDialog::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+        RenderModel();
+    }
+}
+
+void ModelStateDialog::RenderModel()
+{
+    if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
+
+    if (m_creating_bound_rect) {
+        modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+    }
+    model->DisplayEffectOnWindow(modelPreview, 2);
+    modelPreview->EndDrawing();
+}
+
+void ModelStateDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
+{
+    VectorMath::ScreenPosToWorldRay(
+        x, modelPreview->getHeight() - y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetProjViewMatrix(),
+        ray_origin,
+        ray_direction
+    );
+}
+
+void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
+{
+    if (shiftDwn) {
+        RemoveNodes();
+        return;
+    }
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+
+    if (stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    int row = NodeRangeGrid->GetGridCursorRow();
+    if (row < 0)
+        return;
+
+    std::vector<wxRealPoint> pts;
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    if (nodes.size() == 0)
+        return;
+
+    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+
+    auto oldNodeArrray = wxSplit(oldnodes, ',');
+    for (auto const& newNode : nodes) {
+        wxString stNode = wxString::Format("%d", newNode);
+        bool found = false;
+        for (auto const& oldNode : oldNodeArrray) {
+            if (oldNode == stNode) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            oldNodeArrray.push_back(stNode);
+        }
+    }
+
+    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+        [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
+
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->Refresh();
+    GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
+}
+
+void ModelStateDialog::RemoveNodes()
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+
+    if (stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    int row = NodeRangeGrid->GetGridCursorRow();
+    if (row < 0)
+        return;
+
+    std::vector<wxRealPoint> pts;
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    if (nodes.size() == 0)
+        return;
+    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+    auto oldNodeArrray = wxSplit(oldnodes, ',');
+
+    for (auto const& newNode : nodes) {
+        wxString stNode = wxString::Format("%d", newNode);
+        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+            if (*it == stNode) {
+                oldNodeArrray.erase(it);
+                break;
+            }
+        }
+    }
+
+    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+        [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
+
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->Refresh();
+    GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }

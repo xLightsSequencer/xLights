@@ -1560,6 +1560,12 @@ void ModelFaceDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         if (!found) {
             oldNodeArrray.push_back(stNode);//add if not in list
         }
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+
         NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
@@ -1643,6 +1649,12 @@ void ModelFaceDialog::SelectAllInBoundingRect(bool shiftDwn)
         }
     }
 
+    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+        [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
+
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
@@ -1678,6 +1690,12 @@ void ModelFaceDialog::RemoveNodes()
             }
         }
     }
+
+    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+        [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
 
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();

@@ -24,6 +24,7 @@
 //*)
 
 #include <wx/colourdata.h>
+#include <glm/glm.hpp>
 
 #include <map>
 
@@ -111,7 +112,20 @@ class ModelStateDialog: public wxDialog
 
         void OnAddBtnPopup(wxCommandEvent& event);
 
+        void OnPreviewLeftUp(wxMouseEvent& event);
+        void OnPreviewMouseLeave(wxMouseEvent& event);
+        void OnPreviewLeftDown(wxMouseEvent& event);
+        void OnPreviewLeftDClick(wxMouseEvent& event);
+        void OnPreviewMouseMove(wxMouseEvent& event);
+
 		DECLARE_EVENT_TABLE()
+
+    bool m_creating_bound_rect;
+    int m_bound_start_x;
+    int m_bound_start_y;
+    int m_bound_end_x;
+    int m_bound_end_y;
+    int mPointSize;
 
     std::map<std::string, std::map<std::string, std::string> > stateData;
     void SelectStateModel(const std::string &s);
@@ -129,5 +143,11 @@ class ModelStateDialog: public wxDialog
     void ImportStatesFromModel();
     void AddStates(std::map<std::string, std::map<std::string, std::string> > states);
     wxArrayString getModelList(ModelManager* modelManager);
+
+    void RemoveNodes();
+
+    void RenderModel();
+    void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    void SelectAllInBoundingRect(bool shiftdwn);
 };
 
