@@ -633,7 +633,7 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
             _playingPlaylist = val["playlist"].AsString();
 
             // we can only play a song if the playlist playing allows
-            if (_options.IsPlayDuring(_playingPlaylist)) {
+            if (_options.IsPlayDuring(_playingPlaylist) || _playingPlaylist == "Song Queue") {
 
                 if (!_viewerControlEnabled) {
                     if (_options.IsEnableDisable()) {
