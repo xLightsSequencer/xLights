@@ -644,8 +644,23 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
-        SetModel("");
-        SetVariant("");
+
+        auto models = ControllerCaps::GetModels(GetType(), *it);
+        if (models.size() == 2) {
+            SetModel(models.back());
+            auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
+            if (variants.size() == 2) {
+                SetVariant(variants.back());
+            }
+            else {
+                SetVariant("");
+            }
+        }
+        else {
+            SetModel("");
+            SetVariant("");
+        }
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Vendor");
         return true;
@@ -655,9 +670,10 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
-        
+
         std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, *it);
         SetVariant(variants.front());
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
         return true;
