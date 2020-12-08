@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.54 December 8 2020
+   -- enh (scott)  Added click-and-drag & double-click select to Model Faces and states Preview
+   -- bug (keith)  Fix issues with remote falcon disable from xSchedule
+   -- bug (keith)  Prevent outputs from being disabled when the controller is enabled ... this causes hard to detect issues
+   -- bug (scott)  Fix HinksPix corruption issue
 2020.53 December 6 2020
    -- enh (keith)  Show ip address in tooltip in xSchedule ping results, show web listening port
    -- enh (keith)  Add the model description to the model tooltip in visualiser if present
