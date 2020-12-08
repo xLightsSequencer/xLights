@@ -177,8 +177,13 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         xlconfig->Read(_("xLightsLocalIP"), &localIP, "");
         if (localIP != "")
         {
-            _outputManager->SetForceFromIP(localIP.ToStdString());
-            logger_base.info("Forcing output via %s.", (const char *)localIP.c_str());
+            if (IsValidLocalIP(localIP)) {
+                _outputManager->SetForceFromIP(localIP.ToStdString());
+                logger_base.info("Forcing output via %s.", (const char*)localIP.c_str());
+            }
+            else {
+                logger_base.warn("Forcing output via %s IGNORED as the IP does not exist on this machine at this time.", (const char*)localIP.c_str());
+            }
         }
         delete xlconfig;
     }
