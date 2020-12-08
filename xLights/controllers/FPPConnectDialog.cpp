@@ -750,6 +750,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         inst->messages.clear();
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
+            auto controller = _outputManager->GetControllers(inst->ipAddress);
+            if (controller.size() == 1 && inst->ranges == "") {
+                ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
+                if (ipcontroller) {
+                    uint32_t sc = ipcontroller->GetStartChannel() - 1;
+                    inst->ranges = std::to_string(sc) + "-" + std::to_string(sc + ipcontroller->GetChannels() - 1);
+                }
+            }
             if (inst->isFPP) {
                 std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
                 if (playlist != "") {
@@ -776,18 +784,12 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     inst->SetRestartFlag();
                 }
-            } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                auto c = _outputManager->GetControllers(inst->ipAddress);
-                if (c.size() == 1) {
-                    ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
-                    if (controller) {
-                        if (inst->ranges == "") {
-                            inst->ranges = std::to_string(controller->GetStartChannel()) + "-" + std::to_string(controller->GetStartChannel() + controller->GetChannels()-1);
-                        }
-                        BaseController *bc = BaseController::CreateBaseController(controller, inst->ipAddress);
-                        bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller, this);
-                        delete bc;
-                    }
+            } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
+                ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
+                if (ipcontroller) {
+                    BaseController *bc = BaseController::CreateBaseController(ipcontroller, inst->ipAddress);
+                    bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, ipcontroller, this);
+                    delete bc;
                 }
             }
         }

@@ -2632,6 +2632,10 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             }
             return true;
         });
+        discovery.AddCurl(a, "/fppjson.php?command=getSysInfo&simple", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
+            ProcessFPPSysinfo(discovery, a, "", buffer);
+            return true;
+        });
     }
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
@@ -2665,7 +2669,8 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
             if (c.size() == 1) {
                 ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
                 if (controller) {
-                    res->ranges = std::to_string(controller->GetStartChannel()) + "-" + std::to_string(controller->GetStartChannel() + controller->GetChannels()-1);
+                    uint32_t sc = controller->GetStartChannel() - 1;
+                    res->ranges = std::to_string(sc) + "-" + std::to_string(sc + controller->GetChannels()-1);
                 } else {
                     return false;
                 }
