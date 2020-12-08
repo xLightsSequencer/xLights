@@ -195,6 +195,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 _outputs.back()->SetIP(oldoutputs.front()->GetIP());
                 _outputs.back()->SetUniverse(it->GetUniverse());
                 _outputs.back()->SetChannels(it->GetChannels());
+                _outputs.back()->Enable(IsActive());
             }
         }
         else {
@@ -221,6 +222,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 left -= _outputs.back()->GetChannels();
                 _outputs.back()->SetIP(oldoutputs.front()->GetIP());
                 _outputs.back()->SetUniverse(i + 1);
+                _outputs.back()->Enable(IsActive());
             }
         }
     }
@@ -395,6 +397,7 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
         for (auto& it : o->GetOutputs_CONVERT()) {
             if (it->GetType() == OUTPUT_E131) {
                 _outputs.push_back(new E131Output(*dynamic_cast<E131Output*>(it)));
+                _outputs.back()->Enable(IsActive());
             }
             else {
                 wxASSERT(false);
@@ -598,6 +601,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             _outputs.back()->SetUniverse(lastUsedUniverse + 1);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
             _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
+            _outputs.back()->Enable(IsActive());
         }
     }
     return true;
@@ -912,6 +916,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
             _outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
             _outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());
             _outputs.back()->SetUniverse(_outputs.front()->GetUniverse() + _outputs.size() - 1);
+            _outputs.back()->Enable(IsActive());
         }
 
         // drop universes

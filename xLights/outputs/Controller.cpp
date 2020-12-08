@@ -141,7 +141,6 @@ wxXmlNode* Controller::Save() {
     if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
 
-    //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
@@ -350,10 +349,12 @@ void Controller::SetActive(const std::string& active)  {
     if (_active != a) { 
         _active = a;  
         _dirty = true; 
-        for (auto& it : _outputs) {
-            it->Enable(IsActive());
-        }
     } 
+
+    // always cascade it ... just in case as I have seen some cases where this gets out of sync
+    for (auto& it : _outputs) {
+        it->Enable(IsActive());
+    }
 }
 
 bool Controller::CanVisualise() const
