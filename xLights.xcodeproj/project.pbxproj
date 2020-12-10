@@ -3638,8 +3638,6 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
-					"-Wl,-keep_dwarf_unwind",
-					"-Wl,-no_compact_unwind",
 					"-framework",
 					StoreKit,
 				);
@@ -3726,8 +3724,6 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
-					"-Wl,-keep_dwarf_unwind",
-					"-Wl,-no_compact_unwind",
 					"-framework",
 					StoreKit,
 				);
@@ -3884,8 +3880,6 @@
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
-					"-Wl,-keep_dwarf_unwind",
-					"-Wl,-no_compact_unwind",
 					"-framework",
 					StoreKit,
 				);

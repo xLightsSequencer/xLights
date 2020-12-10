@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix crash when opening some semi-corrupt sequences on M1 macs
    -- bug (dkulp)  Fix of fseq files to ESPixelStick 4.0 being off by one channel
 2020.54 December 8 2020
    -- enh (scott)  Added click-and-drag & double-click select to Model Faces and states Preview
