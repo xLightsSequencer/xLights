@@ -574,6 +574,18 @@ public:
             {
                 _channelColours = wxString(Model::EncodeColour(model->GetNodeMaskColor(0))).ToStdString() + "   ";
             }
+            else if (_channelsPerNode == 4) {
+                auto rgb = model->GetRGBOrder();
+                auto wrgb = "W" + rgb;
+                auto rgbw = rgb + "W";
+                auto st = model->GetStringType();
+                if (Contains(st, wrgb)) {
+                    _channelColours = "W" + rgb + "  ";
+                }
+                else {
+                    _channelColours = rgb + "W  ";
+                }
+            }
             else
             {
                 _channelColours = model->GetRGBOrder() + "   ";
