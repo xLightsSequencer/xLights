@@ -108,9 +108,9 @@ export ARM64_TARGETS="-target arm64-apple-macos10.10 -arch arm64"
 export X86_64_TARGETS="-target x86_64-apple-macos10.10 -arch x86_64"
 
 #need ONE of these lines
-#export XL_TARGETS="${X86_64_TARGETS} ${ARM64_TARGETS}"
-export XL_TARGETS="${X86_64_TARGETS}"
-#export XL_TARGETS="${ARM64_TARGETS}"
+export XL_TARGETS="${X86_64_TARGETS} ${ARM64_TARGETS}"
+# export XL_TARGETS="${X86_64_TARGETS}"
+# export XL_TARGETS="${ARM64_TARGETS}"
 
 # need ONE of these
 export BUILD_HOST=x86_64
@@ -162,6 +162,9 @@ unset LDFLAGS
 liquidfun:
 # requires cmake to be installed, most likely need to have
 # homebrew installed and then "brew install cmake"
+# aternatively, install CMAKE for OSX from https://cmake.org/download/
+# and add the full path to cmake to PATH
+# PATH=$PATH:/Applications/CMake.app/Contents/bin/
 git clone https://github.com/google/liquidfun
 cd liquidfun/liquidfun/Box2D
 git status --ignored -s | colrm 1 2 | xargs rm -rf
@@ -185,6 +188,8 @@ SDL2:  currently using 2.0.12
 git clone https://github.com/SDL-mirror/SDL
 cd SDL
 git checkout release-2.0.12
+# need a fix to the config script to be able to build on arm mac
+git cherry-pick 89e9ad5a9f9d90b9d304663fddf5927890284de6
 export CXXFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
 export CFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
 export LDFLAGS="-g -O3 -flto=thin ${XL_TARGETS} ${OSX_VERSION_MIN}"
@@ -204,25 +209,11 @@ unset CFLAGS
 unset LDFLAGS
 
 
-x264 - needed for ffmpeg
-git clone https://code.videolan.org/videolan/x264.git
-cd x264
-./configure --disable-asm --enable-static --bit-depth=8 --disable-cli --enable-strip --extra-cflags="${XL_TARGETS} ${OSX_VERSION_MIN}"
-make clean
-make
-# that make will fail as make deps will not work with multiple arch flags
-make -j 8
-make install
-cp ./libx264.a /opt/local/lib
-cp ./libx264.a /opt/local/libdbg
-
-
 ffmpeg:   currently using 4.3.1 - needs x264 installed as above
-brew install yasm
 git clone https://git.ffmpeg.org/ffmpeg.git
 cd ffmpeg
 git checkout n4.3.1
-./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="-Dx264_bit_depth=8 ${OSX_VERSION_MIN}" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl --disable-programs
+./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="${OSX_VERSION_MIN}" --disable-indev=lavfi --disable-libx264 --enable-gpl --enable-opengl --disable-programs
 sed -i -e "s/^CFLAGS=/CFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^CXXFLAGS=/CXXFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^LDFLAGS=/LDFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
@@ -230,7 +221,7 @@ make clean
 make -j 16
 find . -name "*.a" -exec cp {} /opt/local/lib/ \;
 make clean
-./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="-Dx264_bit_depth=8 ${OSX_VERSION_MIN}" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl --disable-programs
+./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="${OSX_VERSION_MIN}" --disable-indev=lavfi --disable-libx264 --enable-gpl --enable-opengl --disable-programs
 sed -i -e "s/^CFLAGS=/CFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^CXXFLAGS=/CXXFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^LDFLAGS=/LDFLAGS=-g ${XL_TARGETS} /" ffbuild/config.mak

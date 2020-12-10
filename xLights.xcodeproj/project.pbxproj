@@ -79,7 +79,6 @@
 		67290004255303D500C83C71 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67290003255303D500C83C71 /* VideoToolbox.framework */; };
 		672900082553040000C83C71 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C91F17B53D960006B951 /* CoreMedia.framework */; };
 		6729000D2553047600C83C71 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6729000C2553046400C83C71 /* libbz2.tbd */; };
-		67290012255304AE00C83C71 /* libx264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67290011255304A100C83C71 /* libx264.a */; };
 		6729FFDF2552EEAD00C83C71 /* liblog4cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6729FFDC2552EE9000C83C71 /* liblog4cpp.a */; };
 		6729FFE22552EEBA00C83C71 /* libliquidfun.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6729FFD92552EE9000C83C71 /* libliquidfun.a */; };
 		6729FFE32552EEC300C83C71 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6729FFDB2552EE9000C83C71 /* libSDL2.a */; };
@@ -1584,7 +1583,6 @@
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
-				67290012255304AE00C83C71 /* libx264.a in Frameworks */,
 				6729000D2553047600C83C71 /* libbz2.tbd in Frameworks */,
 				6729FFFD2553039000C83C71 /* libswresample.a in Frameworks */,
 				67A14C7E20DD324D006EFCFA /* libiconv.tbd in Frameworks */,

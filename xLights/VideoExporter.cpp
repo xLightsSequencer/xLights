@@ -129,13 +129,24 @@ GenericVideoExporter::~GenericVideoExporter()
 
 void GenericVideoExporter::initialize()
 {
-   // Initialize video & audio
-   AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
-   const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
-   const AVCodec* audioCodec = nullptr;
-   if (!_videoOnly) {
-       audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
-   }
+    // Initialize video & audio
+    AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
+    enum AVCodecID origGuess = fmt->video_codec;
+    fmt->video_codec = AV_CODEC_ID_H264;
+    const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
+    if (videoCodec == nullptr) {
+        fmt->video_codec = AV_CODEC_ID_H265;
+        videoCodec = ::avcodec_find_encoder( fmt->video_codec );
+    }
+    if (videoCodec == nullptr) {
+        fmt->video_codec = origGuess;
+        videoCodec = ::avcodec_find_encoder( fmt->video_codec );
+    }
+
+    const AVCodec* audioCodec = nullptr;
+    if (!_videoOnly) {
+        audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
+    }
 
    int status = ::avformat_alloc_output_context2( &_formatContext, fmt, nullptr, _path.c_str() );
    if ( _formatContext == nullptr )
