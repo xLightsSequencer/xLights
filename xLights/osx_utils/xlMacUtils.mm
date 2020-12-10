@@ -123,7 +123,6 @@ bool ObtainAccessToURL(const std::string &path) {
         
         if (ACCESSIBLE_URLS.find(ps) != ACCESSIBLE_URLS.end()) {
             // file is in a directory we already have access to, don't need to record it
-            printf("Using dir %s for %s\n", (const char *)ps.c_str(), (const char *)path.c_str());
             ACCESSIBLE_URLS.insert(path);
             return true;
         }
