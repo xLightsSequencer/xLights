@@ -721,6 +721,24 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
 
+    auto modelGroups = modelManager.GetGroupsContainingModel(this);
+    if (modelGroups.size() > 0) {
+        std::string mgs;
+        std::string mgscr;
+        for (const auto& it : modelGroups) {
+            if (mgs != "")                 {
+                mgs += ", ";
+                mgscr += "\n";
+            }
+            mgs += it;
+            mgscr += it;
+        }
+        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
+        p->SetHelpString(mgscr);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+    }
+
     AddControllerProperties(grid);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));

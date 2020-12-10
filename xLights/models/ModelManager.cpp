@@ -1372,6 +1372,28 @@ std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end, int 
 	return res;
 }
 
+std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) const
+{
+    std::vector<std::string> res;
+    for (const auto& it : *this) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            auto mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg->ContainsModel(model)) {
+                res.push_back(it.first);
+            }
+            else                 {
+                for (const auto& sm : model->GetSubModels())                     {
+                    if (mg->ContainsModel(sm)) {
+                        res.push_back(it.first);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
 void ModelManager::Delete(const std::string &name) {
 
     // some layouts end up with illegal names
