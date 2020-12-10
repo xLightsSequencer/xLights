@@ -3640,6 +3640,8 @@
 					"-headerpad_max_install_names",
 					"-framework",
 					StoreKit,
+					"-Wl,-keep_dwarf_unwind",
+					"-Wl,-no_compact_unwind",
 				);
 				OTHER_TAPI_FLAGS = "";
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
