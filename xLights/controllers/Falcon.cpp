@@ -15,11 +15,15 @@
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 
-#include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
+
+#ifndef DISCOVERONLY
+#include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
+#endif
+
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 #include "ControllerCaps.h"
@@ -379,6 +383,7 @@ int Falcon::MaxPixels(const wxXmlDocument& stringsDoc, int board) const {
 #pragma endregion
 
 #pragma region Port Handling
+#ifndef DISCOVERYONLY
 void Falcon::ResetStringOutputs() {
 
     PutURL("/StringPorts.htm", "S=4&p0=0&p1=1&p2=2&p3=3");
@@ -501,6 +506,7 @@ std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputM
 
     return "";
 }
+#endif
 #pragma endregion
 
 #pragma region Encode and Decode
@@ -804,9 +810,22 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version) {
         break;
     }
 }
+std::string Falcon::DecodeMode(int mode)
+{
+    switch (mode) {
+    case 0: return "E131/ArtNET";
+    case 2: return "Player";
+    case 4: return "Remote";
+    case 8: return "Master";
+    case 16: return "ZCPP";
+    case 64: return "DDP";
+    }
+    return std::string();
+}
 #pragma endregion
 
 #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
 bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     SetInputUniverses(controller, parent);
     SetOutputs(allmodels, outputManager, controller, parent, false);
@@ -1388,4 +1407,5 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     return success;
 }
+#endif
 #pragma endregion

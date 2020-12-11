@@ -263,6 +263,7 @@ const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
+const long xLightsFrame::ID_MNU_XSCANNER = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
 const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
@@ -890,6 +891,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->AppendSeparator();
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
+    MenuItem_xScanner = new wxMenuItem(Menu1, ID_MNU_XSCANNER, _("xScanner"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_xScanner);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuView = new wxMenu();
     MenuItem_ViewZoomIn = new wxMenuItem(MenuView, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
@@ -1124,6 +1127,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_PREPAREAUDIO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
     Connect(ID_MENU_USER_DICT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
+    Connect(ID_MNU_XSCANNER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScannerSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
@@ -1724,6 +1728,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     VideoReader::InitHWAcceleration();
 
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
+    MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xScanner->GetId());
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -1965,19 +1970,19 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
     wxString ver = wxString::Format(_("Version: %s"), GetDisplayVersionString());
     AboutDialog dlg(this);
-    
+
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
-    
+
     dlg.VersionLabel->SetLabel(ver);
     dlg.SetTitle(hdg);
     dlg.LegalTextLabel->SetLabel(XLIGHTS_LICENSE);
     dlg.MainSizer->Fit(&dlg);
     dlg.MainSizer->SetSizeHints(&dlg);
-    
+
     dlg.LegalTextLabel->Wrap(dlg.LegalTextLabel->GetClientSize().GetWidth() - 10);
     dlg.MainSizer->Fit(&dlg);
     dlg.MainSizer->SetSizeHints(&dlg);
-    
+
     if (IsFromAppStore()) {
         dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
         dlg.EULAHyperlinkCtrl->SetLabel("End User License Agreement");
@@ -2150,7 +2155,7 @@ void xLightsFrame::RecalcModels()
     if (IsExiting()) return;
 
     SetCursor(wxCURSOR_WAIT);
-    
+
     //abort any render as it will crash if the model changes
     AbortRender();
     if (AllModels.RecalcStartChannels()) {
@@ -10117,4 +10122,17 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
 
     f.Close();
     SetStatusText("Controller Connections CSV saved at " + filename);
+}
+
+void xLightsFrame::OnMenuItem_xScannerSelected(wxCommandEvent& event)
+{
+#ifdef LINUX
+    // Handle xschedule not in path
+    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+    wxString appPath(f.GetPath());
+    wxString cmdline(appPath+wxT("/xScanner"));
+    wxExecute(cmdline, wxEXEC_ASYNC,NULL,NULL);
+#else
+    wxExecute("xScanner.exe");
+#endif
 }

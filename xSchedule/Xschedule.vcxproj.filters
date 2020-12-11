@@ -547,6 +547,9 @@
     <ClCompile Include="..\xLights\outputs\KinetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\Discovery.cpp" />
+    <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
+    <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1087,6 +1090,9 @@
     <ClInclude Include="..\xLights\outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\Discovery.h" />
+    <ClInclude Include="..\xLights\controllers\Falcon.h" />
+    <ClInclude Include="..\xLights\controllers\BaseController.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

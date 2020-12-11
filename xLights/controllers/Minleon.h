@@ -78,7 +78,9 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+#endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
 };

@@ -65,6 +65,7 @@ class FPP : public BaseController
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
 
+#ifndef DISCOVERYONLY
     bool PrepareUploadSequence(const FSEQFile &file,
                                const std::string &seq,
                                const std::string &media,
@@ -72,7 +73,7 @@ class FPP : public BaseController
     bool WillUploadSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
-
+#endif
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
@@ -95,18 +96,22 @@ class FPP : public BaseController
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     
     
+#ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input);
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
+#endif
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
 
 #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+#endif
 
     virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP
 #pragma endregion

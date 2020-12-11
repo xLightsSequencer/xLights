@@ -12,11 +12,11 @@
 #include <wx/regex.h>
 
 #include "ESPixelStick.h"
-#include "models/Model.h"
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "models/ModelManager.h"
-#include "UtilFunctions.h"
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../models/ModelManager.h"
+#include "../UtilFunctions.h"
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 

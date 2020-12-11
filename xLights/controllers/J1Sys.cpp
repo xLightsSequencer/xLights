@@ -10,14 +10,14 @@
  **************************************************************/
 
 #include "J1Sys.h"
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
-#include "models/Model.h"
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "models/ModelManager.h"
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../models/ModelManager.h"
 
 #include <wx/msgdlg.h>
 #include <wx/regex.h>

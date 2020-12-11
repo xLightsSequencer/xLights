@@ -18,6 +18,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 
+#include "../controllers/Falcon.h"
 #include "ZCPPOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
@@ -26,6 +27,9 @@
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
+#endif
+
+#ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"
 #endif
 
@@ -445,7 +449,7 @@ int ZCPPOutput::EncodeColourOrder(const std::string& colourOrder) {
     return 0;
 }
 
-#ifndef EXCLUDENETWORKUI
+#ifndef EXCLUDEDISCOVERY
 void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ZCPP_packet_t packet;
@@ -550,7 +554,9 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
     logger_base.info("ZCPP sending discovery packet.");
     discovery.SendData(ZCPP_PORT, ZCPP_MULTICAST_ADDRESS, (uint8_t*)&packet, ZCPP_GetPacketActualSize(packet));
 }
+#endif
 
+#ifndef EXCLUDENETWORKUI
 #endif
 
 wxArrayString ZCPPOutput::GetVendors() {

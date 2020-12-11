@@ -57,10 +57,12 @@ class Falcon : public BaseController
     #pragma endregion
 
     #pragma region Port Handling
+#ifndef DISCOVERYONLY
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
     void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel);
     std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
+#endif
     #pragma endregion
 
     #pragma region Encode and Decode
@@ -95,7 +97,9 @@ class Falcon : public BaseController
     int GetMaxPixels() const;     
     #pragma endregion
 
+#ifndef DISCOVERYONLY
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool progress);
+#endif
 
 public:
     #pragma region Constructors and Destructors
@@ -105,13 +109,15 @@ public:
 
     #pragma region Static Functions
     static void DecodeModelVersion(int p, int& model, int& version);
+    static std::string DecodeMode(int mode);
     #pragma endregion
 
     #pragma region Getters and Setters
+    #ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-
+    #endif
     
     std::string GetName() const { return _name; }
     virtual bool UsesHTTP() const override { return true; }

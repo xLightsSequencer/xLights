@@ -43,10 +43,11 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-
+#endif
     
     virtual bool UsesHTTP() const override { return false; }
     #pragma endregion

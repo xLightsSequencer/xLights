@@ -24,7 +24,7 @@
 #include "../models/ModelManager.h"
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 

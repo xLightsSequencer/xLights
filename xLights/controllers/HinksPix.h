@@ -15,7 +15,7 @@
 #include <memory>
 
 #include "ControllerUploadData.h"
-#include "UtilClasses.h"
+#include "../UtilClasses.h"
 #include "BaseController.h"
 
 class HinksPix;
@@ -132,8 +132,10 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
     bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+#endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
 

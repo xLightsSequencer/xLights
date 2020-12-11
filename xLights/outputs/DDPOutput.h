@@ -78,10 +78,11 @@ public:
     #pragma region Static Functions
     static void SendSync();
 
-    #ifndef EXCLUDENETWORKUI
+    #ifndef EXCLUDEDISCOVERY
     static wxJSONValue Query(const std::string& ip, uint8_t type);
-    static void PrepareDiscovery(Discovery &discovery);
+    static void PrepareDiscovery(Discovery& discovery);
     #endif
+
     #pragma endregion 
 
     #pragma region Getters and Setters

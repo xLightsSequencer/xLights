@@ -717,6 +717,10 @@ void Controller::HandleExpanded(wxPropertyGridEvent& event, bool expanded)
     }
 }
 
+#pragma endregion
+#endif
+
+#ifndef EXCLUDEDISCOVERY
 void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
 {
     if (_autoSize != autosize) {
@@ -730,6 +734,4 @@ void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
         }
     }
 }
-
-#pragma endregion
 #endif

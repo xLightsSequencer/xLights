@@ -16,7 +16,7 @@
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
 
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>

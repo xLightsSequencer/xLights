@@ -15,7 +15,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../models/ModelManager.h"
 #include "ControllerCaps.h"
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
 
 #include <curl/curl.h>
 

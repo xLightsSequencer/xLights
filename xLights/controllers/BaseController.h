@@ -14,7 +14,7 @@
 #include <string>
 
 #include "ControllerUploadData.h"
-#include "UtilClasses.h"
+#include "../UtilClasses.h"
 
 class ModelManager;
 class OutputManager;
@@ -54,7 +54,9 @@ public:
     virtual ~BaseController() {}
     
     
+#ifndef DISCOVERYONLY
     static BaseController *CreateBaseController(ControllerEthernet *controller, const std::string &ip = "");
+#endif
 
     #pragma endregion
     
@@ -64,11 +66,15 @@ public:
     virtual const std::string &GetModel() const { return _model; }
     virtual const std::string &GetVersion() const { return _version; }
     virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
+
+#ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) { return false; }
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) = 0;
     
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) { return false; }
     virtual bool ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) { return false; }
+#endif
+
     virtual bool UsesHTTP() const = 0;
     
     #pragma endregion

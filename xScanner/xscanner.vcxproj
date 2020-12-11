@@ -1,0 +1,278 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>xScanner</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include</IncludePath>
+    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include</IncludePath>
+    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../xLights/ffmpeg-dev/include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <Profile>true</Profile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>true</Profile>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
+    <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
+    <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
+    <ClCompile Include="..\xLights\controllers\FPP.cpp" />
+    <ClCompile Include="..\xLights\controllers\Pixlite16.cpp" />
+    <ClCompile Include="..\xLights\Discovery.cpp" />
+    <ClCompile Include="..\xLights\JobPool.cpp" />
+    <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerEthernet.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerNull.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerSerial.cpp" />
+    <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
+    <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\KinetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorController.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
+    <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\OPCOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Output.cpp" />
+    <ClCompile Include="..\xLights\outputs\OutputManager.cpp" />
+    <ClCompile Include="..\xLights\outputs\PixelNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\RenardOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\serial.cpp" />
+    <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
+    <ClCompile Include="..\xLights\Parallel.cpp" />
+    <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="ScanObject.cpp" />
+    <ClCompile Include="xScannerApp.cpp" />
+    <ClCompile Include="xScannerMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xLights\controllers\BaseController.h" />
+    <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
+    <ClInclude Include="..\xLights\controllers\Falcon.h" />
+    <ClInclude Include="..\xLights\controllers\FPP.h" />
+    <ClInclude Include="..\xLights\controllers\Pixlite16.h" />
+    <ClInclude Include="..\xLights\Discovery.h" />
+    <ClInclude Include="..\xLights\JobPool.h" />
+    <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Controller.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerEthernet.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerNull.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerSerial.h" />
+    <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
+    <ClInclude Include="..\xLights\outputs\E131Output.h" />
+    <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\IPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\KinetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\LorController.h" />
+    <ClInclude Include="..\xLights\outputs\LorControllers.h" />
+    <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />
+    <ClInclude Include="..\xLights\outputs\LOROutput.h" />
+    <ClInclude Include="..\xLights\outputs\NullOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OPCOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OpenPixelNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Output.h" />
+    <ClInclude Include="..\xLights\outputs\OutputManager.h" />
+    <ClInclude Include="..\xLights\outputs\PixelNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\RenardOutput.h" />
+    <ClInclude Include="..\xLights\outputs\serial.h" />
+    <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\TestPreset.h" />
+    <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\ZCPP.h" />
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
+    <ClInclude Include="..\xLights\Parallel.h" />
+    <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
+    <ClInclude Include="Scanner.h" />
+    <ClInclude Include="ScanObject.h" />
+    <ClInclude Include="xScannerApp.h" />
+    <ClInclude Include="xScannerMain.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

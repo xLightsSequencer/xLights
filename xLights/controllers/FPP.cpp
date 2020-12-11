@@ -58,7 +58,7 @@
 #include "SanDevices.h"
 #include "J1Sys.h"
 
-#include "TraceLog.h"
+#include "../TraceLog.h"
 using namespace TraceLog;
 
 static const std::string PIHAT("Pi Hat");
@@ -832,7 +832,7 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
     return uploadFile(filename, file);
 }
 
-
+#ifndef DISCOVERYONLY
 bool FPP::PrepareUploadSequence(const FSEQFile &file,
                                 const std::string &seq,
                                 const std::string &media,
@@ -995,6 +995,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     outputFile->writeHeader();
     return false;
 }
+
 bool FPP::WillUploadSequence() const {
     return outputFile != nullptr;
 }
@@ -1070,6 +1071,7 @@ bool FPP::UploadModels(const wxJSONValue &models) {
     }
     return false;
 }
+
 bool FPP::UploadDisplayMap(const std::string &displayMap) {
     if (IsDrive()) {
         wxFileName fn = (ipAddress + wxFileName::GetPathSeparator() + "config/virtualdisplaymap");
@@ -1081,6 +1083,7 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
     }
     return false;
 }
+
 bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     if (IsDrive()) {
         std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-universes.json");
@@ -1232,6 +1235,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
 
     return ret;
 }
+#endif
 
 inline wxString stripInvalidChars(const std::string &str) {
     wxString s = str;
@@ -1294,7 +1298,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
     ranges = rngList;
 }
 
-
+#ifndef DISCOVERYONLY
 bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     std::list<Controller*> selected;
     for (const auto& it : outputManager->GetControllers()) {
@@ -1326,6 +1330,7 @@ wxJSONValue FPP::CreateUniverseFile(ControllerEthernet* controller, bool input) 
     selected.push_back(controller);
     return CreateUniverseFile(selected, false);
 }
+#endif
 
 std::string FPP::GetVendor(const std::string& type)
 {
@@ -1343,6 +1348,7 @@ std::string FPP::GetModel(const std::string& type)
     return m;
 }
 
+#ifndef DISCOVERYONLY
 bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin) {
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -1399,6 +1405,7 @@ bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Cont
     parent = parent;
     return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller) && !Restart("");
 }
+
 bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     parent = parent;
     bool b = AuthenticateAndUpdateVersions();
@@ -1412,6 +1419,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     }
     return b;
 }
+
 bool FPP::ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     std::string md = controller->GetRuntimeProperty("FPPMode");
     if (md != "bridge" && md != "") {
@@ -1545,7 +1553,6 @@ void FPP::SetDescription(const std::string &st) {
     }
 }
 
-
 bool FPP::SetInputUniversesBridge(Controller* controller) {
     auto c = dynamic_cast<ControllerEthernet*>(controller);
     if (c == nullptr) return false;
@@ -1561,6 +1568,7 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     }
     return false;
 }
+
 static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoot) {
     bool changed = false;
     for (int x = 0; x < otherDmxData["channelOutputs"].Size(); x++) {
@@ -1610,6 +1618,7 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
     }
     return changed;
 }
+#endif
 
 static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
                          std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
@@ -1626,6 +1635,7 @@ static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const Contro
     return true;
 }
 
+#ifndef DISCOVERYONLY
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
@@ -2097,8 +2107,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     SetNewRanges(rngs);
     return false;
 }
-
-
+#endif
 
 #define FPP_CTRL_PORT 32320
 static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const std::string &proxyIp, const std::string &sysInfo);

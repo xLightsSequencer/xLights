@@ -131,7 +131,11 @@ public:
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
+    #endif
+
+    #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);
     #endif
+
 #pragma endregion UI
 };

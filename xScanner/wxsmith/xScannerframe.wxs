@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxFrame" name="xScannerFrame">
+		<title>xLights Scanner</title>
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+		</object>
+		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
+			<fields>1</fields>
+			<widths>-10</widths>
+			<styles>wxSB_NORMAL</styles>
+		</object>
+		<object class="wxMenu" variable="Menu1" member="yes">
+			<object class="wxMenuItem" name="Network" variable="MenuItemScan" member="yes">
+				<label>Scan</label>
+				<handler function="OnMenuItemScanSelected" entry="EVT_MENU" />
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -256,7 +256,11 @@ public:
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded);
+    #endif
+
+    #ifndef EXCLUDEDISCOVERY
         void SetAutoSize(bool autosize, OutputModelManager* omm);
     #endif
+
     #pragma endregion
 };

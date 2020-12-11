@@ -39,6 +39,7 @@ BaseController::BaseController(const std::string& ip, const std::string &proxy) 
     } 
 }
 
+#ifndef DISCOVERYONLY
 BaseController *BaseController::CreateBaseController(ControllerEthernet *controller, const std::string &ipOrig) {
     std::string ip = ipOrig;
     ControllerCaps *caps = controller->GetControllerCaps();
@@ -77,7 +78,7 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
     }
     return bc;
 }
-
+#endif
 
 #pragma endregion
 

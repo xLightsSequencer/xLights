@@ -565,6 +565,7 @@ public:
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
+    void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -706,6 +707,7 @@ public:
     static const long ID_MNU_PREPAREAUDIO;
     static const long ID_MENU_USER_DICT;
     static const long ID_MNU_XSCHEDULE;
+    static const long ID_MNU_XSCANNER;
     static const long ID_MENUITEM5;
     static const long MNU_ID_ACLIGHTS;
     static const long ID_MNU_SHOWRAMPS;
@@ -886,6 +888,7 @@ public:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenuItem* MenuItem_Zoom;
+    wxMenuItem* MenuItem_xScanner;
     wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;

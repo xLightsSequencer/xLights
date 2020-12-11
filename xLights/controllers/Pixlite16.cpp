@@ -13,10 +13,10 @@
 #include <wx/regex.h>
 
 #include "Pixlite16.h"
-#include "models/Model.h"
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "UtilFunctions.h"
+//#include "models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../UtilFunctions.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
@@ -956,6 +956,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
 #pragma endregion
 
 #pragma region Getters and Setters
+#ifndef DISCOVERYONLY
 bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     //ResetStringOutputs(); // this shouldnt be used normally
 
@@ -1065,6 +1066,6 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     return false;
 }
-
+#endif
 #pragma endregion
 

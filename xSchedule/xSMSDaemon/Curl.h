@@ -309,7 +309,7 @@ public:
             {
                 res = response_string;
                 logger_curl.debug("RESPONSE START ----------");
-                logger_curl.debug(res.c_str());
+                logger_curl.debug(res.substr(0, 4096).c_str());
                 logger_curl.debug("RESPONSE END ----------");
             }
 

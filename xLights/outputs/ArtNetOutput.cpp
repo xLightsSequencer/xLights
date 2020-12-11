@@ -18,9 +18,7 @@
 
 #include <log4cpp/Category.hh>
 
-#ifndef EXCLUDENETWORKUI
 #include "../Discovery.h"
-#endif
 
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
@@ -154,7 +152,6 @@ void ArtNetOutput::SendSync() {
     }
 }
 
-#ifndef EXCLUDENETWORKUI
 void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     wxByte packet[14];
     memset(packet, 0x00, sizeof(packet));
@@ -193,7 +190,6 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     });
     discovery.SendBroadcastData(ARTNET_PORT, packet, sizeof(packet));
 }
-#endif
 #pragma endregion
 
 #pragma region Getters and Setters

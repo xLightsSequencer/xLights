@@ -23,7 +23,7 @@
 
 #include <log4cpp/Category.hh>
 
-#ifndef EXCLUDENETWORKUI
+#ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"
 #endif
 
@@ -257,6 +257,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
 
     return val;
 }
+#endif
 
 void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
@@ -313,7 +314,6 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
     });
     discovery.SendBroadcastData(DDP_PORT, packet, DDP_DISCOVERPACKET_LEN);
 }
-#endif
 #pragma endregion
 
 #pragma region Getters and Setters

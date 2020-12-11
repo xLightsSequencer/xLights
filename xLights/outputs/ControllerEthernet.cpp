@@ -804,25 +804,6 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     }
 }
 
-void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
-{
-    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_KINET) {
-        _forceSizes = !allSame;
-
-        if (allSame) {
-            for (auto& it : _outputs) {
-                it->SetChannels(_outputs.front()->GetChannels());
-            }
-        }
-        if (omm != nullptr) {
-            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::SetAllSameSize");
-            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::SetAllSameSize", nullptr);
-            omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::SetAllSameSize", nullptr);
-            omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
-        }
-    }
-}
-
 bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
@@ -1056,4 +1037,26 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
     }
 }
 #endif
+
+void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
+{
+    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_KINET) {
+        _forceSizes = !allSame;
+
+        if (allSame) {
+            for (auto& it : _outputs) {
+                it->SetChannels(_outputs.front()->GetChannels());
+            }
+        }
+#ifndef EXCLUDENETWORKUI
+        if (omm != nullptr) {
+            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::SetAllSameSize");
+            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::SetAllSameSize", nullptr);
+            omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::SetAllSameSize", nullptr);
+            omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
+        }
+#endif
+    }
+}
+
 #pragma endregion

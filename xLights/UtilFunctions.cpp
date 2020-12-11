@@ -1047,6 +1047,8 @@ bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::s
     i2.Hostname(ip2);
     m.Hostname(mask);
 
+    if (i1.GetAddressData() == nullptr || i2.GetAddressData() == nullptr || m.GetAddressData() == nullptr) return false;
+
     return ((((sockaddr_in*)i1.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr) ==
             (((sockaddr_in*)i2.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr));
 }

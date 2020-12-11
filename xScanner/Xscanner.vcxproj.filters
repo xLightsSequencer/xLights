@@ -1,0 +1,282 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="xScannerApp.cpp" />
+    <ClCompile Include="xScannerMain.cpp" />
+    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="ScanObject.cpp" />
+    <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerEthernet.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerNull.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerSerial.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\Output.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OutputManager.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\DDPOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\DMXOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\E131Output.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\GenericSerialOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\IPOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\KinetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\LorController.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\LorControllers.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\LOROutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\NullOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OPCOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\RenardOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\serial.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\SerialOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\TestPreset.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\Discovery.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\PixelNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\JobPool.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\TraceLog.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\Parallel.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\Falcon.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\FPP.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\Pixlite16.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\BaseController.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="xScannerApp.h" />
+    <ClInclude Include="xScannerMain.h" />
+    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="ScanObject.h" />
+    <ClInclude Include="Scanner.h" />
+    <ClInclude Include="..\xLights\outputs\Controller.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerEthernet.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerNull.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerSerial.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\Output.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OutputManager.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ArtNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\DDPOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\DLightOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\DMXOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\E131Output.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\GenericSerialOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\IPOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\KinetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\LorController.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\LorControllers.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\LOROutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\NullOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OPCOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OpenPixelNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\PixelNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\RenardOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\serial.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\SerialOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\TestPreset.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ZCPP.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\Discovery.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\ControllerCaps.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\JobPool.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\TraceLog.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\Parallel.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\Falcon.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\FPP.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\Pixlite16.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\BaseController.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="xLights">
+      <UniqueIdentifier>{e9e82e91-3b73-475f-a615-dde1bfd25a35}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

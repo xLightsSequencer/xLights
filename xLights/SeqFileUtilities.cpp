@@ -158,7 +158,7 @@ void xLightsFrame::NewSequence()
     memRequired *= max;
     memRequired /= 1024; // ->kb
     memRequired /= 1024; // ->mb
-    if (memRequired > (GetPhysicalMemorySizeMB() - 1024)) {
+    if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || !_renderMode)) {
         DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.",          (unsigned long)memRequired), this);
     }
 
@@ -499,7 +499,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         memRequired *= numChan;
         memRequired /= 1024; // ->kb
         memRequired /= 1024; // ->mb
-        if (memRequired > (GetPhysicalMemorySizeMB() - 1024)) {
+        if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || !_renderMode)) {
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
 

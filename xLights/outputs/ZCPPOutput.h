@@ -70,7 +70,7 @@ public:
 
     static int EncodeColourOrder(const std::string& colourOrder);
 
-    #ifndef EXCLUDENETWORKUI
+    #ifndef EXCLUDEDISCOVERY
     static void PrepareDiscovery(Discovery &discovery);
     #endif
 
