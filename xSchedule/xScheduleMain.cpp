@@ -2156,6 +2156,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     ListView_Running->InsertItem(i, it->GetNameNoTime());
                     ListView_Running->SetItem(i, 1, it->GetStartTime(p));
                     ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
+                    ListView_Running->SetItem(i, 3, it->GetFSEQTimeStamp());
                     ListView_Running->SetItemData(i, it->GetId());
                     i++;
                 }

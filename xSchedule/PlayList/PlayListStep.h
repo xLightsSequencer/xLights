@@ -28,7 +28,7 @@ class PlayListStep
 protected:
 
 #pragma region Member Variables
-    int _reentrancyCounter;
+    mutable int _reentrancyCounter;
     std::list<PlayListItem*> _items;
     int _lastSavedChangeCount;
     int _changeCount;
@@ -63,7 +63,7 @@ public:
 #pragma region Getters and Setters
     PlayListItemText* GetTextItem(const std::string& name);
     wxUint32 GetId() const { return _id; }
-    PlayListItem* GetTimeSource(size_t& ms);
+    PlayListItem* GetTimeSource(size_t& ms) const;
     std::list<PlayListItem*> GetItems();
     size_t GetCurrentFrame() const { return _currentFrame; }
     bool IsDirty();
@@ -91,8 +91,9 @@ public:
     void Restart();
     void Pause(bool pause);
     virtual void Advance(int seconds);
-    std::string GetActiveSyncItemFSEQ();
-    std::string GetActiveSyncItemMedia();
+    std::string GetFSEQTimeStamp() const;
+    std::string GetActiveSyncItemFSEQ() const;
+    std::string GetActiveSyncItemMedia() const;
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);

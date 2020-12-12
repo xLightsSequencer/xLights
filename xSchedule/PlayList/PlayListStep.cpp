@@ -44,6 +44,7 @@
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/FSEQFile.h"
 
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
@@ -399,7 +400,7 @@ std::string PlayListStep::GetNameNoTime()
     }
 }
     
-PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
+PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
 {
     ms = 9999;
     PlayListItem* timesource = nullptr;
@@ -599,6 +600,29 @@ void PlayListStep::Advance(int seconds)
     if (wxGetUTCTimeMillis().GetLo() - _startTime > GetLengthMS()) _startTime = wxGetUTCTimeMillis().GetLo() - GetLengthMS();
 }
 
+std::string PlayListStep::GetFSEQTimeStamp() const
+{
+    auto fseq = GetActiveSyncItemFSEQ();
+
+    if (fseq == "") return "";
+
+    wxFileName fi(fseq);
+    if (fi.Exists()) {
+
+        auto fsf = FSEQFile::openFSEQFile(fseq);
+
+        if (fsf != nullptr) {
+            auto ch = fsf->getChannelCount();
+            delete fsf;
+            return wxString::Format("%s (%d)", fi.GetModificationTime().Format("%F %H:%M"), ch);
+        }
+        else             {
+            return "FSEQ Invalid";
+        }
+    }
+    return "FSEQ Not Found";
+}
+
 void PlayListStep::Suspend(bool suspend)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -729,7 +753,7 @@ size_t PlayListStep::GetLengthMS()
     }
 }
 
-std::string PlayListStep::GetActiveSyncItemFSEQ()
+std::string PlayListStep::GetActiveSyncItemFSEQ() const
 {
     std::string res;
     size_t ms;
@@ -755,7 +779,7 @@ std::string PlayListStep::GetActiveSyncItemFSEQ()
     return res;
 }
 
-std::string PlayListStep::GetActiveSyncItemMedia()
+std::string PlayListStep::GetActiveSyncItemMedia() const
 {
     std::string res;
     size_t ms;
