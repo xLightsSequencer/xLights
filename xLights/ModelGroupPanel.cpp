@@ -396,7 +396,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
                     Model* sm = smit;
 
                     if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                        if (filter == "" || Contains(sm->GetFullName(), filter)) {
+                        if (filter == "" || Contains(::Lower(sm->GetFullName()), filter)) {
                             ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
                         }
                     }

@@ -42,3 +42,9 @@ lib/linux/libliquidfun.a
 *.cbp.mak.orig
 ._*
 xLights/xlights_build_version.h
+*.obj
+*.ipch
+*.pdb
+*.log
+*.db
+xScanner/x64
