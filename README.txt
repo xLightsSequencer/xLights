@@ -11,8 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.55 December 14 2020
+   -- enh (keith)  Show the groups a model (or its submodels) belongs to in the model properties
+   -- enh (keith)  Show sequence channel count and last render date in playlist list
+   -- enh (keith)  Show the state of serial controllers in the ping results list
    -- bug (dkulp)  Fix crash when opening some semi-corrupt sequences on M1 macs
    -- bug (dkulp)  Fix of fseq files to ESPixelStick 4.0 being off by one channel
+   -- bug (keith)  Fix test panel does not correctly show channel colours for 4 channel pixels
+   -- bug (keith)  Fix submodel filtering does not work correctly with case
+   -- bug (keith)  Ensure irrelevant controller connection properties are removed
 2020.54 December 8 2020
    -- enh (scott)  Added click-and-drag & double-click select to Model Faces and states Preview
    -- bug (keith)  Fix issues with remote falcon disable from xSchedule
