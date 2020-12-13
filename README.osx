@@ -32,9 +32,19 @@ To get the latest code that we've tested, do:
 git clone  --recurse-submodules -b xlights_2020.41 https://github.com/dkulp/wxWidgets
 
 
+First, setup the target directories:
+sudo mkdir -p /opt/local/lib
+sudo mkdir -p /opt/local/libdbg
+sudo mkdir -p /opt/local/bin
+
+#setup permissions on /opt/local
+sudo chgrp -R staff /opt/local*
+sudo chmod -R g+w /opt/local*
+
 If you are planning on being able to build Release builds, you will need to a release build
 wxWidgets first.  If not doing release builds, this can be skipped.
-
+  cd <wxMac base dir>
+  cd build
   export BINARY_PLATFORMS="x86_64"
   # export BINARY_PLATFORMS="x86_64,arm64"
   export CXXFLAGS=""
@@ -98,9 +108,6 @@ Other library notes:
 Note:  These instructions now assume Xcode 12 with support for Arm64.
 You must set the env variables at the top first to setup the architecture and version targets
 
-#setup permissions on /opt/local
-sudo chgrp -R staff /opt/local*
-sudo chmod -R g+w /opt/local*
 
 export MACOSX_DEPLOYMENT_TARGET=10.10
 export OSX_VERSION_MIN="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
