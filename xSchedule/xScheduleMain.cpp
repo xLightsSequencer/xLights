@@ -66,6 +66,7 @@
 #include "../xLights/SpecialOptions.h"
 #include "../xLights/outputs/Output.h"
 #include "../xLights/outputs/ControllerEthernet.h"
+#include "../xLights/outputs/ControllerSerial.h"
 #include "RemoteModeConfigDialog.h"
 
 #include "../include/xs_save.xpm"
@@ -2048,8 +2049,25 @@ void xScheduleFrame::OnListView_PingMouseMove(wxMouseEvent& event)
             }
         }
         else {
-            if (ListView_Ping->GetToolTipText() != "") {
-                ListView_Ping->SetToolTip("");
+            bool found = false;
+            auto itemtext = ListView_Ping->GetItemText(item);
+            for (const auto& it : __schedule->GetOutputManager()->GetControllers())                 {
+                if (it->GetName() == itemtext)                     {
+                    auto serial = dynamic_cast<ControllerSerial*>(it);
+                    if (serial != nullptr)                         {
+                        auto port = serial->GetPort();
+                        if (ListView_Ping->GetToolTipText() != port) {
+                            ListView_Ping->SetToolTip(port);
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                if (ListView_Ping->GetToolTipText() != "") {
+                    ListView_Ping->SetToolTip("");
+                }
             }
         }
     }
@@ -3240,7 +3258,7 @@ void xScheduleFrame::UpdateUI(bool force)
     wxASSERT(wxThread::IsMain());
 
     wxStopWatch sw;
-    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("        Update UI");
 
     bool minimiseUIUpdates = __schedule->GetOptions()->IsMinimiseUIUpdates();
@@ -3284,37 +3302,29 @@ void xScheduleFrame::UpdateUI(bool force)
 
     logger_frame.debug("        Web request status updated %ldms", sw.Time());
 
-    if (!_suspendOTL)
-    {
-        if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
-        {
-            if (__schedule->GetRunningPlayList() == nullptr && !__schedule->IsXyzzy() && !__schedule->IsTest())
-            {
+    if (!_suspendOTL) {
+        if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1) {
+            if (__schedule->GetRunningPlayList() == nullptr && !__schedule->IsXyzzy() && !__schedule->IsTest()) {
                 if (__schedule->IsOutputToLights())
                     __schedule->SetOutputToLights(this, false, false);
             }
-            else
-            {
+            else {
                 if (!__schedule->IsOutputToLights())
                     __schedule->SetOutputToLights(this, true, false);
             }
         }
-        else
-        {
-            if (__schedule->GetManualOutputToLights() == 0)
-            {
+        else {
+            if (__schedule->GetManualOutputToLights() == 0) {
                 if (__schedule->IsOutputToLights())
                     __schedule->SetOutputToLights(this, false, false);
             }
-            else if (__schedule->GetManualOutputToLights() == 1)
-            {
+            else if (__schedule->GetManualOutputToLights() == 1) {
                 if (!__schedule->IsOutputToLights())
                     __schedule->SetOutputToLights(this, true, false);
             }
         }
     }
-    else
-    {
+    else {
         if (__schedule->IsOutputToLights())
             __schedule->SetOutputToLights(this, false, false);
     }
@@ -3340,8 +3350,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
     }
 
-    if (!minimiseUIUpdates && _pinger != nullptr)
-    {
+    if (!minimiseUIUpdates && _pinger != nullptr) {
         ListView_Ping->Freeze();
         auto pingresults = _pinger->GetPingers();
         for (auto it : pingresults) {
@@ -3397,19 +3406,78 @@ void xScheduleFrame::UpdateUI(bool force)
             }
         }
 
-        // remove anything in the tree which isnt in the results
-        for (int i = 0; i < ListView_Ping->GetItemCount(); i ++)
-        {
-            bool found = false;
-            for (auto it : pingresults)
-            {
-                if (ListView_Ping->GetItemText(i) == it->GetName())
-                {
-                    found = true;
+        for (const auto& it : __schedule->GetOutputManager()->GetControllers()) {
+            auto serial = dynamic_cast<ControllerSerial*>(it);
+            if (serial != nullptr) {
+                // find it in the list
+                int item = -1;
+                for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                    if (ListView_Ping->GetItemText(i) == serial->GetName()) {
+                        item = i;
+                        break;
+                    }
+                }
+
+                if (item == -1) {
+                    item = ListView_Ping->GetItemCount();
+                    item = ListView_Ping->InsertItem(item, serial->GetName());
+                    ListView_Ping->SetItem(item, 1, "");
+                    ListView_Ping->SetColumnWidth(0, wxLIST_AUTOSIZE);
+                }
+
+                // update the colour
+                if (item >= 0) {
+                    if (serial->GetPort() == "NotConnected") {
+                        ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                        ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
+                    }
+                    else {
+                        auto pr = serial->Ping();
+                        if (__schedule->IsOutputToLights()) {
+                            if (pr == Output::PINGSTATE::PING_OPEN) {
+                                ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                                ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                            }
+                            else {
+                                ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                                ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                            }
+                        }
+                        else {
+                            if (pr == Output::PINGSTATE::PING_OPENED) {
+                                ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                                ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                            }
+                            else {
+                                ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                                ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                            }
+                        }
+                    }
                 }
             }
-            if (!found)
-            {
+        }
+
+        // remove anything in the tree which isnt in the results
+        for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+            bool found = false;
+            for (auto it : pingresults) {
+                if (ListView_Ping->GetItemText(i) == it->GetName()) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                for (const auto& it : __schedule->GetOutputManager()->GetControllers()) {
+                    if (ListView_Ping->GetItemText(i) == it->GetName()) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
                 ListView_Ping->DeleteItem(i);
                 i--;
             }
@@ -3421,8 +3489,8 @@ void xScheduleFrame::UpdateUI(bool force)
 
     ValidateWindow();
 
-// this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
-//    Refresh();
+    // this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
+    //    Refresh();
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
