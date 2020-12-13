@@ -176,8 +176,8 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
     std::list<std::string> res;
 
 #ifdef __WXMSW__
-    TCHAR valname[32];
-    TCHAR portname[32];
+    TCHAR valname[256];
+    TCHAR portname[256];
     DWORD vallen = sizeof(valname);
     DWORD portlen = sizeof(portname);
     HKEY hkey = nullptr;
@@ -189,7 +189,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
         for (DWORD inx = 0; !((err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen))) || (err == ERROR_MORE_DATA); ++inx)
         {
             if (err == ERROR_MORE_DATA) {
-                portname[sizeof(portname) / sizeof(portname[0]) - 1] = '\0';
+                portname[sizeof(portname) - 1] = '\0';
             }
             //need to enlarge read buf if this happens; just truncate string for now
             //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
