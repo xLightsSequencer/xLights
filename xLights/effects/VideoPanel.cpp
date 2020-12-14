@@ -190,7 +190,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer12->Add(Slider_Video_CropBottom, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Video_CropBottomVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropBottom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropBottom"));
 	FlexGridSizer12->Add(BitmapButton_Video_CropBottomVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropBottom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropBottom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropBottom"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropBottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
