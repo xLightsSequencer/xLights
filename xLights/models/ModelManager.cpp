@@ -361,7 +361,27 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
         if (merge) {//merge
             Model* mg = GetModel(mgname);
             if (mg->GetDisplayAs() == "ModelGroup") {
-                dynamic_cast<ModelGroup*>(mg)->AddModel(mname);
+
+                ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
+
+                for (const auto& it : mmg->ModelNames())                     {
+                    auto mmnmn = mmg->ModelNames();
+                    if (Contains(it, "/"))
+                    {
+                        auto mgmn = wxString(it);
+                        mgmn = mname + "/" + mgmn.AfterFirst('/');
+                        std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end())                             {
+                            mmg->AddModel(mgmn);
+                        }
+                    }
+                    else                         {
+                        if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end()) {
+                            mmg->AddModel(mname);
+                        }
+                    }
+                }
+
                 return;
             }
         }
