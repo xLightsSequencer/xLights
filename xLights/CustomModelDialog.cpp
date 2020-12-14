@@ -1898,10 +1898,10 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         Notebook1->SetSelection(Notebook1->GetPageCount()-1);
         GetLayerGrid(Notebook1->GetPageCount()-1)->SetGridCursor(row, col);
         break;
-    case WXK_F3:
+    case WXK_F4:
         PushPull(true, true); // fwd and stay
         break;
-    case WXK_F4:
+    case WXK_F5:
         PushPull(false, true); // back and stay
         break;
     case WXK_F7:
