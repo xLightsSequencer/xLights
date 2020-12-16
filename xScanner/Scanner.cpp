@@ -504,7 +504,7 @@ void Scanner::IPScan(IPObject& it)
 								_ips.push_back(IPObject(address, false, false));
 								_ips.back()._name = name;
 								_ips.back()._mode = mode;
-								_ips.back()._version = mode;
+								_ips.back()._version = version;
 							}
 						}
 					}
