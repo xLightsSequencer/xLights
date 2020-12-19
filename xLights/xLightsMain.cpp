@@ -1728,7 +1728,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     VideoReader::InitHWAcceleration();
 
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
-    MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xScanner->GetId());
+    MenuItem_xSchedule = nullptr;
+    MenuItem_xScanner->GetMenu()->Remove(MenuItem_xScanner->GetId());
+    MenuItem_xScanner = nullptr;
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);

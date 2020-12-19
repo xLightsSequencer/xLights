@@ -302,3 +302,4 @@ Nov 17, 2019 - 099a4c8b77ccca16870d8761ba724be4e4d13643 Update to wxWidget 3.1.3
 July 9, 2020 - tag: xlights_2020.28 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds
 July 16, 2020 - tag: xlights_2020.29 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds, fixes socket issues
 Oct  6, 2020 - tag: xlights_2020.41 - Fixes some Big Sur issues with fonts, colors
+Dec 18, 2020 - tag: xlights_2020.56 - Fixes some make install things in wxwidgets, some osx graphics memory leaks, font handle leaks, various colors
