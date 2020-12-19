@@ -120,10 +120,12 @@ const long ViewsModelsPanel::ID_MODELS_SELECTUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAME = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYCPGM = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYCPGMSIZE = wxNewId();
 
 BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
@@ -512,6 +514,19 @@ std::string ViewsModelsPanel::GetModelType(const std::string& modelname) const
         }
     }
     return "";
+}
+
+std::string ViewsModelsPanel::GetModelCPSortString(const std::string& modelname) const
+{
+    auto& mm = _xlFrame->AllModels;
+
+    auto m = mm.GetModel(modelname);
+
+    if (m != nullptr) {
+        return m->GetControllerPortSortString();
+    }
+    auto c = PadLeft("Z", 'Z', 140);
+    return c + ":99999999:99999999";
 }
 
 bool ViewsModelsPanel::IsItemSelected(wxListCtrl* ctrl, int item)
@@ -1474,6 +1489,8 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYNAME, "By Name")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGM, "By Name But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGMSIZE, "By Name But Groups At Top by Size")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYCPGM, "By Controller/Port But Groups At Top")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYCPGMSIZE, "By Controller/Port But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
     mnuSort->Append(ID_MODELS_BUBBLEUPGROUPS, "Bubble Up Groups")->Enable(models > 0);
@@ -1532,6 +1549,9 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     {
         SortModelsByNameGM();
     }
+    else if (id == ID_MODELS_SORTBYCPGM) {
+        SortModelsByCPGM();
+    }
     else if (id == ID_MODELS_SORTBYTYPE)
     {
         SortModelsByType();
@@ -1547,6 +1567,9 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     else if (id == ID_MODELS_SORTBYNAMEGMSIZE)
     {
         SortModelsByNameGM(true);
+    }
+    else if (id == ID_MODELS_SORTBYCPGMSIZE) {
+        SortModelsByCPGM(true);
     }
     ValidateWindow();
 }
@@ -1742,6 +1765,68 @@ void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
     }
     else
     {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    SelectView(_sequenceViewManager->GetSelectedView()->GetName());
+    MarkViewsChanged();
+    PopulateModels();
+
+    _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::SortModelsByCPGM(bool sortGroupsBySize)
+{
+    SaveUndo();
+
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+
+    wxString models;
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW) {
+        models = GetMasterViewModels();
+    }
+    else {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+
+    wxArrayString groups;
+    wxArrayString modelsOnly;
+
+    for (auto it = modelArray.begin(); it != modelArray.end(); ++it) {
+        if (IsModelAGroup(it->ToStdString())) {
+            groups.push_back(*it);
+        }
+        else {
+            modelsOnly.push_back(*it);
+        }
+    }
+
+    if (!sortGroupsBySize) {
+        groups.Sort(wxStringNumberAwareStringCompare);
+    }
+    else {
+        //groups with more models to the top, i.e whole house models
+        auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
+            return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
+        };
+
+        std::sort(groups.begin(), groups.end(), sortRuleLambda);
+    }
+
+    auto cpSortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
+        return GetModelCPSortString(s1) < GetModelCPSortString(s2);
+    };
+    std::sort(modelsOnly.begin(), modelsOnly.end(), cpSortRuleLambda);
+
+    modelArray = MergeStringArrays(groups, modelsOnly);
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW) {
+        SetMasterViewModels(modelArray);
+    }
+    else {
         view->SetModels(wxJoin(modelArray, ',').ToStdString());
     }
 

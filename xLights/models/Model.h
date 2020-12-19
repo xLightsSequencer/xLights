@@ -373,6 +373,7 @@ public:
     std::string GetRGBOrder() const { return rgbOrder; }
     static char EncodeColour(const xlColor& c);
     char GetAbsoluteChannelColorLetter(int32_t absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
+    std::string GetControllerPortSortString() const;
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     virtual void ExportAsCustomXModel() const;

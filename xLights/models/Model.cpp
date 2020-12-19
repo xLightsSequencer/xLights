@@ -2947,6 +2947,18 @@ char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
     return GetChannelColorLetter((absoluteChannel - fc - 1) % ccpn);
 }
 
+std::string Model::GetControllerPortSortString() const
+{
+    auto controller = GetControllerName();
+    if (controller == "") {
+        controller = PadLeft("Z", 'Z', 140);
+    }
+    auto port = GetControllerPort();
+    auto sc = GetFirstChannel(); // we assume within a port models are in channel order
+
+    return wxString::Format("%s:%08d:%08d", controller, port, sc).ToStdString();
+}
+
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 {
     auto s = Trim(ModelStartChannel);

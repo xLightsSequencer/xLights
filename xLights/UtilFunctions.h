@@ -134,6 +134,13 @@ inline char HexToChar(char c1, char c2) {
     return (HexToChar(c1) << 4) + HexToChar(c2);
 }
 
+inline std::string PadLeft(const std::string& str, char with, int sz)
+{
+    auto res = str;
+    while (res.size() < sz) res = with + res;
+    return res;
+}
+
 inline bool Contains(const std::string& in, const std::string& contains) noexcept {
     return in.find(contains) != std::string::npos;
 }

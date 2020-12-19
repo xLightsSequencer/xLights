@@ -176,8 +176,8 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
     std::list<std::string> res;
 
 #ifdef __WXMSW__
-    TCHAR valname[256];
-    TCHAR portname[256];
+    TCHAR valname[_MAX_PATH];
+    TCHAR portname[_MAX_PATH];
     DWORD vallen = sizeof(valname);
     DWORD portlen = sizeof(portname);
     HKEY hkey = nullptr;
