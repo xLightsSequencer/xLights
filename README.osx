@@ -29,7 +29,7 @@ been added since then.  We also have several other fixes in place for background
 
 To get the latest code that we've tested, do:
 
-git clone  --recurse-submodules -b xlights_2020.41 https://github.com/dkulp/wxWidgets
+git clone  --recurse-submodules -b xlights_2020.56 https://github.com/dkulp/wxWidgets
 
 
 First, setup the target directories:
