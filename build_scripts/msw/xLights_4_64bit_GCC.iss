@@ -66,6 +66,12 @@ Source: "../../bin64/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xcapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xScanner
+Source: "../../bin64/xScanner.exe"; DestDir: "{app}"
+Source: "../../bin64/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xScanner64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
 ; xFade
 Source: "../../bin64/xFade.exe"; DestDir: "{app}"
 Source: "../../bin64/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -154,6 +160,7 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xScanner"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt

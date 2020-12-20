@@ -94,8 +94,8 @@ wxString windows_get_stacktrace(void* data)
                 auto comp = wxSplit(line, ' ');
                 if (comp.size() > 3)
                 {
-                    int ln = 0;
-                    for (int i = 3; i < comp.size(); i++)
+                    size_t ln = 0;
+                    for (size_t i = 3; i < comp.size(); i++)
                     {
                         if (comp[i].size() > 2)
                         {

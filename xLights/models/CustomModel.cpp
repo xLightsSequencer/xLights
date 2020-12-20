@@ -887,12 +887,12 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
     return string + 1;
 }
 
-std::string CustomModel::GetNodeName(int x, bool def) const {
+std::string CustomModel::GetNodeName(size_t x, bool def) const {
     if (x < Nodes.size()) {
         return Nodes[x]->GetName();
     }
     if (def) {
-        return wxString::Format("Node %d", (x + 1)).ToStdString();
+        return wxString::Format("Node %d", (int)(x + 1)).ToStdString();
     }
     return "";
 }

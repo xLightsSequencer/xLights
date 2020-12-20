@@ -42,34 +42,40 @@ Source: "../../bin/xLights.exe"; DestDir: "{app}"
 Source: "../../bin/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../include\xlights.ico"; DestDir: "{app}"
-Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
+Source: "../../include/xlights.ico"; DestDir: "{app}"
+Source: "../../include/xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../bin/xSchedule.exe"; DestDir: "{app}"
 Source: "../../bin/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
-Source: "../../include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include/xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xCapture
 Source: "../../bin/xCapture.exe"; DestDir: "{app}"
 Source: "../../bin/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../include\xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include/xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
+; xScanner
+Source: "../../bin/xScanner.exe"; DestDir: "{app}"
+Source: "../../bin/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include/xScanner.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../bin/xFade.exe"; DestDir: "{app}"
 Source: "../../bin/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../include\xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include/xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xSMSDaemon
 Source: "../../bin/xSMSDaemon.dll"; DestDir: "{app}"
 Source: "../../bin/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/xSMSDaemon/Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/xSMSDaemon/Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/xSMSDaemon/PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; RemoteFalcon
 Source: "../../bin/RemoteFalcon.dll"; DestDir: "{app}"
@@ -87,9 +93,9 @@ Source: "../../bin/wxmsw313u_propgrid_gcc_custom.dll"; DestDir: "{app}"; Flags: 
 Source: "../../bin/wxmsw313u_qa_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; Use the default installed mingw 32 bit files
-Source: "../../bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
@@ -143,6 +149,7 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xScanner"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt

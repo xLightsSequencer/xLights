@@ -334,7 +334,7 @@ void Scanner::Scan(xScannerFrame* frame)
 		}
 	}
 
-	for (int x = 0; x < _discovery->GetResults().size(); x++) {
+	for (size_t x = 0; x < _discovery->GetResults().size(); x++) {
 		auto discovered = _discovery->GetResults()[x];
 		if (!discovered->controller) {
 			continue;
@@ -443,7 +443,7 @@ void Scanner::IPScan(IPObject& it)
 				// extract the type of request
 				auto net = root.AsArray();
 
-				for (int i = 0; i < net->Count(); i++) {
+				for (size_t i = 0; i < net->Count(); i++) {
 					auto n = (*net)[i];
 					wxString operstate = n.Get("operstate", defaultValue).AsString();
 					wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
@@ -486,7 +486,7 @@ void Scanner::IPScan(IPObject& it)
 					auto sys = root.Get("systems", defaultValue).AsArray();
 
 					if (sys != nullptr) {
-						for (int i = 0; i < sys->Count(); i++) {
+						for (size_t i = 0; i < sys->Count(); i++) {
 							auto s = (*sys)[i];
 							wxString address = s.Get("address", defaultValue).AsString();
 							wxString mode = s.Get("fppModeString", defaultValue).AsString();

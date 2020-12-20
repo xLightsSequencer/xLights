@@ -226,7 +226,7 @@ Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(fra
     curlMulti = curl_multi_init();
 }
 Discovery::~Discovery() {
-    for (int x = 0; x < curls.size(); x++) {
+    for (size_t x = 0; x < curls.size(); x++) {
         if (curls[x]) {
             curl_multi_remove_handle(curlMulti, curls[x]);
             delete curls[x];
@@ -236,7 +236,7 @@ Discovery::~Discovery() {
     }
     curl_multi_cleanup(curlMulti);
     
-    for (int x = 0; x < results.size(); x++) {
+    for (size_t x = 0; x < results.size(); x++) {
         delete results[x];
     }
     for (auto &dg : datagrams) {
@@ -510,7 +510,7 @@ void Discovery::Discover() {
                     long response_code = 0;
                     curl_easy_getinfo(e, CURLINFO_HTTP_CODE, &response_code);
                     
-                    for (int x = 0; x < curls.size(); x++) {
+                    for (size_t x = 0; x < curls.size(); x++) {
                         if (curls[x] && curls[x]->curl == e) {
                             if (response_code == 401) {
                                 HandleAuth(x);

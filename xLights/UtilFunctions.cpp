@@ -818,7 +818,7 @@ void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
 // Extract all chars before the first number in the string ... strip it from the input string
 std::string BeforeInt(std::string& s)
 {
-    int i = 0;
+    size_t i = 0;
     while (i < s.size() && (s[i] > '9' || s[i] < '0')) {
         i++;
     }
@@ -841,7 +841,7 @@ int intRand(const int& min, const int& max) {
 // Extract any leading number ... strip it from the input string
 int ExtractInt(std::string& s)
 {
-    int i = 0;
+    size_t i = 0;
     while (i < s.size() && s[i] <= '9' && s[i] >= '0') {
         i++;
     }
@@ -1167,7 +1167,7 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
     bool hasDot = false;
     //hostnames need at least one char in it if fully qualified
     //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (int y = 0; y < ip.length(); y++) {
+    for (size_t y = 0; y < ip.length(); y++) {
         char x = ip[y];
         if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
             hasChar = true;
@@ -1194,7 +1194,7 @@ std::string CleanupIP(const std::string& ip)
     bool hasDot = false;
     //hostnames need at least one char in it if fully qualified
     //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (int y = 0; y < ip.length(); y++) {
+    for (size_t y = 0; y < ip.length(); y++) {
         char x = ip[y];
         if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
             hasChar = true;
@@ -1427,11 +1427,11 @@ void DumpBinary(uint8_t* buffer, size_t sz)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (size_t i = 0; i < (sz + 15) / 16; i++)         {
         std::string out;
-        for (int j = i * 16; j < std::min(sz, (i + 1) * 16); j++)             {
+        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++)             {
             out += wxString::Format("%02x ", buffer[j]);
         }
         out += "    ";
-        for (int j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
+        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
             if (buffer[j] < 32 || buffer[j] > 127)                 {
                 out += '.';
             }

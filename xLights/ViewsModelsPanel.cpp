@@ -526,7 +526,7 @@ std::string ViewsModelsPanel::GetModelCPSortString(const std::string& modelname)
         return m->GetControllerPortSortString();
     }
     auto c = PadLeft("Z", 'Z', 140);
-    return c + ":99999999:99999999";
+    return c + ":99999999:99999999:" + modelname;
 }
 
 bool ViewsModelsPanel::IsItemSelected(wxListCtrl* ctrl, int item)

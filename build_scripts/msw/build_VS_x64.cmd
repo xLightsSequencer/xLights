@@ -21,6 +21,11 @@ msbuild.exe /m xCapture.sln /p:Configuration="Release" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
+cd xScanner
+msbuild.exe /m xScanner.sln /p:Configuration="Release" /p:Platform="x64"
+if %ERRORLEVEL% NEQ 0 goto error
+cd ..
+
 cd xSchedule
 msbuild.exe /m xSchedule.sln /p:Configuration="Release" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error

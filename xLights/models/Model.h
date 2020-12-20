@@ -404,23 +404,23 @@ public:
 
     void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;
-    std::string GetStrandName(int x, bool def = false) const
+    std::string GetStrandName(size_t x, bool def = false) const
     {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %d", (int32_t)x + 1).ToStdString();
+            return wxString::Format("Strand %d", (int)x + 1).ToStdString();
         }
         return "";
     }
-    virtual std::string GetNodeName(int x, bool def = false) const
+    virtual std::string GetNodeName(size_t x, bool def = false) const
     {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %d", (int32_t)x + 1).ToStdString();
+            return wxString::Format("Node %d", (int)x + 1).ToStdString();
         }
         return "";
     }
@@ -456,16 +456,16 @@ public:
     std::vector<int> GetLayerSizes() const { return layerSizes; }
     void SetLayerSizeCount(int count)
     {
-        int oldCount = layerSizes.size();
+        size_t oldCount = layerSizes.size();
         layerSizes.resize(count);
         // If it has grown initialise everything to 1
-        for (int i = oldCount; i < layerSizes.size(); i++) {
+        for (size_t i = oldCount; i < layerSizes.size(); i++) {
             layerSizes[i] = 1;
         }
     }
-    int GetLayerSizesTotalNodes() const
+    size_t GetLayerSizesTotalNodes() const
     {
-        int count = 0;
+        size_t count = 0;
         for (const auto it : layerSizes)             {
             count += it;
         }

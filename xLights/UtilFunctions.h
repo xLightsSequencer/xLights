@@ -134,7 +134,7 @@ inline char HexToChar(char c1, char c2) {
     return (HexToChar(c1) << 4) + HexToChar(c2);
 }
 
-inline std::string PadLeft(const std::string& str, char with, int sz)
+inline std::string PadLeft(const std::string& str, char with, size_t sz)
 {
     auto res = str;
     while (res.size() < sz) res = with + res;
@@ -243,7 +243,7 @@ inline std::string Trim(const std::string& input)
 {
     if (input == "") return "";
 
-    int firstnonblank = 0;
+    size_t firstnonblank = 0;
     int lastnonblank = input.size()-1;
 
     while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
