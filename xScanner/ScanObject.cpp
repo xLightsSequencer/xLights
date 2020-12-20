@@ -3,21 +3,33 @@
 #include <wx/socket.h>
 #include "../xLights/UtilFunctions.h"
 
+#include <log4cpp/Category.hh>
+
 void IPObject::CheckPort80()
 {
+    _port80 = false;
+
     wxIPV4address addr;
     addr.Hostname(_ip);
     addr.Service(80);
 
     wxSocketClient* const client = new wxSocketClient(wxSOCKET_WAITALL | wxSOCKET_BLOCK);
-    client->SetTimeout(5);
-
     if (client != nullptr) {
+        client->SetTimeout(5);
+
         if (client->Connect(addr)) {
             _port80 = true;
         }
         delete client;
     }
+}
+
+IPObject::IPObject(const std::string& ip, const std::string& viaProxy, bool pinged)
+{
+    _ip = ip;
+    _viaProxy = viaProxy;
+    CheckPort80(); 
+    _pinged = pinged;
 }
 
 bool IPObject::InSameSubnet(const std::string& ip) const

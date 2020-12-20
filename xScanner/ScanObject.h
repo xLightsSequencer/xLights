@@ -55,7 +55,7 @@ public:
 		_banks = old._banks;
 		_emittingData = old._emittingData;
 	}
-	IPObject(const std::string& ip, const std::string& viaProxy, bool pinged) { _ip = ip; _viaProxy = viaProxy; CheckPort80(); _pinged = pinged; }
+	IPObject(const std::string& ip, const std::string& viaProxy, bool pinged);
 	void SetXLightsController(ControllerEthernet* ce) { _xLightsController = ce; }
 	void SetController(BaseController* bc) { _controller = bc; }
 	void SetDiscovered(ControllerEthernet* ce) { _discovered = ce; }

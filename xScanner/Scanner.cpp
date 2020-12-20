@@ -9,6 +9,8 @@
 #include <iphlpapi.h>
 #endif
 
+//#define SINGLE_THREAD
+
 #include "Scanner.h"
 #include "xScannerMain.h"
 #include "../xLights/Parallel.h"
@@ -192,11 +194,10 @@ void Scanner::IPScan(const std::string& ip, const std::string& proxy)
 	std::list<int> ips;
 	for (int i = 1; i < 255; i++) ips.push_back(i);
 
-	// ping the direct networks on the computer
-	parallel_for(1, 255, [this, ip, proxy](int i) {
+	std::function<void(int)> f = [this, ip, proxy](int n) {
 		struct in_addr IpAddr;
 		IpAddr.S_un.S_addr = inet_addr(ip.c_str());
-		IpAddr.S_un.S_un_b.s_b4 = i;
+		IpAddr.S_un.S_un_b.s_b4 = n;
 
 		char szDestIp[128];
 		strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
@@ -207,7 +208,16 @@ void Scanner::IPScan(const std::string& ip, const std::string& proxy)
 			std::unique_lock<std::mutex> lock(_mutex);
 			this->_ips.push_back(IPObject(std::string(szDestIp), proxy, true));
 		}
-	});
+	};
+
+#ifdef SINGLE_THREAD
+	for (int i = 1; i < 255; i++) {
+		f(i);
+	}
+#else
+	// ping the direct networks on the computer
+	parallel_for(1, 255, std::move(f));
+#endif
 }
 
 bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
@@ -225,9 +235,9 @@ bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
 	return true;
 }
 
-IPObject* Scanner::GetIP(const std::string& ip)
+IPObject* Scanner::GetIP(std::list<IPObject>& ips, const std::string& ip)
 {
-	for (auto& it : _ips) 		{
+	for (auto& it : ips) 		{
 		if (it._ip == ip) 			{
 			return &it;
 		}
@@ -271,8 +281,9 @@ void Scanner::PreScan(xScannerFrame* frame)
 	logger_base.debug("Scanning computer");
 	SendProgress(_progressv += 4, "Scanning computer");
 	ComputerScan();
+
 	logger_base.debug("Scanning xLights show folder");
-	SendProgress(_progressv += 4, "Scanning xLIghts Show");
+	SendProgress(_progressv += 4, "Scanning xLights Show");
 	xLightsScan();
 
 	logger_base.debug("Running controller discovery");
@@ -322,39 +333,19 @@ void Scanner::Scan(xScannerFrame* frame)
 	// now join everything together
 	logger_base.debug("Unifying devices");
 	SendProgress(55, "Unifying devices");
-	for (const auto& c : _xLights._controllers) {
-		auto eth = dynamic_cast<ControllerEthernet*>(c);
-		if (eth != nullptr) {
-			auto ip = GetIP(eth->GetResolvedIP());
-			if (ip == nullptr) {
-				_ips.push_back(IPObject(eth->GetResolvedIP(), "", false));
-				ip = &_ips.back();
-			}
-			ip->SetXLightsController(eth);
-		}
-	}
 
-	for (size_t x = 0; x < _discovery->GetResults().size(); x++) {
-		auto discovered = _discovery->GetResults()[x];
-		if (!discovered->controller) {
-			continue;
-		}
-		ControllerEthernet* it = discovered->controller;
-		auto ip = GetIP(it->GetResolvedIP());
-		if (ip == nullptr) {
-			_ips.push_back(IPObject(it->GetResolvedIP(), "", false));
-			ip = &_ips.back();
-		}
-		ip->SetDiscovered(it);
-	}
+	UnifyxLightsController(_ips, true);
+
+	UnifyDiscovery(_ips, true);
 
 	logger_base.debug("Sorting IPs");
 	_ips.sort();
 
+	std::map<std::string, std::string> arps;
+
 #ifdef __WXMSW__
 	logger_base.debug("Reading ARP table");
 	SendProgress(60, "Reading ARP table");
-	std::map<std::string, std::string> arps;
 	DWORD bytesNeeded = 0;
 	PMIB_IPNETTABLE arp = nullptr;
 
@@ -366,8 +357,7 @@ void Scanner::Scan(xScannerFrame* frame)
 	if (result == ERROR_INSUFFICIENT_BUFFER) {
 
 		arp = (PMIB_IPNETTABLE)malloc(bytesNeeded);
-		if (arp != nullptr)
-		{
+		if (arp != nullptr) {
 			result = GetIpNetTable(arp, &bytesNeeded, false);
 
 			if (result == 0) {
@@ -389,10 +379,90 @@ void Scanner::Scan(xScannerFrame* frame)
 	}
 #endif
 
-	// we cant do these in parallel as we will hit concurrent request limits on this service
 	logger_base.debug("Getting MAC Vendors");
 	SendProgress(65, "Getting MAC Vendors");
-	for (auto& it : _ips) {
+	LookupMac(arps, _ips);
+
+	logger_base.debug("Querying devices");
+	SendProgress(70, "Querying devices");
+	std::function<void(IPObject&, int)> f = [this](IPObject& o, int n) {
+		SendProgress(-1, "Querying " + o._name + ":" + o._ip);
+		IPScan(o);
+	};
+#ifdef SINGLE_THREAD
+	{
+		int i = 0;
+		for (auto& it : _ips) {
+			f(it, i++);
+		}
+	}
+#else
+	parallel_for(_ips, f, 1);
+#endif
+
+	// if we found any extra IPs redo the scan
+	if (_extraips.size() > 0) 		{
+		LookupMac(arps, _extraips);
+		UnifyxLightsController(_extraips, false);
+		UnifyDiscovery(_extraips, false);
+		for (const auto& it : _extraips) 			{
+			_ips.push_back(IPObject(it));
+		}
+#ifdef SINGLE_THREAD
+		{
+			int i = 0;
+			for (auto& it : _ips) {
+				f(it, i++);
+			}
+		}
+#else
+		parallel_for(_ips, f, 1);
+#endif
+	}
+
+	SendProgress(100, "Done");
+}
+
+void Scanner::UnifyDiscovery(std::list<IPObject>& ips, bool addMissing)
+{
+	for (size_t x = 0; x < _discovery->GetResults().size(); x++) {
+		auto discovered = _discovery->GetResults()[x];
+		if (!discovered->controller) {
+			continue;
+		}
+		ControllerEthernet* it = discovered->controller;
+		auto ip = GetIP(ips, it->GetResolvedIP());
+		if (addMissing && ip == nullptr) {
+			ips.push_back(IPObject(it->GetResolvedIP(), "", false));
+			ip = &_ips.back();
+		}
+		if (ip != nullptr) {
+			ip->SetDiscovered(it);
+		}
+	}
+}
+
+void Scanner::UnifyxLightsController(std::list<IPObject>& ips, bool addMissing)
+{
+	for (const auto& c : _xLights._controllers) {
+		auto eth = dynamic_cast<ControllerEthernet*>(c);
+		if (eth != nullptr) {
+			auto ip = GetIP(ips, eth->GetResolvedIP());
+			if (addMissing && ip == nullptr) {
+				_ips.push_back(IPObject(eth->GetResolvedIP(), "", false));
+				ip = &_ips.back();
+			}
+			if (ip != nullptr) {
+				ip->SetXLightsController(eth);
+			}
+		}
+	}
+}
+
+void Scanner::LookupMac(std::map<std::string, std::string>& arps, std::list<IPObject>& ips)
+{
+	// we cant do these in parallel as we will hit concurrent request limits on this service
+	for (auto& it : ips) {
 		// try to get the mac address
 		if (it._mac == "") {
 			if (arps.find(it._ip) != arps.end()) {
@@ -406,16 +476,6 @@ void Scanner::Scan(xScannerFrame* frame)
 			if (Contains(it._macVendor, "\"Too Many Requests\"")) it._macVendor = "MAC Lookup Unavailable";
 		}
 	}
-
-	logger_base.debug("Querying devices");
-	SendProgress(70, "Querying devices");
-	std::function<void(IPObject&, int)> f = [this](IPObject& o, int n) {
-		SendProgress(-1, "Querying " + o._name + ":" + o._ip);
-		IPScan(o);
-	};
-	parallel_for(_ips, f, 1);
-
-	SendProgress(100, "Done");
 }
 
 void Scanner::IPScan(IPObject& it)
@@ -488,11 +548,11 @@ void Scanner::IPScan(IPObject& it)
 					if (sys != nullptr) {
 						for (size_t i = 0; i < sys->Count(); i++) {
 							auto s = (*sys)[i];
-							wxString address = s.Get("address", defaultValue).AsString();
-							wxString mode = s.Get("fppModeString", defaultValue).AsString();
-							wxString name = s.Get("hostname", defaultValue).AsString();
-							wxString version = s.Get("version", defaultValue).AsString();
-							auto iip = GetIP(address);
+							std::string address = s.Get("address", defaultValue).AsString().ToStdString();
+							std::string mode = s.Get("fppModeString", defaultValue).AsString().ToStdString();
+							std::string name = s.Get("hostname", defaultValue).AsString().ToStdString();
+							std::string version = s.Get("version", defaultValue).AsString().ToStdString();
+							auto iip = GetIP(_ips, address);
 							if (iip != nullptr) {
 								if (iip->_name == "") iip->_name = name;
 								if (iip->_mode == "") iip->_mode = mode;
@@ -501,10 +561,12 @@ void Scanner::IPScan(IPObject& it)
 							else {
 								logger_base.debug("FPP multicast identified new address " + address);
 								std::unique_lock<std::mutex> lock(_mutex);
-								_ips.push_back(IPObject(address, false, false));
-								_ips.back()._name = name;
-								_ips.back()._mode = mode;
-								_ips.back()._version = version;
+								if (GetIP(_extraips, address) == nullptr) {
+									_extraips.push_back(IPObject(address, "", false));
+									_extraips.back()._name = name;
+									_extraips.back()._mode = mode;
+									_extraips.back()._version = version;
+								}
 							}
 						}
 					}
