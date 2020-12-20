@@ -643,7 +643,6 @@ public:
     static const long ID_BUTTON9;
     static const long ID_BUTTON6;
     static const long ID_BUTTON10;
-    static const long ID_BUTTON_NETWORK_DELETE_ALL;
     static const long ID_BUTTON5;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON2;
@@ -790,7 +789,6 @@ public:
     wxButton* ButtonAddControllerNull;
     wxButton* ButtonAddControllerSerial;
     wxButton* ButtonControllerDelete;
-    wxButton* ButtonDeleteAllControllers;
     wxButton* ButtonDiscover;
     wxButton* ButtonOpen;
     wxButton* ButtonSaveSetup;

@@ -726,15 +726,6 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_NETWORK_DELETE_ALL" variable="ButtonDeleteAllControllers" member="yes">
-																<label>Delete All</label>
-																<handler function="OnButtonDeleteAllControllersClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxEXPAND</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON5" variable="ButtonDiscover" member="yes">
 																<label>Discover</label>
 																<handler function="OnButtonDiscoverClick" entry="EVT_BUTTON" />

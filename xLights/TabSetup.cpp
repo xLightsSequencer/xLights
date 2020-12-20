@@ -1227,7 +1227,6 @@ void xLightsFrame::EnableNetworkChanges() {
     ButtonAddControllerSerial->Enable(flag);
     ButtonAddControllerEthernet->Enable(flag);
     ButtonAddControllerNull->Enable(flag);
-    ButtonDeleteAllControllers->Enable(flag);
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
     ButtonDiscover->Enable(flag);
