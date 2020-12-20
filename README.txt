@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.56 December 20 2020
+   -- enh (keith)  Add xScanner - this is like an IP Scanner but with xLights/xSchedule/FPP awareness and thus helps to 
+                   identify your network setup and spot issues. If you are joining the xLights zoom room with 'network issues'
+				   I would recomend you run this first and be ready to show the results
+   -- enh (keith)  Add a display elements sort option by controller/port
+   -- bug (keith)  On import of models containing groups when you chose to merge into existing groups it didnt really add the 
+                   submodels correctly
+   -- bug (keith)  Fix F4/F5 pull push of custom model nodes not working
+   -- bug (keith)  Fix crash due to long serial port name on windows
 2020.55 December 14 2020
    -- enh (keith)  Show the groups a model (or its submodels) belongs to in the model properties
    -- enh (keith)  Show sequence channel count and last render date in playlist list
