@@ -328,7 +328,7 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
         reditor->SetValidator(validator);
 
         wxGridCellTextEditor *neditor2 = new wxGridCellTextEditor();
-        wxString nfilter2("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|");
+        wxString nfilter2("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
         wxTextValidator nvalidator2(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator2.SetCharIncludes(nfilter2);
         neditor2->SetValidator(nvalidator2);

@@ -95,6 +95,7 @@ class ViewsModelsPanel: public wxPanel
     void SortModelsByName();
     void SortModelsByNameGM(bool sortGroupsBySize = false);
     void SortModelsByCPGM(bool sortGroupsBySize = false);
+    void SortModelsBySCGM(bool sortGroupsBySize = false);
     void SortModelsByType();
     void SortModelsUnderThisGroup(int groupIndex);
     void SortModelsBubbleUpGroups();
@@ -104,6 +105,7 @@ class ViewsModelsPanel: public wxPanel
     std::string GetModelType(const std::string& modelname) const;
     wxArrayString GetGroupModels(const std::string& group) const;
     std::string GetModelCPSortString(const std::string& modelname) const;
+    uint32_t GetModelSC(const std::string& modelname) const;
     wxString GetMasterViewModels() const;
     void SaveUndo();
     void Undo();
@@ -182,11 +184,13 @@ class ViewsModelsPanel: public wxPanel
         static const long ID_MODELS_SORTBYNAME;
         static const long ID_MODELS_SORTBYNAMEGM;
         static const long ID_MODELS_SORTBYCPGM;
+        static const long ID_MODELS_SORTBYSCGM;
         static const long ID_MODELS_SORTBYTYPE;
         static const long ID_MODELS_SORTMODELSUNDERTHISGROUP;
         static const long ID_MODELS_BUBBLEUPGROUPS;
         static const long ID_MODELS_SORTBYNAMEGMSIZE;
         static const long ID_MODELS_SORTBYCPGMSIZE;
+        static const long ID_MODELS_SORTBYSCGMSIZE;
 
 	private:
 
