@@ -34,7 +34,7 @@
 #include "../../include/text-64.xpm"
 #include <log4cpp/Category.hh>
 
-#define MAXTEXTLINES 20
+#define MAXTEXTLINES 100
 
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
