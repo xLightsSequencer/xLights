@@ -334,6 +334,11 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
         _tree->SetItemText(item, 1, ip._version);
     }
 
+    if (ip._xSchedulePort != 0) {
+        auto item = _tree->AppendItem(ti, "Web Port");
+        _tree->SetItemText(item, 1, wxString::Format("%d", ip._xSchedulePort));
+    }
+
     if (ip._banks != "") {
         auto item = _tree->AppendItem(ti, "Bank Sizes");
         _tree->SetItemText(item, 1, ip._banks);

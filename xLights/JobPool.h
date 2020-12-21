@@ -34,6 +34,7 @@ public:
 class JobPoolWorker;
 class JobPool
 {
+    const int MIN_JOBPOOLTHREADS = 4;
     std::mutex threadLock;
     std::mutex queueLock;
     std::condition_variable signal;
@@ -55,7 +56,8 @@ public:
     int maxSize() const { return maxNumThreads; }
     virtual void Start(size_t poolSize = 1, size_t minPoolSize = 0);
     virtual void Stop();
-    
+    void SetMaxThreadCount(int maxThreads);
+
     virtual std::string GetThreadStatus();
     
 private:

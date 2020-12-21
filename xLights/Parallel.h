@@ -25,7 +25,8 @@ public:
     static ParallelJobPool POOL;
     
     int calcSteps(int minStep, int size);
-    
+
+    static void SetPJPMaxThreadCount(int maxThreads) { POOL.SetMaxThreadCount(maxThreads); }
     
     std::mutex poolLock;
     std::condition_variable poolSignal;

@@ -250,6 +250,8 @@ void Scanner::CheckXSchedule(IPObject& ip, int port)
 	auto xs = Curl::HTTPSGet(ip._ip + ":" + wxString::Format("%d", port) + "/xScheduleQuery?Query=getplayingstatus", "", "", FAST_TIMEOUT);
 	if (xs != "" && xs[0] == '{') {
 		ip._type = "xSchedule";
+		ip._pinged = true; // if i managed to open the web then clearly it is there
+		ip._xSchedulePort = port;
 		wxJSONValue defaultValue = wxString("");
 		wxJSONReader reader;
 		wxJSONValue root;
@@ -275,6 +277,8 @@ void Scanner::SendProgress(int progress, const std::string& msg)
 void Scanner::PreScan(xScannerFrame* frame)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+	ParallelJobPool::SetPJPMaxThreadCount(30); // force the parallel job pool to up the amount of parallelism as this is not CPU resource intensive but concurrent network request intensive.
 
 	_frame = frame;
 
@@ -461,6 +465,8 @@ void Scanner::UnifyxLightsController(std::list<IPObject>& ips, bool addMissing)
 
 void Scanner::LookupMac(std::map<std::string, std::string>& arps, std::list<IPObject>& ips)
 {
+	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	// we cant do these in parallel as we will hit concurrent request limits on this service
 	for (auto& it : ips) {
 		// try to get the mac address
@@ -471,7 +477,9 @@ void Scanner::LookupMac(std::map<std::string, std::string>& arps, std::list<IPOb
 		}
 
 		if (it._mac != "") {
-			it._macVendor = Curl::HTTPSGet("https://api.macvendors.com/" + it._mac, "", "", SLOW_TIMEOUT);
+			auto macURL = std::string("https://api.macvendors.com/" + it._mac);
+			logger_base.debug("Looking up MAC: %s", (const char*)macURL.c_str());
+			it._macVendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
 			if (Contains(it._macVendor, "\"Not Found\"")) it._macVendor = "";
 			if (Contains(it._macVendor, "\"Too Many Requests\"")) it._macVendor = "MAC Lookup Unavailable";
 		}

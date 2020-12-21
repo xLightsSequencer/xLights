@@ -19,6 +19,7 @@ void IPObject::CheckPort80()
 
         if (client->Connect(addr)) {
             _port80 = true;
+            _pinged = true; // even if ping previously failed ... now we have connected to it it is obviously ok.
         }
         delete client;
     }

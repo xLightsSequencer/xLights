@@ -34,6 +34,7 @@ public:
 	std::string _banks;
 	bool _deepScan = false;
 	std::string _emittingData;
+	int _xSchedulePort = 0;
 	IPObject(const IPObject& old)
 	{
 		_xLightsController = old._xLightsController;
@@ -54,6 +55,7 @@ public:
 		_deepScan = old._deepScan;
 		_banks = old._banks;
 		_emittingData = old._emittingData;
+		_xSchedulePort = old._xSchedulePort;
 	}
 	IPObject(const std::string& ip, const std::string& viaProxy, bool pinged);
 	void SetXLightsController(ControllerEthernet* ce) { _xLightsController = ce; }

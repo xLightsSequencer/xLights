@@ -290,6 +290,11 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 {
 }
 
+void JobPool::SetMaxThreadCount(int maxThreads)
+{
+    if (maxThreads < MIN_JOBPOOLTHREADS) maxThreads = MIN_JOBPOOLTHREADS;
+    maxNumThreads = maxThreads;
+}
 
 JobPool::~JobPool()
 {
@@ -353,9 +358,9 @@ void JobPool::PushJob(Job *job)
     
     if (count > 0) {
         LockThreads();
-        if (numThreads == 0 && count < 4 && 4 < maxNumThreads) {
+        if (numThreads == 0 && count < MIN_JOBPOOLTHREADS && MIN_JOBPOOLTHREADS < maxNumThreads) {
             //when we create first thread, assume we'll need extras real soon
-            count = 4;
+            count = MIN_JOBPOOLTHREADS;
         }
         for (int i = 0; i < count; i++) {
             threads.push_back(new JobPoolWorker(this));
@@ -373,8 +378,8 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
         poolSize = 250;
     }
 
-    maxNumThreads = poolSize < 4 ? 4 : poolSize;
-    minNumThreads = minPoolSize < 4 ? 4 : minPoolSize;
+    maxNumThreads = poolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : poolSize;
+    minNumThreads = minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : minPoolSize;
     idleThreads = 0;
     numThreads = 0;
     logger_jobpool.info("Background thread pool started with %d threads", poolSize);
