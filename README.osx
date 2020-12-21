@@ -29,7 +29,7 @@ been added since then.  We also have several other fixes in place for background
 
 To get the latest code that we've tested, do:
 
-git clone  --recurse-submodules -b xlights_2020.56 https://github.com/dkulp/wxWidgets
+git clone  --recurse-submodules -b xlights_2020.56b https://github.com/dkulp/wxWidgets
 
 
 First, setup the target directories:
@@ -303,3 +303,4 @@ July 9, 2020 - tag: xlights_2020.28 - Update to prepare for moving to wxWidgets 
 July 16, 2020 - tag: xlights_2020.29 - Update to prepare for moving to wxWidgets 3.1.4, start preparing for ARM builds, fixes socket issues
 Oct  6, 2020 - tag: xlights_2020.41 - Fixes some Big Sur issues with fonts, colors
 Dec 18, 2020 - tag: xlights_2020.56 - Fixes some make install things in wxwidgets, some osx graphics memory leaks, font handle leaks, various colors
+Dec 21, 2020 - tag: xlights_2020.56b - Fixes potential crash when calling append/insert on wxCheckListBox
