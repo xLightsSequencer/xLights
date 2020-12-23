@@ -17,7 +17,7 @@
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="FPPInstanceList" member="yes">
 						<minsize>-1,150d</minsize>
 						<object class="wxFlexGridSizer" variable="FPPInstanceSizer" member="yes">
-							<cols>10</cols>
+							<cols>11</cols>
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">

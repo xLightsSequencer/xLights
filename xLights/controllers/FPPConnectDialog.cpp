@@ -106,7 +106,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	SplitterWindow1->SetSashGravity(0.5);
 	FPPInstanceList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	FPPInstanceList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
-	FPPInstanceSizer = new wxFlexGridSizer(0, 10, 0, 0);
+	FPPInstanceSizer = new wxFlexGridSizer(0, 11, 0, 0);
 	FPPInstanceList->SetSizer(FPPInstanceSizer);
 	FPPInstanceSizer->Fit(FPPInstanceList);
 	FPPInstanceSizer->SetSizeHints(FPPInstanceList);
@@ -248,6 +248,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     p->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::LocationPopupMenu, nullptr, this);
     
     AddInstanceHeader("Description");
+    AddInstanceHeader("Mode", "FPP Mode.");
     AddInstanceHeader("Version", "FPP Software Version.");
     AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
     AddInstanceHeader("Media", "Enable to Upload MP3, MP4 Media Files.");
@@ -319,8 +320,8 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         w->Destroy();
         w = tmp;
     }
-    while (FPPInstanceSizer->GetItemCount () > 10) {
-        FPPInstanceSizer->Remove(10);
+    while (FPPInstanceSizer->GetItemCount () > 11) {
+        FPPInstanceSizer->Remove(11);
     }
 
     int row = 0;
@@ -333,6 +334,8 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         wxStaticText *label = new wxStaticText(FPPInstanceList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, _T("ID_LOCATION_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->description, wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
+        FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+        label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->mode, wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODE_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->fullVersion, wxDefaultPosition, wxDefaultSize, 0, _T("ID_VERSION_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
