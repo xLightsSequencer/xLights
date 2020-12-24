@@ -115,6 +115,10 @@ using Code::Blocks, proceed to step 'd'.:
 
            # make uninstall
 
+         Use `make SUDO= PREFIX=/someplace` to install to an alternative
+         location without sudo as long as the path is writable as the current
+         user.  Set LD_LIBRARY_PATH=PREFIX/lib when running xLights.
+
      You may get some compiler warnings, however, the executable 'xLights'
      should get built in the ./bin directory.  The proper dependencies are
      not currently setup in the makefile to trigger rebuilds when some
