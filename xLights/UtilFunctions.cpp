@@ -1585,3 +1585,60 @@ wxString ExpandNodes(const wxString& nodes)
     return res;
 }
 
+void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max)
+{
+    for (auto& line : nodes) {
+        if(line.second.empty())
+            continue;
+        if(Contains(line.first, "Color"))
+            continue;
+        if(Contains(line.first, "Name"))
+            continue;
+        if(Contains(line.first, "Type"))
+            continue;
+        auto const oldnodes = ExpandNodes(line.second);
+        auto const oldNodeArray = wxSplit(oldnodes, ',');
+        wxArrayString newNodeArray;
+        for (auto const& node: oldNodeArray) {
+            long val;
+            if (node.ToCLong(&val) == true) {
+                long newVal = val + shift;
+                if (newVal > max) {
+                    newVal -= max;
+                }
+                else if (newVal < min) {
+                    newVal += max;
+                }
+                newNodeArray.Add( wxString::Format("%ld", newVal) );
+            }
+        }
+        if(newNodeArray.size() > 0)
+            line.second = CompressNodes(wxJoin(newNodeArray, ','));
+    }
+}
+
+void ReverseNodes(std::map<std::string, std::string> & nodes, int max)
+{
+    for (auto& line : nodes) {
+        if(line.second.empty())
+            continue;
+        if(Contains(line.first, "Color"))
+            continue;
+        if(Contains(line.first, "Name"))
+            continue;
+        if(Contains(line.first, "Type"))
+            continue;
+        auto const oldnodes = ExpandNodes(line.second);
+        auto const oldNodeArray = wxSplit(oldnodes, ',');
+        wxArrayString newNodeArray;
+        for (auto const& node: oldNodeArray) {
+            long val;
+            if (node.ToCLong(&val) == true) {
+                long newVal = max - val;
+                newNodeArray.Add( wxString::Format("%ld", newVal) );
+            }
+        }
+        if(newNodeArray.size() > 0)
+            line.second = CompressNodes(wxJoin(newNodeArray, ','));
+    }
+}

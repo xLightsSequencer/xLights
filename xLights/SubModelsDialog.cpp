@@ -27,6 +27,7 @@
 #include <wx/msgdlg.h>
 #include <wx/menu.h>
 #include <wx/tokenzr.h>
+#include <wx/numdlg.h>
 
 #include "SubModelsDialog.h"
 #include "models/Model.h"
@@ -52,10 +53,8 @@ const long SubModelsDialog::ID_LISTCTRL_SUB_MODELS = wxNewId();
 const long SubModelsDialog::ID_BUTTON3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON4 = wxNewId();
 const long SubModelsDialog::ID_BUTTONCOPY = wxNewId();
-const long SubModelsDialog::ID_BUTTON5 = wxNewId();
-const long SubModelsDialog::ID_BUTTON_COPY_MODEL = wxNewId();
-const long SubModelsDialog::ID_BUTTON_SUB_IMPORT = wxNewId();
-const long SubModelsDialog::ID_BUTTON9 = wxNewId();
+const long SubModelsDialog::ID_BUTTON_EDIT = wxNewId();
+const long SubModelsDialog::ID_BUTTON_IMPORT = wxNewId();
 const long SubModelsDialog::ID_BUTTON10 = wxNewId();
 const long SubModelsDialog::ID_PANEL4 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
@@ -78,6 +77,15 @@ const long SubModelsDialog::ID_PANEL5 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
 const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
+
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_GENERATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -121,9 +129,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
-	FlexGridSizer9->Add(ListCtrl_SubModels, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(4, 2, 0, 0);
+	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(164,201), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
+	FlexGridSizer9->Add(ListCtrl_SubModels, 0, wxALL|wxEXPAND, 5);
+	FlexGridSizer10 = new wxFlexGridSizer(4, 3, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	AddButton->SetToolTip(_("Add New Submodel"));
 	FlexGridSizer10->Add(AddButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
@@ -133,19 +141,13 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	ButtonCopy = new wxButton(Panel2, ID_BUTTONCOPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCOPY"));
 	ButtonCopy->SetToolTip(_("Copy Selected Submodel"));
 	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	Button_Generate = new wxButton(Panel2, ID_BUTTON5, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	Button_Generate->SetToolTip(_("Generate SubBuffer Slices"));
-	FlexGridSizer10->Add(Button_Generate, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	ButtonCopyModel = new wxButton(Panel2, ID_BUTTON_COPY_MODEL, _("Import from Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_COPY_MODEL"));
-	ButtonCopyModel->SetToolTip(_("Import Submodels from another model"));
-	FlexGridSizer10->Add(ButtonCopyModel, 1, wxALL|wxEXPAND, 5);
-	Button_Sub_Import = new wxButton(Panel2, ID_BUTTON_SUB_IMPORT, _("Import from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SUB_IMPORT"));
-	Button_Sub_Import->SetToolTip(_("Import Submodels from an .xmodel file"));
-	FlexGridSizer10->Add(Button_Sub_Import, 1, wxALL|wxEXPAND, 5);
-	Button_importCustom = new wxButton(Panel2, ID_BUTTON9, _("Import Custom"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-	Button_importCustom->SetToolTip(_("Import a Custom Model On a Matix as a Submodel"));
-	FlexGridSizer10->Add(Button_importCustom, 1, wxALL|wxEXPAND, 5);
-	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export as CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	Button_Edit = new wxButton(Panel2, ID_BUTTON_EDIT, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT"));
+	Button_Edit->SetToolTip(_("Generate SubBuffer Slices"));
+	FlexGridSizer10->Add(Button_Edit, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+	ButtonImport->SetToolTip(_("Import to Submodels"));
+	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND, 5);
+	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
 	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxSHAPED|wxFIXED_MINSIZE, 5);
@@ -256,10 +258,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_BUTTONCOPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_CopyClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_GenerateClick);
-	Connect(ID_BUTTON_COPY_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonCopyModelClick);
-	Connect(ID_BUTTON_SUB_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_ImportClick);
-	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_importCustomClick);
+	Connect(ID_BUTTON_EDIT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_EditClick);
+	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonImportClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomClick);
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
@@ -362,8 +362,8 @@ void SubModelsDialog::Setup(Model *m)
     model = m;
     modelPreview->SetModel(m);
 
-    if ((m->GetDisplayAs() == "Matrix" ||
-        m->GetDisplayAs() == "Tree") && m->GetDefaultBufferWi() > 1 && m->GetDefaultBufferHt() > 1)
+    if (/*(m->GetDisplayAs() == "Matrix" ||
+        m->GetDisplayAs() == "Tree") && */ m->GetDefaultBufferWi() > 1 && m->GetDefaultBufferHt() > 1)
     {
         _isMatrix = true;
     }
@@ -503,39 +503,65 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
 
 wxString SubModelsDialog::GenerateSubModelName(wxString basename)
 {
-    basename += "-";
+    if (IsUniqueName(basename))
+        return basename;
+    
+    wxRegEx re("(\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
+    if (re.Matches(basename)) {
+        wxString match = re.GetMatch(basename, 1);
+        int index = wxAtoi(match.ToStdString());
+        basename.Replace(match, wxString::Format("%d",++index), false);
+        return GenerateSubModelName(basename);
+    }
 
-    // Work out the next available default name
-    std::list<int> used;
-    for (int j = 0; j < ListCtrl_SubModels->GetItemCount(); j++)
-    {
-        wxString name = ListCtrl_SubModels->GetItemText(j);
+    return GenerateSubModelName(wxString::Format("%s-1", basename));
+}
 
-        if (name.StartsWith(basename) && name.Length() > basename.Length() && name.SubString(basename.Length(), name.Length() - 1).IsNumber())
-        {
-            int num = wxAtoi(name.SubString(basename.Length(), name.Length() - 1));
-            used.push_back(num);
+bool SubModelsDialog::IsUniqueName(wxString const& newname) const
+{
+    for (int j = 0; j < ListCtrl_SubModels->GetItemCount(); j++) {
+        wxString const& name = ListCtrl_SubModels->GetItemText(j);
+
+        if (name.IsSameAs(newname)) {
+            return false;
         }
     }
-
-    int i = 1;
-    while (std::find(used.begin(), used.end(), i) != used.end())
-    {
-        i++;
-    }
-
-    return wxString::Format("%s%d", basename, i);
+    return true;
 }
 
 void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
 {
-    wxString name = GenerateSubModelName("SubModel");
+    wxString name = GenerateSubModelName("SubModel-1");
 
     SubModelInfo* sm = new SubModelInfo(name);
     sm->vertical = false;
     sm->strands.clear();
     sm->strands.push_back("");
     sm->isRanges = true;
+    _subModels.push_back(sm);
+
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
+
+//Copy Selected SubModel
+void SubModelsDialog::OnButton_Sub_CopyClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "")
+        return;
+    SubModelInfo* sm = new SubModelInfo(*GetSubModelInfo(name));
+
+    name = GenerateSubModelName(name);
+
+    sm->name = name;
+    sm->oldName = name;
     _subModels.push_back(sm);
 
     long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
@@ -585,6 +611,89 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
     }
 
     ValidateWindow();
+}
+
+void SubModelsDialog::OnButton_EditClick(wxCommandEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(SUBMODEL_DIALOG_GENERATE, "Generate Slices");
+    if (ListCtrl_SubModels->GetItemCount() > 0) {
+        mnu.Append(SUBMODEL_DIALOG_FLIP_VER, "Flip All SubModels Vertical");
+        mnu.Append(SUBMODEL_DIALOG_FLIP_HOR, "Flip All SubModels Horizontial");
+        mnu.Append(SUBMODEL_DIALOG_SHIFT, "Shift All Nodes in All SubModels");
+        mnu.Append(SUBMODEL_DIALOG_REVERSE, "Reverse All Nodes in All SubModels");
+    }
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnEditBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
+    event.Skip();
+}
+
+void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_MODEL, "Import SubModels From Model");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_FILE, "Import SubModels From File");
+    if (_isMatrix) {
+        mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
+    }
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnImportBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
+    event.Skip();
+}
+
+void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == SUBMODEL_DIALOG_IMPORT_MODEL) {
+        //Import Submodels from another Model
+        xLightsFrame* xlights = xLightsApp::GetFrame();
+        wxArrayString choices = getModelList(&xlights->AllModels);
+        wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+        if (dlg.ShowModal() == wxID_OK) {
+            Model *m = xlights->GetModel(dlg.GetStringSelection());
+            ReadSubModelXML(m->GetModelXml());
+        }
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
+        //Import Submodels xModel File
+        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+        ImportSubModel(filename);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CUSTOM) {
+        //Import model as a overlay on matrix
+        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+        ImportCustomModel(filename);
+    }
+}
+
+void SubModelsDialog::OnEditBtnPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == SUBMODEL_DIALOG_GENERATE) {
+        Generate();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_FLIP_VER) {
+        FlipVertical();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_FLIP_HOR) {
+        FlipHorizontal();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SHIFT) {
+        Shift();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_REVERSE) {
+        Reverse();
+    }
+}
+
+void SubModelsDialog::OnButton_ExportCustomClick(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Save CSV File"), wxEmptyString, model->Name(), ".csv", "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    ExportSubModels(filename);
 }
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
@@ -665,7 +774,7 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     }
 }
 
-void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
+void SubModelsDialog::Generate()
 {
     SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
 
@@ -778,7 +887,6 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
 
     if (sm->isRanges)
     {
-        std::vector<wxString> newStrands;
         for (auto it = sm->strands.begin(); it != sm->strands.end(); ++it)
         {
             *it = ReverseRow(*it);
@@ -896,15 +1004,6 @@ void SubModelsDialog::PopulateList()
 
 void SubModelsDialog::ValidateWindow()
 {
-    if (_isMatrix)
-    {
-        Button_importCustom->Enable();
-    }
-    else
-    {
-        Button_importCustom->Enable(false);
-    }
-
     if (ListCtrl_SubModels->GetItemCount() <= 0)
     {
         ListCtrl_SubModels->Disable();
@@ -1473,7 +1572,7 @@ void SubModelsDialog::OnButton_SortRowClick(wxCommandEvent& event)
 
     wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
     wxArrayString oldNodeArrray = wxSplit(oldnodes, ',');
-   
+
     std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
         [](const wxString& a, const wxString& b)
         {
@@ -1601,13 +1700,6 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
 
 #pragma endregion
 
-void SubModelsDialog::OnButton_Sub_ImportClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
-    if (filename.IsEmpty()) return;
-    ImportSubModel(filename);
-}
-
 //Import SubModel From xModel File
 void SubModelsDialog::ImportSubModel(std::string filename)
 {
@@ -1687,45 +1779,7 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
     ValidateWindow();
 }
 
-//Import Submodels from another Model
-void SubModelsDialog::OnButtonCopyModelClick(wxCommandEvent& event)
-{
-    xLightsFrame* xlights = xLightsApp::GetFrame();
 
-    wxArrayString choices = getModelList(&xlights->AllModels);
-
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
-
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        Model *m = xlights->GetModel(dlg.GetStringSelection());
-        ReadSubModelXML(m->GetModelXml());
-    }
-}
-
-//Copy Selected SubModel
-void SubModelsDialog::OnButton_Sub_CopyClick(wxCommandEvent& event)
-{
-    wxString name = GetSelectedName();
-    if (name == "")
-        return;
-    SubModelInfo* sm = new SubModelInfo(*GetSubModelInfo(name));
-
-    name = GenerateSubModelName(name);
-
-    sm->name = name;
-    sm->oldName = name;
-    _subModels.push_back(sm);
-
-    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
-    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
-    ValidateWindow();
-    Select(name);
-
-    Panel3->SetFocus();
-    TextCtrl_Name->SetFocus();
-    TextCtrl_Name->SelectAll();
-}
 
 wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
 {
@@ -1796,13 +1850,6 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
 
         ValidateWindow();
     }
-}
-
-void SubModelsDialog::OnButton_importCustomClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
-    if (filename.IsEmpty()) return;
-    ImportCustomModel(filename);
 }
 
 void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap)
@@ -2091,16 +2138,6 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
     ValidateWindow();
 }
 
-void SubModelsDialog::OnButton_ExportCustomClick(wxCommandEvent& event)
-{
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Save CSV File"), wxEmptyString, model->Name(), ".csv", "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty()) return;
-
-    ExportSubModels(filename);
-}
-
 void SubModelsDialog::ExportSubModels(wxString const& filename)
 {
     wxFile f(filename);
@@ -2353,4 +2390,130 @@ void SubModelsDialog::RemoveNodes()
     ValidateWindow();
 }
 
+//Shift nodes  numbering 1->21, 100->120
+void SubModelsDialog::Shift()
+{
+    wxString name = GetSelectedName();
+    long min = 1;
+    long max = model->GetNodeCount();
+    
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            for (auto sm : _subModels) {
+                if (sm->isRanges) {
+                    for (int x = 0; x < sm->strands.size(); x++) {
+                        wxString oldnodes = ExpandNodes(sm->strands[x]);
+                        auto oldNodeArray = wxSplit(oldnodes, ',');
+                        wxArrayString newNodeArray;
+                        for (auto const& node: oldNodeArray) {
+                            long val;
+                            if (node.ToCLong(&val) == true) {
+                                long newVal = val + scaleFactor;
+                                if (newVal > max) {
+                                    newVal -= max;
+                                }
+                                else if (newVal < min) {
+                                    newVal += max;
+                                }
+                                newNodeArray.Add( wxString::Format("%ld", newVal) );
+                            }
+                        }
+                        sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                    }
+                }
+            }
+            ValidateWindow();
+            Select(name);
 
+            Panel3->SetFocus();
+            TextCtrl_Name->SetFocus();
+            TextCtrl_Name->SelectAll();
+        }
+    }
+}
+
+
+void SubModelsDialog::FlipHorizontal()
+{
+    wxString name = GetSelectedName();
+
+    for (auto a : _subModels) {
+        if (a->isRanges) {
+            for (auto & stand : a->strands) {
+                stand = ReverseRow(stand);
+            }
+        }
+    }
+    
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+
+}
+
+void SubModelsDialog::FlipVertical()
+{
+    wxString name = GetSelectedName();
+
+    for (auto a : _subModels) {
+        if (a->isRanges) {
+            if (a->strands.size() == 1) {
+                continue;
+            }
+
+            std::list<std::string> reordered;
+            for (auto it = a->strands.begin(); it != a->strands.end(); ++it) {
+                reordered.push_front(*it);
+            }
+
+            int i = 0;
+            for (auto it = reordered.begin(); it != reordered.end(); ++it) {
+                a->strands[i] = *it;
+                i++;
+            }
+        }
+    }
+    
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
+
+//reverse nodes  numbering 1->100, 100->1
+void SubModelsDialog::Reverse()
+{
+    wxString name = GetSelectedName();
+    long max = model->GetNodeCount() + 1;
+
+    for (auto sm : _subModels) {
+        if (sm->isRanges) {
+            for (int x = 0; x < sm->strands.size(); x++) {
+                wxString oldnodes = ExpandNodes(sm->strands[x]);
+                auto oldNodeArray = wxSplit(oldnodes, ',');
+                wxArrayString newNodeArray;
+                for (auto const& node: oldNodeArray) {
+                    long val;
+                    if (node.ToCLong(&val) == true) {
+                        long newVal = max - val;
+                        newNodeArray.Add( wxString::Format("%ld", newVal) );
+                    }
+                }
+                sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+            }
+        }
+    }
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}

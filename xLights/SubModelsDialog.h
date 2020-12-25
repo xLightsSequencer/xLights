@@ -15,6 +15,7 @@
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
 #include <wx/xml/xml.h>
+#include <wx/regex.h>
 
 #include <glm/glm.hpp>
 
@@ -114,18 +115,16 @@ public:
     wxButton* AddButton;
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
-    wxButton* ButtonCopyModel;
+    wxButton* ButtonImport;
     wxButton* Button_Draw_Model;
+    wxButton* Button_Edit;
     wxButton* Button_ExportCustom;
-    wxButton* Button_Generate;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
     wxButton* Button_ReverseNodes;
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
     wxButton* Button_SortRow;
-    wxButton* Button_Sub_Import;
-    wxButton* Button_importCustom;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -152,10 +151,8 @@ protected:
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
     static const long ID_BUTTONCOPY;
-    static const long ID_BUTTON5;
-    static const long ID_BUTTON_COPY_MODEL;
-    static const long ID_BUTTON_SUB_IMPORT;
-    static const long ID_BUTTON9;
+    static const long ID_BUTTON_EDIT;
+    static const long ID_BUTTON_IMPORT;
     static const long ID_BUTTON10;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
@@ -178,6 +175,15 @@ protected:
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
     //*)
+    
+    static const long SUBMODEL_DIALOG_IMPORT_MODEL;
+    static const long SUBMODEL_DIALOG_IMPORT_FILE;
+    static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
+    static const long SUBMODEL_DIALOG_GENERATE;
+    static const long SUBMODEL_DIALOG_SHIFT;
+    static const long SUBMODEL_DIALOG_FLIP_HOR;
+    static const long SUBMODEL_DIALOG_FLIP_VER;
+    static const long SUBMODEL_DIALOG_REVERSE;
 
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
@@ -190,6 +196,7 @@ protected:
     void MoveSelectedModelsTo(int indexTo);
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
+    bool IsUniqueName(wxString const& newname) const;
     void ImportCustomModel(std::string filename);
     void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
@@ -199,6 +206,12 @@ protected:
     void Select(const wxString &name);
     void SelectAll(const wxString &names);
     void UnSelectAll();
+    
+    void Generate();
+    void Shift();
+    void FlipHorizontal();
+    void FlipVertical();
+    void Reverse();
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
@@ -236,15 +249,14 @@ private:
     void OnButton_ReverseRowClick(wxCommandEvent& event);
     void OnButton_MoveDownClick(wxCommandEvent& event);
     void OnButton_MoveUpClick(wxCommandEvent& event);
-    void OnButton_Sub_ImportClick(wxCommandEvent& event);
-    void OnButtonCopyModelClick(wxCommandEvent& event);
     void OnButton_Sub_CopyClick(wxCommandEvent& event);
     void OnButton_Draw_ModelClick(wxCommandEvent& event);
     void OnNodesGridLabelLeftDClick(wxGridEvent& event);
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
-    void OnButton_importCustomClick(wxCommandEvent& event);
     void OnButton_ExportCustomClick(wxCommandEvent& event);
     void OnButton_SortRowClick(wxCommandEvent& event);
+    void OnButtonImportClick(wxCommandEvent& event);
+    void OnButton_EditClick(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -252,6 +264,9 @@ private:
     void OnPreviewLeftDown(wxMouseEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
+    
+    void OnImportBtnPopup(wxCommandEvent& event);
+    void OnEditBtnPopup(wxCommandEvent& event);
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);

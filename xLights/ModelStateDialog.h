@@ -83,6 +83,10 @@ class ModelStateDialog: public wxDialog
         static const long STATE_DIALOG_IMPORT_SUB;
         static const long STATE_DIALOG_IMPORT_MODEL;
         static const long STATE_DIALOG_IMPORT_FILE;
+        static const long STATE_DIALOG_COPY;
+        static const long STATE_DIALOG_RENAME;
+        static const long STATE_DIALOG_SHIFT;
+        static const long STATE_DIALOG_REVERSE;
 
 	private:
 
@@ -144,7 +148,12 @@ class ModelStateDialog: public wxDialog
     void AddStates(std::map<std::string, std::map<std::string, std::string> > states);
     wxArrayString getModelList(ModelManager* modelManager);
 
+    void CopyStateData();
+    void RenameState();
     void RemoveNodes();
+    
+    void ShiftStateNodes();
+    void ReverseStateNodes();
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);

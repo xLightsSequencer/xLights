@@ -24,6 +24,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/dir.h>
+#include <wx/numdlg.h>
 
 #include "../include/AI.xpm"
 #include "../include/E.xpm"
@@ -83,6 +84,8 @@ const long ModelFaceDialog::FACES_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_FILE = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_COPY = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_RENAME = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_SHIFT = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_REVERSE = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelFaceDialog,wxDialog)
 	//(*EventTable(ModelFaceDialog)
@@ -1288,6 +1291,14 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
     {
         RenameFace();
     }
+    else if (event.GetId() == FACES_DIALOG_SHIFT)
+    {
+        ShiftFaceNodes();
+    }
+    else if(event.GetId() == FACES_DIALOG_REVERSE)
+    {
+        ReverseFaceNodes();
+    }
 }
 
 void ModelFaceDialog::ImportFacesFromModel()
@@ -1417,6 +1428,9 @@ void ModelFaceDialog::OnButtonImportClick(wxCommandEvent& event)
     }
     mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
     mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
+    mnu.AppendSeparator();
+    mnu.Append(FACES_DIALOG_SHIFT, "Shift Nodes");
+    mnu.Append(FACES_DIALOG_REVERSE, "Reverse Nodes");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -1700,4 +1714,46 @@ void ModelFaceDialog::RemoveNodes()
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
+}
+
+void ModelFaceDialog::ShiftFaceNodes()
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+    
+    if (faceData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    long min = 0;
+    long max = model->GetNodeCount();
+    
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            ShiftNodes(faceData[name], scaleFactor, min, max);
+            SelectFaceModel(name);
+            UpdatePreview("", *wxWHITE);
+        }
+    }
+}
+
+void ModelFaceDialog::ReverseFaceNodes()
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+    
+    if (faceData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    
+    long max = model->GetNodeCount() + 1;
+
+    ReverseNodes(faceData[name], max);
+    SelectFaceModel(name);
+    UpdatePreview("", *wxWHITE);
 }

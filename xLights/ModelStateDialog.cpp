@@ -35,6 +35,7 @@
 #include <wx/colordlg.h>
 #include <wx/tokenzr.h>
 #include <wx/listbox.h>
+#include <wx/numdlg.h>
 
 //(*IdInit(ModelStateDialog)
 const long ModelStateDialog::ID_STATICTEXT2 = wxNewId();
@@ -57,6 +58,10 @@ const long ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_RENAME = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_SHIFT = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_REVERSE = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//(*EventTable(ModelStateDialog)
@@ -673,22 +678,20 @@ void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
 {
     wxMenu mnu;
+    if (DeleteButton->IsEnabled())
+    {
+        mnu.Append(STATE_DIALOG_COPY, "Copy");
+        mnu.Append(STATE_DIALOG_RENAME, "Rename");
+        mnu.AppendSeparator();
+    }
     mnu.Append(STATE_DIALOG_IMPORT_MODEL, "Import From Model");
     mnu.Append(STATE_DIALOG_IMPORT_FILE, "Import From File");
+    mnu.AppendSeparator();
+    mnu.Append(STATE_DIALOG_SHIFT, "Shift Nodes");
+    mnu.Append(STATE_DIALOG_REVERSE, "Reverse Nodes");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelStateDialog::OnAddBtnPopup, nullptr, this);
     PopupMenu(&mnu);
-    if (event.GetId() == STATE_DIALOG_IMPORT_MODEL)
-    {
-        ImportStatesFromModel();
-    }
-    else if (event.GetId() == STATE_DIALOG_IMPORT_FILE)
-    {
-        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
-        if (filename.IsEmpty()) return;
-
-        ImportStates(filename);
-    }
 }
 
 void ModelStateDialog::AddLabel(wxString label)
@@ -868,6 +871,22 @@ void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
         if (filename.IsEmpty()) return;
 
         ImportStates(filename);
+    }
+    else if (event.GetId() == STATE_DIALOG_COPY)
+    {
+        CopyStateData();
+    }
+    else if (event.GetId() == STATE_DIALOG_RENAME)
+    {
+        RenameState();
+    }
+    else if(event.GetId() == STATE_DIALOG_SHIFT)
+    {
+        ShiftStateNodes();
+    }
+    else if(event.GetId() == STATE_DIALOG_REVERSE)
+    {
+        ReverseStateNodes();
     }
 }
 
@@ -1218,4 +1237,95 @@ void ModelStateDialog::RemoveNodes()
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
+}
+
+void ModelStateDialog::CopyStateData()
+{
+    auto const index = NameChoice->GetSelection();
+    if (index == -1)
+        return;
+    auto const& currentName = NameChoice->GetString(index);
+    wxTextEntryDialog dlg(this, "Copy State", "Enter name for copied state definition", currentName);
+    if (dlg.ShowModal() == wxID_OK) {
+        std::string n = dlg.GetValue().ToStdString();
+        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+            NameChoice->Append(n);
+
+            stateData[n] = stateData[currentName];
+
+            NameChoice->SetSelection(NameChoice->GetCount() - 1);
+            NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+            SelectStateModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
+        } else {
+            DisplayError("'" + n + "' state definition already exists.");
+        }
+    }
+}
+
+void ModelStateDialog::RenameState()
+{
+    auto const index = NameChoice->GetSelection();
+    if (index == -1)
+        return;
+    auto const& currentName = NameChoice->GetString(index);
+    wxTextEntryDialog dlg(this, "Rename State", "Enter new name for state definition", currentName);
+    if (dlg.ShowModal() == wxID_OK) {
+        std::string n = dlg.GetValue().ToStdString();
+        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+            NameChoice->Delete(index);
+            NameChoice->Insert(n, index);
+
+            auto const state = std::move(stateData[currentName]);
+            stateData[n] = std::move(state);
+            stateData.erase(currentName);
+
+            NameChoice->SetSelection(index);
+            NameChoice->SetStringSelection(NameChoice->GetString(index));
+            SelectStateModel(NameChoice->GetString(index).ToStdString());
+        } else {
+            DisplayError("'" + n + "' state definition already exists.");
+        }
+    }
+}
+
+void ModelStateDialog::ShiftStateNodes()
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+    
+    if (stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    long min = 0;
+    long max = model->GetNodeCount();
+    
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            ShiftNodes(stateData[name], scaleFactor, min, max);
+            SelectStateModel(name);
+            UpdatePreview("", *wxWHITE);
+        }
+    }
+}
+
+void ModelStateDialog::ReverseStateNodes()
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
+    
+    if (stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    
+    long max = model->GetNodeCount() + 1;
+
+    ReverseNodes(stateData[name], max);
+    SelectStateModel(name);
+    UpdatePreview("", *wxWHITE);
 }
