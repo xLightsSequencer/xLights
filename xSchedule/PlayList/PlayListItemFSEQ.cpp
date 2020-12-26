@@ -72,8 +72,7 @@ std::string PlayListItemFSEQ::GetAudioFilename()
     {
         if (_fseqFile != nullptr)
         {
-            auto audio = _fseqFile->getMediaFilename();
-            audio = FixFile("", audio);
+            auto audio = FixFile("", _fseqFile->getMediaFilename());
             return audio;
         }
         else
@@ -82,7 +81,7 @@ std::string PlayListItemFSEQ::GetAudioFilename()
             {
                 return _cachedAudioFilename;
             }
-            _cachedAudioFilename = FSEQFile::getMediaFilename(_fseqFileName);
+            _cachedAudioFilename = FixFile("", FSEQFile::getMediaFilename(_fseqFileName));
             return _cachedAudioFilename;
         }
     }
@@ -388,11 +387,11 @@ void PlayListItemFSEQ::FastSetDuration()
         std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
 
         if (fseq) {
-            af = fseq->getMediaFilename();
+            af = FixFile("", fseq->getMediaFilename());
 
             if (!_overrideAudio && af != "" && wxFile::Exists(af))
             {
-                _durationMS = AudioManager::GetAudioFileLength(fseq->getMediaFilename());
+                _durationMS = AudioManager::GetAudioFileLength(af);
                 _controlsTimingCache = true;
 
                 // If the FSEQ is shorter than the audio ... then override the length
