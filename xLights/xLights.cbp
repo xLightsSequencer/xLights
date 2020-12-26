@@ -1081,6 +1081,10 @@
 		<Unit filename="models/StarModel.h" />
 		<Unit filename="models/SubModel.cpp" />
 		<Unit filename="models/SubModel.h" />
+		<Unit filename="models/TerrainScreenLocation.cpp" />
+		<Unit filename="models/TerrianObject.cpp" />
+		<Unit filename="models/TerrianObject.h" />
+		<Unit filename="models/TerrianScreenLocation.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
 		<Unit filename="models/ViewObject.cpp" />
@@ -1619,6 +1623,9 @@
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

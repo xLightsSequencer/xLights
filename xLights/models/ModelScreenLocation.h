@@ -36,11 +36,20 @@
 #define TOOL_ROTATE    2
 #define TOOL_XY_TRANS  3
 #define NUM_TOOLS      4
+#define TOOL_ELEVATE   5  // special tool so don't include in normal tool rotation
 
 #define UPGRADE_NOT_NEEDED 0
 #define UPGRADE_SKIPPED    1
 #define UPGRADE_EXEC_DONE  2
 #define UPGRADE_EXEC_READ  3
+
+// Lower 20 bits reserved to store handle positions and these
+// constants are modifiers to indicate special handles
+#define HANDLE_MASK    0x00FFFFF
+#define HANDLE_SEGMENT 0x1000000
+#define HANDLE_AXIS    0x0200000
+#define HANDLE_CP0     0x0400000
+#define HANDLE_CP1     0x0800000
 
 class wxXmlNode;
 class ModelPreview;
@@ -152,6 +161,10 @@ protected:
     virtual float GetRestorableMHeight() const { return GetMHeight(); }
     virtual float GetRestorableMDepth() const { return GetMDepth(); }
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
+    virtual void SetEdit(bool val) { }
+    virtual bool GetEdit() const { return false; }
+    virtual void SetToolSize(int sz) { tool_size = sz; };
+    virtual void* GetRawData() { return nullptr; }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);
@@ -186,6 +199,7 @@ protected:
     virtual void MouseOverHandle(int handle);
     int GetNumSelectableHandles() const { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
+    virtual bool IsElevationHandle() const { return false; }
     bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
@@ -249,6 +263,7 @@ protected:
     int highlighted_handle;
     int active_axis;
     int axis_tool;
+    int tool_size;
     bool supportsZScaling;
     bool createWithDepth;
     bool _startOnXAxis;
@@ -376,7 +391,8 @@ public:
     void SetCentreY(float y) { centery = y; worldPos_y = y; }
     void SetCentreZ(float z) { centerz = z; worldPos_z = z; }
 
-private:
+protected:
+    BoxedScreenLocation(int points);
     float perspective;
 
     mutable float centerx;

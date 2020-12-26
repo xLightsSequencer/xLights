@@ -196,6 +196,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS;
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
+        static const long ID_ADD_OBJECT_TERRIAN;
         static const long ID_ADD_OBJECT_RULER;
         static const long ID_ADD_OBJECT_MESH;
         static const long ID_ADD_DMX_MOVING_HEAD;

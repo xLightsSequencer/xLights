@@ -184,6 +184,7 @@ const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_TERRIAN = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
@@ -2925,7 +2926,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
             }
             if (m_over_handle != -1) {
-                if ((m_over_handle & 0x2000) > 0) {
+                if ((m_over_handle & HANDLE_AXIS) > 0) {
                     // an axis was selected
                     if (selectedBaseObject != nullptr) {
                         int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
@@ -2944,7 +2945,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                     }
                 }
-                else if ((m_over_handle & 0x10000) > 0) {
+                else if ((m_over_handle & HANDLE_SEGMENT) > 0) {
                     // a segment was selected
                     if (selectedBaseObject != nullptr) {
                         selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
@@ -3188,7 +3189,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     }
     else if (m_over_handle != -1)
     {
-        if ((m_over_handle & 0x10000) > 0) {
+        if ((m_over_handle & HANDLE_SEGMENT) > 0) {
             // a segment was selected
             if (selectedBaseObject != nullptr) {
                 selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
@@ -5483,6 +5484,7 @@ void LayoutPanel::DisplayAddObjectPopup() {
     wxMenu mnuObjects;
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_TERRIAN, "Terrian", add_object_terrian_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
     if (RulerObject::GetRuler() == nullptr) {
         AddObjectButton(mnuObjects, ID_ADD_OBJECT_RULER, "Ruler", add_object_ruler_xpm);
@@ -5511,6 +5513,15 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    }
+    else if (id == ID_ADD_OBJECT_TERRIAN)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_TERRIAN");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Terrian");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;

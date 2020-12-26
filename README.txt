@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2020.56 December 20 2020
+   -- enh (gil)    Add Terrain Object functionality
    -- bug (gil)    Fixed Mesh Objects drawing color only materials as grey.
    -- bug (gil)    Fixed Galaxy rounded ends not drawn correctly when start angle was non-zero.
    -- enh (keith)  Add xScanner - this is like an IP Scanner but with xLights/xSchedule/FPP awareness and thus helps to 

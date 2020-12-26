@@ -16,6 +16,7 @@
 #include "RulerObject.h"
 #include "ImageObject.h"
 #include "MeshObject.h"
+#include "TerrianObject.h"
 #include "xLightsMain.h"
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
@@ -60,9 +61,14 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         view_object = new RulerObject(node, *this);
     } else if (type == "Image") {
         view_object = new ImageObject(node, *this);
-    } else if (type == "Mesh") {
+    }
+    else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
-    } else {
+    }
+    else if (type == "Terrian") {
+        view_object = new TerrianObject(node, *this);
+    }
+    else {
         wxMessageBox(type + " is not a valid type for View Object " + node->GetAttribute("name"));
         return nullptr;
     }
@@ -85,6 +91,9 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     }
     else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
+    }
+    else if (type == "Terrian") {
+        view_object = new TerrianObject(node, *this);
     }
     else
     {
