@@ -352,6 +352,7 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
     for (const auto& it3 : ip._otherIPs)         {
         auto item = _tree->AppendItem(ti, "Network Interface");
         _tree->SetItemText(item, 1, it3);
+        
     }
 
     if (ip._mac != "") {

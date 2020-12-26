@@ -486,6 +486,14 @@ void Scanner::LookupMac(std::map<std::string, std::string>& arps, std::list<IPOb
 	}
 }
 
+std::string DecodeWifiStrength(int w)
+{
+	if (w > -50) return "Excellent";
+	if (w > -60) return "Good";
+	if (w > -70) return "Fair";
+	return "Weak";
+}
+
 void Scanner::IPScan(IPObject& it)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -499,10 +507,16 @@ void Scanner::IPScan(IPObject& it)
 	if (it._port80) {
 
 		logger_base.debug("    Getting FPP network interface config");
+
 		auto netconfig = Curl::HTTPSGet(it._ip + "/api/network/interface", "", "", FAST_TIMEOUT);
 		if (netconfig != "" && Contains(netconfig, "operstate")) {
 
 			it._type = "FPP";
+
+			wxJSONReader wifireader;
+			wxJSONValue wifiroot;
+			auto wificonfig = Curl::HTTPSGet(it._ip + "/api/network/wifi_strength", "", "", FAST_TIMEOUT);
+			bool fwifi = wifireader.Parse(wificonfig, &wifiroot) == 0;
 
 			wxJSONValue defaultValue = wxString("");
 			wxJSONReader reader;
@@ -516,7 +530,22 @@ void Scanner::IPScan(IPObject& it)
 					wxString operstate = n.Get("operstate", defaultValue).AsString();
 					wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
 					wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
-					if (operstate == "UP" && iip != "") it._otherIPs.push_back(label + " : " + iip);
+					if (operstate == "UP" && iip != "" && label != "") {
+						wxString wifiStrength = "";
+						if (label[0] == 'w' && fwifi) 							{
+							auto w = wifiroot.AsArray();
+							for (size_t j = 0; j < w->Count(); j++) 								{
+								auto ww = (*w)[j];
+								wxString iface = ww.Get("interface", defaultValue).AsString();
+								if (iface == label) 									{
+									int strength = ww.Get("level", wxJSONValue(0)).AsInt();
+									wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
+									break;
+								}
+							}
+						}
+						it._otherIPs.push_back(label + " : " + iip + wifiStrength);
+					}
 				}
 			}
 
