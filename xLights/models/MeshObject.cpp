@@ -32,7 +32,7 @@
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
     width(100), height(100), depth(100), brightness(100),
-    obj_loaded(false), mesh_only(false), diffuse_colors(false),
+    obj_loaded(false), mesh_only(false),
     mesh3d(nullptr)
 {
     SetFromXml(node);
@@ -55,7 +55,6 @@ void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
     checkAccessToFile(_objFile);
     mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
-    diffuse_colors = ModelXml->GetAttribute("Diffuse", "0") == "1";
 
     if (ModelXml->HasAttribute("Brightness")) {
         brightness = wxAtoi(ModelXml->GetAttribute("Brightness"));
@@ -81,8 +80,6 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
-    p->SetAttribute("UseCheckbox", true);
-    p = grid->Append(new wxBoolProperty("Diffuse Colors", "Diffuse", diffuse_colors));
     p->SetAttribute("UseCheckbox", true);
 }
 
@@ -121,17 +118,6 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::MeshOnly");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::MeshOnly");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::MeshOnly");
-        return 0;
-    } else if ("Diffuse" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Diffuse");
-        diffuse_colors = event.GetValue().GetBool();
-        if (diffuse_colors) {
-            ModelXml->AddAttribute("Diffuse", "1");
-        }
-        uncacheDisplayObjects();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::Diffuse");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::Diffuse");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::Diffuse");
         return 0;
     }
 
@@ -456,8 +442,6 @@ void MeshObject::loadObject() {
                           (const char *)GetName().c_str(),
                           (const char *)_objFile.c_str());
 
-        diffuse_colours_override = false;
-
         wxFileName fn(_objFile);
         
         wxFileName mtl(_objFile);
@@ -539,15 +523,11 @@ void MeshObject::loadObject() {
         }
 
         // create a default grey texture
-        if (textures.find("") == textures.end()) {
+        if (textures.find("missing_grey") == textures.end()) {
             logger_base.debug("Added in grey texture because no-name texture did not exist");
             wxImage i(16, 16);
             i.SetRGB(wxRect(0, 0, 16, 16), 128, 128, 128);
-            textures[""] = new Image(i);
-        }
-
-        if (textures.size() == 0)             {
-            diffuse_colours_override = true;
+            textures["missing_grey"] = new Image(i);
         }
     }
 }
@@ -604,11 +584,16 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
                         if (textures.find(diffuse_texname) != textures.end()) {
                             image_id = textures[diffuse_texname]->getID();
                         } else {
-                            if (std::find(_warnedTextures.begin(), _warnedTextures.end(), diffuse_texname) == _warnedTextures.end()) {
-                                logger_base.warn("Texture not found: %s", (const char*)diffuse_texname.c_str());
-                                _warnedTextures.push_back(diffuse_texname);
+                            if (diffuse_texname != "") {
+                                if (std::find(_warnedTextures.begin(), _warnedTextures.end(), diffuse_texname) == _warnedTextures.end()) {
+                                    logger_base.warn("Texture not found: %s", (const char*)diffuse_texname.c_str());
+                                    _warnedTextures.push_back(diffuse_texname);
+                                }
+                                image_id = textures["missing_grey"]->getID();
                             }
-                            image_id = -1;
+                            else {
+                                image_id = -1;
+                            }
                         }
                     }
                     last_material_id = current_material_id;
@@ -728,31 +713,11 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
                     
                     uint8_t colors[3][4];
                     for (int k = 0; k < 3; k++) {
+                        // just use diffuse color for now
+                        float red = diffuse[0];
+                        float green = diffuse[1];
+                        float blue = diffuse[2];
 
-                        // Combine normal and diffuse to get color.
-                        float normal_factor = 0.2f;
-                        float diffuse_factor = 1 - normal_factor;
-                        float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
-                            n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
-                            n[k][2] * normal_factor + diffuse[2] * diffuse_factor };
-                        float len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                        if (len2 > 0.0f) {
-                            float len = sqrtf(len2);
-
-                            c[0] /= len;
-                            c[1] /= len;
-                            c[2] /= len;
-                        }
-                        float red = c[0] * 0.5 + 0.5;
-                        float green = c[1] * 0.5 + 0.5;
-                        float blue = c[2] * 0.5 + 0.5;
-
-                        if (diffuse_colors || diffuse_colours_override) {
-                            // just use diffuse color for now
-                            red = diffuse[0];
-                            green = diffuse[1];
-                            blue = diffuse[2];
-                        }
                         float trans = materials[current_material_id].dissolve * 255.0f;
                         xlColor color(red * 255, green * 255, blue * 255, trans);
                         colors[k][0] = color.red;
