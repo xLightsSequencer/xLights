@@ -96,6 +96,28 @@ void SingleStrandEffect::SetDefaultParameters()
     SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
 }
 
+bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
+    // give the base class a chance to adjust any settings
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+}
+
+void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+    if (IsVersionOlder("2020.57", version)) {
+        SettingsMap& settings = effect->GetSettings();
+        if (settings.Contains("E_CHOICE_Chase_Type1")) {
+            std::string val = settings["E_CHOICE_Chase_Type1"];
+            if (val == "Dual Bounce") {
+                settings["E_CHOICE_Chase_Type1"] = "Dual Chase";
+            }
+        }
+    }
+}
+
 void SingleStrandEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandSkips(buffer, effect,
@@ -223,9 +245,11 @@ int mapChaseType(const std::string &Chase_Type) {
     if ("Right-Left" == Chase_Type) return 1;
     if ("Bounce from Left" == Chase_Type) return 2;
     if ("Bounce from Right" == Chase_Type) return 3;
-    if ("Dual Bounce" == Chase_Type) return 4;
+    if ("Dual Chase" == Chase_Type) return 4;
     if ("From Middle" == Chase_Type) return 5;
     if ("To Middle" == Chase_Type) return 6;
+    if ("Bounce to Middle" == Chase_Type) return 7;
+    if ("Bounce from Middle" == Chase_Type) return 8;
 
     return 0;
 }
@@ -280,13 +304,14 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     case 3: // "Auto reverse r-l"
         AutoReverse = true;
         break;
-    case 4: // "Bounce" // Note this should actually be called "Dual Chase" here and in the UI, not dual bounce. Because this doesn't set [AutoReverse] to true, so it's only chasing
+    case 4: // "Dual Chase"
         Dual_Chases = true;
         break;
-        /*case 6: // "Actual Dual Bounce" // This is all you'd have to do to have a dual bounce
-             Dual_Chases=true;
-             AutoReverse=true;
-             break;*/
+    case 7: // "Bounce to Middle"
+    case 8: // "Bounce from Middle"
+        Dual_Chases = true;
+        AutoReverse = true;
+        break;
     default:
         break;
     }
@@ -311,6 +336,13 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
 
     // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
     double rtval = (double)(buffer.curPeriod - buffer.curEffStartPer) / (double)(buffer.curEffEndPer - buffer.curEffStartPer);
+    if (chaseType == 8) {
+        // need to start in the middle for Bounce from Middle
+        rtval += 0.25;
+        if (rtval > 1.0f) {
+            rtval -= 1.0f;
+        }
+    }
     rtval *= chaseSpeed;
     while (rtval > 1.0) {
         rtval -= 1.0;

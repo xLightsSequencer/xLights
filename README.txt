@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2020.56 December 20 2020
+   -- enh (gil)    Singlestrand Effect: Dual Bounce renamed to Dual Chase and new styles Bounce to Middle and Bounce from Middle added.
    -- enh (gil)    Twinkle effect has new algorithm that is more random to cover all pixels.  Old algorithm can still be selected.
    -- enh (gil)    Add Terrain Object functionality
    -- bug (gil)    Fixed Mesh Objects drawing color only materials as grey.

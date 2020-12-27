@@ -176,9 +176,11 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	Choice_Chase_Type1->Append(_("Right-Left"));
 	Choice_Chase_Type1->Append(_("Bounce from Left"));
 	Choice_Chase_Type1->Append(_("Bounce from Right"));
-	Choice_Chase_Type1->Append(_("Dual Bounce"));
+	Choice_Chase_Type1->Append(_("Dual Chase"));
 	Choice_Chase_Type1->Append(_("From Middle"));
 	Choice_Chase_Type1->Append(_("To Middle"));
+	Choice_Chase_Type1->Append(_("Bounce to Middle"));
+	Choice_Chase_Type1->Append(_("Bounce from Middle"));
 	FlexGridSizer24->Add(Choice_Chase_Type1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Chase_Type1 = new xlLockButton(Panel1, ID_BITMAPBUTTON_CHOICE_Chase_Type1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Chase_Type1"));
