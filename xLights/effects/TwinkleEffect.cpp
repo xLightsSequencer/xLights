@@ -68,6 +68,23 @@ void TwinkleEffect::SetDefaultParameters()
     SetChoiceValue(tp->Choice_Twinkle_Style, "New Render Method");
 }
 
+bool TwinkleEffect::needToAdjustSettings(const std::string& version) {
+    // give the base class a chance to adjust any settings
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+}
+
+void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+    if (IsVersionOlder("2020.57", version)) {
+        SettingsMap& settings = effect->GetSettings();
+        settings["E_CHOICE_Twinkle_Style"] = "Old Render Method";
+    }
+}
+
 int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
     DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp)
 {
