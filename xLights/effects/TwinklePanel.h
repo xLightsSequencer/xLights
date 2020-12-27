@@ -14,6 +14,7 @@
 #include <wx/panel.h>
 class wxBitmapButton;
 class wxCheckBox;
+class wxChoice;
 class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
@@ -34,9 +35,11 @@ class TwinklePanel: public wxPanel
 		//(*Declarations(TwinklePanel)
 		BulkEditCheckBox* CheckBox_Twinkle_ReRandom;
 		BulkEditCheckBox* CheckBox_Twinkle_Strobe;
+		BulkEditChoice* Choice_Twinkle_Style;
 		BulkEditSlider* Slider_Twinkle_Count;
 		BulkEditSlider* Slider_Twinkle_Steps;
 		wxStaticText* StaticText104;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText85;
 		xlLockButton* BitmapButton24;
 		xlLockButton* BitmapButton_TwinkleCount;
@@ -55,6 +58,8 @@ class TwinklePanel: public wxPanel
 		static const long ID_SLIDER_Twinkle_Steps;
 		static const long IDD_TEXTCTRL_Twinkle_Steps;
 		static const long ID_BITMAPBUTTON_SLIDER_Twinkle_Steps;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Twinkle_Style;
 		static const long ID_CHECKBOX_Twinkle_Strobe;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe;
 		static const long ID_CHECKBOX_Twinkle_ReRandom;

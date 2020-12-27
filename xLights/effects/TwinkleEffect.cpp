@@ -65,6 +65,7 @@ void TwinkleEffect::SetDefaultParameters()
     SetSliderValue(tp->Slider_Twinkle_Steps, 30);
     SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
     SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
+    SetChoiceValue(tp->Choice_Twinkle_Style, "New Render Method");
 }
 
 int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
@@ -170,13 +171,34 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
     return 1;
 }
 
+static void place_twinkles(int lights_to_place, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
+                           int max_modulo, size_t colorcnt) {
+    while (lights_to_place > 0) {
+        int x = rand() % buffer.BufferWi;
+        int y = rand() % buffer.BufferHt;
+        int location = y * buffer.BufferWi + x;
+        if (strobe[location].x == -1) {
+            strobe[location].duration = rand() % max_modulo;
+            strobe[location].x = x;
+            strobe[location].y = y;
+            strobe[location].colorindex = rand() % colorcnt;
+            lights_to_place--;
+        }
+    }
+}
+
 void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 3);
     int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 30);
     bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
     bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
-    
+    const std::string& twinkle_style = SettingsMap["CHOICE_Twinkle_Style"];
+    bool new_algorithm = false;
+    if (twinkle_style == "New Render Method") {
+        new_algorithm = true;
+    }
+
     int lights = (buffer.BufferHt*buffer.BufferWi)*(Count / 100.0); // Count is in range of 1-100 from slider bar
     int step = 1;
     if (lights > 0) {
@@ -205,32 +227,53 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        strobe.clear();
-        for (int y=0; y < buffer.BufferHt; y++) {
-            for (int x=0; x < buffer.BufferWi; x++) {
-                i++;
-                if (i%step==1 || step==1) {
-                    int s = strobe.size();
-                    strobe.resize(s + 1);
-                    strobe[s].duration = rand() % max_modulo;
-                    
-                    strobe[s].x = x;
-                    strobe[s].y = y;
-                    
-                    strobe[s].colorindex = rand() % colorcnt;
+        if (new_algorithm) {
+            strobe.clear();
+            strobe.resize(buffer.BufferHt * buffer.BufferWi);
+            for (int s = 0; s < strobe.size(); ++s) {
+                strobe[s].x = -1;
+                strobe[s].duration = 0;
+            }
+            place_twinkles(lights, strobe, buffer, max_modulo, colorcnt);
+        }
+        else {
+            strobe.clear();
+            for (int y = 0; y < buffer.BufferHt; y++) {
+                for (int x = 0; x < buffer.BufferWi; x++) {
+                    i++;
+                    if (i % step == 1 || step == 1) {
+                        int s = strobe.size();
+                        strobe.resize(s + 1);
+                        strobe[s].duration = rand() % max_modulo;
+
+                        strobe[s].x = x;
+                        strobe[s].y = y;
+
+                        strobe[s].colorindex = rand() % colorcnt;
+                    }
                 }
             }
         }
     }
     
-    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe](int x) {
+    int lights_to_place = 0;
+    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, &lights_to_place](int x) {
         strobe[x].duration++;
+        if (new_algorithm) {
+            if (strobe[x].x == -1) {
+                return;
+            }
+        }
         if (strobe[x].duration < 0) {
             return;
         }
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
-            if (reRandomize) {
+            if (new_algorithm) {
+                strobe[x].x = -1;
+                lights_to_place++;
+            }
+            else if (reRandomize) {
                 strobe[x].duration -= rand() % max_modulo2;
                 strobe[x].colorindex = rand() % colorcnt;
             }
@@ -256,12 +299,15 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             xlColor color;
             buffer.palette.GetColor(strobe[x].colorindex, color);
             color.alpha = 255.0 * v;
-            buffer.SetPixel(strobe[x].x,strobe[x].y,color); // Turn pixel on
-        } else {
+            buffer.SetPixel(strobe[x].x, strobe[x].y, color); // Turn pixel on
+        }
+        else {
             buffer.palette.GetHSV(strobe[x].colorindex, hsv);
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
             hsv.value = v;
-            buffer.SetPixel(strobe[x].x,strobe[x].y,hsv); // Turn pixel on
+            buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
         }
     }, 500);
+
+    place_twinkles(lights_to_place, strobe, buffer, max_modulo, colorcnt);
 }

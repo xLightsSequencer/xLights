@@ -16,6 +16,7 @@
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/settings.h>
@@ -35,6 +36,8 @@ const long TwinklePanel::ID_STATICTEXT_Twinkle_Steps = wxNewId();
 const long TwinklePanel::ID_SLIDER_Twinkle_Steps = wxNewId();
 const long TwinklePanel::IDD_TEXTCTRL_Twinkle_Steps = wxNewId();
 const long TwinklePanel::ID_BITMAPBUTTON_SLIDER_Twinkle_Steps = wxNewId();
+const long TwinklePanel::ID_STATICTEXT1 = wxNewId();
+const long TwinklePanel::ID_CHOICE_Twinkle_Style = wxNewId();
 const long TwinklePanel::ID_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long TwinklePanel::ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long TwinklePanel::ID_CHECKBOX_Twinkle_ReRandom = wxNewId();
@@ -67,7 +70,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	BitmapButton_TwinkleCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton_TwinkleCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText104 = new wxStaticText(this, ID_STATICTEXT_Twinkle_Steps, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Twinkle_Steps"));
-	FlexGridSizer4->Add(StaticText104, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(StaticText104, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Twinkle_Steps = new BulkEditSlider(this, ID_SLIDER_Twinkle_Steps, 30, 2, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Steps"));
 	FlexGridSizer4->Add(Slider_Twinkle_Steps, 1, wxALL|wxEXPAND, 5);
 	TextCtrl80 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Twinkle_Steps, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Twinkle_Steps"));
@@ -76,6 +79,14 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	BitmapButton_TwinkleSteps = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Twinkle_Steps, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Twinkle_Steps"));
 	BitmapButton_TwinkleSteps->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton_TwinkleSteps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Twinkle_Style = new BulkEditChoice(this, ID_CHOICE_Twinkle_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Twinkle_Style"));
+	Choice_Twinkle_Style->SetSelection( Choice_Twinkle_Style->Append(_("Old Render Method")) );
+	Choice_Twinkle_Style->Append(_("New Render Method"));
+	FlexGridSizer4->Add(Choice_Twinkle_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Twinkle_Strobe = new BulkEditCheckBox(this, ID_CHECKBOX_Twinkle_Strobe, _("Strobe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle_Strobe"));
 	CheckBox_Twinkle_Strobe->SetValue(false);
