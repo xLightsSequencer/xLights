@@ -30,7 +30,7 @@ public:
     virtual void SetActiveAxis(int axis) override;
     virtual bool IsElevationHandle() const override { return active_handle > 0; }
     virtual bool CanEdit() const { return edit_active; }
-    virtual void SetEdit(bool val) { edit_active = val; }
+    virtual void SetEdit(bool val) override { edit_active = val; }
     virtual void* GetRawData() override { return (void*)&mPos; }
 
 private:

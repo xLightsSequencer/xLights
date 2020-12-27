@@ -183,6 +183,8 @@
 		67503CB323C3261F0033449B /* SubModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67503C8923C3261F0033449B /* SubModel.cpp */; };
 		67503CB423C3261F0033449B /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67503C8C23C3261F0033449B /* StarModel.cpp */; };
 		67503CB523C3261F0033449B /* ModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67503C8D23C3261F0033449B /* ModelManager.cpp */; };
+		6754C1AE2598DD2B00C276FF /* TerrianObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6754C1AA2598DD2B00C276FF /* TerrianObject.cpp */; };
+		6754C1AF2598DD2C00C276FF /* TerrainScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6754C1AD2598DD2B00C276FF /* TerrainScreenLocation.cpp */; };
 		6755B8691F75D304005EEEF5 /* FontManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755B8671F75D303005EEEF5 /* FontManager.cpp */; };
 		6755E89F23F040720014BA1F /* BaseController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755E89D23F040710014BA1F /* BaseController.cpp */; };
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
@@ -856,6 +858,10 @@
 		67503C8B23C3261F0033449B /* Shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Shapes.h; sourceTree = "<group>"; };
 		67503C8C23C3261F0033449B /* StarModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StarModel.cpp; sourceTree = "<group>"; };
 		67503C8D23C3261F0033449B /* ModelManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelManager.cpp; sourceTree = "<group>"; };
+		6754C1AA2598DD2B00C276FF /* TerrianObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TerrianObject.cpp; sourceTree = "<group>"; };
+		6754C1AB2598DD2B00C276FF /* TerrianObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TerrianObject.h; sourceTree = "<group>"; };
+		6754C1AC2598DD2B00C276FF /* TerrianScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TerrianScreenLocation.h; sourceTree = "<group>"; };
+		6754C1AD2598DD2B00C276FF /* TerrainScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TerrainScreenLocation.cpp; sourceTree = "<group>"; };
 		6755B8671F75D303005EEEF5 /* FontManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontManager.cpp; sourceTree = "<group>"; };
 		6755B8681F75D304005EEEF5 /* FontManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontManager.h; sourceTree = "<group>"; };
 		6755E89D23F040710014BA1F /* BaseController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BaseController.cpp; path = controllers/BaseController.cpp; sourceTree = "<group>"; };
@@ -1673,6 +1679,10 @@
 		67503C3B23C3261F0033449B /* models */ = {
 			isa = PBXGroup;
 			children = (
+				6754C1AD2598DD2B00C276FF /* TerrainScreenLocation.cpp */,
+				6754C1AA2598DD2B00C276FF /* TerrianObject.cpp */,
+				6754C1AB2598DD2B00C276FF /* TerrianObject.h */,
+				6754C1AC2598DD2B00C276FF /* TerrianScreenLocation.h */,
 				67503C6F23C3261F0033449B /* ArchesModel.cpp */,
 				67503C6623C3261F0033449B /* ArchesModel.h */,
 				67503C7523C3261F0033449B /* BaseObject.cpp */,
@@ -3171,6 +3181,7 @@
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67314FA024EEA1300070A7BA /* Minleon.cpp in Sources */,
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
+				6754C1AE2598DD2B00C276FF /* TerrianObject.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
@@ -3186,6 +3197,7 @@
 				67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */,
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
+				6754C1AF2598DD2C00C276FF /* TerrainScreenLocation.cpp in Sources */,
 				67FC881923D7751600D457CB /* ColorManagerSettingsPanel.cpp in Sources */,
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				673CAD5622F1D02400836D87 /* BulkEditFontPickerDialog.cpp in Sources */,
