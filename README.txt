@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix new Bounce to Middle Singlestrand option when Cycles is not equal to 1.
 2020.57 December 29 2020
    -- enh (gil)    Singlestrand Effect: Dual Bounce renamed to Dual Chase and new styles Bounce to Middle and Bounce from Middle added.
    -- enh (gil)    Twinkle effect has new algorithm that is more random to cover all pixels.  Old algorithm can still be selected.

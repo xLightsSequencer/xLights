@@ -338,7 +338,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     double rtval = (double)(buffer.curPeriod - buffer.curEffStartPer) / (double)(buffer.curEffEndPer - buffer.curEffStartPer);
     if (chaseType == 8) {
         // need to start in the middle for Bounce from Middle
-        rtval += 0.25;
+        rtval += 0.25 / chaseSpeed;
         if (rtval > 1.0f) {
             rtval -= 1.0f;
         }
