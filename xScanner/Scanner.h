@@ -24,6 +24,7 @@ public:
 	int _progressv = 1;
 	wxWindow* _frame = nullptr;
 	std::string _showDir;
+	bool _singleThreaded = false;
 	std::list<std::string> _ipscanned; //subnets + proxies scanned for ips
 	std::list<IPObject> GetIPsInSameSubnet(const std::string& ip) const;
 	std::list<IPObject> GetUndisplayedIPs() const;
@@ -41,6 +42,7 @@ public:
 	void CheckXSchedule(IPObject& ip, int port);
 	void IPScan(IPObject& it);
 	void SendProgress(int progress, const std::string& msg);
+	void SetSingleThreaded(bool st) { _singleThreaded = st; }
 
 	void PreScan(xScannerFrame* frame);
 	void Scan(xScannerFrame* frame);

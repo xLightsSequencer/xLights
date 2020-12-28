@@ -303,7 +303,13 @@ public:
 
             if (r != CURLE_OK)
             {
-                logger_base.error("Failure to access %s: %s.", (const char*)s.c_str(), curl_easy_strerror(r));
+                const char* err = curl_easy_strerror(r);
+                if (err == nullptr) {
+                    logger_base.error("Failure to access %s: %d.", (const char*)s.c_str(), r);
+                }
+                else {
+                    logger_base.error("Failure to access %s: %d: %s.", (const char*)s.c_str(), r, err);
+                }
             }
             else
             {

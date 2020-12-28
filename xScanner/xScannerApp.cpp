@@ -379,15 +379,13 @@ bool xScannerApp::OnInit()
     static const wxCmdLineEntryDesc cmdLineDesc[] =
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-        { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
-        { wxCMD_LINE_OPTION, "p", "playlist", "specify the playlist to play" },
+        { wxCMD_LINE_SWITCH, "s", "singlethreaded", "run the query process single threaded" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_NONE }
     };
 
     bool parmfound = false;
-    wxString showDir;
-    wxString playlist;
+    bool singleThreaded = false;
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
     case -1:
@@ -400,6 +398,12 @@ bool xScannerApp::OnInit()
             logger_base.info("-w: Wiping settings");
             WipeSettings();
         }
+        if (parser.Found("s")) {
+            parmfound = true;
+            logger_base.info("-s: Running single threaded");
+            singleThreaded = true;
+        }
+
         if (!parmfound && parser.GetParamCount() > 0)
         {
             logger_base.info("Unrecognised command line parameter found.");
@@ -416,7 +420,7 @@ bool xScannerApp::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	xScannerFrame* Frame = new xScannerFrame(0);
+    	xScannerFrame* Frame = new xScannerFrame(0, singleThreaded);
     	Frame->Show();
     	SetTopWindow(Frame);
     }

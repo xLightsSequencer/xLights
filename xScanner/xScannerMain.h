@@ -68,7 +68,7 @@ class xScannerFrame : public wxFrame
 
 public:
 
-        xScannerFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
+        xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID id = -1);
         virtual ~xScannerFrame();
         void CreateDebugReport(wxDebugReportCompress *report);
         void SendReport(const wxString &loc, wxDebugReportCompress &report);

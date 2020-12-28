@@ -9,8 +9,6 @@
 #include <iphlpapi.h>
 #endif
 
-//#define SINGLE_THREAD
-
 #include "Scanner.h"
 #include "xScannerMain.h"
 #include "../xLights/Parallel.h"
@@ -210,14 +208,8 @@ void Scanner::IPScan(const std::string& ip, const std::string& proxy)
 		}
 	};
 
-#ifdef SINGLE_THREAD
-	for (int i = 1; i < 255; i++) {
-		f(i);
-	}
-#else
 	// ping the direct networks on the computer
 	parallel_for(1, 255, std::move(f));
-#endif
 }
 
 bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
@@ -393,35 +385,34 @@ void Scanner::Scan(xScannerFrame* frame)
 		SendProgress(-1, "Querying " + o._name + ":" + o._ip);
 		IPScan(o);
 	};
-#ifdef SINGLE_THREAD
-	{
+
+	if (_singleThreaded) {
 		int i = 0;
 		for (auto& it : _ips) {
 			f(it, i++);
 		}
 	}
-#else
-	parallel_for(_ips, f, 1);
-#endif
+	else {
+		parallel_for(_ips, f, 1);
+	}
 
 	// if we found any extra IPs redo the scan
-	if (_extraips.size() > 0) 		{
+	if (_extraips.size() > 0) {
 		LookupMac(arps, _extraips);
 		UnifyxLightsController(_extraips, false);
 		UnifyDiscovery(_extraips, false);
-		for (const auto& it : _extraips) 			{
+		for (const auto& it : _extraips) {
 			_ips.push_back(IPObject(it));
 		}
-#ifdef SINGLE_THREAD
-		{
+		if (_singleThreaded) {
 			int i = 0;
 			for (auto& it : _ips) {
 				f(it, i++);
 			}
 		}
-#else
-		parallel_for(_ips, f, 1);
-#endif
+		else {
+			parallel_for(_ips, f, 1);
+		}
 	}
 
 	SendProgress(100, "Done");
@@ -507,14 +498,17 @@ void Scanner::IPScan(IPObject& it)
 	if (it._port80) {
 
 		logger_base.debug("    Getting FPP network interface config");
-
 		auto netconfig = Curl::HTTPSGet(it._ip + "/api/network/interface", "", "", FAST_TIMEOUT);
+
 		if (netconfig != "" && Contains(netconfig, "operstate")) {
 
+			logger_base.debug("    FPP found");
 			it._type = "FPP";
 
 			wxJSONReader wifireader;
 			wxJSONValue wifiroot;
+
+			logger_base.debug("    Getting wifi strength");
 			auto wificonfig = Curl::HTTPSGet(it._ip + "/api/network/wifi_strength", "", "", FAST_TIMEOUT);
 			bool fwifi = wifireader.Parse(wificonfig, &wifiroot) == 0;
 
@@ -525,26 +519,28 @@ void Scanner::IPScan(IPObject& it)
 				// extract the type of request
 				auto net = root.AsArray();
 
-				for (size_t i = 0; i < net->Count(); i++) {
-					auto n = (*net)[i];
-					wxString operstate = n.Get("operstate", defaultValue).AsString();
-					wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
-					wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
-					if (operstate == "UP" && iip != "" && label != "") {
-						wxString wifiStrength = "";
-						if (label[0] == 'w' && fwifi) 							{
-							auto w = wifiroot.AsArray();
-							for (size_t j = 0; j < w->Count(); j++) 								{
-								auto ww = (*w)[j];
-								wxString iface = ww.Get("interface", defaultValue).AsString();
-								if (iface == label) 									{
-									int strength = ww.Get("level", wxJSONValue(0)).AsInt();
-									wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
-									break;
+				if (net != nullptr) {
+					for (size_t i = 0; i < net->Count(); i++) {
+						auto n = (*net)[i];
+						wxString operstate = n.Get("operstate", defaultValue).AsString();
+						wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
+						wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
+						if (operstate == "UP" && iip != "" && label != "") {
+							wxString wifiStrength = "";
+							if (label[0] == 'w' && fwifi) {
+								auto w = wifiroot.AsArray();
+								for (size_t j = 0; j < w->Count(); j++) {
+									auto ww = (*w)[j];
+									wxString iface = ww.Get("interface", defaultValue).AsString();
+									if (iface == label) {
+										int strength = ww.Get("level", wxJSONValue(0)).AsInt();
+										wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
+										break;
+									}
 								}
 							}
+							it._otherIPs.push_back(label + " : " + iip + wifiStrength);
 						}
-						it._otherIPs.push_back(label + " : " + iip + wifiStrength);
 					}
 				}
 			}
@@ -610,13 +606,19 @@ void Scanner::IPScan(IPObject& it)
 				}
 			}
 		}
+		else 			{
+			logger_base.debug("    Not FPP");
+		}
 
 		if (it._type == "" || it._type == "Falcon") {
 			logger_base.debug("    Getting Falcon status");
 			auto status = Curl::HTTPSGet("http://" + it._ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
 			if (status != "" && Contains(status, "<response>\r\n")) {
+
+				logger_base.debug("    Falcon found");
 				it._type = "Falcon";
+
 				if (it._mode == "" || it._banks == "") {
 					wxXmlDocument doc;
 					doc.Load(wxStringInputStream(status));

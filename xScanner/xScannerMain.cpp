@@ -94,7 +94,7 @@ void xScannerFrame::PurgeCollectedData()
 {
 }
 
-xScannerFrame::xScannerFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
+xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID id)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -142,6 +142,8 @@ xScannerFrame::xScannerFrame(wxWindow* parent, const std::string& showdir, const
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
     SetIcons(icons);
+
+    _scanner.SetSingleThreaded(singleThreaded);
 
     Scan();
 
