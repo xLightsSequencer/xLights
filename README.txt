@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (david)  Linux set TCP_NODELAY for OpenPixelControl TCP Output
 2021.30 September 28, 2021
    -- enh (dkulp) Add Mr/Mrs Claus, Christmas Tree, Gift emoji to popup list
    -- enh (dkulp) Add skin tone for Emoji's (ShapeEffect)

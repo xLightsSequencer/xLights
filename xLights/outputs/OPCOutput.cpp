@@ -18,6 +18,12 @@
 
 #include <log4cpp/Category.hh>
 
+#ifdef __linux__
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#endif
+
 #pragma region Private Functions
 void OPCOutput::OpenSocket() {
 
@@ -55,6 +61,14 @@ void OPCOutput::OpenSocket() {
         else
         {
             logger_base.error("OPCOutput: OPC socket connected to %s.", (const char*)_remoteAddr.IPAddress().c_str());
+            #ifdef __linux__
+            // The pixels sent is timing sensitive, TCP_NODELAY disables
+            // Nagle algorithm to delay sending out TCP packets to combine
+            // with later data.  This needs to not delay or combine writes.
+            int optval = 1;
+            if(setsockopt(_socket->GetSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1)
+                logger_base.error("OPCOutput: failed to set TCP_NODELAY");
+            #endif
         }
     }
 }
