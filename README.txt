@@ -11,12 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2020.56 December 20 2020
+2020.57 December 29 2020
    -- enh (gil)    Singlestrand Effect: Dual Bounce renamed to Dual Chase and new styles Bounce to Middle and Bounce from Middle added.
    -- enh (gil)    Twinkle effect has new algorithm that is more random to cover all pixels.  Old algorithm can still be selected.
    -- enh (gil)    Add Terrain Object functionality
+   -- enh (keith)  Add FPP wifi strength to xScanner
+   -- enh (keith)  Massively increase the xScanner parallelism to improve scan speed
+   -- enh (keith)  Increase the maximum number of lines readable from a file by the text effect
+   -- enh (keith)  Remove controller tab Delete All button ... not as useful as it used to be and you can always select all in the 
+                   list instead and press delete
+   -- enh (keith)  Add sort by start channel to display elements sorting menu
+   -- enh (scott)  Added Flip/Shift/Reverse Nodes to the SubModel Dialog. Moved Generate and Import to dropdown menus under the new
+                   Edit and Import Buttons. Added Shift and Reverse Nodes to Faces and States dialog. Added Copy and Rename to 
+				   States dialog.
+   -- enh (scott)  Add mode column to FPP connect
    -- bug (gil)    Fixed Mesh Objects drawing color only materials as grey.
    -- bug (gil)    Fixed Galaxy rounded ends not drawn correctly when start angle was non-zero.
+   -- bug (keith)  Fix some situations where xSchedule does not automatically locate audio from FSEQ file
+   -- bug (keith)  Allow # in state names
+   -- bug (keith)  Fix xScanner crashing when encountering colorlite cards
+2020.56 December 20 2020
    -- enh (keith)  Add xScanner - this is like an IP Scanner but with xLights/xSchedule/FPP awareness and thus helps to 
                    identify your network setup and spot issues. If you are joining the xLights zoom room with 'network issues'
 				   I would recomend you run this first and be ready to show the results

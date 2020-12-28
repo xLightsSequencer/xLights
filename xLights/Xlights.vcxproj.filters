@@ -869,6 +869,12 @@
     <ClCompile Include="sequencer\Waveform.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
+    <ClCompile Include="models\TerrainScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\TerrianObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1744,6 +1750,12 @@
     </ClInclude>
     <ClInclude Include="sequencer\Waveform.h">
       <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TerrianObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TerrianScreenLocation.h">
+      <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
