@@ -490,7 +490,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer_Blend_Mode = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_Import_Blend_Mode = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Import Model Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-    CheckBox_Import_Blend_Mode->SetValue(false);
+    CheckBox_Import_Blend_Mode->SetValue(true);
     FlexGridSizer_Blend_Mode->Add(CheckBox_Import_Blend_Mode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Blend_Type = new wxStaticText(Panel1, ID_STATICTEXT_BLEND_TYPE, _("Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BLEND_TYPE"));
     FlexGridSizer_Blend_Mode->Add(StaticText_Blend_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -736,7 +736,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
 void xLightsImportChannelMapDialog::SetModelBlending(bool enabled) 
 {
-    wxString text = wxString::Format("Blending Between Models is %s.",( enabled ? "ENABLED" : "DISABLED"));
+    wxString text = wxString::Format("Model Blending is %s in source file.",( enabled ? "ENABLED" : "DISABLED"));
     StaticText_Blend_Type->SetLabelText(text);
 }
 

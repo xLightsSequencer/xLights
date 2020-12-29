@@ -17,7 +17,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="FSEQSaveCheckBox" member="yes">
-					<label>Save FSEQ On Save</label>
+					<label>Save FSEQ File On Save</label>
 					<handler function="OnFSEQSaveCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
 				<colspan>2</colspan>
@@ -28,14 +28,27 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="ModelBlendCheckBox" member="yes">
-					<label>Model Blending Default Off</label>
-					<handler function="OnModelBlendCheckBoxClick" entry="EVT_CHECKBOX" />
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText4" member="yes">
+					<label>Default Model Blending for New Sequences</label>
 				</object>
-				<colspan>2</colspan>
 				<col>0</col>
 				<row>1</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE4" variable="ModelBlendDefaultChoice" member="yes">
+					<content>
+						<item>Enabled</item>
+						<item>Disabled</item>
+					</content>
+					<selection>0</selection>
+					<handler function="OnModelBlendDefaultChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>1</row>
+				<flag>wxALL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -61,7 +74,7 @@
 				</object>
 				<col>1</col>
 				<row>2</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

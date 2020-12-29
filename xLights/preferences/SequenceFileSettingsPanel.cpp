@@ -29,7 +29,8 @@
 //(*IdInit(SequenceFileSettingsPanel)
 const long SequenceFileSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const long SequenceFileSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long SequenceFileSettingsPanel::ID_STATICTEXT1 = wxNewId();
+const long SequenceFileSettingsPanel::ID_CHOICE4 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHOICE1 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHOICE2 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHOICE3 = wxNewId();
@@ -65,19 +66,22 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	RenderOnSaveCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Render on Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	RenderOnSaveCheckBox->SetValue(false);
 	GridBagSizer1->Add(RenderOnSaveCheckBox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FSEQSaveCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Save FSEQ On Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	FSEQSaveCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Save FSEQ File On Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	FSEQSaveCheckBox->SetValue(false);
 	GridBagSizer1->Add(FSEQSaveCheckBox, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ModelBlendCheckBox = new wxCheckBox(this, ID_CHECKBOX3, _("Model Blending Default Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
-	ModelBlendCheckBox->SetValue(false);
-	GridBagSizer1->Add(ModelBlendCheckBox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT1, _("Default Model Blending for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	GridBagSizer1->Add(StaticText4, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ModelBlendDefaultChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
+	ModelBlendDefaultChoice->SetSelection( ModelBlendDefaultChoice->Append(_("Enabled")) );
+	ModelBlendDefaultChoice->Append(_("Disabled"));
+	GridBagSizer1->Add(ModelBlendDefaultChoice, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("Render Cache"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer1->Add(StaticText1, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	RenderCacheChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	RenderCacheChoice->Append(_("Enabled"));
 	RenderCacheChoice->SetSelection( RenderCacheChoice->Append(_("Locked Effects Only")) );
 	RenderCacheChoice->Append(_("Disabled"));
-	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Auto Save Interval"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer1->Add(StaticText2, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	AutoSaveIntervalChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
@@ -130,7 +134,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnRenderOnSaveCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnFSEQSaveCheckBoxClick);
-	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnModelBlendCheckBoxClick);
+	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnModelBlendDefaultChoiceSelect);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnRenderCacheChoiceSelect);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnAutoSaveIntervalChoiceSelect);
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnFSEQVersionChoiceSelect);
@@ -155,7 +159,8 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
     frame->SetEnableRenderCache(RenderCacheChoice->GetStringSelection());
     frame->SetRenderOnSave(RenderOnSaveCheckBox->IsChecked());
     frame->SetSaveFseqOnSave(FSEQSaveCheckBox->IsChecked());
-    frame->SetModelBlendDefaultOff(ModelBlendCheckBox->IsChecked());
+    frame->SetModelBlendDefaultOff(ModelBlendDefaultChoice->GetSelection());
+
     switch (AutoSaveIntervalChoice->GetSelection()) {
         case 0:
             frame->SetAutoSaveInterval(0);
@@ -186,7 +191,7 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
         mediaFolders.push_back(a.ToStdString());
     }
     frame->SetMediaFolders(mediaFolders);
-    
+
     frame->SetFSEQFolder(CheckBox_FSEQ->GetValue(), DirPickerCtrl_FSEQ->GetPath());
     frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
 
@@ -201,7 +206,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     RenderCacheChoice->SetStringSelection(rc);
     FSEQSaveCheckBox->SetValue(frame->SaveFseqOnSave());
     RenderOnSaveCheckBox->SetValue(frame->RenderOnSave());
-    ModelBlendCheckBox->SetValue(frame->ModelBlendDefaultOff());
+    ModelBlendDefaultChoice->SetSelection(frame->ModelBlendDefaultOff());
     switch (frame->AutoSaveInterval()) {
         case 30:
             AutoSaveIntervalChoice->SetSelection(5);
@@ -230,7 +235,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     CheckBox_FSEQ->SetValue(cb);
     DirPickerCtrl_FSEQ->SetPath(folder);
 
-    
+
     folder = frame->GetShowDirectory();
     for (auto &a : frame->GetMediaFolders()) {
         if (a != folder) {
@@ -256,13 +261,6 @@ void SequenceFileSettingsPanel::OnRenderOnSaveCheckBoxClick(wxCommandEvent& even
 }
 
 void SequenceFileSettingsPanel::OnFSEQSaveCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void SequenceFileSettingsPanel::OnModelBlendCheckBoxClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
@@ -392,4 +390,11 @@ void SequenceFileSettingsPanel::OnRemoveMediaButtonClick(wxCommandEvent& event)
 void SequenceFileSettingsPanel::OnMediaDirectoryListSelect(wxCommandEvent& event)
 {
     RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
+}
+
+void SequenceFileSettingsPanel::OnModelBlendDefaultChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
 }
