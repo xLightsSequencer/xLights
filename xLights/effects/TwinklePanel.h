@@ -38,6 +38,8 @@ class TwinklePanel: public wxPanel
 		BulkEditChoice* Choice_Twinkle_Style;
 		BulkEditSlider* Slider_Twinkle_Count;
 		BulkEditSlider* Slider_Twinkle_Steps;
+		BulkEditValueCurveButton* BitmapButton_Twinkle_CountVC;
+		BulkEditValueCurveButton* BitmapButton_Twinkle_StepsVC;
 		wxStaticText* StaticText104;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText85;
@@ -52,10 +54,12 @@ class TwinklePanel: public wxPanel
 		//(*Identifiers(TwinklePanel)
 		static const long ID_STATICTEXT_Twinkle_Count;
 		static const long ID_SLIDER_Twinkle_Count;
+		static const long ID_VALUECURVE_Twinkle_Count;
 		static const long IDD_TEXTCTRL_Twinkle_Count;
 		static const long ID_BITMAPBUTTON_SLIDER_Twinkle_Count;
 		static const long ID_STATICTEXT_Twinkle_Steps;
 		static const long ID_SLIDER_Twinkle_Steps;
+		static const long ID_VALUECURVE_Twinkle_Steps;
 		static const long IDD_TEXTCTRL_Twinkle_Steps;
 		static const long ID_BITMAPBUTTON_SLIDER_Twinkle_Steps;
 		static const long ID_STATICTEXT1;
@@ -71,6 +75,8 @@ class TwinklePanel: public wxPanel
 		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TwinklePanel)
+		void OnBitmapButton_Twinkle_CountVCClick(wxCommandEvent& event);
+		void OnBitmapButton_Twinkle_StepsVCClick(wxCommandEvent& event);
 		//*)
 
     DECLARE_EVENT_TABLE()

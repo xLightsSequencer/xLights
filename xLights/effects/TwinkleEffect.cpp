@@ -52,6 +52,8 @@ public:
     virtual ~TwinkleRenderCache() {};
     
     std::vector<StrobeClass> strobe;
+    int num_lights;
+    int lights_to_renew;
 };
 
 void TwinkleEffect::SetDefaultParameters()
@@ -60,6 +62,9 @@ void TwinkleEffect::SetDefaultParameters()
     if (tp == nullptr) {
         return;
     }
+
+    tp->BitmapButton_Twinkle_CountVC->SetActive(false);
+    tp->BitmapButton_Twinkle_StepsVC->SetActive(false);
 
     SetSliderValue(tp->Slider_Twinkle_Count, 3);
     SetSliderValue(tp->Slider_Twinkle_Steps, 30);
@@ -206,8 +211,9 @@ static void place_twinkles(int lights_to_place, std::vector<StrobeClass>& strobe
 
 void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
-    int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 3);
-    int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 30);
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int Count = GetValueCurveInt("Twinkle_Count", 3, SettingsMap, oset, 2, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Steps = GetValueCurveInt("Twinkle_Steps", 30, SettingsMap, oset, 2, 200, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
     bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
     const std::string& twinkle_style = SettingsMap["CHOICE_Twinkle_Style"];
@@ -217,6 +223,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     }
 
     int lights = (buffer.BufferHt*buffer.BufferWi)*(Count / 100.0); // Count is in range of 1-100 from slider bar
+
     int step = 1;
     if (lights > 0) {
         step = buffer.BufferHt*buffer.BufferWi / lights;
@@ -235,9 +242,21 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     if (cache == nullptr) {
         cache = new TwinkleRenderCache();
         buffer.infoCache[id] = cache;
+        cache->num_lights = lights;
+        cache->lights_to_renew = lights;
     }
     std::vector<StrobeClass> &strobe = cache->strobe;
-    
+
+    if (new_algorithm) {
+        cache->lights_to_renew += lights - cache->num_lights;
+    }
+    else {
+        if (lights != cache->num_lights) {
+            buffer.needToInit = true;
+        }
+    }
+    cache->num_lights = lights;
+
     size_t colorcnt=buffer.GetColorCount();
 
     int i = 0;
@@ -251,7 +270,6 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
                 strobe[s].x = -1;
                 strobe[s].duration = 0;
             }
-            place_twinkles(lights, strobe, buffer, max_modulo, colorcnt);
         }
         else {
             strobe.clear();
@@ -273,8 +291,14 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         }
     }
     
-    int lights_to_place = 0;
-    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, &lights_to_place](int x) {
+    if (new_algorithm) {
+        if (cache->lights_to_renew > 0) {
+            place_twinkles(cache->lights_to_renew, strobe, buffer, max_modulo, colorcnt);
+            cache->lights_to_renew = 0;
+        }
+    }
+
+    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm](int x) {
         strobe[x].duration++;
         if (new_algorithm) {
             if (strobe[x].x == -1) {
@@ -287,8 +311,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
             if (new_algorithm) {
-                strobe[x].x = -1;
-                lights_to_place++;
+                strobe[x].x = -99;
             }
             else if (reRandomize) {
                 strobe[x].duration -= rand() % max_modulo2;
@@ -326,5 +349,14 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         }
     }, 500);
 
-    place_twinkles(lights_to_place, strobe, buffer, max_modulo, colorcnt);
+    if (new_algorithm) {
+        int lights_to_renew = 0;
+        for (int s = 0; s < strobe.size(); ++s) {
+            if (strobe[s].x == -99) {
+                lights_to_renew++;
+                strobe[s].x = -1;
+            }
+        }
+        cache->lights_to_renew = lights_to_renew;
+    }
 }
