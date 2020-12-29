@@ -8,7 +8,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
  
-//#define TRACEMOVES
+#define TRACEMOVES
 
 //(*InternalHeaders(ViewsModelsPanel)
 #include <wx/intl.h>
@@ -695,12 +695,11 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
     else
     {
-        p -= GetTimingCount();
         if (p < 0) p = 0;
 
-        if (currentView == MASTER_VIEW)
+        if (currentView != MASTER_VIEW)
         {
-            p = _sequenceElements->GetIndexOfModelFromModelIndex(p);
+            p -= GetTimingCount();
         }
     }
 
@@ -966,7 +965,7 @@ void ViewsModelsPanel::ValidateWindow()
         Button_MakeMaster->Enable(true);
     }
 
-    if (GetSelectedModelCount() > 0)
+    if (GetSelectedItemCount() > 0)
     {
         Button_MoveUp->Enable(true);
         Button_MoveDown->Enable(true);
@@ -2383,7 +2382,7 @@ void ViewsModelsPanel::ClearUndo()
 
 void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 {
-    if (GetSelectedModelCount() == 0) return;
+    if (GetSelectionIsMixed()) return;
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2395,20 +2394,29 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
     for (int i = ListCtrlModels->GetItemCount()-1; i >= 0; --i)
     {
-        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING)
+        if (IsItemSelected(ListCtrlModels, i))
         {
+            if ((currentView != MASTER_VIEW) && (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING))
+            {
+                return;  // currently can only move timings in master view
+            }
+
             itemsMoved = true;
             int from = i;
 
             movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-            from -= GetTimingCount();
 
-            // not sure why we need to do this with the master only
+            // Only the master view contains the timings
             int to = from + 2;
-            if (currentView == MASTER_VIEW)
+            if (currentView != MASTER_VIEW)
             {
-                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
-                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                from -= GetTimingCount();
+                to -= GetTimingCount();
+            }
+
+            if (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+            {
+                if (to == GetTimingCount()+1) return;
             }
 
             if (to < 0) to = _sequenceElements->GetElementCount(currentView);
@@ -2443,6 +2451,44 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
     }
 }
 
+bool ViewsModelsPanel::GetSelectionIsMixed()
+{
+    int model_count = 0;
+    int timing_count = 0;
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i))
+        {
+            if (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+            {
+                timing_count++;
+            }
+            else
+            {
+                model_count++;
+            }
+        }
+    }
+
+    return ((model_count > 0) && (timing_count > 0));
+}
+
+int ViewsModelsPanel::GetSelectedItemCount()
+{
+    int count = 0;
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i))
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 int ViewsModelsPanel::GetSelectedModelCount()
 {
     int count = 0;
@@ -2460,6 +2506,8 @@ int ViewsModelsPanel::GetSelectedModelCount()
 
 void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 {
+    if (GetSelectionIsMixed()) return;
+
     SaveUndo();
     bool itemsMoved = false;
     int currentView = _sequenceViewManager->GetSelectedViewIndex();
@@ -2468,38 +2516,72 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
     int selcnt = 0;
         for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
         {
-            if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING)
+            if (IsItemSelected(ListCtrlModels, i))
             {
                 movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                int from = i - GetTimingCount();
 
                 // we are moving this one
-                itemsMoved = true;
+                int from = i;
                 int to = -1;
-                if (indexTo == -1)
+                itemsMoved = true;
+                if (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 {
-                    // moving to the end
-                    to = _sequenceElements->GetElementCount(currentView);
+                    if (currentView != MASTER_VIEW)
+                    {
+                        return;  // currently can only move timings in master view
+                    }
+
+                    if (indexTo == -1)
+                    {
+                        // moving to the end
+                        to = GetTimingCount();
+                    }
+                    else
+                    {
+                        to = indexTo + selcnt;
+                        if (to < 0) to = 0;
+                        if (from < to)
+                        {
+                            to -= selcnt;
+                        }
+                    }
+
                 }
                 else
                 {
-                    to = indexTo + selcnt - GetTimingCount();
-                    if (to < 0) to = 0;
-
-                    // not sure why we need to do this with the master only
-                    if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+                    if (indexTo == -1)
                     {
-                        from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
-                        to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                        // moving to the end
+                        if (currentView != MASTER_VIEW)
+                        {
+                            from -= GetTimingCount();
+                        }
+                        to = _sequenceElements->GetElementCount(currentView);
                     }
+                    else
+                    {
+                        to = indexTo + selcnt;
+                        int drop_delta = GetTimingCount() - indexTo;
+                        if (drop_delta > 0) to += drop_delta;
 
-                    if (to < 0) to = 0;
+                        // Only the master view contains the timings
+                        if (currentView != MASTER_VIEW)
+                        {
+                            from -= GetTimingCount();
+                            to -= GetTimingCount();
+                        }
+
+                        if (to < 0) to = 0;
+
+                        if (from < to)
+                        {
+                            to -= selcnt;
+                        }
+                    }
                 }
-
                 if (from < to)
                 {
                     from -= selcnt;
-                    to -= selcnt;
                 }
 
 #ifdef TRACEMOVES
@@ -2528,7 +2610,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 
 void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 {
-    if (GetSelectedModelCount() == 0) return;
+    if (GetSelectionIsMixed()) return;
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2540,23 +2622,36 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
-        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING)
+        if (IsItemSelected(ListCtrlModels, i))
         {
+            if ((currentView != MASTER_VIEW) && (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING))
+            {
+                return;  // currently can only move timings in master view
+            }
+
             itemsMoved = true;
             int from = i;
 
             movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-            from -= GetTimingCount();
 
-            // not sure why we need to do this with the master only
+            // Only the master view contains the timings
             int to = from - 1;
-            if (currentView == MASTER_VIEW)
+            if (currentView != MASTER_VIEW)
             {
-                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
-                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                from -= GetTimingCount();
+                to -= GetTimingCount();
             }
 
             if (to < 0) return;
+
+            if (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+            {
+                if (from == 0) return;
+            }
+            else
+            {
+                if ((currentView == MASTER_VIEW) && (from <= GetTimingCount())) return;
+            }
 
             if (firstsel < 0)
             {
@@ -2588,7 +2683,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
 void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 {
-    if (GetSelectedModelCount() == 0) return;
+    if (GetSelectionIsMixed()) return;
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2600,20 +2695,30 @@ void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
-        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING)
+        if (IsItemSelected(ListCtrlModels, i))
         {
+            if ((currentView != MASTER_VIEW) && (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING))
+            {
+                return;  // currently can only move timings in master view
+            }
+
             itemsMoved = true;
             int from = i;
 
             movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-            from -= GetTimingCount();
 
-            // not sure why we need to do this with the master only
+            // Only the master view contains the timings
             int to = selcnt;
-            if (currentView == MASTER_VIEW)
+            if (currentView != MASTER_VIEW)
             {
-                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
-                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                from -= GetTimingCount();
+            }
+            else
+            {
+                if (((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING)
+                {
+                    to += GetTimingCount();
+                }
             }
 
             if (to < 0) return;

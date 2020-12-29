@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Allow sorting Timing tracks for Master View in Display Elements dialog.
+   -- bug (gil)    Fix some drag/drop sorting issues in Display Elements dialog. (Hopefully didn't create new ones)
    -- enh (gil)    Twinkle effect: add value curves
    -- bug (gil)    Fix new Bounce to Middle Singlestrand option when Cycles is not equal to 1.
 2020.57 December 29 2020

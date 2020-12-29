@@ -111,7 +111,9 @@ class ViewsModelsPanel: public wxPanel
     void Undo();
     void ClearUndo();
     void MoveSelectedModelsTo(int indexTo);
+    int GetSelectedItemCount();
     int GetSelectedModelCount();
+    bool GetSelectionIsMixed();
 
     public:
 
