@@ -378,6 +378,9 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     GridNodes->SetLabelFont(font);
     font = GridNodes->GetDefaultCellFont();
     int fontsize = LoadInt("xLightsNodeSelectDialogZoom", font.GetPointSize());
+    if (fontsize == 0) {
+        fontsize = 8;
+    }
     font.SetPointSize(fontsize);
     GridNodes->SetDefaultCellFont(font);
     GridNodes->EndBatch();
@@ -675,11 +678,13 @@ void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
     GridNodes->Freeze();
     GridNodes->BeginBatch();
     wxFont font = GridNodes->GetLabelFont();
-    font.MakeSmaller();
-    GridNodes->SetLabelFont(font);
-    font = GridNodes->GetDefaultCellFont();
-    font.MakeSmaller();
-    GridNodes->SetDefaultCellFont(font);
+    if (font.GetPointSize() > 1) {
+        font.MakeSmaller();
+        GridNodes->SetLabelFont(font);
+        font = GridNodes->GetDefaultCellFont();
+        font.MakeSmaller();
+        GridNodes->SetDefaultCellFont(font);
+    }
     GridNodes->EndBatch();
     GridNodes->Thaw();
     SetGridSizeForFont(font);

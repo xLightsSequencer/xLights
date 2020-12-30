@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Prevent Node Select Grid zoom from being able to be reduced to 0 and recover if it has
    -- enh (gil)    Improve handle selection when handles overlap to help with resizing tiny models
    -- enh (gil)    Allow sorting Timing tracks for Master View in Display Elements dialog.
    -- bug (gil)    Fix some drag/drop sorting issues in Display Elements dialog. (Hopefully didn't create new ones)
