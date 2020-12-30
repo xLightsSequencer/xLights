@@ -595,6 +595,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
         float distance = 1000000000.0f;
 
         // Test each each Oriented Bounding Box (OBB).
+        int handles_found = 0;
         for (size_t i = 0; i < mSelectableHandles; i++)
         {
             float intersection_distance; // Output of TestRayOBBIntersection()
@@ -607,9 +608,20 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
                 ModelMatrix,
                 intersection_distance)
                 ) {
-                if (intersection_distance < distance) {
+                // this is designed to go for the 3rd handle if several handles overlap to
+                // prevent not being able to enlarge a model where someone just clicked
+                // without a drag during creation and have a tiny model
+                if (intersection_distance - distance < 0.001f) {
+                    handles_found++;
+                    if (intersection_distance - distance >= 0.0f) {
+                        if( handles_found < 4 ) {
+                            handle = i;
+                        }
+                    }
+                    else {
+                        handle = i;
+                    }
                     distance = intersection_distance;
-                    handle = i;
                     return_value = wxCURSOR_HAND;
                 }
             }
@@ -2156,6 +2168,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     }
 
     // Test each each Oriented Bounding Box (OBB).
+    int handles_found = 0;
     for (size_t i = 0; i < num_handles; i++)
     {
         if (VectorMath::TestRayOBBIntersection2D(
@@ -2165,6 +2178,10 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
             Identity)
             ) {
             handle = i + 1;
+            handles_found++;
+            if (handles_found == 2) {
+                break;  // if handles overlap we want the second sizing handle to take precedence
+            }
         }
     }
 
