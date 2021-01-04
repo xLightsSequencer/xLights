@@ -220,7 +220,7 @@ ffmpeg:   currently using 4.3.1 - needs x264 installed as above
 git clone https://git.ffmpeg.org/ffmpeg.git
 cd ffmpeg
 git checkout n4.3.1
-./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="${OSX_VERSION_MIN}" --disable-indev=lavfi --disable-libx264 --enable-gpl --enable-opengl --disable-programs
+./configure --disable-asm --disable-x86asm --enable-static --disable-shared --disable-securetransport --extra-cflags="${OSX_VERSION_MIN}" --disable-indev=lavfi --disable-libx264 --disable-lzma --enable-gpl --enable-opengl --disable-programs
 sed -i -e "s/^CFLAGS=/CFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^CXXFLAGS=/CXXFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
 sed -i -e "s/^LDFLAGS=/LDFLAGS=-g -O3 ${XL_TARGETS} /" ffbuild/config.mak
