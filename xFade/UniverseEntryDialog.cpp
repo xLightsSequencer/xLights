@@ -41,12 +41,12 @@ UniverseEntryDialog::UniverseEntryDialog(wxWindow* parent, int start, int end, s
 	FlexGridSizer2->AddGrowableCol(3);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Start:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_Start = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 1, _T("ID_SPINCTRL1"));
+	SpinCtrl_Start = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 0, 64000, 1, _T("ID_SPINCTRL1"));
 	SpinCtrl_Start->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("End:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_End = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 1, _T("ID_SPINCTRL2"));
+	SpinCtrl_End = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 0, 64000, 1, _T("ID_SPINCTRL2"));
 	SpinCtrl_End->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_End, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Destination IP:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -80,6 +80,7 @@ UniverseEntryDialog::UniverseEntryDialog(wxWindow* parent, int start, int end, s
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&UniverseEntryDialog::OnSpinCtrl_StartChange);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&UniverseEntryDialog::OnSpinCtrl_EndChange);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&UniverseEntryDialog::OnTextCtrl_IPAddressText);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&UniverseEntryDialog::OnChoice_ProtocolSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&UniverseEntryDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&UniverseEntryDialog::OnButton_CancelClick);
 	//*)
@@ -135,6 +136,29 @@ void UniverseEntryDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 
 void UniverseEntryDialog::ValidateWindow()
 {
+	if (Choice_Protocol->GetStringSelection() == "As per input") {
+		SpinCtrl_Start->SetMin(0);
+		SpinCtrl_End->SetMin(0);
+		SpinCtrl_Start->SetMax(64000);
+		SpinCtrl_End->SetMax(64000);
+	}
+	else if (Choice_Protocol->GetStringSelection() == "ArtNET") {
+		SpinCtrl_Start->SetMin(0);
+		SpinCtrl_End->SetMin(0);
+		SpinCtrl_Start->SetMax(32768);
+		SpinCtrl_End->SetMax(32768);
+		if (SpinCtrl_End->GetValue() > 32768) SpinCtrl_End->SetValue(32768);
+		if (SpinCtrl_Start->GetValue() > 32768) SpinCtrl_Start->SetValue(32768);
+	}
+	else {
+		if (SpinCtrl_End->GetValue() == 0) SpinCtrl_End->SetValue(1);
+		if (SpinCtrl_Start->GetValue() == 0) SpinCtrl_Start->SetValue(1);
+		SpinCtrl_Start->SetMin(1);
+		SpinCtrl_End->SetMin(1);
+		SpinCtrl_Start->SetMax(64000);
+		SpinCtrl_End->SetMax(64000);
+	}
+
     if (IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         Button_Ok->Enable();
@@ -143,4 +167,9 @@ void UniverseEntryDialog::ValidateWindow()
     {
         Button_Ok->Disable();
     }
+}
+
+void UniverseEntryDialog::OnChoice_ProtocolSelect(wxCommandEvent& event)
+{
+	ValidateWindow();
 }

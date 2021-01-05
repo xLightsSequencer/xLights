@@ -60,6 +60,7 @@ class UniverseEntryDialog: public wxDialog
 		void OnSpinCtrl_StartChange(wxSpinEvent& event);
 		void OnSpinCtrl_EndChange(wxSpinEvent& event);
 		void OnTextCtrl_IPAddressText(wxCommandEvent& event);
+		void OnChoice_ProtocolSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -21,7 +21,6 @@
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Start" member="yes">
 							<value>1</value>
-							<min>1</min>
 							<max>64000</max>
 							<handler function="OnSpinCtrl_StartChange" entry="EVT_SPINCTRL" />
 						</object>
@@ -40,7 +39,6 @@
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_End" member="yes">
 							<value>1</value>
-							<min>1</min>
 							<max>64000</max>
 							<handler function="OnSpinCtrl_EndChange" entry="EVT_SPINCTRL" />
 						</object>
@@ -80,6 +78,7 @@
 								<item>ArtNET</item>
 							</content>
 							<selection>0</selection>
+							<handler function="OnChoice_ProtocolSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

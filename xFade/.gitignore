@@ -7,3 +7,4 @@ Release/
 obj/
 x64/
 *.depend
+/xFade.vcxproj.user
