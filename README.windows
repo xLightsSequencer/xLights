@@ -11,7 +11,7 @@ http://www.nutcracker123.com/nutcracker/releases/
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights is 3.1.1.  Do not use the pre-compiled
+of wxWidgets for xLights is 3.1.4.  Do not use the pre-compiled
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
 We support both the CodeBlocks/MinGW compiler and the VisualStudio/MS Visual C++ compiler for Windows builds.
@@ -21,9 +21,9 @@ Instructions for MinGW 32 Bit
 
 Here are the steps to compile xLights for Windows using the MinGW compiler.
 
-  a) Install Code::Blocks for Windows (currently using version 17.12)
+  a) Install Code::Blocks for Windows (currently using version 20.03)
 
-     Download and install the codeblocks-17.12-setup.exe file from here:
+     Download and install the codeblocks-20.03-setup.exe file from here:
         http://www.codeblocks.org/downloads/binaries
 
   b) Install MinGW for Windows (currently using version 8.1.0)
@@ -32,7 +32,7 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the i686-posix-dwarf link.
 
-  b) wxWidgets for Windows (currently using version 3.1.3)
+  b) wxWidgets for Windows (currently using version 3.1.4)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -97,9 +97,9 @@ Instructions for MinGW 64-bit
 
 Here are the steps to compile xLights for Windows using the MinGW 64-bit compiler.
 
-  a) Install Code::Blocks for Windows (currently using version 17.12)
+  a) Install Code::Blocks for Windows (currently using version 20.03)
 
-     Download and install the codeblocks-17.12-setup.exe file from here:
+     Download and install the codeblocks-20.03-setup.exe file from here:
         http://www.codeblocks.org/downloads/binaries
 
   b) Install MinGW for Windows (currently using version 8.1)
@@ -108,7 +108,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the x86_64-posix-seh link.
 
-  c) wxWidgets for Windows (currently using version 3.1.3)
+  c) wxWidgets for Windows (currently using version 3.1.4)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -180,7 +180,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
 
-  c) Download and build wxWidgets for Windows (currently using version 3.1.3)
+  c) Download and build wxWidgets for Windows (currently using version 3.1.4)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -198,9 +198,9 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 	 3) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
 	    - <basedir>\wxWidgets\build\msw\vc_mswuddll
 		- <basedir>\wxWidgets\build\msw\vc_mswudll
-	 4) Open the project <basedir>\wxWidgets\build\msw\vc16.sln
+	 4) Open the project <basedir>\wxWidgets\build\msw\vc17.sln
 	 5) Compile both a release and a debug version
-     6) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets-3.1.3 )
+     6) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets-3.1.4 )
 
    d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
 
