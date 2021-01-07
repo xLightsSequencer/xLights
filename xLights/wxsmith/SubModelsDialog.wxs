@@ -92,7 +92,7 @@
 												<tooltip>Import to Submodels</tooltip>
 												<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxEXPAND</flag>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -102,12 +102,12 @@
 												<tooltip>Export SubModel as CSV File</tooltip>
 												<handler function="OnButton_ExportCustomClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxEXPAND</flag>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxSHAPED|wxFIXED_MINSIZE</flag>
+									<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

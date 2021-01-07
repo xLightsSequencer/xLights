@@ -146,11 +146,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer10->Add(Button_Edit, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	ButtonImport->SetToolTip(_("Import to Submodels"));
-	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
-	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxSHAPED|wxFIXED_MINSIZE, 5);
+	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
 	FlexGridSizer9->SetSizeHints(Panel2);
