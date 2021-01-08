@@ -7315,9 +7315,13 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             }
 
             if (model->GetDisplayAs() == "ModelGroup") {
-                dynamic_cast<ModelGroup*>(model)->AddModel(wxJoin(models, ','));
+                ModelGroup *group = (ModelGroup*)model;
                 for (const auto& m : models) {
-                    logger_base.debug("    Models model group '%s' added model '%s'.", (const char*)name.c_str(), (const char*)m.c_str());
+                    // only add model to group if it doesn't already exist
+                    if (group->GetModel(m) == nullptr) {
+                        group->AddModel(m);
+                        logger_base.debug("    Models model group '%s' added model '%s'.", (const char*)name.c_str(), (const char*)m.c_str());
+                    }
                 }
             }
         }
