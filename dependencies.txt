@@ -6,8 +6,8 @@ Library:     wxWidgets
 Usage:       Platform independence
 Link:        https://www.wxwidgets.org/
 Source:      https://github.com/wxWidgets/wxWidgets
-Last Pulled: ?
-Version:     3.1.0
+Last Pulled: Jan 6, 2021
+Version:     3.1.4 [As at Jan 2021 this is the latest version]
 License:     wxWindows Library License
 Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git. Windows 64 bit release binaries are included in the repository.
 
@@ -16,7 +16,7 @@ Usage:       Logging
 Link:        http://log4cpp.sourceforge.net/
 Source:      https://sourceforge.net/p/log4cpp/codegit/ci/master/tree/
 Last Pulled: July 13 2017
-Version:     1.1.3
+Version:     1.1.3 [As at Jan 2021 this is the latest version]
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -25,7 +25,7 @@ Usage:       HTTPS
 Link:        https://curl.haxx.se/libcurl/
 Source:      https://github.com/curl/curl
 Last Pulled: Feb13, 2019
-Version:     7.64.0
+Version:     7.64.0 [latest available as at Jan 2021 is 7.74.0]
 License:     MIT Style but more complex
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -34,7 +34,7 @@ Usage:       FFT for audio analysis
 Link:        https://sourceforge.net/projects/kissfft/
 Source:      https://sourceforge.net/p/kissfft/code/ci/default/tree/
 Last Pulled: ?
-Version:     ?
+Version:     ? [latest available as at Jan 2021 is 1.3.0 released Jul 2012]
 Licence:     BSD
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -43,7 +43,7 @@ Usage:       Audio and Video processing
 Link:        https://www.ffmpeg.org/
 Source:      https://github.com/FFmpeg/FFmpeg
 Last Pulled: Oct 10, 2019 - Windows binaries directly from ffmpeg.org
-Version:     4.2.1
+Version:     4.2.1 [latest available as at Jan 2021 is 4.3.1]
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -52,7 +52,7 @@ Usage:       Audio playback
 Link:        https://www.libsdl.org/
 Source:      http://hg.libsdl.org/SDL
 Last Pulled: 23/6/2018
-Version:     2.0.8
+Version:     2.0.8 [latest available as at Jan 2021 is 2.0.14]
 License:     zlib
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -70,7 +70,7 @@ Usage:       Liquid Effect
 Link:        http://google.github.io/liquidfun/
 Source:      https://github.com/google/liquidfun
 Last Pulled: ?
-Version:     ?
+Version:     1.1.0 [latest available as at Jan 2021 is 1.1.0 released July 2014]
 License:     ?
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries.
 
@@ -79,7 +79,7 @@ Usage:       xSchedule JSON message processing
 Link:        http://luccat.users.sourceforge.net/wxjson/
 Source:      http://svn.code.sf.net/p/wxcode/code/trunk/wxCode/components/wxjson/
 Last Pulled: ?
-Version:     ?
+Version:     ? [latest available as at Jan 2021 is 1.2 released Dec 2009]
 License:     wxWindows Library License
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -88,7 +88,7 @@ Usage:       xSchedule web server
 Link:        https://sourceforge.net/projects/wxhttpserver/
 Source:      https://sourceforge.net/p/wxhttpserver/code/HEAD/tree/
 Last Pulled: ?
-Version:     ?
+Version:     ? [latest available as at Jan 2021 seems to be April 2014]
 License:     GPL2
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -97,7 +97,7 @@ Usage:       Talking to midi devices
 Link:        http://wxcode.sourceforge.net/docs/wxmidi/
 Source:      https://sourceforge.net/projects/wxcode/files/Components/wxMidi/
 Last Pulled: Jan 2018
-Version:     2.0
+Version:     2.0 [latest available as at Jan 2021 is 2.0 released Jan 2013]
 License:     ?
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -106,7 +106,7 @@ Usage:       Underlying library used by wxMIDI
 Link:        http://portmedia.sourceforge.net/portmidi/
 Source:      https://sourceforge.net/projects/portmedia/files/portmidi/
 Last Pulled: Jan 2018
-Version:     217
+Version:     217 [latest available as at Jan 2021 is 217 released Oct 2010]
 License:     ?
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -115,7 +115,7 @@ Usage:       MIDI file reading for Piano effect
 Link:        http://midifile.sapp.org/
 Source:      https://github.com/craigsapp/midifile
 Last Pulled: ?
-Version:     ?
+Version:     ? [As at Jan 2021 this seems to have been last updated Jun 2020 ... I doubt we have this change included]
 License:     freeBSD
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -124,7 +124,7 @@ Usage:       XML parsing without loading really large XML files in their entiret
 Link:        
 Source:      https://github.com/spsoft/spxml
 Last Pulled: ?
-Version:     ?
+Version:     ? [As at Jan 2021 this was last updated Mar 2015]
 License:     LGPL
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -133,7 +133,7 @@ Usage:       ?
 Link:        https://glm.g-truc.net/0.9.8/index.html
 Source:      https://github.com/g-truc/glm
 Last Pulled: ?
-Version:     ?
+Version:     ? [as at Jan 2021 latest version seems to be 0.9.9.8 which was released Apr 2020 ... I doubt we have this change included]
 License:     MIT License
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
@@ -178,7 +178,7 @@ Usage:       read/write of v2 FSEQ files
 Link:        https://github.com/facebook/zstd
 Source:      https://github.com/facebook/zstd
 Last Pulled:
-Version:
+Version:	 [latest version available as at Jan 2021 is 1.4.8 released Dec 2020 ... I doubt this is the version we are using]
 License:     BSD
 Strategy:    zstd.h header added to xLights repository, static libraries added to lib for OSX/Windows
 
@@ -187,7 +187,7 @@ Usage:       read/write of v2 FSEQ files
 Link:        http://zlib.net/
 Source:      https://github.com/madler/zlib
 Last Pulled:
-Version:     1.2.11
+Version:     1.2.11 [Latest version as at Jan 2021 is 1.2.11 released Jan 2017]
 License:     zlib
 Strategy:    header added to xLights repository include/zlib, static libraries added to lib for Windows
 
@@ -196,6 +196,6 @@ Usage:       generate and consume SMTPE timecode
 Link:        https://github.com/x42/libltc
 Source:      https://github.com/x42/libltc
 Last Pulled: 2019-09-27
-Version:     
+Version:     1.3.1 [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
 License:     GNU Lesser GPL2
 Strategy:    Header added to repository. static libraries added for windows
