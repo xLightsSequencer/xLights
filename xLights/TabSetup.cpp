@@ -1582,7 +1582,7 @@ void xLightsFrame::SetControllersProperties() {
             auto eth = dynamic_cast<ControllerEthernet*>(controller);
             auto caps = GetControllerCaps(selections.front());
             if (caps != nullptr && caps->SupportsUpload() && usingip == 1) {
-                if (caps->SupportsInputOnlyUpload() && (eth == nullptr || ((eth->GetProtocol() != OUTPUT_DDP || caps->NeedsDDPInputUpload()) && eth->GetProtocol() != OUTPUT_ZCPP))) {
+                if (_linkedControllerUpload == "None" && caps->SupportsInputOnlyUpload() && (eth == nullptr || ((eth->GetProtocol() != OUTPUT_DDP || caps->NeedsDDPInputUpload()) && eth->GetProtocol() != OUTPUT_ZCPP))) {
                     ButtonUploadInput->Enable();
                 }
                 else {
@@ -2129,16 +2129,19 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 
     auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
 
-    bool ok = true;
-    if (IsControllerUploadLinked() && ButtonUploadInput->IsEnabled()) {
-        SetStatusText("Uploading inputs and outputs.");
-        ok = UploadInputToController(controller);
-    }
-    else {
-        SetStatusText("Uploading outputs");
-    }
+    if (controller != nullptr) {
+        bool ok = true;
+        auto caps = GetControllerCaps(controller->GetName());
+        if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
+            SetStatusText("Uploading inputs and outputs.");
+            ok = UploadInputToController(controller);
+        }
+        else {
+            SetStatusText("Uploading outputs");
+        }
 
-    if (ok) UploadOutputToController(controller);
+        if (ok) UploadOutputToController(controller);
+    }
 
     SetCursor(wxCURSOR_ARROW);
 }
