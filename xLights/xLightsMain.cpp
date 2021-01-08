@@ -10034,6 +10034,10 @@ void xLightsFrame::CollectUserEmail()
     if (dlg.ShowModal() == wxID_OK) {
         SetUserEMAIL(dlg.GetEmail());
     }
+    else {
+        // if the user cancels assume they want it set to the prior address
+        SetUserEMAIL(_userEmail);
+    }
 }
 
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
