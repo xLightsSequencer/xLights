@@ -6615,6 +6615,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
     }
+    else if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
+    {
+        ReplaceModel();
+    }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
         ShowNodeLayout();
