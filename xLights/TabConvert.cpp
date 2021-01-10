@@ -15,10 +15,12 @@
 #include <wx/wx.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
+#include <wx/dir.h>
 #include <wx/wfstream.h>
 #include <wx/imaggif.h>
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
+#include <wx/xml/xml.h>
 
 extern "C"
 {
@@ -29,14 +31,19 @@ extern "C"
     #include <libavutil/imgutils.h>
 }
 
+#include "models/ModelManager.h"
 #include "ConvertDialog.h"
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
+#include "models/MatrixModel.h"
+#include "sequencer/SequenceElements.h"
 #include "outputs/OutputManager.h"
 #include "sequencer/EffectLayer.h"
 #include "xLightsMain.h"
 #include "FSEQFile.h"
+#include "CopyFormat1.h"
+
 #include <log4cpp/Category.hh>
 
 #ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
@@ -83,7 +90,7 @@ void xLightsFrame::ConversionInit()
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
-    SeqData.init(0, 0, 50);
+    _seqData.init(0, 0, 50);
 }
 
 void xLightsFrame:: SetMediaFilename(const wxString& filename)
@@ -109,10 +116,10 @@ void xLightsFrame:: SetMediaFilename(const wxString& filename)
 
 void xLightsFrame:: ClearLastPeriod()
 {
-    int LastPer = SeqData.NumFrames()-1;
-    for (size_t ch=0; ch < SeqData.NumChannels(); ch++)
+    int LastPer = _seqData.NumFrames()-1;
+    for (size_t ch=0; ch < _seqData.NumChannels(); ch++)
     {
-        SeqData[LastPer][ch] = 0;
+        _seqData[LastPer][ch] = 0;
     }
 }
 
@@ -441,8 +448,8 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigne
 
 void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int ver, int cpn)
 {
-    int interval = SeqData.FrameTime() / 10;  // in centiseconds
-    if( interval * 10 != SeqData.FrameTime() ) {
+    int interval = _seqData.FrameTime() / 10;  // in centiseconds
+    if( interval * 10 != _seqData.FrameTime() ) {
         DisplayError("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
         return;
     }
@@ -1123,8 +1130,121 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     logger_base.debug("Model video written successfully.");
 }
 
+std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const 
+{
+    wxString filename = preset + ".gif";
+    filename.Replace("/", "_");
+    return (showDirectory + "/presets/" + filename).ToStdString();
+}
+
+void xLightsFrame::CreatePresetIcons()
+{
+    auto presets = GetPresets();
+
+    for (const auto& it : presets)         {
+        auto filename = GetPresetIconFilename(it);
+        if (!wxFile::Exists(filename))             {
+            WriteGIFForPreset(it);
+        }
+    }
+}
+
+#define PRESET_ICON_SIZE 32
+void xLightsFrame::WriteGIFForPreset(const std::string& preset)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Writing preset GIF for %s.", (const char*)preset.c_str());
+
+    wxMkDir(showDirectory + "/presets");
+
+    auto filename = GetPresetIconFilename(preset);
+
+    auto path = wxSplit(preset, '/');
+    wxXmlNode* presetNode = FindPreset(_sequenceElements.GetEffectsNode(), path);
+
+    if (presetNode != nullptr) {
+
+        auto cp = presetNode->GetAttribute("settings");
+        auto v = presetNode->GetAttribute("xLightsVersion", "4.0");
+
+        CopyFormat1 pd(cp);
+        if (pd.IsOk()) {
+
+            size_t frames = pd.Frames(50);
+
+            if (_presetModel == nullptr) {
+                // create a model to render with
+                wxXmlNode n;
+                n.SetName("model");
+                n.AddAttribute("StringType", "RGB Nodes");
+                n.AddAttribute("Antialias", "1");
+                n.AddAttribute("PixelSize", "2");
+                n.AddAttribute("Transparency", "0");
+                n.AddAttribute("parm3", "1");
+                n.AddAttribute("name", PRESET_MODEL_NAME);
+                n.AddAttribute("DisplayAs", "Horiz Matrix");
+                n.AddAttribute("LayoutGroup", "Unassigned");
+                n.AddAttribute("Dir", "L");
+                n.AddAttribute("StartSide", "T");
+                n.AddAttribute("parm1", wxString::Format("%d", PRESET_ICON_SIZE));
+                n.AddAttribute("parm2", wxString::Format("%d", PRESET_ICON_SIZE));
+                n.AddAttribute("WorldPosX", "0");
+                n.AddAttribute("WorldPosY", "0");
+                n.AddAttribute("WorldPosZ", "0");
+                n.AddAttribute("ScaleX", "1");
+                n.AddAttribute("ScaleY", "1");
+                n.AddAttribute("ScaleZ", "1");
+                n.AddAttribute("RotateX", "0");
+                n.AddAttribute("RotateY", "0");
+                n.AddAttribute("RotateZ", "0");
+                n.AddAttribute("versionNumber", "5");
+                n.AddAttribute("StartChannel", "1"); // this is going to be a problem
+                ModelManager mm(nullptr, this);
+                _presetModel = new MatrixModel(&n, mm, true);
+
+                Element* elem = _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false);
+            }
+
+            size_t channels = PRESET_ICON_SIZE * PRESET_ICON_SIZE * 3;
+
+            Element* elem = _presetSequenceElements.GetElement(_presetModel->GetName());
+            wxASSERT(elem != nullptr);
+
+            for (const auto& it : elem->GetEffectLayers()) {
+                it->DeleteAllEffects();
+            }
+
+            for (const auto& it : pd.Effects()) {
+                while (it->Row() >= elem->GetEffectLayerCount()) {
+                    elem->AddEffectLayer();
+                }
+                EffectLayer* el = elem->GetEffectLayer(it->Row());
+                el->AddEffect(0, it->EffectName(), it->Settings(), it->Palette(), it->StartTime() - pd.StartTime(), it->EndTime() - pd.StartTime(), false, false, true);
+            }
+
+            _presetSequenceData.init(channels, frames, 50, true);
+
+            AbortRender(); // abort any existing render so this doesn't block too long
+
+            Render(_presetSequenceElements,
+                _presetSequenceData,
+                { _presetModel },
+                { _presetModel },
+                0, frames - 1,
+                false, true, []() {});
+
+            // wait for all rendering to complete
+            while (!renderProgressInfo.empty()) {
+                wxYield();
+            }
+
+            WriteGIFModelFile(filename, channels, 0, frames - 1, &_presetSequenceData, 0, 0, _presetModel, 50);
+        }
+    }
+}
+
 void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-    SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime)
+    SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing model GIF.");
@@ -1226,7 +1346,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
     header[8] = 0x9C;
     header[9] = 0x40;
     header[11] = 0x03;
-    auto framems = SeqData.FrameTime();
+    auto framems = _seqData.FrameTime();
     if (framems == 0x21) // 30 fps
     {
         header[16] = 0x55; // I dont know what this value represents but it seems to be present in the samples I have seen
@@ -1268,7 +1388,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
 void xLightsFrame:: ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
 {
     ConvertParameters read_params(FileName,                                     // input filename
-        SeqData,                                      // sequence data object
+        _seqData,                                      // sequence data object
         &_outputManager,                               // global network info
         ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
         this,                                         // xLights main frame
@@ -1303,7 +1423,7 @@ void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFil
     }
     else
     {
-        SeqData.init(numch, numper, 50);
+        _seqData.init(numch, numper, 50);
         char * buf = new char[numper];
         wxString filename = FromAscii(hdr + 32);
         if (mediaFilename) {
@@ -1319,13 +1439,13 @@ void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFil
                 PlayerError(wxString("Unable to read all event data from:\n") + FileName);
             }
             for (int p = 0; p < numper; p++) {
-                SeqData[p][x] = buf[p];
+                _seqData[p][x] = buf[p];
             }
         }
         delete[] buf;
 #ifndef NDEBUG
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), SeqData.NumFrames(), SeqData.NumChannels()));
+        logger_base.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), _seqData.NumFrames(), _seqData.NumChannels()));
 #endif
     }
     f.Close();
@@ -1334,7 +1454,7 @@ void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFil
 void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
 {
     ConvertParameters write_params(filename,                                     // filename
-                                   SeqData,                                      // sequence data object
+                                   _seqData,                                      // sequence data object
                                    &_outputManager,                               // global network info
                                    ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                    this,                                         // xLights main frame

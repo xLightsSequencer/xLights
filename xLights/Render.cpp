@@ -954,7 +954,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
 
     // validate that the effect still exists as this could be being processed after the effect was deleted
-    if (mSequenceElements.IsValidEffect(ev->effect))
+    if (_sequenceElements.IsValidEffect(ev->effect))
     {
         ev->returnVal = RenderEffectFromMap(ev->suppress, ev->effect,
             ev->layer,
@@ -1261,16 +1261,16 @@ void xLightsFrame::RenderTree::Print() {
 }
 
 void xLightsFrame::BuildRenderTree() {
-    unsigned int curChangeCount = mSequenceElements.GetMasterViewChangeCount() + modelsChangeCount;
+    unsigned int curChangeCount = _sequenceElements.GetMasterViewChangeCount() + modelsChangeCount;
     if (renderTree.renderTreeChangeCount != curChangeCount) {
         renderTree.Clear();
-        const int numEls = mSequenceElements.GetElementCount(MASTER_VIEW);
+        const int numEls = _sequenceElements.GetElementCount(MASTER_VIEW);
         if (numEls == 0) {
             //nothing to do....
             return;
         }
         for (size_t row = 0; row < numEls; ++row) {
-            Element *rowEl = mSequenceElements.GetElement(row, MASTER_VIEW);
+            Element *rowEl = _sequenceElements.GetElement(row, MASTER_VIEW);
             if (rowEl != nullptr && rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 Model *model = GetModel(rowEl->GetModelName());
                 if (model != nullptr) {
@@ -1283,7 +1283,9 @@ void xLightsFrame::BuildRenderTree() {
     }
 }
 
-void xLightsFrame::Render(const std::list<Model*> models,
+void xLightsFrame::Render(SequenceElements& seqElements,
+                          SequenceData& seqData,
+                          const std::list<Model*> models,
                           const std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
@@ -1295,12 +1297,12 @@ void xLightsFrame::Render(const std::list<Model*> models,
     if (startFrame < 0) {
         startFrame = 0;
     }
-    if (endFrame >= SeqData.NumFrames()) {
-        endFrame = SeqData.NumFrames() - 1;
+    if (endFrame >= seqData.NumFrames()) {
+        endFrame = seqData.NumFrames() - 1;
     }
     std::list<NodeRange> ranges;
     if (restrictToModels.empty()) {
-        ranges.push_back(NodeRange(0, SeqData.NumChannels()));
+        ranges.push_back(NodeRange(0, seqData.NumChannels()));
     } else {
         for (const auto& it : restrictToModels) {
             RenderTreeData data(it);
@@ -1311,14 +1313,14 @@ void xLightsFrame::Render(const std::list<Model*> models,
     int numRows = models.size();
     RenderJob **jobs = new RenderJob*[numRows];
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
-    std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
+    std::vector<std::set<int>> channelMaps(seqData.NumChannels());
 
     size_t row = 0;
     for (auto it = models.begin(); it != models.end(); ++it, ++row) {
         jobs[row] = nullptr;
-        aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
+        aggregators[row] = new AggregatorRenderer(seqData.NumFrames());
 
-        Element *rowEl = mSequenceElements.GetElement((*it)->GetName());
+        Element *rowEl = seqElements.GetElement((*it)->GetName());
 
         if (rowEl == nullptr) {
             //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
@@ -1333,7 +1335,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
                 bool hasEffects = HasEffects(me);
                 bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
                 if (hasEffects || (isRestricted && clear)) {
-                    RenderJob *job = new RenderJob(me, SeqData, this, false);
+                    RenderJob *job = new RenderJob(me, seqData, this, false);
 
                     if (job == nullptr) {
                         logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
@@ -1341,7 +1343,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
 
                     job->setRenderRange(startFrame, endFrame);
                     job->SetRangeRestriction(ranges);
-                    if (mSequenceElements.SupportsModelBlending()) {
+                    if (seqElements.SupportsModelBlending()) {
                         job->SetModelBlending();
                     }
                     PixelBufferClass *buffer = job->getBuffer();
@@ -1357,7 +1359,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
                         int start = buffer->NodeStartChannel(node);
                         for (int c = 0; c < cn; ++c) {
                             int cnum = start + c;
-                            if (cnum < SeqData.NumChannels()) {
+                            if (cnum < seqData.NumChannels()) {
                                 for (const auto i : channelMaps[cnum]) {
                                     int idx = i;
                                     if (idx != row) {
@@ -1386,7 +1388,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
     if (clear) {
         for (int f = startFrame; f <= endFrame; f++) {
             for (const auto& it : ranges) {
-                SeqData[f].Zero(it.start, it.end - it.start + 1);
+                seqData[f].Zero(it.start, it.end - it.start + 1);
             }
         }
     }
@@ -1495,7 +1497,7 @@ void xLightsFrame::RenderDirtyModels() {
         //nothing to do....
         return;
     }
-    const int numRows = mSequenceElements.GetElementCount();
+    const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
         return;
     }
@@ -1504,7 +1506,7 @@ void xLightsFrame::RenderDirtyModels() {
     std::list<Model *> models;
     std::list<Model *> restricts;
     for (int x = 0; x < numRows; x++) {
-        Element *el = mSequenceElements.GetElement(x);
+        Element *el = _sequenceElements.GetElement(x);
         if (el->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             int st, ed;
             el->GetDirtyRange(st, ed);
@@ -1536,18 +1538,18 @@ void xLightsFrame::RenderDirtyModels() {
     if (endms < 0) {
         endms = 0;
     }
-    int startframe = startms / SeqData.FrameTime() - 1;
+    int startframe = startms /_seqData.FrameTime() - 1;
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
-    if (endframe >= SeqData.NumFrames()) {
-        endframe = SeqData.NumFrames() - 1;
+    int endframe = endms / _seqData.FrameTime() + 1;
+    if (endframe >= _seqData.NumFrames()) {
+        endframe = _seqData.NumFrames() - 1;
     }
     if (endframe < startframe) {
         return;
     }
-    Render(models, restricts, startframe, endframe, false, true, [] {});
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] {});
 }
 
 bool xLightsFrame::AbortRender(int maxTimeMS)
@@ -1596,7 +1598,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     logger_base.debug("Render tree built. %d entries.", renderTree.data.size());
 
-    const int numRows = mSequenceElements.GetElementCount();
+    const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
         callback();
         return;
@@ -1615,25 +1617,25 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     }
     std::list<Model*> restricts;
 
-    logger_base.debug("Rendering %d models %d frames.", models.size(), SeqData.NumFrames());
+    logger_base.debug("Rendering %d models %d frames.", models.size(), _seqData.NumFrames());
 
     
 #ifdef DOTIMING
     wxStopWatch sw;
-    Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
+    Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
         printf("%s  Render 1:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw.Time());
         wxStopWatch sw2;
-        Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw2, callback] {
+        Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw2, callback] {
             printf("%s  Render 2:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw2.Time());
             wxStopWatch sw3;
-            Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
+            Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
                 printf("%s  Render 3:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw3.Time());
                 callback();
             } );
         });
     });
 #else
-    Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
+    Render(_sequenceElements, _seqData, models, restricts, 0, _seqData.NumFrames() - 1, true, false, std::move(callback));
 #endif
 }
 
@@ -1651,7 +1653,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         endms,
         renderTree.data.size());
 
-    int startframe = startms / SeqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
+    int startframe = startms / _seqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
 
     // If there is an effect at the start time that has the persistent flag set then include the prior frame
     // This expands the render time but only when it absolutely must
@@ -1663,18 +1665,18 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
+    int endframe = endms / _seqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
 
     // If there is an effect at the end time that has the persistent flag set then include the nextframe
     // This expands the render time but only when it absolutely must
     Effect* persistentEffectAfter = GetPersistentEffectOnModelStartingAtTime(model, endms);
     if (persistentEffectAfter != nullptr)
     {
-        endframe = persistentEffectAfter->GetEndTimeMS() / SeqData.FrameTime();
+        endframe = persistentEffectAfter->GetEndTimeMS() / _seqData.FrameTime();
     }
 
-    if (endframe >= SeqData.NumFrames()) {
-        endframe = SeqData.NumFrames() - 1;
+    if (endframe >= _seqData.NumFrames()) {
+        endframe = _seqData.NumFrames() - 1;
     }
     for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
         if ((*it)->model->GetName() == model) {
@@ -1701,7 +1703,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
             logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
 
-            Render((*it)->renderOrder, m, startframe, endframe, false, true, [] {});
+            Render(_sequenceElements, _seqData, (*it)->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }
 }
@@ -1720,7 +1722,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
         //nothing to do....
         return;
     }
-    const int numRows = mSequenceElements.GetElementCount();
+    const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
         return;
     }
@@ -1735,13 +1737,13 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     if (endms < 0) {
         endms = 0;
     }
-    int startframe = startms / SeqData.FrameTime() - 1;
+    int startframe = startms / _seqData.FrameTime() - 1;
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
-    if (endframe >= SeqData.NumFrames()) {
-        endframe = SeqData.NumFrames() - 1;
+    int endframe = endms / _seqData.FrameTime() + 1;
+    if (endframe >= _seqData.NumFrames()) {
+        endframe = _seqData.NumFrames() - 1;
     }
     if (endframe < startframe) {
         return;
@@ -1754,7 +1756,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     SetStatusText(_("Rendering all layers for time slice"));
     ProgressBar->SetValue(0);
     wxStopWatch sw; // start a stopwatch timer
-    Render(models, restricts, startframe, endframe, true, clear, [this, sw] {
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] {
         static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base2.info("   Effects done.");
         ProgressBar->SetValue(100);
@@ -1771,7 +1773,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     unsigned int startFrame = 0;
-    unsigned int endFrame = SeqData.NumFrames();
+    unsigned int endFrame = _seqData.NumFrames();
     if (command.GetString().Contains('|'))
     {
         auto as = wxSplit(command.GetString(), '|');
@@ -1819,8 +1821,8 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         wxYield();
 
         NextRenderer wait;
-        Element * el = mSequenceElements.GetElement(model);
-        RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
+        Element * el = _sequenceElements.GetElement(model);
+        RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
         wxASSERT(job != nullptr);
         SequenceData *data = job->createExportBuffer();
         wxASSERT(data != nullptr);
@@ -1828,23 +1830,23 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
         if (command.GetInt() == 1) {
             // always render the whole model
-            job->setRenderRange(0, SeqData.NumFrames());
+            job->setRenderRange(0, _seqData.NumFrames());
             job->setPreviousFrameDone(END_OF_RENDER_FRAME);
             job->addNext(&wait);
             jobPool.PushJob(job);
             //wait to complete
-            while (!wait.checkIfDone(SeqData.NumFrames())) {
+            while (!wait.checkIfDone(_seqData.NumFrames())) {
                 wxYield();
             }
         } else {
             Model *m2 = GetModel(model);
-            for (size_t frame = 0; frame < SeqData.NumFrames(); ++frame) {
+            for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
                 for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
                     //chan in main buffer
                     int ostart = m2->NodeStartChannel(x);
                     int nstart = job->getBuffer()->NodeStartChannel(x);
                     //copy to render buffer for export
-                    job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
+                    job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
                     job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
                 }
             }
@@ -1896,7 +1898,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("gif"));
             fullpath = oName.GetFullPath();
-            WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), SeqData.FrameTime());
+            WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
         }
         SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
 
@@ -2036,7 +2038,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                     wxThread::Yield();
 
                     // After yield who knows what may or may not be valid so we need to revalidate it
-                    if (!mSequenceElements.IsValidEffect(event->effect))
+                    if (!_sequenceElements.IsValidEffect(event->effect))
                     {
                         logger_base.error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
                         wxASSERT(false);

@@ -182,6 +182,8 @@ static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xsq)|*.xsq|Old xLights Sequences(*.xml)|*.xml";
 
+#define PRESET_MODEL_NAME "PRESET_Matrix_XYZZY"
+
 typedef SequenceData SeqDataType;
 
 enum SeqPlayerStates
@@ -368,7 +370,9 @@ public:
     void SetMediaFilename(const wxString& filename);
     void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
     bool IsSequenceDataValid() const
-    { return SeqData.IsValidData(); }
+    { return _seqData.IsValidData(); }
+    std::string GetPresetIconFilename(const std::string& preset) const;
+    void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
@@ -980,6 +984,12 @@ public:
     wxSocketServer* _xFadeSocket = nullptr;
     bool _suspendRender = false;
     wxArrayString _randomEffectsToUse;
+    Model* _presetModel = nullptr;
+    SequenceData _presetSequenceData; // we create our own sequence data to render into
+    SequenceElements _presetSequenceElements;
+    bool _presetRendering = false;
+
+    void TryCreatePresetIcon(const std::string& preset);
 
     void CollectUserEmail();
     void OnxFadeSocketEvent(wxSocketEvent & event);
@@ -1192,7 +1202,7 @@ public:
     std::string fseqDirectory;
     std::string renderCacheDirectory;
     std::string backupDirectory;
-    SeqDataType SeqData;
+    SeqDataType _seqData;
     wxTimer _scrollTimer;
 
     wxArrayString ChannelNames;
@@ -1234,7 +1244,8 @@ private:
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime);
+        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const;
+    void WriteGIFForPreset(const std::string& preset);
 
     // sequence
     void LoadEffectsFile();
@@ -1266,7 +1277,9 @@ public:
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
     void RenderDirtyModels();
     void RenderTimeSlice(int startms, int endms, bool clear);
-    void Render(const std::list<Model*> models,
+    void Render(SequenceElements& seqElements,
+                SequenceData& seqData,
+                const std::list<Model*> models,
                 const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,
@@ -1278,7 +1291,7 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
-    SequenceElements& GetSequenceElements() { return mSequenceElements; }
+    SequenceElements& GetSequenceElements() { return _sequenceElements; }
     TimingElement* AddTimingElement(const std::string& name);
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
@@ -1291,6 +1304,7 @@ public:
     void DoPromoteEffects(ModelElement *element);
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
+    wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level = 0) const;
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
@@ -1474,7 +1488,7 @@ private:
     int _acParm2RampUpDown;
     wxXmlNode* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
-    SequenceElements mSequenceElements;
+    SequenceElements _sequenceElements;
     MainSequencer* mainSequencer = nullptr;
     ModelPreview * _modelPreviewPanel = nullptr;
     HousePreviewPanel *_housePreviewPanel = nullptr;

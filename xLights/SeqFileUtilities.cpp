@@ -63,7 +63,7 @@ void xLightsFrame::AddAllModelsToSequence()
     for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             wxString name = e->GetAttribute("name");
-            if (!mSequenceElements.ElementExists(name.ToStdString(), 0)) {
+            if (!_sequenceElements.ElementExists(name.ToStdString(), 0)) {
                 if (!first_model) {
                     models_to_add += ",";
                 }
@@ -76,7 +76,7 @@ void xLightsFrame::AddAllModelsToSequence()
     for (wxXmlNode* e = ModelsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "model") {
             wxString name = e->GetAttribute("name");
-            if (!mSequenceElements.ElementExists(name.ToStdString(), 0)) {
+            if (!_sequenceElements.ElementExists(name.ToStdString(), 0)) {
                 if (!first_model) {
                     models_to_add += ",";
                 }
@@ -86,7 +86,7 @@ void xLightsFrame::AddAllModelsToSequence()
         }
     }
 
-    mSequenceElements.AddMissingModelsToSequence(models_to_add);
+    _sequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
 void xLightsFrame::NewSequence()
@@ -134,14 +134,14 @@ void xLightsFrame::NewSequence()
 
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    if (mSequenceElements.GetNumberOfTimingElements() == 0) {
+    if (_sequenceElements.GetNumberOfTimingElements() == 0) {
         // only add timing if the user didnt set up timings
         std::string new_timing = "New Timing";
         CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-        mSequenceElements.AddTimingToAllViews(new_timing);
+        _sequenceElements.AddTimingToAllViews(new_timing);
     }
     else {
-        mSequenceElements.GetTimingElement(0)->SetActive(true);
+        _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
     MenuItem_File_Save->Enable(true);
     MenuItem_File_SaveAs_Sequence->Enable(true);
@@ -162,11 +162,11 @@ void xLightsFrame::NewSequence()
         DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.",          (unsigned long)memRequired), this);
     }
 
-    if ((max > SeqData.NumChannels()) ||
-        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames()) {
-        SeqData.init(max, mMediaLengthMS / ms, ms);
+    if ((max > _seqData.NumChannels()) ||
+        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
+        _seqData.init(max, mMediaLengthMS / ms, ms);
     } else {
-        SeqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        _seqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 
     // we can render now the sequence data buffers are initialised
@@ -174,7 +174,7 @@ void xLightsFrame::NewSequence()
         RenderAll();
     }
 
-    Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
+    Timer1.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
     const std::string view = setting_dlg.GetView();
     if (view == "All Models") {
@@ -337,7 +337,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
             std::string mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
-                                          SeqData,                                      // sequence data object
+                                          _seqData,                                      // sequence data object
                                           &_outputManager,                              // global network info
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
@@ -357,10 +357,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             loaded_fseq = true;
 
             logger_base.debug("    Fseq file loaded.");
-            logger_base.debug("        Channels %u", SeqData.NumChannels());
-            logger_base.debug("        Frame Time %u", SeqData.FrameTime());
-            logger_base.debug("        Frames %u", SeqData.NumFrames());
-            logger_base.debug("        Length %u", SeqData.TotalTime());
+            logger_base.debug("        Channels %u", _seqData.NumChannels());
+            logger_base.debug("        Frame Time %u", _seqData.FrameTime());
+            logger_base.debug("        Frames %u", _seqData.NumFrames());
+            logger_base.debug("        Length %u", _seqData.TotalTime());
         }
         else
         {
@@ -503,30 +503,30 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
 
-        if ((numChan > SeqData.NumChannels()) ||
-            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
+        if ((numChan > _seqData.NumChannels()) ||
+            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames() )
         {
-            if (SeqData.NumChannels() > 0)
+            if (_seqData.NumChannels() > 0)
             {
-                if (numChan > SeqData.NumChannels())
+                if (numChan > _seqData.NumChannels())
                 {
-                    logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, SeqData.NumChannels());
+                    logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, _seqData.NumChannels());
                 }
                 else
                 {
-                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames())
+                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames())
                     {
                         logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
                                          CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
-                                         SeqData.NumFrames());
+                                         _seqData.NumFrames());
                     }
                 }
             }
-            SeqData.init(numChan, mMediaLengthMS / ms, ms);
+            _seqData.init(numChan, mMediaLengthMS / ms, ms);
         }
         else if( !loaded_fseq )
         {
-            SeqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         displayElementsPanel->Initialize();
@@ -536,12 +536,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         {
             std::string new_timing = "New Timing";
             CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-            mSequenceElements.AddTimingToAllViews(new_timing);
+            _sequenceElements.AddTimingToAllViews(new_timing);
             AddAllModelsToSequence();
             displayElementsPanel->SelectView("Master View");
         }
 
-        Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
+        Timer1.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
 
         if( loaded_fseq )
         {
@@ -587,7 +587,7 @@ bool xLightsFrame::CloseSequence()
         LogPerspective(machinePerspective);
     }
 
-    if (mSavedChangeCount != mSequenceElements.GetChangeCount() && !_renderMode)
+    if (mSavedChangeCount != _sequenceElements.GetChangeCount() && !_renderMode)
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
         if (dlg->ShowModal() == wxID_CANCEL)
@@ -634,7 +634,7 @@ bool xLightsFrame::CloseSequence()
     // just in case there is still rendering going on
     AbortRender();
 
-    _renderCache.CleanupCache(&mSequenceElements);
+    _renderCache.CleanupCache(&_sequenceElements);
     _renderCache.SetSequence(renderCacheDirectory, "");
 
     // clear everything to prepare for new sequence
@@ -653,15 +653,15 @@ bool xLightsFrame::CloseSequence()
         CurrentSeqXmlFile = nullptr;
     }
 
-    mSequenceElements.Clear();
-    mSavedChangeCount = mSequenceElements.GetChangeCount();
+    _sequenceElements.Clear();
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
     SetPanelSequencerLabel("");
 
     mainSequencer->PanelEffectGrid->ClearSelection();
     mainSequencer->PanelWaveForm->CloseMedia();
-    SeqData.init(0, 0, 50);
+    _seqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);
@@ -697,9 +697,9 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
 
 void xLightsFrame::ClearSequenceData()
 {
-    wxASSERT(SeqData.IsValidData());
-    for (size_t i = 0; i < SeqData.NumFrames(); ++i)
-        SeqData[i].Zero();
+    wxASSERT(_seqData.IsValidData());
+    for (size_t i = 0; i < _seqData.NumFrames(); ++i)
+        _seqData[i].Zero();
 }
 
 void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
@@ -744,7 +744,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
                     plog->Show(true);
                 }
                 ConvertParameters read_params(data_layer->GetDataSource(),                // input filename
-                                              SeqData,                                    // sequence data object
+                                              _seqData,                                    // sequence data object
                                               &_outputManager,                               // global network info
                                               read_mode,                                  // file read mode
                                               this,                                       // xLights main frame
@@ -769,7 +769,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 void xLightsFrame::SetSequenceEnd(int ms)
 {
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
-    mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    _sequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
 }
 
@@ -1213,7 +1213,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     xLightsXmlFile xlf(filename);
     xlf.Open(GetShowDirectory(), true);
     SequenceElements se(this);
-    se.SetFrequency(mSequenceElements.GetFrequency());
+    se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf, GetShowDirectory());
     xlf.AdjustEffectSettingsForVersion(se, this);
@@ -1248,7 +1248,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
     xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, showModelBlending);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     if(showModelBlending)
         dlg.SetModelBlending(modelBlending);
@@ -1312,7 +1312,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     timingTracks[tel->GetName()] = tel;
 
                     // we want to know which timing tracks exist so we can preselect the ones which are not already present
-                    timingTrackAlreadyExists[tel->GetName()] = (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr);
+                    timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr);
                 }
             }
         }
@@ -1336,20 +1336,20 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
             TimingElement* target = nullptr;
-            if (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr)
+            if (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr)
             {
-                if (mSequenceElements.GetTimingElement(tel->GetName())->GetEffectLayer(0)->GetEffectCount() == 0)
+                if (_sequenceElements.GetTimingElement(tel->GetName())->GetEffectLayer(0)->GetEffectCount() == 0)
                 {
-                    target = mSequenceElements.GetTimingElement(tel->GetName());
+                    target = _sequenceElements.GetTimingElement(tel->GetName());
                 }
             }
 
             if (target == nullptr)
             {
-                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
                 char cnt = '1';
                 while (target == nullptr) {
-                    target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                    target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
                 }
             }
 
@@ -1370,16 +1370,16 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
-        for (size_t x=0; x<mSequenceElements.GetElementCount();++x) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x=0; x<_sequenceElements.GetElementCount();++x) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
         if (m->_mapping != "") {
             if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
+                model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr)
             {
@@ -1398,7 +1398,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -1416,7 +1416,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 xLightsImportModelNode* ns = s->GetNthChild(n);
                 if ("" != ns->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -1745,7 +1745,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int frameTime = 50;
 
     xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
@@ -1901,16 +1901,16 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
-        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
         if (m->_mapping != "") {
             if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
+                model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr)
             {
@@ -1934,7 +1934,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -1956,7 +1956,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                 xLightsImportModelNode* ns = s->GetNthChild(n);
                 if ("" != ns->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -1999,7 +1999,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     if( !input_xml.Load(fin) )  return;
 
     LMSImportChannelMapDialog dlg(this, filename);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
     /*
@@ -2077,10 +2077,10 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
-        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+        for (size_t i=0;i<_sequenceElements.GetElementCount();i++) {
+            if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(i)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
             }
         }
         MapHLSChannelInformation(this, model->GetEffectLayer(0),
@@ -2233,11 +2233,11 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 {
     SuperStarImportDialog dlg(this);
 
-    for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
+    for (size_t i=0;i<_sequenceElements.GetElementCount();i++) {
+        if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            dlg.ChoiceSuperStarImportModel->Append(_sequenceElements.GetElement(i)->GetName());
 
-            ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+            ModelElement *model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
             for (int x = 0; x < model->GetSubModelAndStrandCount(); x++) {
                 std::string fname = model->GetSubModel(x)->GetFullName();
                 const std::string &name = model->GetSubModel(x)->GetName();
@@ -2281,14 +2281,14 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 
     Element* model = nullptr;
 
-    for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== ElementType::ELEMENT_TYPE_MODEL) {
-            model = mSequenceElements.GetElement(i);
+    for(size_t i=0;i<_sequenceElements.GetElementCount();i++) {
+        if(_sequenceElements.GetElement(i)->GetType()== ElementType::ELEMENT_TYPE_MODEL) {
+            model = _sequenceElements.GetElement(i);
             if( model->GetName() == model_name ) {
                 model_found = true;
                 break;
             } else {
-                ModelElement *modelEl = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+                ModelElement *modelEl = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
                 for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
                     std::string name = modelEl->GetSubModel(x)->GetFullName();
                     if (name == model_name) {
@@ -2750,7 +2750,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, false);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, wxXmlNode*> timingTracks;
@@ -2843,10 +2843,10 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
-            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
+            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false);
             char cnt = '1';
             while (target == nullptr) {
-                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
             }
             if (target->GetEffectLayerCount() == 0)
             {
@@ -2878,17 +2878,17 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement* model = nullptr;
-        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
 
         if (m->_mapping != "") {
             if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
+                model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr)
             {
@@ -2917,7 +2917,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -2954,7 +2954,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 xLightsImportModelNode* ns = s->GetNthChild(n);
                 if ("" != ns->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -4431,7 +4431,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
     LOREdit lorEdit(input_xml, CurrentSeqXmlFile->GetFrequency());
 
     xLightsImportChannelMapDialog dlg(this, filename, true, true, false, true, false);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
     dlg.timingTracks = lorEdit.GetTimingTracks();
@@ -4456,10 +4456,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
             auto timings = lorEdit.GetTimings(name, offset);
 
-            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
+            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false);
             char cnt = '1';
             while (target == nullptr) {
-                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
             }
             if (target->GetEffectLayerCount() == 0)
             {
@@ -4480,10 +4480,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
-        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
@@ -4492,7 +4492,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
             if (m->_mapping != "") {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -4514,7 +4514,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
                 if ("" != s->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -4535,7 +4535,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                     xLightsImportModelNode* ns = s->GetNthChild(n);
                     if ("" != ns->_mapping) {
                         if (model == nullptr) {
-                            model = AddModel(GetModel(modelName), mSequenceElements);
+                            model = AddModel(GetModel(modelName), _sequenceElements);
                         }
                         if (model == nullptr)
                         {
@@ -4588,7 +4588,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what you changed it to.\n", this);
 
     xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, wxXmlNode*> timingTracks;
@@ -4635,17 +4635,17 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
-        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
 
         if (m->_mapping != "") {
             if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
+                model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr)
             {
@@ -4664,7 +4664,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -4682,7 +4682,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                 xLightsImportModelNode* ns = s->GetNthChild(n);
                 if ("" != ns->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -4776,7 +4776,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
     }
 
     xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false, false);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
     auto models = vixen.GetModelsWithEffects();
@@ -4846,17 +4846,17 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
-        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+        for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
+            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 break;
             }
         }
 
         if (m->_mapping != "") {
             if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
+                model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr)
             {
@@ -4875,7 +4875,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), mSequenceElements);
+                    model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr)
                 {
@@ -4893,7 +4893,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                 xLightsImportModelNode* ns = s->GetNthChild(n);
                 if ("" != ns->_mapping) {
                     if (model == nullptr) {
-                        model = AddModel(GetModel(modelName), mSequenceElements);
+                        model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr)
                     {
@@ -5583,7 +5583,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             }
                         } else {
                             int time = wxAtoi(endms) - wxAtoi(startms);
-                            int numFrames = time / SeqData.FrameTime();
+                            int numFrames = time / _seqData.FrameTime();
                             xlColor color;
                             for (int x = 0; x < numFrames; x++) {
                                 double ratio = x;
@@ -5988,7 +5988,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
     LMSImportChannelMapDialog dlg(this, filename);
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
     wxFileName msq_file(filename);
@@ -6070,10 +6070,10 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
-        for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+        for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
+            if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                && modelName == _sequenceElements.GetElement(i)->GetName()) {
+                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
             }
         }
         if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "" && !dlg.MapByStrand->IsChecked()) {
@@ -6232,7 +6232,7 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
 
     VsaImportDialog dlg(this);
     VSAFile vsa(filename.GetFullPath().ToStdString());
-    dlg.mSequenceElements = &mSequenceElements;
+    dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     dlg.Init(&vsa, false);
 
@@ -6248,10 +6248,10 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
         std::string modelName = dlg.selectedModels[m];
         if (modelName != "") {
             ModelElement* model = nullptr;
-            for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
-                if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
-                    && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                    model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+            for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
+                if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
+                    && modelName == _sequenceElements.GetElement(i)->GetName()) {
+                    model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
                     break;
                 }
             }
@@ -6277,7 +6277,7 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
                             default:
                                 break;
                             }
-                            ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit);
+                            ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], _sequenceElements.GetSequenceEnd(), vsa_timing, is_16bit);
                         }
                         else {
                             logger_base.error("ImportVSA: idx exceeds available events.");

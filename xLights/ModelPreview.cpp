@@ -103,7 +103,7 @@ void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -121,7 +121,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -172,7 +172,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -402,7 +402,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             Refresh();
             Update();
             if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
             }
         }
     }

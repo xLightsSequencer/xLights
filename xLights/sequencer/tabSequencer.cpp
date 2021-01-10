@@ -71,16 +71,16 @@ void xLightsFrame::CreateSequencer()
     mainSequencer = new MainSequencer(PanelSequencer, _smallWaveform);
 
     logger_base.debug("                Set render data sources.");
-    mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
-    mainSequencer->SetSequenceElements(&mSequenceElements);
+    mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &_seqData);
+    mainSequencer->SetSequenceElements(&_sequenceElements);
 
     logger_base.debug("                Set timeline.");
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
-    mSequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
+    _sequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
 
     logger_base.debug("                Set sequence elements.");
-    mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
-    mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
+    mainSequencer->PanelRowHeadings->SetSequenceElements(&_sequenceElements);
+    _sequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
     logger_base.debug("                Set dock size constraints.");
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
@@ -102,7 +102,7 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Effect settings.");
     // This step takes about 5 seconds to create all the effects panels
     EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
-    EffectsPanel1->SetSequenceElements(&mSequenceElements);
+    EffectsPanel1->SetSequenceElements(&_sequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
     effectsPnl->MainSizer->SetSizeHints(effectsPnl);
@@ -160,7 +160,7 @@ void xLightsFrame::CreateSequencer()
                    Left().Layer(0).Row(1));
 
     logger_base.debug("CreateSequencer: Adding Select Effects Panel.");
-    _selectPanel = new SelectPanel(&mSequenceElements, mainSequencer, PanelSequencer);
+    _selectPanel = new SelectPanel(&_sequenceElements, mainSequencer, PanelSequencer);
     m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
         Left().Layer(1).Hide());
 
@@ -227,7 +227,7 @@ void xLightsFrame::InitSequencer()
     // check if sequence data is the right size
     if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded())
     {
-        if (SeqData.NumChannels() != roundTo4(GetMaxNumChannels()))
+        if (_seqData.NumChannels() != roundTo4(GetMaxNumChannels()))
         {
             logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
 
@@ -236,8 +236,8 @@ void xLightsFrame::InitSequencer()
             wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
             int ms = wxAtoi(mss);
 
-            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-            mSequenceElements.IncrementChangeCount(nullptr);
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _sequenceElements.IncrementChangeCount(nullptr);
 
             SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
         }
@@ -299,11 +299,17 @@ Model *xLightsFrame::GetModel(const std::string& name) const
 }
 
 bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    Model *model = GetModel(modelName);
-    if (model == nullptr || model->GetModelXml() == nullptr) {
-        return false;
+
+    if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr)         {
+        buffer.InitBuffer(*_presetModel, layerCount, 50, zeroBased);
     }
-    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), zeroBased);
+    else {
+        Model* model = GetModel(modelName);
+        if (model == nullptr || model->GetModelXml() == nullptr) {
+            return false;
+        }
+        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime(), zeroBased);
+    }
     return true;
 }
 
@@ -481,9 +487,9 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
-    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
-        if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetModelName();
+    for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
+        if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
+            std::string name = _sequenceElements.GetElement(x)->GetModelName();
             //remove the current models from the list so we don't end up with the same model represented twice
             Remove(AllNames, name);
             Remove(ModelNames, name);
@@ -496,11 +502,11 @@ void xLightsFrame::CheckForValidModels()
     // Check each model element in the sequence
     // We do this because we can just rename them so it is easy
     // Strands, nodes and submodels are not so easy ... we have to delete them or map them
-    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
-        if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+    for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
+        if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
 
             // Find the model/model group for the element
-            ModelElement *me = static_cast<ModelElement*>(mSequenceElements.GetElement(x));
+            ModelElement *me = static_cast<ModelElement*>(_sequenceElements.GetElement(x));
             std::string name = me->GetModelName();
             Model *m = AllModels[name];
 
@@ -529,7 +535,7 @@ void xLightsFrame::CheckForValidModels()
                 if (cancelled || (!_promptBatchRenderIssues && _renderMode) || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
                     // Just delete the element from the sequence we are opening
                     logger_base.debug("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
-                    mSequenceElements.DeleteElement(name);
+                    _sequenceElements.DeleteElement(name);
                 }
                 else if (dialog.RadioButtonMap->GetValue()) {
                     // add it to the list of things we will map later
@@ -543,13 +549,13 @@ void xLightsFrame::CheckForValidModels()
                     {
                         logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
                         // This does not seem to be necessary and it has some bad side effects such as removing the model from all views
-                        //mSequenceElements.DeleteElement(newName);
-                        mSequenceElements.GetElement(x)->SetName(newName);
+                        //_sequenceElements.DeleteElement(newName);
+                        _sequenceElements.GetElement(x)->SetName(newName);
                         if (AllModels[newName] == nullptr)
                         {
                             logger_base.crit("Sequence Element Mismatch: rename '%s' to '%s' AllModels[newName] returned nullptr ... this is going to crash", (const char*)name.c_str(), (const char*)newName.c_str());
                         }
-                        ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
+                        ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
                     }
@@ -591,13 +597,13 @@ void xLightsFrame::CheckForValidModels()
                 }
             }
 
-            ImportXLights(mSequenceElements, modelElements, wxFileName(), false, false, true, true);
+            ImportXLights(_sequenceElements, modelElements, wxFileName(), false, false, true, true);
 
             for (auto it = toMap.begin(); it != toMap.end(); ++it)
             {
                 if ((*it)->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
-                    mSequenceElements.DeleteElement((*it)->GetName());
+                    _sequenceElements.DeleteElement((*it)->GetName());
                 }
                 else if ((*it)->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                 {
@@ -610,12 +616,12 @@ void xLightsFrame::CheckForValidModels()
         toMap.clear();
 
         // Now we go through everything again ... but we also look at strands and submodels and nodes
-        for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
+        for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
 
-            if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+            if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
 
-                std::string name = mSequenceElements.GetElement(x)->GetModelName();
-                ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                std::string name = _sequenceElements.GetElement(x)->GetModelName();
+                ModelElement * el = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
                 Model *m = AllModels[name];
 
                 // model still doesnt exist
@@ -630,7 +636,7 @@ void xLightsFrame::CheckForValidModels()
                     else {
                         // no effects at any level so just remove it
                         logger_base.debug("Sequence Element Mismatch 2: deleting '%s'", (const char*)name.c_str());
-                        mSequenceElements.DeleteElement(name);
+                        _sequenceElements.DeleteElement(name);
                     }
                 }
                 else if (m->GetDisplayAs() == "ModelGroup") {
@@ -765,18 +771,19 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
-    mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-    mSequenceElements.SetModelsNode(ModelsNode);
-    mSequenceElements.SetEffectsNode(EffectsNode);
-    AddTraceMessage("Nodes set, loading");
-    mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
+    _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
+    _sequenceElements.SetModelsNode(ModelsNode);
+    _sequenceElements.SetEffectsNode(EffectsNode);
+
+    AddTraceMessage("loading");
+    _sequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
 
     logger_base.debug("Upgrading sequence");
-    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
+    xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
 
     Menu_Settings_Sequence->Enable(true);
 
-    mSavedChangeCount = mSequenceElements.GetChangeCount();
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
     logger_base.debug("Checking for valid models");
@@ -786,12 +793,12 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     LoadAudioData(xml_file);
 
     logger_base.debug("Preparing views");
-    mSequenceElements.PrepareViews(xml_file);
+    _sequenceElements.PrepareViews(xml_file);
 
     logger_base.debug("Populating row information");
-    mSequenceElements.PopulateRowInformation();
+    _sequenceElements.PopulateRowInformation();
 
-    mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
+    mainSequencer->PanelEffectGrid->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
 
     logger_base.debug("Updating the timeline");
@@ -799,7 +806,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     logger_base.debug("Updating the house preview");
     _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
-    mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    _sequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
     mainSequencer->PanelEffectGrid->Refresh();
@@ -835,7 +842,7 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     unsigned int frame = ms / CurrentSeqXmlFile->GetFrameMS();
 
     if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
-    if (frame >= SeqData.NumFrames()) frame = SeqData.NumFrames();
+    if (frame >= _seqData.NumFrames()) frame = _seqData.NumFrames();
 
     // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
@@ -845,18 +852,18 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
             int start = playModel->NodeStartChannel(node);
-            playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
+            playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
         }
     }
     TimerOutput(frame);
     if (playModel != nullptr) {
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    _housePreviewPanel->GetModelPreview()->Render(&SeqData[frame][0]);
+    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
     for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         if (preview->GetActive()) {
-            preview->Render(&SeqData[frame][0]);
+            preview->Render(&_seqData[frame][0]);
         }
     }
 }
@@ -911,12 +918,12 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
             if (e->GetName() == "modelGroup") {
                 if (s == e->GetAttribute("name")) {
                     std::string modelString = e->GetAttribute("models").ToStdString();
-                    mSequenceElements.AddMissingModelsToSequence(modelString, false);
+                    _sequenceElements.AddMissingModelsToSequence(modelString, false);
                 }
             }
         }
     }
-    mSequenceElements.PopulateRowInformation();
+    _sequenceElements.PopulateRowInformation();
     displayElementsPanel->Initialize();
     ResizeMainSequencer();
 }
@@ -965,8 +972,8 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
 void xLightsFrame::ResizeMainSequencer()
 {
     // Set max rows to determine correct row information size
-    mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
-    mSequenceElements.PopulateVisibleRowInformation();
+    _sequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
+    _sequenceElements.PopulateVisibleRowInformation();
 
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelTimeLine->Refresh();
@@ -1057,7 +1064,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     else
     {
-        Element* element = mSequenceElements.GetElement(event._elementName);
+        Element* element = _sequenceElements.GetElement(event._elementName);
         if (element != nullptr)
         {
             if (event._node != -1)
@@ -1177,33 +1184,33 @@ void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
-    mSequenceElements.UnSelectAllEffects();
+    _sequenceElements.UnSelectAllEffects();
     std::string name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex).ToStdString();
     std::string palette;
     std::string settings = GetEffectTextFromWindows(palette);
     selectedEffect = nullptr;
     Effect* last_effect_created = nullptr;
 
-    mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for(size_t i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    for(size_t i=0;i<_sequenceElements.GetSelectedRangeCount();i++)
     {
-        EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        EffectLayer* el = _sequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
         // Delete Effects that are in same time range as dropped effect
-        el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
-                                     mSequenceElements.GetSelectedRange(i)->EndTime);
-        el->DeleteSelectedEffects(mSequenceElements.get_undo_mgr());
+        el->SelectEffectsInTimeRange(_sequenceElements.GetSelectedRange(i)->StartTime,
+                                     _sequenceElements.GetSelectedRange(i)->EndTime);
+        el->DeleteSelectedEffects(_sequenceElements.get_undo_mgr());
         // Add dropped effect
         Effect* effect = el->AddEffect(0,name,settings,palette,
-                                       mSequenceElements.GetSelectedRange(i)->StartTime,
-                                       mSequenceElements.GetSelectedRange(i)->EndTime,
+                                       _sequenceElements.GetSelectedRange(i)->StartTime,
+                                       _sequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
 
         last_effect_created = effect;
 
-        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID() );
+        _sequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -1217,8 +1224,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
-            playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
-            playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
+            playStartTime = _sequenceElements.GetSelectedRange(i)->StartTime;
+            playEndTime = _sequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
             if (!_suspendRender)
             {
@@ -1271,27 +1278,27 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
     wxASSERT(effectIndex != 0);
 
-    mSequenceElements.UnSelectAllEffects();
+    _sequenceElements.UnSelectAllEffects();
     std::string palette;
     std::string settings = GetEffectTextFromWindows(palette);
     selectedEffect = nullptr;
     Effect* last_effect_created = nullptr;
 
-    mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for (size_t i = 0; i < mSequenceElements.GetSelectedRangeCount(); i++)
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    for (size_t i = 0; i < _sequenceElements.GetSelectedRangeCount(); i++)
     {
-        EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        EffectLayer* el = _sequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
         // Delete Effects that are in same time range as dropped effect
-        el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
-            mSequenceElements.GetSelectedRange(i)->EndTime);
-        el->DeleteSelectedEffects(mSequenceElements.get_undo_mgr());
+        el->SelectEffectsInTimeRange(_sequenceElements.GetSelectedRange(i)->StartTime,
+            _sequenceElements.GetSelectedRange(i)->EndTime);
+        el->DeleteSelectedEffects(_sequenceElements.get_undo_mgr());
         // Add dropped effect
         Effect* effect = el->AddEffect(0, effectName, settings, palette,
-            mSequenceElements.GetSelectedRange(i)->StartTime,
-            mSequenceElements.GetSelectedRange(i)->EndTime,
+            _sequenceElements.GetSelectedRange(i)->StartTime,
+            _sequenceElements.GetSelectedRange(i)->EndTime,
             EFFECT_SELECTED, false);
 
         // Now set the filename
@@ -1313,7 +1320,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
         last_effect_created = effect;
 
-        mSequenceElements.get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
+        _sequenceElements.get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -1324,8 +1331,8 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
         if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
-            playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
-            playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
+            playStartTime = _sequenceElements.GetSelectedRange(i)->StartTime;
+            playEndTime = _sequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
             if (!_suspendRender)
             {
@@ -1936,17 +1943,17 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     // Get only the colours from the colour panel ... ignore all the other settings
     std::string palette = colorPanel->GetColorString(true);
 
-    mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for (size_t i = 0; i < mSequenceElements.GetRowInformationSize(); i++) {
-        Element* element = mSequenceElements.GetRowInformation(i)->element;
-        EffectLayer* el = mSequenceElements.GetEffectLayer(i);
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    for (size_t i = 0; i < _sequenceElements.GetRowInformationSize(); i++) {
+        Element* element = _sequenceElements.GetRowInformation(i)->element;
+        EffectLayer* el = _sequenceElements.GetEffectLayer(i);
 
         int startms = 99999999;
         int endms = -1;
         for (int j = 0; j < el->GetEffectCount(); j++) {
             if (el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 Effect* ef = el->GetEffect(j);
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                     el->GetIndex(),
                     ef);
                 // only set the colours ... not other settings like sparkles
@@ -1974,11 +1981,11 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
-    mSequenceElements.get_undo_mgr().CreateUndoStep();
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
 
-    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
-        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
-        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+    for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
+        Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
+        EffectLayer* el = _sequenceElements.GetVisibleEffectLayer(i);
 
         int startms = 99999999;
         int endms = -1;
@@ -1986,7 +1993,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         for(int j=0;j< el->GetEffectCount();j++) {
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
                 Effect *ef = el->GetEffect(j);
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        ef);
 
@@ -2013,11 +2020,11 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 {
-    mSequenceElements.get_undo_mgr().CreateUndoStep();
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
 
-    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
-        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
-        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+    for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
+        Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
+        EffectLayer* el = _sequenceElements.GetVisibleEffectLayer(i);
 
         int startms = 99999999;
         int endms = -1;
@@ -2032,7 +2039,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 std::string settings = EffectsPanel1->GetRandomEffectString(effectIndex).ToStdString();
                 std::string palette = colorPanel->GetRandomColorString().ToStdString();
 
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        el->GetEffect(j));
 
@@ -2106,7 +2113,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     // This should not be necessary but i have seen enough crashes where accessing the eff at this point bombs out that I want to check it is valid
     if (eff != nullptr)
     {
-        if (!mSequenceElements.IsValidEffect(eff))
+        if (!_sequenceElements.IsValidEffect(eff))
         {
             AddTraceMessage("Effect not null but when we checked validity it failed. THIS WOULD HAVE CRASHED.");
             wxASSERT(false);
@@ -2159,8 +2166,8 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             //check for undo capture
             if( selectedEffectName != eff->GetEffectName() )
             {
-                mSequenceElements.get_undo_mgr().CreateUndoStep();
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
+                _sequenceElements.get_undo_mgr().CreateUndoStep();
+                _sequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
                 AddTraceMessage("  Undo step created\n");
             }
 
@@ -2229,7 +2236,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered
     std::vector<Element *> elsToRender;
-    if (mSequenceElements.GetElementsToRender(elsToRender)) {
+    if (_sequenceElements.GetElementsToRender(elsToRender)) {
         for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); ++it) {
             int ss, es;
             (*it)->GetDirtyRange(ss, es);
@@ -2313,10 +2320,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
 			}
         }
 
-        int frame = curt / SeqData.FrameTime();
+        int frame = curt / _seqData.FrameTime();
         fpsEvents.push_back(FPSEvent(frame));
         size_t fpsSize = fpsEvents.size();
-        while (fpsSize > (2000 / SeqData.FrameTime()))
+        while (fpsSize > (2000 / _seqData.FrameTime()))
         {
             fpsEvents.pop_front();
             fpsSize--;
@@ -2332,7 +2339,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             }
             if ((frame % 200) == 0) {
                 static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.debug("Play fps  %f   (%d ms)", _fps, SeqData.FrameTime());
+                logger_opengl.debug("Play fps  %f   (%d ms)", _fps, _seqData.FrameTime());
             }
         }
 
@@ -2352,24 +2359,24 @@ void xLightsFrame::TimerRgbSeq(long msec)
         //ms = me;
     }
 
-    int frame = curt / SeqData.FrameTime();
+    int frame = curt / _seqData.FrameTime();
     //have the frame, copy from SeqData
     if (playModel != nullptr) {
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
             int start = playModel->NodeStartChannel(node);
-            playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
+            playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
         }
     }
     TimerOutput(frame);
     if (playModel != nullptr) {
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    _housePreviewPanel->GetModelPreview()->Render(&SeqData[frame][0]);
+    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
     for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         if( preview->GetActive() ) {
-            preview->Render(&SeqData[frame][0]);
+            preview->Render(&_seqData[frame][0]);
         }
     }
 }
@@ -2688,7 +2695,7 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 
 void xLightsFrame::DoForceSequencerRefresh()
 {
-    mSequenceElements.PopulateRowInformation();
+    _sequenceElements.PopulateRowInformation();
     ResizeMainSequencer();
 }
 
@@ -3010,18 +3017,18 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     int nn = 1;
 
     // make sure the name is unique ... adding a sequence number if it isnt
-    while(mSequenceElements.GetElement(n) != nullptr)
+    while(_sequenceElements.GetElement(n) != nullptr)
     {
         n = wxString::Format("%s-%d", name.c_str(), nn++).ToStdString();
     }
 
     // Deactivate active timing mark so new one is selected;
-    mSequenceElements.DeactivateAllTimingElements();
-    int timingCount = mSequenceElements.GetNumberOfTimingElements();
+    _sequenceElements.DeactivateAllTimingElements();
+    int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(mSequenceElements.AddElement(timingCount,n,type,true,false,true,false));
+    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount,n,type,true,false,true,false));
     e->AddEffectLayer();
-    mSequenceElements.AddTimingToCurrentView(n);
+    _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     return e;
@@ -3030,16 +3037,16 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
 void xLightsFrame::DeleteTimingElement(const std::string& name)
 {
     displayElementsPanel->RemoveModelFromLists(name);
-    mSequenceElements.DeleteElement(name);
+    _sequenceElements.DeleteElement(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
 }
 
 void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::string& new_name)
 {
-    Element* element = mSequenceElements.GetElement(old_name);
+    Element* element = _sequenceElements.GetElement(old_name);
     if( element ) element->SetName(new_name);
-    mSequenceElements.RenameTimingTrack(old_name, new_name);
+    _sequenceElements.RenameTimingTrack(old_name, new_name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     CurrentSeqXmlFile->SetTimingSectionName(old_name, new_name);
@@ -3404,15 +3411,15 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
 
 void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 {
-    NoteImportDialog dlgNoteImport(this, mSequenceElements, (CurrentSeqXmlFile->GetMedia() != nullptr));
+    NoteImportDialog dlgNoteImport(this, _sequenceElements, (CurrentSeqXmlFile->GetMedia() != nullptr));
 
     if (dlgNoteImport.ShowModal() == wxID_OK)
     {
         wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
-        mSequenceElements.DeactivateAllTimingElements();
+        _sequenceElements.DeactivateAllTimingElements();
         Element* element = AddTimingElement(std::string(name.ToStdString()));
         EffectLayer* effectLayer = element->GetEffectLayer(0);
-        // mSequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
+        // _sequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
 
         int interval = CurrentSeqXmlFile->GetFrameMS();
         wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();
@@ -3668,18 +3675,18 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                 {
                     EffectLayer* layer = se->GetNodeLayer(j);
                     xlColorVector colors;
-                    colors.reserve(SeqData.NumFrames());
+                    colors.reserve(_seqData.NumFrames());
                     PixelBufferClass ncls(this);
                     if (model != nullptr) {
                         SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                         ssModel->Reset(1, *model, i, j);
 
-                        for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-                            ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                        for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                            ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                             xlColor c = ssModel->GetNodeColor(0);
                             colors.push_back(c);
                         }
-                        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
+                        DoConvertDataRowToEffects(layer, colors, _seqData.FrameTime(), false);
                         delete ssModel;
                     }
                 }
@@ -3700,18 +3707,18 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
             {
                 EffectLayer* layer = el->GetNodeLayer(i);
                 xlColorVector colors;
-                colors.reserve(SeqData.NumFrames());
+                colors.reserve(_seqData.NumFrames());
                 PixelBufferClass ncls(this);
                 if (model != nullptr) {
                     SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                     ssModel->Reset(1, *model, strand, i);
 
-                    for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-                        ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                    for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                        ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                         xlColor c = ssModel->GetNodeColor(0);
                         colors.push_back(c);
                     }
-                    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
+                    DoConvertDataRowToEffects(layer, colors, _seqData.FrameTime(), false);
                     delete ssModel;
                 }
             }
@@ -3720,18 +3727,18 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
         {
             EffectLayer* layer = el->GetNodeLayer(node);
             xlColorVector colors;
-            colors.reserve(SeqData.NumFrames());
+            colors.reserve(_seqData.NumFrames());
             PixelBufferClass ncls(this);
             if (model != nullptr) {
                 SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                 ssModel->Reset(1, *model, strand, node);
 
-                for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-                    ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                    ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                     xlColor c = ssModel->GetNodeColor(0);
                     colors.push_back(c);
                 }
-                DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime(), false);
+                DoConvertDataRowToEffects(layer, colors, _seqData.FrameTime(), false);
                 delete ssModel;
             }
         }
@@ -3790,10 +3797,10 @@ std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
 
 std::vector<std::string> xLightsFrame::GetPresets() const
 {
-    return ::GetPresets(mSequenceElements.GetEffectsNode(), "");
+    return ::GetPresets(_sequenceElements.GetEffectsNode(), "");
 }
 
-wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level)
+wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int level) const
 {
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -3826,7 +3833,7 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 
     auto path = wxSplit(presetName, '/');
 
-    ele = FindPreset(mSequenceElements.GetEffectsNode(), path, 0);
+    ele = FindPreset(_sequenceElements.GetEffectsNode(), path, 0);
 
     if (ele != nullptr)
     {

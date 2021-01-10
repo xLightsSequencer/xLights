@@ -201,7 +201,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     if (viewsNode == nullptr) {
         UnsavedRgbEffectsChanges = true;
     } else {
-        _sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
+        _sequenceViewManager.Load(viewsNode, _sequenceElements.GetCurrentView());
     }
 
     if (colorsNode != nullptr) {
@@ -458,7 +458,7 @@ void xLightsFrame::LoadEffectsFile()
         wxMessageBox("Your setup tab data has been converted to the new controller centric format.\nIf you choose to save either the Controller (Setup) or Layout Tab data it is critical you save both or some of your model start channels will break.\nIf this happens you can either repair them manually or roll back to a backup copy.");
     }
 
-    displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
+    displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
     layoutPanel->ClearUndo();
     GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
     mSequencerInitialize = false;
@@ -678,7 +678,7 @@ void xLightsFrame::CreateDefaultEffectsXml()
 // reorders them in the ssubmodel dialog
 bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder)
 {
-    ModelElement* elementToCheck = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(ModelName));
+    ModelElement* elementToCheck = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(ModelName));
 
     if (elementToCheck != nullptr)
     {
@@ -761,7 +761,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 
-    Element* elem_to_rename = mSequenceElements.GetElement(OldName);
+    Element* elem_to_rename = _sequenceElements.GetElement(OldName);
     if (elem_to_rename != nullptr)
     {
         elem_to_rename->SetName(NewName);
@@ -777,7 +777,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     }
 
     RenameModelInViews(OldName, NewName);
-    mSequenceElements.RenameModelInViews(OldName, NewName);
+    _sequenceElements.RenameModelInViews(OldName, NewName);
 
     UnsavedRgbEffectsChanges = true;
     return internalsChanged;
@@ -816,7 +816,7 @@ bool xLightsFrame::RenameObject(const std::string OldName, const std::string& Ne
 
     logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 
-    Element* elem_to_rename = mSequenceElements.GetElement(OldName);
+    Element* elem_to_rename = _sequenceElements.GetElement(OldName);
     if (elem_to_rename != nullptr)
     {
         elem_to_rename->SetName(NewName);
@@ -1085,7 +1085,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
         logger_base.info("%s", (const char *) displayBuff.c_str());
         CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
-        mSavedChangeCount = mSequenceElements.GetChangeCount();
+        mSavedChangeCount = _sequenceElements.GetChangeCount();
         mLastAutosaveCount = mSavedChangeCount;
 
         CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames, exitOnDone);
@@ -1096,7 +1096,7 @@ void xLightsFrame::SaveSequence()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (SeqData.NumFrames() == 0)
+    if (_seqData.NumFrames() == 0)
     {
         DisplayError("You must open a sequence first!", this);
         return;
@@ -1177,7 +1177,7 @@ void xLightsFrame::SaveSequence()
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     logger_base.info("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
-    CurrentSeqXmlFile->Save(mSequenceElements);
+    CurrentSeqXmlFile->Save(_sequenceElements);
     logger_base.info("XSQ file done.");
 
     if (mBackupOnSave)
@@ -1193,8 +1193,8 @@ void xLightsFrame::SaveSequence()
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
 
         // If number of channels is wrong then lets just dump and reallocate before render
-        if ((SeqData.NumChannels() != roundTo4(GetMaxNumChannels())) ||
-            (SeqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
+        if ((_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) ||
+            (_seqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
             logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
             
@@ -1204,7 +1204,7 @@ void xLightsFrame::SaveSequence()
             wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
             int ms = wxAtoi(mss);
 
-            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         ProgressBar->Show();
@@ -1234,7 +1234,7 @@ void xLightsFrame::SaveSequence()
             logger_base.info("%s", (const char *) displayBuff.c_str());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
-            mSavedChangeCount = mSequenceElements.GetChangeCount();
+            mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
         } );
         return;
@@ -1254,7 +1254,7 @@ void xLightsFrame::SaveSequence()
     logger_base.info("%s", (const char *)displayBuff.c_str());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
-    mSavedChangeCount = mSequenceElements.GetChangeCount();
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 }
 
@@ -1262,16 +1262,16 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    if (SeqData.FrameTime() != timingMS)
+    if (_seqData.FrameTime() != timingMS)
     {
         AbortRender();
-        SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
     }
 }
 
 void xLightsFrame::SaveAsSequence()
 {
-   if (SeqData.NumFrames() == 0)
+   if (_seqData.NumFrames() == 0)
     {
         DisplayError("You must open a sequence first!", this);
         return;
@@ -1320,7 +1320,7 @@ void xLightsFrame::RenderAll()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!SeqData.IsValidData())
+    if (!_seqData.IsValidData())
     {
         logger_base.warn("Aborting render all because sequence data has not been initialised.");
         return;
@@ -1397,8 +1397,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
-    bool enableSeq = enable && SeqData.NumFrames() > 0;
-    bool enableSeqNotAC = enable && SeqData.NumFrames() > 0 && !IsACActive();
+    bool enableSeq = enable && _seqData.NumFrames() > 0;
+    bool enableSeqNotAC = enable && _seqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
     enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
     enableAllToolbarControls(EditToolBar, enableSeq);
@@ -1430,7 +1430,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
     enableAllMenubarControls(MenuBar, enable);
 
-    if (enable && SeqData.NumFrames() == 0) {
+    if (enable && _seqData.NumFrames() == 0) {
         //no file is loaded, disable save/render buttons
         EnableToolbarButton(MainToolBar, ID_AUITOOLBAR_SAVE, false);
         EnableToolbarButton(MainToolBar, ID_AUITOOLBAR_SAVEAS, false);
@@ -1448,7 +1448,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
     }
-    if (!enable && SeqData.NumFrames() > 0) {
+    if (!enable && _seqData.NumFrames() > 0) {
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)
         //we need to also disable the quit button
         QuitMenuItem->Enable(false);
@@ -1491,7 +1491,7 @@ void xLightsFrame::VCChanged(wxCommandEvent& event)
         _valueCurvesPanel->UpdateValueCurveButtons(true);
     }
     enableAllChildControls(_valueCurvesPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
-    enableAllChildControls(_valueCurvesPanel, SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(_valueCurvesPanel, _seqData.NumFrames() > 0 && !IsACActive());
     _valueCurvesPanel->Thaw();
 }
 
@@ -1503,6 +1503,6 @@ void xLightsFrame::ColourChanged(wxCommandEvent& event)
         _coloursPanel->UpdateColourButtons(true, this);
     }
     enableAllChildControls(_coloursPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
-    enableAllChildControls(_coloursPanel, SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(_coloursPanel, _seqData.NumFrames() > 0 && !IsACActive());
     _coloursPanel->Thaw();
 }

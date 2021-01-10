@@ -547,6 +547,10 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_PRESETS)
     {
         logger_base.debug("OnGridPopup - PRESETS");
+
+        //xlights->CreatePresetIcons();
+        //logger_base.debug("Preset icons created.");
+
         xlights->ShowPresetsPanel();
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_PHRASE)

@@ -471,15 +471,15 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this), AllObjects(this),
-    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool"), mainSequencer(nullptr)
+xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(this), AllModels(&_outputManager, this), AllObjects(this),
+    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool"), mainSequencer(nullptr), _presetSequenceElements(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
 
     xLightsApp::__frame = this;
 
-    ValueCurve::SetSequenceElements(&mSequenceElements);
+    ValueCurve::SetSequenceElements(&_sequenceElements);
 
     _exiting = false;
     SplashDialog splash(nullptr);
@@ -2836,7 +2836,7 @@ void xLightsFrame::ShowSequenceSettings()
 
     SetAudioControls();
 
-    mSequenceElements.IncrementChangeCount(nullptr);
+    _sequenceElements.IncrementChangeCount(nullptr);
 }
 
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
@@ -2855,7 +2855,7 @@ void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 
 Effect* xLightsFrame::GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const
 {
-    Element* e = mSequenceElements.GetElement(model);
+    Element* e = _sequenceElements.GetElement(model);
 
     if (e == nullptr) return nullptr;
 
@@ -2976,7 +2976,7 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
-    int frameCount = SeqData.NumFrames();
+    int frameCount = _seqData.NumFrames();
 
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
         return;
@@ -3034,7 +3034,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     bool exportStatus = false;
     std::string emsg;
     try {
-        VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
+        VideoExporter videoExporter(this, width, height, contentScaleFactor, _seqData.FrameTime(), _seqData.NumFrames(), audioChannelCount, audioSampleRate, path);
 
         auto audioLambda = [audioMgr, &audioFrameIndex](float* leftCh, float* rightCh, int frameSize) {
             int trackSize = audioMgr->GetTrackSize();
@@ -3059,7 +3059,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
 
         auto videoLambda = [this, housePreview, &captureHelper](uint8_t* buf, int bufSize, unsigned frameIndex) {
-            const FrameData& frameData(this->SeqData[frameIndex]);
+            const FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->Render(data, false);
             return captureHelper.ToRGB(buf, bufSize, true);
@@ -3163,7 +3163,7 @@ void xLightsFrame::SetToolIconSize(int size)
 
 void xLightsFrame::SetFrequency(int frequency)
 {
-    mSequenceElements.SetFrequency(frequency);
+    _sequenceElements.SetFrequency(frequency);
     mainSequencer->PanelTimeLine->SetTimeFrequency(frequency);
     mainSequencer->PanelWaveForm->SetTimeFrequency(frequency);
 }
@@ -3367,8 +3367,8 @@ void xLightsFrame::UpdateSequenceLength()
         int ms = wxAtoi(mss);
 
         AbortRender();
-        SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-        mSequenceElements.IncrementChangeCount(nullptr);
+        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        _sequenceElements.IncrementChangeCount(nullptr);
 
         mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
         mainSequencer->PanelTimeLine->Initialize();
@@ -3469,7 +3469,7 @@ void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
 {
     UpdateChannelNames();
-    ConvertDialog dialog(this, SeqData, &_outputManager, mediaFilename, ChannelNames, ChannelColors, ChNames);
+    ConvertDialog dialog(this, _seqData, &_outputManager, mediaFilename, ChannelNames, ChannelColors, ChNames);
     dialog.CenterOnParent();
     dialog.ShowModal();
 }
@@ -3737,7 +3737,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
         wxFileName fn2(GetSeqXmlFileName());
         if (fn2.Exists() && !fn2.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn2.GetName());
-            if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+            if (mSavedChangeCount != _sequenceElements.GetChangeCount())
             {
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
                 if (fnb.Exists())
@@ -3748,7 +3748,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
         }
         else
         {
-            if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+            if (mSavedChangeCount != _sequenceElements.GetChangeCount())
             {
                 wxFileName fnb(CurrentDir + "/" + "__.xbkp");
                 if (fnb.Exists())
@@ -3760,7 +3760,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
     }
     else
     {
-        if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+        if (mSavedChangeCount != _sequenceElements.GetChangeCount())
         {
             wxFileName fnb(CurrentDir + "/" + "__.xbkp");
             if (fnb.Exists())
@@ -3861,7 +3861,7 @@ void xLightsFrame::SaveWorking()
     CurrentSeqXmlFile->SetPath(ftmp.GetPath());
     CurrentSeqXmlFile->SetFullName(ftmp.GetFullName());
 
-    CurrentSeqXmlFile->Save(mSequenceElements);
+    CurrentSeqXmlFile->Save(_sequenceElements);
 
     CurrentSeqXmlFile->SetPath(p);
     CurrentSeqXmlFile->SetFullName(fn);
@@ -3874,12 +3874,12 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     if (playType != PLAY_TYPE_MODEL && !_renderMode && !_suspendAutoSave) {
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
-        if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+        if (mSavedChangeCount != _sequenceElements.GetChangeCount())
         {
-            if (mSequenceElements.GetChangeCount() != mLastAutosaveCount)
+            if (_sequenceElements.GetChangeCount() != mLastAutosaveCount)
             {
                 SaveWorking();
-                mLastAutosaveCount = mSequenceElements.GetChangeCount();
+                mLastAutosaveCount = _sequenceElements.GetChangeCount();
             }
             else
             {
@@ -3889,7 +3889,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         else
         {
             logger_base.debug("    Autosave skipped ... no changes detected since last save.");
-            mLastAutosaveCount = mSequenceElements.GetChangeCount();
+            mLastAutosaveCount = _sequenceElements.GetChangeCount();
         }
         if (UnsavedRgbEffectsChanges)
         {
@@ -5996,7 +5996,7 @@ void xLightsFrame::CheckSequence(bool display)
             LogAndWrite(f, "Models hidden by effects on groups");
 
             // Check for groups that contain models that have appeared before the group at the bottom of the master view
-            wxString models = mSequenceElements.GetViewModels(mSequenceElements.GetViewName(0));
+            wxString models = _sequenceElements.GetViewModels(_sequenceElements.GetViewName(0));
             wxArrayString modelnames = wxSplit(models, ',');
 
             std::list<std::string> seenmodels;
@@ -6050,9 +6050,9 @@ void xLightsFrame::CheckSequence(bool display)
         std::list<std::pair<std::string, std::string>> states;
         std::list<std::string> viewPoints;
         bool usesShader = false;
-        for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
+        for (int i = 0; i < _sequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
-            Element* e = mSequenceElements.GetElement(i);
+            Element* e = _sequenceElements.GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
@@ -6257,7 +6257,7 @@ void xLightsFrame::CheckSequence(bool display)
 
 void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
-    EffectManager& em = mSequenceElements.GetEffectManager();
+    EffectManager& em = _sequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
 
     if (ef->GetEffectName() == "Video")
@@ -6757,9 +6757,9 @@ void xLightsFrame::ExportEffects(wxString filename)
 
     std::list<std::string> files;
 
-    for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
+    for (size_t i = 0; i < _sequenceElements.GetElementCount(0); i++)
     {
-        Element* e = mSequenceElements.GetElement(i);
+        Element* e = _sequenceElements.GetElement(i);
         effects += ExportElement(f, e, effectfrequency, effecttotaltime, files);
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
@@ -6823,8 +6823,8 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem<mSequenceElements.GetElementCount(MASTER_VIEW); elem++) {
-            Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
+        for (int elem = 0; elem<_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
             for (int layer = 0; layer<ele->GetEffectLayerCount(); layer++) {
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftSelectedEffectsOnLayer(el, milliseconds);
@@ -6875,8 +6875,8 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for(int elem=0;elem<mSequenceElements.GetElementCount(MASTER_VIEW);elem++) {
-            Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
+        for(int elem=0;elem<_sequenceElements.GetElementCount(MASTER_VIEW);elem++) {
+            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
             for(int layer=0;layer<ele->GetEffectLayerCount();layer++) {
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftEffectsOnLayer(el, milliseconds);
@@ -7195,7 +7195,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
 
-    if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+    if (mSavedChangeCount != _sequenceElements.GetChangeCount())
     {
         DisplayWarning("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", this);
     }
@@ -7239,9 +7239,9 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     prog.Update(10);
 
     std::list<std::string> facesUsed;
-    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    for (size_t j = 0; j < _sequenceElements.GetElementCount(0); j++)
     {
-        Element* e = mSequenceElements.GetElement(j);
+        Element* e = _sequenceElements.GetElement(j);
         facesUsed.splice(end(facesUsed), e->GetFacesUsed(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
@@ -7353,9 +7353,9 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     // Add any effects images/videos/glediator files
     std::list<std::string> effectfiles;
-    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    for (size_t j = 0; j < _sequenceElements.GetElementCount(0); j++)
     {
-        Element* e = mSequenceElements.GetElement(j);
+        Element* e = _sequenceElements.GetElement(j);
         effectfiles.splice(end(effectfiles), e->GetFileReferences(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
@@ -7513,13 +7513,13 @@ void xLightsFrame::CleanupSequenceFileLocations()
     if (wxFile::Exists(media) && !IsInShowFolder(media))
     {
         CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), MoveToShowFolder(media, wxString(wxFileName::GetPathSeparator()) + "Audio"), false);
-        mSequenceElements.IncrementChangeCount(nullptr);
+        _sequenceElements.IncrementChangeCount(nullptr);
     }
 
     bool changed = false;
-    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    for (size_t j = 0; j < _sequenceElements.GetElementCount(0); j++)
     {
-        Element* e = mSequenceElements.GetElement(j);
+        Element* e = _sequenceElements.GetElement(j);
         changed = e->CleanupFileLocations(this, effectManager) || changed;
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
@@ -7537,7 +7537,7 @@ void xLightsFrame::CleanupSequenceFileLocations()
 
     if (changed)
     {
-        mSequenceElements.IncrementChangeCount(nullptr);
+        _sequenceElements.IncrementChangeCount(nullptr);
     }
 }
 
@@ -7602,7 +7602,7 @@ void xLightsFrame::TimerOutput(int period)
 {
     if (CheckBoxLightOutput->IsChecked())
     {
-        _outputManager.SetManyChannels(0, &SeqData[period][0], SeqData.NumChannels());
+        _outputManager.SetManyChannels(0, &_seqData[period][0], _seqData.NumChannels());
     }
 }
 
@@ -7793,7 +7793,7 @@ void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
 
 void xLightsFrame::UpdateACToolbar(bool forceState)
 {
-    if (Button_ACDisabled->IsChecked() && SeqData.NumFrames() != 0 && _showACLights && forceState)
+    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights && forceState)
     {
         wxAuiToolBarItem* button = ACToolbar->FindTool(ID_AUITOOLBARITEM_ACON);
         int state = button->GetState();
@@ -7847,7 +7847,7 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
 void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
 {
     UpdateACToolbar();
-    if (Button_ACDisabled->IsChecked() && SeqData.NumFrames() != 0 && _showACLights)
+    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights)
     {
         ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ENABLED"))));
         Button_ACSelect->SetValue(true);
@@ -7924,7 +7924,7 @@ void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
 
 bool xLightsFrame::IsACActive()
 {
-    return SeqData.NumFrames() != 0 && _showACLights && Button_ACDisabled->IsChecked();
+    return _seqData.NumFrames() != 0 && _showACLights && Button_ACDisabled->IsChecked();
 }
 
 void xLightsFrame::OnAC_BackgroundClick(wxCommandEvent& event)
@@ -8463,7 +8463,7 @@ ModelPreview* xLightsFrame::GetHousePreview() const
 
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 {
-    GenerateLyricsDialog dlg(this, SeqData.NumChannels());
+    GenerateLyricsDialog dlg(this, _seqData.NumChannels());
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -8517,10 +8517,10 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         }
 
         // now create the phenome timing track
-        std::string name = mSequenceElements.UniqueElementName(dlg.GetLyricName());
-        int timingCount = mSequenceElements.GetNumberOfTimingElements();
-        Element* e = mSequenceElements.AddElement(timingCount, name, "timing", true, false, true, false);
-        mSequenceElements.AddTimingToCurrentView(name);
+        std::string name = _sequenceElements.UniqueElementName(dlg.GetLyricName());
+        int timingCount = _sequenceElements.GetNumberOfTimingElements();
+        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false);
+        _sequenceElements.AddTimingToCurrentView(name);
         TimingElement* timing = dynamic_cast<TimingElement*>(e);
         timing->AddEffectLayer();
         timing->AddEffectLayer();
@@ -8529,7 +8529,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         Effect* lastEffect = nullptr;
         std::string lastPhenome = "";
 
-        for (size_t i = 0; i < SeqData.NumFrames(); ++i)
+        for (size_t i = 0; i < _seqData.NumFrames(); ++i)
         {
             bool phenomeFound = false;
             for (auto it = face.begin(); it != face.end(); ++it)
@@ -8537,7 +8537,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                 bool match = true;
                 for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
                 {
-                    if (SeqData[i][*it2-1] == 0)
+                    if (_seqData[i][*it2-1] == 0)
                     {
                         match = false;
                         break;
@@ -8545,7 +8545,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                 }
                 for (auto it2 = notface[it->first].begin(); it2 != notface[it->first].end(); ++it2)
                 {
-                    if (SeqData[i][*it2-1] != 0)
+                    if (_seqData[i][*it2-1] != 0)
                     {
                         match = false;
                         break;
@@ -8853,7 +8853,7 @@ void xLightsFrame::ShowPresetsPanel()
     if (EffectTreeDlg == nullptr)
     {
         EffectTreeDlg = new EffectTreeDialog(this);
-        EffectTreeDlg->InitItems(mSequenceElements.GetEffectsNode());
+        EffectTreeDlg->InitItems(_sequenceElements.GetEffectsNode());
     }
     EffectTreeDlg->Show();
 }
@@ -9274,7 +9274,7 @@ void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event)
 {
-    _renderCache.Purge(&mSequenceElements, true);
+    _renderCache.Purge(&_sequenceElements, true);
 }
 
 void xLightsFrame::SetEnableRenderCache(const wxString &t)
@@ -9284,14 +9284,14 @@ void xLightsFrame::SetEnableRenderCache(const wxString &t)
         _enableRenderCache = "Locked Only";
     }
     _renderCache.Enable(_enableRenderCache);
-    _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
+    _renderCache.CleanupCache(&_sequenceElements); // purge anything the cache no longer needs
 
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr) {
         // this will force a reload of the cache
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
     } else {
         _renderCache.SetSequence("", "");
-        _renderCache.Purge(&mSequenceElements, false);
+        _renderCache.Purge(&_sequenceElements, false);
     }
 }
 
