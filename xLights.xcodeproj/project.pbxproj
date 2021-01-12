@@ -522,6 +522,7 @@
 		67F8A292247890EF004EC222 /* wxMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F8A291247890EF004EC222 /* wxMidi.cpp */; };
 		67F8A29424789105004EC222 /* wxMidiDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F8A29324789105004EC222 /* wxMidiDatabase.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
+		67FB1E8125AE3CEB00325CF6 /* CopyFormat1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB1E8025AE3CEA00325CF6 /* CopyFormat1.cpp */; };
 		67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D181F4D21EB00983072 /* ShapePanel.cpp */; };
 		67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */; };
 		67FC880723D6410400D457CB /* xLightsPreferences.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FC880023D6410400D457CB /* xLightsPreferences.cpp */; };
@@ -1493,6 +1494,8 @@
 		67F8A29324789105004EC222 /* wxMidiDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxMidiDatabase.cpp; path = xSchedule/wxMIDI/src/wxMidiDatabase.cpp; sourceTree = SOURCE_ROOT; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
+		67FB1E7F25AE3CEA00325CF6 /* CopyFormat1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CopyFormat1.h; sourceTree = "<group>"; };
+		67FB1E8025AE3CEA00325CF6 /* CopyFormat1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CopyFormat1.cpp; sourceTree = "<group>"; };
 		67FB9D171F4D21EB00983072 /* ShapePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapePanel.h; path = effects/ShapePanel.h; sourceTree = "<group>"; };
 		67FB9D181F4D21EB00983072 /* ShapePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapePanel.cpp; path = effects/ShapePanel.cpp; sourceTree = "<group>"; };
 		67FB9D191F4D21EB00983072 /* ShapeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapeEffect.h; path = effects/ShapeEffect.h; sourceTree = "<group>"; };
@@ -2378,6 +2381,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67FB1E8025AE3CEA00325CF6 /* CopyFormat1.cpp */,
+				67FB1E7F25AE3CEA00325CF6 /* CopyFormat1.h */,
 				6719709A25719E21008F0294 /* AboutDialog.cpp */,
 				6719709925719E21008F0294 /* AboutDialog.h */,
 				67E00457256DBA6C00E12C81 /* InAppPurchaseDialog.cpp */,
@@ -3228,6 +3233,7 @@
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */,
 				673C925320A47C4C00E59F5D /* VendorMusicHelpers.cpp in Sources */,
+				67FB1E8125AE3CEB00325CF6 /* CopyFormat1.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				678A41BF23E6417700E5FB09 /* Controller.cpp in Sources */,
 				67503C9F23C3261F0033449B /* ImageModel.cpp in Sources */,

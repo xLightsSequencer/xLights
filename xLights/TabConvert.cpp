@@ -1155,7 +1155,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing preset GIF for %s.", (const char*)preset.c_str());
 
-    wxMkDir(showDirectory + "/presets");
+    wxMkDir(showDirectory + "/presets", wxS_DIR_DEFAULT);
 
     auto filename = GetPresetIconFilename(preset);
 
