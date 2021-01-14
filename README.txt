@@ -11,12 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (gil)    Prevent Node Select Grid zoom from being able to be reduced to 0 and recover if it has
+2021.01 January 14 2021
    -- enh (gil)    Improve handle selection when handles overlap to help with resizing tiny models
    -- enh (gil)    Allow sorting Timing tracks for Master View in Display Elements dialog.
-   -- bug (gil)    Fix some drag/drop sorting issues in Display Elements dialog. (Hopefully didn't create new ones)
    -- enh (gil)    Twinkle effect: add value curves
+   -- enh (scott)  Change default model blending to drop down to make it less cryptic
+   -- enh (keith)  Add -s command line option to run it single threaded (slow but errors can more easily be debugged)
+   -- enh (keith)  Upgrade windows wxWidgets to 3.1.4
+   -- enh (keith)  When input and outputs upload are linked disable the inputs as only one is needed
+   -- enh (keith)  Add code to allow generation of a GIF for a preset (this is not user accessible at this time)
+   -- bug (gil)    Prevent Node Select Grid zoom from being able to be reduced to 0 and recover if it has
+   -- bug (gil)    Fix some drag/drop sorting issues in Display Elements dialog. (Hopefully didn't create new ones)
    -- bug (gil)    Fix new Bounce to Middle Singlestrand option when Cycles is not equal to 1.
+   -- bug (keith)  Fix xFade does not allow 0 artnet universe
+   -- bug (keith)  Fix decline on email does not save decision
+   -- bug (dpriem) Fix models duplicated in group when importing from rgbeffects
+   -- bug (dpriem) Fix replace model call in model list right click menu was not doing anything
 2020.57 December 29 2020
    -- enh (gil)    Singlestrand Effect: Dual Bounce renamed to Dual Chase and new styles Bounce to Middle and Bounce from Middle added.
    -- enh (gil)    Twinkle effect has new algorithm that is more random to cover all pixels.  Old algorithm can still be selected.
