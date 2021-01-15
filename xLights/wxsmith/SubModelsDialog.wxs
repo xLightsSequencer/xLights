@@ -97,21 +97,12 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON10" variable="Button_ExportCustom" member="yes">
-												<label>Export CSV</label>
+											<object class="wxButton" name="ID_BUTTON10" variable="Button_Export" member="yes">
+												<label>Export</label>
 												<tooltip>Export SubModel as CSV File</tooltip>
-												<handler function="OnButton_ExportCustomClick" entry="EVT_BUTTON" />
+												<handler function="OnButton_ExportClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON5" variable="Button_ExportCustomxModel" member="yes">
-												<label>Export Custom xModel</label>
-												<handler function="OnButton_ExportCustomxModelClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

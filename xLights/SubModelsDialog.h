@@ -118,8 +118,7 @@ public:
     wxButton* ButtonImport;
     wxButton* Button_Draw_Model;
     wxButton* Button_Edit;
-    wxButton* Button_ExportCustom;
-    wxButton* Button_ExportCustomxModel;
+    wxButton* Button_Export;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
     wxButton* Button_ReverseNodes;
@@ -155,7 +154,6 @@ protected:
     static const long ID_BUTTON_EDIT;
     static const long ID_BUTTON_IMPORT;
     static const long ID_BUTTON10;
-    static const long ID_BUTTON5;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -181,6 +179,8 @@ protected:
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
+    static const long SUBMODEL_DIALOG_EXPORT_CSV;
+    static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
     static const long SUBMODEL_DIALOG_GENERATE;
     static const long SUBMODEL_DIALOG_SHIFT;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
@@ -256,11 +256,10 @@ private:
     void OnButton_Draw_ModelClick(wxCommandEvent& event);
     void OnNodesGridLabelLeftDClick(wxGridEvent& event);
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
-    void OnButton_ExportCustomClick(wxCommandEvent& event);
     void OnButton_SortRowClick(wxCommandEvent& event);
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_EditClick(wxCommandEvent& event);
-    void OnButton_ExportCustomxModelClick(wxCommandEvent& event);
+    void OnButton_ExportClick(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -271,6 +270,7 @@ private:
     
     void OnImportBtnPopup(wxCommandEvent& event);
     void OnEditBtnPopup(wxCommandEvent& event);
+    void OnExportBtnPopup(wxCommandEvent& event);
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);

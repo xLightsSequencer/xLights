@@ -57,7 +57,6 @@ const long SubModelsDialog::ID_BUTTONCOPY = wxNewId();
 const long SubModelsDialog::ID_BUTTON_EDIT = wxNewId();
 const long SubModelsDialog::ID_BUTTON_IMPORT = wxNewId();
 const long SubModelsDialog::ID_BUTTON10 = wxNewId();
-const long SubModelsDialog::ID_BUTTON5 = wxNewId();
 const long SubModelsDialog::ID_PANEL4 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
 const long SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
@@ -83,6 +82,8 @@ const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_GENERATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
@@ -149,11 +150,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	ButtonImport->SetToolTip(_("Import to Submodels"));
 	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
-	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
-	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	Button_ExportCustomxModel = new wxButton(Panel2, ID_BUTTON5, _("Export Custom xModel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer10->Add(Button_ExportCustomxModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Export = new wxButton(Panel2, ID_BUTTON10, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	Button_Export->SetToolTip(_("Export SubModel as CSV File"));
+	FlexGridSizer10->Add(Button_Export, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
@@ -264,8 +263,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_BUTTONCOPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_CopyClick);
 	Connect(ID_BUTTON_EDIT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_EditClick);
 	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonImportClick);
-	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomxModelClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportClick);
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
@@ -646,6 +644,20 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     event.Skip();
 }
 
+void SubModelsDialog::OnButton_ExportClick(wxCommandEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(SUBMODEL_DIALOG_EXPORT_CSV, "Export SubModels As CSV");
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
+        mnu.Append(SUBMODEL_DIALOG_EXPORT_XMODEL, "Export SubModel As xModel");
+    }
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnExportBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
+    event.Skip();
+}
+
+
 void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_IMPORT_MODEL) {
@@ -691,14 +703,29 @@ void SubModelsDialog::OnEditBtnPopup(wxCommandEvent& event)
     }
 }
 
-void SubModelsDialog::OnButton_ExportCustomClick(wxCommandEvent& event)
+void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
 {
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Save CSV File"), wxEmptyString, model->Name(), ".csv", "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (event.GetId() == SUBMODEL_DIALOG_EXPORT_CSV) {
+        wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+        wxString filename = wxFileSelector(_("Save CSV File"), wxEmptyString, model->Name(), ".csv", "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
+        if (filename.IsEmpty()) return;
 
-    ExportSubModels(filename);
+        ExportSubModels(filename);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_EXPORT_XMODEL) {
+        wxString name = GetSelectedName();
+        if (name == "") {
+            return;
+        }
+
+        wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+        wxString filename = wxFileSelector(_("Save Custom xModel File"), wxEmptyString, name, ".xmodel", "Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+        if (filename.IsEmpty()) return;
+
+        ExportSubModelAsxModel(filename, name);
+    }
 }
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
@@ -1021,17 +1048,10 @@ void SubModelsDialog::ValidateWindow()
         DeleteRowButton->Disable();
         subBufferPanel->Disable();
         TypeNotebook->Disable();
-        Button_ExportCustom->Disable();
+        Button_Export->Disable();
     } else {
         ListCtrl_SubModels->Enable();
-        Button_ExportCustom->Enable();
-    }
-
-    if (ListCtrl_SubModels->GetSelectedItemCount() == 1)         {
-        Button_ExportCustomxModel->Enable();
-    }
-    else         {
-        Button_ExportCustomxModel->Disable();
+        Button_Export->Enable();
     }
 
     if (ListCtrl_SubModels->GetSelectedItemCount() > 0)
@@ -2638,19 +2658,4 @@ void SubModelsDialog::Reverse()
     Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
     TextCtrl_Name->SelectAll();
-}
-
-void SubModelsDialog::OnButton_ExportCustomxModelClick(wxCommandEvent& event)
-{
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Save Custom xModel File"), wxEmptyString, name, ".xmodel", "Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty()) return;
-
-    ExportSubModelAsxModel(filename, name);
 }
