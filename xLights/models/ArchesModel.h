@@ -24,7 +24,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
-    
+        virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
