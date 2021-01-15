@@ -326,7 +326,7 @@ public:
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels();
     uint32_t GetNodeNumber(size_t nodenum) const;
-    uint32_t GetNodeNumber(int bufY, int bufX) const;
+    long GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;

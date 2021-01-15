@@ -2448,7 +2448,8 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
     return res;
 }
 
-void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
+void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
+{
 
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
@@ -2456,7 +2457,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     }
 
     for (auto it = subModels.begin(); it != subModels.end(); ++it) {
-        Model *m = *it;
+        Model* m = *it;
         delete m;
     }
     subModels.clear();
@@ -2465,21 +2466,21 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     wxString channelstr;
 
     zeroBased = zb;
-    ModelXml=ModelNode;
-    StrobeRate=0;
+    ModelXml = ModelNode;
+    StrobeRate = 0;
     Nodes.clear();
 
     clearUnusedProtocolProperties(GetControllerConnection());
 
     DeserialiseLayerSizes(ModelNode->GetAttribute("LayerSizes", ""), false);
 
-    name=ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    name = ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
     if (name != ModelNode->GetAttribute("name")) {
         ModelNode->DeleteAttribute("name");
         ModelNode->AddAttribute("name", name);
     }
-    DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
-    StringType=ModelNode->GetAttribute("StringType").ToStdString();
+    DisplayAs = ModelNode->GetAttribute("DisplayAs").ToStdString();
+    StringType = ModelNode->GetAttribute("StringType", "RGB Nodes").ToStdString();
     _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
@@ -2489,9 +2490,11 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     SingleChannel = (ncc == 1);
     if (SingleNode) {
         rgbOrder = "RGB";
-    } else if (ncc == 4 && StringType[0] == 'W') {
+    }
+    else if (ncc == 4 && StringType[0] == 'W') {
         rgbOrder = StringType.substr(1, 4);
-    } else {
+    }
+    else {
         rgbOrder = StringType.substr(0, 3);
     }
     if (ncc == 4) {
@@ -2506,36 +2509,40 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     wxString tempstr = ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);
-    tempstr=ModelNode->GetAttribute("parm2");
+    tempstr = ModelNode->GetAttribute("parm2");
     tempstr.ToLong(&parm2);
-    tempstr=ModelNode->GetAttribute("parm3");
+    tempstr = ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
-    tempstr=ModelNode->GetAttribute("StrandNames");
+    tempstr = ModelNode->GetAttribute("StrandNames");
     strandNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();
         if (tempstr[0] == ',') {
             t2 = "";
             tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
+        }
+        else if (tempstr.Contains(",")) {
             t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
             tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
+        }
+        else {
             tempstr = "";
         }
         strandNames.push_back(t2);
     }
-    tempstr=ModelNode->GetAttribute("NodeNames");
+    tempstr = ModelNode->GetAttribute("NodeNames");
     nodeNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();
         if (tempstr[0] == ',') {
             t2 = "";
             tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
+        }
+        else if (tempstr.Contains(",")) {
             t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
             tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
+        }
+        else {
             tempstr = "";
         }
         nodeNames.push_back(t2);
@@ -2543,16 +2550,13 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     bool found = true;
     int index = 0;
-    while (found)
-    {
+    while (found) {
         auto an = wxString::Format("SuperStringColour%d", index);
         auto v = ModelXml->GetAttribute(an, "");
-        if (v == "")
-        {
+        if (v == "") {
             found = false;
         }
-        else
-        {
+        else {
             superStringColours.push_back(wxColour(v));
         }
         index++;
@@ -2560,63 +2564,68 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     CouldComputeStartChannel = false;
     std::string  dependsonmodel;
-    int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
-    tempstr=ModelNode->GetAttribute("Dir");
+    int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel", "1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
+    tempstr = ModelNode->GetAttribute("Dir");
     IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
-        tempstr=ModelNode->GetAttribute("StartSide");
+        tempstr = ModelNode->GetAttribute("StartSide");
         isBotToTop = (tempstr == "B");
-    } else {
-        isBotToTop=true;
+    }
+    else {
+        isBotToTop = true;
     }
     customColor = xlColor(ModelNode->GetAttribute("CustomColor", "#000000").ToStdString());
 
     long n;
-    tempstr=ModelNode->GetAttribute("Antialias","1");
+    tempstr = ModelNode->GetAttribute("Antialias", "1");
     tempstr.ToLong(&n);
     pixelStyle = n;
-    tempstr=ModelNode->GetAttribute("PixelSize","2");
+    tempstr = ModelNode->GetAttribute("PixelSize", "2");
     tempstr.ToLong(&n);
     pixelSize = n;
-    tempstr=ModelNode->GetAttribute("Transparency","0");
+    tempstr = ModelNode->GetAttribute("Transparency", "0");
     tempstr.ToLong(&n);
     transparency = n;
-    blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
+    blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency", "0"));
     modelTagColour = wxColour(ModelNode->GetAttribute("TagColour", "Black"));
-    layout_group = ModelNode->GetAttribute("LayoutGroup","Unassigned");
+    layout_group = ModelNode->GetAttribute("LayoutGroup", "Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
 
     // calculate starting channel numbers for each string
-    size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString=CalcCannelsPerString();
+    size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
+    int ChannelsPerString = CalcCannelsPerString();
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     GetModelScreenLocation().Read(ModelNode);
 
     InitModel();
 
-    size_t NodeCount=GetNodeCount();
-    for(size_t i=0; i<NodeCount; i++) {
+    size_t NodeCount = GetNodeCount();
+    for (size_t i = 0; i < NodeCount; i++) {
         Nodes[i]->sparkle = rand() % 10000;
     }
 
-    wxXmlNode *f = ModelNode->GetChildren();
+    wxXmlNode* f = ModelNode->GetChildren();
     faceInfo.clear();
     stateInfo.clear();
-    wxXmlNode * dimmingCurveNode = nullptr;
-    wxXmlNode * controllerConnectionNode = nullptr;
+    wxXmlNode* dimmingCurveNode = nullptr;
+    wxXmlNode* controllerConnectionNode = nullptr;
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
             ParseFaceInfo(f, faceInfo);
-        } else if ("stateInfo" == f->GetName()) {
+        }
+        else if ("stateInfo" == f->GetName()) {
             ParseStateInfo(f, stateInfo);
-        } else if ("dimmingCurve" == f->GetName()) {
+        }
+        else if ("dimmingCurve" == f->GetName()) {
             dimmingCurveNode = f;
             modelDimmingCurve = DimmingCurve::createFromXML(f);
-        } else if ("subModel" == f->GetName()) {
+        }
+        else if ("subModel" == f->GetName()) {
             ParseSubModel(f);
-        } else if ("ControllerConnection" == f->GetName()) {
+        }
+        else if ("ControllerConnection" == f->GetName()) {
             controllerConnectionNode = f;
         }
         f = f->GetNext();
@@ -2627,7 +2636,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         ModelNode->DeleteAttribute("ControllerConnection");
         wxArrayString ar = wxSplit(cc, ':');
         if (controllerConnectionNode == nullptr) {
-            controllerConnectionNode = new wxXmlNode(wxXML_ELEMENT_NODE , "ControllerConnection");
+            controllerConnectionNode = new wxXmlNode(wxXML_ELEMENT_NODE, "ControllerConnection");
             ModelNode->AddChild(controllerConnectionNode);
         }
         if (ar.size() > 0) {
@@ -3928,7 +3937,7 @@ uint32_t Model::GetNodeNumber(size_t nodenum) const {
     return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
 }
 
-uint32_t Model::GetNodeNumber(int bufY, int bufX) const
+long Model::GetNodeNumber(int bufY, int bufX) const
 {
     uint32_t count = 0;
     for (const auto& it : Nodes)
@@ -3942,7 +3951,7 @@ uint32_t Model::GetNodeNumber(int bufY, int bufX) const
         }
         count++;
     }
-    return 0;
+    return -1;
 }
 
 uint32_t Model::GetNodeCount() const {

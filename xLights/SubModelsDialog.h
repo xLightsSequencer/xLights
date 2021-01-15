@@ -119,6 +119,7 @@ public:
     wxButton* Button_Draw_Model;
     wxButton* Button_Edit;
     wxButton* Button_ExportCustom;
+    wxButton* Button_ExportCustomxModel;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
     wxButton* Button_ReverseNodes;
@@ -154,6 +155,7 @@ protected:
     static const long ID_BUTTON_EDIT;
     static const long ID_BUTTON_IMPORT;
     static const long ID_BUTTON10;
+    static const long ID_BUTTON5;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -222,6 +224,7 @@ protected:
     void ReadSubModelXML(wxXmlNode* xmlData);
     wxArrayString getModelList(ModelManager* modelManager);
     void ExportSubModels(wxString const& filename);
+    void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
 
 private:
 
@@ -257,6 +260,7 @@ private:
     void OnButton_SortRowClick(wxCommandEvent& event);
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_EditClick(wxCommandEvent& event);
+    void OnButton_ExportCustomxModelClick(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);

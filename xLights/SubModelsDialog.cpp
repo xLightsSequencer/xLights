@@ -42,6 +42,7 @@
 #include "DimmingCurve.h"
 #include "AlignmentDialog.h"
 #include "support/VectorMath.h"
+#include "xLightsVersion.h"
 
 #include <log4cpp/Category.hh>
 
@@ -56,6 +57,7 @@ const long SubModelsDialog::ID_BUTTONCOPY = wxNewId();
 const long SubModelsDialog::ID_BUTTON_EDIT = wxNewId();
 const long SubModelsDialog::ID_BUTTON_IMPORT = wxNewId();
 const long SubModelsDialog::ID_BUTTON10 = wxNewId();
+const long SubModelsDialog::ID_BUTTON5 = wxNewId();
 const long SubModelsDialog::ID_PANEL4 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
 const long SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
@@ -150,6 +152,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Button_ExportCustom = new wxButton(Panel2, ID_BUTTON10, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	Button_ExportCustom->SetToolTip(_("Export SubModel as CSV File"));
 	FlexGridSizer10->Add(Button_ExportCustom, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	Button_ExportCustomxModel = new wxButton(Panel2, ID_BUTTON5, _("Export Custom xModel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer10->Add(Button_ExportCustomxModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
@@ -261,6 +265,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_BUTTON_EDIT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_EditClick);
 	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonImportClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportCustomxModelClick);
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
@@ -505,7 +510,7 @@ wxString SubModelsDialog::GenerateSubModelName(wxString basename)
 {
     if (IsUniqueName(basename))
         return basename;
-    
+
     wxRegEx re("(\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
     if (re.Matches(basename)) {
         wxString match = re.GetMatch(basename, 1);
@@ -1020,6 +1025,13 @@ void SubModelsDialog::ValidateWindow()
     } else {
         ListCtrl_SubModels->Enable();
         Button_ExportCustom->Enable();
+    }
+
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 1)         {
+        Button_ExportCustomxModel->Enable();
+    }
+    else         {
+        Button_ExportCustomxModel->Disable();
     }
 
     if (ListCtrl_SubModels->GetSelectedItemCount() > 0)
@@ -1779,8 +1791,6 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
     ValidateWindow();
 }
 
-
-
 wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
 {
     wxArrayString choices;
@@ -1922,16 +1932,16 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
             {
                 AlignmentDialog dlg(this);
 
-                if (dlg.ShowModal() == wxID_OK)
+                if ((modelw == width && modelh == height) || dlg.ShowModal() == wxID_OK)
                 {
-                    int xStart = 1;
+                    int xStart = 0;
                     if (dlg.GetX() == AlignmentDialog::Alignment::CENTRE)
                     {
-                        xStart = (float)modelw / 2.0 - (float)width / 2.0 + 1.0;
+                        xStart = (float)modelw / 2.0 - (float)width / 2.0;
                     }
                     else if (dlg.GetX() == AlignmentDialog::Alignment::RIGHT)
                     {
-                        xStart = modelw - width + 1;
+                        xStart = modelw - width;
                     }
 
                     int yStart = 0;
@@ -1967,12 +1977,19 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                             }
                             else
                             {
-                                int nn = model->GetNodeNumber(rnum, cnum);
-                                row += wxString::Format("%d", nn);
-                                nodeMap[wxAtoi(c)] = nn;
+                                long nn = model->GetNodeNumber(rnum, cnum);
+                                if (nn >= 0) {
+                                    row += wxString::Format("%d,", nn+1);
+                                    nodeMap[wxAtoi(c)] = nn;
+                                }
+                                else                                     {
+                                    row += ",";
+                                }
                             }
                             cnum++;
                         }
+                        // chop off one comma
+                        if (row.size() > 0) row = row.Left(row.size() - 1);
                         sm->strands.push_back(row);
                         rnum++;
                     }
@@ -2176,6 +2193,111 @@ void SubModelsDialog::ExportSubModels(wxString const& filename)
             f.Write("\"" + sm->subBuffer + "\"\n");
         }
     }
+    f.Close();
+}
+
+void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std::string& name)
+{
+    SubModelInfo* info = GetSubModelInfo(name);
+
+    int rows = model->GetDefaultBufferHt();
+    int cols = model->GetDefaultBufferWi();
+
+    std::vector<std::vector<int>> data;
+    data.resize(rows);
+    for (auto& it : data) {
+        it.resize(cols);
+    }
+
+    std::list<int> nodenums;
+
+    for (const auto& strand : info->strands) {
+        auto ranges = wxSplit(strand, ',');
+
+        for (const auto& r : ranges)             {
+            if (Contains(r, "-"))                 {
+                auto ss = wxSplit(r, '-');
+                if (ss.size() == 2)                     {
+                    int start = wxAtoi(Trim(ss[0]));
+                    int end = wxAtoi(Trim(ss[1]));
+                    if (start > 0 && end > 0) {
+                        int incr = (end - start) / std::abs(end - start);
+                        for (int n = start; n != end + incr; n += incr) {
+
+                            std::vector<wxPoint> pts;
+                            model->GetNodeCoords(n-1, pts);
+
+                            if (pts.size() > 0)                                 {
+                                data[pts[0].y][pts[0].x] = n;
+                                nodenums.push_back(n);
+                            }
+                        }
+                    }
+                }
+            }
+            else                 {
+                int n = wxAtoi(Trim(r));
+                if (n > 0) {
+                    std::vector<wxPoint> pts;
+                    model->GetNodeCoords(n-1, pts);
+
+                    if (pts.size() > 0) {
+                        data[pts[0].y][pts[0].x] = n;
+                        nodenums.push_back(n);
+                    }
+                }
+            }
+        }
+    }
+    nodenums.sort();
+
+    // now go through and 1 base all the nodes
+    for (int r = 0; r < rows; r++)         {
+        for (int c = 0; c < cols; c++)             {
+            if (data[r][c] > 0)                 {
+                int newnum = 0;
+                for (const auto& it : nodenums)                     {
+                    if (it == data[r][c])                         {
+                        data[r][c] = newnum + 1;
+                        break;
+                    }
+                    newnum++;
+                }
+            }
+        }
+    }
+
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    std::string cm;
+
+    for (int r = rows - 1 ; r >= 0; r--) {
+        for (int c = 0; c < cols; c++) {
+            if (data[r][c] != 0)                 {
+                cm += wxString::Format("%d", data[r][c]);
+            }
+            if (c != cols - 1) cm += ",";
+        }
+        if (r != 0) cm += ";";
+    }
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%d\" ", cols));
+    f.Write(wxString::Format("parm2=\"%d\" ", rows));
+    f.Write("Depth=\"1\" ");
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", xlights_version_string));
+    f.Write(" >\n");
+    f.Write("</custommodel>");
+
     f.Close();
 }
 
@@ -2396,7 +2518,7 @@ void SubModelsDialog::Shift()
     wxString name = GetSelectedName();
     long min = 1;
     long max = model->GetNodeCount();
-    
+
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
@@ -2446,7 +2568,7 @@ void SubModelsDialog::FlipHorizontal()
             }
         }
     }
-    
+
     ValidateWindow();
     Select(name);
 
@@ -2478,7 +2600,7 @@ void SubModelsDialog::FlipVertical()
             }
         }
     }
-    
+
     ValidateWindow();
     Select(name);
 
@@ -2516,4 +2638,19 @@ void SubModelsDialog::Reverse()
     Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
     TextCtrl_Name->SelectAll();
+}
+
+void SubModelsDialog::OnButton_ExportCustomxModelClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Save Custom xModel File"), wxEmptyString, name, ".xmodel", "Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    ExportSubModelAsxModel(filename, name);
 }

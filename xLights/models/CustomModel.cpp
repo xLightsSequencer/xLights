@@ -1132,11 +1132,11 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString p1 = root->GetAttribute("parm1");
             wxString p2 = root->GetAttribute("parm2");
             wxString d = root->GetAttribute("Depth", "1");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
+            wxString st = root->GetAttribute("StringType", "RGB Nodes");
+            wxString ps = root->GetAttribute("PixelSize", "2");
+            wxString t = root->GetAttribute("Transparency", "0");
             wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
+            wxString a = root->GetAttribute("Antialias","1");
             wxString sn = root->GetAttribute("StrandNames");
             wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");

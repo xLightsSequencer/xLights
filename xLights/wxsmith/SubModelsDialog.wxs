@@ -106,6 +106,15 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON5" variable="Button_ExportCustomxModel" member="yes">
+												<label>Export Custom xModel</label>
+												<handler function="OnButton_ExportCustomxModelClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 									<border>5</border>
