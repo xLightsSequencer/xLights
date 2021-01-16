@@ -485,7 +485,9 @@ bool ModelManager::RecalcStartChannels() const {
 
     ResetModelGroups();
 
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
+    // Commenting out as this doesn't need to happen unless we have changes and when we do it is redundant as the only
+    // current caller of this method, xLightsMain>>RecalcStartChannels, already adds RELOAD_MODELLIST work if changes exist
+    //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
     long end = sw.Time();
     logger_base.debug("RecalcStartChannels takes %ldms.", end);
