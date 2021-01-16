@@ -44,6 +44,7 @@ public:
     int x,y;
     int duration; // How frames strobe light stays on. Will be decremented each frame
     int colorindex;
+    int strobing;
 };
 
 class TwinkleRenderCache : public EffectRenderCache {
@@ -53,7 +54,8 @@ public:
     
     std::vector<StrobeClass> strobe;
     int num_lights;
-    int lights_to_renew;
+    int curNumStrobe;
+    std::atomic_int lights_to_renew;
 };
 
 void TwinkleEffect::SetDefaultParameters()
@@ -193,19 +195,18 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
     return 1;
 }
 
-static void place_twinkles(int lights_to_place, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
+static void place_twinkles(int lights_to_place, int &curIndex, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
                            int max_modulo, size_t colorcnt) {
-    while (lights_to_place > 0) {
-        int x = rand() % buffer.BufferWi;
-        int y = rand() % buffer.BufferHt;
-        int location = y * buffer.BufferWi + x;
-        if (strobe[location].x == -1) {
-            strobe[location].duration = rand() % max_modulo;
-            strobe[location].x = x;
-            strobe[location].y = y;
-            strobe[location].colorindex = rand() % colorcnt;
-            lights_to_place--;
+    while (lights_to_place > 0 && (curIndex < (strobe.size()-1))) {
+        int idx = rand() % (strobe.size() - curIndex) + curIndex;
+        if (idx != curIndex) {
+            std::swap(strobe[idx], strobe[curIndex]);
         }
+        strobe[curIndex].duration = rand() % max_modulo;
+        strobe[curIndex].colorindex = rand() % colorcnt;
+        strobe[curIndex].strobing = true;
+        curIndex++;
+        lights_to_place--;
     }
 }
 
@@ -244,6 +245,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         buffer.infoCache[id] = cache;
         cache->num_lights = lights;
         cache->lights_to_renew = lights;
+        cache->curNumStrobe = 0;
     }
     std::vector<StrobeClass> &strobe = cache->strobe;
 
@@ -266,9 +268,22 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         if (new_algorithm) {
             strobe.clear();
             strobe.resize(buffer.BufferHt * buffer.BufferWi);
+            int s = 0;
+            for (int x = 0; x < buffer.BufferWi; x++) {
+                for (int y = 0; y < buffer.BufferHt; y++) {
+                    strobe[s].x = x;
+                    strobe[s].y = y;
+                    strobe[s].duration = 0;
+                    strobe[s].strobing = -1;
+                    s++;
+                }
+            }
+            //randomize the locations
             for (int s = 0; s < strobe.size(); ++s) {
-                strobe[s].x = -1;
-                strobe[s].duration = 0;
+                int r = rand() % strobe.size();
+                if (r != s) {
+                    std::swap(strobe[r], strobe[s]);
+                }
             }
         }
         else {
@@ -293,15 +308,29 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     
     if (new_algorithm) {
         if (cache->lights_to_renew > 0) {
-            place_twinkles(cache->lights_to_renew, strobe, buffer, max_modulo, colorcnt);
+            while (cache->curNumStrobe && !strobe[cache->curNumStrobe-1].strobing) {
+                cache->curNumStrobe--;
+            }
+            for (int x = 0; x < cache->curNumStrobe; x++) {
+                if (!strobe[x].strobing) {
+                    cache->curNumStrobe--;
+                    if (x != cache->curNumStrobe) {
+                        std::swap(strobe[x], strobe[cache->curNumStrobe]);
+                    }
+                    while (cache->curNumStrobe && !strobe[cache->curNumStrobe-1].strobing) {
+                        cache->curNumStrobe--;
+                    }
+                }
+            }
+            place_twinkles(cache->lights_to_renew, cache->curNumStrobe, strobe, buffer, max_modulo, colorcnt);
             cache->lights_to_renew = 0;
         }
     }
 
-    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm](int x) {
+    parallel_for(0, cache->curNumStrobe, [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, cache](int x) {
         strobe[x].duration++;
         if (new_algorithm) {
-            if (strobe[x].x == -1) {
+            if (!strobe[x].strobing) {
                 return;
             }
         }
@@ -311,7 +340,8 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
             if (new_algorithm) {
-                strobe[x].x = -99;
+                cache->lights_to_renew++;
+                strobe[x].strobing = false;
             }
             else if (reRandomize) {
                 strobe[x].duration -= rand() % max_modulo2;
@@ -348,15 +378,4 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
         }
     }, 500);
-
-    if (new_algorithm) {
-        int lights_to_renew = 0;
-        for (int s = 0; s < strobe.size(); ++s) {
-            if (strobe[s].x == -99) {
-                lights_to_renew++;
-                strobe[s].x = -1;
-            }
-        }
-        cache->lights_to_renew = lights_to_renew;
-    }
 }
