@@ -3543,6 +3543,11 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewZoomGesture");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewZoomGesture");
             }
+            
+            if (Is3d()) {
+                auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+            }
         } else {
             CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
         }
@@ -7880,19 +7885,21 @@ void LayoutPanel::HandleSelectionChanged() {
         // TreeListViewModels->SetFocus();
         // #endif
         
+        auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+        if (Is3d()) {
+            auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+        } else {
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+        }
+        
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
     } else {
         selectedBaseObject = nullptr;
         UnSelectAllModels(true);
         showBackgroundProperties();
         SetToolTipForTreeList(TreeListViewModels, "");
-    }
-
-    if (selectedBaseObject != nullptr) {
-        auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-        if (Is3d()) {
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
-        }
+        xlights->SetStatusText("");
     }
 }
 
