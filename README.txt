@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix issue with Display Elements sorting/drag/drop when there are multiple timing tracks
 2021.01 January 14 2021
    -- enh (gil)    Improve handle selection when handles overlap to help with resizing tiny models
    -- enh (gil)    Allow sorting Timing tracks for Master View in Display Elements dialog.
