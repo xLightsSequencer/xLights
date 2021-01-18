@@ -137,26 +137,20 @@ void UniverseEntryDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 void UniverseEntryDialog::ValidateWindow()
 {
 	if (Choice_Protocol->GetStringSelection() == "As per input") {
-		SpinCtrl_Start->SetMin(0);
-		SpinCtrl_End->SetMin(0);
-		SpinCtrl_Start->SetMax(64000);
-		SpinCtrl_End->SetMax(64000);
+        SpinCtrl_Start->SetRange(0, 64000);
+        SpinCtrl_End->SetRange(0, 64000);
 	}
 	else if (Choice_Protocol->GetStringSelection() == "ArtNET") {
-		SpinCtrl_Start->SetMin(0);
-		SpinCtrl_End->SetMin(0);
-		SpinCtrl_Start->SetMax(32768);
-		SpinCtrl_End->SetMax(32768);
+        SpinCtrl_Start->SetRange(0, 32768);
+        SpinCtrl_End->SetRange(0, 32768);
 		if (SpinCtrl_End->GetValue() > 32768) SpinCtrl_End->SetValue(32768);
 		if (SpinCtrl_Start->GetValue() > 32768) SpinCtrl_Start->SetValue(32768);
 	}
 	else {
 		if (SpinCtrl_End->GetValue() == 0) SpinCtrl_End->SetValue(1);
 		if (SpinCtrl_Start->GetValue() == 0) SpinCtrl_Start->SetValue(1);
-		SpinCtrl_Start->SetMin(1);
-		SpinCtrl_End->SetMin(1);
-		SpinCtrl_Start->SetMax(64000);
-		SpinCtrl_End->SetMax(64000);
+        SpinCtrl_Start->SetRange(1, 64000);
+        SpinCtrl_End->SetRange(1, 64000);
 	}
 
     if (IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
