@@ -199,7 +199,7 @@
 					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -lEGL -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -246,7 +246,7 @@
 					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -lEGL -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -481,6 +481,8 @@
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
 		<Unit filename="ConvertLogDialog.h" />
+		<Unit filename="CopyFormat1.cpp" />
+		<Unit filename="CopyFormat1.h" />
 		<Unit filename="CustomModelDialog.cpp" />
 		<Unit filename="CustomModelDialog.h" />
 		<Unit filename="CustomTimingDialog.cpp" />
@@ -1623,9 +1625,6 @@
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

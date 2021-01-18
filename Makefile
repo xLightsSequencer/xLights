@@ -60,14 +60,14 @@ log4cpp: FORCE
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
 	@if test "`wx-config --version`" != "3.1.5"; \
-		then if test ! -d wxWidgets-202030; \
-			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.30 https://github.com/dkulp/wxWidgets wxWidgets-202030; \
+		then if test ! -d wxWidgets-202056b; \
+			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.56b https://github.com/dkulp/wxWidgets wxWidgets-202056b; \
 		fi; \
-		cd wxWidgets-202030; \
+		cd wxWidgets-202056b; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest -enable-utf8 --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
-		${MAKE} -s; \
+		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
 		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
