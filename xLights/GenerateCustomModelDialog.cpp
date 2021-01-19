@@ -145,6 +145,7 @@ const long GenerateCustomModelDialog::ID_STATICTEXT7 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_BI_MinScale = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_MinScale = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_IsSteady = wxNewId();
+const long GenerateCustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_ManualUpdate = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT12 = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -421,6 +422,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	CheckBox_BI_IsSteady = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_IsSteady, _("Video is steady"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_IsSteady"));
 	CheckBox_BI_IsSteady->SetValue(true);
 	BoxSizer1->Add(CheckBox_BI_IsSteady, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_GuessSingle = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX1, _("Guess location of single missing nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_GuessSingle->SetValue(true);
+	BoxSizer1->Add(CheckBox_GuessSingle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_BI_ManualUpdate = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_ManualUpdate, _("Manual Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_ManualUpdate"));
 	CheckBox_BI_ManualUpdate->SetValue(true);
 	BoxSizer1->Add(CheckBox_BI_ManualUpdate, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1609,10 +1613,9 @@ void GenerateCustomModelDialog::ApplyContrast(wxImage& grey, int contrast)
 
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
-    if (!_busy)
-    {
+    if (!_busy) {
         _busy = true;
 
         Slider_AdjustBlur->Disable();
@@ -1642,18 +1645,15 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         logger_gcm.info("   Minimum Separation: %d.", Slider_BI_MinSeparation->GetValue());
         logger_gcm.info("   Minimum Scale: %d.", Slider_BI_MinScale->GetValue());
         logger_gcm.info("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
-        if (CheckBox_BI_IsSteady->GetValue())
-        {
+        if (CheckBox_BI_IsSteady->GetValue()) {
             logger_gcm.info("   Is Steady: TRUE.");
         }
-        else
-        {
+        else {
             logger_gcm.info("   Is Steady: FALSE.");
         }
         _warned = false;
         _lights.clear();
-        if (SLRadioButton->GetValue())
-        {
+        if (SLRadioButton->GetValue()) {
             _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
             wxImage bwFrame;
             wxImage grey = _startFrame.ConvertToGreyscale();
@@ -1664,8 +1664,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             FindLights(bwFrame.Copy(), 1, grey, _startFrame.Copy());
             _biFrame = CreateDetectMask(bwFrame, true, _clip);
         }
-        else
-        {
+        else {
             // handle videos here
             int zerotime = _startframetime + LEADON + FLAGOFF + FLAGON + (0.9 * (float)FLAGOFF);
             int currentTime = zerotime;
@@ -1673,8 +1672,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             wxImage frame;
 
             int sincefound = 0;
-            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < SpinCtrl_MissingBulbLimit->GetValue() && !wxGetKeyState(WXK_ESCAPE))
-            {
+            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < SpinCtrl_MissingBulbLimit->GetValue() && !wxGetKeyState(WXK_ESCAPE)) {
                 Gauge_Progress->SetValue((currentTime * 100) / _vr->GetLengthMS());
                 logger_gcm.info("   Looking for frame at %d for node %d.", currentTime, n);
                 wxImage bwFrame;
@@ -1683,23 +1681,19 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 bool toobright = false;
 
                 while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50 || toobright) &&
-                       currentTime < _vr->GetLengthMS() &&
-                       sincefound < SpinCtrl_MissingBulbLimit->GetValue())
-                {
+                    currentTime < _vr->GetLengthMS() &&
+                    sincefound < SpinCtrl_MissingBulbLimit->GetValue()) {
                     toobright = false;
                     sincefound++;
-                    if (bwFrame.IsOk())
-                    {
+                    if (bwFrame.IsOk()) {
                         advance++;
-                        if (advance > 4)
-                        {
+                        if (advance > 4) {
                             logger_gcm.info("   No bulb found so assuming bulb %d is not visible.", n);
                             advance = 0;
                             n++;
-                            currentTime = zerotime + (n - 1)*(NODEON + NODEOFF) - FRAMEMS;
+                            currentTime = zerotime + (n - 1) * (NODEON + NODEOFF) - FRAMEMS;
                         }
-                        else
-                        {
+                        else {
                             currentTime += FRAMEMS;
                             logger_gcm.info("   No frame found so now trying %d.", currentTime);
                         }
@@ -1709,16 +1703,13 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     float brightness = CalcFrameBrightness(frame);
                     logger_gcm.info("       Frame %d brightness %f.", currentTime, brightness);
 
-                    if (brightness > 0.9 * _startframebrightness)
-                    {
+                    if (brightness > 0.9 * _startframebrightness) {
                         logger_gcm.info("       Frame too bright so we will skip it.");
                         toobright = true;
                     }
-                    else
-                    {
+                    else {
                         grey = frame.ConvertToGreyscale();
-                        if (CheckBox_BI_IsSteady->GetValue())
-                        {
+                        if (CheckBox_BI_IsSteady->GetValue()) {
                             SubtractImage(grey, _darkFrame);
                         }
                         ApplyContrast(grey, Slider_BI_Contrast->GetValue());
@@ -1728,43 +1719,40 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     }
                 }
 
-                if (sincefound < SpinCtrl_MissingBulbLimit->GetValue())
-                {
-                    int delta = currentTime - (zerotime + (n - 1)*(NODEON + NODEOFF));
+                if (sincefound < SpinCtrl_MissingBulbLimit->GetValue()) {
+                    int delta = currentTime - (zerotime + (n - 1) * (NODEON + NODEOFF));
 
                     sincefound = 0;
                     FindLights(bwFrame, n++, grey, frame.Copy());
 
-                    if (n == 1)
-                    {
+                    if (n == 1) {
                         zerotime = currentTime - FRAMEMS;
                     }
-                    else
-                    {
+                    else {
                         logger_gcm.info("   Video drift %d.", delta);
                         // This helps correct for video drift
-                        if (abs(delta) > 2 * FRAMEMS)
-                        {
-                            if (delta < 0)
-                            {
+                        if (abs(delta) > 2 * FRAMEMS) {
+                            if (delta < 0) {
                                 logger_gcm.info("       *** Adjusting by %d.", -1 * FRAMEMS);
                                 zerotime -= FRAMEMS;
                             }
-                            else
-                            {
+                            else {
                                 logger_gcm.info("       *** Adjusting by %d.", delta);
                                 zerotime += delta;
                             }
                         }
                     }
 
-                    currentTime = zerotime + (n - 1)*(NODEON + NODEOFF) - FRAMEMS;
+                    currentTime = zerotime + (n - 1) * (NODEON + NODEOFF) - FRAMEMS;
                 }
             }
 
-            if (sincefound >= SpinCtrl_MissingBulbLimit->GetValue())
-            {
+            if (sincefound >= SpinCtrl_MissingBulbLimit->GetValue()) {
                 DisplayError("Too many frames with no lights spotted. Aborting scan.", this);
+            }
+
+            if (CheckBox_GuessSingle->IsChecked()) {
+                GuessSingleMissingBulbs();
             }
 
             _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -1785,7 +1773,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Gauge_Progress->Hide();
         Panel_BulbIdentify->Layout();
         SetCursor(wxCURSOR_ARROW);
-        logger_gcm.info("Result: %s.", (const char *)TextCtrl_BI_Status->GetValue().c_str());
+        logger_gcm.info("Result: %s.", (const char*)TextCtrl_BI_Status->GetValue().c_str());
         _busy = false;
     }
 }
@@ -1814,11 +1802,9 @@ void GenerateCustomModelDialog::BITabEntry(bool setdefault)
 int GenerateCustomModelDialog::GetMaxNum()
 {
     int max = -1;
-    for (auto it = _lights.begin(); it != _lights.end(); ++it)
-    {
-        if (!it->isSupressed() && it->GetNum() > max)
-        {
-            max = it->GetNum();
+    for (const auto& it : _lights) {
+        if (!it.isSupressed() && it.GetNum() > max) {
+            max = it.GetNum();
         }
     }
 
@@ -1828,10 +1814,8 @@ int GenerateCustomModelDialog::GetMaxNum()
 int GenerateCustomModelDialog::GetBulbCount()
 {
     int count = 0;
-    for (auto it = _lights.begin(); it != _lights.end(); ++it)
-    {
-        if (!it->isSupressed())
-        {
+    for (const auto& it : _lights) {
+        if (!it.isSupressed()) {
             count++;
         }
     }
@@ -1844,15 +1828,15 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
 {
     wxString res;
     int current = 0;
-    for (auto it = _lights.begin(); it != _lights.end(); ++it)
+    for (const auto& it : _lights)
     {
-        if (!it->isSupressed())
+        if (!it.isSupressed())
         {
-            if (it->GetNum() == current)
+            if (it.GetNum() == current)
             {
                 // this is ok ... a second bulb for this node
             }
-            else if (it->GetNum() == current + 1)
+            else if (it.GetNum() == current + 1)
             {
                 // this is ok ... we have moved on to next node
                 current++;
@@ -1860,7 +1844,7 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
             else
             {
                 // this is a problem
-                for (int i = current + 1; i < it->GetNum(); i++)
+                for (int i = current + 1; i < it.GetNum(); i++)
                 {
                     if (res != "")
                     {
@@ -1868,12 +1852,46 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
                     }
                     res += wxString::Format(wxT("%i"), i);
                 }
-                current = it->GetNum();
+                current = it.GetNum();
             }
         }
     }
 
     return res;
+}
+
+// Assumes nodes are in order
+void GenerateCustomModelDialog::GuessSingleMissingBulbs()
+{
+    auto last = _lights.begin();
+    int current = 0;
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)         {
+        if (!it->isSupressed()) {
+            if (it->GetNum() == current) {
+                // this is ok ... a second bulb for this node
+            }
+            else if (it->GetNum() == current + 1) {
+                // this is ok ... we have moved on to next node
+                current++;
+            }
+            else if (it->GetNum() == current + 2 && current != 0) {
+
+                // we need to insert one
+                int newNum = current + 1;
+                float xf = ((float)last->GetLocation().x + (float)it->GetLocation().x) / 2.0;
+                float yf = ((float)last->GetLocation().y + (float)it->GetLocation().y) / 2.0;
+                it = _lights.insert(it, GCMBulb(wxPoint(xf, yf), newNum, 255));
+
+                current = it->GetNum();
+            }
+            else
+            {
+                // more than one missing ... we dont guess these
+                current = it->GetNum();
+            }
+        }
+        last = it;
+    }
 }
 
 // Assumes nodes are in order
@@ -1955,9 +1973,9 @@ wxString GenerateCustomModelDialog::GenerateStats(int minseparation)
 
 wxImage GenerateCustomModelDialog::CreateDetectMask(wxImage ref, bool includeimage, wxRect clip)
 {
-    for (auto it = _lights.begin(); it != _lights.end(); ++it)
+    for (auto& it : _lights)
     {
-        it->Reset();
+        it.Reset();
     }
 
     RemoveClippedLights(_lights, _clip);
@@ -2006,37 +2024,35 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(wxImage ref, bool includeima
     dc.DrawRectangle(_clip);
 
     // draw blue first
-    for (auto c = _lights.begin(); c != _lights.end(); ++c)
+    for (const auto& c : _lights)
     {
-        if (c->isSupressedButDraw())
+        if (c.isSupressedButDraw())
         {
-            c->Draw(dc, factor);
+            c.Draw(dc, factor);
         }
     }
 
     // now red so they are easy to see
-    for (auto c = _lights.begin(); c != _lights.end(); ++c)
+    for (const auto& c : _lights)
     {
-        if (!c->isSupressed())
+        if (!c.isSupressed())
         {
-            c->Draw(dc, factor);
+            c.Draw(dc, factor);
         }
     }
 
     return bmp.ConvertToImage();
 }
 
-void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
+void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char* data, int& totalX, int& totalY, int& pixelCount)
 {
     std::list<wxPoint> pixels;
     pixels.push_back(wxPoint(x, y));
 
-    while(pixels.size() != 0 && pixels.size() < 1000)
-    {
+    while (pixels.size() != 0 && pixels.size() < 1000) {
         std::list<wxPoint>::iterator it = pixels.begin();
 
-        if (GetPixel(it->x, it->y, w3, data) > 0)
-        {
+        if (GetPixel(it->x, it->y, w3, data) > 0) {
             SetPixel(it->x, it->y, w3, data, 0);
             pixelCount++;
             totalX += it->x;
@@ -2045,42 +2061,40 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
             if (it->x > 0 && it->y > 0 && GetPixel(it->x - 1, it->y - 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x - 1, it->y - 1));
             }
-            if (it->x > 0 && it->y < h-1 && GetPixel(it->x - 1, it->y + 1, w3, data) > 0) {
+            if (it->x > 0 && it->y < h - 1 && GetPixel(it->x - 1, it->y + 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x - 1, it->y + 1));
             }
-            if (it->x < w-1 && it->y > 0 && GetPixel(it->x + 1, it->y - 1, w3, data) > 0) {
+            if (it->x < w - 1 && it->y > 0 && GetPixel(it->x + 1, it->y - 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x + 1, it->y - 1));
             }
-            if (it->x < w-1 && it->y < h-1 && GetPixel(it->x + 1, it->y + 1, w3, data) > 0) {
+            if (it->x < w - 1 && it->y < h - 1 && GetPixel(it->x + 1, it->y + 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x + 1, it->y + 1));
             }
             if (it->y > 0 && GetPixel(it->x, it->y - 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x, it->y - 1));
             }
-            if (it->y < h-1 && GetPixel(it->x, it->y + 1, w3, data) > 0) {
+            if (it->y < h - 1 && GetPixel(it->x, it->y + 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x, it->y + 1));
             }
             if (it->x > 0 && GetPixel(it->x - 1, it->y, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x - 1, it->y));
             }
-            if (it->x < w-1 && GetPixel(it->x + 1, it->y, w3, data) > 0) {
+            if (it->x < w - 1 && GetPixel(it->x + 1, it->y, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x + 1, it->y));
             }
         }
         pixels.pop_front();
     }
 
-    if (pixels.size() != 0)
-    {
-        if (!_warned)
-        {
+    if (pixels.size() != 0) {
+        if (!_warned) {
             _warned = true;
             DisplayError("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.", this);
         }
     }
 }
 
-GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, const wxImage& grey)
+GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char* data, int num, const wxImage& grey)
 {
     int totalX = 0;
     int totalY = 0;
@@ -2094,34 +2108,29 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
 
 void GenerateCustomModelDialog::FindLights(const wxImage& bwimage, int num, const wxImage& greyimage, const wxImage& frame)
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
     wxImage temp = bwimage;
     int w = temp.GetWidth();
     int w3 = w * 3;
     int h = temp.GetHeight();
-    unsigned char * data = temp.GetData();
+    unsigned char* data = temp.GetData();
     std::list<GCMBulb> found;
 
-    for (int y = 0; y < temp.GetHeight() && !_warned; y++)
-    {
-        for (int x = 0; x < temp.GetWidth() && !_warned; x++)
-        {
-            if (GetPixel(x, y, w3, data) > 0)
-            {
+    for (int y = 0; y < temp.GetHeight() && !_warned; y++) {
+        for (int x = 0; x < temp.GetWidth() && !_warned; x++) {
+            if (GetPixel(x, y, w3, data) > 0) {
                 found.push_back(FindCenter(x, y, w, h, w3, data, num, greyimage));
             }
         }
     }
 
     // only add them if we didnt warn the user
-    if (!_warned)
-    {
+    if (!_warned) {
         logger_gcm.info("    Node %d found %d bulbs.", num, found.size());
         _lights.splice(_lights.end(), found);
     }
-    else
-    {
+    else {
         logger_gcm.info("    Node %d found %d bulbs ... but not added.", num, found.size());
     }
 
@@ -2160,11 +2169,9 @@ void GenerateCustomModelDialog::SetBIDefault()
 
 void GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick(wxCommandEvent& event)
 {
-    if (!_busy)
-    {
+    if (!_busy) {
         SetBIDefault();
-        if (!CheckBox_BI_ManualUpdate->GetValue())
-        {
+        if (!CheckBox_BI_ManualUpdate->GetValue()) {
             DoBulbIdentify();
         }
     }
@@ -2172,10 +2179,8 @@ void GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick(wxCommandEvent& 
 
 void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!CheckBox_BI_ManualUpdate->GetValue())
-    {
-        if (!_busy)
-        {
+    if (!CheckBox_BI_ManualUpdate->GetValue()) {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2183,10 +2188,8 @@ void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged(wxScrollEven
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!CheckBox_BI_ManualUpdate->GetValue())
-    {
-        if (!_busy)
-        {
+    if (!CheckBox_BI_ManualUpdate->GetValue()) {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2194,10 +2197,8 @@ void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged(wxScroll
 
 void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!CheckBox_BI_ManualUpdate->GetValue())
-    {
-        if (!_busy)
-        {
+    if (!CheckBox_BI_ManualUpdate->GetValue()) {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2205,10 +2206,8 @@ void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged(wxScro
 
 void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!CheckBox_BI_ManualUpdate->GetValue())
-    {
-        if (!_busy)
-        {
+    if (!CheckBox_BI_ManualUpdate->GetValue()) {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2216,10 +2215,8 @@ void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged(wxScrollEve
 
 void GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick(wxCommandEvent& event)
 {
-    if (!CheckBox_BI_ManualUpdate->GetValue())
-    {
-        if (!_busy)
-        {
+    if (!CheckBox_BI_ManualUpdate->GetValue()) {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2227,15 +2224,12 @@ void GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick(wxCommandEvent& even
 
 void GenerateCustomModelDialog::OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& event)
 {
-    if (CheckBox_BI_ManualUpdate->GetValue())
-    {
+    if (CheckBox_BI_ManualUpdate->GetValue()) {
         Button_BI_Update->Show();
     }
-    else
-    {
+    else {
         Button_BI_Update->Hide();
-        if (!_busy)
-        {
+        if (!_busy) {
             DoBulbIdentify();
         }
     }
@@ -2243,8 +2237,7 @@ void GenerateCustomModelDialog::OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& 
 
 void GenerateCustomModelDialog::OnButton_BI_UpdateClick(wxCommandEvent& event)
 {
-    if (!_busy)
-    {
+    if (!_busy) {
         DoBulbIdentify();
     }
 }

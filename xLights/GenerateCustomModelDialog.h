@@ -48,13 +48,13 @@ class xlPoint : public wxPoint
 {
 public:
     xlPoint(int x, int y) : wxPoint(x, y) {}
-    bool operator<(const xlPoint& r)
+    bool operator<(const xlPoint& r) const
     {
         if (x < r.x) return true;
         if (y < r.y) return true;
         return false;
     }
-    friend bool operator<(const xlPoint& l, const xlPoint& r)
+    friend bool operator<(const xlPoint& l, const xlPoint& r) 
     {
         if (l.x < r.x) return true;
         if (l.y < r.y) return true;
@@ -102,16 +102,16 @@ public:
         _suppressduplicate = false;
         _suppresstooclose = false;
     }
-    bool isSupressed()
+    bool isSupressed() const
     {
         return _suppressoutsideclip || _suppressduplicate || _suppresstooclose;
     }
-    bool isSupressedButDraw()
+    bool isSupressedButDraw() const
     {
         return _suppressoutsideclip || _suppresstooclose;
     }
     void SetLocation(int x, int y) { _location = wxPoint(x, y); }
-    void Draw(wxMemoryDC& dc, float factor)
+    void Draw(wxMemoryDC& dc, float factor) const
     {
         int diameter = 2 * factor;
         if (isSupressedButDraw())
@@ -131,17 +131,17 @@ public:
             dc.DrawCircle(_location, diameter);
         }
     }
-    int GetBrightness() {
+    int GetBrightness() const {
         return _brightness;
     }
-    int GetNum() {
+    int GetNum() const {
         return _num;
     }
-    inline wxPoint GetLocation(float scale = 1.0, wxPoint trim = wxPoint(0, 0))
+    inline wxPoint GetLocation(float scale = 1.0, wxPoint trim = wxPoint(0, 0)) const
     {
         return wxPoint((_location.x - trim.x) * scale, (_location.y - trim.y) * scale);
     }
-    inline bool IsSameLocation(GCMBulb& r, float scale = 1.0, wxPoint trim = wxPoint(0,0))
+    inline bool IsSameLocation(GCMBulb& r, float scale = 1.0, wxPoint trim = wxPoint(0,0)) const
     {
         wxPoint rloc = r.GetLocation(scale, trim);
         wxPoint lloc = GetLocation(scale, trim);
@@ -241,6 +241,7 @@ class GenerateCustomModelDialog: public wxDialog
     int GetBulbCount();
     wxString GetMissingNodes();
     wxString GetMultiBulbNodes();
+	void GuessSingleMissingBulbs();
 #pragma endregion Identify Bulbs Tab
 
     wxString CreateCustomModelData();
@@ -296,6 +297,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_Shrink;
 		wxCheckBox* CheckBox_BI_IsSteady;
 		wxCheckBox* CheckBox_BI_ManualUpdate;
+		wxCheckBox* CheckBox_GuessSingle;
 		wxFileDialog* FileDialog1;
 		wxFlexGridSizer* FlexGridSizer14;
 		wxFlexGridSizer* FlexGridSizer19;
@@ -399,6 +401,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_SLIDER_BI_MinScale;
 		static const long ID_TEXTCTRL_BI_MinScale;
 		static const long ID_CHECKBOX_BI_IsSteady;
+		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX_BI_ManualUpdate;
 		static const long ID_STATICTEXT12;
 		static const long ID_SPINCTRL1;

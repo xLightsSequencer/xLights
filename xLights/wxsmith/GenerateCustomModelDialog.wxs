@@ -692,6 +692,15 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_GuessSingle" member="yes">
+																					<label>Guess location of single missing nodes</label>
+																					<checked>1</checked>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
 																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_ManualUpdate" variable="CheckBox_BI_ManualUpdate" member="yes">
 																					<label>Manual Update</label>
 																					<checked>1</checked>
