@@ -29,7 +29,7 @@ been added since then.  We also have several other fixes in place for background
 
 To get the latest code that we've tested, do:
 
-git clone  --recurse-submodules -b xlights_2020.56b https://github.com/dkulp/wxWidgets
+git clone  --recurse-submodules -b xlights_2021.02 https://github.com/dkulp/wxWidgets
 
 
 First, setup the target directories:
@@ -59,7 +59,7 @@ wxWidgets first.  If not doing release builds, this can be skipped.
   ../configure  --disable-debug_flag --enable-optimise --prefix=/opt/local --enable-universal_binary=${BINARY_PLATFORMS} \
                 --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
                 --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
-                --disable-webview --disable-webkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
+                --disable-webview --disable-webviewwebkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
                 --disable-xrc --disable-stc --disable-ribbon --disable-htmlhelp \
                 --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
@@ -86,7 +86,7 @@ For debug builds:
                 --enable-debug --enable-debug_info --disable-optimise --enable-universal_binary=${BINARY_PLATFORMS} \
                 --with-osx_cocoa --with-macosx-version-min=10.10 --disable-dependency-tracking \
                 --disable-compat30  --enable-mimetype --enable-aui --with-opengl \
-                --disable-webview --disable-webkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
+                --disable-webview --disable-webviewwebkit --disable-richtext --disable-mdi --disable-mdidoc --disable-loggui \
                 --disable-xrc --disable-stc --disable-ribbon --disable-htmlhelp \
                 --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --without-liblzma  --with-expat=builtin --with-zlib=builtin --with-libjpeg=builtin  --without-libtiff \
