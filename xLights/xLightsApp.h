@@ -21,10 +21,11 @@
 
 #include <wx/app.h>
 #include <wx/cmdline.h>
+#include <wx/glcanvas.h>
 
 class xLightsFrame;
 
-class xLightsApp : public wxApp
+class xLightsApp : public wxGLApp
 {
     void WipeSettings();
 

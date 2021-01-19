@@ -47,7 +47,7 @@ void OnEffect::SetDefaultParameters() {
     SetSliderValue(p->Slider_On_Transparency, 0);
 }
 
-std::string OnEffect::GetEffectString() {
+wxString OnEffect::GetEffectString() {
     OnPanel *p = (OnPanel*)panel;
     std::stringstream ret;
     if (100 != p->SliderStart->GetValue()) {

@@ -16,6 +16,8 @@ QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.c
 
 SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
+WXWIDGETS_TAG=xlights_2021.02
+
 .NOTPARALLEL:
 
 all: wxwidgets31 log4cpp cbp2make linkliquid makefile subdirs
@@ -60,12 +62,12 @@ log4cpp: FORCE
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
 	@if test "`wx-config --version`" != "3.1.5"; \
-		then if test ! -d wxWidgets-202056b; \
-			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2020.56b https://github.com/dkulp/wxWidgets wxWidgets-202056b; \
+		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
+			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/dkulp/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
-		cd wxWidgets-202056b; \
+		cd wxWidgets-$(WXWIDGETS_TAG); \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest -enable-utf8 --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \

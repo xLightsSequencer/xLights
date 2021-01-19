@@ -68,12 +68,11 @@ void OffEffect::Render(Effect* effect, SettingsMap& settings, RenderBuffer& buff
     buffer.Fill(xlBLACK);
 }
 
-std::string OffEffect::GetEffectString()
+wxString OffEffect::GetEffectString()
 {
     OffPanel* p = (OffPanel*)panel;
-    std::stringstream ret;
     if (p->CheckBox_Transparent->GetValue()) {
-        ret << "E_CHECKBOX_Off_Transparent=1,";
+        return "E_CHECKBOX_Off_Transparent=1,";
     }
-    return ret.str();
+    return "";
 }

@@ -25,7 +25,7 @@ class OnEffect : public RenderableEffect
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual void SetDefaultParameters() override;
-        virtual std::string GetEffectString() override;
+        virtual wxString GetEffectString() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:

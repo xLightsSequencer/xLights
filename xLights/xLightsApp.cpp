@@ -665,6 +665,8 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
+    wxGLApp::OnInit();
+    
     wxTheApp->SetAppName("xLights");
     DumpConfig();
     

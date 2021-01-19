@@ -150,7 +150,7 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 }
 
 // this is recursive
-static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
+static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
 {
     wxString s;
     for (const auto& it : ParentWin->GetChildren())
@@ -248,11 +248,10 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
             }
         }
     }
-    s = s.Mid(0,s.size()-1);
-    return s.ToStdString();
+    return s.Mid(0,s.size()-1);
 }
 
-std::string RenderableEffect::GetEffectString() {
+wxString RenderableEffect::GetEffectString() {
     return GetEffectStringFromWindow(panel);
 }
 

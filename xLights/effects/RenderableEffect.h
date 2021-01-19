@@ -61,7 +61,7 @@ class RenderableEffect
         wxPanel *GetPanel(wxWindow *parent);
 		virtual void SetDefaultParameters() {}
 		virtual void SetPanelStatus(Model *cls) {}
-		virtual std::string GetEffectString();
+		virtual wxString GetEffectString();
 
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }

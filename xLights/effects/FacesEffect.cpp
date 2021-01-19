@@ -74,7 +74,7 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
-std::string FacesEffect::GetEffectString()
+wxString FacesEffect::GetEffectString()
 {
     FacesPanel* p = (FacesPanel*)panel;
     std::stringstream ret;

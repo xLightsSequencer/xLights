@@ -55,6 +55,7 @@
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
 #include "../effects/EffectPanelUtils.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2610,7 +2611,7 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
     for (const auto& it : settings) {
         if (it.first.find("APPLYLAST") != std::string::npos)
         {
-            ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
+            ApplySetting(wxString(it.first.c_str()), ToWXString(it.second));
         }
     }
 
@@ -2637,7 +2638,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos)
 		{
-			ApplySetting(it.first, it.second);
+			ApplySetting(it.first, ToWXString(it.second));
 		}
         else
         {
@@ -2678,14 +2679,14 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.crit("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
     }
-    std::string effectText= eff->GetEffectString();
+    wxString effectText = eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();
     effectText += bufferPanel->GetBufferString();
     palette = colorPanel->GetColorString();
-    return effectText;
+    return ToStdString(effectText);
 }
 
 void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)

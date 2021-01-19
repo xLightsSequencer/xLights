@@ -2675,7 +2675,8 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
     for(int k = 0; k < num_effects; ++k)
     {
         Effect* effect = layer->GetEffect(k);
-        wxString effectString = effect->GetSettingsAsString();
+        std::string effectStdString = effect->GetSettingsAsString();
+        wxString effectString = ToWXString(effectStdString);
         int size = effectStrings.size();
         int ref = effectStrings[effectString] - 1;
         if (ref == -1) {

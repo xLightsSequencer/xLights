@@ -51,7 +51,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res;
 
     wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
-    wxString text = settings.Get("E_TEXTCTRL_Text", "");
+    wxString text = ToWXString(settings.Get("E_TEXTCTRL_Text", ""));
     wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
     if (text == "" && textFilename == "" && lyricTrack == "")
@@ -471,7 +471,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         return;
     }
 
-    wxString text = SettingsMap["TEXTCTRL_Text"];
+    wxString text = ToWXString(SettingsMap["TEXTCTRL_Text"]);
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
@@ -1394,7 +1394,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int char_width = font->GetWidth();
     int char_height = font->GetHeight();
 
-    wxString text = settings["TEXTCTRL_Text"];
+    wxString text = ToWXString(settings["TEXTCTRL_Text"]);
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 

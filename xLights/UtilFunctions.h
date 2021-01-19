@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <map>
 
+#include <locale>
+#include <codecvt>
+
 #define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
@@ -215,6 +218,35 @@ inline void Replace(std::wstring& in, const std::wstring& what, const std::wstri
     }
 }
 
+inline std::string ToStdString(const wxString& wxstr)
+{
+#ifdef __WXOSX__
+    return wxstr.ToStdString();
+#else
+    std::string s = wxstr.ToStdString();
+    if (s == "" && wxstr.size() > 0) {
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+        return converterX.to_bytes(wxstr.ToStdWstring());
+    }
+    return s;
+#endif
+}
+inline wxString ToWXString(const std::string& stdstr)
+{
+#ifdef __WXOSX__
+    return stdstr;
+#else
+    wxString s = stdstr;
+    if (s == "" && stdstr.size() > 0) {
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+        std::wstring s2 = converterX.from_bytes(stdstr);
+        s = s2;
+    }
+    return s;
+#endif
+}
 inline std::string Capitalise(const std::string& input) noexcept
 {
     std::string res = "";

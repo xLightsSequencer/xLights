@@ -27,6 +27,7 @@
 #include "../SequenceViewManager.h"
 #include "../JukeboxPanel.h"
 #include "../TraceLog.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -685,7 +686,7 @@ int SequenceElements::LoadEffects(EffectLayer *effectLayer,
                     }
                 }
                 else {
-                    settings = effect->GetNodeContent();
+                    settings = ToStdString(effect->GetNodeContent());
                 }
 
                 if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos)
@@ -827,7 +828,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         elementNode->SetContent(FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", elementNode->GetNodeContent(), ShowDir));
                     }
 
-                    effectStrings.push_back(elementNode->GetNodeContent().ToStdString());
+                    effectStrings.push_back(ToStdString(elementNode->GetNodeContent()));
                 }
             }
         }
@@ -838,7 +839,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             {
                 if (elementNode->GetName() == STR_COLORPALETTE)
                 {
-                    colorPalettes.push_back(elementNode->GetNodeContent().ToStdString());
+                    colorPalettes.push_back(ToStdString(elementNode->GetNodeContent()));
                 }
             }
         }

@@ -68,7 +68,7 @@ void ColorWashEffect::SetDefaultParameters() {
     p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
 }
 
-std::string ColorWashEffect::GetEffectString() {
+wxString ColorWashEffect::GetEffectString() {
     ColorWashPanel *p = (ColorWashPanel*)panel;
     std::stringstream ret;
 
