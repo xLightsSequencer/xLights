@@ -282,7 +282,11 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 brightness = s->GetBrightness(100);
                 colorOrder = MapV4ColorOrder(s->GetColourOrder("rgb"));
                 gamma = std::to_string(s->GetGamma(1.0));
-                groupCount = std::to_string(s->GetGroupCount(0));
+                int gc = s->GetGroupCount(1);
+                if (gc == 0) {
+                    gc = 1;
+                }
+                groupCount = std::to_string(gc);
             }
             
             std::string outidx = std::to_string(x);
