@@ -11,6 +11,7 @@
  **************************************************************/
 
 //(*Headers(EffectTreeDialog)
+#include <wx/animate.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
@@ -35,8 +36,9 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxButton* btAddGroup;
+		wxAnimationCtrl* AnimationCtrlPreview;
 		wxButton* ETButton1;
+		wxButton* btAddGroup;
 		wxButton* btApply;
 		wxButton* btDelete;
 		wxButton* btExport;
@@ -54,6 +56,7 @@ class EffectTreeDialog : public wxDialog
 
 		//(*Identifiers(EffectTreeDialog)
 		static const long ID_TREECTRL1;
+		static const long ID_ANIMATIONCTRL_PREVIEW;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -105,6 +108,8 @@ class EffectTreeDialog : public wxDialog
 
         wxString ParseLayers(wxString name, wxString settings);
         wxString ParseDuration(wxString name, wxString settings);
+
+		wxString generatePresetName();
 
     public:
         static bool PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg); //static to allow re-use elsewhere -DJ

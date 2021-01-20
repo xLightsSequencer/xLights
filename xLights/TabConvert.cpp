@@ -1141,9 +1141,9 @@ void xLightsFrame::CreatePresetIcons()
 {
     auto presets = GetPresets();
 
-    for (const auto& it : presets)         {
+    for (const auto& it : presets) {
         auto filename = GetPresetIconFilename(it);
-        if (!wxFile::Exists(filename))             {
+        if (!wxFile::Exists(filename)) {
             WriteGIFForPreset(it);
         }
     }
@@ -1238,7 +1238,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 wxYield();
             }
 
-            WriteGIFModelFile(filename, channels, 0, frames - 1, &_presetSequenceData, 0, 0, _presetModel, 50);
+            WriteGIFModelFile(filename, channels, 0, frames - 1, &_presetSequenceData, 1, 0, _presetModel, 50);
         }
     }
 }

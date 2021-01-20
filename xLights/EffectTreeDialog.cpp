@@ -22,6 +22,7 @@
 
 //(*IdInit(EffectTreeDialog)
 const long EffectTreeDialog::ID_TREECTRL1 = wxNewId();
+const long EffectTreeDialog::ID_ANIMATIONCTRL_PREVIEW = wxNewId();
 const long EffectTreeDialog::ID_BUTTON6 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
@@ -61,6 +62,10 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
+		wxAnimation anim_1(wxEmptyString);
+	AnimationCtrlPreview = new wxAnimationCtrl(this, ID_ANIMATIONCTRL_PREVIEW, anim_1, wxDefaultPosition, wxSize(32,32), wxAC_DEFAULT_STYLE, _T("ID_ANIMATIONCTRL_PREVIEW"));
+	AnimationCtrlPreview->SetMinSize(wxSize(32,32));
+	BoxSizer1->Add(AnimationCtrlPreview, 0, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 1, wxALL|wxEXPAND, 5);
@@ -961,6 +966,22 @@ void EffectTreeDialog::ValidateWindow()
 void EffectTreeDialog::OnTreeCtrl1SelectionChanged(wxTreeEvent& event)
 {
     ValidateWindow();
+
+    AnimationCtrlPreview->Stop();
+    wxString const fullName = generatePresetName();
+    if (!fullName.IsEmpty()) {
+        std::string filePath = xLightParent->GetPresetIconFilename(fullName);
+
+        if (wxFile::Exists(filePath)) {
+            AnimationCtrlPreview->LoadFile(filePath);
+            AnimationCtrlPreview->Play();
+        }
+        else {
+            xLightParent->WriteGIFForPreset(fullName);
+            AnimationCtrlPreview->LoadFile(filePath);
+            AnimationCtrlPreview->Play();
+        }
+    }
 }
 
 wxTreeItemId EffectTreeDialog::findTreeItem(wxTreeCtrl* pTreeCtrl, const wxTreeItemId& root, const wxTreeItemId& startID, const wxString& text, bool &startfound)
@@ -1048,4 +1069,34 @@ void EffectTreeDialog::SearchForText()
     TreeCtrl1->UnselectAll();
     TreeCtrl1->SelectItem(item, true);
     TreeCtrl1->EnsureVisible(item);
+}
+
+wxString EffectTreeDialog::generatePresetName()
+{
+    wxString presetName;
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if (itemID.IsOk()) {
+        MyTreeItemData* item = (MyTreeItemData*)TreeCtrl1->GetItemData(itemID);
+        if (item != nullptr) {
+            wxXmlNode* ele = item->GetElement();
+            if (ele->GetName() == "effectGroup")
+                return wxString();
+            presetName = ele->GetAttribute("name");
+            wxTreeItemId parentID = TreeCtrl1->GetItemParent(itemID);
+
+            if (itemID == treeRootID)
+                return wxString();
+
+            while (parentID != treeRootID) {
+                MyTreeItemData* parData = (MyTreeItemData*)TreeCtrl1->GetItemData(parentID);
+                if (parData != nullptr) {
+                    presetName.Prepend("/");
+                    wxXmlNode* parElm = parData->GetElement();
+                    presetName.Prepend(parElm->GetAttribute("name"));
+                }
+                parentID = TreeCtrl1->GetItemParent(parentID);
+            }
+        }
+    }
+    return presetName;
 }

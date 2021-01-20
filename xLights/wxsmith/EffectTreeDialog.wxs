@@ -40,6 +40,14 @@
 						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 							<orient>wxVERTICAL</orient>
 							<object class="sizeritem">
+								<object class="wxAnimationCtrl" name="ID_ANIMATIONCTRL_PREVIEW" variable="AnimationCtrlPreview" member="yes">
+									<size>32,32</size>
+									<minsize>32,32</minsize>
+								</object>
+								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+								<border>5</border>
+							</object>
+							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
 									<label>&amp;Apply Preset</label>
 									<tooltip>Apply the selected effect Preset.</tooltip>

@@ -1233,6 +1233,7 @@ public:
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
+    void WriteGIFForPreset(const std::string& preset);
 
 private:
 
@@ -1245,7 +1246,6 @@ private:
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const;
-    void WriteGIFForPreset(const std::string& preset);
 
     // sequence
     void LoadEffectsFile();
