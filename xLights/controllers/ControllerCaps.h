@@ -94,6 +94,7 @@ public:
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
     bool IsValidInputProtocol(const std::string& protocol) const;
+    bool IsSerialController() const;
 
     const std::string &GetVendor() const { return _vendor; }
     const std::string &GetModel() const { return _model; }

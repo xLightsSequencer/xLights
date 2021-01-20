@@ -7,9 +7,12 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -24,10 +27,13 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
 			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -46,7 +52,10 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
+			<SupportsAutoLayout/>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
@@ -64,7 +73,10 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
+			<SupportsAutoLayout/>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>

@@ -38,6 +38,7 @@
 	</Controller>
 	<Controller Name="Pixe 4">
 		<Variant Name="">
+			<SupportsAutoLayout/>
 			<MaxInputUniverses>0</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -51,6 +52,8 @@
 				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>lor</Protocol>
@@ -65,6 +68,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -74,6 +78,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>lor</Protocol>
@@ -89,6 +94,7 @@
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>510</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -97,6 +103,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>lor</Protocol>
@@ -112,11 +119,13 @@
 			<MaxSerialPortChannels>32</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -133,11 +142,13 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -157,8 +168,9 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -175,11 +187,13 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -198,9 +212,11 @@
 			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
+			<SupportsAutoLayout/>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -217,11 +233,13 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -238,11 +256,13 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -259,13 +279,15 @@
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>150</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ccr</Protocol>
 				<Protocol>ccb</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>lor</Protocol>
 				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>

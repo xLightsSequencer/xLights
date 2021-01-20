@@ -32,7 +32,6 @@ inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const s
     return nullptr;
 }
 
-
 static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::string &base, wxXmlNode *t) {
     wxXmlNode *baseNode = abstracts[base];
     if (baseNode) {
@@ -500,6 +499,11 @@ bool ControllerCaps::IsValidInputProtocol(const std::string& protocol) const {
         if (Lower(it) == p) return true;
     }
     return false;
+}
+
+bool ControllerCaps::IsSerialController() const
+{
+    return (!IsValidInputProtocol("e131") && !IsValidInputProtocol("artnet") && !IsValidInputProtocol("ddp") && !IsValidInputProtocol("zcpp") && !IsValidInputProtocol("xxx ethernet") && !IsValidInputProtocol("opc") && !IsValidInputProtocol("kinet"));
 }
 
 std::list<std::string> ControllerCaps::GetInputProtocols() const {
