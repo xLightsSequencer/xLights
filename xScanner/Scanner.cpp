@@ -189,27 +189,75 @@ void Scanner::IPScan(const std::string& ip, const std::string& proxy)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-	std::list<int> ips;
-	for (int i = 1; i < 255; i++) ips.push_back(i);
+	// We only scan private networks
+	bool privateNetwork = true;
 
-	std::function<void(int)> f = [this, ip, proxy](int n) {
-		struct in_addr IpAddr;
-		IpAddr.S_un.S_addr = inet_addr(ip.c_str());
-		IpAddr.S_un.S_un_b.s_b4 = n;
+	wxArrayString ipElements = wxSplit(ip, '.');
+	if (ipElements.size() > 3) {
+		//looks like an IP address
+		int ip1 = wxAtoi(ipElements[0]);
+		int ip2 = wxAtoi(ipElements[1]);
+		int ip3 = wxAtoi(ipElements[2]);
+		int ip4 = wxAtoi(ipElements[3]);
 
-		char szDestIp[128];
-		strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
-
-		logger_base.debug("Pinging %s", (const char*)szDestIp);
-		SendProgress(-1, "Pinging " + std::string(szDestIp));
-		if (IPOutput::Ping(std::string(szDestIp), proxy) == IPOutput::PINGSTATE::PING_OK) {
-			std::unique_lock<std::mutex> lock(_mutex);
-			this->_ips.push_back(IPObject(std::string(szDestIp), proxy, true));
+		if (ip1 == 10) {
+			if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+				// this is a broadcast network
+				privateNetwork = false;
+			}
+			// else this is valid
 		}
-	};
+		else if (ip1 == 192 && ip2 == 168) {
+			if (ip3 == 255 && ip4 == 255) {
+				// this is a broadcast network
+				privateNetwork = false;
+			}
+			// else this is valid
+		}
+		else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31) {
+			// this is valid
+		}
+		else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255) {
+			// this is a broadcast network
+			privateNetwork = false;
+		}
+		else if (ip1 == 0) {
+			// this is an invalid betwork
+			privateNetwork = false;
+		}
+		else if (ip1 >= 224 && ip1 <= 239) {
+			// this is a multicast network
+			privateNetwork = false;
+		}
+		else {
+			// this is a routable network
+			privateNetwork = false;
+		}
+	}
 
-	// ping the direct networks on the computer
-	parallel_for(1, 255, std::move(f));
+	if (privateNetwork) {
+		std::list<int> ips;
+		for (int i = 1; i < 255; i++) ips.push_back(i);
+
+		std::function<void(int)> f = [this, ip, proxy](int n) {
+			struct in_addr IpAddr;
+			IpAddr.S_un.S_addr = inet_addr(ip.c_str());
+			IpAddr.S_un.S_un_b.s_b4 = n;
+
+			char szDestIp[128];
+			strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
+
+			logger_base.debug("Pinging %s", (const char*)szDestIp);
+			SendProgress(-1, "Pinging " + std::string(szDestIp));
+			if (IPOutput::Ping(std::string(szDestIp), proxy) == IPOutput::PINGSTATE::PING_OK) {
+				std::unique_lock<std::mutex> lock(_mutex);
+				this->_ips.push_back(IPObject(std::string(szDestIp), proxy, true));
+			}
+		};
+
+		// ping the direct networks on the computer
+		parallel_for(1, 255, std::move(f));
+	}
 }
 
 bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
