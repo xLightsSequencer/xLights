@@ -1353,7 +1353,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         logger_base.debug("removing all models from controller.");
         for (const auto& it : _controllers) {
             ModelCMObject* m = dynamic_cast<ModelCMObject*>(it);
-            if (m != nullptr) {
+            if (m != nullptr && m->GetModel() != nullptr) {
                 // Removing a model from the controller
                 if (_autoLayout) {
 
