@@ -547,6 +547,7 @@
 		1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditSliderDialog.cpp; sourceTree = "<group>"; };
 		1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditSliderDialog.h; sourceTree = "<group>"; };
 		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
+		537275A425B9106B0089ED38 /* EffectTreeDialog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EffectTreeDialog.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2462,6 +2463,7 @@
 				6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */,
 				6797A1351F427205007CF7A0 /* EffectTimingDialog.h */,
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,
+				537275A425B9106B0089ED38 /* EffectTreeDialog.h */,
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				675BECE02323DA770077C764 /* EmailDialog.cpp */,
 				675BECE12323DA770077C764 /* EmailDialog.h */,
