@@ -11,7 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.02 January 21 2021
+   -- enh (scott)  Added preset preview
+   -- enh (scott)  Consolidate some submodel export buttons to a dropdown
+   -- enh (keith)  Stop xScanner scanning public networks
+   -- enh (keith)  Make visualiser work better with USB controllers
+   -- enh (keith)  When custom model generator misses a node between 2 found nodes then optionally guess its location
+   -- enh (keith)  Add ability to export a submodel as an xmodel - this can allow you to change a models node numbering
+                   and then move across the submodel definitions that usually just break.
    -- bug (gil)    Fix issue with Display Elements sorting/drag/drop when there are multiple timing tracks
+   -- bug (dkulp)  Fix ESPPixel sticks incorrectly sending grouping as 0
+   -- bug (dkulp)  Change string handling where unicode might be important
+   -- bug (dkulp)  Address some twinkle performance issues
+   -- bug (dpriem) Ensure model measurement is shown by updating when zooming
+   -- bug (keith)  Fix nodes for multi-layer arches dont update when layer nodes updated
+   -- bug (scott)  Fix light count on arches and candycanes in model export
 2021.01 January 14 2021
    -- enh (gil)    Improve handle selection when handles overlap to help with resizing tiny models
    -- enh (gil)    Allow sorting Timing tracks for Master View in Display Elements dialog.
