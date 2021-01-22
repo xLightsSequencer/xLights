@@ -48,7 +48,7 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
     if (eff != nullptr) {
         const wxBitmap &bbmp = eff->GetEffectIcon(sz);
 
-        int ns = GetContentScaleFactor() * sz;
+        int ns = ScaleWithSystemDPI(sz);
         int bs = bbmp.GetWidth();
 #ifdef __WXOSX__
         int sw = bbmp.GetScaledWidth();

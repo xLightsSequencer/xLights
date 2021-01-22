@@ -220,31 +220,19 @@ inline void Replace(std::wstring& in, const std::wstring& what, const std::wstri
 
 inline std::string ToStdString(const wxString& wxstr)
 {
-#ifdef __WXOSX__
+#if defined(__WXOSX__)
+    //OSX is native utf-8
     return wxstr.ToStdString();
 #else
-    std::string s = wxstr.ToStdString();
-    if (s == "" && wxstr.size() > 0) {
-        using convert_typeX = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_typeX, wchar_t> converterX;
-        return converterX.to_bytes(wxstr.ToStdWstring());
-    }
-    return s;
+    return wxstr.utf8_str().data();
 #endif
 }
 inline wxString ToWXString(const std::string& stdstr)
 {
-#ifdef __WXOSX__
+#if defined(__WXOSX__)
     return stdstr;
 #else
-    wxString s = stdstr;
-    if (s == "" && stdstr.size() > 0) {
-        using convert_typeX = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_typeX, wchar_t> converterX;
-        std::wstring s2 = converterX.from_bytes(stdstr);
-        s = s2;
-    }
-    return s;
+    return wxString::FromUTF8(stdstr);
 #endif
 }
 inline std::string Capitalise(const std::string& input) noexcept
