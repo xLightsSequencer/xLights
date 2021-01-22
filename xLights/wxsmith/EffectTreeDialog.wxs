@@ -3,8 +3,8 @@
 	<object class="wxDialog" name="EffectTreeDialog">
 		<title>Effect Presets</title>
 		<size>500,400</size>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<minsize>300,400</minsize>
+		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -40,12 +40,13 @@
 						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 							<orient>wxVERTICAL</orient>
 							<object class="sizeritem">
-								<object class="wxAnimationCtrl" name="ID_ANIMATIONCTRL_PREVIEW" variable="AnimationCtrlPreview" member="yes">
-									<size>32,32</size>
-									<minsize>32,32</minsize>
+								<object class="wxStaticBitmap" name="ID_STATICBITMAP_GIF" variable="StaticBitmapGif" member="yes">
+									<size>64,64</size>
+									<minsize>64,64</minsize>
 								</object>
-								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
+								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
@@ -55,7 +56,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON1" variable="btNewPreset" member="yes">
@@ -65,7 +65,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON2" variable="btUpdate" member="yes">
@@ -75,7 +74,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON7" variable="btAddGroup" member="yes">
@@ -85,7 +83,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON3" variable="btRename" member="yes">
@@ -95,7 +92,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON4" variable="btDelete" member="yes">
@@ -105,7 +101,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON5" variable="btExport" member="yes">
@@ -114,7 +109,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON8" variable="btImport" member="yes">
@@ -124,7 +118,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxBoxSizer" variable="BoxSizer2" member="no">
@@ -132,7 +125,7 @@
 										<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrl1" member="yes">
 											<handler function="OnTextCtrl1TextEnter" entry="EVT_TEXT_ENTER" />
 										</object>
-										<flag>wxRIGHT|wxEXPAND</flag>
+										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>3</border>
 										<option>1</option>
 									</object>
@@ -145,12 +138,11 @@
 										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -171,6 +163,9 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+		</object>
+		<object class="wxTimer" name="ID_TIMER_GIF" variable="TimerGif" member="yes">
+			<handler function="OnTimerGifTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

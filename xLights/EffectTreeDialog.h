@@ -11,16 +11,20 @@
  **************************************************************/
 
 //(*Headers(EffectTreeDialog)
-#include <wx/animate.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/statbmp.h>
 #include <wx/textctrl.h>
+#include <wx/timer.h>
 #include <wx/treectrl.h>
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
 #include <mutex>
+#include <memory>
+
+#include "GIFImage.h"
 
 class xLightsFrame;
 
@@ -36,7 +40,6 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxAnimationCtrl* AnimationCtrlPreview;
 		wxButton* ETButton1;
 		wxButton* btAddGroup;
 		wxButton* btApply;
@@ -46,7 +49,9 @@ class EffectTreeDialog : public wxDialog
 		wxButton* btNewPreset;
 		wxButton* btRename;
 		wxButton* btUpdate;
+		wxStaticBitmap* StaticBitmapGif;
 		wxTextCtrl* TextCtrl1;
+		wxTimer TimerGif;
 		wxTreeCtrl* TreeCtrl1;
 		//*)
         wxTreeItemId treeRootID;
@@ -56,7 +61,7 @@ class EffectTreeDialog : public wxDialog
 
 		//(*Identifiers(EffectTreeDialog)
 		static const long ID_TREECTRL1;
-		static const long ID_ANIMATIONCTRL_PREVIEW;
+		static const long ID_STATICBITMAP_GIF;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -67,6 +72,7 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON8;
 		static const long ID_TEXTCTRL_SEARCH;
 		static const long ID_BUTTON_SEARCH;
+		static const long ID_TIMER_GIF;
 		//*)
 
 	private:
@@ -87,8 +93,11 @@ class EffectTreeDialog : public wxDialog
 		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
 		void OnETButton1Click(wxCommandEvent& event);
 		void OnTextCtrl1TextEnter(wxCommandEvent& event);
+		void OnTimerGifTrigger(wxTimerEvent& event);
 		//*)
 
+        std::unique_ptr<GIFImage> gifImage;
+        int frameCount;
         xLightsFrame* xLightParent;
 		wxXmlNode *XrgbEffectsNode;
         wxTreeItemId m_draggedItem;
@@ -109,7 +118,12 @@ class EffectTreeDialog : public wxDialog
         wxString ParseLayers(wxString name, wxString settings);
         wxString ParseDuration(wxString name, wxString settings);
 
-		wxString generatePresetName();
+		wxString generatePresetName(wxTreeItemId itemID);
+        void GenerateGifImage(wxTreeItemId itemID, bool regenerate = false);
+        void LoadGifImage(wxString const& path);
+        void PlayGifImage();
+        void StopGifImage();
+        void DeleteGifImage(wxTreeItemId itemID);
 
     public:
         static bool PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg); //static to allow re-use elsewhere -DJ
