@@ -397,11 +397,7 @@ void PathDrawingContext::Clear() {
         gc = nullptr;
     }
     DrawingContext::Clear();
-#ifdef LINUX
-    gc = wxGraphicsContext::Create(*image);
-#else
     gc = wxGraphicsContext::Create(*dc);
-#endif
 
     if (gc == nullptr)
     {
@@ -423,15 +419,11 @@ void TextDrawingContext::Clear() {
 
 #if USE_GRAPHICS_CONTEXT_FOR_TEXT
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#ifndef __WXOSX__
-    gc = wxGraphicsContext::Create(*image);
-#else
     gc = wxGraphicsContext::Create(*dc);
-#endif
 
     if (gc == nullptr)
     {
-        logger_base.error("PathDrawingContext DC creation failed.");
+        logger_base.error("TextDrawingContext DC creation failed.");
         return;
     }
 
@@ -456,11 +448,9 @@ wxImage *DrawingContext::FlushAndGetImage() {
         delete gc;
         gc = nullptr;
     }
-#ifndef LINUX
     dc->SelectObject(nullBitmap);
     *image = bitmap->ConvertToImage();
     dc->SelectObject(*bitmap);
-#endif
     return image;
 }
 
@@ -521,9 +511,6 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
             fontColor = color;
         }
         gc->SetFont(this->font);
-#ifdef LINUX
-        dc->SetFont(font);
-#endif
     } else {
         wxFont f(font);
     #ifdef __WXMSW__
@@ -582,27 +569,7 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
 }
 void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &extents) {
     if (gc != nullptr) {
-#ifdef LINUX
-        //GetPartialTextExtents on the GraphicsContext is broken on Linux (crashes) so we have to use the one on the
-        //normal drawing context and then try to scale it to roughly what would be drawn on the context
-        wxArrayInt sizes;
-        dc->GetPartialTextExtents(msg, sizes);
-        extents.resize(sizes.size());
-        if (sizes.size() == 0) {
-            return;
-        }
-        
-        double w,h;
-        gc->GetTextExtent(msg, &w, &h);
-        double max = sizes[sizes.size() - 1];
-        for (int x = 0; x < sizes.size(); x++) {
-            extents[x] = (double)sizes[x];
-            extents[x] *= w;
-            extents[x] /= max;
-        }
-#else
         gc->GetPartialTextExtents(msg, extents);
-#endif
         return;
     }
     wxArrayInt sizes;
