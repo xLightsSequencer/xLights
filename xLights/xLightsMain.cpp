@@ -29,6 +29,7 @@
 #include <wx/mimetype.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <wx/version.h> 
 
 #include <cctype>
 #include <cstring>
@@ -1966,7 +1967,7 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
     wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
-    wxString ver = wxString::Format(_("Version: %s"), GetDisplayVersionString());
+    wxString ver = wxString::Format(_("Version: %s\n%s"), GetDisplayVersionString(), wxVERSION_STRING);
     AboutDialog dlg(this);
 
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
