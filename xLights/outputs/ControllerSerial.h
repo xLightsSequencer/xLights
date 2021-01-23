@@ -35,9 +35,17 @@ protected:
     std::string _port;
     std::string _type = "DMX";
     int _speed = 250000;
+    std::string _saveablePrefix;
+    std::string _saveablePostfix;
+    std::vector<uint8_t> _prefix;
+    std::vector<uint8_t> _postfix;
 #pragma endregion Member Variables
 
 public:
+
+#pragma region Private functions
+    std::vector<uint8_t> Encode(const std::string& s);
+#pragma endregion
 
 #pragma region Constructors and Destructors
     ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir);
@@ -52,6 +60,14 @@ public:
 
     void SetSpeed(int speed);
     int GetSpeed() const { return _speed; }
+
+    void SetPostfix(const std::string& postfix);
+    std::vector<uint8_t> GetPostFix() const { return _postfix; }
+    std::string GetSaveablePostFix() const { return _saveablePostfix; }
+
+    void SetPrefix(const std::string& prefix);
+    std::vector<uint8_t> GetPreFix() const { return _prefix; }
+    std::string GetSaveablePreFix() const { return _saveablePrefix; }
 
     void SetChannels(int channels);
     void SetProtocol(const std::string& type);

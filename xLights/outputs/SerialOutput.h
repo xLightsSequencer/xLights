@@ -21,7 +21,9 @@ protected:
     SerialPort* _serial = nullptr;
     char _serialConfig[4];
     wxLongLong _dieTime = 0;
-    #pragma endregion
+    std::vector<uint8_t> _prefix;
+    std::vector<uint8_t> _postfix;
+#pragma endregion
 
     #pragma region Private Functions
     virtual void Save(wxXmlNode* node) override;
@@ -70,6 +72,9 @@ public:
 
     int GetId() const { return _universe; }
     void SetId(int id) { if (_universe != id) { _universe = id; _dirty = true; } }
+
+    void SetPrefix(std::vector<uint8_t> prefix) { _prefix = prefix; }
+    void SetPostfix(std::vector<uint8_t> postfix) { _postfix = postfix; }
 
     virtual std::string GetSortName() const override { return GetCommPort(); }
 

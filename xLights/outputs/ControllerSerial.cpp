@@ -108,11 +108,77 @@ void ControllerSerial::InitialiseTypes(bool forceXXX) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
+std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
+{
+    std::vector<uint8_t> res;
+
+    int state = 0;
+    char c1;
+
+    for (auto c : s) {
+        if (state == 0) {
+            // normal state
+            if (c == '\\') {
+                state = 1;
+            }
+            else {
+                res.push_back(c);
+            }
+        }
+        else if (state == 1) {
+            // last char was a backslash
+            if (c == '\\') {
+                res.push_back('\\');
+                state = 0;
+            }
+            else if (c == 'x' || c == 'X') {
+                state = 2;
+            }
+            else if (c == 't') {
+                res.push_back('\t');
+                state = 0;
+            }
+            else if (c == 'r') {
+                res.push_back('\r');
+                state = 0;
+            }
+            else if (c == 'n') {
+                res.push_back('\n');
+                state = 0;
+            }
+            else {
+                state = 0;
+            }
+        }
+        else if (state == 2) {
+            // last two chars were \x
+            if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
+                c1 = c;
+                state = 3;
+            }
+            else {
+                state = 0;
+            }
+        }
+        else if (state == 3) {
+            // last three chars were \x9
+            if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
+                res.push_back(HexToChar(c1, c));
+            }
+            state = 0;
+        }
+    }
+
+    return res;
+}
+
 ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
     _type = node->GetAttribute("Protocol");
     InitialiseTypes(_type == OUTPUT_xxxSERIAL);
     SetPort(node->GetAttribute("Port"));
     SetSpeed(wxAtoi(node->GetAttribute("Speed")));
+    SetPrefix(node->GetAttribute("Prefix"));
+    SetPostfix(node->GetAttribute("Postfix"));
     _dirty = false;
 }
 
@@ -134,6 +200,8 @@ wxXmlNode* ControllerSerial::Save() {
     um->AddAttribute("Port", _port);
     um->AddAttribute("Speed", wxString::Format("%d", _speed));
     um->AddAttribute("Protocol", _type);
+    um->AddAttribute("Prefix", _saveablePrefix);
+    um->AddAttribute("Postfix", _saveablePostfix);
 
     return um;
 }
@@ -155,6 +223,30 @@ void ControllerSerial::SetSpeed(int speed) {
         if (_speed != speed) {
             _outputs.front()->SetBaudRate(speed);
             _speed = speed;
+            _dirty = true;
+        }
+    }
+}
+
+void ControllerSerial::SetPrefix(const std::string& prefix)
+{
+    if (_outputs.front() != nullptr) {
+        if (_saveablePrefix != prefix) {
+            _saveablePrefix = prefix;
+            _prefix = Encode(prefix);
+            dynamic_cast<SerialOutput*>(_outputs.front())->SetPrefix(_prefix);
+            _dirty = true;
+        }
+    }
+}
+
+void ControllerSerial::SetPostfix(const std::string& postfix)
+{
+    if (_outputs.front() != nullptr) {
+        if (_saveablePostfix != postfix) {
+            _saveablePostfix = postfix;
+            _postfix = Encode(postfix);
+            dynamic_cast<SerialOutput*>(_outputs.front())->SetPostfix(_postfix);
             _dirty = true;
         }
     }
@@ -356,6 +448,11 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         }
     }
 
+    if (GetProtocol() == "Generic Serial") {
+        p = propertyGrid->Append(new wxStringProperty("Prefix", "Prefix", _saveablePrefix));
+        p = propertyGrid->Append(new wxStringProperty("Postfix", "Postfix", _saveablePostfix));
+    }
+
     auto protocols = GetProtocols();
     propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
 
@@ -398,6 +495,16 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         SetSpeed(wxAtoi(Controller::DecodeChoices(__speeds, event.GetValue().GetLong())));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Speed", nullptr);
+        return true;
+    }
+    else if (name == "Prefix") {
+        SetPrefix(event.GetValue().GetString());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Prefix");
+        return true;
+    }
+    else if (name == "Postfix") {
+        SetPostfix(event.GetValue().GetString());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Postfix");
         return true;
     }
     else if (name == "Protocol") {
