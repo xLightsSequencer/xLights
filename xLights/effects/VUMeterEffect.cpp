@@ -49,10 +49,13 @@ namespace RenderType
 		TIMING_EVENT_JUMP,
 		TIMING_EVENT_PULSE,
 		TIMING_EVENT_JUMP_100,
-		TIMING_EVENT_BAR,
-		LEVEL_BAR,
-		NOTE_LEVEL_BAR,
-		LEVEL_PULSE_COLOR,
+        TIMING_EVENT_BAR,
+        TIMING_EVENT_RANDOM_BAR,
+        LEVEL_BAR,
+        LEVEL_RANDOM_BAR,
+        NOTE_LEVEL_BAR,
+        NOTE_LEVEL_RANDOM_BAR,
+        LEVEL_PULSE_COLOR,
 		TIMING_EVENT_BARS,
         LEVEL_COLOR,
         TIMING_EVENT_PULSE_COLOR,
@@ -122,7 +125,9 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "On" ||
         type == "Intensity Wave" ||
             type == "Level Bar" ||
+            type == "Level Random Bar" ||
             type == "Note Level Bar" ||
+            type == "Note Level Random Bar" ||
             type == "Level Pulse" ||
             type == "Level Jump" ||
             type == "Level Jump 100" ||
@@ -144,6 +149,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     if (type == "Timing Event Spike" ||
         type == "Timing Event Sweep" ||
         type == "Timing Event Bar" ||
+        type == "Timing Event Random Bar" ||
         type == "Timing Event Bars" ||
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||
@@ -291,168 +297,137 @@ public:
 
 int VUMeterEffect::DecodeType(const std::string& type)
 {
-	if (type == "Spectrogram")
-	{
-		return RenderType::SPECTROGRAM;
-	}
-	else if (type == "Volume Bars")
-	{
-		return RenderType::VOLUME_BARS;
-	}
-	else if (type == "Waveform")
-	{
-		return RenderType::WAVEFORM;
-	}
-	else if (type == "Timing Event Spike")
-	{
-		return RenderType::TIMING_EVENT_SPIKE;
-	}
-	else if (type == "Timing Event Sweep")
-	{
-		return RenderType::TIMING_EVENT_SWEEP;
-	}
-    else if (type == "Timing Event Sweep 2")
-    {
+    if (type == "Spectrogram") {
+        return RenderType::SPECTROGRAM;
+    }
+    else if (type == "Volume Bars") {
+        return RenderType::VOLUME_BARS;
+    }
+    else if (type == "Waveform") {
+        return RenderType::WAVEFORM;
+    }
+    else if (type == "Timing Event Spike") {
+        return RenderType::TIMING_EVENT_SPIKE;
+    }
+    else if (type == "Timing Event Sweep") {
+        return RenderType::TIMING_EVENT_SWEEP;
+    }
+    else if (type == "Timing Event Sweep 2") {
         return RenderType::TIMING_EVENT_SWEEP2;
     }
-    else if (type == "Timing Event Timed Sweep")
-    {
+    else if (type == "Timing Event Timed Sweep") {
         return RenderType::TIMING_EVENT_TIMED_SWEEP;
     }
-    else if (type == "Timing Event Timed Sweep 2")
-    {
+    else if (type == "Timing Event Timed Sweep 2") {
         return RenderType::TIMING_EVENT_TIMED_SWEEP2;
     }
-    else if (type == "Timing Event Alternate Timed Sweep")
-    {
+    else if (type == "Timing Event Alternate Timed Sweep") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP;
     }
-    else if (type == "Timing Event Alternate Timed Sweep 2")
-    {
+    else if (type == "Timing Event Alternate Timed Sweep 2") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
     }
-    else if (type == "On")
-	{
-		return RenderType::ON;
-	}
-	else if (type == "Pulse")
-	{
-		return RenderType::PULSE;
-	}
-	else if (type == "Intensity Wave")
-	{
-		return RenderType::INTENSITY_WAVE;
-	}
-	else if (type == "unused")
-	{
-		return RenderType::UNUSED;
-	}
-	else if (type == "Level Pulse")
-	{
-		return RenderType::LEVEL_PULSE;
-	}
-    else if (type == "Level Jump")
-    {
+    else if (type == "On") {
+        return RenderType::ON;
+    }
+    else if (type == "Pulse") {
+        return RenderType::PULSE;
+    }
+    else if (type == "Intensity Wave") {
+        return RenderType::INTENSITY_WAVE;
+    }
+    else if (type == "unused") {
+        return RenderType::UNUSED;
+    }
+    else if (type == "Level Pulse") {
+        return RenderType::LEVEL_PULSE;
+    }
+    else if (type == "Level Jump") {
         return RenderType::LEVEL_JUMP;
     }
-    else if (type == "Level Jump 100")
-    {
+    else if (type == "Level Jump 100") {
         return RenderType::LEVEL_JUMP100;
     }
-    else if (type == "Level Shape")
-	{
-		return RenderType::LEVEL_SHAPE;
-	}
-    else if (type == "Color On")
-    {
+    else if (type == "Level Shape") {
+        return RenderType::LEVEL_SHAPE;
+    }
+    else if (type == "Color On") {
         return RenderType::COLOR_ON;
     }
-    else if (type == "Timing Event Color")
-    {
+    else if (type == "Timing Event Color") {
         return RenderType::TIMING_EVENT_COLOR;
     }
-    else if (type == "Note On")
-    {
+    else if (type == "Note On") {
         return RenderType::NOTE_ON;
     }
-    else if (type == "Note Level Pulse")
-    {
+    else if (type == "Note Level Pulse") {
         return RenderType::NOTE_LEVEL_PULSE;
     }
-    else if (type == "Note Level Jump")
-    {
+    else if (type == "Note Level Jump") {
         return RenderType::NOTE_LEVEL_JUMP;
     }
-    else if (type == "Note Level Jump 100")
-    {
+    else if (type == "Note Level Jump 100") {
         return RenderType::NOTE_LEVEL_JUMP100;
     }
-    else if (type == "Timing Event Jump")
-    {
+    else if (type == "Timing Event Jump") {
         return RenderType::TIMING_EVENT_JUMP;
     }
-    else if (type == "Timing Event Pulse")
-    {
-		return RenderType::TIMING_EVENT_PULSE;
+    else if (type == "Timing Event Pulse") {
+        return RenderType::TIMING_EVENT_PULSE;
     }
-    else if (type == "Timing Event Jump 100")
-    {
-		return RenderType::TIMING_EVENT_JUMP_100;
+    else if (type == "Timing Event Jump 100") {
+        return RenderType::TIMING_EVENT_JUMP_100;
     }
-    else if (type == "Timing Event Bar")
-    {
+    else if (type == "Timing Event Bar") {
         return RenderType::TIMING_EVENT_BAR;
     }
-    else if (type == "Level Bar")
-    {
+    else if (type == "Timing Event Random Bar") {
+        return RenderType::TIMING_EVENT_RANDOM_BAR;
+    }
+    else if (type == "Level Bar") {
         return RenderType::LEVEL_BAR;
     }
-    else if (type == "Note Level Bar")
-    {
+    else if (type == "Level Random Bar") {
+        return RenderType::LEVEL_RANDOM_BAR;
+    }
+    else if (type == "Note Level Bar") {
         return RenderType::NOTE_LEVEL_BAR;
     }
-    else if (type == "Level Pulse Color")
-    {
+    else if (type == "Note Level Random Bar") {
+        return RenderType::NOTE_LEVEL_RANDOM_BAR;
+    }
+    else if (type == "Level Pulse Color") {
         return RenderType::LEVEL_PULSE_COLOR;
     }
-    else if (type == "Timing Event Bars")
-    {
+    else if (type == "Timing Event Bars") {
         return RenderType::TIMING_EVENT_BARS;
     }
-    else if (type == "Timing Event Pulse Color")
-    {
+    else if (type == "Timing Event Pulse Color") {
         return RenderType::TIMING_EVENT_PULSE_COLOR;
     }
-    else if (type == "Level Color")
-    {
+    else if (type == "Level Color") {
         return RenderType::LEVEL_COLOR;
     }
-    else if (type == "Spectrogram Peak")
-    {
+    else if (type == "Spectrogram Peak") {
         return RenderType::SPECTROGRAM_PEAK;
     }
-    else if (type == "Spectrogram Line")
-    {
+    else if (type == "Spectrogram Line") {
         return RenderType::SPECTROGRAM_LINE;
     }
-    else if (type == "Spectrogram Circle Line")
-    {
+    else if (type == "Spectrogram Circle Line") {
         return RenderType::SPECTROGRAM_CIRCLELINE;
     }
-    else if (type == "Frame Waveform")
-    {
+    else if (type == "Frame Waveform") {
         return RenderType::FRAME_WAVEFORM;
     }
-    else if (type == "Dominant Frequency Colour")
-    {
-    return RenderType::DOMINANT_FREQUENCY_COLOUR;
-     }
-    else if (type == "Dominant Frequency Colour Gradient")
-    {
-    return RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT;
-     }
-     // default type is volume bars
-	return RenderType::VOLUME_BARS;
+    else if (type == "Dominant Frequency Colour") {
+        return RenderType::DOMINANT_FREQUENCY_COLOUR;
+    }
+    else if (type == "Dominant Frequency Colour Gradient") {
+        return RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT;
+    }
+    // default type is volume bars
+    return RenderType::VOLUME_BARS;
 }
 
 int VUMeterEffect::DecodeShape(const std::string& shape)
@@ -685,19 +660,28 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false, 0);
             break;
         case RenderType::TIMING_EVENT_BAR:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, false);
+            break;
+        case RenderType::TIMING_EVENT_RANDOM_BAR:
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, true);
             break;
         case RenderType::LEVEL_BAR:
-            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain);
+            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, false);
+            break;
+        case RenderType::LEVEL_RANDOM_BAR:
+            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, true);
             break;
         case RenderType::NOTE_LEVEL_BAR:
-            RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain);
+            RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain, false);
+            break;
+        case RenderType::NOTE_LEVEL_RANDOM_BAR:
+            RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain, true);
             break;
         case RenderType::LEVEL_PULSE_COLOR:
             RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex, gain);
             break;
         case RenderType::TIMING_EVENT_BARS:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true, false);
             break;
         case RenderType::TIMING_EVENT_PULSE_COLOR:
             RenderTimingEventPulseColourFrame(buffer, usebars, timingtrack, _lastsize, _colourindex);
@@ -2735,7 +2719,7 @@ void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframe
     }
 }
 
-void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain)
+void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2754,8 +2738,17 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
                 colourindex = 0;
             }
 
-            lastbar++;
-            if (lastbar > bars) lastbar = 1;
+            if (random && bars > 2) {
+                int lb = lastbar;
+                while (lb == (int)lastbar) {
+                    lastbar = 1 + rand01() * bars;
+                }
+                if (lastbar > bars) lastbar = 1;
+            }
+            else {
+                lastbar++;
+                if (lastbar > bars) lastbar = 1;
+            }
         }
         int bar = lastbar - 1;
         buffer.palette.GetColor(colourindex, color1);
@@ -2777,7 +2770,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
     }
 }
 
-void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all)
+void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random)
 {
     if (timingtrack != "")
     {
@@ -2816,13 +2809,23 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
                     colourindex = 0;
                 }
 
-                lastbar++;
-                if (lastbar > bars) lastbar = 1;
+                if (random && bars > 2) {
+                    int lb = lastbar;
+                    while (lb == (int)lastbar) {
+                        lastbar = 1 + rand01() * bars;
+                    }
+                    if (lastbar > bars) lastbar = 1;
+                }
+                else {
+                    lastbar++;
+                    if (lastbar > bars) lastbar = 1;
+                }
             }
 
             if (colourindex < 0) colourindex = 0;
 
             int bar = lastbar - 1;
+
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
             int ci = colourindex;
@@ -2869,7 +2872,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
     }
 }
 
-void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain)
+void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain, bool random)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2899,8 +2902,17 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int 
                 colourindex = 0;
             }
 
-            lastbar++;
-            if (lastbar > bars) lastbar = 1;
+            if (random && bars > 2) {
+                int lb = lastbar;
+                while (lb == (int)lastbar) {
+                    lastbar = 1 + rand01() * bars;
+                }
+                if (lastbar > bars) lastbar = 1;
+            }
+            else {
+                lastbar++;
+                if (lastbar > bars) lastbar = 1;
+            }
         }
 
         int bar = lastbar - 1;

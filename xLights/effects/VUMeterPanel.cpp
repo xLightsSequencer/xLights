@@ -282,6 +282,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Intensity Wave"));
     Choice_VUMeter_Type->Append(_("Pulse"));
     Choice_VUMeter_Type->Append(_("Level Bar"));
+    Choice_VUMeter_Type->Append(_("Level Random Bar"));
     Choice_VUMeter_Type->Append(_("Level Color"));
     Choice_VUMeter_Type->Append(_("Level Pulse"));
     Choice_VUMeter_Type->Append(_("Level Jump"));
@@ -289,6 +290,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Level Pulse Color"));
     Choice_VUMeter_Type->Append(_("Level Shape"));
     Choice_VUMeter_Type->Append(_("Timing Event Bar"));
+    Choice_VUMeter_Type->Append(_("Timing Event Random Bar"));
     Choice_VUMeter_Type->Append(_("Timing Event Bars"));
     Choice_VUMeter_Type->Append(_("Timing Event Spike"));
     Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
@@ -307,6 +309,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Note Level Jump"));
     Choice_VUMeter_Type->Append(_("Note Level Jump 100"));
     Choice_VUMeter_Type->Append(_("Note Level Bar"));
+    Choice_VUMeter_Type->Append(_("Note Level Random Bar"));
 
     Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
 
@@ -356,6 +359,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Color On" ||
         type == "Intensity Wave" ||
         type == "Level Bar" ||
+        type == "Level Random Bar" ||
         type == "Level Color" ||
         type == "Level Pulse" || 
         type == "Level Jump" ||
@@ -364,6 +368,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Timing Event Jump" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
+        type == "Note Level Random Bar" ||
         type == "Note Level Pulse" ||
         type == "Note Level Jump" ||
         type == "Note Level Jump 100" ||
@@ -392,6 +397,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||
         type == "Timing Event Bar" ||
+        type == "Timing Event Random Bar" ||
         type == "Timing Event Bars" ||
         type == "Timing Event Jump 100" ||
         type == "Timing Event Pulse Color" ||
@@ -410,8 +416,10 @@ void VUMeterPanel::ValidateWindow()
         type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Level Bar" ||
+        type == "Level Random Bar" ||
         type == "Level Color" ||
         type == "Note Level Bar" ||
+        type == "Note Level Random Bar" ||
         type == "Spectrogram Peak" ||
         type == "Spectrogram Line" ||
         type == "Spectrogram Circle Line" ||
@@ -488,6 +496,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Peak" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
+        type == "Note Level Random Bar" ||
         type == "Note Level Jump" ||
         type == "Note Level Jump 100" ||
         type == "Note Level Pulse" ||
