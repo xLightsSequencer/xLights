@@ -165,7 +165,12 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         }
         else if (_type == OUTPUT_DDP) {
             auto ddpo = new DDPOutput();
-            ddpo->SetId(oldoutputs.front()->GetUniverse());
+            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                ddpo->SetId(_outputManager->UniqueId());
+            }
+            else {
+                ddpo->SetId(oldoutputs.front()->GetUniverse());
+            }
             _outputs.push_back(ddpo);
             SetId(ddpo->GetId());
         }
@@ -202,6 +207,15 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             #define CONVERT_CHANNELS_PER_UNIVERSE 510
             int universes = (totchannels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
             int left = totchannels;
+
+            int u = 0;
+            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                u = _outputManager->UniqueId() - 1;
+            }
+            else {
+                u = oldoutputs.front()->GetUniverse() - 1;
+            }
+
             for (int i = 0; i < universes; i++) {
                 if (_type == OUTPUT_E131) {
                     _outputs.push_back(new E131Output());
@@ -221,7 +235,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
                 left -= _outputs.back()->GetChannels();
                 _outputs.back()->SetIP(oldoutputs.front()->GetIP());
-                _outputs.back()->SetUniverse(i + 1);
+                _outputs.back()->SetUniverse(u + i + 1);
                 _outputs.back()->Enable(IsActive());
             }
         }

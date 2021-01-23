@@ -145,7 +145,8 @@ public:
     void UpdateUnmanaged();
     
     std::string UniqueName(const std::string& prefix);
-    
+
+    bool IsIDUsed(int id);
     int UniqueId();
 
     void SomethingChanged() const;

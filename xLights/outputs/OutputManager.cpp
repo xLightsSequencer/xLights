@@ -925,6 +925,14 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     return n.ToStdString();
 }
 
+bool OutputManager::IsIDUsed(int id)
+{
+    for (const auto& it : GetAllOutputs())         {
+        if (it->GetUniverse() == id) return true;
+    }
+    return false;
+}
+
 int OutputManager::UniqueId() {
     int i = 0;
     while (GetOutput(++i, "") != nullptr);
