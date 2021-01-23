@@ -64,6 +64,35 @@ Model* ModelGroup::GetFirstModel() const
     return nullptr;
 }
 
+// Gets a list of models in the group flattening out any groups and removing any duplicates - submodels will be included if they are in the groups
+std::list<Model*> ModelGroup::GetFlatModels() const
+{
+    std::list<Model*> res;
+
+    for (const auto& it : modelNames) {
+        Model* m = modelManager[it];
+        if (m != nullptr) {
+            if (m->GetDisplayAs() == "ModelGroup") {
+                auto mg = dynamic_cast<ModelGroup*>(m);
+                if (mg != nullptr) {
+                    for (const auto& it : mg->GetFlatModels()) {
+                        if (std::find(begin(res), end(res), it) == end(res)) {
+                            res.push_back(it);
+                        }
+                    }
+                }
+            }
+            else {
+                if (std::find(begin(res), end(res), m) == end(res)) {
+                    res.push_back(m);
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
 {
     std::list<Model*> visited;

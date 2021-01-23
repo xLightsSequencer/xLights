@@ -11,22 +11,26 @@
  **************************************************************/
 
  //(*Headers(DMXPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxButton;
-class wxFlexGridSizer;
-class wxNotebook;
-class wxNotebookEvent;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxButton;
+ class wxFlexGridSizer;
+ class wxNotebook;
+ class wxNotebookEvent;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
+class Model;
+
 class DMXPanel: public wxPanel
 {
+	std::list<Model*> GetActiveModels();
+
 	public:
 
 		DMXPanel(wxWindow* parent);
@@ -115,6 +119,7 @@ class DMXPanel: public wxPanel
 		BulkEditValueCurveButton* ValueCurve_DMX8;
 		BulkEditValueCurveButton* ValueCurve_DMX9;
 		wxButton* ButtonRemap;
+		wxButton* Button_SaveAsState;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer2;
 		wxFlexGridSizer* FlexGridSizer_Main;
@@ -336,6 +341,7 @@ class DMXPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
 		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	public:
@@ -344,6 +350,7 @@ class DMXPanel: public wxPanel
 
 		//(*Handlers(DMXPanel)
 		void OnButtonRemapClick(wxCommandEvent& event);
+		void OnButton_SaveAsStateClick(wxCommandEvent& event);
 		//*)
 
         void OnButtonRemapRClick(wxCommandEvent& event);

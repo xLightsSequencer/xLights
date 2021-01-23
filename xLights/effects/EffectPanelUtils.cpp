@@ -184,6 +184,8 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
             }
         }
     }
+    wxCommandEvent e(EVT_VALIDATEWINDOW);
+    wxPostEvent(vcb->GetParent(), e);
 }
 
 void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &name, bool enable) {

@@ -349,6 +349,7 @@ public:
     virtual void InsertHandle(int after_handle, float zoom, int scale);
     virtual void DeleteHandle(int handle);
 
+    bool HasState(const std::string state) const;
     std::vector<std::string> GetModelState() const;
     void SaveModelState(std::vector<std::string>& state);
 

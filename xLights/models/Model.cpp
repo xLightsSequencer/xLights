@@ -6344,6 +6344,15 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
     return res;
 }
 
+bool Model::HasState(const std::string state) const
+{
+    auto s = Lower(state);
+    for (const auto& it : stateInfo)         {
+        if (it.first == s) return true;
+    }
+    return false;
+}
+
 std::vector<std::string> Model::GetModelState() const
 {
     return modelState;
