@@ -41,9 +41,12 @@ BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+#define GIF_SIZE 64
+
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
     frameCount(0)
 {
+    _blankGIFImage = std::make_unique<wxBitmap>(GIF_SIZE, GIF_SIZE, true);
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
@@ -52,8 +55,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
-	SetClientSize(wxSize(500,400));
-	SetMinSize(wxSize(300,400));
+	SetClientSize(wxSize(700,500));
+	SetMinSize(wxSize(300,450));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -66,7 +69,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
 	StaticBitmapGif = new wxStaticBitmap(this, ID_STATICBITMAP_GIF, wxNullBitmap, wxDefaultPosition, wxSize(64,64), 0, _T("ID_STATICBITMAP_GIF"));
 	StaticBitmapGif->SetMinSize(wxSize(64,64));
-	BoxSizer1->Add(StaticBitmapGif, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1->Add(StaticBitmapGif, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 0, wxALL|wxEXPAND, 5);
@@ -123,15 +126,25 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
 	Connect(ID_TIMER_GIF,wxEVT_TIMER,(wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
 	//*)
-	treeRootID = TreeCtrl1->AddRoot("Effect Presets");
+
+    treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = (xLightsFrame*)parent;
+
+    StaticBitmapGif->SetMinSize(wxSize(GIF_SIZE, GIF_SIZE));
+    StaticBitmapGif->SetSize(wxSize(GIF_SIZE, GIF_SIZE));
+
+    StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
+
+    Layout();
 
     ValidateWindow();
 }
 
 EffectTreeDialog::~EffectTreeDialog()
 {
-	//(*Destroy(EffectTreeDialog)
+    StaticBitmapGif->SetBitmap(wxNullBitmap);
+
+    //(*Destroy(EffectTreeDialog)
 	//*)
 }
 
@@ -303,6 +316,9 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     node->AddChild(newNode);
     name += " [" + ParseLayers(name, newNode->GetAttribute("settings")) + ", " + ParseDuration(name, newNode->GetAttribute("settings")) + "ms]";
     wxTreeItemId newitemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
+    TreeCtrl1->Expand(parentID);
+    TreeCtrl1->SelectItem(newitemID, true);
+    TreeCtrl1->EnsureVisible(newitemID);
     GenerateGifImage(newitemID, true);
     EffectsFileDirty();
     ValidateWindow();
@@ -593,6 +609,9 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     node->AddChild(newNode);
     itemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode, true));
     TreeCtrl1->SetItemHasChildren(itemID);
+    TreeCtrl1->Expand(parentID);
+    TreeCtrl1->SelectItem(itemID);
+    TreeCtrl1->EnsureVisible(itemID);
     EffectsFileDirty();
     ValidateWindow();
 }
@@ -661,7 +680,9 @@ void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
     TreeCtrl1->Delete(itemSrc);
 
     wxTreeItemId itemID = TreeCtrl1->AppendItem(itemDst, name, -1,-1, new MyTreeItemData(oldXml));
+    TreeCtrl1->Expand(itemDst);
     TreeCtrl1->SelectItem(itemID);
+    TreeCtrl1->EnsureVisible(itemID);
 
     EffectsFileDirty();
     ValidateWindow();
@@ -686,7 +707,10 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 
         node->AddChild(newNode);
         name += " [" + ParseLayers(name, newNode->GetAttribute("settings")) + ", " + ParseDuration(name, newNode->GetAttribute("settings")) + "ms]";
-        TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode));
+        auto newItem = TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode));
+        TreeCtrl1->Expand(curGroupID);
+        TreeCtrl1->SelectItem(newItem);
+        TreeCtrl1->EnsureVisible(newItem);
     }
 }
 
@@ -1111,20 +1135,26 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
     }
 }
 
-#define GIF_DELAY 100
+#define GIF_DELAY 50
 void EffectTreeDialog::LoadGifImage(wxString const& path)
 {
     TimerGif.Stop();
     if(wxFile::Exists(path) && GIFImage::IsGIF(path)) {
         gifImage = std::make_unique<GIFImage>(path);
-        frameCount = 0;
-        TimerGif.Start(GIF_DELAY);
+
+        if (!gifImage->IsOk())             {
+            gifImage = nullptr;
+            StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
+        }
+        else {
+            frameCount = 0;
+            TimerGif.Start(GIF_DELAY);
+        }
     } else {
         gifImage = nullptr;
     }
 }
 
-#define GIF_SIZE 64
 void EffectTreeDialog::PlayGifImage()
 {
     if(gifImage) {
@@ -1142,7 +1172,7 @@ void EffectTreeDialog::OnTimerGifTrigger(wxTimerEvent& event)
 
 void EffectTreeDialog::StopGifImage()
 {
-    StaticBitmapGif->SetBitmap(wxNullBitmap);
+    StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
     TimerGif.Stop();
     gifImage = nullptr;
 }

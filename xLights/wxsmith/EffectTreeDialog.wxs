@@ -2,8 +2,8 @@
 <wxsmith>
 	<object class="wxDialog" name="EffectTreeDialog">
 		<title>Effect Presets</title>
-		<size>500,400</size>
-		<minsize>300,400</minsize>
+		<size>700,500</size>
+		<minsize>300,450</minsize>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -44,7 +44,7 @@
 									<size>64,64</size>
 									<minsize>64,64</minsize>
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

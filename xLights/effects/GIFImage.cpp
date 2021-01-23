@@ -65,6 +65,8 @@ int GIFImage::GetMSUntilNextFrame(int msec, bool loop)
 
 int GIFImage::CalcFrameForTime(int msec, bool loop)
 {
+    if (_totalTime == 0) return 0;
+
 	if (loop)
 	{
 		while (msec >= _totalTime)

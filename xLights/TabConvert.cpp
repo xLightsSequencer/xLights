@@ -1171,6 +1171,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
         if (pd.IsOk()) {
 
             size_t frames = pd.Frames(50);
+            if (frames == 0) frames = 1;
 
             if (_presetModel == nullptr) {
                 // create a model to render with
@@ -1226,19 +1227,22 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 
             AbortRender(); // abort any existing render so this doesn't block too long
 
-            Render(_presetSequenceElements,
-                _presetSequenceData,
-                { _presetModel },
-                { _presetModel },
-                0, frames - 1,
-                false, true, []() {});
+            // only render if the preset contains effects
+            if (pd.Effects().size() > 0) {
+                Render(_presetSequenceElements,
+                    _presetSequenceData,
+                    { _presetModel },
+                    { _presetModel },
+                    0, frames - 1,
+                    false, true, []() {});
 
-            // wait for all rendering to complete
-            while (!renderProgressInfo.empty()) {
-                wxYield();
+                // wait for all rendering to complete
+                while (!renderProgressInfo.empty()) {
+                    wxYield();
+                }
             }
 
-            WriteGIFModelFile(filename, channels, 0, frames - 1, &_presetSequenceData, 1, 0, _presetModel, 50);
+            WriteGIFModelFile(filename, channels, 0, frames, &_presetSequenceData, 1, 0, _presetModel, 50);
         }
     }
 }

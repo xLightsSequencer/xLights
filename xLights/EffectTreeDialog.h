@@ -24,7 +24,7 @@
 #include <mutex>
 #include <memory>
 
-#include "GIFImage.h"
+#include "effects/GIFImage.h"
 
 class xLightsFrame;
 
@@ -96,6 +96,7 @@ class EffectTreeDialog : public wxDialog
 		void OnTimerGifTrigger(wxTimerEvent& event);
 		//*)
 
+		std::unique_ptr<wxBitmap> _blankGIFImage;
         std::unique_ptr<GIFImage> gifImage;
         int frameCount;
         xLightsFrame* xLightParent;
