@@ -45,7 +45,7 @@ class EffectLayer
         int GetLastSelectedEffectEndMS() const;
         void RemoveEffect(int index);
         void RemoveAllEffects(UndoManager *undo_mgr);
-        std::list<std::string> GetFileReferences(EffectManager& em) const;
+        std::list<std::string> GetFileReferences(Model* model, EffectManager& em) const;
         std::list<std::string> GetFacesUsed(EffectManager& em) const;
         bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
 

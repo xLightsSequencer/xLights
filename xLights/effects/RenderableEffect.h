@@ -49,7 +49,7 @@ class RenderableEffect
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const { return false; }
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const { return false; }
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
+        virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
         virtual std::list<std::string> GetFacesUsed(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }

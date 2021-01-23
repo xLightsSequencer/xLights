@@ -6061,6 +6061,7 @@ void xLightsFrame::CheckSequence(bool display)
                 if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
                     ModelElement *me = dynamic_cast<ModelElement *>(e);
+                    Model* model = AllModels[me->GetModelName()];
 
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
@@ -6075,7 +6076,7 @@ void xLightsFrame::CheckSequence(bool display)
                                 Effect* ef = nl->GetEffect(l);
                                 CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, disabledEffects, faces, states, viewPoints);
                                 RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
-                                allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
+                                allfiles.splice(end(allfiles), eff->GetFileReferences(model, ef->GetSettings()));
                             }
                         }
                     }
@@ -6253,6 +6254,22 @@ void xLightsFrame::CheckSequence(bool display)
         {
             DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
+    }
+}
+
+void xLightsFrame::ValidateEffectAssets()
+{
+    std::string missing;
+    for (const auto& it : _sequenceElements.GetAllReferencedFiles())
+    {
+        auto f = FixFile("", it);
+        if (!wxFile::Exists(f)) {
+            missing += it + "\n";
+        }
+    }
+
+    if (missing != "") {
+        wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
 
@@ -6443,6 +6460,8 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
                                 std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader,
                                 std::list<std::string>& allfiles)
 {
+    Model* m = AllModels[modelName];
+
     int layer = 0;
     for (const auto& el : e->GetEffectLayers())
     {
@@ -6450,10 +6469,9 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
         for (const auto& ef : el->GetEffects())
         {
             RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
-            allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
+            allfiles.splice(end(allfiles), eff->GetFileReferences(m, ef->GetSettings()));
 
             // Check there are nodes to actually render on
-            Model* m = AllModels[modelName];
             if (m != nullptr)
             {
                 if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
@@ -6566,6 +6584,8 @@ void xLightsFrame::OnMenuItem_Help_FacebookSelected(wxCommandEvent& event)
 
 int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles)
 {
+    Model* m = AllModels[e->GetModelName()];
+
     int effects = 0;
     wxString type = "Node";
     wxString name = wxString::Format("%sStrand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
@@ -6578,7 +6598,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
         if (ef->GetEffectIndex() >= 0)
         {
             RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
-            auto files = eff->GetFileReferences(ef->GetSettings());
+            auto files = eff->GetFileReferences(m, ef->GetSettings());
 
             for (auto it = files.begin(); it != files.end(); ++it)
             {
@@ -6672,7 +6692,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                 if (ef->GetEffectIndex() >= 0)
                 {
                     RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
-                    auto files = eff->GetFileReferences(ef->GetSettings());
+                    auto files = eff->GetFileReferences(m, ef->GetSettings());
 
                     for (auto it = files.begin(); it != files.end(); ++it)
                     {
@@ -7357,17 +7377,18 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     for (size_t j = 0; j < _sequenceElements.GetElementCount(0); j++)
     {
         Element* e = _sequenceElements.GetElement(j);
-        effectfiles.splice(end(effectfiles), e->GetFileReferences(effectManager));
+        Model* m = AllModels[e->GetModelName()];
+        effectfiles.splice(end(effectfiles), e->GetFileReferences(m, effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
-                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
         }
     }

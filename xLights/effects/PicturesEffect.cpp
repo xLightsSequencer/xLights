@@ -423,10 +423,12 @@ void PicturesEffect::SetDefaultParameters() {
     pp->ValidateWindow();
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap) const
+std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
-    res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    if (SettingsMap["E_FILEPICKER_Pictures_Filename"] != "") {
+        res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    }
     return res;
 }
 

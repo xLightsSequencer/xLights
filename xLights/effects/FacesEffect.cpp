@@ -301,6 +301,53 @@ std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap)
     return res;
 }
 
+std::list<std::string> FacesEffect::GetFileReferences(Model* model, const SettingsMap& settings) const
+{
+    std::list<std::string> res;
+
+    if (model != nullptr)         {
+
+        wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+        if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {
+            definition = model->faceInfo.begin()->first;
+        }
+        bool found = true;
+        std::map<std::string, std::map<std::string, std::string> >::iterator it = model->faceInfo.find(definition.ToStdString());
+        if (it == model->faceInfo.end()) {
+            //not found
+            found = false;
+        }
+        if (!found) {
+            if ("Coro" == definition && model->faceInfo.find("SingleNode") != model->faceInfo.end()) {
+                definition = "SingleNode";
+                found = true;
+            }
+            else if ("SingleNode" == definition && model->faceInfo.find("Coro") != model->faceInfo.end()) {
+                definition = "Coro";
+                found = true;
+            }
+        }
+
+        wxString modelType = found ? wxString(model->faceInfo[definition.ToStdString()]["Type"].c_str()) : definition;
+        if (modelType == "") {
+            modelType = definition;
+        }
+
+        if (modelType == "Matrix") {
+            auto images = model->faceInfo[definition.ToStdString()];
+            for (auto it2 = images.begin(); it2 != images.end(); ++it2) {
+                if ((*it2).first.find("Mouth") == 0) {
+
+                    if ((*it2).second != "" && std::find(begin(res), end(res), (*it2).second) == end(res)) {
+                        res.push_back((*it2).second);
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
 wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }

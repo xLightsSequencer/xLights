@@ -1794,6 +1794,25 @@ std::list<std::string> SequenceElements::GetAllEffectDescriptions()
     return res;
 }
 
+std::list<std::string> SequenceElements::GetAllReferencedFiles()
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            Model* m = xframe->AllModels[e->GetModelName()];
+            for (const auto& it : e->GetFileReferences(m, GetEffectManager())) {
+                if (std::find(begin(res), end(res), it) == end(res)) {
+                    res.push_back(it);
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 std::list<std::string> SequenceElements::GetAllUsedEffectTypes() const
 {
     std::list<std::string> res;

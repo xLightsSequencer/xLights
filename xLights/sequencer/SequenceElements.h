@@ -91,6 +91,7 @@ public:
     Effect* SelectEffectUsingDescription(std::string description);
     Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
     std::list<std::string> GetAllEffectDescriptions();
+    std::list<std::string> GetAllReferencedFiles();
     std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);

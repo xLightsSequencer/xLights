@@ -242,10 +242,12 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
     }
 }
 
-std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap) const 
+std::list<std::string> GlediatorEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const 
 {
     std::list<std::string> res;
-    res.push_back(SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"]);
+    if (SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] != "") {
+        res.push_back(SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"]);
+    }
     return res;
 }
 

@@ -189,7 +189,7 @@ public:
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;
     static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
-    virtual std::list<std::string> GetFileReferences(const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;

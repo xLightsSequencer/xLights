@@ -818,6 +818,11 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _coloursPanel->UpdateColourButtons(true, this);
 
     logger_base.debug("Sequence all loaded.");
+
+    if (!_renderMode || _promptBatchRenderIssues) {
+        ValidateEffectAssets();
+    }
+
     PopTraceContext();
 }
 

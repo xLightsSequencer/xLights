@@ -28,6 +28,7 @@ public:
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override { return false; }
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual wxString GetEffectString() override;
 protected:
     virtual wxPanel* CreatePanel(wxWindow* parent) override;

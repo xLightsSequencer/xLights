@@ -75,7 +75,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-std::list<std::string> TextEffect::GetFileReferences(const SettingsMap &SettingsMap) const
+std::list<std::string> TextEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;    
     wxString textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
