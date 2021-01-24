@@ -259,7 +259,10 @@ private:
     DrawGLUtils::xlVertexAccumulator selectedLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLinesLocked;
+    DrawGLUtils::xlVertexAccumulator selectFocusLinesDisabled;
     DrawGLUtils::xlVertexAccumulator selectedLinesDisabled;
+    DrawGLUtils::xlVertexAccumulator linesDisabled;
+    DrawGLUtils::xlVertexAccumulator linesLocked;
     DrawGLUtils::xlAccumulator backgrounds;
     DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
     DrawGLUtils::xlVertexColorAccumulator selectedBoxes;

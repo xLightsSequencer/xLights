@@ -54,6 +54,9 @@ class ColorManager
             COLOR_WAVEFORM_SELECTED,
             COLOR_WAVEFORM_SELECTEDEFFECT,
             COLOR_DISABLED_EFFECT,
+            COLOR_LOCKED_EFFECT,
+            COLOR_EFFECT_SELECTED_DISABLED,
+            COLOR_REFERENCE_EFFECT_DISABLED,
             NUM_COLORS
         };
 
@@ -131,18 +134,21 @@ class ColorManager
             {COLOR_WORDS,               "Words",             "Words",               xlColor(255, 218, 145), COLOR_CAT_EFFECT_GRID},
             {COLOR_PHONEMES,            "Phonemes",          "Phonemes",            xlColor(255, 181, 218), COLOR_CAT_EFFECT_GRID},
 
-            {COLOR_MODEL_DEFAULT,       "ModelDefault",      "Model Default",       xlLIGHT_GREY,           COLOR_CAT_LAYOUT_TAB},
-            {COLOR_MODEL_SELECTED,      "ModelSelected",     "Model Selected",      xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
-            {COLOR_MODEL_OVERLAP,       "ModelOverlap",      "Model Overlap",       xlRED,                  COLOR_CAT_LAYOUT_TAB},
-            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
-            {COLOR_EFFECT_SELECTED_FIXED,  "EffectSelectedFixed",  "Fixed Timings",          xlColor(255, 128, 0), COLOR_CAT_EFFECT_GRID},
-            {COLOR_EFFECT_SELECTED_LOCKED,  "EffectSelectedLocked",  "Locked Effects",          xlColor(200, 0, 0), COLOR_CAT_EFFECT_GRID},
-            {COLOR_REFERENCE_EFFECT_LOCKED, "ReferenceEffectLocked", "Locked Reference Effect", xlRED,       COLOR_CAT_EFFECT_GRID},
-            {COLOR_WAVEFORM,            "Waveform",           "Waveform",            xlColor(130, 178, 207), COLOR_CAT_EFFECT_GRID},
-            {COLOR_WAVEFORM_BACKGROUND, "WaveformBackground", "Waveform Background", xlColor(212, 208, 200), COLOR_CAT_EFFECT_GRID, wxSYS_COLOUR_BTNFACE},
-            {COLOR_WAVEFORM_SELECTED,   "WaveformSelected",   "Waveform Selected",   xlColor(0, 0, 200, 45), COLOR_CAT_EFFECT_GRID},
-            {COLOR_WAVEFORM_SELECTEDEFFECT,   "WaveformSelectedEffect",   "Waveform Selected Effect",   xlORANGE, COLOR_CAT_EFFECT_GRID},
-            {COLOR_DISABLED_EFFECT,   "DisabledEffect",   "Disabled Effects",   xlYELLOW, COLOR_CAT_EFFECT_GRID}
+            {COLOR_MODEL_DEFAULT,             "ModelDefault",            "Model Default",             xlLIGHT_GREY,           COLOR_CAT_LAYOUT_TAB},
+            {COLOR_MODEL_SELECTED,            "ModelSelected",           "Model Selected",            xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
+            {COLOR_MODEL_OVERLAP,             "ModelOverlap",            "Model Overlap",             xlRED,                  COLOR_CAT_LAYOUT_TAB},
+            {COLOR_LAYOUT_DASHES,             "LayoutDashes",            "Dashed Select",             xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
+            {COLOR_EFFECT_SELECTED_FIXED,     "EffectSelectedFixed",     "Fixed Timings",             xlColor(255, 128, 0),   COLOR_CAT_EFFECT_GRID},
+            {COLOR_EFFECT_SELECTED_LOCKED,    "EffectSelectedLocked",    "Selected Locked Effects",   xlColor(200, 0, 64),    COLOR_CAT_EFFECT_GRID},
+            {COLOR_REFERENCE_EFFECT_LOCKED,   "ReferenceEffectLocked",   "Locked Reference Effect",   xlColor(255,0,127),     COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM,                  "Waveform",                "Waveform",                  xlColor(130, 178, 207), COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM_BACKGROUND,       "WaveformBackground",      "Waveform Background",       xlColor(212, 208, 200), COLOR_CAT_EFFECT_GRID, wxSYS_COLOUR_BTNFACE},
+            {COLOR_WAVEFORM_SELECTED,         "WaveformSelected",        "Waveform Selected",         xlColor(0, 0, 200, 45), COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM_SELECTEDEFFECT,   "WaveformSelectedEffect",  "Waveform Selected Effect",  xlORANGE,               COLOR_CAT_EFFECT_GRID},
+            {COLOR_DISABLED_EFFECT,           "DisabledEffect",          "Disabled Effects",          xlColor(200, 200, 0),   COLOR_CAT_EFFECT_GRID},
+            {COLOR_LOCKED_EFFECT,             "LockedEffect",            "Locked Effects",            xlColor(200, 0, 0),     COLOR_CAT_EFFECT_GRID},
+            {COLOR_EFFECT_SELECTED_DISABLED,  "EffectSelectedDisabled",  "Selected Disabled Effects", xlColor(200, 200, 64),  COLOR_CAT_EFFECT_GRID},
+            {COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), COLOR_CAT_EFFECT_GRID}
         };
 
     protected:
