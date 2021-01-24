@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix Twinkle for Old Render Style broken with performance update
 2021.02 January 21 2021
    -- enh (scott)  Added preset preview
    -- enh (scott)  Consolidate some submodel export buttons to a dropdown

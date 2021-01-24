@@ -288,6 +288,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         }
         else {
             strobe.clear();
+            cache->curNumStrobe = 0;
             for (int y = 0; y < buffer.BufferHt; y++) {
                 for (int x = 0; x < buffer.BufferWi; x++) {
                     i++;
@@ -300,6 +301,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
                         strobe[s].y = y;
 
                         strobe[s].colorindex = rand() % colorcnt;
+                        cache->curNumStrobe++;
                     }
                 }
             }
