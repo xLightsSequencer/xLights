@@ -305,6 +305,13 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         logger_base.debug("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {
+            if (!this->IsVisible()) {
+                // File exists, but is not readable, but xLightsFrame hasn't been fully open
+                // Assume that xLights doesn't have permission to read from the show directory so
+                // prompt to re-aquire access.
+                DisplayError(wxString::Format("Unable to load network config %s.  Try reselecting the show directory.", networkFile.GetFullPath()));
+                return false;
+            }
             DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
         }
         else {

@@ -1607,6 +1607,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     if (ok && !dir.IsEmpty())
     {
         if (!SetDir(dir, true)) {
+            CurrentDir = "";
             if (!PromptForShowDirectory(true))
             {
                 CurrentDir = "";
