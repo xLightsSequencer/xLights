@@ -103,7 +103,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::string type = node->GetAttribute("NetworkType", "").ToStdString();
+    wxString type = node->GetAttribute("NetworkType", "");
+    if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
+
     if (type == OUTPUT_E131) {
         return new E131Output(node);
     }
@@ -127,9 +129,6 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_xxxSERIAL) {
         return new xxxSerialOutput(node);
-    }
-    else if (type == OUTPUT_xxxETHERNET) {
-        return new xxxEthernetOutput(node);
     }
     else if (type == OUTPUT_OPC) {
         return new OPCOutput(node);
@@ -157,6 +156,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_GENERICSERIAL) {
         return new GenericSerialOutput(node);
+    }
+    else if (type == OUTPUT_xxxETHERNET) {
+        return new xxxEthernetOutput(node);
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());

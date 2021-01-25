@@ -200,10 +200,11 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
             if (e->GetName() == "network") {
                 Output* conversionOutput = Output::Create(nullptr, e, showdir);
 
-                auto type = e->GetAttribute("NetworkType");
+                wxString type = e->GetAttribute("NetworkType", "");
                 auto port = e->GetAttribute("ComPort");
                 int univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
                 int univcount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+                if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
                 if (type == OUTPUT_xxxETHERNET) {
                     univ = wxAtoi(e->GetAttribute("Port", "1"));
                 }
@@ -249,6 +250,9 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                         type == OUTPUT_OPENPIXELNET ||
                         type == OUTPUT_GENERICSERIAL) {
                         cu = new ControllerSerial(this);
+                    }
+                    else {
+                        wxASSERT(false);
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
