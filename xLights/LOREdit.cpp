@@ -146,6 +146,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "linesvertical") return "Lines";
     if (effectType == "straightlines") return "Lines";
     if (effectType == "garland") return "Garlands";
+    if (effectType == "spinner") return "Pinwheel";
     if (effectType == "blendedbars") return "Bars";
     if (effectType == "singleblock") return "SingleStrand";
     if (effectType == "countdown") return "Text"; // we dont support countdown
@@ -666,6 +667,57 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Pictures_Direction=" + movement;
         settings += ",E_SLIDER_PicturesXC=" + x;
         settings += ",E_TEXTCTRL_Pictures_Speed=" + speed;
+    }
+    else if (et == "spinner") {
+        // pinwheel_1,color_per_arm,10,15,0,0,5,15,200,200,-24,0
+
+        wxString style = parms[0];
+        wxString colour_mode = parms[1];
+        wxString arms = parms[2];
+        wxString vcCrap;
+        arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
+        wxString width = parms[3];
+        wxString vcWidth;
+        width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
+        wxString innerRadius = parms[4]; // not used
+        wxString bend = parms[5];
+        wxString vcBend;
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
+        wxString colour = parms[6]; // not used
+        wxString CCW = parms[7];
+        wxString speed = parms[8];
+        wxString vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+        wxString length = parms[9];
+        wxString vcLength;
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
+        wxString x = parms[10];
+        wxString vcX;
+        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+        wxString y = parms[11];
+        wxString vcY;
+        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+
+        settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
+        settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
+        settings += vcWidth;
+        settings += ",E_SLIDER_Pinwheel_Twist=" + bend;
+        settings += vcBend;
+        if (CCW == "True") {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=1";
+        }
+        else {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=0";
+        }
+        settings += ",E_SLIDER_Pinwheel_Speed=" + speed;
+        settings += vcSpeed;
+        settings += ",E_SLIDER_Pinwheel_ArmSize=" + length;
+        settings += vcLength;
+        settings += ",E_CHOICE_Pinwheel_Style=New Render Method";
+        settings += ",E_SLIDER_PinwheelXC=" + x;
+        settings += vcX;
+        settings += ",E_SLIDER_PinwheelYC=" + y;
+        settings += vcY;
     }
     else if (et == "pinwheel") {
         // 3,1,6,color_per_arm,True,12,100,10,-23
