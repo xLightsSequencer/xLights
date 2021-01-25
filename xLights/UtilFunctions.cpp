@@ -536,6 +536,24 @@ std::string XmlSafe(const std::string& s)
     return res;
 }
 
+// This takes a string and removes all problematic characters from it for an XML file
+std::string RemoveUnsafeXmlChars(const std::string& s)
+{
+    std::string res;
+
+    for (int i = 0; i < s.size(); i++) {
+        if ((int)s[i] < 32 || s[i] > 127) {
+            // strip it
+        }
+        else if (s[i] == '=' || s[i] == '<' || s[i] == '>' || s[i] == '&' || s[i] == '"' || s[i] == '\'') {
+            // strip them too
+        }
+        else res += s[i];
+    }
+
+    return res;
+}
+
 std::string EscapeCSV(const std::string& s)
 {
     std::string res = "";

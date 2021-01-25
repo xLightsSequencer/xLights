@@ -635,6 +635,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 else if (selected_timing == "Empty") {
                     bool first = true;
                     wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+
                     OptimiseDialogPosition(&te);
                     while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
                         first = false;
@@ -643,12 +644,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                         int suffix = 2;
                         while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
-                            selected_timing = wxString::Format("%s-%d", base, suffix++);
+                            selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
 
                         te.SetValue(selected_timing);
                         if (te.ShowModal() == wxID_OK) {
                             selected_timing = te.GetValue();
+                            selected_timing = RemoveUnsafeXmlChars(selected_timing);
                         }
                         else {
                             selected_timing = "";
@@ -699,6 +701,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_RENAME_TIMING_TRACK) {
         std::string name = wxGetTextFromUser("What is the new name of the timing track?", "Timing Track Name", element->GetName()).ToStdString();
+        name = RemoveUnsafeXmlChars(name);
         if (mSequenceElements->ElementExists(name)) {
             DisplayError("Timing name already exists in sequence as a model or another timing.");
         }
@@ -1048,7 +1051,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
         int suffix = 2;
         while (xml_file->TimingAlreadyExists(selectedTiming, mSequenceElements->GetXLightsFrame())) {
-            selectedTiming = wxString::Format("%s-%d", base, suffix++);
+            selectedTiming = wxString::Format("%s_%d", base, suffix++);
         }
         xml_file->AddFixedTimingSection(selectedTiming, mSequenceElements->GetXLightsFrame());
         auto te = mSequenceElements->GetTimingElement(selectedTiming);

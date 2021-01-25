@@ -889,6 +889,8 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         std::string selected_timing = dialog.GetTiming().ToStdString();
+        selected_timing = RemoveUnsafeXmlChars(selected_timing);
+
         if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
         {
             DownloadVamp();
@@ -900,6 +902,37 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                 wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
                 if (name != "") {
                     AddTimingCell(name);
+                }
+            }
+            else if (selected_timing == "Empty") {
+                bool first = true;
+                wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+
+                OptimiseDialogPosition(&te);
+                while (first || xml_file->TimingAlreadyExists(selected_timing, xLightsParent) || selected_timing == "") {
+                    first = false;
+
+                    auto base = selected_timing;
+
+                    int suffix = 2;
+                    while (xml_file->TimingAlreadyExists(selected_timing, xLightsParent)) {
+                        selected_timing = wxString::Format("%s_%d", base, suffix++);
+                    }
+
+                    te.SetValue(selected_timing);
+                    if (te.ShowModal() == wxID_OK) {
+                        selected_timing = te.GetValue();
+                        selected_timing = RemoveUnsafeXmlChars(selected_timing);
+                    }
+                    else {
+                        selected_timing = "";
+                        break;
+                    }
+                }
+
+                if (selected_timing != "") {
+                    xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+                    AddTimingCell(selected_timing);
                 }
             }
             else if (!xml_file->TimingAlreadyExists(selected_timing, xLightsParent))

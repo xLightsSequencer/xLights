@@ -3019,20 +3019,19 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
 {
-    std::string n = name;
+    std::string n = RemoveUnsafeXmlChars(name);
     int nn = 1;
 
     // make sure the name is unique ... adding a sequence number if it isnt
-    while(_sequenceElements.GetElement(n) != nullptr)
-    {
-        n = wxString::Format("%s-%d", name.c_str(), nn++).ToStdString();
+    while (_sequenceElements.GetElement(n) != nullptr) {
+        n = wxString::Format("%s_%d", name.c_str(), nn++).ToStdString();
     }
 
     // Deactivate active timing mark so new one is selected;
     _sequenceElements.DeactivateAllTimingElements();
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount,n,type,true,false,true,false));
+    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false));
     e->AddEffectLayer();
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

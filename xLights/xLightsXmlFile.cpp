@@ -1734,7 +1734,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                         {
                             if( grid_name == timing_grids[i1] )
                             {
-                                std::string new_timing_name = filename + ": " + grid_name;
+                                std::string new_timing_name = UniqueTimingName(xLightsParent,  filename + ": " + grid_name);
                                 EffectLayer* effectLayer = nullptr;
                                 wxXmlNode* layer = nullptr;
                                 if( sequence_loaded )
@@ -1782,7 +1782,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
 
 wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString name) const
 {
-    wxString testname = name;
+    wxString testname = RemoveUnsafeXmlChars(name);
     int testnamenum = 1;
     bool ok;
     do
@@ -2417,7 +2417,7 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                                             int mask = 1;
                                             for (size_t i1 = 0; i1 < 10; i1++) {
                                                 if (present & mask) {
-                                                    wxString tname = DecodeLSPTTColour(mask) + "-" + name;
+                                                    wxString tname = UniqueTimingName(xLightsParent, DecodeLSPTTColour(mask) + "-" + name);
                                                     logger_base.info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
                                                     if (sequence_loaded) {
                                                         Element* element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
@@ -2615,7 +2615,7 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
 
                 if (vixenFile.GetTimingType(sel) == "Phrase")
                 {
-                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    TimingElement* element = xLightsParent->AddTimingElement(UniqueTimingName(xLightsParent, sel));
                     EffectLayer* effectLayer = element->GetEffectLayer(0);
                     if (effectLayer == nullptr) {
                         effectLayer = element->AddEffectLayer();
@@ -2629,7 +2629,7 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
                 }
                 else
                 {
-                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    TimingElement* element = xLightsParent->AddTimingElement(UniqueTimingName(xLightsParent, sel));
                     EffectLayer* effectLayer = element->GetEffectLayer(0);
                     if (effectLayer == nullptr) {
                         effectLayer = element->AddEffectLayer();
@@ -2988,8 +2988,6 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
     }
     return false;
 }
-
-
 
 void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFrame* xLightsParent,
                                          std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
