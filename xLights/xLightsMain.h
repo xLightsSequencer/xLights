@@ -1201,7 +1201,7 @@ public:
     std::list<std::string> mediaDirectories;
     std::string fseqDirectory;
     std::string renderCacheDirectory;
-    std::string backupDirectory;
+    std::string _backupDirectory;
     SeqDataType _seqData;
     wxTimer _scrollTimer;
 

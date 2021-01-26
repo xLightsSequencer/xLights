@@ -2471,12 +2471,12 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     wxDateTime curTime(cur);
 
     //  first make sure there is a Backup sub directory
-    if (backupDirectory == "") {
+    if (_backupDirectory == "") {
         wxMessageBox("Backup directory has not been set. Aborting backup.");
         return;
     }
 
-    wxString newDirBackup = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+    wxString newDirBackup = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
@@ -4116,8 +4116,8 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
 
 void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
 {
-    useShow = (showDirectory == backupDirectory);
-    folder = backupDirectory;
+    useShow = (showDirectory == _backupDirectory);
+    folder = _backupDirectory;
 }
 
 void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
@@ -4125,25 +4125,25 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (useShow) {
-        if (backupDirectory == showDirectory) return;
-        backupDirectory = showDirectory;
+        if (_backupDirectory == showDirectory) return;
+        _backupDirectory = showDirectory;
     }
     else {
         if (wxDir::Exists(folder)) {
             ObtainAccessToURL(folder);
-            if (backupDirectory == folder) return;
-            backupDirectory = folder;
+            if (_backupDirectory == folder) return;
+            _backupDirectory = folder;
         }
         else {
-            DisplayError("Backup directory does not exist. Backup folder was not changed to " + folder + ". Backup folder remains : " + backupDirectory, this);
+            DisplayError("Backup directory does not exist. Backup folder was not changed to " + folder + ". Backup folder remains : " + _backupDirectory, this);
             return;
         }
     }
 
-    SetXmlSetting("backupDir", backupDirectory);
+    SetXmlSetting("backupDir", _backupDirectory);
     UnsavedRgbEffectsChanges = true;
 
-    logger_base.debug("Backup directory set to : %s.", (const char*)backupDirectory.c_str());
+    logger_base.debug("Backup directory set to : %s.", (const char*)_backupDirectory.c_str());
 }
 
 void xLightsFrame::GetAltBackupFolder(std::string& folder)
@@ -8985,7 +8985,7 @@ void xLightsFrame::DoBackupPurge()
 
     logger_base.debug("    Keep backups on or after %s.", (const char *)purgeDate.FormatISODate().c_str());
 
-    wxString backupDir = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+    wxString backupDir = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
     int count = 0;
     int purged = 0;

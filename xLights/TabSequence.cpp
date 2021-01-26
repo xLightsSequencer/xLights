@@ -80,16 +80,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
-    // set backup directory early as we may need it in the next step
-    backupDirectory = GetXmlSetting("backupDir", showDirectory);
-    ObtainAccessToURL(backupDirectory);
-    if (!wxDir::Exists(backupDirectory)) {
-        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
-        backupDirectory = showDirectory;
-        SetXmlSetting("backupDir", showDirectory);
-        UnsavedRgbEffectsChanges = true;
-    }
-
     if (!effectsFile.FileExists()) {
         // file does not exist, so create an empty xml doc
         CreateDefaultEffectsXml();
@@ -111,7 +101,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 // autosave file is newer
                 if (wxMessageBox("Autosaved rgbeffects file found which seems to be newer than your current rgbeffects file ... would you like to open that instead?", "Newer file found", wxYES_NO) == wxYES) {
                     // run a backup ... equivalent of a F10
+
+                    // we have not actually read the backup location yet so lets just use the show folder
+                    _backupDirectory = showDirectory;
                     DoBackup(false, false, true);
+                    _backupDirectory = "";
 
                     // delete the old xml file
                     wxRemoveFile(effectsFile.GetFullPath());
@@ -140,6 +134,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         DisplayError("Invalid RGB effects file ... creating a default one.", this);
         CreateDefaultEffectsXml();
     }
+
     ModelsNode = EffectsNode = PalettesNode = ModelGroupsNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
@@ -157,6 +152,17 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "settings") SettingsNode = e;
         if (e->GetName() == "perspectives") PerspectivesNode = e;
     }
+
+    // This is the earliest we can do the backup as now the settings node will be populated
+    _backupDirectory = GetXmlSetting("backupDir", showDirectory);
+    ObtainAccessToURL(_backupDirectory);
+    if (!wxDir::Exists(_backupDirectory)) {
+        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
+        _backupDirectory = showDirectory;
+        SetXmlSetting("backupDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+
     if (ModelsNode == nullptr) {
         ModelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "models");
         root->AddChild(ModelsNode);
