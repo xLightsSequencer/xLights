@@ -856,23 +856,25 @@ std::list<Model*> DMXPanel::GetActiveModels()
 			Element* element = effect->GetParentEffectLayer()->GetParentElement();
 			if (element != nullptr) 				{
 				ModelElement* me = dynamic_cast<ModelElement*>(element);
-				auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
-				if (model != nullptr) 					{
-					if (model->GetDisplayAs() == "ModelGroup") 						{
-						auto mg = dynamic_cast<ModelGroup*>(model);
-						if (mg != nullptr) 							{
-							for (const auto& it : mg->GetFlatModels()) 								{
-								if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") 									{
-									res.push_back(it);
+				if (me != nullptr) {
+					auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
+					if (model != nullptr) {
+						if (model->GetDisplayAs() == "ModelGroup") {
+							auto mg = dynamic_cast<ModelGroup*>(model);
+							if (mg != nullptr) {
+								for (const auto& it : mg->GetFlatModels()) {
+									if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+										res.push_back(it);
+									}
 								}
 							}
 						}
-					}
-					else if (model->GetDisplayAs() == "SubModel") 						{
-						// dont add sub models
-					}
-					else 						{
-						res.push_back(model);
+						else if (model->GetDisplayAs() == "SubModel") {
+							// dont add sub models
+						}
+						else {
+							res.push_back(model);
+						}
 					}
 				}
 			}

@@ -4102,6 +4102,8 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
 
     if (eraseExisting) el->DeleteAllEffects();
 
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+
     auto st = lorEdit.GetSequencingType(model);
 
     if (st == loreditType::CHANNELS)
@@ -4113,6 +4115,8 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
             if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
                 std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock) palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
                 std::string ef = it.GetxLightsEffect();
                 if (ef != "")
                 {
@@ -4149,6 +4153,8 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
 
     if (eraseExisting) nl->DeleteAllEffects();
 
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+
     auto st = lorEdit.GetSequencingType(mapping);
 
     if (st == loreditType::CHANNELS)
@@ -4160,6 +4166,8 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
                 std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock) palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
                 std::string ef = it.GetxLightsEffect();
                 if (ef != "")
                 {
@@ -4194,6 +4202,9 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
 {
     if (eraseExisting) layer->DeleteAllEffects();
 
+    Model* m = layer->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[layer->GetParentElement()->GetModelName()];
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+
     static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]\\[(.*)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
     if (regex.Matches(mapping)) {
         int const row = wxAtoi(regex.GetMatch(mapping, 1).ToStdString());
@@ -4210,6 +4221,8 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
             if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS)) {
                 LOREdit::setNodeColor(strColor, it);
                 std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock) palette =  "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
                 std::string ef = it.GetxLightsEffect();
                 if (ef != "") {
                     std::string settings = it.GetSettings(palette);
@@ -4226,6 +4239,9 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
 
     if (eraseExisting) nl->DeleteAllEffects();
 
+    Model* m = nl->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[nl->GetParentElement()->GetModelName()];
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+
     auto st = lorEdit.GetSequencingType(mapping);
 
     if (st == loreditType::CHANNELS)
@@ -4237,6 +4253,8 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
                 std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock) palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
                 std::string ef = it.GetxLightsEffect();
                 if (ef != "")
                 {
