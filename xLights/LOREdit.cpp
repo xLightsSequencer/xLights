@@ -669,6 +669,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_TEXTCTRL_Pictures_Speed=" + speed;
     }
     else if (et == "spinner") {
+        //           style,   colour_mode, arms, arm width, inner_radius, bend, curvature, speed, width, height,   x,   y
+        //               0,             1,    2,         3,            4,    5,         6,     7,     8,      9,  10,  11
+        // MIN: pinwheel_1, color_per_arm,    1,         0,          -32,    0,         0,   -32,     1,      1, -50, -50
+        // MAX: pinwheel_1, color_per_arm,   10,       100,           32,   50,        10,    32,   200,    200,  50,  50
         // pinwheel_1,color_per_arm,10,15,0,0,5,15,200,200,-24,0
 
         wxString style = parms[0];
@@ -676,21 +680,35 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString arms = parms[2];
         wxString vcCrap;
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
-        wxString width = parms[3];
-        wxString vcWidth;
-        width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
+        wxString armwidth = parms[3];
+        wxString vcArmWidth;
+        armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
         wxString innerRadius = parms[4]; // not used
         wxString bend = parms[5];
         wxString vcBend;
-        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
-        wxString colour = parms[6]; // not used
-        wxString CCW = parms[7];
-        wxString speed = parms[8];
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
+        wxString curvature = parms[6]; // not used
+        wxString speed = parms[7];
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
-        wxString length = parms[9];
+        bool ccw = false;
+        // need to do some funkiness with the ranges as we dont support negative numbers
+        if (wxAtoi(speed) < 0)
+        {
+            ccw = true;
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, 0, 100, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+            speed = wxString::Format("%d", 50 - wxAtoi(speed)).ToStdString();
+        }
+        else             {
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, -50, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+        }
+        wxASSERT(wxAtoi(speed) >= 0);
+
+        wxString length = parms[8];
         wxString vcLength;
         length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
+
+        wxString height = parms[9];
+
         wxString x = parms[10];
         wxString vcX;
         x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PINWHEEL_X_MIN, PINWHEEL_X_MAX);
@@ -699,11 +717,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
 
         settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
-        settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
-        settings += vcWidth;
+        settings += ",E_SLIDER_Pinwheel_Thickness=" + armwidth;
+        settings += vcArmWidth;
         settings += ",E_SLIDER_Pinwheel_Twist=" + bend;
         settings += vcBend;
-        if (CCW == "True") {
+        if (ccw) {
             settings += ",E_CHECKBOX_Pinwheel_Rotation=1";
         }
         else {
