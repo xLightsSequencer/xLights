@@ -54,7 +54,7 @@ void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 void SetFixFileDirectories(const std::list<std::string>& dirs);
 void SetFixFileShowDir(const wxString& ShowDir);
-wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
+wxString FixFile(const wxString& ShowDir, const wxString& file);
 void ClearNonExistentFiles();
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
