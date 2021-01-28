@@ -1729,6 +1729,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     MenuItem_xSchedule = nullptr;
     MenuItem_xScanner->GetMenu()->Remove(MenuItem_xScanner->GetId());
     MenuItem_xScanner = nullptr;
+    
+    
+    MenuFile->AppendSeparator();
+    const long newInstId = wxNewId();
+    wxMenuItem *newInst = new wxMenuItem(MenuFile, newInstId, _("Open New xLights Instance"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(newInst);
+    
+    Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -6556,6 +6564,12 @@ void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("https://xlights.org");
+}
+
+void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event) {
+#ifdef __WXOSX__
+    system("open -n /Applications/xLights.app");
+#endif
 }
 
 void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
