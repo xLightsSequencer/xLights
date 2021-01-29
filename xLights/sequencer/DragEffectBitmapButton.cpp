@@ -33,7 +33,7 @@ void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
                                             int incW, int incH ) {
     int offset = 0;
     #ifdef LINUX
-        offset = 12; //Linux puts a 6 pixel border around it
+        offset = 1; //Linux needs a small border
     #endif // LINUX
     SetEffect(mEffect, UnScaleWithSystemDPI(minW));
     wxBitmapButton::DoSetSizeHints(minW + offset,
