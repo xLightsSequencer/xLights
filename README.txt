@@ -11,7 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.03 January 30 2021
+   -- enh (dkulp)  Add menu item to open 2nd instance of xLights on OSX
+   -- enh (keith)  Update the CMU dictionary
+   -- enh (keith)  Add custom pre & postfixes to generic serial
+   -- enh (keith)  Add a random option to the VU meter bars
+   -- enh (keith)  Check when loading a sequence for any missing files and let the user know
+   -- enh (keith)  Add the ability to create a state definition from a DMX effect
    -- bug (gil)    Fix Twinkle for Old Render Style broken with performance update
+   -- bug (dkulp)  Fix border around toolbar buttons
+   -- bug (dkulp)  Fix re-prompt for file permissions if show folder cannot be accessed
+   -- bug (keith)  Fix backup folder not respected when backing up on start
+   -- bug (keith)  Fix a number of issues with S5 spinner effect import
+   -- bug (keith)  Fix import of S5 channel effects onto channel block model dont always work
+   -- bug (keith)  Try to address some situations where timing track names could become invalid
+   -- bug (keith)  Fix a crash when converting pre-visualiser networks file
+   -- bug (keith)  Fix inconsistencies in the drawing of locked and disabled effects
+   -- bug (keith)  Stop windows install updating path as this really should not be necessary and can break some software
+   -- bug (keith)  Address a number of UI issues in the presets dialog
+   -- bug (keith)  Fix crash removing all models from a controller in the visualiser
 2021.02 January 21 2021
    -- enh (scott)  Added preset preview
    -- enh (scott)  Consolidate some submodel export buttons to a dropdown
