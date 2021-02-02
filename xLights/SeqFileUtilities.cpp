@@ -50,6 +50,7 @@
 #include "effects/SnowflakesEffect.h"
 #include "Vixen3.h"
 #include "osxMacUtils.h"
+#include "SequencePackage.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1025,12 +1026,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString filters;
-    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa");
+    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa;*.zip");
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
     filters.push_back("LOR S5(*.loredit)|*.loredit");
+    filters.push_back("xLights Sequence Package (*.zip)|*.zip");
     filters.push_back("xLights Sequence (*.xsq)|*.xsq");
     filters.push_back("Old xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
@@ -1109,7 +1111,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         else if (ext == "vix") {
             ImportVix(fn);
         }
-        else if (ext == "xml" || ext == "xsq") {
+        else if (ext == "xml" || ext == "xsq" || ext == "zip") {
             ImportXLights(fn);
         }
         else if (ext == "msq") {
@@ -1124,7 +1126,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting) {
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting, SequencePackage &xsqPkg) {
 
     if (eraseExisting) target->DeleteAllEffects();
 
@@ -1132,7 +1134,14 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
         Effect *ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
         {
-            auto settings = ef->GetSettingsAsString();
+            std::string settings;
+            if (xsqPkg.HasMedia() && xsqPkg.GetImportOptions()->IsImportActive()) {
+                // attempt to import it and fix settings
+                settings = xsqPkg.FixAndImportMedia(ef, target);
+            } else {
+                settings = ef->GetSettingsAsString();
+            }
+            
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
             target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
@@ -1145,7 +1154,8 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
 void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
     std::map<std::string, EffectLayer *> &layerMap,
     SequenceElements &seqEl,
-    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting,
+    SequencePackage &xsqPkg) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
@@ -1156,7 +1166,7 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
-        MapXLightsEffects(target, src, mapped, eraseExisting);
+        MapXLightsEffects(target, src, mapped, eraseExisting, xsqPkg);
     }
     else {
         printf("Source strand %s doesn't exist\n", name.c_str());
@@ -1168,7 +1178,8 @@ void MapXLightsEffects(Element *target,
     SequenceElements &seqEl,
     std::map<std::string, Element *> &elementMap,
     std::map<std::string, EffectLayer *> &layerMap,
-    std::vector<EffectLayer *> &mapped, bool eraseExisting) {
+    std::vector<EffectLayer *> &mapped, bool eraseExisting,
+    SequencePackage &xsqPkg) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND)
@@ -1185,7 +1196,7 @@ void MapXLightsEffects(Element *target,
     Element *el = elementMap[name];
 
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg);
         return;
     }
 
@@ -1203,14 +1214,25 @@ void MapXLightsEffects(Element *target,
         target->AddEffectLayer();
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); x++) {
-        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting);
+        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg);
     }
 }
 
 void xLightsFrame::ImportXLights(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
-    xLightsXmlFile xlf(filename);
+    SequencePackage xsqPkg(filename, this);
+    
+    if (xsqPkg.IsPkg()) {
+        xsqPkg.Extract();
+    }
+    
+    if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
+        wxMessageBox("The file you are attempting to import doesn't appear to be a valid xLights Sequence Package.", "Invalid Sequence Package", wxICON_ERROR | wxOK);
+        return;
+    }
+
+    xLightsXmlFile xlf(xsqPkg.GetXsqFile());
     xlf.Open(GetShowDirectory(), true);
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
@@ -1225,7 +1247,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, filename, supportsModelBlending, true);
+    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1242,16 +1264,28 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
     return nullptr;
 }
 
+// backwards compatible for tabSequencer call
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
+                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
+    SequencePackage xsqPkg(filename, this);
+    ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
+}
+
+void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
                                                                  bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, showModelBlending);
+    xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     if(showModelBlending)
         dlg.SetModelBlending(modelBlending);
+    
+    if (xsqPkg.IsPkg()) {
+        dlg.SetXsqPkg(&xsqPkg);
+    }
+    
     std::vector<EffectLayer *> mapped;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, bool> timingTrackAlreadyExists;
@@ -1360,7 +1394,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 }
                 EffectLayer *dst = target->GetEffectLayer(l);
                 std::vector<EffectLayer *> mapped2;
-                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue());
+                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
             }
         }
     }
@@ -1387,7 +1421,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
             else
             {
-                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
+                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
             }
         }
 
@@ -1408,7 +1442,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 {
                     SubModelElement *ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
+                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
                     }
                 }
             }
@@ -1429,7 +1463,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
                             }
                         }
                     }
@@ -1442,6 +1476,26 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     if (clearSrc) {
         for (const auto& it : mapped) {
             it->RemoveAllEffects(nullptr);
+        }
+    }
+    
+    if (xsqPkg.IsPkg()) {
+        if (xsqPkg.HasMissingMedia()) {
+            
+            wxString missingAssets;
+            for (const auto& missingAsset : xsqPkg.GetMissingMedia()) {
+                missingAssets = missingAssets + wxString::Format("%s- %s\n", "    ", missingAsset);
+            }
+            
+            wxString msgP1 = "The following assets were missing from the Sequence Package and could not be imported.";
+            wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
+            wxString msgP3 = "or update the effects individually.";
+            
+            wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
+        }
+        
+        if (xsqPkg.ModelsChanged()) {
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
         }
     }
 }

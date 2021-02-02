@@ -79,6 +79,7 @@
 #include "outputs/ZCPP.h"
 #include "OutputModelManager.h"
 #include "models/Model.h"
+#include "SequencePackage.h"
 
 class wxDebugReport;
 
@@ -385,6 +386,8 @@ public:
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
+    void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);

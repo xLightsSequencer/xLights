@@ -539,6 +539,8 @@
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
 		67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */; };
+		FA9C5DE125D253CC00886D4A /* MediaImportOptionsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA9C5DDF25D253CC00886D4A /* MediaImportOptionsDialog.cpp */; };
+		FA9D7A7625C7696B00C125D6 /* SequencePackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA9D7A7425C7696B00C125D6 /* SequencePackage.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1528,6 +1530,10 @@
 		67FF39901D57F5D000290DB4 /* MusicXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicXML.h; sourceTree = "<group>"; };
 		67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteImportDialog.cpp; sourceTree = "<group>"; };
 		67FF39921D57F5D000290DB4 /* NoteImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteImportDialog.h; sourceTree = "<group>"; };
+		FA9C5DDF25D253CC00886D4A /* MediaImportOptionsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaImportOptionsDialog.cpp; sourceTree = "<group>"; };
+		FA9C5DE025D253CC00886D4A /* MediaImportOptionsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaImportOptionsDialog.h; sourceTree = "<group>"; };
+		FA9D7A7425C7696B00C125D6 /* SequencePackage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SequencePackage.cpp; sourceTree = "<group>"; };
+		FA9D7A7525C7696B00C125D6 /* SequencePackage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SequencePackage.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2512,6 +2518,8 @@
 				670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */,
 				670827FC2024C2D40002B617 /* MatrixFaceDownloadDialog.h */,
 				67F8A28F24788E92004EC222 /* md5.cpp */,
+				FA9C5DDF25D253CC00886D4A /* MediaImportOptionsDialog.cpp */,
+				FA9C5DE025D253CC00886D4A /* MediaImportOptionsDialog.h */,
 				67DAFDCD1CA1A62B004B3237 /* MIDI */,
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
@@ -2575,6 +2583,8 @@
 				672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */,
 				6780AB891A65C3480090B26E /* SequenceData.cpp */,
 				6784F9251A5653670018EC0C /* SequenceElements.cpp */,
+				FA9D7A7425C7696B00C125D6 /* SequencePackage.cpp */,
+				FA9D7A7525C7696B00C125D6 /* SequencePackage.h */,
 				67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */,
 				67B5F50C2045B96000F5B99D /* SequenceVideoPanel.h */,
 				67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */,
@@ -3212,6 +3222,7 @@
 				6716574823CAAA45000B47D3 /* DmxImage.cpp in Sources */,
 				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
 				6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */,
+				FA9D7A7625C7696B00C125D6 /* SequencePackage.cpp in Sources */,
 				67BBFD0F208BD72E00A3D5AE /* LayerSelectDialog.cpp in Sources */,
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
 				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
@@ -3453,6 +3464,7 @@
 				67E5B5E41EAEDC5800735BF0 /* SubModelGenerateDialog.cpp in Sources */,
 				6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */,
 				678A41BE23E6417700E5FB09 /* ControllerSerial.cpp in Sources */,
+				FA9C5DE125D253CC00886D4A /* MediaImportOptionsDialog.cpp in Sources */,
 				67E9B4AC226E510700243B4E /* CharMapDialog.cpp in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,

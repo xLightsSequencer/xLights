@@ -34,6 +34,7 @@
 #include <wx/arrstr.h>
 #include <wx/filename.h>
 #include <list>
+#include "SequencePackage.h"
 
 class SequenceElements;
 class xLightsFrame;
@@ -363,18 +364,22 @@ class xLightsImportChannelMapDialog: public wxDialog
         bool InitImport(std::string checkboxText = "");
         void SetModelBlending(bool enabled);
         bool GetImportModelBlending();
+        void SetXsqPkg(SequencePackage* xsqPkg);
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
+		wxButton* ButtonImportOptions;
 		wxButton* Button_AutoMap;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBoxImportMedia;
 		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_Import_Blend_Mode;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
 		wxFlexGridSizer* FlexGridSizer11;
 		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* FlexGridSizerImportMedia;
 		wxFlexGridSizer* FlexGridSizer_Blend_Mode;
 		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
@@ -410,6 +415,8 @@ protected:
 		static const long ID_CHECKBOX11;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT_BLEND_TYPE;
+		static const long ID_CHECKBOX3;
+		static const long ID_BUTTON_IMPORT_OPTIONS;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
@@ -441,11 +448,16 @@ protected:
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
+		void OnButtonImportOptionsClick(wxCommandEvent& event);
+		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
+        void SetImportMediaTooltip();
+    
+        SequencePackage* _xsqPkg = nullptr;
 
 		DECLARE_EVENT_TABLE()
 };

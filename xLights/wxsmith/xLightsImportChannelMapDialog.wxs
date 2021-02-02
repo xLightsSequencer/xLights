@@ -11,12 +11,11 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<orientation>vertical</orientation>
-					<minsize>10,10</minsize>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>5</growablerows>
+							<growablerows>6</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
 									<cols>2</cols>
@@ -92,6 +91,33 @@
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_BLEND_TYPE" variable="StaticText_Blend_Type" member="yes">
 											<label>Blend Mode</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>1</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizerImportMedia" member="yes">
+									<cols>3</cols>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBoxImportMedia" member="yes">
+											<label>Import Media</label>
+											<checked>1</checked>
+											<handler function="OnCheckBoxImportMediaClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_IMPORT_OPTIONS" variable="ButtonImportOptions" member="yes">
+											<label>View/Change Options</label>
+											<handler function="OnButtonImportOptionsClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
