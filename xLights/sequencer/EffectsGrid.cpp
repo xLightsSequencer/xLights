@@ -2961,7 +2961,12 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                         }
                         if (el->GetSelectedEffectCount() > 0) {
                             int startDirty, endDirty;
-                            el->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                            Element *me = el->GetParentElement();
+                            if (me->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL
+                                || me->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                                me = ((SubModelElement*)me)->GetModelElement();
+                            }
+                            me->GetDirtyRange(startDirty, endDirty);
                             if (startDirty != -1) {
                                 adjustMS(startDirty, startMS, endMS);
                                 adjustMS(endDirty, startMS, endMS);
@@ -2996,7 +3001,12 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                             adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
                         }
                         int startDirty, endDirty;
-                        mEffectLayer->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                        Element *me = mEffectLayer->GetParentElement();
+                        if (me->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL
+                            || me->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                            me = ((SubModelElement*)me)->GetModelElement();
+                        }
+                        me->GetDirtyRange(startDirty, endDirty);
                         if (startDirty != -1) {
                             adjustMS(startDirty, min, max);
                             adjustMS(endDirty, min, max);
