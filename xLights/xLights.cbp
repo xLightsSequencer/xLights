@@ -577,6 +577,8 @@
 		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
+		<Unit filename="MediaImportOptionsDialog.cpp" />
+		<Unit filename="MediaImportOptionsDialog.h" />
 		<Unit filename="ModelChainDialog.cpp" />
 		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
@@ -1329,6 +1331,7 @@
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
+		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
@@ -1623,6 +1626,7 @@
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/InAppPurchaseDialog.wxs" src="InAppPurchaseDialog.cpp" hdr="InAppPurchaseDialog.h" fwddecl="0" i18n="1" name="InAppPurchaseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

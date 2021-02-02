@@ -24,6 +24,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "UtilFunctions.h"
+#include "MediaImportOptionsDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -421,6 +422,8 @@ const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX11 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_BUTTON_IMPORT_OPTIONS = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
@@ -464,12 +467,11 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     OldSizer->AddGrowableCol(0);
     OldSizer->AddGrowableRow(0);
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinSize(wxSize(10,10));
     SplitterWindow1->SetSashGravity(0.5);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer1->AddGrowableCol(0);
-    Sizer1->AddGrowableRow(5);
+    Sizer1->AddGrowableRow(6);
     Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -495,6 +497,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     StaticText_Blend_Type = new wxStaticText(Panel1, ID_STATICTEXT_BLEND_TYPE, _("Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BLEND_TYPE"));
     FlexGridSizer_Blend_Mode->Add(StaticText_Blend_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer_Blend_Mode, 1, wxALL|wxEXPAND, 1);
+    FlexGridSizerImportMedia = new wxFlexGridSizer(0, 3, 0, 0);
+    CheckBoxImportMedia = new wxCheckBox(Panel1, ID_CHECKBOX3, _("Import Media"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+    CheckBoxImportMedia->SetValue(true);
+    FlexGridSizerImportMedia->Add(CheckBoxImportMedia, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonImportOptions = new wxButton(Panel1, ID_BUTTON_IMPORT_OPTIONS, _("View/Change Options"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT_OPTIONS"));
+    FlexGridSizerImportMedia->Add(ButtonImportOptions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizerImportMedia, 1, wxALL|wxEXPAND, 1);
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
     TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
@@ -537,6 +546,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     OldSizer->SetSizeHints(this);
 
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
+    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
+    Connect(ID_BUTTON_IMPORT_OPTIONS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
@@ -635,6 +646,12 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 }
 
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
+    if (_xsqPkg != nullptr && _xsqPkg->IsPkg() == true) {
+        SetImportMediaTooltip();
+    } else {
+        Sizer1->Hide(FlexGridSizerImportMedia, true);
+    }
+
     if (channelNames.size() == 0 && timingTracks.size() == 0)
     {
         DisplayError("No models/timing tracks to import from. Source sequence had no data.");
@@ -734,15 +751,19 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     return true;
 }
 
-void xLightsImportChannelMapDialog::SetModelBlending(bool enabled) 
+void xLightsImportChannelMapDialog::SetModelBlending(bool enabled)
 {
     wxString text = wxString::Format("Model Blending is %s in source file.",( enabled ? "ENABLED" : "DISABLED"));
     StaticText_Blend_Type->SetLabelText(text);
 }
 
-bool xLightsImportChannelMapDialog::GetImportModelBlending() 
+bool xLightsImportChannelMapDialog::GetImportModelBlending()
 {
     return CheckBox_Import_Blend_Mode->IsChecked();
+}
+
+void xLightsImportChannelMapDialog::SetXsqPkg(SequencePackage* xsqPkg) {
+    _xsqPkg = xsqPkg;
 }
 
 void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
@@ -1118,7 +1139,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             }
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
 
-            // This code adds the model into the sequence ... it is useful if the model was previously only 
+            // This code adds the model into the sequence ... it is useful if the model was previously only
             // in a model group that was in the sequence.
             if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
                 mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
@@ -2038,5 +2059,45 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEven
         ListCtrl_Available->SetItemState(event.GetIndex(), 0, wxLIST_STATE_SELECTED);
         ListCtrl_Available->SetItemState(event.GetIndex() + 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         ListCtrl_Available->EnsureVisible(event.GetIndex() + 1);
+    }
+}
+
+void xLightsImportChannelMapDialog::SetImportMediaTooltip() {
+    
+    if (_xsqPkg == nullptr) {
+        return;
+    }
+    
+    wxString toolTip = "Available media will be imported into:\n";
+
+    // add configured paths
+    wxString paths = wxString::Format("\n  - Faces: %s", _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::FACES_DIR));
+    paths = wxString::Format("%s\n  - Glediators: %s", paths, _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::GLEDIATORS_DIR));
+    paths = wxString::Format("%s\n  - Images: %s", paths, _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::IMAGES_DIR));
+    paths = wxString::Format("%s\n  - Shaders: %s", paths, _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::SHADERS_DIR));
+    paths = wxString::Format("%s\n  - Videos: %s", paths, _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::VIDEOS_DIR));
+
+    toolTip = toolTip + paths;
+
+    CheckBoxImportMedia->SetToolTip(toolTip);
+    ButtonImportOptions->SetToolTip(toolTip);
+}
+
+void xLightsImportChannelMapDialog::OnButtonImportOptionsClick(wxCommandEvent& event)
+{
+    MediaImportOptionsDialog dlg(this, _xsqPkg->GetImportOptions());
+
+    if (dlg.ShowModal() == wxID_OK) {
+        SetImportMediaTooltip();
+    }
+}
+
+void xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick(wxCommandEvent& event)
+{
+    _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
+    if (CheckBoxImportMedia->IsChecked()) {
+        ButtonImportOptions->Enable();
+    } else {
+        ButtonImportOptions->Disable();
     }
 }
