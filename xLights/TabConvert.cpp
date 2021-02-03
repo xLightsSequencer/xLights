@@ -1149,7 +1149,7 @@ void xLightsFrame::CreatePresetIcons()
     }
 }
 
-#define PRESET_ICON_SIZE 32
+#define PRESET_ICON_SIZE 64
 void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
