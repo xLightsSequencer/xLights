@@ -13,6 +13,11 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/persist/toplevel.h>
+#include <wx/busyinfo.h>
+#include <wx/utils.h>
+#include <wx/artprov.h>
+
 #include "EffectTreeDialog.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
@@ -41,22 +46,21 @@ BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-#define GIF_SIZE 64
+#define MIN_PREVIEW_SIZE 64
+#define MAX_PREVIEW_SIZE 256
 
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
     frameCount(0)
 {
-    _blankGIFImage = std::make_unique<wxBitmap>(GIF_SIZE, GIF_SIZE, true);
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
-	SetClientSize(wxSize(700,500));
-	SetMinSize(wxSize(300,450));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -66,10 +70,12 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	TreeCtrl1 = new wxTreeCtrl(this, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	FlexGridSizer3->AddGrowableRow(0);
+	StaticBitmapGif = new wxStaticBitmap(this, ID_STATICBITMAP_GIF, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP_GIF"));
+	FlexGridSizer3->Add(StaticBitmapGif, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-	StaticBitmapGif = new wxStaticBitmap(this, ID_STATICBITMAP_GIF, wxNullBitmap, wxDefaultPosition, wxSize(64,64), 0, _T("ID_STATICBITMAP_GIF"));
-	StaticBitmapGif->SetMinSize(wxSize(64,64));
-	BoxSizer1->Add(StaticBitmapGif, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 0, wxALL|wxEXPAND, 5);
@@ -99,7 +105,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	ETButton1 = new wxButton(this, ID_BUTTON_SEARCH, _("Search"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_SEARCH"));
 	BoxSizer2->Add(ETButton1, 0, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
 	BoxSizer1->Add(BoxSizer2, 0, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -107,8 +114,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	TimerGif.SetOwner(this, ID_TIMER_GIF);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_END_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1EndDrag);
@@ -130,11 +137,26 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = (xLightsFrame*)parent;
 
-    StaticBitmapGif->SetMinSize(wxSize(GIF_SIZE, GIF_SIZE));
-    StaticBitmapGif->SetSize(wxSize(GIF_SIZE, GIF_SIZE));
+    // remember dialog size/location
+    if (!wxPersistentRegisterAndRestore(this, "xLights.EffectTreeDialog")) {
+        // defaults if this hasn't already been persisted
+        SetSize(700, 500);
+        CenterOnScreen();
+    }
 
+
+    // Get the optimal preview size based on current dialog size
+    int previewSize = GetOptimalPreviewSize();
+    
+    // Set size for bitmap widget and blank image to optimal size so the dialog
+    // doesn't jump around when first preset is loaded
+    StaticBitmapGif->SetSize(wxSize(previewSize, previewSize));
+    _blankGIFImage = std::make_unique<wxBitmap>(previewSize, previewSize, true);
     StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
 
+    StaticBitmapGif->SetMinSize(wxSize(previewSize, previewSize));
+    StaticBitmapGif->SetMaxSize(wxSize(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE));
+    
     Layout();
 
     ValidateWindow();
@@ -1129,6 +1151,12 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
         std::string filePath = xLightParent->GetPresetIconFilename(fullName);
 
         if (!wxFile::Exists(filePath) || regenerate) {
+            wxWindowDisabler disableAll;
+            wxBusyInfo wait(wxBusyInfoFlags()
+                            .Parent(this)
+                            .Text("Generating Effect Preview...")
+                            .Icon(wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_OTHER, wxSize(64, 64))));
+            
             xLightParent->WriteGIFForPreset(fullName);
         }
         LoadGifImage(filePath);
@@ -1158,9 +1186,13 @@ void EffectTreeDialog::LoadGifImage(wxString const& path)
 void EffectTreeDialog::PlayGifImage()
 {
     if(gifImage) {
+        int previewSize = GetOptimalPreviewSize();
         wxImage frame = gifImage->GetFrameForTime(frameCount * GIF_DELAY, true);
-        frame.Rescale(GIF_SIZE, GIF_SIZE);
+        frame.Rescale(previewSize, previewSize);
         StaticBitmapGif->SetBitmap(wxBitmap(frame));
+
+        // Set MinSize same as gif size AFTER or resize doesn't work on MSW
+        StaticBitmapGif->SetMinSize(wxSize(previewSize, previewSize));
     }
 }
 
@@ -1172,6 +1204,10 @@ void EffectTreeDialog::OnTimerGifTrigger(wxTimerEvent& event)
 
 void EffectTreeDialog::StopGifImage()
 {
+    // reset blank image to current optimal size so dialog doesn't jump around
+    int previewSize = GetOptimalPreviewSize();
+    _blankGIFImage.reset(new wxBitmap(previewSize, previewSize, true));
+    
     StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
     TimerGif.Stop();
     gifImage = nullptr;
@@ -1187,5 +1223,24 @@ void EffectTreeDialog::DeleteGifImage(wxTreeItemId itemID)
         if (wxFile::Exists(filePath)) {
             wxRemoveFile(filePath);
         }
+    }
+}
+
+#define PREVIEW_PROPORTION 0.25f
+int EffectTreeDialog::GetOptimalPreviewSize() {
+    
+    // size based on proportion of current dialog size
+    int currDialogWidth = GetSize().GetWidth();
+    int size = std::floor(currDialogWidth * PREVIEW_PROPORTION);
+
+    if (size >= MAX_PREVIEW_SIZE) {
+        // Don't scale up above max
+        return MAX_PREVIEW_SIZE;
+    } else if (size <= MIN_PREVIEW_SIZE) {
+        // Don't scale down below min
+        return MIN_PREVIEW_SIZE;
+    } else {
+        // scale with new size
+        return size;
     }
 }

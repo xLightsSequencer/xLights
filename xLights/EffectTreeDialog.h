@@ -109,7 +109,8 @@ class EffectTreeDialog : public wxDialog
         void AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID);
         void AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID);
         void EffectsFileDirty();
-
+        int GetOptimalPreviewSize();
+    
         wxTreeItemId findTreeItem(wxTreeCtrl* pTreeCtrl, const wxTreeItemId& root, const wxTreeItemId& startID, const wxString& text, bool &startfound);
 
         void SearchForText();
