@@ -349,9 +349,10 @@ wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) con
     }
 
     CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export", allGroups, onlyGroups);
-    if (dlg.ShowModal() == wxID_OK)
-    {
+    if (dlg.ShowModal() == wxID_OK) {
         onlyGroups = dlg.GetSelectedItems();
+    } else {
+        return res;
     }
 
     if (onlyGroups.size() == 0) {
