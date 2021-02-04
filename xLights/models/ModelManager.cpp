@@ -47,6 +47,7 @@
 #include "outputs/Output.h"
 #include "outputs/Controller.h"
 #include "../controllers/ControllerCaps.h"
+#include "CheckboxSelectDialog.h"
 #include "Parallel.h"
 #include <log4cpp/Category.hh>
 
@@ -331,12 +332,38 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 
 wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
 {
-    wxString res;
+    wxArrayString allGroups;
+    wxArrayString onlyGroups;
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() == "ModelGroup" && dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
+        if (it.second->GetDisplayAs() == "ModelGroup"){
+            allGroups.Add(it.first);
+            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
+                onlyGroups.Add(it.first);
+            }
+        }
+    }
+
+    wxString res;
+    if (allGroups.size() == 0) {
+        return res;
+    }
+
+    CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export", allGroups, onlyGroups);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        onlyGroups = dlg.GetSelectedItems();
+    }
+
+    if (onlyGroups.size() == 0) {
+        return res;
+    }
+
+    for (const auto& it : models) {
+        if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
             res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
         }
     }
+
     return res;
 }
 
