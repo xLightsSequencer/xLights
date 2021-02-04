@@ -363,21 +363,39 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
             if (mg->GetDisplayAs() == "ModelGroup") {
 
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
-
-                for (const auto& it : mmg->ModelNames())                     {
+                bool found = false;
+                for (const auto& it : mmg->ModelNames()) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/"))
-                    {
+                    {//only add new submodel if the name matches an old submodel name, I dont understand why?
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
                         if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end())                             {
                             mmg->AddModel(mgmn);
+                            found = true;
                         }
                     }
-                    else                         {
+                    else {
                         if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end()) {
                             mmg->AddModel(mname);
+                            found = true;
+                        }
+                    }
+                }
+
+                if (!found ) {
+                    //Add Submodel if not found with keiths way. 
+                    //I think it makes sence to add the model if the group is in the xmodel file.
+                    const auto& newNames = wxSplit(grpModels, ',');
+                    for (const auto& it : newNames) {
+                        auto mmnmn = mmg->ModelNames();
+                        if (Contains(it, "/")) {
+                            auto mgmn = wxString(it);
+                            mgmn.Replace("EXPORTEDMODEL", mname);
+                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end()) {
+                                mmg->AddModel(mgmn);
+                            }
                         }
                     }
                 }
