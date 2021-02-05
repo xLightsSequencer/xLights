@@ -7457,6 +7457,10 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
 #endif
     sf.Replace("\\", "/");
     f.Replace("\\", "/");
+    
+    if (!sf.EndsWith("/")) {
+        sf += "/";
+    }
 
     return f.StartsWith(sf);
 }

@@ -353,6 +353,20 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
             return newPath;
         }
     }
+    
+    wxDir dir(sd);
+    if (dir.IsOpened()) {
+        wxString foldername;
+        bool cont = dir.GetFirst(&foldername, "*", wxDIR_DIRS);
+        while ( cont ) {
+            auto const folder = sd + wxFileName::GetPathSeparator() + foldername;
+            if (doesFileExist(folder, nameWin, nameUnix, newPath)) {
+                __fileMap[file] = newPath;
+                return newPath;
+            }
+            cont = dir.GetNext(&foldername);
+        }
+    }
 
     wxString flc = file;
     flc.LowerCase();
