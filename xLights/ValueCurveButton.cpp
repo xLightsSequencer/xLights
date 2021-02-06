@@ -93,8 +93,13 @@ ValueCurveButton::~ValueCurveButton()
 
 void ValueCurveButton::SetActive(bool active)
 {
-    _vc->SetActive(active);
-    UpdateState();
+    bool isActive = _vc->IsActive();
+    if (isActive != active) {
+        _vc->SetActive(active);
+        UpdateState();
+    } else {
+        UpdateBitmap();
+    }
 }
 
 void ValueCurveButton::ToggleActive()

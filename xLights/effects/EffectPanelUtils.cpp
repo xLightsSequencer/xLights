@@ -75,7 +75,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     // check for the locks on effect setting
     if (name.StartsWith("ID_SLIDER_")){
         name = "ID_BITMAPBUTTON_" + name.substr(3);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -83,7 +83,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("IDD_SLIDER_")){
         name = "ID_BITMAPBUTTON_" + name.substr(4);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -91,7 +91,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("ID_CHOICE_")){
         name = "ID_BITMAPBUTTON_" + name.substr(3);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -99,7 +99,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("IDD_CHOICE_")){
         name = "ID_BITMAPBUTTON_" + name.substr(4);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -107,7 +107,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("ID_CHECKBOX_")){
         name = "ID_BITMAPBUTTON_" + name.substr(3);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -115,7 +115,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("IDD_CHECKBOX_")){
         name = "ID_BITMAPBUTTON_" + name.substr(4);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -123,7 +123,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("ID_TEXTCTRL_")){
         name = "ID_BITMAPBUTTON_" + name.substr(3);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -131,7 +131,7 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
     }
     if (name.StartsWith("IDD_TEXTCTRL_")){
         name = "ID_BITMAPBUTTON_" + name.substr(4);
-        w = ctl->GetParent()->FindWindowByName(name);
+        w = ctl->GetParent()->FindWindow(name);
         if (w == nullptr) {
             return false;
         }
@@ -153,13 +153,13 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
         wxString textctrlname2 = name;
         textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
         textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
-        wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
+        wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindow(slidername);
         if (slider == nullptr || (void*)slider == (void*)vcb) {
-            slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
+            slider = (wxSlider*)vcb->GetParent()->FindWindow(slidername2);
         }
-        wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
+        wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindow(textctrlname);
         if (textctrl == nullptr || (void*)textctrl == (void*)vcb) {
-            textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
+            textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindow(textctrlname2);
         }
 
         wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
@@ -189,12 +189,12 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 }
 
 void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &name, bool enable) {
-    wxWindow *w = window->FindWindowByName(name);
+    wxWindow *w = window->FindWindow(name);
     if (w != nullptr) {
         w->Enable(enable);
     }
     wxString n2 = "IDD_" + name.SubString(3, name.size());
-    w = window->FindWindowByName(name);
+    w = window->FindWindow(name);
     if (w != nullptr) {
         w->Enable(enable);
     }
@@ -207,13 +207,13 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     wxString name = vc->GetName();
     name.Replace("IDD_VALUECURVE_", "ID_SLIDER_");
     name.Replace("ID_VALUECURVE_", "ID_SLIDER_");
-    wxSlider *slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
+    wxSlider *slider = (wxSlider*)vc->GetParent()->FindWindow(name);
     if (slider == nullptr || (void*)slider == (void*)vc)
     {
         name = vc->GetName();
         name.Replace("IDD_VALUECURVE_", "IDD_SLIDER_");
         name.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
-        slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
+        slider = (wxSlider*)vc->GetParent()->FindWindow(name);
         if (slider != nullptr)
         {
             slideridd = true;
@@ -223,13 +223,13 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     name = vc->GetName();
     name.Replace("IDD_VALUECURVE_", "ID_TEXTCTRL_");
     name.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
-    wxTextCtrl *txt = (wxTextCtrl*)vc->GetParent()->FindWindowByName(name);
+    wxTextCtrl *txt = (wxTextCtrl*)vc->GetParent()->FindWindow(name);
     if (txt == nullptr || (void*)txt == (void*)vc)
     {
         name = vc->GetName();
         name.Replace("IDD_VALUECURVE_", "IDD_TEXTCTRL_");
         name.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
-        txt = (wxTextCtrl*)vc->GetParent()->FindWindowByName(name);
+        txt = (wxTextCtrl*)vc->GetParent()->FindWindow(name);
     }
 
     vc->ToggleActive();
