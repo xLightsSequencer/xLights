@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.04 February 8 2021
+   -- enh (scott)  Look one level deep for missing files
+   -- enh (scott)  When exporting models let user decide groups to include
+   -- bug (dkulp)  Fix warp effect crash 
+   -- bug (dkulp)  Fix issues with model handle sizes
+   -- bug (dkulp)  Fix dirty ranges not detected correctly on nodes, strands and submodels
+   -- bug (dpriem) Address preset preview size issues
 2021.03 January 30 2021
    -- enh (dkulp)  Add menu item to open 2nd instance of xLights on OSX
    -- enh (keith)  Update the CMU dictionary
