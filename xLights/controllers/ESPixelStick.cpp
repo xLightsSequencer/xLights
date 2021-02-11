@@ -311,11 +311,11 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
                 }
-                float b = brightness;
+                int b = brightness;
                 if (b > 100) {
                     b = 100;
                 }
-                b /= 100;
+
                 std::string b2 = std::to_string(b);
                 if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
                     changed = true;
@@ -335,8 +335,9 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 }
             } else if (proto == "GECE") {
                 int b = brightness;
-                b *= 255;
-                b /= 100;
+                if (b > 100) {
+                    b = 100;
+                }
                 std::string b2 = std::to_string(b);
                 if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
                     changed = true;
