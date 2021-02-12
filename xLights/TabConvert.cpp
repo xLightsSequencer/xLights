@@ -1215,11 +1215,29 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 it->DeleteAllEffects();
             }
 
+            // I have seen a few presets where there are negative values for the effects row.
+            // We have to handle these and normalize the row value or we get in an infinite
+            // loop below. To do this we need the lowest row value to adjust below.
+            // example: preset had rows -4,-3,-2,-1,0,1,2,3,4 for the copy data
+            int startRow = 0;
             for (const auto& it : pd.Effects()) {
-                while (it->Row() >= elem->GetEffectLayerCount()) {
+                if (it->Row() < startRow) {
+                    startRow = it->Row();
+                }
+            }
+                        
+            for (const auto& it : pd.Effects()) {
+                // adjust before loop so we don't end up with a (-) row value but still maintaining effect
+                // layer order. If we get to the while loop with a neg int it gets converted to a really
+                // huge number when comparing to size_t returned from GetEffectLayerCount and we run out
+                // of memory really fast.
+                int row = it->Row() - startRow;
+
+                while (row >= elem->GetEffectLayerCount()) {
                     elem->AddEffectLayer();
                 }
-                EffectLayer* el = elem->GetEffectLayer(it->Row());
+                
+                EffectLayer* el = elem->GetEffectLayer(row);
                 el->AddEffect(0, it->EffectName(), it->Settings(), it->Palette(), it->StartTime() - pd.StartTime(), it->EndTime() - pd.StartTime(), false, false, true);
             }
 
