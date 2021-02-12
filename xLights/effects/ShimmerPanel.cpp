@@ -49,7 +49,7 @@ BEGIN_EVENT_TABLE(ShimmerPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ShimmerPanel::ShimmerPanel(wxWindow* parent)
+ShimmerPanel::ShimmerPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(ShimmerPanel)
 	BulkEditTextCtrl* TextCtrl46;
@@ -138,5 +138,3 @@ ShimmerPanel::~ShimmerPanel()
 void ShimmerPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(ShimmerPanel)

@@ -47,7 +47,7 @@ public:
     virtual ~xlPictureFilePickerCtrl() {}
 };
 
-class PicturesPanel: public wxPanel
+class PicturesPanel: public xlEffectPanel
 {
 	public:
 
@@ -140,8 +140,6 @@ class PicturesPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(PicturesPanel)
 		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);

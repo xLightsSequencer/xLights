@@ -32,7 +32,7 @@ PlasmaEffect::~PlasmaEffect()
 {
     //dtor
 }
-wxPanel *PlasmaEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *PlasmaEffect::CreatePanel(wxWindow *parent) {
     return new PlasmaPanel(parent);
 }
 

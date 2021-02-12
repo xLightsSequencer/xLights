@@ -37,7 +37,7 @@ class wxStaticText;
 class wxTextCtrl;
 //*)
 
-class KaleidoscopePanel: public wxPanel
+class KaleidoscopePanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -93,8 +93,6 @@ class KaleidoscopePanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(KaleidoscopePanel)
 		void OnChoice_Kaleidoscope_TypeSelect(wxCommandEvent& event);

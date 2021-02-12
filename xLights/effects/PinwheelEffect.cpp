@@ -33,7 +33,7 @@ PinwheelEffect::~PinwheelEffect()
 {
     //dtor
 }
-wxPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
     return new PinwheelPanel(parent);
 }
 

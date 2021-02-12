@@ -33,7 +33,7 @@ MarqueeEffect::~MarqueeEffect()
 }
 
 
-wxPanel *MarqueeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *MarqueeEffect::CreatePanel(wxWindow *parent) {
     return new MarqueePanel(parent);
 }
 

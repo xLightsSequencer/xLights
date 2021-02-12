@@ -197,7 +197,7 @@ bool ShaderEffect::IsShaderFile(std::string filename)
     return false;
 }
 
-wxPanel *ShaderEffect::CreatePanel(wxWindow *parent)
+xlEffectPanel *ShaderEffect::CreatePanel(wxWindow *parent)
 {
     return new ShaderPanel(parent);
 }

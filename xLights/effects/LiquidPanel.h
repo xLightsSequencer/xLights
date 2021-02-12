@@ -26,7 +26,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class LiquidPanel: public wxPanel
+class LiquidPanel: public xlEffectPanel
 {
 	public:
 
@@ -308,9 +308,6 @@ class LiquidPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
-
 		//(*Handlers(LiquidPanel)
 		void OnCheckBox_EnabledClick(wxCommandEvent& event);
 		//*)

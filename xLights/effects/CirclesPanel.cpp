@@ -66,7 +66,7 @@ BEGIN_EVENT_TABLE(CirclesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-CirclesPanel::CirclesPanel(wxWindow* parent)
+CirclesPanel::CirclesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(CirclesPanel)
 	BulkEditTextCtrl* TextCtrl27;
@@ -223,8 +223,6 @@ CirclesPanel::~CirclesPanel()
 void CirclesPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(CirclesPanel)
 
 void CirclesPanel::OnCheckBox_Circles_BubblesClick(wxCommandEvent& event)
 {

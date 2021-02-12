@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
 END_EVENT_TABLE()
 
 
-EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectManager(manager)
+EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *timer) : effectManager(manager), effectChangeTimer(timer)
 {
     //(*Initialize(EffectsPanel)
     wxFlexGridSizer* FlexGridSizer1;
@@ -69,7 +69,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     for (const auto& it : *effectManager) {
         RenderableEffect *p = it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
-        wxPanel *panel = p->GetPanel(sw);
+        xlEffectPanel *panel = p->GetPanel(sw);
+        panel->AddChangeListeners(timer);
         wxFlexGridSizer *fgs = new wxFlexGridSizer(1, 1, 0, 0);
         fgs->AddGrowableCol(0);
         fgs->AddGrowableRow(0);
@@ -283,6 +284,7 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     w->FitInside();
     w->SetScrollRate(5, 5);
     w->Refresh();
+    effectChangeTimer->StartOnce(25);
 }
 
 void EffectsPanel::OnChoicePopup(wxCommandEvent& event)

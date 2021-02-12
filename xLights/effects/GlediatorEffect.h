@@ -70,6 +70,6 @@ class GlediatorEffect : public RenderableEffect
         // Currently not possible but I think changes could be made to make it support partial
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }
 protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         bool IsCSVFile(std::string filename) const;
 };

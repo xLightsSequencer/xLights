@@ -29,7 +29,7 @@
 #include <wx/mimetype.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
-#include <wx/version.h> 
+#include <wx/version.h>
 
 #include <cctype>
 #include <cstring>
@@ -318,6 +318,7 @@ const long xLightsFrame::ID_MNU_UPDATE = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
+const long xLightsFrame::ID_TIMER_RENDERSTATUS = wxNewId();
 //*)
 
 // For new sequencer
@@ -614,10 +615,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SHIMMER")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Shimmer - S"), wxEmptyString, NULL);
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle - K"), wxEmptyString, NULL);
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Intensity - I"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up - U"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Down - D"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up/Down - A"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Intensity - I"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACINTENSITY, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Up - U"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPUP, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Down - D"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPDOWN, true);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Ramp Up/Down - A"), wxEmptyString, NULL);
+    ACToolbar->SetToolDropDown(ID_AUITOOLBARITEM_ACRAMPUPDOWN, true);
     ACToolbar->AddControl(ChoiceParm1, _("Parm1"));
     ACToolbar->AddControl(ChoiceParm2, _("Parm2"));
     ACToolbar->AddSeparator();
@@ -1018,6 +1023,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Timer1.SetOwner(this, ID_TIMER1);
     Timer_AutoSave.SetOwner(this, ID_TIMER2);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
+    RenderStatusTimer.SetOwner(this, ID_TIMER_RENDERSTATUS);
+    RenderStatusTimer.Start(100, false);
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
@@ -1180,6 +1187,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
     Connect(ID_TIMER_EFFECT_SETTINGS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnEffectSettingsTimerTrigger);
+    Connect(ID_TIMER_RENDERSTATUS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnRenderStatusTimerTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
@@ -1729,13 +1737,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     MenuItem_xSchedule = nullptr;
     MenuItem_xScanner->GetMenu()->Remove(MenuItem_xScanner->GetId());
     MenuItem_xScanner = nullptr;
-    
-    
+
+
     MenuFile->AppendSeparator();
     const long newInstId = wxNewId();
     wxMenuItem *newInst = new wxMenuItem(MenuFile, newInstId, _("Open New xLights Instance"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(newInst);
-    
+
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
@@ -2226,7 +2234,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
-        EffectSettingsTimer.Start(50, wxTIMER_CONTINUOUS);
+        EffectSettingsTimer.Start(50, wxTIMER_ONE_SHOT);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
     }
@@ -7457,7 +7465,7 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
 #endif
     sf.Replace("\\", "/");
     f.Replace("\\", "/");
-    
+
     if (!sf.EndsWith("/")) {
         sf += "/";
     }

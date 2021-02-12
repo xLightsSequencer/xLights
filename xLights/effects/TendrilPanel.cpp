@@ -94,7 +94,7 @@ BEGIN_EVENT_TABLE(TendrilPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-TendrilPanel::TendrilPanel(wxWindow* parent)
+TendrilPanel::TendrilPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
     wxIntegerValidator<int> _tuneMovement(&__tuneMovement, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _tuneMovement.SetMin(0);
@@ -340,8 +340,6 @@ TendrilPanel::~TendrilPanel()
 	//(*Destroy(TendrilPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(TendrilPanel)
 
 void TendrilPanel::OnChoice_Tendril_MovementSelect(wxCommandEvent& event)
 {

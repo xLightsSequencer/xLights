@@ -202,7 +202,7 @@ protected:
     void UnsetGLContext(ShaderRenderCache*);
 
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-    virtual wxPanel* CreatePanel(wxWindow* parent) override;
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
     void sizeForRenderBuffer(const RenderBuffer& rb,
         bool& s_shadersInit,

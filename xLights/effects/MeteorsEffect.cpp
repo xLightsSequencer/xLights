@@ -48,7 +48,7 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
     return res;
 }
 
-wxPanel *MeteorsEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *MeteorsEffect::CreatePanel(wxWindow *parent) {
     return new MeteorsPanel(parent);
 }
 

@@ -171,7 +171,7 @@ BEGIN_EVENT_TABLE(LiquidPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-LiquidPanel::LiquidPanel(wxWindow* parent)
+LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LiquidPanel)
 	BulkEditTextCtrlF1* TextCtrl35;
@@ -651,8 +651,6 @@ LiquidPanel::~LiquidPanel()
 	//(*Destroy(LiquidPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(LiquidPanel)
 
 void LiquidPanel::OnCheckBox_EnabledClick(wxCommandEvent& event)
 {

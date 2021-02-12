@@ -31,7 +31,7 @@ RippleEffect::~RippleEffect()
 {
     //dtor
 }
-wxPanel *RippleEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
     return new RipplePanel(parent);
 }
 

@@ -52,7 +52,7 @@ BEGIN_EVENT_TABLE(SnowflakesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
+SnowflakesPanel::SnowflakesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(SnowflakesPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -138,8 +138,6 @@ SnowflakesPanel::~SnowflakesPanel()
 	//(*Destroy(SnowflakesPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(SnowflakesPanel)
 
 void SnowflakesPanel::OnChoice_FallingSelect(wxCommandEvent& event)
 {

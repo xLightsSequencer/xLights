@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(FillPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
 {
 	//(*Initialize(FillPanel)
 	BulkEditTextCtrl* TextCtrl_Fill_Band_Size;
@@ -206,6 +206,3 @@ FillPanel::~FillPanel()
 void FillPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(FillPanel)
-

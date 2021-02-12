@@ -31,7 +31,7 @@ SpirographEffect::~SpirographEffect()
 {
     //dtor
 }
-wxPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
     return new SpirographPanel(parent);
 }
 

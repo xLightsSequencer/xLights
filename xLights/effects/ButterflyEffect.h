@@ -33,6 +33,6 @@ class ButterflyEffect : public RenderableEffect
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 };

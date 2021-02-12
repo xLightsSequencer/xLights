@@ -33,7 +33,7 @@ OnEffect::~OnEffect()
     //dtor
 }
 
-wxPanel *OnEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *OnEffect::CreatePanel(wxWindow *parent) {
     return new OnPanel(parent);
 }
 

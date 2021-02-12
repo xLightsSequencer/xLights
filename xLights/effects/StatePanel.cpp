@@ -40,7 +40,7 @@ BEGIN_EVENT_TABLE(StatePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-StatePanel::StatePanel(wxWindow* parent)
+StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
     _effect = nullptr;
     _model = nullptr;
@@ -133,8 +133,6 @@ void StatePanel::ValidateWindow()
         Choice_State_Mode->Enable();
     }
 }
-
-PANEL_EVENT_HANDLERS(StatePanel)
 
 void StatePanel::UpdateStateList()
 {

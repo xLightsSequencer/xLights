@@ -102,7 +102,7 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
     return rc;
 }
 
-wxPanel *TextEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *TextEffect::CreatePanel(wxWindow *parent) {
     return new TextPanel(parent);
 }
 

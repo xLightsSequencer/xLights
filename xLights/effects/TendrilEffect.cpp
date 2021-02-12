@@ -415,7 +415,7 @@ TendrilEffect::~TendrilEffect()
 {
 }
 
-wxPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
     return new TendrilPanel(parent);
 }
 

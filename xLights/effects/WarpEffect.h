@@ -27,5 +27,5 @@ class WarpEffect : public RenderableEffect
 
     protected:
         virtual void RemoveDefaults(const std::string &version, Effect *effect) override;
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 };

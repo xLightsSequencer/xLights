@@ -6249,12 +6249,9 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool up
 
     // Place effect pointer in client data
     SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
-    if (async)
-    {
+    if (async) {
         wxPostEvent(GetParent(), eventEffectChanged);
-    }
-    else
-    {
+    } else {
         // Pass it this way to prevent risk of effect being deleted before pointer is used
         GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
     }

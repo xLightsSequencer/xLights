@@ -102,7 +102,7 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Effect settings.");
     // This step takes about 5 seconds to create all the effects panels
-    EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
+    EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager, &EffectSettingsTimer);
     EffectsPanel1->SetSequenceElements(&_sequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
@@ -117,12 +117,15 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Color.");
     colorPanel = new ColorPanel(PanelSequencer);
+    colorPanel->AddChangeListeners(&EffectSettingsTimer);
 
     logger_base.debug("        Timing.");
     timingPanel = new TimingPanel(PanelSequencer);
+    timingPanel->AddChangeListeners(&EffectSettingsTimer);
 
     logger_base.debug("        Buffer.");
     bufferPanel = new BufferPanel(PanelSequencer);
+    bufferPanel->AddChangeListeners(&EffectSettingsTimer);
 
     logger_base.debug("        Perspective.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
@@ -1045,10 +1048,11 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
+    EffectSettingsTimer.Start(25);
+    
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
-    if (reentry)
-    {
+    if (reentry) {
         return;
     }
     reentry = true;
@@ -2099,15 +2103,12 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (CurrentSeqXmlFile == nullptr) {
         return;
     }
-
+    
     PushTraceContext();
     AddTraceMessage("In OnEffectSettingsTimerTrigger");
-    UpdateRenderStatus();
-    AddTraceMessage("Render Status Updated");
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
         PopTraceContext();
         return;

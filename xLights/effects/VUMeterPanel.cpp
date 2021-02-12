@@ -83,7 +83,7 @@ BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-VUMeterPanel::VUMeterPanel(wxWindow* parent)
+VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(VUMeterPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -333,8 +333,6 @@ VUMeterPanel::~VUMeterPanel()
 	//(*Destroy(VUMeterPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(VUMeterPanel)
 
 void VUMeterPanel::ValidateWindow()
 {

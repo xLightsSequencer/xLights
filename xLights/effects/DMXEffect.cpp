@@ -63,7 +63,7 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
     }
 }
 
-wxPanel *DMXEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *DMXEffect::CreatePanel(wxWindow *parent) {
     return new DMXPanel(parent);
 }
 

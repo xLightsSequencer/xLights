@@ -48,7 +48,7 @@ BEGIN_EVENT_TABLE(StrobePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-StrobePanel::StrobePanel(wxWindow* parent)
+StrobePanel::StrobePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(StrobePanel)
 	wxFlexGridSizer* FlexGridSizer85;
@@ -126,7 +126,6 @@ void StrobePanel::ValidateWindow()
 {	
 }
 
-PANEL_EVENT_HANDLERS(StrobePanel)
 void StrobePanel::OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event)
 {
 }

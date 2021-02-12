@@ -163,7 +163,7 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
     return res;
 }
 
-wxPanel *StateEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *StateEffect::CreatePanel(wxWindow *parent) {
     return new StatePanel(parent);
 }
 

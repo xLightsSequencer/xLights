@@ -101,7 +101,7 @@ wxString ColorWashEffect::GetEffectString() {
 
 
 
-wxPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
 }
 

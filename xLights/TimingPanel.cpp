@@ -75,7 +75,7 @@ BEGIN_EVENT_TABLE(TimingPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
 {
     _startLayer = -1;
     _endLayer = -1;
@@ -469,8 +469,6 @@ wxString TimingPanel::GetTimingString()
     }
     return s;
 }
-
-PANEL_EVENT_HANDLERS(TimingPanel)
 
 namespace
 {

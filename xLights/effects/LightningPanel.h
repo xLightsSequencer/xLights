@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class LightningPanel: public wxPanel
+class LightningPanel: public xlEffectPanel
 {
 	public:
 
@@ -105,8 +105,6 @@ class LightningPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(LightningPanel)
 		//*)

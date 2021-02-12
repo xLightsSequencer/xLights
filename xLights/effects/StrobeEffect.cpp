@@ -40,7 +40,7 @@ std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-wxPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
     return new StrobePanel(parent);
 }
 

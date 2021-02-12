@@ -28,6 +28,10 @@
 #include <wx/fontpicker.h>
 #include <wx/choicebk.h>
 #include <wx/valnum.h>
+#include <wx/fontpicker.h>
+#include <wx/notebook.h>
+#include <wx/spinctrl.h>
+#include <wx/clrpicker.h>
 
 #include "../BitmapCache.h"
 #include "../ValueCurveButton.h"
@@ -280,3 +284,90 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
         }
     }
 }
+
+
+
+xlEffectPanel::xlEffectPanel(wxWindow* parent) : changeTimer(nullptr) {
+}
+xlEffectPanel::~xlEffectPanel() {
+}
+
+
+void xlEffectPanel::AddListeners(wxWindow *ParentWin)
+{
+    wxString s;
+    for (const auto& it : ParentWin->GetChildren()) {
+        wxWindow *ChildWin = it;
+        wxString ChildName = ChildWin->GetName();
+        if (ChildName.StartsWith("IDD_") || ChildName.StartsWith("IID_") ) {
+            ChildName = "ID_" + ChildName.substr(4);
+        }
+        if (ChildName.StartsWith("ID_SLIDER")) {
+            Connect(ChildWin->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_VALUECURVE")) {
+            //ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
+            // ValueCurves will automatically fire the change event
+        } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
+            Connect(ChildWin->GetId(),wxEVT_TEXT,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_SPINCTRL")) {
+            Connect(ChildWin->GetId(),wxEVT_SPINCTRL,(wxObjectEventFunction)&xlEffectPanel::HandleSpinChange);
+        } else if (ChildName.StartsWith("ID_CHOICE")) {
+            Connect(ChildWin->GetId(),wxEVT_CHOICE,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_CHECKBOX")) {
+            Connect(ChildWin->GetId(),wxEVT_CHECKBOX,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_RADIOBUTTON")) {
+            Connect(ChildWin->GetId(),wxEVT_RADIOBUTTON,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER")) {
+            Connect(ChildWin->GetId(),wxEVT_FILEPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleFileDirChange);
+        } else if (ChildName.StartsWith("ID_FONTPICKER")) {
+            Connect(ChildWin->GetId(),wxEVT_FONTPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleFontChange);
+        } else if (ChildName.StartsWith("ID_COLOURPICKERCTR")) {
+            Connect(ChildWin->GetId(),wxEVT_COLOURPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleColorChange);
+        } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
+            Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
+            wxBookCtrlBase *nb = (wxBookCtrlBase*)ChildWin;
+            for (int x = 0; x < nb->GetPageCount(); x++) {
+                AddListeners(nb->GetPage(x));
+            }
+        } else if (ChildName.StartsWith("ID_PANEL")
+                   || ChildName.StartsWith("ID_SCROLLEDWINDOW")
+                   || ChildName.StartsWith("ID_SCROLLED_")
+                   || ChildName.StartsWith("panel")
+                   || ChildName.StartsWith("groupBox")  //wxStaticBoxSizer creates these
+                   ) {
+            AddListeners(ChildWin);
+        } else if (ChildName.StartsWith("ID_STATICTEXT")
+                   || ChildName.StartsWith("ID_STATICLINE")
+                   || ChildName.StartsWith("ID_CUSTOM") // various custom controls, they need to fire events themselves
+                   || ChildName.StartsWith("ID_BITMAPBUTTON_SLIDER") //locks
+                   || ChildName.StartsWith("ID_BITMAPBUTTON_CHOICE")
+                   || ChildName.StartsWith("ID_BITMAPBUTTON_BUTTON")
+                   || ChildName.StartsWith("ID_BITMAPBUTTON_CHECKBOX")
+                   || ChildName.StartsWith("ID_BITMAPBUTTON_FONTPICKER")
+                   || ChildName.StartsWith("scrollBar")  //wxScrolledWindow creates these
+                   || ChildName.StartsWith("wxID_ANY") //some static text entries
+                   
+                   || ChildName.StartsWith("ID_BITMAPBUTTON") // misc buttons, they will need to fire event themselves
+                   || ChildName.StartsWith("ID_BUTTON")
+                   ) {
+            //nothing to do
+        } else {
+            //printf("Unknown ID: %s\n", ChildName.ToStdString().c_str());
+        }
+    }
+}
+
+
+
+void xlEffectPanel::AddChangeListeners(wxTimer *timer) {
+    changeTimer = timer;
+    AddListeners(this);
+}
+void xlEffectPanel::FireChangeEvent() {
+    //static int cnt = 0;  printf("Change fired: %d\n", cnt++);
+    if (changeTimer) {
+        changeTimer->StartOnce(25);
+    }
+}
+
+

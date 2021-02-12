@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class MeteorsPanel : public wxPanel
+class MeteorsPanel : public xlEffectPanel
 {
 public:
 
@@ -115,8 +115,6 @@ protected:
 	//*)
 
 public:
-
-	DECLARE_PANEL_EVENT_HANDLERS()
 
 	//(*Handlers(MeteorsPanel)
 	void OnChoice_Meteors_EffectSelect(wxCommandEvent& event);

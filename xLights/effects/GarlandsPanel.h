@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class GarlandsPanel: public wxPanel
+class GarlandsPanel: public xlEffectPanel
 {
 	public:
 
@@ -67,8 +67,6 @@ class GarlandsPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(GarlandsPanel)
 		//*)

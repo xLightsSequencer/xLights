@@ -42,7 +42,7 @@ protected:
 #include <wx/textctrl.h>
 //*)
 
-class ShaderPanel: public wxPanel
+class ShaderPanel: public xlEffectPanel
 {
     ShaderConfig* _shaderConfig = nullptr;
 	void ValidateWindow();
@@ -87,8 +87,6 @@ class ShaderPanel: public wxPanel
       friend class ShaderEffect;
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ShaderPanel)
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);

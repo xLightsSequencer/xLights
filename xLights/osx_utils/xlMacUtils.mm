@@ -16,18 +16,20 @@
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
 
-
 #include <list>
 #include <set>
 #include <mutex>
 
-
 #include <CoreAudio/CoreAudio.h>
 #include <CoreServices/CoreServices.h>
 
+#include "AudioManager.h"
+
+
 static std::set<std::string> ACCESSIBLE_URLS;
 static std::mutex URL_LOCK;
-
+static int OSX_STATUS = -1;
+static uint64_t OPTIONFLAGS = 0;
 
 static void LoadGroupEntries(wxConfig *config, const wxString &grp, std::list<std::string> &removes, std::list<std::string> &grpRemoves) {
     wxString ent;
@@ -270,7 +272,6 @@ private:
     AppNapSuspenderPrivate *p;
 };
 
-
 static AppNapSuspender sleepData;
 void EnableSleepModes()
 {
@@ -281,30 +282,26 @@ void DisableSleepModes()
     sleepData.suspend();
 }
 
-
 AppNapSuspender::AppNapSuspender() :
     p(new AppNapSuspenderPrivate)
 {}
-AppNapSuspender::~AppNapSuspender()
-{
+AppNapSuspender::~AppNapSuspender() {
     delete p;
 }
 
-void AppNapSuspender::suspend()
-{
-    p->activityId = [[NSProcessInfo processInfo ] beginActivityWithOptions: NSActivityUserInitiated | NSActivityLatencyCritical
+void AppNapSuspender::suspend() {
+    p->activityId = [[NSProcessInfo processInfo ] beginActivityWithOptions: OPTIONFLAGS
                                                                     reason:@"Outputting to lights"];
     [p->activityId retain];
 }
 
-void AppNapSuspender::resume()
-{
+void AppNapSuspender::resume() {
     [[NSProcessInfo processInfo ] endActivity:p->activityId];
     [p->activityId release];
 }
 
 wxString GetOSXFormattedClipboardData() {
-    
+
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSArray *classArray = [NSArray arrayWithObject:[NSString class]];
     NSDictionary *options = [NSDictionary dictionary];
@@ -317,51 +314,10 @@ wxString GetOSXFormattedClipboardData() {
     }
     return "";
 }
-#include "wx/osx/private.h"
-void ModalPopup(wxWindow *w, wxMenu &menu) {
-//    menu.GetHMenu();
-    NSView *view = w->GetPeer()->GetWXWidget();
-    wxPoint mouse = wxGetMousePosition();
-    int x = mouse.x;
-    int y = mouse.y;
-    w->ScreenToClient( &x , &y ) ;
-    
-    if ([ view isFlipped ]) {
-        y = w->GetSize().y - y;
-    }
-    
-    NSPoint locationInWindow = NSMakePoint(x,y);
 
-    //locationInWindow = [view.window convertBaseToScreen:locationInWindow];
-    
-    //[menu.GetHMenu() setAutoenablesItems:NO];
-
-
-    
-    NSEvent *event = [NSEvent mouseEventWithType:NSRightMouseDown
-                                        location:locationInWindow
-                                        modifierFlags:0
-                                        timestamp:0
-                                        windowNumber:view.window.windowNumber
-                                        context:nil eventNumber:0 clickCount:1 pressure:1.0 ];
-    [NSMenu popUpContextMenu:menu.GetHMenu() withEvent:event forView:view];
-    
-    //[menu.GetHMenu() popUpMenuPositioningItem:nil atLocation:NSMakePoint(x, y) inView:view];
-    //w->PopupMenu(&menu);
-}
-
-
-
-void WXGLUnsetCurrentContext()
-{
+void WXGLUnsetCurrentContext() {
     [NSOpenGLContext clearCurrentContext];
 }
-
-
-
-
-#ifndef __NO_AUIDO__
-#include "AudioManager.h"
 
 static const AudioObjectPropertyAddress devlist_address = {
     kAudioHardwarePropertyDevices,
@@ -375,14 +331,11 @@ static const AudioObjectPropertyAddress defaultdev_address = {
 };
 
 /* this is called when the system's list of available audio devices changes. */
-static OSStatus
-device_list_changed(AudioObjectID systemObj, UInt32 num_addr, const AudioObjectPropertyAddress *addrs, void *data)
-{
+static OSStatus device_list_changed(AudioObjectID systemObj, UInt32 num_addr, const AudioObjectPropertyAddress *addrs, void *data) {
     AudioManager *am = (AudioManager*)data;
     am->AudioDeviceChanged();
     return 0;
 }
-
 void AddAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &defaultdev_address, device_list_changed, am);
@@ -391,45 +344,41 @@ void RemoveAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &defaultdev_address, device_list_changed, am);
 }
-#endif
-
-
-
-
-
 
 bool IsFromAppStore() {
-    NSURL *bundleURL = [[NSBundle mainBundle] bundleURL];
-       
-    SecStaticCodeRef staticCode = NULL;
-    OSStatus status = SecStaticCodeCreateWithPath((__bridge CFURLRef)bundleURL, kSecCSDefaultFlags, &staticCode);
-    if (status != errSecSuccess) {
-        return false;
-    }
-    NSString *requirementText = @"anchor apple generic";   // For code signed by Apple
-    SecRequirementRef requirement = NULL;
-    status = SecRequirementCreateWithString((__bridge CFStringRef)requirementText, kSecCSDefaultFlags, &requirement);
-    if (status != errSecSuccess) {
-        if (staticCode) {
-            CFRelease(staticCode);
+    if (OSX_STATUS == -1)  {
+        OSX_STATUS = 0;
+        NSURL *bundleURL = [[NSBundle mainBundle] bundleURL];
+           
+        SecStaticCodeRef staticCode = NULL;
+        OSStatus status = SecStaticCodeCreateWithPath((__bridge CFURLRef)bundleURL, kSecCSDefaultFlags, &staticCode);
+        if (status != errSecSuccess) {
+            return false;
         }
-        return false;
-    }
-    
-    status = SecStaticCodeCheckValidity(staticCode, kSecCSDefaultFlags, requirement);
-    if (status != errSecSuccess) {
-        if (staticCode) {
-            CFRelease(staticCode);
+        NSString *requirementText = @"anchor apple generic";   // For code signed by Apple
+        SecRequirementRef requirement = NULL;
+        status = SecRequirementCreateWithString((__bridge CFStringRef)requirementText, kSecCSDefaultFlags, &requirement);
+        if (status != errSecSuccess) {
+            if (staticCode) {
+                CFRelease(staticCode);
+            }
+            return false;
         }
-        if (requirement) {
-            CFRelease(requirement);
+        
+        status = SecStaticCodeCheckValidity(staticCode, kSecCSDefaultFlags, requirement);
+        if (status != errSecSuccess) {
+            if (staticCode) {
+                CFRelease(staticCode);
+            }
+            if (requirement) {
+                CFRelease(requirement);
+            }
+            return false;
         }
-        return false;
+        if (staticCode) CFRelease(staticCode);
+        if (requirement) CFRelease(requirement);
+        OPTIONFLAGS = NSActivityLatencyCritical | NSActivityUserInitiated;
+        OSX_STATUS = 1;
     }
-    
-    if (staticCode) CFRelease(staticCode);
-    if (requirement) CFRelease(requirement);
-    
-    return true;
+    return OSX_STATUS == 1;
 }
-

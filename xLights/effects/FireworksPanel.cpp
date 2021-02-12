@@ -87,7 +87,7 @@ BEGIN_EVENT_TABLE(FireworksPanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_SETTIMINGTRACKS, FireworksPanel::SetTimingTracks)
 END_EVENT_TABLE()
 
-FireworksPanel::FireworksPanel(wxWindow* parent)
+FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(FireworksPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -329,8 +329,6 @@ void FireworksPanel::ValidateWindow()
         TextCtrl_Fireworks_Explosions->Enable();
     }
 }
-
-PANEL_EVENT_HANDLERS(FireworksPanel)
 
 void FireworksPanel::OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event)
 {

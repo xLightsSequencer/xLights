@@ -29,7 +29,7 @@ class wxTextCtrl;
 
 class MidiFile;
 
-class PianoPanel: public wxPanel
+class PianoPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 	
@@ -82,8 +82,6 @@ class PianoPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(PianoPanel)
 		void OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event);

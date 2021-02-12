@@ -70,7 +70,7 @@ BEGIN_EVENT_TABLE(RipplePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-RipplePanel::RipplePanel(wxWindow* parent)
+RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(RipplePanel)
 	BulkEditTextCtrl* TextCtrl33;
@@ -238,8 +238,6 @@ RipplePanel::~RipplePanel()
 	//(*Destroy(RipplePanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(RipplePanel)
 
 void RipplePanel::OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event)
 {

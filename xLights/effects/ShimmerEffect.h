@@ -28,7 +28,7 @@ class ShimmerEffect : public RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 private:

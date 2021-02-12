@@ -20,7 +20,7 @@ class wxStaticText;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class OffPanel: public wxPanel
+class OffPanel: public xlEffectPanel
 {
 	public:
 
@@ -35,12 +35,11 @@ class OffPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(OffPanel)
+		static const long ID_STATICTEXT_Off_Text;
 		static const long ID_CHECKBOX_Off_Transparent;
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(OffPanel)
 		//*)

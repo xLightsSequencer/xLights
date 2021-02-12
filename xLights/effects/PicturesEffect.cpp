@@ -94,7 +94,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     return res;
 }
 
-wxPanel *PicturesEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *PicturesEffect::CreatePanel(wxWindow *parent) {
     return new PicturesPanel(parent);
 }
 

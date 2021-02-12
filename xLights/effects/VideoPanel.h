@@ -57,7 +57,7 @@ public:
 	virtual ~xlVideoFilePickerCtrl() {}
 };
 
-class VideoPanel: public wxPanel
+class VideoPanel: public xlEffectPanel
 {
     void AddVideoTime(std::string fn, unsigned long ms);
 
@@ -145,8 +145,6 @@ protected:
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(VideoPanel)
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);

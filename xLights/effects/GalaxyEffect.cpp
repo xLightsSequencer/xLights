@@ -33,7 +33,7 @@ GalaxyEffect::~GalaxyEffect()
 }
 
 
-wxPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
     return new GalaxyPanel(parent);
 }
 

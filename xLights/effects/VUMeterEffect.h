@@ -34,7 +34,7 @@ public:
     virtual bool needToAdjustSettings(const std::string &version) override;
     virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 protected:
-    virtual wxPanel *CreatePanel(wxWindow *parent) override;
+    virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     static int DecodeType(const std::string&  type);
     static int DecodeShape(const std::string& shape);
 

@@ -107,7 +107,7 @@ BEGIN_EVENT_TABLE(FanPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-FanPanel::FanPanel(wxWindow* parent)
+FanPanel::FanPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(FanPanel)
 	BulkEditTextCtrl* TextCtrl_Fan_Accel;
@@ -386,5 +386,3 @@ void FanPanel::ValidateWindow()
 {
 	
 }
-
-PANEL_EVENT_HANDLERS(FanPanel)

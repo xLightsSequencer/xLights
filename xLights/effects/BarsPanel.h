@@ -24,7 +24,7 @@
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class BarsPanel: public wxPanel
+class BarsPanel: public xlEffectPanel
 {
 	public:
 
@@ -78,8 +78,6 @@ class BarsPanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(BarsPanel)
 		void OnChoice_Bars_DirectionSelect(wxCommandEvent& event);

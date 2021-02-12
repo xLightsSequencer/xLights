@@ -1056,9 +1056,13 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
         }
     }
 }
+void xLightsFrame::OnRenderStatusTimerTrigger(wxTimerEvent& event) {
+    UpdateRenderStatus();
+}
 
 void xLightsFrame::UpdateRenderStatus() {
     if (renderProgressInfo.empty()) {
+        RenderStatusTimer.Stop();
         return;
     }
 
@@ -1444,6 +1448,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         pi->aggregators = aggregators;
 
         renderProgressInfo.push_back(pi);
+        RenderStatusTimer.Start(100, false);
     } else {
         callback();
         if (progressDialog) {

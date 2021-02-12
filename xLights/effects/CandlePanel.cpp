@@ -56,7 +56,7 @@ BEGIN_EVENT_TABLE(CandlePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-CandlePanel::CandlePanel(wxWindow* parent)
+CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(CandlePanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -171,7 +171,6 @@ void CandlePanel::ValidateWindow()
 {
 }
 
-PANEL_EVENT_HANDLERS(CandlePanel)
 void CandlePanel::OnCheckBox_Candle_GrowWithMusicClick(wxCommandEvent& event)
 {
     ValidateWindow();

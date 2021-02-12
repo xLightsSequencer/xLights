@@ -244,7 +244,7 @@ const long MorphPanel::IDD_TEXTCTRL_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_SLIDER_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart = wxNewId();
-const long MorphPanel::ID_MORPH_BUTTON_SWAP = wxNewId();
+const long MorphPanel::ID_BUTTON_MORPH_SWAP = wxNewId();
 const long MorphPanel::ID_PANEL30 = wxNewId();
 const long MorphPanel::ID_NOTEBOOK_Morph = wxNewId();
 //*)
@@ -254,7 +254,7 @@ BEGIN_EVENT_TABLE(MorphPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-MorphPanel::MorphPanel(wxWindow* parent)
+MorphPanel::MorphPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(MorphPanel)
 	BulkEditTextCtrl* TextCtrl_MorphAccel;
@@ -507,7 +507,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	BitmapButton_ShowHeadAtStart->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer105->Add(BitmapButton_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer104->Add(FlexGridSizer105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	ButtonSwap = new BulkEditButton(MorphPanelOptions, ID_MORPH_BUTTON_SWAP, _("Swap Start and End Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_MORPH_BUTTON_SWAP"));
+	ButtonSwap = new BulkEditButton(MorphPanelOptions, ID_BUTTON_MORPH_SWAP, _("Swap Start and End Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MORPH_SWAP"));
 	FlexGridSizer104->Add(ButtonSwap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MorphPanelOptions->SetSizer(FlexGridSizer104);
 	FlexGridSizer104->Fit(MorphPanelOptions);
@@ -554,7 +554,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Morph_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Morph_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
-	Connect(ID_MORPH_BUTTON_SWAP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnButtonSwapClick);
+	Connect(ID_BUTTON_MORPH_SWAP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnButtonSwapClick);
 	//*)
     SetName("ID_PANEL_MORPH");
 
@@ -589,9 +589,6 @@ MorphPanel::~MorphPanel()
 void MorphPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(MorphPanel)
-
 
 void MorphPanel::OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event)
 {
@@ -703,6 +700,7 @@ void MorphPanel::OnChoice_Morph_QuickSetSelect(wxCommandEvent& event)
         TextCtrl_Morph_End_Y2->SetValue("0");
     }
     Choice_Morph_QuickSet->SetSelection(0);
+    FireChangeEvent();
 }
 
 void MorphPanel::OnButtonSwapClick(wxCommandEvent& event)
@@ -754,4 +752,5 @@ void MorphPanel::OnButtonSwapClick(wxCommandEvent& event)
         BitmapButton_Morph_Start_Y2->SetValue(BitmapButton_Morph_End_Y2->GetValue()->Serialise());
         BitmapButton_Morph_End_Y2->SetValue(tempValue);
     }
+    FireChangeEvent();
 }

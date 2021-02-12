@@ -65,7 +65,7 @@ std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-wxPanel *FillEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *FillEffect::CreatePanel(wxWindow *parent) {
     return new FillPanel(parent);
 }
 

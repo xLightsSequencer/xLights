@@ -31,7 +31,7 @@ SnowflakesEffect::~SnowflakesEffect()
     //dtor
 }
 
-wxPanel *SnowflakesEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *SnowflakesEffect::CreatePanel(wxWindow *parent) {
     return new SnowflakesPanel(parent);
 }
 

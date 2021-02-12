@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class MusicPanel: public wxPanel
+class MusicPanel: public xlEffectPanel
 {
 	public:
 
@@ -89,7 +89,7 @@ class MusicPanel: public wxPanel
 		static const long ID_SLIDER_Music_EndNote;
 		static const long IDD_TEXTCTRL_Music_EndNote;
 		static const long ID_BITMAPBUTTON_SLIDER_Music_EndNote;
-		static const long ID_STATICTEX_Music_Sensitivity;
+		static const long ID_STATICTEXT_Music_Sensitivity;
 		static const long ID_SLIDER_Music_Sensitivity;
 		static const long IDD_TEXTCTRL_Music_Sensitivity;
 		static const long ID_BITMAPBUTTON_SLIDER_Music_Sensitivity;
@@ -113,8 +113,6 @@ class MusicPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(MusicPanel)
         void OnChoice_Music_TypeSelect(wxCommandEvent& event);

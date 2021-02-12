@@ -66,7 +66,7 @@ BEGIN_EVENT_TABLE(ShaderPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
 {
     // I have deliberately given the file picker a ID_- prefix to force it to be processed first
 
@@ -99,7 +99,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer3->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Shader_Speed = new BulkEditSliderF2(this, ID_SLIDER_Shader_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Shader_Speed"));
 	FlexGridSizer3->Add(Slider_Shader_Speed, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
+	BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
 	FlexGridSizer3->Add(BitmapButton_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Shader_Speed = new BulkEditTextCtrlF2(this, IDD_TEXTCTRL_Shader_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("IDD_TEXTCTRL_Shader_Speed"));
 	FlexGridSizer3->Add(TextCtrl_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -139,8 +139,6 @@ void ShaderPanel::ValidateWindow()
 {
 }
 
-PANEL_EVENT_HANDLERS(ShaderPanel)
-
 void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     static wxString last = "";
@@ -175,6 +173,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
+    FireChangeEvent();
 }
 
 bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceElements)
@@ -368,6 +367,7 @@ void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
             FilePickerCtrl1->SetFileName(wxFileName(dlg.GetShaderFile()));
             wxFileDirPickerEvent e(wxEVT_COMMAND_FILEPICKER_CHANGED, FilePickerCtrl1, ID_0FILEPICKERCTRL_IFS, FilePickerCtrl1->GetFileName().GetFullPath());
             wxPostEvent(this, e);
+            FireChangeEvent();
         }
     }
     else

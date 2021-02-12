@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(FacesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-FacesPanel::FacesPanel(wxWindow* parent)
+FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(FacesPanel)
 	wxFlexGridSizer* FlexGridSizer47;
@@ -150,8 +150,6 @@ void FacesPanel::ValidateWindow()
         Choice_Faces_TimingTrack->Enable();
 	}
 }
-
-PANEL_EVENT_HANDLERS(FacesPanel)
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {

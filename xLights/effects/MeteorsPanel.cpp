@@ -75,7 +75,7 @@ BEGIN_EVENT_TABLE(MeteorsPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-MeteorsPanel::MeteorsPanel(wxWindow* parent)
+MeteorsPanel::MeteorsPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(MeteorsPanel)
 	BulkEditTextCtrl* TextCtrl49;
@@ -265,8 +265,6 @@ MeteorsPanel::~MeteorsPanel()
 	//(*Destroy(MeteorsPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(MeteorsPanel)
 
 void MeteorsPanel::ValidateWindow()
 {

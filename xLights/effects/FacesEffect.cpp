@@ -348,7 +348,7 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }
 

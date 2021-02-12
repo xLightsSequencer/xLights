@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class TreePanel: public wxPanel
+class TreePanel: public xlEffectPanel
 {
 	public:
 
@@ -54,8 +54,6 @@ class TreePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TreePanel)
 		//*)

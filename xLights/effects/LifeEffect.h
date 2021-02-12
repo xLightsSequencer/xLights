@@ -21,6 +21,6 @@ public:
     virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override { return false; }
 protected:
-    virtual wxPanel* CreatePanel(wxWindow* parent) override;
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 private:
 };

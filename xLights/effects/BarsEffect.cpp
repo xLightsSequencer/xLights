@@ -31,7 +31,7 @@ BarsEffect::~BarsEffect()
     //dtor
 }
 
-wxPanel *BarsEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *BarsEffect::CreatePanel(wxWindow *parent) {
     return new BarsPanel(parent);
 }
 

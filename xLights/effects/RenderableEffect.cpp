@@ -27,6 +27,7 @@
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
+#include "EffectPanelUtils.h"
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -74,7 +75,7 @@ const wxBitmap &RenderableEffect::GetEffectIcon(int size, bool exact) const {
 }
 
 
-wxPanel *RenderableEffect::GetPanel(wxWindow *parent) {
+xlEffectPanel *RenderableEffect::GetPanel(wxWindow *parent) {
     if (panel == nullptr) {
         panel = CreatePanel(parent);
     }

@@ -32,7 +32,7 @@ ShockwaveEffect::~ShockwaveEffect()
     //dtor
 }
 
-wxPanel *ShockwaveEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ShockwaveEffect::CreatePanel(wxWindow *parent) {
     return new ShockwavePanel(parent);
 }
 

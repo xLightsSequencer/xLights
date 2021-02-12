@@ -29,7 +29,7 @@ class MorphQuickSet;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class MorphPanel: public wxPanel
+class MorphPanel: public xlEffectPanel
 {
 	public:
 
@@ -200,14 +200,12 @@ class MorphPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Morph_Stagger;
 		static const long ID_CHECKBOX_ShowHeadAtStart;
 		static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
-		static const long ID_MORPH_BUTTON_SWAP;
+		static const long ID_BUTTON_MORPH_SWAP;
 		static const long ID_PANEL30;
 		static const long ID_NOTEBOOK_Morph;
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(MorphPanel)
 		void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);

@@ -113,7 +113,7 @@ void PianoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     }
 }
 
-wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *PianoEffect::CreatePanel(wxWindow *parent) {
     _panel = new PianoPanel(parent);
 	return _panel;
 }

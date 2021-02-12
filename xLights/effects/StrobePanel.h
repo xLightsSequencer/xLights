@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class StrobePanel: public wxPanel
+class StrobePanel: public xlEffectPanel
 {
 	public:
 
@@ -68,8 +68,6 @@ class StrobePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(StrobePanel)
 		void OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event);

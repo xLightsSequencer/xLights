@@ -96,7 +96,7 @@ void ShapeEffect::SetPanelTimingTracks() const
     wxPostEvent(fp, event);
 }
 
-wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
     return new ShapePanel(parent);
 }
 

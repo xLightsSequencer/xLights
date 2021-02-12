@@ -201,7 +201,7 @@ bool GlediatorEffect::IsCSVFile(std::string filename) const
     return false;
 }
 
-wxPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
     return new GlediatorPanel(parent);
 }
 

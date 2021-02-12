@@ -27,7 +27,7 @@ ShimmerEffect::~ShimmerEffect()
     //dtor
 }
 
-wxPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
     return new ShimmerPanel(parent);
 }
 

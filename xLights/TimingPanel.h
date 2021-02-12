@@ -30,7 +30,7 @@
 
 class Model;
 
-class TimingPanel: public wxPanel
+class TimingPanel: public xlEffectPanel
 {
     std::string _layersSelected;
     int _startLayer;
@@ -125,8 +125,6 @@ class TimingPanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TimingPanel)
 		void OnResize(wxSizeEvent& event);

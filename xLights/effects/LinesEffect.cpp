@@ -33,7 +33,7 @@ LinesEffect::~LinesEffect()
 {
 }
 
-wxPanel *LinesEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *LinesEffect::CreatePanel(wxWindow *parent) {
 	return new LinesPanel(parent);
 }
 

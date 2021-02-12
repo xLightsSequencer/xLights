@@ -31,7 +31,7 @@
 class Model;
 class SubBufferPanel;
 
-class BufferPanel: public wxPanel
+class BufferPanel: public xlEffectPanel
 {
 public:
 
@@ -191,8 +191,6 @@ public:
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(BufferPanel)
 		void OnBufferTransformSelect(wxCommandEvent& event);

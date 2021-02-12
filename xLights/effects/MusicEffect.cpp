@@ -49,7 +49,7 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-wxPanel *MusicEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *MusicEffect::CreatePanel(wxWindow *parent) {
 	return new MusicPanel(parent);
 }
 

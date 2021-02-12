@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class CurtainPanel: public wxPanel
+class CurtainPanel: public xlEffectPanel
 {
 	public:
 
@@ -73,8 +73,6 @@ class CurtainPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(CurtainPanel)
 		//*)

@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class TendrilPanel: public wxPanel
+class TendrilPanel: public xlEffectPanel
 {
     // these are only used for validation
     int __tuneMovement;
@@ -164,8 +164,6 @@ class TendrilPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TendrilPanel)
 		void OnChoice_Tendril_MovementSelect(wxCommandEvent& event);

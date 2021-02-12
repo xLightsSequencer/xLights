@@ -70,7 +70,7 @@ BEGIN_EVENT_TABLE(SpirographPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-SpirographPanel::SpirographPanel(wxWindow* parent)
+SpirographPanel::SpirographPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(SpirographPanel)
 	BulkEditTextCtrl* TextCtrl1;
@@ -245,5 +245,3 @@ SpirographPanel::~SpirographPanel()
 void SpirographPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(SpirographPanel)

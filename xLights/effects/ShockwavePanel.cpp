@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(ShockwavePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ShockwavePanel::ShockwavePanel(wxWindow* parent)
+ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(ShockwavePanel)
 	BulkEditTextCtrl* TextCtrl_Shockwave_Accel;
@@ -237,5 +237,3 @@ ShockwavePanel::~ShockwavePanel()
 void ShockwavePanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(ShockwavePanel)

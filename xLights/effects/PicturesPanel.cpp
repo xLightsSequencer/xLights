@@ -84,7 +84,7 @@ BEGIN_EVENT_TABLE(PicturesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-PicturesPanel::PicturesPanel(wxWindow* parent)
+PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(PicturesPanel)
 	BulkEditTextCtrl* TextCtrl1;
@@ -320,8 +320,6 @@ PicturesPanel::~PicturesPanel()
 	//(*Destroy(PicturesPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(PicturesPanel)
 
 static inline void EnableControl(wxWindow *w, int id, bool e) {
     wxWindow *c = w->FindWindowById(id);

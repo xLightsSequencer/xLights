@@ -495,7 +495,7 @@ WarpEffect::~WarpEffect()
 
 }
 
-wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
+xlEffectPanel *WarpEffect::CreatePanel(wxWindow *parent)
 {
     return new WarpPanel(parent);
 }

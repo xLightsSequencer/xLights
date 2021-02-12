@@ -211,7 +211,7 @@ BEGIN_EVENT_TABLE(DMXPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-DMXPanel::DMXPanel(wxWindow* parent)
+DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(DMXPanel)
 	BulkEditTextCtrl* TextCtrl1_DMX1;
@@ -718,8 +718,6 @@ DMXPanel::~DMXPanel()
 	//*)
 }
 
-PANEL_EVENT_HANDLERS(DMXPanel)
-
 void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
 {
     RemapDMXChannelsDialog dlg(this);
@@ -767,6 +765,7 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
             }
         }
     }
+    FireChangeEvent();
 }
 
 void DMXPanel::OnButtonRemapRClick(wxCommandEvent& event)

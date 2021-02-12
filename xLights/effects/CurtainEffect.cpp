@@ -30,7 +30,7 @@ CurtainEffect::~CurtainEffect()
 {
     //dtor
 }
-wxPanel *CurtainEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *CurtainEffect::CreatePanel(wxWindow *parent) {
     return new CurtainPanel(parent);
 }
 

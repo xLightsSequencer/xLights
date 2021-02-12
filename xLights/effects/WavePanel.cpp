@@ -72,7 +72,7 @@ BEGIN_EVENT_TABLE(WavePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-WavePanel::WavePanel(wxWindow* parent)
+WavePanel::WavePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(WavePanel)
 	BulkEditTextCtrl* TextCtrl1;
@@ -245,8 +245,6 @@ WavePanel::~WavePanel()
 	//(*Destroy(WavePanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(WavePanel)
 
 void WavePanel::ValidateWindow()
 {

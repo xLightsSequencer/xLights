@@ -108,7 +108,7 @@ BEGIN_EVENT_TABLE(BufferPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlEffectPanel(parent)
 {
 	//(*Initialize(BufferPanel)
 	wxFlexGridSizer* FlexGridSizer10;
@@ -476,6 +476,9 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     ScrolledWindow2->FitInside();
     ScrolledWindow2->SetScrollRate(5, 5);
 
+    
+    Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&BufferPanel::HandleCommandChange);
+    
     ValidateWindow();
 }
 
@@ -484,8 +487,6 @@ BufferPanel::~BufferPanel()
 	//(*Destroy(BufferPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(BufferPanel)
 
 wxString BufferPanel::GetBufferString() {
     wxString s = "";

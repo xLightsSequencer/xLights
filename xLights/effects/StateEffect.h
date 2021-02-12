@@ -30,7 +30,7 @@ class StateEffect : public RenderableEffect
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         std::list<std::string> GetStatesUsed(const SettingsMap& SettingsMap);
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
         void RenderState(RenderBuffer &buffer, SequenceElements *elements, const std::string &faceDefintion,
                          const std::string &Phoneme, const std::string &track, const std::string& mode, const std::string& colourmode);

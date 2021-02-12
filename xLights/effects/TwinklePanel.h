@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class TwinklePanel: public wxPanel
+class TwinklePanel: public xlEffectPanel
 {
 	public:
 
@@ -71,8 +71,6 @@ class TwinklePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TwinklePanel)
 		void OnBitmapButton_Twinkle_CountVCClick(wxCommandEvent& event);

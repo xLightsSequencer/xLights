@@ -35,7 +35,7 @@ ButterflyEffect::~ButterflyEffect()
 }
 
 
-wxPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
     return new ButterflyPanel(parent);
 }
 

@@ -31,7 +31,7 @@ GarlandsEffect::~GarlandsEffect()
     //dtor
 }
 
-wxPanel *GarlandsEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *GarlandsEffect::CreatePanel(wxWindow *parent) {
     return new GarlandsPanel(parent);
 }
 

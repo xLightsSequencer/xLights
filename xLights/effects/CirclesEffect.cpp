@@ -30,7 +30,7 @@ CirclesEffect::~CirclesEffect()
     //dtor
 }
 
-wxPanel *CirclesEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *CirclesEffect::CreatePanel(wxWindow *parent) {
     return new CirclesPanel(parent);
 }
 

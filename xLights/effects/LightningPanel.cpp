@@ -69,7 +69,7 @@ BEGIN_EVENT_TABLE(LightningPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-LightningPanel::LightningPanel(wxWindow* parent)
+LightningPanel::LightningPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LightningPanel)
 	BulkEditTextCtrl* TextCtrl_Number_Bolts;
@@ -214,5 +214,3 @@ LightningPanel::~LightningPanel()
 void LightningPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(LightningPanel)

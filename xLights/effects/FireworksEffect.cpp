@@ -52,7 +52,7 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
     return res;
 }
 
-wxPanel *FireworksEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *FireworksEffect::CreatePanel(wxWindow *parent) {
     return new FireworksPanel(parent);
 }
 

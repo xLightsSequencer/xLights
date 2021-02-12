@@ -58,7 +58,7 @@ BEGIN_EVENT_TABLE(BarsPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-BarsPanel::BarsPanel(wxWindow* parent)
+BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(BarsPanel)
 	BulkEditTextCtrl* TextCtrl15;
@@ -196,8 +196,6 @@ BarsPanel::~BarsPanel()
 	//(*Destroy(BarsPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(BarsPanel)
 
 void BarsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 {

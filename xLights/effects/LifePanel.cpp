@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(LifePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-LifePanel::LifePanel(wxWindow* parent)
+LifePanel::LifePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LifePanel)
 	BulkEditTextCtrl* TextCtrl30;
@@ -107,5 +107,3 @@ LifePanel::~LifePanel()
 void LifePanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(LifePanel)

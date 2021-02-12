@@ -179,7 +179,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEX_Music_Sensitivity" variable="StaticText4" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Sensitivity" variable="StaticText4" member="yes">
 							<label>Sensitivity</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

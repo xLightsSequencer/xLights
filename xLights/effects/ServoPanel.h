@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class ServoPanel: public wxPanel
+class ServoPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -60,8 +60,6 @@ class ServoPanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ServoPanel)
 		void OnCheckBox1Click(wxCommandEvent& event);

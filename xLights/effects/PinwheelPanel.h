@@ -25,7 +25,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class PinwheelPanel: public wxPanel
+class PinwheelPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -125,8 +125,6 @@ class PinwheelPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(PinwheelPanel)
 		//*)

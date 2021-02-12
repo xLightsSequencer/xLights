@@ -46,7 +46,7 @@ BEGIN_EVENT_TABLE(ColorWashPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ColorWashPanel::ColorWashPanel(wxWindow* parent)
+ColorWashPanel::ColorWashPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(ColorWashPanel)
 	wxFlexGridSizer* FlexGridSizer114;
@@ -132,5 +132,3 @@ ColorWashPanel::~ColorWashPanel()
 void ColorWashPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(ColorWashPanel)

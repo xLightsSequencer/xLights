@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class FirePanel: public wxPanel
+class FirePanel: public xlEffectPanel
 {
 	public:
 
@@ -78,8 +78,6 @@ class FirePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(FirePanel)
 		void OnCheckBox_Fire_GrowWithMusicClick(wxCommandEvent& event);

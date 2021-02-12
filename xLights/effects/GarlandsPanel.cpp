@@ -50,7 +50,7 @@ BEGIN_EVENT_TABLE(GarlandsPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-GarlandsPanel::GarlandsPanel(wxWindow* parent)
+GarlandsPanel::GarlandsPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(GarlandsPanel)
 	BulkEditTextCtrl* TextCtrl61;
@@ -143,5 +143,3 @@ GarlandsPanel::~GarlandsPanel()
 void GarlandsPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(GarlandsPanel)

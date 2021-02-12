@@ -34,7 +34,7 @@ class BarsEffect : public RenderableEffect
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer &buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
     private:
 };

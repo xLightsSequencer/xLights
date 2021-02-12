@@ -26,7 +26,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class SingleStrandPanel: public wxPanel
+class SingleStrandPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -119,7 +119,7 @@ class SingleStrandPanel: public wxPanel
 		static const long ID_SLIDER_Skips_StartPos;
 		static const long IDD_TEXTCTRL_Skips_StartPos;
 		static const long ID_BITMAPBUTTON_SLIDER_Skips_StartPos;
-		static const long IS_STATICTEXT_Skips_Advance;
+		static const long ID_STATICTEXT_Skips_Advance;
 		static const long ID_SLIDER_Skips_Advance;
 		static const long IDD_TEXTCTRL_Skips_Advance;
 		static const long ID_BITMAPBUTTON_SLIDER_Skips_Advance;
@@ -131,8 +131,6 @@ class SingleStrandPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(SingleStrandPanel)
 		//*)

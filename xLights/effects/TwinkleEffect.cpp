@@ -33,7 +33,7 @@ TwinkleEffect::~TwinkleEffect()
 {
     //dtor
 }
-wxPanel *TwinkleEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *TwinkleEffect::CreatePanel(wxWindow *parent) {
     return new TwinklePanel(parent);
 }
 

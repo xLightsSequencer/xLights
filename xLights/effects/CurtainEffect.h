@@ -28,7 +28,7 @@ class CurtainEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
     
         void DrawCurtain(RenderBuffer &buffer, bool LeftEdge, int xlimit, const std::vector<int> &SwagArray);

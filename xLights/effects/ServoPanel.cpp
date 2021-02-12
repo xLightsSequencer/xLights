@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(ServoPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ServoPanel::ServoPanel(wxWindow* parent)
+ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(ServoPanel)
 	BulkEditTextCtrlF1* TextCtrl_Servo;
@@ -115,8 +115,6 @@ void ServoPanel::ValidateWindow()
 		Choice_Servo_TimingTrack->Disable();
 	}
 }
-
-PANEL_EVENT_HANDLERS(ServoPanel)
 
 void ServoPanel::OnCheckBox_Timing_TrackClick(wxCommandEvent& event)
 {

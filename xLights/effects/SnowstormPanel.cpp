@@ -45,7 +45,7 @@ BEGIN_EVENT_TABLE(SnowstormPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-SnowstormPanel::SnowstormPanel(wxWindow* parent)
+SnowstormPanel::SnowstormPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(SnowstormPanel)
 	BulkEditTextCtrl* TextCtrl53;
@@ -112,5 +112,3 @@ SnowstormPanel::~SnowstormPanel()
 void SnowstormPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(SnowstormPanel)

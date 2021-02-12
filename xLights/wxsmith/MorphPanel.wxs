@@ -865,7 +865,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxButton" name="ID_MORPH_BUTTON_SWAP" subclass="BulkEditButton" variable="ButtonSwap" member="yes">
+									<object class="wxButton" name="ID_BUTTON_MORPH_SWAP" subclass="BulkEditButton" variable="ButtonSwap" member="yes">
 										<label>Swap Start and End Points</label>
 										<handler function="OnButtonSwapClick" entry="EVT_BUTTON" />
 									</object>

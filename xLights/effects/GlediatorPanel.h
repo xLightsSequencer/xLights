@@ -21,7 +21,7 @@ class wxStaticText;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class GlediatorPanel: public wxPanel
+class GlediatorPanel: public xlEffectPanel
 {
 	public:
 
@@ -48,9 +48,6 @@ class GlediatorPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
-
 		//(*Handlers(GlediatorPanel)
 		//*)
 

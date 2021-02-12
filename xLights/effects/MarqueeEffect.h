@@ -52,5 +52,5 @@ class MarqueeEffect : public RenderableEffect
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 };

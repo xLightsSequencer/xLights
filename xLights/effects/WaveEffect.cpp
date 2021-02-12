@@ -30,7 +30,7 @@ WaveEffect::~WaveEffect()
 {
     //dtor
 }
-wxPanel *WaveEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *WaveEffect::CreatePanel(wxWindow *parent) {
     return new WavePanel(parent);
 }
 

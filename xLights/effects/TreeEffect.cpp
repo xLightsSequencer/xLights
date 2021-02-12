@@ -31,7 +31,7 @@ TreeEffect::~TreeEffect()
     //dtor
 }
 
-wxPanel *TreeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *TreeEffect::CreatePanel(wxWindow *parent) {
     return new TreePanel(parent);
 }
 

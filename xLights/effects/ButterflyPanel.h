@@ -11,19 +11,19 @@
  **************************************************************/
 
  //(*Headers(ButterflyPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxChoice;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class ButterflyPanel: public wxPanel
+class ButterflyPanel: public xlEffectPanel
 {
 	public:
 
@@ -80,8 +80,6 @@ class ButterflyPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ButterflyPanel)
 		//*)

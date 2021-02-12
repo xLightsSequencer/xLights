@@ -36,7 +36,7 @@ class PianoEffect : public RenderableEffect
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return true; };
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         void SetPanelTimingTracks();

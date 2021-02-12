@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class ShimmerPanel: public wxPanel
+class ShimmerPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -67,8 +67,6 @@ class ShimmerPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ShimmerPanel)
 		//*)

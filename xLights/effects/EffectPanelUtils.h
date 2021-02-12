@@ -12,18 +12,26 @@
 
 #include <map>
 #include <string>
+#include <wx/panel.h>
 
 #include "../xlLockButton.h"
 
 wxDECLARE_EVENT(EVT_VALIDATEWINDOW, wxCommandEvent);
 
-class wxCommandEvent;
-class wxScrollEvent;
 class wxPanel;
 class wxControl;
 class wxWindow;
 class wxString;
 class wxButton;
+class wxTimer;
+
+class wxCommandEvent;
+class wxScrollEvent;
+class wxSpinEvent;
+class wxFileDirPickerEvent;
+class wxBookCtrlEvent;
+class wxFontPickerEvent;
+class wxColourPickerEvent;
 
 class EffectPanelUtils
 {
@@ -41,22 +49,44 @@ private:
     static std::map<std::string, bool> buttonStates;
 };
 
-#define PANEL_EVENT_HANDLERS(cls) \
-void cls::OnLockButtonClick(wxCommandEvent& event) { \
-    EffectPanelUtils::OnLockButtonClick(event); \
-} \
-void cls::OnVCButtonClick(wxCommandEvent& event) { \
-    EffectPanelUtils::OnVCButtonClick(event); \
-} \
-void cls::OnVCChanged(wxCommandEvent& event) { \
-        EffectPanelUtils::OnVCChanged(event); \
-} \
-void cls::OnValidateWindow(wxCommandEvent& event){ \
-        ValidateWindow(); \
-}
 
-#define DECLARE_PANEL_EVENT_HANDLERS() \
-void OnLockButtonClick(wxCommandEvent& event); \
-void OnVCButtonClick(wxCommandEvent& event); \
-void OnVCChanged(wxCommandEvent& event); \
-void OnValidateWindow(wxCommandEvent& event);
+class xlEffectPanel: public wxPanel {
+public:
+
+    xlEffectPanel(wxWindow* parent);
+    virtual ~xlEffectPanel();
+    
+    virtual void ValidateWindow() = 0;
+    
+    void AddChangeListeners(wxTimer *timer);
+    
+
+    void OnLockButtonClick(wxCommandEvent& event) {
+        EffectPanelUtils::OnLockButtonClick(event);
+    }
+    void OnVCButtonClick(wxCommandEvent& event) {
+        EffectPanelUtils::OnVCButtonClick(event);
+    }
+    void OnVCChanged(wxCommandEvent& event) {
+        EffectPanelUtils::OnVCChanged(event);
+        FireChangeEvent();
+    }
+    void OnValidateWindow(wxCommandEvent& event) {
+        ValidateWindow();
+    }
+
+protected:
+    void FireChangeEvent();
+    
+    void AddListeners(wxWindow *ParentWin);    
+    void HandleFileDirChange(wxFileDirPickerEvent& event) { FireChangeEvent(); }
+    void HandleFontChange(wxFontPickerEvent& event) { FireChangeEvent(); }
+    void HandleSpinChange(wxSpinEvent& event) { FireChangeEvent(); }
+    void HandleNotebookChange(wxBookCtrlEvent& event) { FireChangeEvent(); }
+    void HandleScrollChange(wxScrollEvent& event) { FireChangeEvent(); }
+    void HandleCommandChange(wxCommandEvent& event) { FireChangeEvent(); }
+    void HandleColorChange(wxColourPickerEvent& event) { FireChangeEvent(); }
+    
+    wxTimer *changeTimer;
+};
+

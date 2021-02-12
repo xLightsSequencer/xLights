@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class OnPanel: public wxPanel
+class OnPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -69,8 +69,6 @@ class OnPanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 	    //(*Handlers(OnPanel)
 		//*)

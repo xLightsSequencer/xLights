@@ -39,7 +39,7 @@ ServoEffect::~ServoEffect()
     //dtor
 }
 
-wxPanel *ServoEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *ServoEffect::CreatePanel(wxWindow *parent) {
     return new ServoPanel(parent);
 }
 

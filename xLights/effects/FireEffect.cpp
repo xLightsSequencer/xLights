@@ -46,7 +46,7 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-wxPanel *FireEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *FireEffect::CreatePanel(wxWindow *parent) {
     return new FirePanel(parent);
 }
 

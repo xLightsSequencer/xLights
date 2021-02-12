@@ -93,7 +93,7 @@ BEGIN_EVENT_TABLE(GalaxyPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-GalaxyPanel::GalaxyPanel(wxWindow* parent)
+GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(GalaxyPanel)
 	BulkEditTextCtrl* TextCtrl_Galaxy_Accel;
@@ -331,5 +331,3 @@ GalaxyPanel::~GalaxyPanel()
 void GalaxyPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(GalaxyPanel)

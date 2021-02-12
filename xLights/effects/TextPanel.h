@@ -29,7 +29,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class TextPanel: public wxPanel
+class TextPanel: public xlEffectPanel
 {
 	public:
 
@@ -54,6 +54,7 @@ class TextPanel: public wxPanel
 		wxPanel* Panel17;
 		wxPanel* Panel_Text1;
 		wxStaticText* StaticText107;
+		wxStaticText* StaticText162;
 		wxStaticText* StaticText186;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText211;
@@ -82,6 +83,7 @@ class TextPanel: public wxPanel
 		static const long ID_FILEPICKERCTRL_Text_File;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_Text_LyricTrack;
+		static const long ID_STATICTEXT_FONTLABEL;
 		static const long ID_FONTPICKER_Text_Font;
 		static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font;
 		static const long ID_STATICTEXT_Text_Font;
@@ -123,8 +125,6 @@ class TextPanel: public wxPanel
     protected:
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(TextPanel)
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);

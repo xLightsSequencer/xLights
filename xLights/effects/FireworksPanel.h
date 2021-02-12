@@ -25,7 +25,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class FireworksPanel: public wxPanel
+class FireworksPanel: public xlEffectPanel
 {
 	public:
 
@@ -137,8 +137,6 @@ class FireworksPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(FireworksPanel)
 		void OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event);

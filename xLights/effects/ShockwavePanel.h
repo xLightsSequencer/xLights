@@ -25,7 +25,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class ShockwavePanel: public wxPanel
+class ShockwavePanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -110,8 +110,6 @@ class ShockwavePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ShockwavePanel)
 		//*)

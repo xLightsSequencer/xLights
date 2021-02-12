@@ -23,6 +23,7 @@ class Model;
 class wxSlider;
 class EffectManager;
 class xlLockButton;
+class wxTimer;
 
 class EffectsPanel: public wxPanel
 {
@@ -31,9 +32,9 @@ public:
     wxString* CurrentDir;
     bool _suppressChangeEvent = false;
 
-    EffectsPanel(wxWindow *parent, EffectManager *effects);
+    EffectsPanel(wxWindow *parent, EffectManager *effects, wxTimer *timer);
     virtual ~EffectsPanel();
-
+    
     void SetDefaultEffectValues(const wxString &name);
     void SetEffectPanelStatus(Model *cls, const wxString &name);
     void SetSequenceElements(SequenceElements *els);
@@ -56,7 +57,8 @@ protected:
     //*)
 
 private:
-
+    wxTimer *effectChangeTimer;
+    
     //(*Handlers(EffectsPanel)
     void EffectSelected(wxChoicebookEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);

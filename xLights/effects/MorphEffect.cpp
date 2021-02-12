@@ -58,7 +58,7 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     return false;
 }
 
-wxPanel *MorphEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *MorphEffect::CreatePanel(wxWindow *parent) {
     return new MorphPanel(parent);
 }
 

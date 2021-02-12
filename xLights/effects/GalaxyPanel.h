@@ -25,7 +25,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class GalaxyPanel: public wxPanel
+class GalaxyPanel: public xlEffectPanel
 {
 	public:
 
@@ -143,8 +143,6 @@ class GalaxyPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(GalaxyPanel)
 		//*)

@@ -11,21 +11,21 @@
  **************************************************************/
 
  //(*Headers(FacesPanel)
-#include <wx/panel.h>
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxRadioButton;
-class wxSlider;
-class wxStaticBoxSizer;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxCheckBox;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxRadioButton;
+ class wxSlider;
+ class wxStaticBoxSizer;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class FacesPanel: public wxPanel
+class FacesPanel: public xlEffectPanel
 {
 	public:
 
@@ -68,8 +68,6 @@ class FacesPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(FacesPanel)
 		void OnMouthMovementTypeSelected(wxCommandEvent& event);

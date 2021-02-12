@@ -54,5 +54,5 @@ class MorphEffect : public RenderableEffect
         virtual bool PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings) override;
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 };

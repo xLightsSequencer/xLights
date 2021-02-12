@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class WavePanel: public wxPanel
+class WavePanel: public xlEffectPanel
 {
 	public:
 
@@ -108,8 +108,6 @@ class WavePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(WavePanel)
 		void OnChoice_Wave_TypeSelect(wxCommandEvent& event);

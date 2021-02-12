@@ -27,7 +27,7 @@
 
 class Model;
 
-class DMXPanel: public wxPanel
+class DMXPanel: public xlEffectPanel
 {
 	std::list<Model*> GetActiveModels();
 
@@ -345,8 +345,6 @@ class DMXPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(DMXPanel)
 		void OnButtonRemapClick(wxCommandEvent& event);

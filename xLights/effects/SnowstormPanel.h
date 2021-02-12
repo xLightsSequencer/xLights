@@ -22,7 +22,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class SnowstormPanel: public wxPanel
+class SnowstormPanel: public xlEffectPanel
 {
 	public:
 
@@ -60,8 +60,6 @@ class SnowstormPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(SnowstormPanel)
 		//*)

@@ -36,7 +36,7 @@ LiquidEffect::~LiquidEffect()
 {
 }
 
-wxPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
     return new LiquidPanel(parent);
 }
 

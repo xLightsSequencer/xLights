@@ -198,8 +198,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (reload)
-    {
+    if (reload) {
         _colours.clear();
         _colourscmp.clear();
 
@@ -314,16 +313,14 @@ int ColoursPanel::AddColour(const std::string& colour)
 
     std::string c(colour);
 
-    if (Contains(c, "ID_BUTTON_Palette"))
-    {
+    if (Contains(c, "ID_BUTTON_Palette")) {
         int loc = c.find("ID_BUTTON_Palette");
         c = c.substr(0, loc) + c.substr(loc + 18);
     }
 
     std::string lc = ::Lower(c);
 
-    if (std::find(_colourscmp.begin(), _colourscmp.end(), lc) != _colourscmp.end())
-    {
+    if (std::find(_colourscmp.begin(), _colourscmp.end(), lc) != _colourscmp.end()) {
         // already there
         return 0;
     }

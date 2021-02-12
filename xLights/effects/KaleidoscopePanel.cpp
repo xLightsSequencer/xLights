@@ -68,7 +68,7 @@ BEGIN_EVENT_TABLE(KaleidoscopePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
 {
 	//(*Initialize(KaleidoscopePanel)
 	wxFlexGridSizer* FlexGridSizer10;
@@ -179,8 +179,6 @@ KaleidoscopePanel::~KaleidoscopePanel()
 	//(*Destroy(KaleidoscopePanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(KaleidoscopePanel)
 
 void KaleidoscopePanel::OnChoice_Kaleidoscope_TypeSelect(wxCommandEvent& event)
 {

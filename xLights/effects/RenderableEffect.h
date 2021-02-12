@@ -27,6 +27,7 @@ class wxSlider;
 class wxCheckBox;
 class AudioManager;
 class wxSpinCtrl;
+class xlEffectPanel;
 
 class RenderableEffect
 {
@@ -58,7 +59,7 @@ class RenderableEffect
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
-        wxPanel *GetPanel(wxWindow *parent);
+        xlEffectPanel *GetPanel(wxWindow *parent);
 		virtual void SetDefaultParameters() {}
 		virtual void SetPanelStatus(Model *cls) {}
 		virtual wxString GetEffectString();
@@ -107,11 +108,11 @@ class RenderableEffect
                          const char **data48,
                          const char **data64);
 
-        virtual wxPanel *CreatePanel(wxWindow *parent) = 0;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) = 0;
         std::string name;
         std::string tooltip;
         int id;
-        wxPanel *panel;
+        xlEffectPanel *panel;
         SequenceElements *mSequenceElements;
 
         wxBitmap icon16;

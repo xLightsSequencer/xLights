@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_VIDEODETAILS, VideoPanel::SetVideoDetails)
 END_EVENT_TABLE()
 
-VideoPanel::VideoPanel(wxWindow* parent)
+VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(VideoPanel)
 	wxFlexGridSizer* FlexGridSizer10;
@@ -264,8 +264,6 @@ void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
 
     TextCtrl2->SetValue(FORMATTIME(ms));
 }
-
-PANEL_EVENT_HANDLERS(VideoPanel)
 
 void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
     std::unique_lock<std::mutex> locker(lock);

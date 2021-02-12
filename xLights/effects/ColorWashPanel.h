@@ -26,7 +26,7 @@ class wxTextCtrl;
 #define COLOURWASH_CYCLES_MIN 0.1f
 #define COLOURWASH_CYCLES_MAX 20
 
-class ColorWashPanel: public wxPanel
+class ColorWashPanel: public xlEffectPanel
 {
 	public:
 
@@ -63,7 +63,6 @@ class ColorWashPanel: public wxPanel
 		static const long ID_CHECKBOX_ColorWash_CircularPalette;
 		//*)
 
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ColorWashPanel)
 		//*)

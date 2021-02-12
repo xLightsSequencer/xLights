@@ -36,7 +36,7 @@ public:
     virtual bool AppropriateOnNodes() const override { return false; }
     virtual bool CanRenderPartialTimeInterval() const override { return true; }
 protected:
-    virtual wxPanel* CreatePanel(wxWindow* parent) override;
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 private:
     void LightningDrawBolt(RenderBuffer& buffer, const int x0_, const int y0_, const int x1_, const int y1_, xlColor& color, int curState);
 };

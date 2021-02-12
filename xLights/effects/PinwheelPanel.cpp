@@ -80,7 +80,7 @@ BEGIN_EVENT_TABLE(PinwheelPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-PinwheelPanel::PinwheelPanel(wxWindow* parent)
+PinwheelPanel::PinwheelPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(PinwheelPanel)
 	BulkEditTextCtrl* TextCtrl1;
@@ -312,5 +312,3 @@ PinwheelPanel::~PinwheelPanel()
 void PinwheelPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(PinwheelPanel)

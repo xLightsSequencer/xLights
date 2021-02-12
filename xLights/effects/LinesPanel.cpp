@@ -57,7 +57,7 @@ BEGIN_EVENT_TABLE(LinesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-LinesPanel::LinesPanel(wxWindow* parent)
+LinesPanel::LinesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LinesPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -167,8 +167,6 @@ LinesPanel::~LinesPanel()
 	//(*Destroy(LinesPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(LinesPanel)
 
 void LinesPanel::ValidateWindow()
 {

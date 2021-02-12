@@ -117,7 +117,7 @@ bool VideoEffect::IsVideoFile(std::string filename)
     return VideoReader::IsVideoFile(filename);
 }
 
-wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *VideoEffect::CreatePanel(wxWindow *parent) {
     return new VideoPanel(parent);
 }
 

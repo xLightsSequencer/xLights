@@ -137,7 +137,7 @@ BEGIN_EVENT_TABLE(ShapePanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_SETTIMINGTRACKS, ShapePanel::SetTimingTracks)
 END_EVENT_TABLE()
 
-ShapePanel::ShapePanel(wxWindow* parent)
+ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
     //(*Initialize(ShapePanel)
     BulkEditTextCtrl* TextCtrl1;
@@ -508,8 +508,6 @@ ShapePanel::~ShapePanel()
         _emojis.pop_front();
     }
 }
-
-PANEL_EVENT_HANDLERS(ShapePanel)
 
 void ShapePanel::ValidateWindow()
 {

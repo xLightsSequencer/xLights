@@ -31,7 +31,7 @@ public:
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual wxString GetEffectString() override;
 protected:
-    virtual wxPanel* CreatePanel(wxWindow* parent) override;
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 private:
     void mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWt, bool shimmer);
     void drawline1(RenderBuffer& buffer, int Phoneme, int x1, int x2, int y1, int y2, int colorIdx);

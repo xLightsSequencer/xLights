@@ -53,7 +53,7 @@ BEGIN_EVENT_TABLE(CurtainPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-CurtainPanel::CurtainPanel(wxWindow* parent)
+CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(CurtainPanel)
 	BulkEditTextCtrl* TextCtrl40;
@@ -165,4 +165,3 @@ void CurtainPanel::ValidateWindow()
 {
 }
 
-PANEL_EVENT_HANDLERS(CurtainPanel)

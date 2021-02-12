@@ -38,6 +38,6 @@ class WaveEffect : public RenderableEffect
         virtual bool CanBeRandom() override { return false; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 };

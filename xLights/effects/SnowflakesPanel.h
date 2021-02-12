@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class SnowflakesPanel: public wxPanel
+class SnowflakesPanel: public xlEffectPanel
 {
     void ValidateWindow();
 
@@ -77,8 +77,6 @@ class SnowflakesPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(SnowflakesPanel)
 		void OnChoice_FallingSelect(wxCommandEvent& event);

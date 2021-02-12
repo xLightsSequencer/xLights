@@ -29,5 +29,5 @@ class LinesEffect : public RenderableEffect
             int objects, int segments, int thickness, int speed, int trails, bool fadeTrails);
 		virtual void SetDefaultParameters() override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 };

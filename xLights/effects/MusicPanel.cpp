@@ -45,7 +45,7 @@ const long MusicPanel::ID_STATICTEXT_Music_EndNote = wxNewId();
 const long MusicPanel::ID_SLIDER_Music_EndNote = wxNewId();
 const long MusicPanel::IDD_TEXTCTRL_Music_EndNote = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_SLIDER_Music_EndNote = wxNewId();
-const long MusicPanel::ID_STATICTEX_Music_Sensitivity = wxNewId();
+const long MusicPanel::ID_STATICTEXT_Music_Sensitivity = wxNewId();
 const long MusicPanel::ID_SLIDER_Music_Sensitivity = wxNewId();
 const long MusicPanel::IDD_TEXTCTRL_Music_Sensitivity = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_SLIDER_Music_Sensitivity = wxNewId();
@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(MusicPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-MusicPanel::MusicPanel(wxWindow* parent)
+MusicPanel::MusicPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(MusicPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -130,7 +130,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	BitmapButton_Music_EndNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Music_EndNote, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Music_EndNote"));
 	BitmapButton_Music_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_Music_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText4 = new wxStaticText(this, ID_STATICTEX_Music_Sensitivity, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEX_Music_Sensitivity"));
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT_Music_Sensitivity, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Music_Sensitivity"));
 	FlexGridSizer31->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -246,8 +246,6 @@ MusicPanel::~MusicPanel()
 	//(*Destroy(MusicPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(MusicPanel)
 
 void MusicPanel::ValidateWindow()
 {

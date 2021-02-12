@@ -36,7 +36,7 @@ class MusicEffect : public RenderableEffect
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }
     protected:
         void CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity, bool logarithmicX);
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 		int DecodeType(const std::string& type);
         int DecodeColourTreatment(const std::string& colourtreatment);
         void RenderMorph(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool bounce, bool fade);

@@ -45,7 +45,7 @@ class FireworksEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         void SetPanelTimingTracks() const;
         static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
         virtual bool needToAdjustSettings(const std::string &version) override;

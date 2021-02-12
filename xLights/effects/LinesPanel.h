@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class LinesPanel: public wxPanel
+class LinesPanel: public xlEffectPanel
 {
 	public:
 
@@ -82,8 +82,6 @@ class LinesPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(LinesPanel)
         //*)

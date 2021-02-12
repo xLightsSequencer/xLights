@@ -60,7 +60,7 @@ class ShapeEffect : public RenderableEffect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false; };
 #endif
 protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 
     static int DecodeShape(const std::string& shape);

@@ -51,7 +51,7 @@ BEGIN_EVENT_TABLE(TwinklePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-TwinklePanel::TwinklePanel(wxWindow* parent)
+TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(TwinklePanel)
 	BulkEditTextCtrl* TextCtrl79;
@@ -143,6 +143,3 @@ TwinklePanel::~TwinklePanel()
 void TwinklePanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(TwinklePanel)
-

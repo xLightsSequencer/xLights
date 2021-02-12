@@ -22,7 +22,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class SpirographPanel: public wxPanel
+class SpirographPanel: public xlEffectPanel
 {
 	public:
 
@@ -104,8 +104,6 @@ class SpirographPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(SpirographPanel)
 		//*)

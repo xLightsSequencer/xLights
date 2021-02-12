@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class VUMeterPanel: public wxPanel
+class VUMeterPanel: public xlEffectPanel
 {
 	public:
 
@@ -133,8 +133,6 @@ class VUMeterPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(VUMeterPanel)
         void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);

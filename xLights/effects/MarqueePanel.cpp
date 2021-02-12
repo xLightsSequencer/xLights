@@ -94,7 +94,7 @@ BEGIN_EVENT_TABLE(MarqueePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-MarqueePanel::MarqueePanel(wxWindow* parent)
+MarqueePanel::MarqueePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(MarqueePanel)
 	BulkEditTextCtrl* TextCtrl_MarqueeXC;
@@ -358,5 +358,3 @@ MarqueePanel::~MarqueePanel()
 void MarqueePanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(MarqueePanel)

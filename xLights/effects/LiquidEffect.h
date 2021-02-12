@@ -56,7 +56,7 @@ class LiquidEffect : public RenderableEffect
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         void Render(RenderBuffer &buffer,
             bool top, bool bottom, bool left, bool right,
             int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,

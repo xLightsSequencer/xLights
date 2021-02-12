@@ -33,7 +33,7 @@ BEGIN_EVENT_TABLE(GlediatorPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-GlediatorPanel::GlediatorPanel(wxWindow* parent)
+GlediatorPanel::GlediatorPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(GlediatorPanel)
 	wxFlexGridSizer* FlexGridSizer53;
@@ -73,5 +73,3 @@ GlediatorPanel::~GlediatorPanel()
 void GlediatorPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(GlediatorPanel)

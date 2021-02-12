@@ -48,7 +48,7 @@ std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-wxPanel *CandleEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *CandleEffect::CreatePanel(wxWindow *parent) {
     return new CandlePanel(parent);
 }
 

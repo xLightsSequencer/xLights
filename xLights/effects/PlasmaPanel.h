@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class PlasmaPanel: public wxPanel
+class PlasmaPanel: public xlEffectPanel
 {
 	void ValidateWindow();
 
@@ -66,8 +66,6 @@ class PlasmaPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(PlasmaPanel)
 		//*)

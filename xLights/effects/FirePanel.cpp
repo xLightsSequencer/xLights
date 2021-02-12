@@ -55,7 +55,7 @@ BEGIN_EVENT_TABLE(FirePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-FirePanel::FirePanel(wxWindow* parent)
+FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(FirePanel)
 	BulkEditTextCtrl* TextCtrl20;
@@ -161,7 +161,6 @@ FirePanel::~FirePanel()
 	//*)
 }
 
-PANEL_EVENT_HANDLERS(FirePanel)
 void FirePanel::OnCheckBox_Fire_GrowWithMusicClick(wxCommandEvent& event)
 {
     ValidateWindow();

@@ -50,7 +50,7 @@ std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& setting
     return res;
 }
 
-wxPanel *OffEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *OffEffect::CreatePanel(wxWindow *parent) {
     return new OffPanel(parent);
 }
 

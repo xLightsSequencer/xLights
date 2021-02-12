@@ -33,6 +33,6 @@ class FireEffect : public RenderableEffect
 protected:
     virtual bool needToAdjustSettings(const std::string &version) override;
     virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-    virtual wxPanel *CreatePanel(wxWindow *parent) override;
+    virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 };

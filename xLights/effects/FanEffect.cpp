@@ -32,7 +32,7 @@ FanEffect::~FanEffect()
     //dtor
 }
 
-wxPanel *FanEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *FanEffect::CreatePanel(wxWindow *parent) {
     return new FanPanel(parent);
 }
 

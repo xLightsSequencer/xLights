@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class CirclesPanel: public wxPanel
+class CirclesPanel: public xlEffectPanel
 {
 	public:
 
@@ -99,8 +99,6 @@ class CirclesPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(CirclesPanel)
 		void OnCheckBox_Circles_BubblesClick(wxCommandEvent& event);

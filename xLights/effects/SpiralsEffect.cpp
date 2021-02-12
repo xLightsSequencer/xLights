@@ -32,7 +32,7 @@ SpiralsEffect::~SpiralsEffect()
 {
     //dtor
 }
-wxPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
     return new SpiralsPanel(parent);
 }
 

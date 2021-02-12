@@ -65,7 +65,7 @@ BEGIN_EVENT_TABLE(WarpPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
 {
 	//(*Initialize(WarpPanel)
 	wxFlexGridSizer* FlexGridSizer10;
@@ -198,8 +198,6 @@ WarpPanel::~WarpPanel()
 	//(*Destroy(WarpPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(WarpPanel)
 
 void WarpPanel::CheckTypeTreatment()
 {

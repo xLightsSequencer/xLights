@@ -184,7 +184,7 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
 }
 
-wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 	return new VUMeterPanel(parent);
 }
 

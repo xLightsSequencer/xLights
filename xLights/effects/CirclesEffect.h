@@ -34,7 +34,7 @@ class CirclesEffect : public RenderableEffect
         virtual bool AppropriateOnNodes() const override { return false; }
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
     
         void RenderMetaBalls(RenderBuffer &buffer, int numBalls, MetaBall *metaballs);

@@ -33,7 +33,7 @@ LifeEffect::~LifeEffect()
 }
 
 
-wxPanel *LifeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *LifeEffect::CreatePanel(wxWindow *parent) {
     return new LifePanel(parent);
 }
 

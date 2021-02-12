@@ -23,7 +23,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class SpiralsPanel: public wxPanel
+class SpiralsPanel: public xlEffectPanel
 {
 	public:
 
@@ -92,8 +92,6 @@ class SpiralsPanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(SpiralsPanel)
 		//*)

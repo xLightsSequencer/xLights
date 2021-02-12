@@ -29,7 +29,7 @@ SingleStrandEffect::~SingleStrandEffect()
     //dtor
 }
 
-wxPanel *SingleStrandEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *SingleStrandEffect::CreatePanel(wxWindow *parent) {
     return new SingleStrandPanel(parent);
 }
 

@@ -489,6 +489,7 @@ public:
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
     void OnTimer_AutoSaveTrigger(wxTimerEvent& event);
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
+    void OnRenderStatusTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
@@ -769,6 +770,7 @@ public:
     static const long ID_TIMER1;
     static const long ID_TIMER2;
     static const long ID_TIMER_EFFECT_SETTINGS;
+    static const long ID_TIMER_RENDERSTATUS;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -913,6 +915,7 @@ public:
     wxStaticText* StaticTextDummy;
     wxStaticText* StatusText;
     wxTimer EffectSettingsTimer;
+    wxTimer RenderStatusTimer;
     wxTimer Timer_AutoSave;
     xLightsTimer Timer1;
     xlAuiToolBar* ACToolbar;

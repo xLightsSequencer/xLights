@@ -28,7 +28,7 @@ SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", sno
 
 SnowstormEffect::~SnowstormEffect() {}
 
-wxPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
     return new SnowstormPanel(parent);
 }
 

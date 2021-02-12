@@ -25,7 +25,7 @@ class Model;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class StatePanel: public wxPanel
+class StatePanel: public xlEffectPanel
 {
     StateEffect* _effect;
     Model* _model;
@@ -67,8 +67,6 @@ class StatePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(StatePanel)
 		void OnMouthMovementTypeSelected(wxCommandEvent& event);

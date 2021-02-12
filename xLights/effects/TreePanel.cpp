@@ -42,7 +42,7 @@ BEGIN_EVENT_TABLE(TreePanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-TreePanel::TreePanel(wxWindow* parent)
+TreePanel::TreePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(TreePanel)
 	BulkEditTextCtrl* TextCtrl59;
@@ -100,5 +100,3 @@ TreePanel::~TreePanel()
 void TreePanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(TreePanel)

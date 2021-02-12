@@ -51,7 +51,7 @@ BEGIN_EVENT_TABLE(PlasmaPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-PlasmaPanel::PlasmaPanel(wxWindow* parent)
+PlasmaPanel::PlasmaPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(PlasmaPanel)
 	BulkEditTextCtrl* TextCtrl84;
@@ -145,5 +145,3 @@ PlasmaPanel::~PlasmaPanel()
 void PlasmaPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(PlasmaPanel)

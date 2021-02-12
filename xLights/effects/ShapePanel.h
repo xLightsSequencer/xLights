@@ -32,7 +32,7 @@ class wxTextCtrl;
 class Emoji;
 class ClickableStaticText;
 
-class ShapePanel: public wxPanel
+class ShapePanel: public xlEffectPanel
 {
     std::list<Emoji*> _emojis;
     void ValidateWindow();
@@ -173,8 +173,6 @@ class ShapePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ShapePanel)
 		void OnChoice_Shape_ObjectToDrawSelect(wxCommandEvent& event);

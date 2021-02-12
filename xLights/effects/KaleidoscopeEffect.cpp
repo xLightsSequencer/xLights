@@ -37,7 +37,7 @@ KaleidoscopeEffect::~KaleidoscopeEffect()
 {
 }
 
-wxPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
+xlEffectPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
 {
     return new KaleidoscopePanel(parent);
 }

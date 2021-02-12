@@ -31,7 +31,7 @@ LightningEffect::~LightningEffect()
     //dtor
 }
 
-wxPanel *LightningEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel *LightningEffect::CreatePanel(wxWindow *parent) {
     return new LightningPanel(parent);
 }
 

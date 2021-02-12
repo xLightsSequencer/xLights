@@ -49,7 +49,7 @@ END_EVENT_TABLE()
 
 #include "EffectPanelUtils.h"
 
-OnPanel::OnPanel(wxWindow* parent)
+OnPanel::OnPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(OnPanel)
 	wxFlexGridSizer* FlexGridSizer18;
@@ -138,6 +138,4 @@ OnPanel::~OnPanel()
 void OnPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(OnPanel)
 

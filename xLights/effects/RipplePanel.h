@@ -24,7 +24,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class RipplePanel: public wxPanel
+class RipplePanel: public xlEffectPanel
 {
     void ValidateWindow();
 
@@ -108,8 +108,6 @@ class RipplePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(RipplePanel)
 		void OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event);

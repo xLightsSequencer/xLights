@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(PianoPanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_SETTIMINGTRACKS, PianoPanel::SetTimingTracks)
 END_EVENT_TABLE()
 
-PianoPanel::PianoPanel(wxWindow* parent)
+PianoPanel::PianoPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(PianoPanel)
 	wxFlexGridSizer* FlexGridSizer27;
@@ -155,8 +155,6 @@ PianoPanel::~PianoPanel()
 	//(*Destroy(PianoPanel)
 	//*)
 }
-
-PANEL_EVENT_HANDLERS(PianoPanel)
 
 void PianoPanel::OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event)
 {

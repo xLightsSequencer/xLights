@@ -37,7 +37,7 @@ protected:
 #include <wx/textctrl.h>
 //*)
 
-class WarpPanel: public wxPanel
+class WarpPanel: public xlEffectPanel
 {
 	public:
 
@@ -100,8 +100,6 @@ class WarpPanel: public wxPanel
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(WarpPanel)
 		void OnChoice_Warp_TypeSelect(wxCommandEvent& event);

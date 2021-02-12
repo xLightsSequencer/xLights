@@ -11,17 +11,17 @@
  **************************************************************/
 
  //(*Headers(ColorPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/clrpicker.h>
-#include <wx/panel.h>
-#include <wx/scrolwin.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/bmpbuttn.h>
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/clrpicker.h>
+ #include <wx/panel.h>
+ #include <wx/scrolwin.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 #include <wx/dir.h>
 
@@ -47,7 +47,7 @@
 
 class ColourList;
 
-class ColorPanel: public wxPanel
+class ColorPanel: public xlEffectPanel
 {
     void OnCCChanged(wxCommandEvent& event);
 
@@ -180,8 +180,6 @@ public:
 		//*)
 
 	private:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);

@@ -27,7 +27,7 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class MarqueePanel: public wxPanel
+class MarqueePanel: public xlEffectPanel
 {
 	public:
 
@@ -145,8 +145,6 @@ class MarqueePanel: public wxPanel
 		//*)
 
 	public:
-
-		DECLARE_PANEL_EVENT_HANDLERS()
 
 		//(*Handlers(MarqueePanel)
 		//*)

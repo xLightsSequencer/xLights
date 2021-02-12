@@ -63,7 +63,7 @@ BEGIN_EVENT_TABLE(SpiralsPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-SpiralsPanel::SpiralsPanel(wxWindow* parent)
+SpiralsPanel::SpiralsPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(SpiralsPanel)
 	BulkEditTextCtrl* TextCtrl36;
@@ -216,5 +216,3 @@ SpiralsPanel::~SpiralsPanel()
 void SpiralsPanel::ValidateWindow()
 {
 }
-
-PANEL_EVENT_HANDLERS(SpiralsPanel)
