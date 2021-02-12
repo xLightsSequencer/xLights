@@ -660,6 +660,8 @@
 		<Unit filename="SequenceCheck.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
+		<Unit filename="SequencePackage.cpp" />
+		<Unit filename="SequencePackage.h" />
 		<Unit filename="SequenceVideoPanel.cpp" />
 		<Unit filename="SequenceVideoPanel.h" />
 		<Unit filename="SequenceVideoPreview.cpp" />
