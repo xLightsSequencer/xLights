@@ -267,6 +267,7 @@
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
+    <ClCompile Include="MediaImportOptionsDialog.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
@@ -535,6 +536,7 @@
     <ClCompile Include="SeqFileUtilities.cpp" />
     <ClCompile Include="SeqSettingsDialog.cpp" />
     <ClCompile Include="SequenceData.cpp" />
+    <ClCompile Include="SequencePackage.cpp" />
     <ClCompile Include="sequencer\DragEffectBitmapButton.cpp" />
     <ClCompile Include="sequencer\Effect.cpp" />
     <ClCompile Include="sequencer\EffectDropTarget.cpp" />
@@ -689,6 +691,7 @@
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
+    <ClInclude Include="MediaImportOptionsDialog.h" />
     <ClInclude Include="ModelChainDialog.h" />
     <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
@@ -958,6 +961,7 @@
     <ClInclude Include="SeqExportDialog.h" />
     <ClInclude Include="SeqSettingsDialog.h" />
     <ClInclude Include="SequenceData.h" />
+    <ClInclude Include="SequencePackage.h" />
     <ClInclude Include="sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="sequencer\Effect.h" />
     <ClInclude Include="sequencer\EffectDropTarget.h" />

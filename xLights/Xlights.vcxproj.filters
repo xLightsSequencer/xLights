@@ -876,6 +876,8 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="CopyFormat1.cpp" />
+    <ClCompile Include="MediaImportOptionsDialog.cpp" />
+    <ClCompile Include="SequencePackage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1759,6 +1761,8 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="CopyFormat1.h" />
+    <ClInclude Include="MediaImportOptionsDialog.h" />
+    <ClInclude Include="SequencePackage.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
