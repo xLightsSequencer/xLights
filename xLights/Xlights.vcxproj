@@ -491,7 +491,6 @@
     <ClCompile Include="outputs\LorControllers.cpp" />
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
-    <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\ArtNetOutput.cpp" />
     <ClCompile Include="outputs\DMXOutput.cpp" />
     <ClCompile Include="outputs\E131Output.cpp" />
@@ -920,8 +919,7 @@
     <ClInclude Include="outputs\LorControllers.h" />
     <ClInclude Include="outputs\LOROptimisedOutput.h" />
     <ClInclude Include="OptionChooser.h" />
-    <ClInclude Include="osxMacUtils.h" />
-    <ClInclude Include="osx_utils\TouchBars.h" />
+    <ClInclude Include="ExternalHooks.h" />
     <ClInclude Include="outputs\ArtNetOutput.h" />
     <ClInclude Include="outputs\Controller.h" />
     <ClInclude Include="outputs\DLightOutput.h" />

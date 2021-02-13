@@ -26,7 +26,6 @@
 #include "xScannerMain.h"
 #include "Scanner.h"
 #include "../xLights/xLightsVersion.h"
-#include "../xLights/osxMacUtils.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/controllers/BaseController.h"

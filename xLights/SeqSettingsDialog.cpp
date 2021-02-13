@@ -36,7 +36,7 @@
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();

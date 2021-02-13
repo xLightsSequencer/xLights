@@ -13,11 +13,11 @@
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 #include "ShaderDownloadDialog.h"
+#include "ExternalHooks.h"
 
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../TimingPanel.h"
-#include "../osxMacUtils.h"
 
 //(*InternalHeaders(ShaderPanel)
 #include <wx/artprov.h>

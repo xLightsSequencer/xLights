@@ -24,11 +24,11 @@
 #include "models/ViewObject.h"
 #include "PreviewPane.h"
 #include "DrawGLUtils.h"
-#include "osxMacUtils.h"
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
 #include "models/ModelGroup.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 

@@ -181,7 +181,7 @@
 						<label>Layer Blending</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="no">
+						<object class="wxAuiToolBarItem" name="ID_TOGGLE_MODEL_PREVIEW" variable="AuiToolBarButtonModelPreview" member="no">
 							<bitmap stock_id="xlART_MODEL_PREVIEW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Model Preview</shorthelp>
 							<handler function="ShowHideModelPreview" entry="EVT_TOOL" />
@@ -189,7 +189,7 @@
 						<label>Model Preview</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarButtonHousePreview" member="no">
+						<object class="wxAuiToolBarItem" name="ID_TOGGLE_HOUSE_PREVIEW" variable="AuiToolBarButtonHousePreview" member="no">
 							<bitmap stock_id="xlART_HOUSE_PREVIEW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>House Preview</shorthelp>
 							<handler function="ShowHideHousePreview" entry="EVT_TOOL" />
@@ -1270,11 +1270,11 @@
 						<label>Display Elements</label>
 						<handler function="ShowHideDisplayElementsWindow" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="no">
+					<object class="wxMenuItem" name="ID_MENU_TOGGLE_MODEL_PREVIEW" variable="MenuItem20" member="no">
 						<label>Model Preview</label>
 						<handler function="ShowHideModelPreview" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem6" member="no">
+					<object class="wxMenuItem" name="ID_MENU_TOGGLE_HOUSE_PREVIEW" variable="MenuItem6" member="no">
 						<label>House Preview</label>
 						<handler function="ShowHideHousePreview" entry="EVT_MENU" />
 					</object>

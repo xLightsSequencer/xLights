@@ -17,8 +17,8 @@
 #include "../ModelPreview.h"
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
-#include "../osxMacUtils.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 

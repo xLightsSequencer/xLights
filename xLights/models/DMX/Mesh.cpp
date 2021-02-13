@@ -18,9 +18,9 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "../../UtilFunctions.h"
+#include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
-#include "../../osxMacUtils.h"
 #include <log4cpp/Category.hh>
 
 #include <glm/gtc/quaternion.hpp>

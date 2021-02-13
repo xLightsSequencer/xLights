@@ -13,6 +13,7 @@
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../sequencer/SequenceElements.h"
 
 #include <wx/fontpicker.h>
@@ -31,7 +32,6 @@
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
-#include "../osxMacUtils.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,

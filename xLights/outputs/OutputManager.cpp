@@ -26,7 +26,6 @@
 #include "xxxEthernetOutput.h"
 #include "OPCOutput.h"
 #include "TestPreset.h"
-#include "../osxMacUtils.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
 
@@ -1055,7 +1054,6 @@ bool OutputManager::StartOutput() {
     _outputCriticalSection.Leave();
 
     if (_outputting) {
-        DisableSleepModes();
         SetGlobalOutputtingFlag(true);
     }
 
@@ -1079,8 +1077,6 @@ void OutputManager::StopOutput() {
 
     SetGlobalOutputtingFlag(false);
     _outputCriticalSection.Leave();
-
-    EnableSleepModes();
 }
 
 size_t OutputManager::TxNonEmptyCount() {

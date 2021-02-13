@@ -21,7 +21,7 @@
 #include "BulkEditFontPickerDialog.h"
 #include "BulkEditColourPickerDialog.h"
 #include "UtilFunctions.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 

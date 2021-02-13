@@ -10,14 +10,15 @@
 
 #include "ModelDimmingCurveDialog.h"
 #include "xLightsXmlFile.h"
-#include "osxMacUtils.h"
 
 //(*InternalHeaders(ModelDimmingCurveDialog)
 #include <wx/button.h>
 #include <wx/string.h>
 #include <wx/intl.h>
-#include "UtilFunctions.h"
 //*)
+
+#include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(ModelDimmingCurveDialog)
 const long ModelDimmingCurveDialog::ID_TEXTCTRL1 = wxNewId();

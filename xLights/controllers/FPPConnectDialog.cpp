@@ -16,6 +16,7 @@
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 
@@ -27,7 +28,6 @@
 #include "../FSEQFile.h"
 #include "../Parallel.h"
 #include "../Discovery.h"
-#include "../osxMacUtils.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();

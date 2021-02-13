@@ -41,8 +41,8 @@
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "ModelPreview.h"
-#include "osxMacUtils.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -805,10 +805,6 @@ void CustomModelDialog::OnGridCustomCellSelected(wxGridEvent& event)
     UpdatePreview();
 }
 
-#ifdef __WXOSX__
-wxString GetOSXFormattedClipboardData();
-#endif
-
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
     _changed = true;
@@ -917,11 +913,7 @@ void CustomModelDialog::Paste()
     _changed = true;
     wxString copy_data = "";
 
-#ifdef __WXOSX__
-    //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
-    //native ObjectC code can get the proper tab formatted version.
-    copy_data = GetOSXFormattedClipboardData();
-#endif
+    copy_data = GetOSFormattedClipboardData();
 
     if (copy_data == "") {
         if (wxTheClipboard->Open())

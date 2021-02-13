@@ -91,6 +91,7 @@
 #include "KeyBindingEditDialog.h"
 #include "TraceLog.h"
 #include "AboutDialog.h"
+#include "ExternalHooks.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -110,7 +111,6 @@
 #define TOOLBAR_SAVE_VERSION "0003:"
 #define MAXBACKUPFILE_MB 30
 
-#include "osxMacUtils.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -159,8 +159,8 @@ const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
+const long xLightsFrame::ID_TOGGLE_MODEL_PREVIEW = wxNewId();
+const long xLightsFrame::ID_TOGGLE_HOUSE_PREVIEW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
@@ -273,8 +273,8 @@ const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MNU_PERSPECTIVES_AUTOSAVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM7 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_DISPLAY_ELEMENTS = wxNewId();
-const long xLightsFrame::ID_MENUITEM12 = wxNewId();
-const long xLightsFrame::ID_MENUITEM3 = wxNewId();
+const long xLightsFrame::ID_MENU_TOGGLE_MODEL_PREVIEW = wxNewId();
+const long xLightsFrame::ID_MENU_TOGGLE_HOUSE_PREVIEW = wxNewId();
 const long xLightsFrame::ID_MENUITEM14 = wxNewId();
 const long xLightsFrame::ID_MENUITEM15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM16 = wxNewId();
@@ -562,8 +562,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_COLORS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Effect Colors"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM7, _("Layer Settings"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LAYERS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Layer Settings"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Layer Blending"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LAYERS2")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Layer Blending"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM1, _("Model Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_MODEL_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_HOUSE_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_TOGGLE_MODEL_PREVIEW, _("Model Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_MODEL_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_TOGGLE_HOUSE_PREVIEW, _("House Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_HOUSE_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SEQUENCE_ELEMENTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTASSISTANT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
@@ -920,9 +920,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     MenuItem18 = new wxMenu();
     MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemDisplayElements);
-    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_MODEL_PREVIEW, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
-    MenuItem6 = new wxMenuItem(MenuItem18, ID_MENUITEM3, _("House Preview"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem6 = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_HOUSE_PREVIEW, _("House Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem6);
     MenuItem22 = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem22);
@@ -1038,8 +1038,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM7,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
     Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
-    Connect(ID_AUITOOLBARITEM1,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
-    Connect(ID_AUITOOLBARITEM4,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
+    Connect(ID_TOGGLE_MODEL_PREVIEW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
+    Connect(ID_TOGGLE_HOUSE_PREVIEW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_AUITOOLBARITEM6,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_AUITOOLBARITEM8,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemShowHideEffects);
     Connect(ID_AUITOOLBARITEM9,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
@@ -1138,8 +1138,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_MNU_PERSPECTIVES_AUTOSAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PerspectiveAutosaveSelected);
     Connect(ID_MENUITEM_DISPLAY_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
-    Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
-    Connect(ID_MENUITEM3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
+    Connect(ID_MENU_TOGGLE_MODEL_PREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
+    Connect(ID_MENU_TOGGLE_HOUSE_PREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_MENUITEM14,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
@@ -2261,12 +2261,14 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event) {
 void xLightsFrame::CycleOutputsIfOn() {
     if (_outputManager.IsOutputting()) {
         _outputManager.StopOutput();
+        EnableSleepModes();
         ForceEnableOutputs();
     }
 }
 bool xLightsFrame::ForceEnableOutputs() {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
+        DisableSleepModes();
         outputting = _outputManager.StartOutput();
         printf("Starting timer - EnableOutput\n");
         OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
@@ -2314,7 +2316,8 @@ bool xLightsFrame::DisableOutputs() {
     if (_outputManager.IsOutputting()) {
         _outputManager.AllOff();
         _outputManager.StopOutput();
-
+        EnableSleepModes();
+        
         for (auto &controller : _outputManager.GetControllers()) {
             if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
                 ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);

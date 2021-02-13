@@ -23,12 +23,12 @@
 #include "xLightsXmlFile.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
-#include "osxMacUtils.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
 #include "SpecialOptions.h"
 #include "LayoutGroup.h"
 #include "ControllerModelDialog.h"
+#include "ExternalHooks.h"
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
@@ -256,6 +256,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
+    EnableSleepModes();
     _outputManager.StopOutput();
     _outputManager.DeleteAllControllers();
     CurrentDir = nd;

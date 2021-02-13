@@ -17,9 +17,9 @@
 
 #include "DmxImage.h"
 #include "../../UtilFunctions.h"
+#include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
-#include "../../osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 

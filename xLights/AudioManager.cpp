@@ -24,7 +24,7 @@
 #include "AudioManager.h"
 #include "kiss_fft/tools/kiss_fftr.h"
 #include "../xSchedule/md5.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 #include "Parallel.h"
 
 extern "C"
@@ -1360,7 +1360,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     {
         logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
     }
-    AddAudioDeviceChangeListener(this);
+    AddAudioDeviceChangeListener([this]() {AudioDeviceChanged();});
 }
 
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const
@@ -2127,7 +2127,7 @@ void AudioManager::SetStepBlock(int step, int block)
 AudioManager::~AudioManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    RemoveAudioDeviceChangeListener(this);
+    RemoveAudioDeviceChangeListener();
 
     while (IsOk() && !IsDataLoaded())
     {

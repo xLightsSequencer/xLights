@@ -12,7 +12,6 @@
 #include <wx/dir.h>
 #include <wx/wfstream.h>
 
-#include "osxMacUtils.h"
 #include "HinksPixExportDialog.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
@@ -21,6 +20,7 @@
 #include "UtilFunctions.h"
 #include "ControllerCaps.h"
 #include "AudioManager.h"
+#include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>

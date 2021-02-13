@@ -28,15 +28,15 @@
 
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
-#include "osxMacUtils.h"
 #include <wx/graphics.h>
 #include <wx/dcgraph.h>
 #include "Image_Loader.h"
 #include "xlGLCanvas.h"
+#include "ExternalHooks.h"
 
 #include <map>
 #include "Image.h"
-const double PI  =3.141592653589793238463;
+const double PI = 3.141592653589793238463;
 
 #include <log4cpp/Category.hh>
 

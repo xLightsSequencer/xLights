@@ -19,9 +19,9 @@
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
-#include "../osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 

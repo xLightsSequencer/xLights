@@ -30,6 +30,7 @@
 #include "models/Model.h"
 #include "models/CustomModel.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(NodeSelectGrid)
 const long NodeSelectGrid::ID_CHECKBOX1 = wxNewId();
@@ -1101,19 +1102,13 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
     }
 }
 
-#ifdef __WXOSX__
-wxString GetOSXFormattedClipboardData();
-#endif
-
 void NodeSelectGrid::Paste()
 {
     wxString copy_data = "";
 
-#ifdef __WXOSX__
     //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
     //native ObjectC code can get the proper tab formatted version.
-    copy_data = GetOSXFormattedClipboardData();
-#endif
+    copy_data = GetOSFormattedClipboardData();
 
     if (copy_data.empty())
     {

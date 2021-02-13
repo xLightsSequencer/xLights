@@ -34,7 +34,6 @@
 #include "../NoteImportDialog.h"
 #include "../MIDI/MidiFile.h"
 #include "../MusicXML.h"
-#include "../osxMacUtils.h"
 #include "../SeqElementMismatchDialog.h"
 #include "../SequenceVideoPanel.h"
 #include "../RenderCommandEvent.h"
@@ -56,6 +55,7 @@
 #include "../TraceLog.h"
 #include "../effects/EffectPanelUtils.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -188,7 +188,9 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->Layout();
     logger_base.debug("CreateSequencer: Done.");
 
+#ifdef __XLIGHTS_HAS_TOUCHBARS__
     mainSequencer->SetupTouchBar(effectManager, colorPanel->SetupTouchBar(mainSequencer->touchBarSupport));
+#endif
 }
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)

@@ -24,6 +24,7 @@
 
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
+#include "ExternalHooks.h"
 
 #include <mutex>
 
@@ -913,13 +914,9 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
     }
 }
 
-#ifdef __WXOSX__
-double xlOSXGetMainScreenContentScaleFactor();
-#endif
-
 double GetSystemContentScaleFactor() {
 #ifdef __WXOSX__
-    return xlOSXGetMainScreenContentScaleFactor();
+    return xlOSGetMainScreenContentScaleFactor();
 #else
     return double(wxScreenDC().GetPPI().y) / 96.0;
 #endif

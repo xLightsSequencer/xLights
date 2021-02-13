@@ -71,7 +71,6 @@
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
-    <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -957,8 +956,7 @@
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
     <ClInclude Include="OptionChooser.h" />
-    <ClInclude Include="osxMacUtils.h" />
-    <ClInclude Include="osx_utils\TouchBars.h" />
+    <ClInclude Include="ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />

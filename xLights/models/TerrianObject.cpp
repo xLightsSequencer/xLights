@@ -17,7 +17,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "RulerObject.h"
-#include "../osxMacUtils.h"
+#include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
 TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)

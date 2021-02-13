@@ -30,6 +30,7 @@
 #include "ConvertLogDialog.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "models/ModelGroup.h"
 #include "HousePreviewPanel.h"
 #include "FontManager.h"
@@ -49,7 +50,6 @@
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
 #include "Vixen3.h"
-#include "osxMacUtils.h"
 #include "SequencePackage.h"
 
 #include <log4cpp/Category.hh>

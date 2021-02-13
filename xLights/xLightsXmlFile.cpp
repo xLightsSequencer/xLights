@@ -26,11 +26,11 @@
 #include "OptionChooser.h"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
-#include "osxMacUtils.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "sequencer/TimeLine.h"
 #include "Vixen3.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 

@@ -43,12 +43,12 @@
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "MatrixFaceDownloadDialog.h"
 #include "xLightsMain.h"
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
 #include "xLightsApp.h"
-#include "osxMacUtils.h"
 #include "support/VectorMath.h"
 
 #include <log4cpp/Category.hh>

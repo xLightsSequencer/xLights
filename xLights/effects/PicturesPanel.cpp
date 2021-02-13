@@ -30,7 +30,7 @@
 #include "PicturesPanel.h"
 #include "EffectPanelUtils.h"
 #include "GIFImage.h"
-#include "../osxMacUtils.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(PicturesPanel)
 const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();

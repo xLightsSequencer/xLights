@@ -45,7 +45,6 @@
 #include "UserButton.h"
 #include "OutputProcessingDialog.h"
 #include <wx/clipbrd.h>
-#include "../xLights/osxMacUtils.h"
 #include "BackgroundPlaylistDialog.h"
 #include "MatricesDialog.h"
 #include "VirtualMatricesDialog.h"
