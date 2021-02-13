@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix Twinkle New Render Method not working with 1 pixel buffers
 2021.04 February 8 2021
    -- enh (scott)  Look one level deep for missing files
    -- enh (scott)  When exporting models let user decide groups to include

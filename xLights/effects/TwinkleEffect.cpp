@@ -197,7 +197,7 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
 
 static void place_twinkles(int lights_to_place, int &curIndex, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
                            int max_modulo, size_t colorcnt) {
-    while (lights_to_place > 0 && (curIndex < (strobe.size()-1))) {
+    while (lights_to_place > 0 && (curIndex < strobe.size())) {
         int idx = rand() % (strobe.size() - curIndex) + curIndex;
         if (idx != curIndex) {
             std::swap(strobe[idx], strobe[curIndex]);
@@ -224,6 +224,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     }
 
     int lights = (buffer.BufferHt*buffer.BufferWi)*(Count / 100.0); // Count is in range of 1-100 from slider bar
+    if (buffer.BufferHt * buffer.BufferWi == 1) lights = 1;
 
     int step = 1;
     if (lights > 0) {
