@@ -102,6 +102,16 @@ void IciclesModel::InitModel() {
         }
     }
     SetBufferSize(maxH, width+1);
+    
+    //single icicle move to the center
+    if(width == 0) {
+        for (auto& n : Nodes) {
+            for (auto& c : n->Coords) {
+                c.screenX = 0.5;
+            }
+        }
+        width++;
+    }
     screenLocation.SetRenderSize(width, maxH);
 }
 
