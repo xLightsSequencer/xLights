@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)
+   -- bug (dkulp)  ESPixelStick websocket connection failes to handle fragemented messages
    -- bug (gil)    Fix Twinkle New Render Method not working with 1 pixel buffers
 2021.04 February 8 2021
    -- enh (scott)  Look one level deep for missing files
