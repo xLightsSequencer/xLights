@@ -11,9 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.05 February 19 2021
    -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)
+   -- enh (dpriem) Allow direct import from packaged sequence zip files
    -- bug (dkulp)  ESPixelStick websocket connection failes to handle fragemented messages
    -- bug (gil)    Fix Twinkle New Render Method not working with 1 pixel buffers
+   -- bug (scott)  Fix brightness on ESPixelStick
+   -- bug (scott)  Fix single icicle does not appear on screen
 2021.04 February 8 2021
    -- enh (scott)  Look one level deep for missing files
    -- enh (scott)  When exporting models let user decide groups to include
