@@ -224,7 +224,7 @@ void JukeboxPanel::PlayItem(int item)
     else
     {
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
-        xLightsApp::GetFrame()->GetMainSequencer()->SetPlayStatus(PLAY_TYPE_STOPPED);
+        xLightsApp::GetFrame()->SetPlayStatus(PLAY_TYPE_STOPPED);
         xLightsApp::GetFrame()->UnselectEffect();
 
         // turn all the lights off in case we are outputting to lights

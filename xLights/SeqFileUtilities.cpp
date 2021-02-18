@@ -175,7 +175,7 @@ void xLightsFrame::NewSequence()
         RenderAll();
     }
 
-    Timer1.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+    OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
     const std::string view = setting_dlg.GetView();
     if (view == "All Models") {
@@ -524,17 +524,14 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 }
             }
             _seqData.init(numChan, mMediaLengthMS / ms, ms);
-        }
-        else if( !loaded_fseq )
-        {
+        } else if( !loaded_fseq ) {
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         displayElementsPanel->Initialize();
 
         // if we loaded the fseq but not the xml then we need to populate views
-        if (!CurrentSeqXmlFile->IsOpen())
-        {
+        if (!CurrentSeqXmlFile->IsOpen()) {
             std::string new_timing = "New Timing";
             CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
             _sequenceElements.AddTimingToAllViews(new_timing);
@@ -542,14 +539,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             displayElementsPanel->SelectView("Master View");
         }
 
-        Timer1.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
-
-        if( loaded_fseq )
-        {
+        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        if (loaded_fseq) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
-        }
-        else if( !loaded_xml )
-        {
+        } else if (!loaded_xml) {
             SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
             return;
         }

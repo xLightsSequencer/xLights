@@ -1473,10 +1473,10 @@
 				</object>
 			</object>
 		</object>
-		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="Timer1" member="yes">
-			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
+		<object class="wxTimer" name="ID_TIMER_OutputTimer" subclass="xLightsTimer" variable="OutputTimer" member="yes">
+			<handler function="OnOutputTimerTrigger" entry="EVT_TIMER" />
 		</object>
-		<object class="wxTimer" name="ID_TIMER2" variable="Timer_AutoSave" member="yes">
+		<object class="wxTimer" name="ID_TIMER_AutoSave" variable="AutoSaveTimer" member="yes">
 			<handler function="OnTimer_AutoSaveTrigger" entry="EVT_TIMER" />
 		</object>
 		<object class="wxTimer" name="ID_TIMER_EFFECT_SETTINGS" variable="EffectSettingsTimer" member="yes">

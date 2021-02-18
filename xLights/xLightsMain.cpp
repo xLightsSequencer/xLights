@@ -315,8 +315,8 @@ const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
 const long xLightsFrame::ID_MNU_DONATE = wxNewId();
 const long xLightsFrame::ID_MNU_UPDATE = wxNewId();
-const long xLightsFrame::ID_TIMER1 = wxNewId();
-const long xLightsFrame::ID_TIMER2 = wxNewId();
+const long xLightsFrame::ID_TIMER_OutputTimer = wxNewId();
+const long xLightsFrame::ID_TIMER_AutoSave = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
 const long xLightsFrame::ID_TIMER_RENDERSTATUS = wxNewId();
 //*)
@@ -1020,8 +1020,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
-    Timer1.SetOwner(this, ID_TIMER1);
-    Timer_AutoSave.SetOwner(this, ID_TIMER2);
+    OutputTimer.SetOwner(this, ID_TIMER_OutputTimer);
+    AutoSaveTimer.SetOwner(this, ID_TIMER_AutoSave);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
     RenderStatusTimer.SetOwner(this, ID_TIMER_RENDERSTATUS);
     RenderStatusTimer.Start(100, false);
@@ -1184,8 +1184,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Connect(ID_MNU_DONATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DonateSelected);
     Connect(ID_MNU_UPDATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UpdateSelected);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
-    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
-    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
+    Connect(ID_TIMER_OutputTimer,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnOutputTimerTrigger);
+    Connect(ID_TIMER_AutoSave,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
     Connect(ID_TIMER_EFFECT_SETTINGS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnEffectSettingsTimerTrigger);
     Connect(ID_TIMER_RENDERSTATUS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnRenderStatusTimerTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
@@ -1701,9 +1701,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     DoBackupPurge();
 
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
-    //to whatever the timing that is selected
-    Timer1.Start(50, wxTIMER_CONTINUOUS);
-
+    //to whatever the timing that is selected.   If the timer triggers and is then not
+    //needed, it will be turned off later
+    OutputTimer.Start(50, wxTIMER_CONTINUOUS);
+    
     // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model
     // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
@@ -1791,9 +1792,10 @@ xLightsFrame::~xLightsFrame()
     //render thread is completely stuck
     AbortRender(2000);
 
-    Timer_AutoSave.Stop();
+    AutoSaveTimer.Stop();
     EffectSettingsTimer.Stop();
-    Timer1.Stop();
+    OutputTimer.Stop();
+    RenderStatusTimer.Stop();
     DrawingContext::CleanUp();
 
     if (_xFadeSocket != nullptr)
@@ -2009,23 +2011,22 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
+void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
 {
     PushTraceContext();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
-    AddTraceMessage("Timer1");
+    bool needTimer = _outputManager.IsOutputting();
+    AddTraceMessage("OutputTimer");
     _outputManager.StartFrame(curtime);
     AddTraceMessage("Output frame started");
     if (Notebook1 != nullptr) {
-        switch (Notebook1->GetSelection())
-        {
+        switch (Notebook1->GetSelection()) {
         case NEWSEQUENCER:
             if (playAnimation) {
-                TimerRgbSeq(curtime * playSpeed);
-            }
-            else {
-                TimerRgbSeq(curtime);
+                needTimer |= TimerRgbSeq(curtime * playSpeed);
+            } else {
+                needTimer |= TimerRgbSeq(curtime);
             }
             break;
         default:
@@ -2035,6 +2036,11 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     AddTraceMessage("TimerRgbSeq called");
     _outputManager.EndFrame();
     AddTraceMessage("Output frame complete");
+    if (!needTimer) {
+        //printf("Stopping timer\n");
+        OutputTimer.Stop();
+    }
+    
     PopTraceContext();
 }
 
@@ -2266,6 +2272,8 @@ bool xLightsFrame::ForceEnableOutputs() {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
         outputting = _outputManager.StartOutput();
+        printf("Starting timer - EnableOutput\n");
+        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
         if (outputting) {
             for (auto &controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
@@ -3027,8 +3035,8 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     wxString path(pExportDlg->GetPath());
     delete pExportDlg;
 
-    int playStatus = mainSequencer->GetPlayStatus();
-    mainSequencer->SetPlayStatus(PLAY_TYPE_STOPPED);
+    int playStatus = GetPlayStatus();
+    SetPlayStatus(PLAY_TYPE_STOPPED);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
@@ -3092,20 +3100,16 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         exportStatus = false;
     }
 
-    mainSequencer->SetPlayStatus( playStatus );
+    SetPlayStatus(playStatus);
 
-    if ( !visible )
-    {
+    if (!visible) {
         m_mgr->GetPane( "HousePreview" ).Hide();
         m_mgr->Update();
     }
 
-    if (exportStatus)
-    {
+    if (exportStatus) {
         logger_base.debug( "Finished writing house-preview video." );
-    }
-    else
-    {
+    } else {
         DisplayError( "Exporting house preview video failed.  " + emsg, this );
     }
 }
@@ -3413,7 +3417,10 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		}
 	}
 
-	Timer1.Stop();
+    bool timerRunning = OutputTimer.IsRunning();
+    if (timerRunning) {
+        OutputTimer.Stop();
+    }
 
 	// save the output state and turn it off
 	bool output = CheckBoxLightOutput->IsChecked();
@@ -3446,7 +3453,9 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	}
 
     // Restart the timer without changing the interval
-	Timer1.Start();
+    if (timerRunning) {
+        OutputTimer.Start();
+    }
 
 	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING) {
@@ -3506,7 +3515,10 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         }
     }
 
-    Timer1.Stop();
+    bool timerRunning = OutputTimer.IsRunning();
+    if (timerRunning) {
+        OutputTimer.Stop();
+    }
 
     // save the output state and turn it off
     bool output = CheckBoxLightOutput->IsChecked();
@@ -3529,7 +3541,9 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     }
 
     // restarts the timer without changing the interval
-    Timer1.Start();
+    if (timerRunning) {
+        OutputTimer.Start();
+    }
 
     // resume playing the media if it was playing
     if (mps == MEDIAPLAYINGSTATE::PLAYING)
@@ -3922,7 +3936,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     }
 
     if (mAutoSaveInterval > 0) {
-        Timer_AutoSave.StartOnce(mAutoSaveInterval * 60000);
+        AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
     }
 }
 
@@ -3934,9 +3948,9 @@ void xLightsFrame::SetAutoSaveInterval(int nasi)
         mAutoSaveInterval = nasi;
     }
     if (mAutoSaveInterval > 0) {
-        Timer_AutoSave.StartOnce(mAutoSaveInterval * 60000);
+        AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
     } else {
-        Timer_AutoSave.Stop();
+        AutoSaveTimer.Stop();
     }
 }
 

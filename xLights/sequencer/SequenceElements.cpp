@@ -2253,6 +2253,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
                 if (el2 != nullptr) {
                     el2->IncrementChangeCount(ss, es);
                     modelsToRender.insert(*sit);
+                    xframe->StartOutputTimer(); // start the timer so the render will trigger
                 }
             }
         }

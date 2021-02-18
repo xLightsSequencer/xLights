@@ -425,7 +425,7 @@ public:
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnMenuOpenFolderSelected(wxCommandEvent& event);
-    void OnTimer1Trigger(wxTimerEvent& event);
+    void OnOutputTimerTrigger(wxTimerEvent& event);
     void OnButtonNetworkMoveUpClick(wxCommandEvent& event);
     void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
@@ -767,8 +767,8 @@ public:
     static const long ID_MENU_HELP_FACEBOOK;
     static const long ID_MNU_DONATE;
     static const long ID_MNU_UPDATE;
-    static const long ID_TIMER1;
-    static const long ID_TIMER2;
+    static const long ID_TIMER_OutputTimer;
+    static const long ID_TIMER_AutoSave;
     static const long ID_TIMER_EFFECT_SETTINGS;
     static const long ID_TIMER_RENDERSTATUS;
     //*)
@@ -914,10 +914,10 @@ public:
     wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticTextDummy;
     wxStaticText* StatusText;
+    wxTimer AutoSaveTimer;
     wxTimer EffectSettingsTimer;
     wxTimer RenderStatusTimer;
-    wxTimer Timer_AutoSave;
-    xLightsTimer Timer1;
+    xLightsTimer OutputTimer;
     xlAuiToolBar* ACToolbar;
     xlAuiToolBar* EditToolBar;
     xlAuiToolBar* EffectsToolBar;
@@ -1258,7 +1258,7 @@ private:
     void LoadEffectsFile();
     wxString LoadEffectsFileNoCheck();
     void CreateDefaultEffectsXml();
-    void TimerRgbSeq(long msec);
+    bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1644,6 +1644,8 @@ public:
     TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
 
     int GetPlayStatus() const { return playType; }
+    void SetPlayStatus(int status);
+    void StartOutputTimer();
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 

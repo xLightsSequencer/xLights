@@ -312,7 +312,6 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
 
     _savedTopModel = "";
     mParent = parent;
-    mPlayType = 0;
 
     logger_base.debug("                Set handlers");
     SetHandlers(this);
@@ -386,12 +385,6 @@ void MainSequencer::UpdateSelectedDisplay(int selected)
         timeDisplay->SetSelected(wxString::Format("Selected: %s", FORMATTIME(selected)));
     }
 }
-
-void MainSequencer::SetPlayStatus(int play_type)
-{
-    mPlayType = play_type;
-}
-
 void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsHorizontal->GetThumbPosition();
@@ -1490,7 +1483,7 @@ void MainSequencer::InsertTimingMarkFromRange()
     bool is_range = true;
     int x1;
     int x2;
-    if (mPlayType == PLAY_TYPE_MODEL) {
+    if (mSequenceElements->GetXLightsFrame()->GetPlayStatus() == PLAY_TYPE_MODEL) {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
     }
@@ -1594,7 +1587,7 @@ void MainSequencer::SplitTimingMark()
 
     int x1;
     int x2;
-    if (mPlayType == PLAY_TYPE_MODEL)
+    if (mSequenceElements->GetXLightsFrame()->GetPlayStatus() == PLAY_TYPE_MODEL)
     {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
