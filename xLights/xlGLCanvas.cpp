@@ -262,6 +262,37 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
 #endif
 }
 
+xlGLCanvas::xlGLCanvas(wxWindow* parent,
+           const wxGLAttributes& dispAttrs,
+           const wxString &name)
+    : wxGLCanvas(parent, dispAttrs, -1, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS, name),
+    mWindowWidth(0),
+    mWindowHeight(0),
+    mWindowResized(false),
+    mIsInitialized(false),
+    m_context(nullptr),
+    m_coreProfile(true),
+    cache(nullptr),
+    m_zDepth(0),
+_name(name) {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
+
+    xlSetOpenGLRetina(*this);
+    this->GetGLCTXAttrs().PlatformDefaults();
+
+#ifdef __WXMSW__
+    int origPixelFormat = GetPixelFormat(m_hDC);
+    PIXELFORMATDESCRIPTOR pfdOrig;
+    DescribePixelFormat(m_hDC,
+                        origPixelFormat,
+                        sizeof(PIXELFORMATDESCRIPTOR),
+                        &pfdOrig
+    );
+    printf("PixelFormatFlags:  %X\n", pfdOrig.dwFlags);
+#endif
+}
+
 xlGLCanvas::~xlGLCanvas()
 {
     if (m_context && m_context != m_sharedContext) {

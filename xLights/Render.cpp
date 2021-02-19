@@ -796,7 +796,7 @@ public:
                 }
                 //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
                 if (HasNext()) {
-                    SetGenericStatus("%s: Notifying next renderer of frame %d done", frame);
+                    SetGenericStatus("%s: Notifying next renderer of frame %d done", frame, true);
                     FrameDone(frame);
                 }
             }
@@ -815,11 +815,11 @@ public:
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
-            SetGenericStatus("%s: Waiting on previous renderer for final frame", 0);
+            SetGenericStatus("%s: Waiting on previous renderer for final frame", 0, true);
             waitForFrame(END_OF_RENDER_FRAME);
 
             //let the next know we're done
-            SetGenericStatus("%s: Notifying next renderer of final frame", 0);
+            SetGenericStatus("%s: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0);
         } else {
@@ -1975,37 +1975,10 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
 
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
-
-        for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); ++bufn) {
-            RenderBuffer* b = &buffer.BufferForLayer(layer, bufn);
-            RenderBuffer* oldBuffer = nullptr;
-            RenderBuffer *newBuffer = nullptr;
-
-            // if we are suppressing then create a fake render buffer
-            if (suppress) {
-                newBuffer = new RenderBuffer(*b);
-                oldBuffer = b;
-                b = newBuffer;
-            }
-
-            if (reff == nullptr) {
-                retval= false;
-            } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
-                wxStopWatch sw;
-
-                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
-                    if (!effectObj->GetFrame(*b, _renderCache)) {
-                        reff->Render(effectObj, SettingsMap, *b);
-                        effectObj->AddFrame(*b, _renderCache);
-                    }
-                } else {
-                    reff->Render(effectObj, SettingsMap, *b);
-                }
-                // Log slow render frames ... this takes time but at this point it is already slow
-                if (sw.Time() > 150) {
-                    logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b->curPeriod, (const char *)buffer.GetModelName().c_str(),b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer, sw.Time());
-                }
-            } else {
+        
+        if (reff) {
+            RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
+            if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
                 event->effect = effectObj;
                 event->layer = layer;
                 event->period = period;
@@ -2021,18 +1994,18 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                 qlock.unlock();
 
                 CallAfter(&xLightsFrame::RenderMainThreadEffects);
-                if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
+                if (event->signal.wait_for(lock, std::chrono::seconds(10)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
-                    logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 5 secs.", b->curPeriod, (const char *)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                    printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 5 secs.\n", b->curPeriod, (const char *)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                    logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char *)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                    printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char *)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
 
                     // Give it one more chance
-                    if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
+                    if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
                         retval = event->returnVal;
                     } else {
-                        logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                        logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                        printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                     }
                 }
                 if (period % 10 == 0) {
@@ -2046,19 +2019,46 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                     if (!_sequenceElements.IsValidEffect(event->effect))
                     {
                         logger_base.error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
-                        wxASSERT(false);
-                        break; // exit the for loop
                     }
                 }
-            }
+            } else {
+                for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); ++bufn) {
+                    RenderBuffer* b = &buffer.BufferForLayer(layer, bufn);
+                    RenderBuffer* oldBuffer = nullptr;
+                    RenderBuffer *newBuffer = nullptr;
 
-            if (suppress && oldBuffer != nullptr) {
-                oldBuffer->needToInit = b->needToInit;
-                oldBuffer->infoCache = b->infoCache;
-                delete newBuffer;
+                    // if we are suppressing then create a fake render buffer
+                    if (suppress) {
+                        newBuffer = new RenderBuffer(*b);
+                        oldBuffer = b;
+                        b = newBuffer;
+                    }
+
+                    wxStopWatch sw;
+                    if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
+                        if (!effectObj->GetFrame(*b, _renderCache)) {
+                            reff->Render(effectObj, SettingsMap, *b);
+                            effectObj->AddFrame(*b, _renderCache);
+                        }
+                    } else {
+                        reff->Render(effectObj, SettingsMap, *b);
+                    }
+                    // Log slow render frames ... this takes time but at this point it is already slow
+                    if (sw.Time() > 150) {
+                        logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b->curPeriod, (const char *)buffer.GetModelName().c_str(),b->BufferWi, b->BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer, sw.Time());
+                    }
+
+                    if (suppress && oldBuffer != nullptr) {
+                        oldBuffer->needToInit = b->needToInit;
+                        oldBuffer->infoCache = b->infoCache;
+                        delete newBuffer;
+                    }
+                }
+                buffer.MergeBuffersForLayer(layer);
             }
+        } else {
+            retval= false;
         }
-        buffer.MergeBuffersForLayer(layer);
     } else {
         retval = false;
     }

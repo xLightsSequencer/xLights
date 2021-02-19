@@ -20,11 +20,16 @@ class xlGLCanvas
     : public wxGLCanvas
 {
     public:
-        xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+        xlGLCanvas(wxWindow* parent,
+                   wxWindowID id,
+                   const wxPoint &pos=wxDefaultPosition,
                    const wxSize &size=wxDefaultSize,
                    long style=0,
                    const wxString &name=wxPanelNameStr,
                    bool only2d = true);
+        xlGLCanvas(wxWindow* parent,
+                   const wxGLAttributes& dispAttrs,
+                   const wxString &name = wxPanelNameStr);
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();

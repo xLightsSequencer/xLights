@@ -163,15 +163,8 @@ namespace
         "    isf_vertShaderInit();"
         "}\n";
 
-    void setRenderBufferAll(RenderBuffer& buffer, const wxColor& colour)
-    {
-        for (int y = 0; y < buffer.BufferHt; ++y)
-        {
-            for (int x = 0; x < buffer.BufferWi; ++x)
-            {
-                buffer.SetPixel(x, y, colour);
-            }
-        }
+    void setRenderBufferAll(RenderBuffer& buffer, const xlColor& colour) {
+        buffer.Fill(colour);
     }
 }
 
@@ -310,7 +303,6 @@ void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
 }
 
 #ifdef __WXMSW__
-
 typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
 (HDC hDC, HGLRC hShareContext, const int *attribList);
 template <typename T>
@@ -321,9 +313,22 @@ inline T wxWGLProcCast(PROC proc)
 #define wxDEFINE_WGL_FUNC(name) \
 name##_t name = wxWGLProcCast<name##_t>(wglGetProcAddress(#name))
 
+static wxGLAttributes GetShaderAttributes() {
+    wxGLAttributes atts;
+    atts.Reset();
+    // we don't need a depth buffer or double buffering
+    atts.PlatformDefaults();
+    atts.RGBA()
+        .EndList();
+    return atts;
+}
+
+
+
 class ShaderGLCanvas : public xlGLCanvas {
 public:
-    ShaderGLCanvas(wxWindow *parent) : xlGLCanvas(parent, -1) {}
+    ShaderGLCanvas(wxWindow *parent)
+    : xlGLCanvas(parent, GetShaderAttributes(), "ShaderEffects") {}
     virtual ~ShaderGLCanvas() {}
 
     virtual void InitializeGLContext() {}
@@ -796,9 +801,8 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // Bail out right away if we don't have the necessary OpenGL support
-    if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport())
-    {
-        setRenderBufferAll(buffer, *wxCYAN);
+    if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
+        setRenderBufferAll(buffer, xlCYAN);
         logger_base.error("ShaderEffect::Render() - missing OpenGL support!!");
         return;
     }
@@ -828,43 +832,35 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
 
-    if (buffer.needToInit)
-    {
+    if (buffer.needToInit) {
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            if (_shaderConfig != nullptr)
-            {
+            if (_shaderConfig != nullptr) {
                 recompileFromShaderConfig(_shaderConfig, s_programId);
-                if (s_programId != 0)
-                {
+                if (s_programId != 0) {
                     logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
                 }
             }
         } else {
             logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
-    }
-    else
-    {
+    } else {
         if (!contextSet) {
-            setRenderBufferAll(buffer, *wxYELLOW);
+            setRenderBufferAll(buffer, xlYELLOW);
             return;
         }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
     // if there is no config then we should paint it red ... just like the video effect
-    if (_shaderConfig == nullptr)
-    {
-        setRenderBufferAll(buffer, *wxRED);
+    if (_shaderConfig == nullptr) {
+        setRenderBufferAll(buffer, xlRED);
         UnsetGLContext(cache);
         return;
-    }
-    else if (s_programId == 0)
-    {
-        setRenderBufferAll(buffer, *wxYELLOW);
+    } else if (s_programId == 0) {
+        setRenderBufferAll(buffer, xlYELLOW);
         UnsetGLContext(cache);
         return;
     }
@@ -1148,8 +1144,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         s_rbHeight = rb.BufferHt;
     }
 }
-
-void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
+void ShaderEffect::recompileFromShaderConfig(ShaderConfig* cfg, unsigned& s_programId)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s_programId != 0) {
@@ -1157,21 +1152,17 @@ void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned&
         LOG_GL_ERRORV(glDeleteProgram(s_programId));
         s_programId = 0;
     }
-
-    s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
+    s_programId = OpenGLShaders::compile(vsSrc, cfg->GetCode());
     if (s_programId == 0) {
-       logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+        logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
     }
 }
 
 wxString SafeFloat(const wxString& s)
 {
-    if (s.StartsWith("."))
-    {
+    if (s.StartsWith(".")) {
         return "0" + s;
-    }
-    else if (!s.Contains("."))
-    {
+    } else if (!s.Contains(".")) {
         return s + ".0";
     }
     return s;
@@ -1188,11 +1179,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         _audioFFTMode = true;
     wxJSONValue inputs = root["INPUTS"];
     wxString canvasImgName, audioFFTName;
-    for (int i = 0; i < inputs.Size(); i++)
-    {
+    for (int i = 0; i < inputs.Size(); i++) {
         wxString type = inputs[i]["TYPE"].AsString();
-        if (type == "float")
-        {
+        if (type == "float") {
             _parms.push_back(ShaderParm(
                 inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                 inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
@@ -1426,7 +1415,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 texture2D(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
     prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
@@ -1464,6 +1452,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     shaderCode.Replace("gl_FragColor", "fragmentColor");
     shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
     shaderCode.Replace("varying ", "uniform ");
+    shaderCode.Replace("texture2D(", "texture(");
+    shaderCode.Replace("texture2D (", "texture(");
     if (!audioFFTName.empty())
     {
         shaderCode.Replace(audioFFTName, "texSampler");
@@ -1486,7 +1476,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     _code += shaderCode.ToStdString();
     wxASSERT(_code != "");
 #if 0
-    std::ofstream s("C:\\Temp\\temp.txt");
+    std::ofstream s("C:\\Temp\\shader.txt");
     if (s.good())
     {
         s << _code;

@@ -208,7 +208,7 @@ protected:
         bool& s_shadersInit,
         unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
         unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight);
-    void recompileFromShaderConfig(const ShaderConfig* cfg, unsigned& s_programId);
+    void recompileFromShaderConfig(ShaderConfig* cfg, unsigned& s_programId);
 
     struct VertexTex
     {

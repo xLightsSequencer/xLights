@@ -1458,8 +1458,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)
         //we need to also disable the quit button
         QuitMenuItem->Enable(false);
-    }
-    else {
+    } else {
         QuitMenuItem->Enable(true);
     }
 
@@ -1469,6 +1468,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     if (MenuItem_LogRenderState != nullptr) {
         MenuItem_LogRenderState->Enable();
     }
+    
+    MenuItem_ViewLog->Enable(true);
 }
 
 //modifed for partially random -DJ
