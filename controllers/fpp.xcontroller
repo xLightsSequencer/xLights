@@ -191,4 +191,9 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="BBB16">
+        <Variant Name="No Expansion" ID="BBB16" Base="FPP:FPPStringCape">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+        </Variant>
 </Vendor>
