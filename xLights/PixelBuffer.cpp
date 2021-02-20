@@ -672,6 +672,26 @@ namespace
          }
       }, 25);
    }
+
+   // code for swap transition
+   xlColor swapTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      // todo
+      return xlGREEN;
+   }
+   void swapTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, swapTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
@@ -1874,6 +1894,7 @@ static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
 static const std::string STR_STAR("Star");
+static const std::string STR_SWAP("Swap");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3423,7 +3444,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3470,6 +3491,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+            } else if ( inTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3512,6 +3535,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+            } else if ( outTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, outMaskFactor );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
@@ -3586,7 +3611,7 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
 
     // adjust for HSV adjustments
     needsHSVAdjust = (outputHueAdjust != 0 || outputSaturationAdjust != 0 || outputValueAdjust != 0);
-    
+
     outputSparkleCount = sparkle_count;
     if (SparklesValueCurve.IsActive()) {
         outputSparkleCount = (int)SparklesValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -3594,13 +3619,13 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     if (use_music_sparkle_count) {
         outputSparkleCount = (int)(music_sparkle_count_factor * (float)outputSparkleCount);
     }
-    
+
     if (BrightnessValueCurve.IsActive()) {
         outputBrightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     } else {
         outputBrightnessAdjust = brightness;
     }
-    
+
     outputEffectMixThreshold = effectMixThreshold;
     if (effectMixVaries) {
         //vary mix threshold gradually during effect interval -DJ
