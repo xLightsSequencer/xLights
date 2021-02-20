@@ -79,13 +79,13 @@ protected:
     void FireChangeEvent();
     
     void AddListeners(wxWindow *ParentWin);    
-    void HandleFileDirChange(wxFileDirPickerEvent& event) { FireChangeEvent(); }
-    void HandleFontChange(wxFontPickerEvent& event) { FireChangeEvent(); }
-    void HandleSpinChange(wxSpinEvent& event) { FireChangeEvent(); }
-    void HandleNotebookChange(wxBookCtrlEvent& event) { FireChangeEvent(); }
-    void HandleScrollChange(wxScrollEvent& event) { FireChangeEvent(); }
-    void HandleCommandChange(wxCommandEvent& event) { FireChangeEvent(); }
-    void HandleColorChange(wxColourPickerEvent& event) { FireChangeEvent(); }
+    void HandleFileDirChange(wxFileDirPickerEvent& event);
+    void HandleFontChange(wxFontPickerEvent& event);
+    void HandleSpinChange(wxSpinEvent& event);
+    void HandleNotebookChange(wxBookCtrlEvent& event);
+    void HandleScrollChange(wxScrollEvent& event);
+    void HandleCommandChange(wxCommandEvent& event);
+    void HandleColorChange(wxColourPickerEvent& event);
     
     wxTimer *changeTimer;
 };
