@@ -2022,7 +2022,8 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                     }
                 }
             } else {
-                for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); ++bufn) {
+                int bufCnt = buffer.BufferCountForLayer(layer);
+                std::function<void (int)> f([this, &buffer, layer, suppress, effectObj, reff, &SettingsMap](int bufn) {
                     RenderBuffer* b = &buffer.BufferForLayer(layer, bufn);
                     RenderBuffer* oldBuffer = nullptr;
                     RenderBuffer *newBuffer = nullptr;
@@ -2053,6 +2054,19 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                         oldBuffer->infoCache = b->infoCache;
                         delete newBuffer;
                     }
+                });
+                if (bufCnt) {
+                    if (bgThread) {
+                        parallel_for(0, bufCnt, [&f](int x) {f(x);}, 1);
+                    } else {
+                        // if we are not on the bgThread, then assume this effect cannot render on background threads
+                        // and thus cannot be done in parallel
+                        for (int x = 0; x < bufCnt; x++) {
+                            f(x);
+                        }
+                    }
+                } else {
+                    f(0);
                 }
                 buffer.MergeBuffersForLayer(layer);
             }

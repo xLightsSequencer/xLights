@@ -301,7 +301,7 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
         wxString ChildName = ChildWin->GetName();
         if (ChildName.StartsWith("IDD_") || ChildName.StartsWith("IID_") ) {
             ChildName = "ID_" + ChildName.substr(4);
-        }
+        }       
         if (ChildName.StartsWith("ID_SLIDER")) {
             Connect(ChildWin->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
         } else if (ChildName.StartsWith("ID_VALUECURVE")) {
@@ -371,3 +371,10 @@ void xlEffectPanel::FireChangeEvent() {
 }
 
 
+void xlEffectPanel::HandleFileDirChange(wxFileDirPickerEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleFontChange(wxFontPickerEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleSpinChange(wxSpinEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleNotebookChange(wxBookCtrlEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleScrollChange(wxScrollEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleCommandChange(wxCommandEvent& event) { event.Skip(true); FireChangeEvent(); }
+void xlEffectPanel::HandleColorChange(wxColourPickerEvent& event) { event.Skip(true); FireChangeEvent(); }

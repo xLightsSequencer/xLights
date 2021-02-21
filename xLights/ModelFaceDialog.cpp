@@ -782,11 +782,11 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
             faceData[name]["CustomColors"] = "0";
             for (auto& it : faceData[name])
             {
-                if (EndsWith(it.first, "-Color"))                     {
+                if (EndsWith(it.first, "-Color")) {
                     it.second = "";
                 }
             }
-            for (int r = 0; r < SingleNodeGrid->GetNumberRows(); r++)                 {
+            for (int r = 0; r < SingleNodeGrid->GetNumberRows(); r++) {
                 SingleNodeGrid->SetCellBackgroundColour(r, COLOR_COL, *wxWHITE);
             }
         }
@@ -1094,7 +1094,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (xLightsFrame::CurrentDir == "")         {
+    if (xLightsFrame::CurrentDir == "") {
         wxMessageBox("Show folder is not valid. Face image download aborted.");
         return;
     }
@@ -1217,8 +1217,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString choices;
-    for (Model* sm : model->GetSubModels())
-    {
+    for (Model* sm : model->GetSubModels()) {
         choices.Add(sm->Name());
     }
 
@@ -1229,18 +1228,39 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
     }
 
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+    wxMultiChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        Model* sm = model->GetSubModel(dlg.GetStringSelection());
-        if (sm == nullptr)             {
-            logger_base.error("Strange ... ModelFaceDialog::ImportSubmodel returned no model for %s but it was in the list we gave the user.", (const char*)dlg.GetStringSelection().c_str());
-            dlg.Close();
-            return;
+    if (dlg.ShowModal() == wxID_OK) {
+        wxArrayString allNodes;
+        for (auto const& idx : dlg.GetSelections()) {
+            Model* sm = model->GetSubModel(choices.at(idx));
+            if (sm == nullptr) {
+                logger_base.error(
+                    "Strange ... ModelFaceDialog::ImportSubmodel returned no model "
+                    "for %s but it was in the list we gave the user.",
+                    (const char*)choices.at(idx).c_str());
+                continue;
+            }
+            const auto nodes = getSubmodelNodes(sm);
+            if (!nodes.IsEmpty()) {
+                allNodes.Add(nodes);
+            }
         }
-        const auto nodes = getSubmodelNodes(sm);
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, nodes);
+        const auto newNodes = wxJoin(allNodes, ',', '\0');
+
+        auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
+
+        //sort
+        std::sort(newNodeArrray.begin(), newNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+
+        //make unique
+        newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
+
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray,',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
         dlg.Close();
@@ -1266,7 +1286,6 @@ wxString ModelFaceDialog::getSubmodelNodes(Model* sm)
             row = wxJoin(rows, ',', '\0');
         }
     }
-
     return row;
 }
 
@@ -1472,7 +1491,7 @@ void ModelFaceDialog::RenameFace()
             NameChoice->Delete(index);
             NameChoice->Insert(n, index);
 
-            auto const face = std::move(faceData[currentName]);
+            auto face = std::move(faceData[currentName]);
             faceData[n] = std::move(face);
             faceData.erase(currentName);
 
