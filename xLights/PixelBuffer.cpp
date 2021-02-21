@@ -674,11 +674,71 @@ namespace
    }
 
    // code for swap transition
+   namespace SwapTransitionCode
+   {
+      double reflection = 0.4f;
+      double perspective = 0.2f;
+      double depth = 3.f;
+
+      const Vec2D boundMin( 0.0, 0.0 );
+      const Vec2D boundMax( 1.0, 1.0 );
+      bool lessThan( const Vec2D&  lhs, const Vec2D& rhs )
+      {
+         return lhs.x < rhs.x && lhs.y < rhs.y;
+      }
+      bool inBounds_for_swap( const Vec2D& p )
+      {
+         return lessThan( boundMin, p ) && lessThan( p, boundMax );
+      }
+      Vec2D project_for_swap( const Vec2D& p )
+      {
+         return p * Vec2D( 1.0, -1.2 ) + Vec2D( 0.0, -0.02 );
+      }
+      xlColor bgColor( const Vec2D& p, const Vec2D& pfr, const Vec2D& pto, const ColorBuffer& toBuffer, const RenderBuffer* fromBuffer )
+      {
+         xlColor c = xlBLACK;
+
+         Vec2D projectedPFR( project_for_swap( pfr ) );
+         if ( inBounds_for_swap( projectedPFR ) )
+         {
+            c += lerp( xlBLACK, tex2D( *fromBuffer, projectedPFR.x, projectedPFR.y ), reflection * lerp(1.0, 0.0, projectedPFR.y) );
+         }
+
+         Vec2D projectedPTO( project_for_swap( pto ) );
+         if ( inBounds_for_swap( projectedPTO ) )
+         {
+            c += lerp( xlBLACK, tex2D( toBuffer, projectedPTO ), reflection * lerp( 1.0, 0.0, projectedPTO.y ) );
+         }
+         return c;
+      }
+   }
    xlColor swapTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
    {
-      // todo
-      return xlGREEN;
+      double size = lerp( 1.0, depth, progress );
+      double persp = perspective * progress;
+
+      Vec2D pto( -1.0, -1.0 );
+      Vec2D pfr( ( Vec2D( s, t ) + Vec2D(-0.0, -0.5 ) ) * Vec2D( size / (1.0 - perspective * progress), size / (1.0 - size * persp * s) ) + Vec2D( 0.0, 0.5 ) );
+
+      size = lerp( 1.0, depth, 1.-progress );
+      persp = perspective * (1. - progress );
+      pto = ( Vec2D( s, t ) + Vec2D( -1.0, -0.5 ) ) * Vec2D( size / (1.0-perspective*(1.0-progress) ), size / (1.0-size*persp*(0.5-s) ) ) + Vec2D( 1.0, 0.5 );
+
+      if ( progress < 0.5 )
+      {
+         if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+            return tex2D( *rb1, pfr.x, pfr.y );
+         if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+            return tex2D( cb, pto );
+      }
+
+      if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+         return tex2D( cb, pto );
+      if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+         return tex2D( *rb1, pfr.x, pfr.y );
+      return SwapTransitionCode::bgColor( Vec2D( s, t ), pfr, pto, cb, rb1 );
    }
+
    void swapTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
    {
       if ( progress < 0. || progress > 1. )

@@ -485,7 +485,8 @@ namespace
       "Doorway",
       "Blobs",
       "Pinwheel",
-      "Star"
+      "Star",
+      "Swap"
    };
 
    const std::vector<wxString> transitions_noAdjust =
@@ -497,7 +498,8 @@ namespace
       "Dissolve",
       "Circular Swirl",
       "Zoom",
-      "Doorway"
+      "Doorway",
+      "Swap"
    };
 }
 
