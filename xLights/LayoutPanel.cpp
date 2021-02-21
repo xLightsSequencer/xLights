@@ -1953,8 +1953,8 @@ void LayoutPanel::CreateModelGroupFromSelected()
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK) {
         wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
-        while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-            wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
+        while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr || name.IsEmpty()) {
+            wxTextEntryDialog dlg2(this, "Model of name '" + name + "' already exists. Enter name for new group", "Enter name for new group");
             OptimiseDialogPosition(&dlg2);
             if (dlg2.ShowModal() == wxID_OK) {
                 name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
@@ -7083,8 +7083,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             if (dlg.ShowModal() == wxID_OK) {
                 wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
 
-                while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-                    wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
+                while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr || name.IsEmpty()) {
+                    wxTextEntryDialog dlg2(this, "Model or Group of name '" + name + "' already exists. Enter new name for group", "Enter new name for group");
                     OptimiseDialogPosition(&dlg2);
                     if (dlg2.ShowModal() == wxID_OK) {
                         name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
@@ -7112,10 +7112,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
         OptimiseDialogPosition(&dlg);
-        if (dlg.ShowModal() == wxID_OK && !Model::SafeModelName(dlg.GetValue().ToStdString()).empty()) {
+        if (dlg.ShowModal() == wxID_OK ) {
             wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
-            while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
-                wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
+            while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr || name.IsEmpty()) {
+                wxTextEntryDialog dlg2(this, "Model of name '" + name + "' already exists. Enter name for new group", "Enter name for new group");
                 OptimiseDialogPosition(&dlg2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
