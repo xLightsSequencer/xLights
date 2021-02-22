@@ -672,6 +672,86 @@ namespace
          }
       }, 25);
    }
+
+   // code for swap transition
+   namespace SwapTransitionCode
+   {
+      double reflection = 0.4f;
+      double perspective = 0.2f;
+      double depth = 3.f;
+
+      const Vec2D boundMin( 0.0, 0.0 );
+      const Vec2D boundMax( 1.0, 1.0 );
+      bool lessThan( const Vec2D&  lhs, const Vec2D& rhs )
+      {
+         return lhs.x < rhs.x && lhs.y < rhs.y;
+      }
+      bool inBounds_for_swap( const Vec2D& p )
+      {
+         return lessThan( boundMin, p ) && lessThan( p, boundMax );
+      }
+      Vec2D project_for_swap( const Vec2D& p )
+      {
+         return p * Vec2D( 1.0, -1.2 ) + Vec2D( 0.0, -0.02 );
+      }
+      xlColor bgColor( const Vec2D& p, const Vec2D& pfr, const Vec2D& pto, const ColorBuffer& toBuffer, const RenderBuffer* fromBuffer )
+      {
+         xlColor c = xlBLACK;
+
+         Vec2D projectedPFR( project_for_swap( pfr ) );
+         if ( inBounds_for_swap( projectedPFR ) )
+         {
+            c += lerp( xlBLACK, tex2D( *fromBuffer, projectedPFR.x, projectedPFR.y ), reflection * lerp(1.0, 0.0, projectedPFR.y) );
+         }
+
+         Vec2D projectedPTO( project_for_swap( pto ) );
+         if ( inBounds_for_swap( projectedPTO ) )
+         {
+            c += lerp( xlBLACK, tex2D( toBuffer, projectedPTO ), reflection * lerp( 1.0, 0.0, projectedPTO.y ) );
+         }
+         return c;
+      }
+   }
+   xlColor swapTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      double size = lerp( 1.0, depth, progress );
+      double persp = perspective * progress;
+
+      Vec2D pto( -1.0, -1.0 );
+      Vec2D pfr( ( Vec2D( s, t ) + Vec2D(-0.0, -0.5 ) ) * Vec2D( size / (1.0 - perspective * progress), size / (1.0 - size * persp * s) ) + Vec2D( 0.0, 0.5 ) );
+
+      size = lerp( 1.0, depth, 1.-progress );
+      persp = perspective * (1. - progress );
+      pto = ( Vec2D( s, t ) + Vec2D( -1.0, -0.5 ) ) * Vec2D( size / (1.0-perspective*(1.0-progress) ), size / (1.0-size*persp*(0.5-s) ) ) + Vec2D( 1.0, 0.5 );
+
+      if ( progress < 0.5 )
+      {
+         if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+            return tex2D( *rb1, pfr.x, pfr.y );
+         if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+            return tex2D( cb, pto );
+      }
+
+      if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+         return tex2D( cb, pto );
+      if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+         return tex2D( *rb1, pfr.x, pfr.y );
+      return SwapTransitionCode::bgColor( Vec2D( s, t ), pfr, pto, cb, rb1 );
+   }
+
+   void swapTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, swapTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
@@ -1874,6 +1954,7 @@ static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
 static const std::string STR_STAR("Star");
+static const std::string STR_SWAP("Swap");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3423,7 +3504,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3470,6 +3551,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+            } else if ( inTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3512,6 +3595,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+            } else if ( outTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, outMaskFactor );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
@@ -3586,7 +3671,7 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
 
     // adjust for HSV adjustments
     needsHSVAdjust = (outputHueAdjust != 0 || outputSaturationAdjust != 0 || outputValueAdjust != 0);
-    
+
     outputSparkleCount = sparkle_count;
     if (SparklesValueCurve.IsActive()) {
         outputSparkleCount = (int)SparklesValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -3594,13 +3679,13 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     if (use_music_sparkle_count) {
         outputSparkleCount = (int)(music_sparkle_count_factor * (float)outputSparkleCount);
     }
-    
+
     if (BrightnessValueCurve.IsActive()) {
         outputBrightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     } else {
         outputBrightnessAdjust = brightness;
     }
-    
+
     outputEffectMixThreshold = effectMixThreshold;
     if (effectMixVaries) {
         //vary mix threshold gradually during effect interval -DJ
