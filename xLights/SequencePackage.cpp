@@ -145,6 +145,10 @@ void SequencePackage::Extract() {
     
     while (upZe != nullptr) {
         wxString fnEntry = wxString::Format("%s%c%s", _tempDir.GetFullPath(), wxFileName::GetPathSeparator(), upZe->GetName());
+        //folder with spaces at begin and end breaks temp folder paths
+        fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
+        fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
+
         wxFileName fnOutput;
         
         upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
