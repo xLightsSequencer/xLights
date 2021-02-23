@@ -485,7 +485,6 @@ namespace
       "Doorway",
       "Blobs",
       "Pinwheel",
-      "Star",
       "Swap"
    };
 
