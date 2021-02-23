@@ -643,7 +643,7 @@ namespace
    }
 
    // code for star transition
-   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments )
+   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments, bool shouldReverse )
    {
       Vec2D xy( s, t );
 
@@ -651,24 +651,35 @@ namespace
       double radius = ( cos( numSegments * angle ) + 4.0) / 4.0;
       double difference = Vec2D( xy - Vec2D( 0.5, 0.5 ) ).Len();
 
+      if ( shouldReverse )
+      {
+       if ( difference > radius * progress )
+         return tex2D( cb, xy );
+       else
+         return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );      }
+      else
+      {
       if ( difference > radius * progress )
          return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );
       else
          return tex2D( cb, xy );
+      }
    }
-   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue, bool shouldReverse )
    {
       if ( progress < 0. || progress > 1. )
          return;
 
       // want to default to a 6-point star at 50%
       int numSegments = ( adjustValue == 0 ) ? 1 : ( 1 + adjustValue / 10 );
+      if ( shouldReverse )
+         progress = 1. - progress;
 
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments](int y) {
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments, shouldReverse](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments ) );
+            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments, shouldReverse ) );
          }
       }, 25);
    }
@@ -3550,7 +3561,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+               starTransition( buffer, cb, prevRB, inMaskFactor, adjust, inTransitionReverse );
             } else if ( inTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, inMaskFactor );
             }
@@ -3594,7 +3605,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+               starTransition( buffer, cb, prevRB, outMaskFactor, adjust, outTransitionReverse );
             } else if ( outTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, outMaskFactor );
             }
