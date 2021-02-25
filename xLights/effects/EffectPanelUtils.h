@@ -75,10 +75,7 @@ public:
         ValidateWindow();
     }
 
-protected:
-    void FireChangeEvent();
     
-    void AddListeners(wxWindow *ParentWin);    
     void HandleFileDirChange(wxFileDirPickerEvent& event);
     void HandleFontChange(wxFontPickerEvent& event);
     void HandleSpinChange(wxSpinEvent& event);
@@ -86,7 +83,11 @@ protected:
     void HandleScrollChange(wxScrollEvent& event);
     void HandleCommandChange(wxCommandEvent& event);
     void HandleColorChange(wxColourPickerEvent& event);
-    
+
+protected:
+    void FireChangeEvent();
+    void AddListeners(wxWindow *ParentWin);
+
     wxTimer *changeTimer;
 };
 

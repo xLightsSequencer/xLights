@@ -190,12 +190,10 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
     if (_shaderConfig != nullptr) delete _shaderConfig;
     _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
 
-    if (_shaderConfig != nullptr)
-    {
+    if (_shaderConfig != nullptr) {
         wxString desc = _shaderConfig->GetDescription();
         if (desc != "") desc += "\n";
-		if (_shaderConfig->IsCanvasShader())
-		{
+		if (_shaderConfig->IsCanvasShader()) {
 			desc += "Use Canvas Mode for this shader.";
 
 			// Turn on canvas mode as this really only makes sense in canvas mode
@@ -206,12 +204,9 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
         wxString const shortName = wxFileName(_shaderConfig->GetFilename()).GetFullName();
         FilePickerCtrl1->SetToolTip(shortName + "\n\n" + desc);
 
-        for (const auto& it : _shaderConfig->GetParms())
-        {
-            if (it.ShowParm())
-            {
-                if (it._type == ShaderParmType::SHADER_PARM_FLOAT)
-                {
+        for (const auto& it : _shaderConfig->GetParms()) {
+            if (it.ShowParm()) {
+                if (it._type == ShaderParmType::SHADER_PARM_FLOAT) {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
@@ -232,9 +227,10 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     auto def = wxString::Format("%.2f", it._default);
                     auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
                     FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_LONG)
-                {
+                    
+                    Connect(text->GetId(),wxEVT_TEXT,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                    Connect(slider->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                } else if (it._type == ShaderParmType::SHADER_PARM_LONG) {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
@@ -254,22 +250,10 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     auto def = wxString::Format("%l", (long)it._default);
                     auto text = new BulkEditTextCtrl(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
                     FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_LONGCHOICE)
-                {
-                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE));
-                    for (auto it2 : it.GetChoices())
-                    {
-                        choice->AppendString(it2);
-                    }
-                    choice->SetSelection(it._default);
-                    FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_EVENT) {
+                    
+                    Connect(text->GetId(),wxEVT_TEXT,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                    Connect(slider->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                } else if (it._type == ShaderParmType::SHADER_PARM_LONGCHOICE) {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
@@ -280,18 +264,29 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     choice->SetSelection(it._default);
                     FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_BOOL)
-                {
+                    
+                    Connect(choice->GetId(),wxEVT_CHOICE,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                } else if (it._type == ShaderParmType::SHADER_PARM_EVENT) {
+                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
+                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+                    auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE));
+                    for (auto it2 : it.GetChoices()) {
+                        choice->AppendString(it2);
+                    }
+                    choice->SetSelection(it._default);
+                    FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                    Connect(choice->GetId(),wxEVT_CHOICE,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                } else if (it._type == ShaderParmType::SHADER_PARM_BOOL) {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
                     auto checkbox = new BulkEditCheckBox(this, wxNewId(), _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
                     checkbox->SetValue(it._default == 1);
                     FlexGridSizer_Dynamic->Add(checkbox, 1, wxALL | wxEXPAND, 2);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_POINT2D)
-                {
+                    Connect(checkbox->GetId(),wxEVT_CHECKBOX,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                } else if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel() + " X", wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC) +"X");
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
@@ -319,6 +314,9 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     sizer = new wxFlexGridSizer(0, 2, 0, 0);
                     sizer->AddGrowableCol(0);
 
+                    Connect(text->GetId(),wxEVT_TEXT,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                    Connect(slider->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                    
                     slider = new BulkEditSliderF2(this, wxNewId(), it._defaultPt.y * 100, it._minPt.y * 100, it._maxPt.y * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER) + "Y");
                     sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
                     id = wxNewId();
@@ -333,6 +331,9 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     def = wxString::Format("%.2f", it._defaultPt.y);
                     text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL) + "Y");
                     FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                    
+                    Connect(text->GetId(),wxEVT_TEXT,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+                    Connect(slider->GetId(),wxEVT_SLIDER,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
                 }
             }
         }
