@@ -241,6 +241,7 @@
 																			<item>Pinwheel</item>
 																			<item>Star</item>
 																			<item>Swap</item>
+																			<item>Shatter</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -368,6 +369,7 @@
 																			<item>Pinwheel</item>
 																			<item>Star</item>
 																			<item>Swap</item>
+																			<item>Shatter</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

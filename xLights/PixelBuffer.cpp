@@ -763,6 +763,89 @@ namespace
          }
       }, 25);
    }
+
+   namespace ShatterTransitionCode
+   {
+      // procedural white noise
+      Vec2D hash2(  const Vec2D& p )
+      {
+         double a = dot( p, Vec2D( 127.1, 311.7) );
+         double b = dot( p, Vec2D( 269.5, 183.3 ) );
+         Vec2D c( RenderBuffer::sin( a ), RenderBuffer::sin( b ) );
+         Vec2D d( 4958.5453 * c );
+         double dummy1, dummy2;
+         return Vec2D( std::modf( d.x, &dummy1 ), std::modf( d.y, &dummy2 ) );
+      }
+
+      Vec2D voronoi( const Vec2D& x )
+      {
+         Vec2D n;
+         Vec2D f( std::modf( x.x, &n.x), std::modf( x.y, &n.y ) );
+         Vec2D mc;
+         double md = 8.0;
+         for ( int j = -1; j <= 1; ++j )
+         {
+            for ( int i = -1; i <= 1; ++i )
+            {
+               Vec2D g( i, j );
+               Vec2D o( hash2( n + g ) );
+               Vec2D r( g + o - f );
+               double d = dot( r, r );
+               if ( d < md )
+               {
+                  md = d;
+                  mc = x + r;
+               }
+            }
+         }
+         return mc;
+      }
+   }
+
+   xlColor shatterTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      double num = 8.;
+
+      Vec2D texCentered( Vec2D( s, t ) - Vec2D( 0.5, 0.5 ) );
+      double ang = std::atan2( texCentered.y, texCentered.x );
+      double a = progress * 8;
+      double originalLength = ( -1. + std::sqrt( 1. + 4. * a * texCentered.Len() ) ) / (2. * a);
+      if ( a == 0. )
+         originalLength = texCentered.Len();
+
+      Vec2D originalLocation( Vec2D( 0.5, 0.5 )  + originalLength * Vec2D( RenderBuffer::cos( ang ), RenderBuffer::sin( ang ) ) );
+      Vec2D ol( texCentered / (progress + 1. ) + Vec2D( 0.5, 0.5 ) );
+      Vec2D originalShard( ShatterTransitionCode::voronoi( num * originalLocation ) );
+      Vec2D originalCenter( originalShard.x / num, originalShard.y / num );
+      double ca = std::atan2( originalCenter.y - 0.5, originalCenter.x - 0.5 );
+      double originalCenterLength = Vec2D( originalCenter - Vec2D( 0.5, 0.5 ) ).Len();
+      double currentCenterLength = originalCenterLength + originalCenterLength * originalCenterLength * a;
+      Vec2D currentCenter( Vec2D( 0.5, 0.5 ) + currentCenterLength * Vec2D( RenderBuffer::cos( ca ), RenderBuffer::sin( ca ) ) );
+      Vec2D c4( ( Vec2D( s, t ) - currentCenter ) / ( 1. + 0.6 *progress ) + originalCenter );
+      Vec2D currentShard( ShatterTransitionCode::voronoi( num * c4 ) );
+
+      double transition = 1.;
+      if ( originalShard.Dist( currentShard ) < 0.0001 )
+         transition = SmoothStep( 0.70, 1.0, progress );
+
+      xlColor toColor = tex2D( cb, c4 );
+      xlColor fromColor = ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, s, t );
+      return lerp( toColor, fromColor, transition );
+   }
+
+   void shatterTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, shatterTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
@@ -1966,6 +2049,7 @@ static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
 static const std::string STR_STAR("Star");
 static const std::string STR_SWAP("Swap");
+static const std::string STR_SHATTER("Shatter");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3515,7 +3599,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP, STR_SHATTER
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3564,6 +3648,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                starTransition( buffer, cb, prevRB, inMaskFactor, adjust, inTransitionReverse );
             } else if ( inTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, inMaskFactor );
+            } else if ( inTransitionType == STR_SHATTER ) {
+               shatterTransition( buffer, cb, prevRB, 1.-inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3608,6 +3694,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                starTransition( buffer, cb, prevRB, outMaskFactor, adjust, outTransitionReverse );
             } else if ( outTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, outMaskFactor );
+            } else if ( outTransitionType == STR_SHATTER ) {
+               shatterTransition( buffer, cb, prevRB, 1.-outMaskFactor );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
