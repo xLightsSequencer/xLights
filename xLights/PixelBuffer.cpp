@@ -764,6 +764,7 @@ namespace
       }, 25);
    }
 
+   // code for shatter transition
    namespace ShatterTransitionCode
    {
       // procedural white noise
@@ -843,6 +844,43 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, shatterTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for circles transition
+   xlColor circlesTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, double n )
+   {
+      const int NumCircles = 3;
+
+      double dummy1, dummy2;
+      Vec2D cell( std::modf( s * n, &dummy1 ), std::modf( t * n , &dummy2 ) );
+
+      double m = 0.;
+
+      double alphaPerCircle = 1. / double( NumCircles ) + 0.01;
+      for ( int i = 0; i < NumCircles; ++i )
+      {
+         double delay = i * /*0.3*/0.5 / (NumCircles - 1);
+         double p = std::max( 0., progress - delay );
+         m += alphaPerCircle * ( 1. - SmoothStep( p * 1.40, p * 1.45, Vec2D( cell - Vec2D( 0.5, 0.5 ) ).Len() ) );
+      }
+
+      m = std::min( 1., m );
+      return lerp ( tex2D( cb, s, t ), ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, s, t ), m );
+   }
+
+   void circlesTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      double n = std::floor( interpolate( double( adjustValue ), 0., 2., 100., 8., LinearInterpolater() ) );
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, n](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, circlesTransition( cb0, rb1, s, t, progress, n ) );
          }
       }, 25);
    }
@@ -2050,6 +2088,7 @@ static const std::string STR_PINWHEEL("Pinwheel");
 static const std::string STR_STAR("Star");
 static const std::string STR_SWAP("Swap");
 static const std::string STR_SHATTER("Shatter");
+static const std::string STR_CIRCLES("Circles");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3599,7 +3638,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP, STR_SHATTER
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP, STR_SHATTER, STR_CIRCLES
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3649,7 +3688,12 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( inTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, inMaskFactor );
             } else if ( inTransitionType == STR_SHATTER ) {
-               shatterTransition( buffer, cb, prevRB, 1.-inMaskFactor );
+               shatterTransition( buffer, cb, prevRB, 1.f-inMaskFactor );
+            } else if ( inTransitionType == STR_CIRCLES ) {
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               circlesTransition( buffer, cb, prevRB, 1.f-inMaskFactor, adjust );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3695,7 +3739,12 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( outTransitionType == STR_SWAP )  {
                swapTransition( buffer, cb, prevRB, outMaskFactor );
             } else if ( outTransitionType == STR_SHATTER ) {
-               shatterTransition( buffer, cb, prevRB, 1.-outMaskFactor );
+               shatterTransition( buffer, cb, prevRB, 1.f-outMaskFactor );
+            } else if ( outTransitionType == STR_CIRCLES ) {
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               circlesTransition( buffer, cb, prevRB, 1.f-outMaskFactor, adjust );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);

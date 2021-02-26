@@ -242,6 +242,7 @@
 																			<item>Star</item>
 																			<item>Swap</item>
 																			<item>Shatter</item>
+																			<item>Circles</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -370,6 +371,7 @@
 																			<item>Star</item>
 																			<item>Swap</item>
 																			<item>Shatter</item>
+																			<item>Circles</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

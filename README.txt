@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin)  Allow reverse on star transition
+   -- enh (kevin)  Add swap, shatter, and circles transitions
    -- bug (dkulp)  Fix issues with effects that need to render on the main thread being rendered WAY too often if "Per Model" used.
 2021.05 February 19 2021
    -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)
