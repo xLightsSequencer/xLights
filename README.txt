@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)  Fix pinwheel transition being inactive for some of the transition duration
    -- enh (kevin)  Allow reverse on star transition
    -- enh (kevin)  Add swap, shatter, and circles transitions
    -- bug (dkulp)  Fix issues with effects that need to render on the main thread being rendered WAY too often if "Per Model" used.
