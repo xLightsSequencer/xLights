@@ -610,8 +610,6 @@ namespace
    }
    xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double wheelAdjust )
    {
-      const double speed = 2.;
-
       double x = s - 0.5;
       double y = t - 0.5;
       if ( t < 0.5 ) // this seems needed due to differences between GLSL and C++ versions of atan2()
@@ -619,19 +617,16 @@ namespace
          y = -y;
          x = -x;
       }
-      double circPos = std::atan2( y, x ) + progress * speed;
-      double modPos = std::fmod( circPos, PI / wheelAdjust );
-      double signedVal = sign( progress - modPos );
-
-      return ( signedVal < 0.5 )
-         ? ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) )
-         : tex2D( cb0, s, t );
+      double arcTangent = std::atan2( y, x );
+      double dummy;
+      double toProgress = std::modf( arcTangent / M_PI * wheelAdjust , &dummy );
+      return ( toProgress > progress ) ? ( tex2D( cb0, s, t ) ) : ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) );
    }
    void pinwheelTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int wheelAdjust )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      double adjust = interpolate( wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater() );
+      double adjust = std::floor( interpolate( wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater() ) );
 
       parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
@@ -3679,7 +3674,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               pinwheelTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+               pinwheelTransition( buffer, cb, prevRB, 1.-inMaskFactor, adjust );
             } else if ( inTransitionType == STR_STAR ) {
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
@@ -3730,7 +3725,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               pinwheelTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+               pinwheelTransition( buffer, cb, prevRB, 1.-outMaskFactor, adjust );
             } else if ( outTransitionType == STR_STAR ) {
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
