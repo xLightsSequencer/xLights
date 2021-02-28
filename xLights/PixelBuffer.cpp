@@ -670,6 +670,9 @@ namespace
       if ( shouldReverse )
          progress = 1. - progress;
 
+      // for this transition, we fudge the progress a bit b/c not much happens at the end
+      progress = interpolate( progress, 0.0, 0.0, 1.0, 0.85, LinearInterpolater() );
+
       parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments, shouldReverse](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
