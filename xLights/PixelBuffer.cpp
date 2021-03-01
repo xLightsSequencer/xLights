@@ -710,7 +710,7 @@ namespace
          Vec2D projectedPFR( project_for_swap( pfr ) );
          if ( inBounds_for_swap( projectedPFR ) )
          {
-            c += lerp( xlBLACK, tex2D( *fromBuffer, projectedPFR.x, projectedPFR.y ), reflection * lerp(1.0, 0.0, projectedPFR.y) );
+            c += lerp( xlBLACK, (fromBuffer == nullptr) ? xlBLACK : tex2D( *fromBuffer, projectedPFR.x, projectedPFR.y ), reflection * lerp(1.0, 0.0, projectedPFR.y) );
          }
 
          Vec2D projectedPTO( project_for_swap( pto ) );
@@ -736,7 +736,7 @@ namespace
       if ( progress < 0.5 )
       {
          if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
-            return tex2D( *rb1, pfr.x, pfr.y );
+             return (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
          if ( SwapTransitionCode::inBounds_for_swap( pto ) )
             return tex2D( cb, pto );
       }
@@ -744,7 +744,7 @@ namespace
       if ( SwapTransitionCode::inBounds_for_swap( pto ) )
          return tex2D( cb, pto );
       if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
-         return tex2D( *rb1, pfr.x, pfr.y );
+         return (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
       return SwapTransitionCode::bgColor( Vec2D( s, t ), pfr, pto, cb, rb1 );
    }
 
