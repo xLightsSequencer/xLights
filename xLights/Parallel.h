@@ -20,7 +20,7 @@
 
 class ParallelJobPool : public JobPool {
 public:
-    ParallelJobPool();
+    ParallelJobPool(const std::string &name);
     
     static ParallelJobPool POOL;
     
@@ -40,7 +40,7 @@ public:
  * would convert to:
  * parallel_for(start, max, [&] (int x) {} );
  */
-void parallel_for(int start, int max, std::function<void(int)>&& f, int minStep = 1);
+void parallel_for(int start, int max, std::function<void(int)>&& f, int minStep = 1, ParallelJobPool *pool = &ParallelJobPool::POOL);
 
 
 /**

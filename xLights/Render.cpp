@@ -2057,7 +2057,8 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                 });
                 if (bufCnt) {
                     if (bgThread) {
-                        parallel_for(0, bufCnt, [&f](int x) {f(x);}, 1);
+                        static ParallelJobPool PER_MODEL_POOL("per_model_pool");
+                        parallel_for(0, bufCnt, [&f](int x) {f(x);}, 1, &PER_MODEL_POOL);
                     } else {
                         // if we are not on the bgThread, then assume this effect cannot render on background threads
                         // and thus cannot be done in parallel

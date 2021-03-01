@@ -16,7 +16,7 @@
 
 #include "JobPool.h"
 
-ParallelJobPool::ParallelJobPool() : JobPool("parallel_tasks") {
+ParallelJobPool::ParallelJobPool(const std::string &name) : JobPool(name) {
     unsigned c = std::thread::hardware_concurrency() - 1; //1 thread is the calling thread
     if (c < 4) {
         c = 4;
@@ -37,7 +37,7 @@ int ParallelJobPool::calcSteps(int minStep, int total) {
     return 1;
 }
 
-ParallelJobPool ParallelJobPool::POOL;
+ParallelJobPool ParallelJobPool::POOL("parallel_tasks");
 
 
 class ParallelJob : public Job {
@@ -83,8 +83,8 @@ public:
     virtual bool SetThreadName() override { return false; }
 };
 
-void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep) {
-    int calcSteps = ParallelJobPool::POOL.calcSteps(minStep, max - min);
+void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep, ParallelJobPool *pool) {
+    int calcSteps = pool->calcSteps(minStep, max - min);
     if (calcSteps == 1) {
         for (int x = min; x < max; x++) {
             func(x);
@@ -99,12 +99,12 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         int blockSize = (max - min) / (calcSteps * 20);
         if (blockSize < 1) blockSize = 1;
         for (int x = 0; x < calcSteps-1; x++) {
-            ParallelJobPool::POOL.PushJob(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize));
+            pool->PushJob(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize));
         }
         ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize).Process();
-        std::unique_lock<std::mutex> lock(ParallelJobPool::POOL.poolLock);
+        std::unique_lock<std::mutex> lock(pool->poolLock);
         while (doneCount < calcSteps) {
-            ParallelJobPool::POOL.poolSignal.wait_for(lock, std::chrono::nanoseconds(1000000));
+            pool->poolSignal.wait_for(lock, std::chrono::nanoseconds(1000000));
         }
     }
 }
