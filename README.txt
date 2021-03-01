@@ -11,10 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.06 March 1 2021
+   -- enh (kevin)  Add Circles and Shatter transitions
    -- bug (scott)  Prevent groups with blank name
    -- enh (scott)  Add multi selection to submodel import in Faces dialog
    -- bug (scott)  Fix AC toolbar
    -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
+   -- enh (scott)  Add BBB16 controller configuration
    -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
    -- enh (dkulp)  Add KiNet uploads to FPP output universes
    -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
