@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.07 March 2 2021
+   -- bug (dkulp)  Fix potential hang with "Per Model" render styles
+   -- bug (scott)  Fix crash in swap transition
 2021.06 March 1 2021
    -- enh (kevin)  Add Circles and Shatter transitions
    -- bug (scott)  Prevent groups with blank name
