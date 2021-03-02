@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix corner icons for Morph effect assist panel
 2021.07 March 2 2021
    -- bug (dkulp)  Fix potential hang with "Per Model" render styles
    -- bug (scott)  Fix crash in swap transition
