@@ -21,6 +21,8 @@
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
+#include <wx/dnd.h>
+
 #include <mutex>
 #include <memory>
 
@@ -56,7 +58,8 @@ class EffectTreeDialog : public wxDialog
 		//*)
         wxTreeItemId treeRootID;
         void InitItems(wxXmlNode *e);
-
+        bool NameCollissionInGroup(wxTreeItemId groupId, std::string name);
+    
 	protected:
 
 		//(*Identifiers(EffectTreeDialog)
@@ -103,6 +106,7 @@ class EffectTreeDialog : public wxDialog
 		wxXmlNode *XrgbEffectsNode;
         wxTreeItemId m_draggedItem;
         std::mutex preset_mutex;
+        bool _effectsFixed = false;
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void ApplyEffect(bool dblClick=false);
@@ -126,9 +130,18 @@ class EffectTreeDialog : public wxDialog
         void PlayGifImage();
         void StopGifImage();
         void DeleteGifImage(wxTreeItemId itemID);
+        bool FixName(std::string& name);
+        void FixDuplicatesInGroup(wxTreeItemId parent);
+        wxTreeItemId FindGroupItem(wxTreeItemId parent, std::string name);
+        std::string GetFullPathOfGroup(wxTreeItemId itemId);
+        void FixRgbEffects(wxXmlNode* parent);
+        std::list<std::string> GetGifFileNamesRecursive(wxTreeItemId itemId);
+        void DeleteGifsRecursive(wxTreeItemId parentId);
+        void PurgeDanglingGifs();
+        bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
+        void UnHighlightItemsRecursively(const wxTreeItemId& parentId, const wxTreeItemId& skipId, wxTreeItemIdValue cookie);
+        void OnDropEffect(wxCommandEvent& event);
 
-    public:
-        static bool PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg); //static to allow re-use elsewhere -DJ
 };
 
 class MyTreeItemData : public wxTreeItemData
@@ -142,3 +155,23 @@ private:
     wxXmlNode *element;
     bool _isGroup;
 };
+
+class EffectTreeDialogTextDropTarget : public wxTextDropTarget
+{
+    public:
+        EffectTreeDialogTextDropTarget(EffectTreeDialog* owner, wxTreeCtrl* tree, wxString type) {
+            _owner = owner;
+            _tree = tree;
+            _type = type;
+        };
+
+        virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+        void UpdateItemFeedback(wxTreeItemId currItem);
+        EffectTreeDialog* _owner;
+        wxTreeCtrl* _tree;
+        wxString _type;
+        wxTreeItemId _lastDragOverItem;
+        wxLongLong _dragOverHoldTime;
+};
+
