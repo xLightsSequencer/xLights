@@ -238,6 +238,18 @@ public:
         m_children.Insert(child, n);
         ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
     }
+    
+    void BulkInsert(xLightsImportModelNode* child, unsigned int n)
+    {
+        m_children.Insert(child, n);
+        _pendingAdditions.Add(wxDataViewItem(child));
+    }
+    
+    void NotifyItemsAdded(const wxDataViewItem& parent = wxDataViewItem(0)) {
+        ItemsAdded(parent, _pendingAdditions);
+        _pendingAdditions.Clear();
+    }
+    
     void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
@@ -301,6 +313,7 @@ public:
 
 private:
     xLightsImportModelNodePtrArray   m_children;
+    wxDataViewItemArray _pendingAdditions;
 };
 
 class StashedMapping
@@ -456,8 +469,10 @@ protected:
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
         void SetImportMediaTooltip();
+        void LoadAvailableGroups();
     
         SequencePackage* _xsqPkg = nullptr;
+        std::vector<std::string> _availableGroups;
 
 		DECLARE_EVENT_TABLE()
 };
