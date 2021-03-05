@@ -517,8 +517,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     if (NewPictureName2.length() == 0) {
         noImageFile = true;
-    }
-    else {
+    } else {
         //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
         //  we have a bunch of jpg files made by ffmpeg
         //  movie files can be converted into jpg frames by this command
@@ -595,8 +594,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
             if (!wxFile::Exists(NewPictureName)) {
                 noImageFile = true;
-            }
-            else {
+            } else {
                 wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
 
                 // There seems to be a bug on linux where this function crashes occasionally
@@ -632,21 +630,17 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     if (!gifImage->IsOk()) {
                         delete gifImage;
                         gifImage = nullptr;
-                        noImageFile = true;
-                    }
-
-                    if (!noImageFile) {
+                        cache->imageCount = 1;
+                    } else {
                         image = gifImage->GetFrame(0);
                         rawimage = image;
                     }
+                }
             }
         }
-
-            if (!noImageFile && !image.IsOk()) {
-                noImageFile = true;
-            }
-    }
-
+        if (!noImageFile && !image.IsOk()) {
+            noImageFile = true;
+        }
         if (!noImageFile && cache->imageCount > 1) {
 
             //animated Gif,

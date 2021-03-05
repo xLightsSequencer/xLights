@@ -2055,7 +2055,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                         delete newBuffer;
                     }
                 });
-                if (bufCnt) {
+                if (bufCnt > 1) {
                     if (bgThread) {
                         static ParallelJobPool PER_MODEL_POOL("per_model_pool");
                         parallel_for(0, bufCnt, [&f](int x) {f(x);}, 1, &PER_MODEL_POOL);

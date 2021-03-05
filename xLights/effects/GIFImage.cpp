@@ -127,10 +127,8 @@ void GIFImage::DoCreate(const std::string& filename)
     _ok = false;
 
 	wxFileInputStream stream(filename);
-	if (stream.IsOk())
-	{
-		if (_gifDecoder.LoadGIF(stream) == wxGIF_OK)
-		{
+	if (stream.IsOk()) {
+		if (_gifDecoder.LoadGIF(stream) == wxGIF_OK) {
             _ok = true;
 
             _backgroundColour = _gifDecoder.GetBackgroundColour();
@@ -140,11 +138,9 @@ void GIFImage::DoCreate(const std::string& filename)
             auto ito = _frameOffsets.begin();
             _gifSize = wxSize(0, 0);
 
-            while (its != _frameSizes.end())
-            {
+            while (its != _frameSizes.end())  {
                 if (its->GetWidth() + ito->x > _gifSize.GetWidth() ||
-                    its->GetHeight() + ito->y > _gifSize.GetHeight())
-                {
+                    its->GetHeight() + ito->y > _gifSize.GetHeight()) {
                     _gifSize = wxSize((std::max)((int)_gifSize.GetWidth(), (int)(its->GetWidth() + ito->x)),
                                       (std::max)((int)_gifSize.GetHeight(), (int)(its->GetHeight() + ito->y)));
                 }
@@ -156,15 +152,12 @@ void GIFImage::DoCreate(const std::string& filename)
             logger_base.debug("    Frames %d", _gifDecoder.GetFrameCount());
             logger_base.debug("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
 #endif
-        }
-		else
-		{
+        } else {
 			logger_base.warn("Error interpreting GIF file %s.", (const char *)filename.c_str());
 			_gifDecoder.Destroy();
+            _ok = false;
 		}
-	}
-	else
-	{
+    } else {
 		logger_base.warn("Error opening GIF file %s.", (const char *)filename.c_str());
 	}
 }
@@ -173,8 +166,7 @@ wxImage GIFImage::GetFrameForTime(int msec, bool loop)
 {
 	int frame = CalcFrameForTime(msec, loop);
 
-	if (frame == -1)
-	{
+	if (frame == -1) {
 		return wxImage(_gifSize);
 	}
 
