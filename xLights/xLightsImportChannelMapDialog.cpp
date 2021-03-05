@@ -159,7 +159,11 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
 
     if (node->IsGroup())
     {
-        attr.SetColour(*wxBLUE);
+        if (wxSystemSettings::GetAppearance().IsDark()) {
+            attr.SetColour(*wxCYAN);
+        } else {
+            attr.SetColour(*wxBLUE);
+        }
         set = true;
     }
 
@@ -563,16 +567,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     SetSize(800, 600);
 
-    ListCtrl_Available->SetSize(150, -1);
-    if (ListCtrl_Available->GetColumnCount() > 0)
-    {
-        ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
-        if (ListCtrl_Available->GetColumnWidth(0) < 150)
-        {
-            ListCtrl_Available->SetColumnWidth(0, 150);
-        }
-    }
-
     if (_filename != "")
     {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
@@ -648,6 +642,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_xsqPkg != nullptr && _xsqPkg->IsPkg() == true) {
         SetImportMediaTooltip();
+        LoadAvailableGroups();
     } else {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
     }
@@ -725,7 +720,8 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->SetDropTarget(mdt);
 #endif
     TreeListCtrl_Mapping->SetIndent(8);
-
+    TreeListCtrl_Mapping->Freeze();
+    
     int ms = 0;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
         if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -736,7 +732,15 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
                 AddModel(m, ms);
             }
         }
+        
     }
+
+    // Notify Tree Ctrl to update after all models have been added. This is a big
+    // performance improvement for large layouts.
+    _dataModel->NotifyItemsAdded();
+    TreeListCtrl_Mapping->GetColumn(0)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    TreeListCtrl_Mapping->Thaw();
+    TreeListCtrl_Mapping->Refresh();
 
     if (_dataModel->GetChildCount() == 0)
     {
@@ -798,12 +802,29 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             wxString name = *it;
             ListCtrl_Available->InsertItem(j, name);
             ListCtrl_Available->SetItemData(j, j);
+            
+            // If importing from xsqPkg flag known groups by color like is currently done in mapped list
+            if (std::find(_availableGroups.begin(), _availableGroups.end(), name) != _availableGroups.end()) {
+                if (wxSystemSettings::GetAppearance().IsDark()) {
+                    // In Dark Mode blue is hard to read
+                    ListCtrl_Available->SetItemTextColour(j, *wxCYAN);
+                } else {
+                    ListCtrl_Available->SetItemTextColour(j, *wxBLUE);
+                }
+            }
+            
             j++;
         }
     }
 
     _sortOrder = 1;
     ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
+    
+    // Set Autosize Width after it is populated or it doesn't work
+    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrl_Available->GetColumnWidth(0) < 150) {
+        ListCtrl_Available->SetColumnWidth(0, 150);
+    }
 
     ListCtrl_Available->Thaw();
     ListCtrl_Available->Update();
@@ -821,8 +842,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
     }
 
     xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
-    _dataModel->Insert(lastmodel, ms++);
-
+    _dataModel->BulkInsert(lastmodel, ms++);
     for (int s = 0; s < m->GetNumSubModels(); s++) {
         Model *subModel = m->GetSubModel(s);
         xLightsImportModelNode* laststrand;
@@ -1814,7 +1834,15 @@ void xLightsImportChannelMapDialog::MarkUsed()
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString()))
         {
             // not used
-            ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
+            if (std::find(_availableGroups.begin(), _availableGroups.end(), ListCtrl_Available->GetItemText(i)) != _availableGroups.end()) {
+                if (wxSystemSettings::GetAppearance().IsDark()) {
+                    ListCtrl_Available->SetItemTextColour(i, *wxCYAN);
+                } else {
+                    ListCtrl_Available->SetItemTextColour(i, *wxBLUE);
+                }
+            } else {
+                ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
+            }
         }
         else
         {
@@ -2099,5 +2127,24 @@ void xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick(wxCommandEvent& e
         ButtonImportOptions->Enable();
     } else {
         ButtonImportOptions->Disable();
+    }
+}
+
+void xLightsImportChannelMapDialog::LoadAvailableGroups() {
+    
+    if (_xsqPkg->GetRgbEffectsFile().IsOk()) {
+        wxXmlNode* grpNode = nullptr;
+        for (wxXmlNode* node = _xsqPkg->GetRgbEffectsFile().GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
+            if (node->GetName() == "modelGroups") {
+                grpNode = node;
+                break;
+            }
+        }
+
+        if (grpNode) {
+            for (wxXmlNode* node = grpNode->GetChildren(); node != nullptr; node = node->GetNext()) {
+                _availableGroups.push_back(node->GetAttribute("name"));
+            }
+        }
     }
 }
