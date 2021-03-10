@@ -690,18 +690,18 @@ void DownloadVamp()
 {
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
 #ifdef __WXMSW__
-    if (GetBitness() == "64bit")
-    {
+    if (GetBitness() == "64bit") {
         ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin64.exe");
-    }
-    else
-    {
+    } else {
         ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin32.exe");
     }
+#elif defined(__WXOSX__) && defined(__aarch64__)
+    // plugin pack is only for x86_64 and won't run native on M1 macs, download build of QM
+    ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/archive/qm-vamp-plugins-1.8.dmg");
 #else
     // likely can/should be used for all platforms
     ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/projects/vamp-plugin-pack");
-#endif // __WXMSW__
+#endif
 }
 
 inline bool is_base64(unsigned char c)
