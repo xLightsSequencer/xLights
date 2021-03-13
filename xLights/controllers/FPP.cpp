@@ -42,6 +42,7 @@
 #include "../outputs/Output.h"
 #include "../outputs/E131Output.h"
 #include "../outputs/DDPOutput.h"
+#include "../outputs/KinetOutput.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
@@ -1494,6 +1495,11 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
+                universes.Append(universe);
+            } else if (it->GetType() == OUTPUT_KINET) {
+                KinetOutput* kiNet = dynamic_cast<KinetOutput*>(it);
+                universe["address"] = wxString(kiNet->GetIP());
+                universe["type"] = kiNet->GetVersion() + 5;
                 universes.Append(universe);
             }
         }

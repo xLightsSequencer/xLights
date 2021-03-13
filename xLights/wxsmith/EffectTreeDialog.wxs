@@ -26,7 +26,6 @@
 							</items_text>
 							<minsize>80,-1d</minsize>
 							<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
-							<handler function="OnTreeCtrl1EndDrag" entry="EVT_TREE_END_DRAG" />
 							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 							<handler function="OnTreeCtrl1SelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
 						</object>

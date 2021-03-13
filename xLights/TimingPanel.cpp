@@ -202,6 +202,9 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_In_Transition_Type->Append(_("Blobs"));
 	Choice_In_Transition_Type->Append(_("Pinwheel"));
 	Choice_In_Transition_Type->Append(_("Star"));
+	Choice_In_Transition_Type->Append(_("Swap"));
+	Choice_In_Transition_Type->Append(_("Shatter"));
+	Choice_In_Transition_Type->Append(_("Circles"));
 	FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
 	FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -254,6 +257,9 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Out_Transition_Type->Append(_("Blobs"));
 	Choice_Out_Transition_Type->Append(_("Pinwheel"));
 	Choice_Out_Transition_Type->Append(_("Star"));
+	Choice_Out_Transition_Type->Append(_("Swap"));
+	Choice_Out_Transition_Type->Append(_("Shatter"));
+	Choice_Out_Transition_Type->Append(_("Circles"));
 	FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
 	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -483,7 +489,9 @@ namespace
       "Doorway",
       "Blobs",
       "Pinwheel",
-      "Star"
+      "Swap",
+      "Shatter",
+      "Circles"
    };
 
    const std::vector<wxString> transitions_noAdjust =
@@ -495,7 +503,9 @@ namespace
       "Dissolve",
       "Circular Swirl",
       "Zoom",
-      "Doorway"
+      "Doorway",
+      "Swap",
+      "Shatter"
    };
 }
 

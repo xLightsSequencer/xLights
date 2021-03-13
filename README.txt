@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix corner icons for Morph effect assist panel
+2021.07 March 2 2021
+   -- bug (dkulp)  Fix potential hang with "Per Model" render styles
+   -- bug (scott)  Fix crash in swap transition
+2021.06 March 1 2021
+   -- enh (kevin)  Add Circles and Shatter transitions
+   -- bug (scott)  Prevent groups with blank name
+   -- enh (scott)  Add multi selection to submodel import in Faces dialog
+   -- bug (scott)  Fix AC toolbar
+   -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
+   -- enh (scott)  Add BBB16 controller configuration
+   -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
+   -- enh (dkulp)  Add KiNet uploads to FPP output universes
+   -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
+   -- enh (kevin)  Allow reverse on star transition
+   -- enh (kevin)  Add swap, shatter, and circles transitions
    -- bug (dkulp)  Fix issues with effects that need to render on the main thread being rendered WAY too often if "Per Model" used.
 2021.05 February 19 2021
    -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)

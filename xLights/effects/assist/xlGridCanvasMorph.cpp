@@ -48,6 +48,9 @@ xlGridCanvasMorph::xlGridCanvasMorph(wxWindow* parent, wxWindowID id, const wxPo
     mMorphStartLinked(false),
     mMorphEndLinked(false)
 {
+    for (int i = 0; i < 6; i++) {
+        mCornerTextures[i] = 0;
+    }
 }
 
 xlGridCanvasMorph::~xlGridCanvasMorph()
@@ -559,6 +562,7 @@ void xlGridCanvasMorph::InitializeGLContext()
 
 void xlGridCanvasMorph::InitializeGLCanvas()
 {
+    SetCurrentGLContext();
     CreateCornerTextures();
     mIsInitialized = true;
 }

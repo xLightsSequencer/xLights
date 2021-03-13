@@ -556,15 +556,11 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                         int y = 0;
                         int mirrorx = buffer.BufferWi*buffer.BufferHt - new_x - 1;
                         int mirrory = 0;
-                        while (new_x >= buffer.BufferWi) {
-                            y++;
-                            new_x -= buffer.BufferWi;
-                        }
-                        while (mirrorx >= buffer.BufferWi) {
-                            mirrory++;
-                            mirrorx -= buffer.BufferWi;
-                        }
-
+                        
+                        y += new_x / buffer.BufferWi;
+                        new_x = new_x % buffer.BufferWi;
+                        mirrory += new_x / buffer.BufferWi;
+                        mirrorx = mirrorx % buffer.BufferWi;
                         if (Chase_Fade3d1) {
                             xlColor c;
                             buffer.GetPixel(new_x, y, c);

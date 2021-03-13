@@ -610,8 +610,6 @@ namespace
    }
    xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double wheelAdjust )
    {
-      const double speed = 2.;
-
       double x = s - 0.5;
       double y = t - 0.5;
       if ( t < 0.5 ) // this seems needed due to differences between GLSL and C++ versions of atan2()
@@ -619,19 +617,16 @@ namespace
          y = -y;
          x = -x;
       }
-      double circPos = std::atan2( y, x ) + progress * speed;
-      double modPos = std::fmod( circPos, PI / wheelAdjust );
-      double signedVal = sign( progress - modPos );
-
-      return ( signedVal < 0.5 )
-         ? ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) )
-         : tex2D( cb0, s, t );
+      double arcTangent = std::atan2( y, x );
+      double dummy;
+      double toProgress = std::modf( arcTangent / M_PI * wheelAdjust , &dummy );
+      return ( toProgress > progress ) ? ( tex2D( cb0, s, t ) ) : ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) );
    }
    void pinwheelTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int wheelAdjust )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      double adjust = interpolate( wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater() );
+      double adjust = std::floor( interpolate( wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater() ) );
 
       parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
@@ -643,7 +638,7 @@ namespace
    }
 
    // code for star transition
-   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments )
+   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments, bool shouldReverse )
    {
       Vec2D xy( s, t );
 
@@ -651,24 +646,239 @@ namespace
       double radius = ( cos( numSegments * angle ) + 4.0) / 4.0;
       double difference = Vec2D( xy - Vec2D( 0.5, 0.5 ) ).Len();
 
+      if ( shouldReverse )
+      {
+       if ( difference > radius * progress )
+         return tex2D( cb, xy );
+       else
+         return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );      }
+      else
+      {
       if ( difference > radius * progress )
          return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );
       else
          return tex2D( cb, xy );
+      }
    }
-   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue, bool shouldReverse )
    {
       if ( progress < 0. || progress > 1. )
          return;
 
       // want to default to a 6-point star at 50%
       int numSegments = ( adjustValue == 0 ) ? 1 : ( 1 + adjustValue / 10 );
+      if ( shouldReverse )
+         progress = 1. - progress;
 
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments](int y) {
+      // for this transition, we fudge the progress a bit b/c not much happens at the end
+      progress = interpolate( progress, 0.0, 0.0, 1.0, 0.85, LinearInterpolater() );
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments, shouldReverse](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments ) );
+            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments, shouldReverse ) );
+         }
+      }, 25);
+   }
+
+   // code for swap transition
+   namespace SwapTransitionCode
+   {
+      double reflection = 0.4f;
+      double perspective = 0.2f;
+      double depth = 3.f;
+
+      const Vec2D boundMin( 0.0, 0.0 );
+      const Vec2D boundMax( 1.0, 1.0 );
+      bool lessThan( const Vec2D&  lhs, const Vec2D& rhs )
+      {
+         return lhs.x < rhs.x && lhs.y < rhs.y;
+      }
+      bool inBounds_for_swap( const Vec2D& p )
+      {
+         return lessThan( boundMin, p ) && lessThan( p, boundMax );
+      }
+      Vec2D project_for_swap( const Vec2D& p )
+      {
+         return p * Vec2D( 1.0, -1.2 ) + Vec2D( 0.0, -0.02 );
+      }
+      xlColor bgColor( const Vec2D& p, const Vec2D& pfr, const Vec2D& pto, const ColorBuffer& toBuffer, const RenderBuffer* fromBuffer )
+      {
+         xlColor c = xlBLACK;
+
+         Vec2D projectedPFR( project_for_swap( pfr ) );
+         if ( inBounds_for_swap( projectedPFR ) )
+         {
+            c += lerp( xlBLACK, (fromBuffer == nullptr) ? xlBLACK : tex2D( *fromBuffer, projectedPFR.x, projectedPFR.y ), reflection * lerp(1.0, 0.0, projectedPFR.y) );
+         }
+
+         Vec2D projectedPTO( project_for_swap( pto ) );
+         if ( inBounds_for_swap( projectedPTO ) )
+         {
+            c += lerp( xlBLACK, tex2D( toBuffer, projectedPTO ), reflection * lerp( 1.0, 0.0, projectedPTO.y ) );
+         }
+         return c;
+      }
+   }
+   xlColor swapTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      double size = lerp( 1.0, depth, progress );
+      double persp = perspective * progress;
+
+      Vec2D pto( -1.0, -1.0 );
+      Vec2D pfr( ( Vec2D( s, t ) + Vec2D(-0.0, -0.5 ) ) * Vec2D( size / (1.0 - perspective * progress), size / (1.0 - size * persp * s) ) + Vec2D( 0.0, 0.5 ) );
+
+      size = lerp( 1.0, depth, 1.-progress );
+      persp = perspective * (1. - progress );
+      pto = ( Vec2D( s, t ) + Vec2D( -1.0, -0.5 ) ) * Vec2D( size / (1.0-perspective*(1.0-progress) ), size / (1.0-size*persp*(0.5-s) ) ) + Vec2D( 1.0, 0.5 );
+
+      if ( progress < 0.5 )
+      {
+         if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+             return (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
+         if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+            return tex2D( cb, pto );
+      }
+
+      if ( SwapTransitionCode::inBounds_for_swap( pto ) )
+         return tex2D( cb, pto );
+      if ( SwapTransitionCode::inBounds_for_swap( pfr ) )
+         return (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
+      return SwapTransitionCode::bgColor( Vec2D( s, t ), pfr, pto, cb, rb1 );
+   }
+
+   void swapTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, swapTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for shatter transition
+   namespace ShatterTransitionCode
+   {
+      // procedural white noise
+      Vec2D hash2(  const Vec2D& p )
+      {
+         double a = dot( p, Vec2D( 127.1, 311.7) );
+         double b = dot( p, Vec2D( 269.5, 183.3 ) );
+         Vec2D c( RenderBuffer::sin( a ), RenderBuffer::sin( b ) );
+         Vec2D d( 4958.5453 * c );
+         double dummy1, dummy2;
+         return Vec2D( std::modf( d.x, &dummy1 ), std::modf( d.y, &dummy2 ) );
+      }
+
+      Vec2D voronoi( const Vec2D& x )
+      {
+         Vec2D n;
+         Vec2D f( std::modf( x.x, &n.x), std::modf( x.y, &n.y ) );
+         Vec2D mc;
+         double md = 8.0;
+         for ( int j = -1; j <= 1; ++j )
+         {
+            for ( int i = -1; i <= 1; ++i )
+            {
+               Vec2D g( i, j );
+               Vec2D o( hash2( n + g ) );
+               Vec2D r( g + o - f );
+               double d = dot( r, r );
+               if ( d < md )
+               {
+                  md = d;
+                  mc = x + r;
+               }
+            }
+         }
+         return mc;
+      }
+   }
+
+   xlColor shatterTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      double num = 8.;
+
+      Vec2D texCentered( Vec2D( s, t ) - Vec2D( 0.5, 0.5 ) );
+      double ang = std::atan2( texCentered.y, texCentered.x );
+      double a = progress * 8;
+      double originalLength = ( -1. + std::sqrt( 1. + 4. * a * texCentered.Len() ) ) / (2. * a);
+      if ( a == 0. )
+         originalLength = texCentered.Len();
+
+      Vec2D originalLocation( Vec2D( 0.5, 0.5 )  + originalLength * Vec2D( RenderBuffer::cos( ang ), RenderBuffer::sin( ang ) ) );
+      Vec2D ol( texCentered / (progress + 1. ) + Vec2D( 0.5, 0.5 ) );
+      Vec2D originalShard( ShatterTransitionCode::voronoi( num * originalLocation ) );
+      Vec2D originalCenter( originalShard.x / num, originalShard.y / num );
+      double ca = std::atan2( originalCenter.y - 0.5, originalCenter.x - 0.5 );
+      double originalCenterLength = Vec2D( originalCenter - Vec2D( 0.5, 0.5 ) ).Len();
+      double currentCenterLength = originalCenterLength + originalCenterLength * originalCenterLength * a;
+      Vec2D currentCenter( Vec2D( 0.5, 0.5 ) + currentCenterLength * Vec2D( RenderBuffer::cos( ca ), RenderBuffer::sin( ca ) ) );
+      Vec2D c4( ( Vec2D( s, t ) - currentCenter ) / ( 1. + 0.6 *progress ) + originalCenter );
+      Vec2D currentShard( ShatterTransitionCode::voronoi( num * c4 ) );
+
+      double transition = 1.;
+      if ( originalShard.Dist( currentShard ) < 0.0001 )
+         transition = SmoothStep( 0.70, 1.0, progress );
+
+      xlColor toColor = tex2D( cb, c4 );
+      xlColor fromColor = ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, s, t );
+      return lerp( toColor, fromColor, transition );
+   }
+
+   void shatterTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, shatterTransition( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for circles transition
+   xlColor circlesTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, double n )
+   {
+      const int NumCircles = 3;
+
+      double dummy1, dummy2;
+      Vec2D cell( std::modf( s * n, &dummy1 ), std::modf( t * n , &dummy2 ) );
+
+      double m = 0.;
+
+      double alphaPerCircle = 1. / double( NumCircles ) + 0.01;
+      for ( int i = 0; i < NumCircles; ++i )
+      {
+         double delay = i * /*0.3*/0.5 / (NumCircles - 1);
+         double p = std::max( 0., progress - delay );
+         m += alphaPerCircle * ( 1. - SmoothStep( p * 1.40, p * 1.45, Vec2D( cell - Vec2D( 0.5, 0.5 ) ).Len() ) );
+      }
+
+      m = std::min( 1., m );
+      return lerp ( tex2D( cb, s, t ), ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, s, t ), m );
+   }
+
+   void circlesTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      double n = std::floor( interpolate( double( adjustValue ), 0., 2., 100., 8., LinearInterpolater() ) );
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, n](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, circlesTransition( cb0, rb1, s, t, progress, n ) );
          }
       }, 25);
    }
@@ -1874,6 +2084,9 @@ static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
 static const std::string STR_STAR("Star");
+static const std::string STR_SWAP("Swap");
+static const std::string STR_SHATTER("Shatter");
+static const std::string STR_CIRCLES("Circles");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3423,7 +3636,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR, STR_SWAP, STR_SHATTER, STR_CIRCLES
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3464,12 +3677,21 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               pinwheelTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+               pinwheelTransition( buffer, cb, prevRB, 1.-inMaskFactor, adjust );
             } else if ( inTransitionType == STR_STAR ) {
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+               starTransition( buffer, cb, prevRB, inMaskFactor, adjust, inTransitionReverse );
+            } else if ( inTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, inMaskFactor );
+            } else if ( inTransitionType == STR_SHATTER ) {
+               shatterTransition( buffer, cb, prevRB, 1.f-inMaskFactor );
+            } else if ( inTransitionType == STR_CIRCLES ) {
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               circlesTransition( buffer, cb, prevRB, 1.f-inMaskFactor, adjust );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3506,12 +3728,21 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               pinwheelTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+               pinwheelTransition( buffer, cb, prevRB, 1.-outMaskFactor, adjust );
             } else if ( outTransitionType == STR_STAR ) {
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
-               starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+               starTransition( buffer, cb, prevRB, outMaskFactor, adjust, outTransitionReverse );
+            } else if ( outTransitionType == STR_SWAP )  {
+               swapTransition( buffer, cb, prevRB, outMaskFactor );
+            } else if ( outTransitionType == STR_SHATTER ) {
+               shatterTransition( buffer, cb, prevRB, 1.f-outMaskFactor );
+            } else if ( outTransitionType == STR_CIRCLES ) {
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               circlesTransition( buffer, cb, prevRB, 1.f-outMaskFactor, adjust );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
@@ -3586,7 +3817,7 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
 
     // adjust for HSV adjustments
     needsHSVAdjust = (outputHueAdjust != 0 || outputSaturationAdjust != 0 || outputValueAdjust != 0);
-    
+
     outputSparkleCount = sparkle_count;
     if (SparklesValueCurve.IsActive()) {
         outputSparkleCount = (int)SparklesValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -3594,13 +3825,13 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     if (use_music_sparkle_count) {
         outputSparkleCount = (int)(music_sparkle_count_factor * (float)outputSparkleCount);
     }
-    
+
     if (BrightnessValueCurve.IsActive()) {
         outputBrightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     } else {
         outputBrightnessAdjust = brightness;
     }
-    
+
     outputEffectMixThreshold = effectMixThreshold;
     if (effectMixVaries) {
         //vary mix threshold gradually during effect interval -DJ

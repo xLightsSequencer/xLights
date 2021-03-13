@@ -192,14 +192,98 @@
         </Variant>
     </Controller>
     <Controller Name="BBB16">
-        <Variant Name="No Expansion" ID="BBB16" Base="FPP:FPPStringCape">
+        <Variant Name="No Expansion" ID="BBB16" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>16</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
-        </Variant>
-        <Variant Name="Multi Expansion" ID="BBB16-MEXP" Base="FPP:FPPStringCape">
-            <MaxPixelPort>32</MaxPixelPort>
-            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,-1</fpp1>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
+        <Variant Name="Expansion" ID="BBB16-EXP" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="T24">
+        <Variant Name="No Recievers" ID="T24" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>3</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="One Reciever" ID="T241Diff" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>28</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>4</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fpp4>25,4</fpp4>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Two Recievers" ID="T242Diff" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>5</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fpp4>25,4</fpp4>
+            <fpp5>29,4</fpp5>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Three Recievers" ID="T243Diff" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>6</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fpp4>25,4</fpp4>
+            <fpp5>29,4</fpp5>
+            <fpp6>33,4</fpp6>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Four Recievers" ID="T244Diff" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>40</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>7</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fpp4>25,4</fpp4>
+            <fpp5>29,4</fpp5>
+            <fpp6>33,4</fpp6>
+            <fpp7>37,4</fpp7>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Five Recievers" ID="T245Diff" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>44</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>8</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+            <fpp4>25,4</fpp4>
+            <fpp5>29,4</fpp5>
+            <fpp6>33,4</fpp6>
+            <fpp7>37,4</fpp7>
+            <fpp8>40,4</fpp8>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
 </Vendor>
