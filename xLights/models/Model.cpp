@@ -3821,7 +3821,7 @@ int Model::GetNodeChannelCount(const std::string & nodeType) const {
         return 4;
     }
     else if (nodeType == "Superstring") {
-        return superStringColours.size();
+        return std::max(1, (int)superStringColours.size());
     }
     else if (nodeType == "Node Single Color") {
         return 1;
