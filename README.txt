@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.08 March 14 2021
+   -- enh (dpriem) Bunches of updates/enhancements for Import dialog
+   -- enh (dpriem) Bunches of updates/enhancements for Effect Presets dialog
+   -- enh (dkulp)  Point to new build of QM plugins on M1 macs
+   -- bug (scott)  Fix custom model crash with super-strings
+   -- bug (dkulp)  Fix crash if ico files are used instead of animated gifs
    -- bug (dkulp)  Fix corner icons for Morph effect assist panel
 2021.07 March 2 2021
    -- bug (dkulp)  Fix potential hang with "Per Model" render styles
