@@ -1166,11 +1166,17 @@ public:
         if (e == nullptr) {
             logger_base.crit("Render tree has a null model ... this is not going to end well.");
         }
+        
+        ModelGroup *mg = dynamic_cast<ModelGroup*>(e);
+        if (mg != nullptr) {
+            // might need to recalculate the group nodes
+            mg->CheckForChanges();
+        }
 
-        size_t cn = e->GetChanCountPerNode();
         for (size_t node = 0; node < e->GetNodeCount(); ++node) {
             unsigned int start = e->NodeStartChannel(node);
-            AddRange(start, start + cn - 1);
+            unsigned int end = e->NodeEndChannel(node);
+            AddRange(start, end);
         }
         sortRanges(ranges);
     }

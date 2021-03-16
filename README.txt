@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix rendering of first effect dropped on model group not actually rendering
    -- bug (scott)  Fix Multi word support in User Lyric Dialog
 2021.08 March 14 2021
    -- enh (dpriem) Bunches of updates/enhancements for Import dialog

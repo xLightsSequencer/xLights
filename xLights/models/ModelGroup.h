@@ -65,11 +65,13 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool Reset(bool zeroBased = false);
         void ResetModels();
+
+        bool CheckForChanges() const;
+
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
     private:
-        bool CheckForChanges() const;
 
         std::vector<std::string> modelNames;
         std::vector<Model *> models;

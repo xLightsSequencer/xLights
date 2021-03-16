@@ -362,6 +362,7 @@ public:
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
+    int32_t NodeEndChannel(size_t nodenum) const;
     const std::string& NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
 
