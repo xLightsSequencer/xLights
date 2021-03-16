@@ -155,7 +155,9 @@ LyricUserDictDialog::~LyricUserDictDialog()
 
 void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
 {
-    if (TextCtrlNewLyric->GetValue().IsEmpty()) return;
+    if (TextCtrlNewLyric->GetValue().IsEmpty()) { 
+        return; 
+    }
 
     //check if word is "marked" to be removed from main dictionary
     const bool found = (std::find(m_removeList.begin(), m_removeList.end(), TextCtrlNewLyric->GetValue().Upper()) != m_removeList.end());
@@ -163,13 +165,18 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
     //only error if word is in main dictionary and not marked to be deleted on close
     // or its already populated in the dialog
     if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
-        || DoesGridContain(TextCtrlNewLyric->GetValue().Upper()))
-    {
-        DisplayError("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary", this);
+        || DoesGridContain(TextCtrlNewLyric->GetValue().Upper())) {
+        DisplayError("Word '" + TextCtrlNewLyric->GetValue() + "' Already Exists In Phoneme Dictionary", this);
         return;
     }
 
-    InsertRow(TextCtrlNewLyric->GetValue().Upper(), m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper()));
+    const auto& str_list = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
+    std::vector<wxArrayString> phonemeList; 
+    for (const auto& str : str_list) {
+        phonemeList.push_back(m_dictionary->GetPhoneme(str));
+    }
+
+    InsertRow(TextCtrlNewLyric->GetValue().Upper(), phonemeList);
     GridUserLyricDict->SelectRow(GridUserLyricDict->GetNumberRows() - 1);
     GridUserLyricDict->GoToCell(GridUserLyricDict->GetNumberRows() - 1, 1);
     TextCtrlNewLyric->Clear();
@@ -184,20 +191,19 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
     const wxString& msg = "Delete Select Phonemes";
     const int answer = wxMessageBox(msg, "Delete Phonemes", wxYES_NO, this);
 
-    if (answer == wxNO)
-    {
+    if (answer == wxNO) {
         return;
     }
 
-    for (auto x = 0; x < indexs.size(); x++)
-    {
+    for (auto x = 0; x < indexs.size(); x++) {
         auto i = indexs[x];
         wxString name = GridUserLyricDict->GetCellValue(i, 0);
 
         //"marked" removeds word so they can be removed from the main dictionary on dialog ok event
         const bool found = (std::find(m_removeList.begin(), m_removeList.end(), name) != m_removeList.end());
-        if(!found)
+        if (!found) {
             m_removeList.Add(name);
+        }
 
         GridUserLyricDict->DeleteRows(i);
     }
@@ -207,18 +213,15 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
 void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
 {
     //check for valid Phonemes..
-    for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
-    {
-        if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper()))
-        {
+    for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++) {
+        if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper())) {
             const auto msg = "Invalid Phonemes for: " + GridUserLyricDict->GetCellValue(i, 0);
             DisplayError(msg, this);
             return;
         }
     }
     //Remove Old Phoneme
-    for (const auto& str : m_removeList)
-    {
+    for (const auto& str : m_removeList) {
         m_dictionary->RemovePhoneme(str);
     }
     //save and insert
@@ -244,8 +247,8 @@ void LyricUserDictDialog::ReadUserDictionary() const
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }
-    if (!wxFile::Exists(phonemeFile.GetFullPath()))
-    {
+
+    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         logger_base.error("Could Not Find user_dictionary file");
         return;
     }
@@ -253,15 +256,15 @@ void LyricUserDictDialog::ReadUserDictionary() const
     wxFileInputStream input(phonemeFile.GetFullPath());
     wxTextInputStream text(input);
 
-    while (input.IsOk() && !input.Eof())
-    {
+    while (input.IsOk() && !input.Eof()) {
         wxString line = text.ReadLine();
         line = line.Trim();
-        if (line.Left(1) == "#" || line.Length() == 0)
+        if (line.Left(1) == "#" || line.Length() == 0) {
             continue; // skip comments
+        }
 
         wxArrayString strList = wxSplit(line, ' ');
-        InsertRow(strList[0], strList);
+        InsertRow(strList[0], { strList });
     }
 }
 
@@ -274,10 +277,8 @@ void LyricUserDictDialog::WriteUserDictionary() const
 
     wxFile f(phonemeFile.GetFullPath(), wxFile::write);
 
-    if (f.IsOpened())
-    {
-        for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
-        {
+    if (f.IsOpened()) {
+        for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++) {
             wxArrayString str_list = wxSplit(GridUserLyricDict->GetCellValue(i, 1).Upper(), ' ');
             str_list.Insert("", 0);
             str_list.Insert(GridUserLyricDict->GetCellValue(i, 0).Upper(), 0);
@@ -285,39 +286,37 @@ void LyricUserDictDialog::WriteUserDictionary() const
             f.Write('\n');
             m_dictionary->InsertPhoneme(str_list);
         }
-
         f.Close();
     }
-    else
-    {
+    else {
         logger_base.error("Could Not Save user_dictionary file");
     }
 }
 
-void LyricUserDictDialog::InsertRow(const wxString & text, wxArrayString phonemeList) const
+void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<wxArrayString> phonemeList) const
 {
     const int row = GridUserLyricDict->GetNumberRows();
     GridUserLyricDict->InsertRows(row);
     GridUserLyricDict->SetCellValue(row, 0, text);
     GridUserLyricDict->SetReadOnly(row, 0);
 
-    if (phonemeList.size() > 2)
-    {
-        phonemeList.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-        GridUserLyricDict->SetCellValue(row, 1, wxJoin(phonemeList, ' '));
+    wxArrayString all_phonemes;
+
+    for (auto & phonem : phonemeList) {
+        if (phonem.size() > 2) {
+            phonem.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
+            all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+        }
     }
-    else
-    {
-        GridUserLyricDict->SetCellValue(row, 1, "");
-    }
+    GridUserLyricDict->SetCellValue(row, 1, wxJoin(all_phonemes, ' '));
 }
 
 bool LyricUserDictDialog::DoesGridContain(const wxString & text) const
 {
-    for(auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
-    {
-        if (GridUserLyricDict->GetCellValue(i, 0) == text)
+    for(auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++) {
+        if (GridUserLyricDict->GetCellValue(i, 0) == text) {
             return true;
+        }
     }
     return false;
 }
@@ -326,10 +325,10 @@ bool LyricUserDictDialog::IsValidPhoneme(const wxString & text) const
 {
     const auto& str_list = wxSplit(text, ' ');
 
-    for (const auto& str : str_list)
-    {
-        if (!m_dictionary->ContainsPhonemeMap(str))
+    for (const auto& str : str_list) {
+        if (!m_dictionary->ContainsPhonemeMap(str)) {
             return false;
+        }
     }
     return true;
 }
@@ -339,25 +338,20 @@ void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
     const auto& words = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
     wxArrayString phenoms;
     //loop through for multiple words
-    for (const auto& word : words)
-    {
-        if ((m_dictionary->ContainsPhoneme(word)))
-        {
+    for (const auto& word : words) {
+        if ((m_dictionary->ContainsPhoneme(word))) {
             wxArrayString word_phenoms = m_dictionary->GetPhoneme(word);
-            if (word_phenoms.size() > 2)
-            {
+            if (word_phenoms.size() > 2) {
                 word_phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
                 phenoms.insert(phenoms.end(),word_phenoms.begin(),word_phenoms.end());
             }
         }
     }
 
-    if (!phenoms.IsEmpty())
-    {
+    if (!phenoms.IsEmpty()) {
          TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
     }
-    else
-    {
+    else {
         TextCtrlPhonems->Clear();
     }
     ValidateWindow();

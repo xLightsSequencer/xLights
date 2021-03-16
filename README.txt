@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fix Multi word support in User Lyric Dialog
 2021.08 March 14 2021
    -- enh (dpriem) Bunches of updates/enhancements for Import dialog
    -- enh (dpriem) Bunches of updates/enhancements for Effect Presets dialog
