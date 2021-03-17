@@ -117,8 +117,7 @@ void FPP::setIPAddress(const std::string &ip) {
 }
 
 
-class FPPWriteData {
-public:
+struct FPPWriteData {
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
     
