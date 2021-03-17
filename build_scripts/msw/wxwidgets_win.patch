@@ -1,0 +1,33 @@
+From: Scott Hanson 
+Date: Wed, 17 Mar 2021 11:20:42 -0400
+Subject: [PATCH] change defaults
+
+---
+ include/wx/msw/setup.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/wx/msw/setup.h b/include/wx/msw/setup.h
+index 262f732c94..1db2d19d6c 100644
+--- a/include/wx/msw/setup.h
++++ b/include/wx/msw/setup.h
+@@ -347,7 +347,7 @@
+ //
+ // Recommended setting: 1 unless compatibility with the official wxWidgets
+ // build and/or the existing code is a concern.
+-#define wxUSE_STD_CONTAINERS 0
++#define wxUSE_STD_CONTAINERS 1
+ 
+ // Use standard C++ streams if 1 instead of wx streams in some places. If
+ // disabled, wx streams are used everywhere and wxWidgets doesn't depend on the
+@@ -387,7 +387,7 @@
+ //
+ // Recommended setting: 0 to remain compatible with the official builds of
+ // wxWidgets.
+-#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
++#define wxUSE_STD_STRING_CONV_IN_WXSTRING 1
+ 
+ // ----------------------------------------------------------------------------
+ // non GUI features selection
+-- 
+2.30.0.windows.2
+
