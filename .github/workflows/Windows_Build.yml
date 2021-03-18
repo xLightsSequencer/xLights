@@ -73,46 +73,44 @@ jobs:
         name: xLights_x64_Installer
         path: 'build_scripts\msw\output\**'
 
-    - name: Upload xFade.exe
-      uses: actions/upload-artifact@v2
-      with:
-        name: xFade.exe
-        path: xFade\x64\Release\xFade.exe
-
-    - name: Upload xCapture.exe
-      uses: actions/upload-artifact@v2
-      with:
-        name: xCapture.exe
-        path: xCapture\x64\Release\xCapture.exe
-
-    - name: Upload xScanner.exe
-      uses: actions/upload-artifact@v2
-      with:
-        name: xScanner.exe
-        path: xScanner\x64\Release\xScanner.exe
-
-    - name: Upload xSchedule.exe
-      uses: actions/upload-artifact@v2
-      with:
-        name: xSchedule.exe
-        path: xSchedule\x64\Release\xSchedule.exe
-
-    - name: Upload xSMSDaemon.dll
-      uses: actions/upload-artifact@v2
-      with:
-        name: Xsmsdaemon.dll
-        path: xSchedule\xSMSDaemon\x64\Release\Xsmsdaemon.dll
-
-    - name: Upload RemoteFalcon.dll
-      uses: actions/upload-artifact@v2
-      with:
-        name: RemoteFalcon.dll
-        path: xSchedule\RemoteFalcon\x64\Release\RemoteFalcon.dll
-
-    - name: Upload Xlights.exe
-      uses: actions/upload-artifact@v2
-      with:
-        name: Xlights.exe
-        path: xLights\x64\Release\Xlights.exe
-
-
+#    - name: Upload xFade.exe
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: xFade.exe
+#        path: xFade\x64\Release\xFade.exe
+#
+#    - name: Upload xCapture.exe
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: xCapture.exe
+#        path: xCapture\x64\Release\xCapture.exe
+#
+#    - name: Upload xScanner.exe
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: xScanner.exe
+#        path: xScanner\x64\Release\xScanner.exe
+#
+#    - name: Upload xSchedule.exe
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: xSchedule.exe
+#        path: xSchedule\x64\Release\xSchedule.exe
+#
+#    - name: Upload xSMSDaemon.dll
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: Xsmsdaemon.dll
+#        path: xSchedule\xSMSDaemon\x64\Release\Xsmsdaemon.dll
+#
+#    - name: Upload RemoteFalcon.dll
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: RemoteFalcon.dll
+#        path: xSchedule\RemoteFalcon\x64\Release\RemoteFalcon.dll
+#
+#    - name: Upload Xlights.exe
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: Xlights.exe
+#        path: xLights\x64\Release\Xlights.exe
