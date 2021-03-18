@@ -49,7 +49,7 @@ jobs:
       
     - name: Build xSchedule
       working-directory: xSchedule
-      run: msbuild xSchedule.sln -maxcpucount:2 /p:Configuration="Release" /p:Platform="x64"
+      run: msbuild xSchedule.sln -maxcpucount:4 /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build xSMSDaemon
       working-directory: xSchedule\xSMSDaemon
@@ -61,7 +61,7 @@ jobs:
 
     - name: Build xLights
       working-directory: xLights
-      run: msbuild xLights.sln -maxcpucount:2 /p:Configuration="Release" /p:Platform="x64"
+      run: msbuild xLights.sln -maxcpucount:4 /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build Installer
       working-directory: build_scripts\msw
