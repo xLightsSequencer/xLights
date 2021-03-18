@@ -65,7 +65,7 @@ jobs:
       
     - name: Build Installer
       working-directory: build_scripts\msw
-      run: ISCC.exe xLights_4_64bit_xLights_VS.iss
+      run: ISCC.exe xLights_4_64bit_VS.iss
 
     - name: Upload Installer
       uses: actions/upload-artifact@v2
