@@ -942,18 +942,6 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/kbfif8mckfooicfuiqqn</image>
 		<rating>3</rating>
 	</shader>
-	<shader>	
-		<name>TieDie_xL</name>
-		<id>604c19cdd4849b0013135d43</id>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/ca8vjj0qniizmgrecnpx</image>
-		<rating>4</rating>
-	</shader>	
-	<shader>	
-		<name>RGBLaserGlobe_xL</name>
-		<id>604bcf6adf59c70014cdc5ff</id>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/r443hlw5odekcabyldrw</image>
-		<rating>5</rating>
-	</shader>	
 	<!--shader>
 		<name></name>
 		<id></id>
