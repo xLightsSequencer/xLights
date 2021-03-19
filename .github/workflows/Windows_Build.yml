@@ -1,7 +1,10 @@
  
 name: Windows_Build
 
-on: [push, pull_request]
+
+on:
+  release:
+   created:
 
 jobs:
   build:
