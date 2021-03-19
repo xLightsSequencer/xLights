@@ -1,6 +1,82 @@
 <shaders>
 	<downloadmaster>https://editor.isf.video/api/shaders/{id}</downloadmaster>
 	<linkmaster>https://editor.isf.video/shaders/{id}</linkmaster>
+	<!-- New additions specifically designed for xLights. These can be found at: https://editor.isf.video/u/Old_Salt -->
+	<!-- Value curves are usually included, as well as access to the xLights color palette -->
+	<!-- Please verify these entries before release -->
+	<shader>
+		<name>Circle Bloom - 16 arm_xL</name>
+		<id>604b9540d4849b0013135d3c</id>
+		<link>https://editor.isf.video/shaders/604b9540d4849b0013135d3c</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604b9540d4849b0013135d3c/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/qrio2yq6tomsen2fchkk</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Fire Within_xL</name>
+		<id>604d05fbdf59c70014cdc60b</id>
+		<link>https://editor.isf.video/shaders/604d05fbdf59c70014cdc60b</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604d05fbdf59c70014cdc60b/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/bxpfvey3fyczaa6ogpu3</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>LogTransSpiral_xL</name>
+		<id>604b96c2d4849b0013135d3e</id>
+		<link>https://editor.isf.video/shaders/604b96c2d4849b0013135d3e</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604b96c2d4849b0013135d3e/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/fgn8nkqtg0nev4wd8rje</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>LogTransSpiralSmall_xL</name>
+		<id>604b9913df59c70014cdc5fd</id>
+		<link>https://editor.isf.video/shaders/604b9913df59c70014cdc5fd</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604b9913df59c70014cdc5fd/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/ep0fbh5tmf3aqcxhb9l2</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>RGBLaserGlobe_xL</name>
+		<id>604bcf6adf59c70014cdc5ff</id>
+		<link>https://editor.isf.video/shaders/604bcf6adf59c70014cdc5ff</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604bcf6adf59c70014cdc5ff/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/eudqsntrht0sfniknjgx</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Spiral over Beams_xL</name>
+		<id>604beb21d4849b0013135d41</id>
+		<link>https://editor.isf.video/shaders/604beb21d4849b0013135d41</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604beb21d4849b0013135d41/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/ep0gyfa84qq5ocnbplnv</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Tiedie_xL</name>
+		<id>604c19cdd4849b0013135d43</id>
+		<link>https://editor.isf.video/shaders/604c19cdd4849b0013135d43</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604c19cdd4849b0013135d43/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/c9mgmerdpmvpv941cwbt</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>VoronoiSpiralVortex_xL</name>
+		<id>604bc707df59c70014cdc5fe</id>
+		<link>https://editor.isf.video/shaders/604bc707df59c70014cdc5fe</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604bc707df59c70014cdc5fe/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/y87khtsc7cv6d3fnu7qe</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Wispy Background_xL</name>
+		<id>604b9a6cd4849b0013135d3f</id>
+		<link>https://editor.isf.video/shaders/604b9a6cd4849b0013135d3f</link>
+		<download>https://www.interactiveshaderformat.com/sketches/604b9a6cd4849b0013135d3f/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/esrv5qth1pwmkouxye8g</image>
+		<rating>3</rating>
+	</shader>
+	<!-- End of new additions. -->
 	<!-- Commented out shaders were on the site but seem to have been removed after their certificate issues-->
 	<shader>
 		<name>Bloodstain</name>
