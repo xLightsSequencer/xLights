@@ -745,8 +745,8 @@ NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const
 #if defined(__WXOSX__)
     wxBitmap bitmap(image, -1, 2.0);
 #else
-    image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
-                  ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+    image.Rescale(ScaleWithSystemDPI(24),
+                  ScaleWithSystemDPI(24),
                   wxIMAGE_QUALITY_HIGH);
     wxBitmap bitmap(image);
 #endif
