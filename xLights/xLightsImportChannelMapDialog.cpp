@@ -687,7 +687,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
     _dataModel = new xLightsImportTreeModel();
 
-    TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
+    TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES | wxDV_MULTIPLE, wxDefaultValidator);
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
@@ -927,7 +927,12 @@ void xLightsImportChannelMapDialog::OnKeyDown(wxKeyEvent& event)
     {
         if (TreeListCtrl_Mapping->GetSelectedItemsCount() > 0)
         {
-            Unmap(TreeListCtrl_Mapping->GetSelection());
+            wxDataViewItemArray selectedItems;
+            TreeListCtrl_Mapping->GetSelections(selectedItems);
+            
+            for (const auto& item : selectedItems) {
+                Unmap(item);
+            }
         }
     }
 }
@@ -939,6 +944,8 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
         wxVariant vvalue;
         event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
         std::string mapped = vvalue.GetString().ToStdString();
+        TreeListCtrl_Mapping->UnselectAll();
+        TreeListCtrl_Mapping->Select(event.GetItem());
         if (mapped == "" && ListCtrl_Available->GetSelectedItemCount() > 0)
         {
             int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1589,7 +1596,11 @@ void xLightsImportChannelMapDialog::OnDragDrop(wxDataViewEvent& event) {
             wxString pfx = txt.Left(idx);
             wxString model = txt.substr(idx + 1);
             if (pfx == "Map") {
-                Map(item, model);
+                wxDataViewItemArray selectedItems;
+                TreeListCtrl_Mapping->GetSelections(selectedItems);
+                for (const auto& selItem : selectedItems) {
+                    Map(selItem, model);
+                }
             }
         }
     }
@@ -2069,13 +2080,22 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEvent& event)
 {
-    if (TreeListCtrl_Mapping->GetSelectedItemsCount() != 1) return;
+    if (TreeListCtrl_Mapping->GetSelectedItemsCount() == 0) return;
 
-    wxDataViewItem mapTo = TreeListCtrl_Mapping->GetSelection();
-    Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem()).ToStdString());
+    wxDataViewItemArray mapItems;
+    TreeListCtrl_Mapping->GetSelections(mapItems);
+    
+    wxDataViewItem lastMapTo;
 
-    wxDataViewItem nextMapTo = GetNextTreeItem(mapTo);
-    TreeListCtrl_Mapping->Unselect(mapTo);
+    for (const auto& mapTo : mapItems) {
+        lastMapTo = mapTo;
+        Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem()).ToStdString());
+
+    }
+    
+    wxDataViewItem nextMapTo = GetNextTreeItem(lastMapTo);
+    TreeListCtrl_Mapping->UnselectAll();
+
     if (nextMapTo.IsOk())
     {
         TreeListCtrl_Mapping->Select(nextMapTo);
