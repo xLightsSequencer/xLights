@@ -226,6 +226,9 @@ public:
         blue = (uint8_t)db;
     }
 
+    /** Does this color have enough contrast to display OK on the given background **/
+    bool HasSufficientContrast(const xlColor& bg) const;
+    
     void SetFromString(const std::string &str);
     operator std::string() const;
 

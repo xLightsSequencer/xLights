@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dpriem) Allow mapping available to multiple selected models/submodels/groups in mapping dialog.
+   -- enh (dkulp)  Change font color for timing tracks if not enough contrast with background.  Easier to read defaults in dark mode.
    -- bug (dkulp)  Fix rendering of first effect dropped on model group not actually rendering
    -- bug (scott)  Fix Multi word support in User Lyric Dialog
 2021.08 March 14 2021
