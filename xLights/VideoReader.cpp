@@ -289,6 +289,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         logger_base.warn("      Frame ms <unknown as _frames is 0>");
         _frameMS = 0;
     }
+    
+    _firstFramePos = -1;
 }
 
 void VideoReader::reopenContext() {
@@ -631,6 +633,14 @@ bool VideoReader::readFrame(int timestampMS) {
         else
         {
             _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
+        }
+        if (_firstFramePos == -1) {
+            _firstFramePos = _curPos;
+        }
+        if (_firstFramePos > timestampMS) {
+            // some videos don't have any frames in the first part of a second so we'll use the first frame we DO
+            // have for up to that.
+            timestampMS = _firstFramePos;
         }
         //int curPosDTS = DTStoMS(_srcFrame->pkt_dts, _dtspersec);
         //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
@@ -980,6 +990,12 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     int currenttime = GetPos();
     int timeOfNextFrame = currenttime + _frameMS;
     int timeOfPrevFrame = currenttime - _frameMS;
+    
+    if (_firstFramePos >= timestampMS) {
+        //use the first frame in the file
+        timestampMS = _firstFramePos;
+    }
+    
     if (timestampMS >= currenttime && timestampMS < timeOfNextFrame) {
         //same frame, just return
         return _dstFrame;
