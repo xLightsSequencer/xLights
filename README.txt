@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.09 March 23 2021
+   -- enh          Add some more xLights optimized shaders to shaders.xml
+   -- enh (dkulp)  Adjust some colors in the download dialogs for OSX Dark Mode.
    -- enh (dpriem) Allow mapping available to multiple selected models/submodels/groups in mapping dialog.
    -- enh (dkulp)  Change font color for timing tracks if not enough contrast with background.  Easier to read defaults in dark mode.
    -- bug (dkulp)  Fix rendering of first effect dropped on model group not actually rendering
