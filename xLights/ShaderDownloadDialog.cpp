@@ -335,6 +335,9 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
     ListView_Sites->InsertItem(0, "glslsandbox.com/");
     ListView_Sites->SetColumnWidth(0, wxLIST_AUTOSIZE);
 
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
+    }
     PopulateShaderPanel((MShader*)nullptr);
 
     ValidateWindow();
