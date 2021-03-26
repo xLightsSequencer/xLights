@@ -1383,8 +1383,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     int width = 0;
     if (full_refresh) {
-
-        UnSelectAllModels();
+        //UnSelectAllModels();
 
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
