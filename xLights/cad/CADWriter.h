@@ -20,7 +20,7 @@ struct CADWriter
 {
 	CADWriter(std::string fileName);
 
-	~CADWriter();
+	virtual ~CADWriter();
 
 	virtual bool MapToScreen() { return true; }
 

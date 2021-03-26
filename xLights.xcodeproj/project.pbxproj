@@ -10,6 +10,12 @@
 		1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */; };
 		1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */; };
 		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
+		53C53F7A260EAA4C006C991A /* ModelToCAD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F6D260EAA4B006C991A /* ModelToCAD.cpp */; };
+		53C53F7B260EAA4C006C991A /* VRMLWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F71260EAA4B006C991A /* VRMLWriter.cpp */; };
+		53C53F7C260EAA4C006C991A /* CADWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F72260EAA4B006C991A /* CADWriter.cpp */; };
+		53C53F7D260EAA4C006C991A /* DXFWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F75260EAA4C006C991A /* DXFWriter.cpp */; };
+		53C53F7E260EAA4C006C991A /* CADModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F76260EAA4C006C991A /* CADModel.cpp */; };
+		53C53F7F260EAA4C006C991A /* STLWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53C53F79260EAA4C006C991A /* STLWriter.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67025C6D20D7E80900BF1AC6 /* Assets.xcassets */; };
 		67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */; };
@@ -550,6 +556,19 @@
 		1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditSliderDialog.h; sourceTree = "<group>"; };
 		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
 		537275A425B9106B0089ED38 /* EffectTreeDialog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EffectTreeDialog.h; sourceTree = "<group>"; };
+		53C53F6D260EAA4B006C991A /* ModelToCAD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelToCAD.cpp; path = cad/ModelToCAD.cpp; sourceTree = "<group>"; };
+		53C53F6E260EAA4B006C991A /* DXFWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DXFWriter.h; path = cad/DXFWriter.h; sourceTree = "<group>"; };
+		53C53F6F260EAA4B006C991A /* CADWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CADWriter.h; path = cad/CADWriter.h; sourceTree = "<group>"; };
+		53C53F70260EAA4B006C991A /* ModelToCAD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelToCAD.h; path = cad/ModelToCAD.h; sourceTree = "<group>"; };
+		53C53F71260EAA4B006C991A /* VRMLWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VRMLWriter.cpp; path = cad/VRMLWriter.cpp; sourceTree = "<group>"; };
+		53C53F72260EAA4B006C991A /* CADWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CADWriter.cpp; path = cad/CADWriter.cpp; sourceTree = "<group>"; };
+		53C53F73260EAA4B006C991A /* CADModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CADModel.h; path = cad/CADModel.h; sourceTree = "<group>"; };
+		53C53F74260EAA4C006C991A /* CADPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CADPoint.h; path = cad/CADPoint.h; sourceTree = "<group>"; };
+		53C53F75260EAA4C006C991A /* DXFWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DXFWriter.cpp; path = cad/DXFWriter.cpp; sourceTree = "<group>"; };
+		53C53F76260EAA4C006C991A /* CADModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CADModel.cpp; path = cad/CADModel.cpp; sourceTree = "<group>"; };
+		53C53F77260EAA4C006C991A /* VRMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VRMLWriter.h; path = cad/VRMLWriter.h; sourceTree = "<group>"; };
+		53C53F78260EAA4C006C991A /* STLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = STLWriter.h; path = cad/STLWriter.h; sourceTree = "<group>"; };
+		53C53F79260EAA4C006C991A /* STLWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = STLWriter.cpp; path = cad/STLWriter.cpp; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1614,6 +1633,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		53C53F6C260EA9E5006C991A /* cad */ = {
+			isa = PBXGroup;
+			children = (
+				53C53F76260EAA4C006C991A /* CADModel.cpp */,
+				53C53F73260EAA4B006C991A /* CADModel.h */,
+				53C53F74260EAA4C006C991A /* CADPoint.h */,
+				53C53F72260EAA4B006C991A /* CADWriter.cpp */,
+				53C53F6F260EAA4B006C991A /* CADWriter.h */,
+				53C53F75260EAA4C006C991A /* DXFWriter.cpp */,
+				53C53F6E260EAA4B006C991A /* DXFWriter.h */,
+				53C53F6D260EAA4B006C991A /* ModelToCAD.cpp */,
+				53C53F70260EAA4B006C991A /* ModelToCAD.h */,
+				53C53F79260EAA4C006C991A /* STLWriter.cpp */,
+				53C53F78260EAA4C006C991A /* STLWriter.h */,
+				53C53F71260EAA4B006C991A /* VRMLWriter.cpp */,
+				53C53F77260EAA4C006C991A /* VRMLWriter.h */,
+			);
+			name = cad;
+			sourceTree = "<group>";
+		};
 		67025C6920D7E80800BF1AC6 /* xFade */ = {
 			isa = PBXGroup;
 			children = (
@@ -2388,6 +2427,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				53C53F6C260EA9E5006C991A /* cad */,
 				67FB1E8025AE3CEA00325CF6 /* CopyFormat1.cpp */,
 				67FB1E7F25AE3CEA00325CF6 /* CopyFormat1.h */,
 				6719709A25719E21008F0294 /* AboutDialog.cpp */,
@@ -3076,6 +3116,7 @@
 				67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */,
 				67D90BE62390176B007792F2 /* xxxSerialOutput.cpp in Sources */,
 				67503CA223C3261F0033449B /* ChannelBlockModel.cpp in Sources */,
+				53C53F7E260EAA4C006C991A /* CADModel.cpp in Sources */,
 				67503CB123C3261F0033449B /* ViewObjectManager.cpp in Sources */,
 				676CFAF3207D2BBE002EB5E7 /* jsonreader.cpp in Sources */,
 				67503C9123C3261F0033449B /* MatrixModel.cpp in Sources */,
@@ -3293,6 +3334,7 @@
 				67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
 				67D7FC59243B6918004956FF /* OPCOutput.cpp in Sources */,
+				53C53F7F260EAA4C006C991A /* STLWriter.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
 				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
@@ -3309,6 +3351,7 @@
 				67503C9023C3261F0033449B /* ViewObject.cpp in Sources */,
 				67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
+				53C53F7D260EAA4C006C991A /* DXFWriter.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
 				67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */,
 				670827F62024C19D0002B617 /* LOROptimisedOutput.cpp in Sources */,
@@ -3342,6 +3385,7 @@
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */,
+				53C53F7A260EAA4C006C991A /* ModelToCAD.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
 				67503C9223C3261F0033449B /* CustomModel.cpp in Sources */,
 				6716574B23CAAA45000B47D3 /* Mesh.cpp in Sources */,
@@ -3396,6 +3440,7 @@
 				67E00449256D878100E12C81 /* osxInAppPurchases.mm in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
 				6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */,
+				53C53F7B260EAA4C006C991A /* VRMLWriter.cpp in Sources */,
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				675CA16823C93FBE007432C6 /* DmxShutterAbility.cpp in Sources */,
@@ -3420,6 +3465,7 @@
 				674E3EE920CEB5530087FDA1 /* WarpPanel.cpp in Sources */,
 				67B2CF811C39D98A003C17CA /* PlasmaPanel.cpp in Sources */,
 				671130AD1E4EB13B00AF09A7 /* ServoEffect.cpp in Sources */,
+				53C53F7C260EAA4C006C991A /* CADWriter.cpp in Sources */,
 				67B71D241EC09FDB00690109 /* ColorManager.cpp in Sources */,
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */,
