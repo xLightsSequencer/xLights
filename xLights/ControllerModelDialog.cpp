@@ -92,23 +92,33 @@ END_EVENT_TABLE()
 
 #pragma region Colours
 wxColour __lightBlue(185, 246, 250, wxALPHA_OPAQUE);
-wxBrush __dropTargetBrush(__lightBlue);
-wxPen __dropTargetPen(__lightBlue);
 wxColour __lightRed(255, 133, 133, wxALPHA_OPAQUE);
-wxBrush __invalidBrush(__lightRed);
-wxPen __pixelPortOutlinePen(*wxRED);
-wxPen __serialPortOutlinePen(*wxGREEN);
+wxColour __lightGrey(225,225,225);
 wxColour __grey(128, 128, 128, wxALPHA_OPAQUE);
-wxPen __modelOutlinePen(__grey);
-wxBrush __modelSRNoneBrush(*wxWHITE);
+wxColour __darkGrey(100, 100, 100);
+wxColour __charcoal(30, 30, 30);
 wxColour __lightGreen(153, 255, 145, wxALPHA_OPAQUE);
-wxBrush __modelSRABrush(__lightGreen);
+wxColour __darkGreen(6,60,0, wxALPHA_OPAQUE);
 wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
-wxBrush __modelSRBBrush(__lightPurple);
+wxColour __darkPurple(49,0,74, wxALPHA_OPAQUE);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
-wxBrush __modelSRCBrush(__lightOrange);
-wxPen __backgroundPen(*wxWHITE);
-wxBrush __backgroundBrush(*wxWHITE);
+wxColour __darkOrange(150,54,3, wxALPHA_OPAQUE);
+wxColour __textForeground;
+wxBrush __invalidBrush;
+wxBrush __dropTargetBrush;
+wxPen __dropTargetPen;
+wxPen __pixelPortOutlinePen;
+wxPen __serialPortOutlinePen;
+wxPen __modelOutlinePen;
+wxBrush __modelSRNoneBrush;
+wxBrush __modelSRABrush;
+wxBrush __modelSRBBrush;
+wxBrush __modelSRCBrush;
+wxColour __modelSRAText;
+wxColour __modelSRBText;
+wxColour __modelSRCText;
+wxPen __backgroundPen;
+wxBrush __backgroundBrush;
 #pragma endregion
 
 #pragma region Object Classes
@@ -146,6 +156,7 @@ public:
         _size = size;
         _scale = scale;
         _invalid = false;
+        SetColors();
     }
     void SetLocationY(int y)
     {
@@ -184,6 +195,43 @@ public:
         dc.SetClippingRegion(pt, size);
         dc.DrawText(text, pt);
         dc.DestroyClippingRegion();
+    }
+    void SetColors() {
+        __invalidBrush.SetColour(__lightRed);
+        __serialPortOutlinePen.SetColour(*wxGREEN);
+        __modelOutlinePen.SetColour(__grey);
+
+        if (wxSystemSettings::GetAppearance().IsDark()) {
+            __modelOutlinePen.SetColour(__grey);
+            __dropTargetBrush.SetColour(*wxBLUE);
+            __dropTargetPen.SetColour(*wxBLUE);
+            __pixelPortOutlinePen.SetColour(*wxCYAN);
+            __modelSRNoneBrush.SetColour(__darkGrey);
+            __modelSRABrush.SetColour(__darkGreen);
+            __modelSRBBrush.SetColour(__darkPurple);
+            __modelSRCBrush.SetColour(__darkOrange);
+            __backgroundPen.SetColour(__charcoal);
+            __backgroundBrush.SetColour(__charcoal);
+            __modelSRAText = __lightGreen;
+            __modelSRBText = __lightPurple;
+            __modelSRCText = __lightOrange;
+            __textForeground = __lightGrey;
+        } else {
+            __modelOutlinePen.SetColour(__grey);
+            __dropTargetBrush.SetColour(__lightBlue);
+            __dropTargetPen.SetColour(__lightBlue);
+            __pixelPortOutlinePen.SetColour(*wxRED);
+            __modelSRNoneBrush.SetColour(*wxWHITE);
+            __modelSRABrush.SetColour(__lightGreen);
+            __modelSRBBrush.SetColour(__lightPurple);
+            __modelSRCBrush.SetColour(__lightOrange);
+            __backgroundPen.SetColour(*wxWHITE);
+            __backgroundBrush.SetColour(*wxWHITE);
+            __modelSRAText = *wxBLACK;
+            __modelSRBText = *wxBLACK;
+            __modelSRCText = *wxBLACK;
+            __textForeground = *wxBLACK;
+        }
     }
 };
 
@@ -260,13 +308,14 @@ int GetPort() const { return _port; }
 virtual std::string GetType() const override { return "PORT"; }
 virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing = false, bool border = true) override
 {
+    
     auto origBrush = dc.GetBrush();
     auto origPen = dc.GetPen();
     auto origText = dc.GetTextForeground();
 
     wxSize sz = _size;
     sz = sz.Scale(scale, scale);
-    dc.SetTextForeground(*wxBLACK);
+    dc.SetTextForeground(__textForeground);
 
     UDControllerPort* p = GetUDPort();
     if (!border) {
@@ -307,7 +356,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
             dc.SetTextForeground(*wxRED);
         }
         DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, sz - wxSize(pt.x + 2, 4));
-        dc.SetTextForeground(*wxBLACK);
+        dc.SetTextForeground(__textForeground);
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
     }
     if (_style & STYLE_CHANNELS) {
@@ -319,7 +368,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
             dc.SetTextForeground(*wxRED);
         }
         DrawTextLimited(dc, wxString::Format("%d", p->Channels()), pt, sz - wxSize(pt.x + 2, 4));
-        dc.SetTextForeground(*wxBLACK);
+        dc.SetTextForeground(__textForeground);
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
     }
 
@@ -537,7 +586,7 @@ public:
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
-        dc.SetTextForeground(*wxBLACK);
+        dc.SetTextForeground(__textForeground);
 
         Model* m = _mm->GetModel(_name);
         UDControllerPortModel* udcpm = GetUDModel();
@@ -548,7 +597,7 @@ public:
         else {
             dc.SetPen(__modelOutlinePen);
         }
-
+        
         if (udcpm != nullptr) {
             switch (udcpm->GetSmartRemote()) {
             case 0:
@@ -556,14 +605,19 @@ public:
                 break;
             case 1:
                 dc.SetBrush(__modelSRABrush);
+                dc.SetTextForeground(__modelSRAText);
                 break;
             case 2:
                 dc.SetBrush(__modelSRBBrush);
+                dc.SetTextForeground(__modelSRBText);
                 break;
             case 3:
                 dc.SetBrush(__modelSRCBrush);
+                dc.SetTextForeground(__modelSRCText);
                 break;
             }
+        } else {
+            dc.SetBrush(__modelSRNoneBrush);
         }
 
         if (_invalid) {
@@ -1417,7 +1471,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
 
-    dc.SetTextForeground(*wxBLACK);
+    dc.SetTextForeground(__textForeground);
 
     dc.SetPen(*wxWHITE_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
