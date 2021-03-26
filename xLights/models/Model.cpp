@@ -4019,6 +4019,12 @@ void Model::GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint> &pts) {
     }
 }
 
+void Model::GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts) {
+    for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {
+        pts.push_back(std::make_tuple(Nodes[nodeidx]->Coords[x].screenX, Nodes[nodeidx]->Coords[x].screenY, Nodes[nodeidx]->Coords[x].screenZ));
+    }
+}
+
 void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {
     if (nodeidx >= Nodes.size()) return;
     for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {

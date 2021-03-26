@@ -96,6 +96,7 @@
     <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;$(ProjectDir);..\include\zlib</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -209,6 +210,12 @@
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
     <ClCompile Include="CachedFileDownloader.cpp" />
+    <ClCompile Include="cad\CADModel.cpp" />
+    <ClCompile Include="cad\CADWriter.cpp" />
+    <ClCompile Include="cad\DXFWriter.cpp" />
+    <ClCompile Include="cad\ModelToCAD.cpp" />
+    <ClCompile Include="cad\STLWriter.cpp" />
+    <ClCompile Include="cad\VRMLWriter.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="ColorManager.cpp" />
@@ -637,6 +644,13 @@
     <ClInclude Include="BulkEditFontPickerDialog.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
     <ClInclude Include="CachedFileDownloader.h" />
+    <ClInclude Include="cad\CADModel.h" />
+    <ClInclude Include="cad\CADPoint.h" />
+    <ClInclude Include="cad\CADWriter.h" />
+    <ClInclude Include="cad\DXFWriter.h" />
+    <ClInclude Include="cad\ModelToCAD.h" />
+    <ClInclude Include="cad\STLWriter.h" />
+    <ClInclude Include="cad\VRMLWriter.h" />
     <ClInclude Include="CharMapDialog.h" />
     <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="ColorManager.h" />

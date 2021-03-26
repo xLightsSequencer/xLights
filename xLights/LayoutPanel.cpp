@@ -62,6 +62,7 @@
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include <log4cpp/Category.hh>
+#include "cad/ModelToCAD.h"
 
 #include <set>
 
@@ -195,6 +196,8 @@ const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO_3D = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_CAD_EXPORT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -4142,7 +4145,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         {
             menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
         }
-        
+
+        menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
+
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
                 menu.Append(ID_MNU_ADD_TO_EXISTING_GROUP, "Add to Existing Group");
@@ -4259,6 +4264,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
     mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups"));
+    mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
 
     // ViewPoint menus
     mnu.AppendSeparator();
@@ -4512,6 +4518,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         ShowWiring();
     }
+    else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT)
+    {
+        ExportModelAsCAD();
+    }
+    else if (event.GetId() == ID_PREVIEW_LAYOUT_DXF_EXPORT) 
+    {
+        ExportLayoutDXF();
+    }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
         Model* md=dynamic_cast<Model*>(selectedBaseObject);
@@ -4677,6 +4691,33 @@ void LayoutPanel::ShowWiring()
     WiringDialog dlg(this, md->GetName());
     dlg.SetData(md);
     dlg.ShowModal();
+}
+
+void LayoutPanel::ExportModelAsCAD()
+{
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, md->GetName(), wxEmptyString, "DXF File (*.dxf)|*.dxf|STL File (*.stl)|*.stl|VRML File (*.wrl)|*.wrl", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename != "") {
+        wxFileName file(filename);
+        if (ModelToCAD::ExportCAD(md, filename, file.GetExt())) {
+            xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
+        } else {
+            xlights->SetStatusText(wxString::Format("Export Failed '%s'", filename));
+        }
+    }
+}
+
+void LayoutPanel::ExportLayoutDXF()
+{
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename != "") {
+        if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf")) {
+            xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
+        } else {
+            xlights->SetStatusText(wxString::Format("Export Failed '%s'", filename));
+        }
+    }
 }
 
 void LayoutPanel::PreviewModelAlignTops()
@@ -6652,6 +6693,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     {
         ShowWiring();
     }
+    else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT)
+    {
+        ExportModelAsCAD();
+    }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
         Model* md=dynamic_cast<Model*>(selectedBaseObject);
@@ -8151,6 +8196,12 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "WIRING_VIEW") {
             ShowWiring();
+        }
+        else if (type == "EXPORT_MODEL_CAD") {
+            ExportModelAsCAD();
+        }
+        else if (type == "EXPORT_LAYOUT_DXF") {
+            ExportLayoutDXF();
         }
         else if (type == "NODE_LAYOUT") {
             ShowNodeLayout();

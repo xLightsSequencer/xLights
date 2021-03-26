@@ -207,6 +207,8 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_SKULL;
         static const long ID_ADD_DMX_FLOODLIGHT;
         static const long ID_ADD_DMX_FLOODAREA;
+        static const long ID_PREVIEW_MODEL_CAD_EXPORT;
+        static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
 
 	public:
 
@@ -321,6 +323,8 @@ class LayoutPanel: public wxPanel
         void ReplaceModel();
         void ShowNodeLayout();
         void ShowWiring();
+        void ExportModelAsCAD();
+        void ExportLayoutDXF();
         bool IsAllSelectedModelsArePixelProtocol() const;
         void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);

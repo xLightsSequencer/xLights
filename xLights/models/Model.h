@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <tuple>
 
 #include "ModelScreenLocation.h"
 #include "../Color.h"
@@ -391,6 +392,7 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts);
     void GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint>& pts);
+    void GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts);
 
     bool GetIsLtoR() const { return IsLtoR; }
     bool GetIsBtoT() const { return isBotToTop; }
@@ -468,7 +470,7 @@ public:
     size_t GetLayerSizesTotalNodes() const
     {
         size_t count = 0;
-        for (const auto it : layerSizes)             {
+        for (const auto it : layerSizes) {
             count += it;
         }
         return count;
@@ -478,10 +480,10 @@ public:
         if (GetLayerSizeCount() <= layer) return;
         auto layers = layerSizes;
         layerSizes.resize(0);
-        for (size_t i = 0; i < layer; i++)             {
+        for (size_t i = 0; i < layer; i++) {
             layerSizes.push_back(layers[i]);
         }
-        for (size_t i = layer + 1; i < layers.size(); i++)             {
+        for (size_t i = layer + 1; i < layers.size(); i++) {
             layerSizes.push_back(layers[i]);
         }
     }
@@ -489,7 +491,7 @@ public:
     {
         auto layers = layerSizes;
         layerSizes.resize(0);
-        for (size_t i = 0; i < layer; i++)             {
+        for (size_t i = 0; i < layer; i++) {
             layerSizes.push_back(layers[i]);
         }
         layerSizes.push_back(1);

@@ -87,10 +87,12 @@ class WiringDialog: public wxDialog
     void LeftDClick(wxMouseEvent& event);
     void CaptureLost(wxMouseCaptureLostEvent& event) {}
     void AdjustZoom(float by, wxPoint mousePos);
+    void Export_DXF();
 
     static const long ID_MNU_RESET;
     static const long ID_MNU_EXPORT;
     static const long ID_MNU_EXPORTLARGE;
+    static const long ID_MNU_EXPORTDXF;
     static const long ID_MNU_PRINT;
     static const long ID_MNU_DARK;
     static const long ID_MNU_GRAY;

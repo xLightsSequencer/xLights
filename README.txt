@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added the ability to Export Layout/Model/Wiring as a DXF File and Export Models as a STL/VRML File.
 2021.09 March 23 2021
    -- enh          Add some more xLights optimized shaders to shaders.xml
    -- enh (dkulp)  Adjust some colors in the download dialogs for OSX Dark Mode.
