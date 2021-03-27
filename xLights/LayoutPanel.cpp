@@ -1386,7 +1386,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     int width = 0;
     if (full_refresh) {
-        //UnSelectAllModels();
+#ifdef __WXOSX__
+        UnSelectAllModels();
+#endif
 
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
@@ -4697,7 +4699,14 @@ void LayoutPanel::ExportModelAsCAD()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, md->GetName(), wxEmptyString, "DXF File (*.dxf)|*.dxf|STL File (*.stl)|*.stl|VRML File (*.wrl)|*.wrl", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+#ifdef __WXOSX__
+    static std::string const filter = "DXF STL VRML File (*.dxf;*.stl;*.wrl)|*.dxf;*.stl;*.wrl";
+#else
+    static std::string const filter = "DXF File (*.dxf)|*.dxf|STL File (*.stl)|*.stl|VRML File (*.wrl)|*.wrl";
+#endif
+    
+    wxString const filename = wxFileSelector(_("Choose Output File"), wxEmptyString, md->GetName(), wxEmptyString, filter, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
         wxFileName file(filename);
         if (ModelToCAD::ExportCAD(md, filename, file.GetExt())) {
@@ -4710,7 +4719,7 @@ void LayoutPanel::ExportModelAsCAD()
 
 void LayoutPanel::ExportLayoutDXF()
 {
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString const filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
         if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf")) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
