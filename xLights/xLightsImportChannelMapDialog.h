@@ -468,6 +468,7 @@ protected:
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
+        void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName);
         void SetImportMediaTooltip();
         void LoadAvailableGroups();
     
