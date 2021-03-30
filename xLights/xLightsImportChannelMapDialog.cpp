@@ -1418,7 +1418,6 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
     {
         int mtop = TreeListCtrl_Mapping->GetItemRect(models[i]).GetTop();
         if (mtop - height > top && mtop - height < bottom) {
-            wxPrintf("spacing: %d\n", bottom - mtop);
             return models[i];
         }
 
