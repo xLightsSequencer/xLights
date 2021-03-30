@@ -1408,15 +1408,17 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
 
 wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewItem item) const
 {
+    int top = TreeListCtrl_Mapping->GetItemRect(item).GetTop();
     int bottom = TreeListCtrl_Mapping->GetItemRect(item).GetBottom();
+    int height = bottom - top;
 
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
         int mtop = TreeListCtrl_Mapping->GetItemRect(models[i]).GetTop();
-        if (mtop == bottom + 1)
-        {
+        if (mtop - height > top && mtop - height < bottom) {
+            wxPrintf("spacing: %d\n", bottom - mtop);
             return models[i];
         }
 
@@ -1427,7 +1429,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
             for (size_t j = 0; j < strands.size(); j++)
             {
                 int stop = TreeListCtrl_Mapping->GetItemRect(strands[j]).GetTop();
-                if (stop == bottom + 1)
+                if (stop - height > top && stop - height < bottom)
                 {
                     return strands[j];
                 }
@@ -1439,7 +1441,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
                     for (size_t k = 0; k < nodes.size(); k++)
                     {
                         int ntop = TreeListCtrl_Mapping->GetItemRect(nodes[k]).GetTop();
-                        if (ntop == bottom + 1)
+                        if (ntop - height > top && ntop - height < bottom)
                         {
                             return nodes[k];
                         }
@@ -1596,11 +1598,7 @@ void xLightsImportChannelMapDialog::OnDragDrop(wxDataViewEvent& event) {
             wxString pfx = txt.Left(idx);
             wxString model = txt.substr(idx + 1);
             if (pfx == "Map") {
-                wxDataViewItemArray selectedItems;
-                TreeListCtrl_Mapping->GetSelections(selectedItems);
-                for (const auto& selItem : selectedItems) {
-                    Map(selItem, model);
-                }
+                HandleDropAvailable(item, model);
             }
         }
     }
@@ -1758,7 +1756,7 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
                 Unmap(_dragItem);
             }
 
-            Map(item, parms[1].ToStdString());
+            HandleDropAvailable(item, parms[1].ToStdString());
         }
     }
     break;
@@ -1769,6 +1767,48 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
     TreeListCtrl_Mapping->Refresh();
 
     MarkUsed();
+}
+
+void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName) {
+    
+    if (dropTarget.IsOk()) {
+        wxDataViewItemArray selectedItems;
+        TreeListCtrl_Mapping->GetSelections(selectedItems);
+        
+        bool dropTargetIsSelected = false;
+        
+        for (const auto& selItem : selectedItems) {
+            if (selItem == dropTarget) {
+                dropTargetIsSelected = true;
+                break;
+            }
+        }
+                  
+        wxDataViewItem lastSelected;
+        
+        if (dropTargetIsSelected) {
+            for (const auto& selItem : selectedItems) {
+                Map(selItem, availableModelName);
+            }
+            lastSelected = selectedItems.Item(selectedItems.size() - 1);
+        } else {
+            Map(dropTarget, availableModelName);
+            lastSelected = dropTarget;
+        }
+        
+        TreeListCtrl_Mapping->UnselectAll();
+        
+        if (lastSelected.IsOk()) {
+            wxDataViewItem nextItem = GetNextTreeItem(lastSelected);
+            if (nextItem.IsOk()) {
+                TreeListCtrl_Mapping->Select(nextItem);
+                TreeListCtrl_Mapping->EnsureVisible(nextItem);
+            }
+        }
+        
+        TreeListCtrl_Mapping->Refresh();
+
+    }
 }
 
 #pragma endregion Drag and Drop
