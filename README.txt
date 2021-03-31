@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.10 March 31 2021
+   -- enh (dpriem) Add Dark Mode support for Visualiser
+   -- bug (dkulp)  Fix decoding videos that don't have video frames at the start
+   -- bug (dpriem) Fix drag/drop in import dialog
    -- enh (scott)  Added the ability to Export Layout/Model/Wiring as a DXF File and Export Models as a STL/VRML File.
 2021.09 March 23 2021
    -- enh          Add some more xLights optimized shaders to shaders.xml
