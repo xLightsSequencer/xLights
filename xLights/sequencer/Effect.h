@@ -137,7 +137,7 @@ public:
     DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() { return background; }
     const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const { return background; }
     bool HasBackgroundDisplayList() const {
-        std::lock_guard<std::recursive_mutex>(background.lock);
+        std::lock_guard<std::recursive_mutex> lock(background.lock);
         return !background.empty();
     }
 

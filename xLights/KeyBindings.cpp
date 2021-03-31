@@ -220,7 +220,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("s", false, "TIMING_SPLIT"),
     KeyBinding("+", false, "ZOOM_IN"),
     KeyBinding("-", false, "ZOOM_OUT"),
-    KeyBinding("R", false, "RANDOM", false, false, true),
+    KeyBinding(std::string("R"), false, "RANDOM", false, false, true),
     KeyBinding("F1", false, "EFFECT_SETTINGS_TOGGLE", true),
     KeyBinding("F8", false, "EFFECT_ASSIST_TOGGLE", true),
     KeyBinding("F2", false, "COLOR_TOGGLE", true),
@@ -239,9 +239,9 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "EFFECT_ALIGN_START", true, true),
     KeyBinding("", true, "EFFECT_ALIGN_END", true, true),
     KeyBinding("", true, "EFFECT_ALIGN_BOTH", true, true),
-    KeyBinding("I", false, "INSERT_LAYER_ABOVE", true, false, true),
-    KeyBinding("A", false, "INSERT_LAYER_BELOW", true, false, true),
-    KeyBinding("X", false, "TOGGLE_ELEMENT_EXPAND", true, false, true),
+    KeyBinding(std::string("I"), false, "INSERT_LAYER_ABOVE", true, false, true),
+    KeyBinding(std::string("A"), false, "INSERT_LAYER_BELOW", true, false, true),
+    KeyBinding(std::string("X"), false, "TOGGLE_ELEMENT_EXPAND", true, false, true),
     KeyBinding("", false, "SHOW_PRESETS"),
     KeyBinding("F10", false, "PRESETS_TOGGLE", true),
     KeyBinding("F12", false, "VALUECURVES_TOGGLE", false, true),
@@ -289,9 +289,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("n", false, "Snowflakes", "", xlights_version_string),
     KeyBinding("O", false, "Off", "", xlights_version_string, false, false, true),
     KeyBinding("F", false, "Fan", "", xlights_version_string, false, false, true),
-    KeyBinding(false, "U", "T_TEXTCTRL_Fadein=1.00", xlights_version_string, false, false, true),
-    KeyBinding(false, "D", "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true),
-
+    KeyBinding(false, std::string("U"), "T_TEXTCTRL_Fadein=1.00", xlights_version_string, false, false, true),
+    KeyBinding(false, std::string("D"), "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true)
 };
 
 // These are the keys that were hard coded before 2018.28 and thus need to be inserted if they are not present
