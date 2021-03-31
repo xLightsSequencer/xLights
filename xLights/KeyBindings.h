@@ -41,7 +41,7 @@ public:
     explicit KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false);
     explicit KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false);
     explicit KeyBinding(wxKeyCode k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false)
-        : _type(_("EFFECT")), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+        : _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
     {
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
@@ -49,7 +49,7 @@ public:
         _tip = "Insert an effect.";
     }
     explicit KeyBinding(const std::string& k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false)
-        : _type(_("EFFECT")), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
+        : _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
     {
         _id = __nextid++;
         _key = DecodeKey(k);
@@ -59,7 +59,7 @@ public:
         _tip = "Insert an effect.";
     }
     explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& presetName, bool control, bool alt, bool shift)
-        : _type(_("PRESET")), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+        : _type("PRESET"), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
     {
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
@@ -67,7 +67,7 @@ public:
         _tip = "Insert a preset effect.";
     }
     explicit KeyBinding(bool disabled, const std::string& k, const std::string& presetName, bool control, bool alt, bool shift)
-        : _type(_("PRESET")), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
+        : _type("PRESET"), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
     {
         _id = __nextid++;
         _key = DecodeKey(k);
@@ -77,7 +77,7 @@ public:
         _tip = "Insert a preset effect.";
     }
 	explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift)
-		: _type(_("APPLYSETTING")), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+		: _type("APPLYSETTING"), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
 	{
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
@@ -85,7 +85,7 @@ public:
         _tip = "Apply setting to selected effects.";
     }
 	explicit KeyBinding(bool disabled, const std::string& k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift)
-		: _type(_("APPLYSETTING")), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled)
+		: _type("APPLYSETTING"), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled)
 	{
         _id = __nextid++;
         _key = DecodeKey(k);
@@ -121,11 +121,11 @@ public:
     std::string GetTip() const { return _tip; }
 
 private:
-    std::string _type = _("");
-    std::string _effectName = _("");
-    std::string _effectString = _("");
-    std::string _effectDataVersion = _("");
-    std::string _tip = _("");
+    std::string _type = "";
+    std::string _effectName = "";
+    std::string _effectString = "";
+    std::string _effectDataVersion = "";
+    std::string _tip = "";
     bool _control = false;
     bool _alt = false;
     bool _shift = false;
