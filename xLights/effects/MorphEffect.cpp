@@ -35,7 +35,7 @@ MorphEffect::~MorphEffect()
 
 bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings)
 {
-    if (id == "E_MORPH_BUTTON_SWAP")
+    if (id == "E_BUTTON_MORPH_SWAP")
     {
         auto tempValue = settings.Get("E_SLIDER_Morph_Start_X1", "0");
         settings["E_SLIDER_Morph_Start_X1"] = settings.Get("E_SLIDER_Morph_End_X1", "0");
