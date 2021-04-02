@@ -837,7 +837,7 @@ void Options::appendOptions(const string& strang) {
    tempargv.reserve(100);
    tempvalue.reserve(1000);
 
-   char ch;
+   char ch = '\0';
 
    int length = strang.size();
    for (i=0; i<length; i++) {

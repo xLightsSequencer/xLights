@@ -609,8 +609,9 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
     return true;
 #elif defined(__WXMSW__) && defined(WINDOWSBACKGROUND)
     return true;
-#endif
+#else
     return false;
+#endif
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {

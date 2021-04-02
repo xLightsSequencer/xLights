@@ -678,15 +678,9 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 // Returns true if file exists and was read successfully
 bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
-    // I dont this is necessary and explains why fseq open stopped workin
-    //if( xml_file.IsOpen() )
-    //{
-        LoadSequencer(xml_file);
-        xml_file.SetSequenceLoaded(true);
-        return true;
-    //}
-
-    return false;
+    LoadSequencer(xml_file);
+    xml_file.SetSequenceLoaded(true);
+    return true;
 }
 
 void xLightsFrame::ClearSequenceData()

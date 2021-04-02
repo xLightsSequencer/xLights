@@ -9274,13 +9274,9 @@ wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
 
         return "SUCCESS " + E131Output::GetTag();
     }
-    else
-    {
-        logger_base.debug("xFade invalid request.");
-        return "ERROR_INVALID_REQUEST";
-    }
 
-    return "ERROR_NOT_IMPLEMENTED";
+    logger_base.debug("xFade invalid request.");
+    return "ERROR_INVALID_REQUEST";
 }
 
 void xLightsFrame::StartxFadeListener()

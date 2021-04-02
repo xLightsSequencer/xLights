@@ -1229,55 +1229,52 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
 int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     if( model->GetDisplayAs() == "ModelGroup" ) {
         return open ? Icon_FolderOpened : Icon_FolderClosed;
-    } else {
-        const std::string type = model->GetDisplayAs();
-        if( type == "Arches" ) {
-            return Icon_Arches;
-        } else if( type == "Candy Canes" ) {
-            return Icon_CandyCane;
-        } else if( type == "Circle" ) {
-            return Icon_Circle;
-        } else if (type == "Channel Block") {
-            return Icon_ChannelBlock;
-        } else if( type == "Cube" ) {
-            return Icon_Cube;
-        } else if( type == "Custom" ) {
-            return Icon_Custom;
-        } else if (type == "DMXFloodlight" ||
-                   type == "DMXMovingHead" ||
-                   type == "DMXMovingHead3D" ||
-                   type == "DMXSkull" ||
-                   type == "DMXGeneral") {
-            return Icon_Dmx;
-        } else if( type == "Image" ) {
-            return Icon_Image;
-        } else if( type == "Icicles" ) {
-            return Icon_Icicle;
-        } else if( type == "Single Line" ) {
-            return Icon_Line;
-        } else if( type == "Matrix" ) {
-            return Icon_Matrix;
-        } else if( type == "Poly Line" ) {
-            return Icon_Poly;
-        } else if( type == "Sphere" ) {
-            return Icon_Sphere;
-        } else if( type == "Spinner" ) {
-            return Icon_Spinner;
-        } else if( type == "Star" ) {
-            return Icon_Star;
-        } else if( type == "SubModel" ) {
-            return Icon_SubModel;
-        } else if( type == "Tree" ) {
-            return Icon_Tree;
-        } else if( type == "Wreath" ) {
-            return Icon_Wreath;
-        } else if( type == "Window Frame" ) {
-            return Icon_Window;
-        } else {
-            return Icon_File;
-        }
     }
-    return 0;
+    const std::string type = model->GetDisplayAs();
+    if( type == "Arches" ) {
+        return Icon_Arches;
+    } else if( type == "Candy Canes" ) {
+        return Icon_CandyCane;
+    } else if( type == "Circle" ) {
+        return Icon_Circle;
+    } else if (type == "Channel Block") {
+        return Icon_ChannelBlock;
+    } else if( type == "Cube" ) {
+        return Icon_Cube;
+    } else if( type == "Custom" ) {
+        return Icon_Custom;
+    } else if (type == "DMXFloodlight" ||
+               type == "DMXMovingHead" ||
+               type == "DMXMovingHead3D" ||
+               type == "DMXSkull" ||
+               type == "DMXGeneral") {
+        return Icon_Dmx;
+    } else if( type == "Image" ) {
+        return Icon_Image;
+    } else if( type == "Icicles" ) {
+        return Icon_Icicle;
+    } else if( type == "Single Line" ) {
+        return Icon_Line;
+    } else if( type == "Matrix" ) {
+        return Icon_Matrix;
+    } else if( type == "Poly Line" ) {
+        return Icon_Poly;
+    } else if( type == "Sphere" ) {
+        return Icon_Sphere;
+    } else if( type == "Spinner" ) {
+        return Icon_Spinner;
+    } else if( type == "Star" ) {
+        return Icon_Star;
+    } else if( type == "SubModel" ) {
+        return Icon_SubModel;
+    } else if( type == "Tree" ) {
+        return Icon_Tree;
+    } else if( type == "Wreath" ) {
+        return Icon_Wreath;
+    } else if( type == "Window Frame" ) {
+        return Icon_Window;
+    }
+    return Icon_File;
 }
 
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {

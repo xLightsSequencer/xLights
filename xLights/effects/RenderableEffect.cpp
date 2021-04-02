@@ -990,13 +990,10 @@ EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
 {
     if (timingtrack == "") return nullptr;
 
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
-        {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
             return e->GetEffectLayer(0);
-            break;
         }
     }
     return nullptr;

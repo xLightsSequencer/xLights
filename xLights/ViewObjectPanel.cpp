@@ -19,6 +19,7 @@
 #include "UtilFunctions.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(ViewObjectPanel)
 #include <wx/intl.h>
@@ -187,18 +188,15 @@ int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
         return open ? Icon_FolderOpened : Icon_FolderClosed;
     } else {
         const std::string type = view_object->GetDisplayAs();
-        if( type == "Image" ) {
+        if (type == "Image") {
             return Icon_Image;
         } else if( type == "Poly Line" ) {
             return Icon_Poly;
-        } else {
-            return Icon_File;
         }
     }
-    return 0;
+    return Icon_File;
 }
 
-#include <log4cpp/Category.hh>
 
 int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     int width = 0;

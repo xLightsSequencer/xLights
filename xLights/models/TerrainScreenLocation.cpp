@@ -23,7 +23,6 @@ static glm::mat4 Identity(glm::mat4(1.0f));
 static glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
 {
     double x, y, z;
-    int path = 0;
 
     double m13 = R[0][2];
     
@@ -56,13 +55,8 @@ TerrianScreenLocation::TerrianScreenLocation()
 void TerrianScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator& va, float zoom, int scale, bool drawBounding) const {
     va.PreAlloc((mSelectableHandles + 5) * 5);
 
-    static bool initialized = false;
-    float sz1 = RenderDp / 2;
-    float sz2 = -RenderDp / 2;
-
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (_locked)
-    {
+    if (_locked) {
         handleColor = xlREDTRANSLUCENT;
     }
 

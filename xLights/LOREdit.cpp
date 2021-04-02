@@ -152,8 +152,6 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "countdown") return "Text"; // we dont support countdown
 
     return wxString(effectType).Capitalize();
-
-    return "";
 }
 
 // Used to rescale a parameter to a broader scale.

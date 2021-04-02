@@ -1203,7 +1203,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 ModelManager mm(nullptr, this);
                 _presetModel = new MatrixModel(&n, mm, true);
 
-                Element* elem = _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false);
+                _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false);
             }
 
             size_t channels = PRESET_ICON_SIZE * PRESET_ICON_SIZE * 3;

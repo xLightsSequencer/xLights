@@ -113,7 +113,7 @@ std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
     std::vector<uint8_t> res;
 
     int state = 0;
-    char c1;
+    char c1 = ' ';
 
     for (auto c : s) {
         if (state == 0) {
