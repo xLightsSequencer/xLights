@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <wx/grid.h>
+#include <wx/dcmemory.h>
 #include <wx/renderer.h>
 
 class wxModelGridCellRenderer : public wxGridCellStringRenderer
@@ -30,6 +31,7 @@ public:
 private:
     wxImage* image;
     wxBitmap bmp;
+    wxMemoryDC bmpDC;
     int width;
     int height;
     bool draw_picture;
