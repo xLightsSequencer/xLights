@@ -267,6 +267,35 @@ void ShaderEffect::SetDefaultParameters()
     SetSliderValue(fp->Slider_Shader_LeadIn, 0);
     SetSliderValue(fp->Slider_Shader_Speed, 100);
     fp->FilePickerCtrl1->SetFileName(wxFileName());
+    
+    
+    if (fp->_shaderConfig != nullptr) {
+        for (const auto& it : fp->_shaderConfig->GetParms()) {
+            if (it.ShowParm()) {
+                if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
+                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
+                    wxWindow *c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                    id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
+                    c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                } else {
+                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
+                    wxWindow *c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
