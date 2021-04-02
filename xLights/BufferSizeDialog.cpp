@@ -445,6 +445,9 @@ void BufferSizeDialog::LoadAllBufferPresets()
         ComboBoxBufferPresets->Clear();
     }
     ComboBoxBufferPresets->AppendString("(New)");
+
+    _loadedBufferPresets.sort();
+
     for (auto it = _loadedBufferPresets.begin(); it != _loadedBufferPresets.end(); ++it)
     {
         ComboBoxBufferPresets->AppendString(*it);
