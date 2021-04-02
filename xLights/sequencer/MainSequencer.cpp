@@ -503,10 +503,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
     if (mSequenceElements != nullptr) {
 
         auto k = event.GetKeyCode();
-        if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+        if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT || k == WXK_RAW_CONTROL) return false;
 
-        if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
-            (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
+        if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown() && !event.RawControlDown()) ||
+            (k == 'A' && (event.ControlDown() || event.CmdDown() || event.RawControlDown()) && !event.AltDown()))
         {
             // Just a regular key ... If current focus is a control then we need to not process this
             if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
@@ -816,11 +816,11 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             event.StopPropagation();
             break;
         case WXK_LEFT:
-            PanelEffectGrid->MoveSelectedEffectLeft(event.ShiftDown(), event.ControlDown(), event.AltDown());
+            PanelEffectGrid->MoveSelectedEffectLeft(event.ShiftDown(), event.ControlDown() || event.RawControlDown(), event.AltDown());
             event.StopPropagation();
             break;
         case WXK_RIGHT:
-            PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown(), event.ControlDown(), event.AltDown());
+            PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown(), event.ControlDown() || event.RawControlDown(), event.AltDown());
             event.StopPropagation();
             break;
         case '0':
@@ -848,37 +848,27 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 
             if (number > 9) number -= WXK_NUMPAD0;
 
-            if (event.ControlDown())
-            {
-                if (event.ShiftDown())
-                {
+            if (event.ControlDown() || event.RawControlDown()) {
+                if (event.ShiftDown()) {
                     PanelTimeLine->SetStartTimeMS(number * 10 * PanelTimeLine->GetTimeLength() / 100);
                     UpdateEffectGridHorizontalScrollBar();
-                }
-                else
-                {
+                } else {
                     PanelTimeLine->GoToTag(number);
                 }
             }
         }
             break;
         case WXK_PAGEUP:
-            if (event.ControlDown())
-            {
+            if (event.ControlDown() || event.RawControlDown()) {
                 ScrollToRow(0);
-            }
-            else
-            {
+            } else {
                 ScrollToRow(std::max(0, mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetMaxModelsDisplayed()));
             }
             break;
         case WXK_PAGEDOWN:
-            if (event.ControlDown())
-            {
+            if (event.ControlDown() || event.RawControlDown()) {
                 ScrollToRow(mSequenceElements->GetTotalNumberOfModelRows());
-            }
-            else
-            {
+            } else {
                 ScrollToRow(std::min(mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed(), mSequenceElements->GetFirstVisibleModelRow() + mSequenceElements->GetMaxModelsDisplayed()));
             }
             break;

@@ -235,6 +235,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("u", false, "UNLOCK_EFFECT", true),
     KeyBinding(".", false, "MARK_SPOT", true),
     KeyBinding("/", false, "RETURN_TO_SPOT", true),
+    KeyBinding(std::string("."), false, "MARK_SPOT", false, false, false, true),
+    KeyBinding(std::string("/"), false, "RETURN_TO_SPOT", false, false, false, true),
     KeyBinding("", true, "EFFECT_DESCRIPTION", true),
     KeyBinding("", true, "EFFECT_ALIGN_START", true, true),
     KeyBinding("", true, "EFFECT_ALIGN_END", true, true),
@@ -289,30 +291,29 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("n", false, "Snowflakes", "", xlights_version_string),
     KeyBinding("O", false, "Off", "", xlights_version_string, false, false, true),
     KeyBinding("F", false, "Fan", "", xlights_version_string, false, false, true),
-    KeyBinding(false, std::string("U"), "T_TEXTCTRL_Fadein=1.00", xlights_version_string, false, false, true),
-    KeyBinding(false, std::string("D"), "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true)
+    KeyBinding(false, std::string("U"), "T_TEXTCTRL_Fadein=1.00", xlights_version_string, false, false, true, false),
+    KeyBinding(false, std::string("D"), "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true, false)
 };
 
 // These are the keys that were hard coded before 2018.28 and thus need to be inserted if they are not present
 const std::vector<std::pair<std::string, std::string>> ConvertKeys =
 {
-    { "OPEN_SEQUENCE", "CTRL+O" },
-    { "NEW_SEQUENCE", "CTRL+N" },
-    { "PAUSE", "+PAUSE" },
-    { "START_OF_SONG", "+HOME" },
-    { "END_OF_SONG", "+END" },
-    { "SAVE_CURRENT_TAB", "CTRL+S" },
+    { "OPEN_SEQUENCE", "CTRL+o" },
+    { "NEW_SEQUENCE", "CTRL+n" },
+    { "PAUSE", "PAUSE" },
+    { "START_OF_SONG", "HOME" },
+    { "END_OF_SONG", "END" },
+    { "SAVE_CURRENT_TAB", "CTRL+s" },
     { "MARK_SPOT", "CTRL+." },
     { "RETURN_TO_SPOT", "CTRL+/" },
-    { "SELECT_ALL_MODELS", "CTRL+A" },
-    { "SELECT_ALL", "CTRL+SHIFT+A" },
-    { "SELECT_ALL_NO_TIMING", "CTRL+A" },
-    { "TOGGLE_PLAY", "+ " },
-    { "BACKUP", "+F10" },
-    { "ALTERNATE_BACKUP", "+F11" },
-    { "SELECT_SHOW_FOLDER", "+F9" },
-    { "CANCEL_RENDER", "+ESCAPE" },
-    { "FOCUS_SEQUENCER", "+F12" }
+    { "MARK_SPOT", "RCTRL+." },
+    { "RETURN_TO_SPOT", "RCTRL+/" },
+    { "TOGGLE_PLAY", "SPACE" },
+    { "BACKUP", "F10" },
+    { "ALTERNATE_BACKUP", "F11" },
+    { "SELECT_SHOW_FOLDER", "F9" },
+    { "CANCEL_RENDER", "ESCAPE" },
+    { "FOCUS_SEQUENCER", "F12" }
 };
 
 // These are the keys that we we consider equivalent
@@ -362,8 +363,8 @@ const std::vector<std::pair<wxKeyCode /*to*/, wxKeyCode/*from*/>> KeyEquivalents
 #pragma region KeyBinding
 
 #pragma region Constructors
-KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control, bool alt, bool shift) :
-    _type(type), _control(control), _alt(alt), _shift(shift),
+KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
+    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift),
     _disabled(disabled), _key(k)
 {
     _id = __nextid++;
@@ -389,8 +390,8 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     _shift |= IsShiftedKey(_key);
 }
 
-KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift) :
-    _type(type), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
+KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
+    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled)
 {
     _id = __nextid++;
 
@@ -427,17 +428,28 @@ bool KeyBinding::IsShiftedKey(wxKeyCode ch) noexcept
     return (shiftedChars.find(static_cast<char>(ch)) != std::string::npos);
 }
 
-std::string KeyBinding::ParseKey(const std::string& key, bool& ctrl, bool& alt, bool& shift) noexcept
+std::string KeyBinding::ParseKey(const std::string& k, bool& ctrl, bool& alt, bool& shift, bool &rctrl) noexcept
 {
-    alt = Contains(key, "ALT+");
-    shift = Contains(key, "SHIFT+");
-    ctrl = Contains(key, "CTRL+");
-    // the key is whatever exists after the last '+'
+    std::string key = k;
     auto pos = key.find('+');
-    if (pos != std::string::npos) {
-        return key.substr(pos + 1);
+    while (pos != std::string::npos) {
+        std::string prefix = key.substr(0, pos);
+        if (prefix == "ALT") {
+            alt = true;
+        }
+        if (prefix == "SHIFT") {
+            shift = true;
+        }
+        if (prefix == "CTRL") {
+            ctrl = true;
+        }
+        if (prefix == "RCTRL") {
+            rctrl = true;
+        }
+        key = key.substr(pos + 1);
+        pos = key.find('+');
     }
-    return "";
+    return key;
 }
 
 std::vector<wxKeyCode>& KeyBinding::GetPossibleKeys()
@@ -660,6 +672,31 @@ wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
 }
 #pragma endregion Static functions
 
+std::string KeyBinding::KeyDescription() const noexcept
+{
+    std::string res = "";
+
+    if (_disabled) {
+        res += "N/A";
+    } else {
+        if (_control) {
+            res += "CTRL+";
+        }
+        if (_rcontrol) {
+            res += "RCTRL+";
+        }
+        if (_alt) {
+            res += "ALT+";
+        }
+        bool s = _shift;
+        if (s && IsShiftedKey(_key)) s = false;
+        if (s) {
+            res += "SHIFT+";
+        }
+        res += EncodeKey(_key, _shift);
+    }
+    return res;
+}
 std::string KeyBinding::Description() const noexcept
 {
     std::string res = "";
@@ -669,6 +706,9 @@ std::string KeyBinding::Description() const noexcept
     } else {
         if (_control) {
             res += "CTRL+";
+        }
+        if (_rcontrol) {
+            res += "RCTRL+";
         }
         if (_alt) {
             res += "ALT+";
@@ -776,6 +816,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool control = child->GetAttribute("control", "FALSE") == "TRUE";
                     bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
                     bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
+                    bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
                     if (oldk != "") {
                         k = oldk;
                         if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
@@ -789,21 +830,21 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                         }
                         if (effect != "")
                         {
-                            _bindings.emplace_back(KeyBinding(k, disabled, effect, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift));
+                            _bindings.emplace_back(KeyBinding(k, disabled, effect, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift, rcontrol));
                         }
                     } else if (type == "PRESET") {
                         std::string presetName = child->GetAttribute("effect").ToStdString();
-                        _bindings.emplace_back(KeyBinding(disabled, k, presetName, control, alt, shift));
+                        _bindings.emplace_back(KeyBinding(disabled, k, presetName, control, alt, shift, rcontrol));
                     } else if (type == "APPLYSETTING") {
 						std::string settings = "";
 						if (child->GetChildren() != nullptr) {
 							settings = child->GetChildren()->GetContent().ToStdString();
 						}
 						if (settings != "")	{
-							_bindings.emplace_back(KeyBinding(disabled, k, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift));
+							_bindings.emplace_back(KeyBinding(disabled, k, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift, rcontrol));
 						}
                     } else {
-                        _bindings.emplace_back(KeyBinding(k, disabled, type, control, alt, shift));
+                        _bindings.emplace_back(KeyBinding(k, disabled, type, control, alt, shift, rcontrol));
                     }
                 }
 
@@ -816,14 +857,15 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                 auto type = ck.first;
                 auto key = ck.second;
 
-                bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
+                bool found = std::find_if(begin(_bindings), end(_bindings), [type, key](const KeyBinding& b) {return b.GetType() == type && b.KeyDescription() == key; }) != _bindings.end();
                 if (!found) {
                     bool ctrl = false;
+                    bool rctrl = false;
                     bool alt = false;
                     bool shift = false;
                     logger_base.debug("Adding essential keybinding %s.", (const char *)type.c_str());
-                    std::string k = KeyBinding::ParseKey(key, ctrl, alt, shift);
-                    _bindings.emplace_back(KeyBinding(k, false, type, ctrl, alt, shift));
+                    std::string k = KeyBinding::ParseKey(key, ctrl, alt, shift, rctrl);
+                    _bindings.emplace_back(KeyBinding(k, false, type, ctrl, alt, shift, rctrl));
                 }
             }
 
@@ -837,7 +879,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
                     if (!found) {
                         logger_base.debug("Adding missing keybinding %s.", (const char *)type.c_str());
-                        _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false));
+                        _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false, false));
                     }
                 }
             }
@@ -917,6 +959,9 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
         }
         child->AddAttribute("alt", binding.RequiresAlt() ? "TRUE" : "FALSE");
         child->AddAttribute("control", binding.RequiresControl() ? "TRUE" : "FALSE");
+        if (binding.RequiresRawControl()) {
+            child->AddAttribute("rawControl", "TRUE");
+        }
         child->AddAttribute("shift", binding.RequiresShift() ? "TRUE" : "FALSE");
         child->AddAttribute("type", binding.GetType());
         if (binding.GetType() == "EFFECT") {
@@ -996,6 +1041,7 @@ std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, K
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool rctrl = event.RawControlDown();
     bool ctrl = event.CmdDown() || event.ControlDown();
     wxKeyCode key = static_cast<wxKeyCode>(event.GetKeyCode());
     bool alt = event.AltDown();
@@ -1005,6 +1051,7 @@ std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, K
         if (!b.IsDisabled() &&
             b.RequiresAlt() == alt &&
             b.RequiresControl() == ctrl &&
+            b.RequiresRawControl() == rctrl &&
             (
             (b.RequiresShift() == shift && b.IsKey(key)) ||
                 (b.IsEquivalentKey(key))
