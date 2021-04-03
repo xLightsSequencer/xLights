@@ -1116,8 +1116,6 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
-		<Unit filename="osx_utils/TouchBars.cpp" />
-		<Unit filename="osx_utils/TouchBars.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.cpp" />
@@ -1639,7 +1637,6 @@
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/InAppPurchaseDialog.wxs" src="InAppPurchaseDialog.cpp" hdr="InAppPurchaseDialog.h" fwddecl="0" i18n="1" name="InAppPurchaseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 				</resources>
