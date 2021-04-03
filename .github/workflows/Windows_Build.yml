@@ -65,7 +65,7 @@ jobs:
 
     - name: Build xLights
       working-directory: xLights
-      run: msbuild xLights.sln -maxcpucount:4 /p:Configuration="Release" /p:Platform="x64"
+      run: msbuild xLights.sln /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build Installer
       working-directory: build_scripts\msw
