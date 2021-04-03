@@ -35,6 +35,9 @@
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#endif
+
+#ifdef __WXOSX__
 #include <sys/sysctl.h>
 #endif
 
