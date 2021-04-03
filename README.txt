@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.11 April 3 2021
+   -- bug (dpriem) fix memory/loop issue in effect preview gen
+   -- bug (dkulp) sysctl is only needed on OSX.  Fixes #2563
+   -- bug (dkulp) Fix default values for shaders with integer drop down selections.  Fixes #2569
+   -- enh (dkulp) Move to latest wxWidgets patches for Linux
+   -- bug (dkulp) Reset shader value curves on effect selection.  Fixes #2575
+   -- enh (dkulp) Allow using the Mac "raw control" key for key bindings. Fixes #2576
+   -- bug (dkulp) Don't use alpha channel for brightness, is VERY slow on Windows if double buffering used. Fixes #2573
+   -- enh (scott) Sort Buffer Presets
+   -- bug (scott) fix Morph swap button bulk edit
 2021.10 March 31 2021
    -- enh (dpriem) Add Dark Mode support for Visualiser
    -- bug (dkulp)  Fix decoding videos that don't have video frames at the start
