@@ -261,7 +261,12 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     for (auto it2 : it.GetChoices()) {
                         choice->AppendString(it2);
                     }
-                    choice->SetSelection(it._default);
+                    int def = it._default;
+                    if (it._valueOptions.find(def) != it._valueOptions.end()) {
+                        choice->SetStringSelection(it._valueOptions.find(def)->second);
+                    } else {
+                        choice->SetSelection(0);
+                    }
                     FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     
