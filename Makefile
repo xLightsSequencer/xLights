@@ -117,10 +117,10 @@ install:
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
-	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-6.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/16x16/apps/xschedule.png
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-9.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
+	$(foreach size, $(ICON_SIZES), install -D -m 644 images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	install -D -m 644 images/xLightsIcons/16x16.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/16x16/apps/xschedule.png
+	install -D -m 644 images/xLightsIcons/32x32.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
+	install -D -m 644 images/xLightsIcons/256x256.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
 	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
