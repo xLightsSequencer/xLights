@@ -1039,6 +1039,11 @@ bool KeyBindingMap::IsDuplicateKey(const KeyBinding& b) const
 
 std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, KBSCOPE scope) const noexcept
 {
+#ifdef __WXOSX__
+#define CTRL_SEP &&
+#else
+#define CTRL_SEP ||
+#endif
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool rctrl = event.RawControlDown();
@@ -1050,8 +1055,10 @@ std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, K
     for (const auto& b : _bindings) {
         if (!b.IsDisabled() &&
             b.RequiresAlt() == alt &&
-            b.RequiresControl() == ctrl &&
-            b.RequiresRawControl() == rctrl &&
+            ( b.RequiresControl() == ctrl
+                CTRL_SEP 
+                b.RequiresRawControl() == rctrl )
+            &&
             (
             (b.RequiresShift() == shift && b.IsKey(key)) ||
                 (b.IsEquivalentKey(key))
