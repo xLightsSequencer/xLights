@@ -764,6 +764,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     if (OldName == NewName) {
         return false;
     }
+    AbortRender();
 
     logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 

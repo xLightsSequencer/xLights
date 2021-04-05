@@ -511,6 +511,7 @@ void Model::SetProperty(wxString property, wxString value, bool apply)
     }
     if (apply)
     {
+        modelManager.GetXLightsFrame()->AbortRender();
         SetFromXml(ModelXml);
     }
 }

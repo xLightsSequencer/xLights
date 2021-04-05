@@ -2929,6 +2929,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
                         // this is designed to pretend the control and shift keys are down when creating models to
                         // make them scale from the desired handle depending on model type
+                        xlights->AbortRender();
                         auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
                         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
@@ -3015,6 +3016,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
+            xlights->AbortRender();
             auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
             xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
             lastModelName = _newModel->name;
@@ -3733,6 +3735,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 }
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
+                xlights->AbortRender();
                 auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                 //SetupPropGrid(selectedBaseObject);
@@ -3773,10 +3776,10 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         if( rotate_offset.y < -180.0f ) { rotate_offset.y += 360.0f; }
                         if( rotate_offset.z < -180.0f ) { rotate_offset.z += 360.0f; }
                         rotate_offset.x = -rotate_offset.x;
-                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-                        {
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                             if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
                                 if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                    xlights->AbortRender();
                                     modelPreview->GetModels()[i]->RotateAboutPoint(active_handle_position, rotate_offset);
                                 }
                             }
@@ -3785,6 +3788,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             ViewObject* view_object = it.second;
                             if (view_object->GroupSelected || view_object->Selected) {
                                 if (view_object != selectedBaseObject) {
+                                    xlights->AbortRender();
                                     view_object->RotateAboutPoint(active_handle_position, rotate_offset);
                                 }
                             }
@@ -3897,6 +3901,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             bool z_scale = obj->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
+            xlights->AbortRender();
             auto pos = obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
             xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, obj->GetDimension()));
             //SetupPropGrid(obj);
@@ -4029,6 +4034,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (m != _newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
+        xlights->AbortRender();
         auto pos = m->MoveHandle(modelPreview, m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
 
@@ -4838,6 +4844,8 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
+
+    xlights->AbortRender();
 
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
@@ -6385,6 +6393,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
+        xlights->AbortRender();
+
 
         if (undoBuffer[sz].type == "Background") {
             logger_base.debug("LayoutPanel::DoUndo Background");
