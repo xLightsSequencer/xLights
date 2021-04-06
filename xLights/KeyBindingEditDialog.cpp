@@ -114,17 +114,24 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 
 	ListCtrl_Bindings->AppendColumn("Type");
 	ListCtrl_Bindings->AppendColumn("Key", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Control", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Alt", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Shift", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-    ListCtrl_Bindings->AppendColumn("RawCtrl", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Details");
+#ifdef __WXOSX__
+    ListCtrl_Bindings->AppendColumn("Command \u2318", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Option \u2325", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Shift \u21E7", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Control \u2303", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+#else
+    ListCtrl_Bindings->AppendColumn("Control", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Alt", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Shift", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("macOS Ctrl", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+#endif
+    ListCtrl_Bindings->AppendColumn("Details");
 
-	LoadList();
+    LoadList();
 
-	ListCtrl_Bindings->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-	ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
-	ListCtrl_Bindings->SetColumnWidth(6, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(6, wxCOL_WIDTH_AUTOSIZE);
 
 	_propertyGrid = new wxPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		// Here are just some of the supported window styles
