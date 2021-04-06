@@ -1956,7 +1956,7 @@ void ValueCurve::RemoveExcessCustomPoints()
     {
         if (it1->y == it2->y && it2->y == it3->y)
         {
-            _values.remove(*it2);
+            _values.erase(it2);
             it2 = it1;
             ++it2;
             it3 = it2;
