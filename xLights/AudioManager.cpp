@@ -1594,11 +1594,13 @@ void AudioManager::DoPrepareFrameData()
     wxStopWatch sw;
 
 	// if we have already done it ... bail
-	if (_frameDataPrepared)
+	if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS)
 	{
 		logger_base.info("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
+
+    _frameDataPreparedForInterval = _intervalMS;
 
     // wait for the data to load
     while (!IsDataLoaded())
@@ -1608,6 +1610,8 @@ void AudioManager::DoPrepareFrameData()
     }
 
     logger_base.info("DoPrepareFrameData: Data is loaded.");
+
+    _frameData.clear();
 
 	// samples per frame
 	int samplesperframe = _rate * _intervalMS / 1000;

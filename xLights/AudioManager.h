@@ -217,6 +217,7 @@ class AudioManager
 	std::string _artist;
 	std::string _album;
 	int _intervalMS = 50;
+    int _frameDataPreparedForInterval = -1;
 	long _lengthMS = 0;
 	bool _frameDataPrepared = false;
 	float _bigmax = 0;
