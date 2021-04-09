@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.12 April 12 2021
+   -- bug (scott) Fix superstring model multistring channel count
+   -- bug (scott) Fix key bindings that use CTRL on Windows
+   -- bug (dkulp) Fix several instances of crashes when manipulating models on Layout panel while rendering (aborts rendering)
+   -- enh (dkulp) OSX - Key Binding editor dialog should use the OSX key names and icons
+   -- bug (dkulp) Fix crash in path editor/Value Curves.  Occurs most often with lots of points. Fixes #2587
+   -- enh (Old-Salt) Add bunch more shaders, restore some missing shader images
+   -- bug (keith) Fix VUMeter does not work correctly with 40fps sequences
+   -- enh (keith) Add the IMG_SIZE shader function
 2021.11 April 3 2021
    -- bug (dpriem) fix memory/loop issue in effect preview gen
    -- bug (dkulp) sysctl is only needed on OSX.  Fixes #2563
