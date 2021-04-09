@@ -77,7 +77,7 @@ void Scanner::xLightsScan()
 	_showDir = xLightsShowFolder;
 
 	if (xScheduleShowFolder != "" && xScheduleShowFolder != xLightsShowFolder) {
-		if (wxMessageBox("xSchedule and xLights are using different show folders. Should i use the xSchedule folder?", "Choose folder.", wxYES_NO | wxCENTRE, _frame) == wxYES) {
+		if (wxMessageBox("xSchedule and xLights are using different show folders. Should xScanner use the xSchedule folder?", "Choose folder.", wxYES_NO | wxCENTRE, _frame) == wxYES) {
 			_showDir = xScheduleShowFolder;
 		}
 	}
