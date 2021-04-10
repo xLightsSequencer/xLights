@@ -755,6 +755,14 @@
 		<rating>5</rating>
 	</shader>
 	<shader>
+		<name>Radial Replicate_xL</name>
+		<id>606ef741df59c70014cdc653</id>
+		<link>https://www.interactiveshaderformat.com/sketches/606ef741df59c70014cdc653</link>
+		<download>https://www.interactiveshaderformat.com/sketches/606ef741df59c70014cdc653/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/en1rrjybh5dgdgmpvmai</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
 		<name>Rainbow Ring Cubic Twist</name>
 		<id>5e7a801c7c113618206deae4</id>
 		<link>https://www.interactiveshaderformat.com/sketches/5e7a801c7c113618206deae4</link>
@@ -1189,7 +1197,6 @@
 	<!--	Entry format:
 	xxx is id from www.interactiveshaderformat.com (last part of URL when viewing shader)
 	used in id, link, and download
-
 	<shader>
 		<name></name>
 		<id>xxx</id>
@@ -1198,6 +1205,5 @@
 		<image>zzz</image>
 		<rating>3</rating>
 	</shader>
-
 	zzz is <image> location as found on www.interactiveshaderformat.com --> 
 </shaders>
