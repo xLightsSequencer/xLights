@@ -2486,6 +2486,22 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
     _active = ModelNode->GetAttribute("Active", "1") == "1";
+
+    //this needs to be done before GetNodeChannelCount call
+    bool found = true;
+    int index = 0;
+    while (found) {
+        auto an = wxString::Format("SuperStringColour%d", index);
+        auto v = ModelXml->GetAttribute(an, "");
+        if (v == "") {
+            found = false;
+        }
+        else {
+            superStringColours.push_back(wxColour(v));
+        }
+        index++;
+    }
+
     SingleNode = HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
     SingleChannel = (ncc == 1);
@@ -2547,20 +2563,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
             tempstr = "";
         }
         nodeNames.push_back(t2);
-    }
-
-    bool found = true;
-    int index = 0;
-    while (found) {
-        auto an = wxString::Format("SuperStringColour%d", index);
-        auto v = ModelXml->GetAttribute(an, "");
-        if (v == "") {
-            found = false;
-        }
-        else {
-            superStringColours.push_back(wxColour(v));
-        }
-        index++;
     }
 
     CouldComputeStartChannel = false;
