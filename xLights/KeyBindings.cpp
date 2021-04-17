@@ -235,8 +235,10 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("u", false, "UNLOCK_EFFECT", true),
     KeyBinding(".", false, "MARK_SPOT", true),
     KeyBinding("/", false, "RETURN_TO_SPOT", true),
+#ifdef __WXOSX__
     KeyBinding(std::string("."), false, "MARK_SPOT", false, false, false, true),
     KeyBinding(std::string("/"), false, "RETURN_TO_SPOT", false, false, false, true),
+#endif
     KeyBinding("", true, "EFFECT_DESCRIPTION", true),
     KeyBinding("", true, "EFFECT_ALIGN_START", true, true),
     KeyBinding("", true, "EFFECT_ALIGN_END", true, true),
@@ -364,8 +366,15 @@ const std::vector<std::pair<wxKeyCode /*to*/, wxKeyCode/*from*/>> KeyEquivalents
 
 #pragma region Constructors
 KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
-    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift),
-    _disabled(disabled), _key(k)
+    _type(type),
+    _control(control),
+#ifdef __WXOSX__
+    _rcontrol(rcontrol),
+#endif
+    _alt(alt),
+    _shift(shift),
+    _disabled(disabled),
+    _key(k)
 {
     _id = __nextid++;
 
@@ -391,7 +400,14 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
 }
 
 KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
-    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled)
+    _type(type),
+    _control(control),
+#ifdef __WXOSX__
+    _rcontrol(rcontrol),
+#endif
+    _alt(alt),
+    _shift(shift),
+    _disabled(disabled)
 {
     _id = __nextid++;
 
@@ -817,6 +833,10 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
                     bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
                     bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
+#if !defined(__WXOSX__)
+                    if (rcontrol) control = rcontrol;
+                    rcontrol = false;
+#endif
                     if (oldk != "") {
                         k = oldk;
                         if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
@@ -1039,14 +1059,12 @@ bool KeyBindingMap::IsDuplicateKey(const KeyBinding& b) const
 
 std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, KBSCOPE scope) const noexcept
 {
-#ifdef __WXOSX__
-#define CTRL_SEP &&
-#else
-#define CTRL_SEP ||
-#endif
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    bool rctrl = event.RawControlDown();
+#ifdef __WXOSX__
+    bool const rctrl = event.RawControlDown();
+#else
+    bool const rctrl = false;
+#endif
     bool ctrl = event.CmdDown() || event.ControlDown();
     wxKeyCode key = static_cast<wxKeyCode>(event.GetKeyCode());
     bool alt = event.AltDown();
@@ -1055,9 +1073,9 @@ std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, K
     for (const auto& b : _bindings) {
         if (!b.IsDisabled() &&
             b.RequiresAlt() == alt &&
-            ( b.RequiresControl() == ctrl
-                CTRL_SEP 
-                b.RequiresRawControl() == rctrl )
+            b.RequiresControl() == ctrl
+            &&
+            b.RequiresRawControl() == rctrl
             &&
             (
             (b.RequiresShift() == shift && b.IsKey(key)) ||

@@ -205,10 +205,10 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 
 	p = _propertyGrid->Append(new wxBoolProperty("Shift", "KBShift", b.RequiresShift()));
 	p->SetEditor("CheckBox");
-
+#ifdef __WXOSX__
     p = _propertyGrid->Append(new wxBoolProperty("RawControl", "KBRawControl", b.RequiresRawControl()));
     p->SetEditor("CheckBox");
-
+#endif
 	if (b.GetType() == "EFFECT")
 	{
 		wxPGChoices effchoices;
@@ -362,7 +362,8 @@ void KeyBindingEditDialog::LoadList()
 			ListCtrl_Bindings->SetItem(item, 2, it.RequiresControl() ? _("Y") : _(""));
 			ListCtrl_Bindings->SetItem(item, 3, it.RequiresAlt() ? _("Y") : _(""));
 			ListCtrl_Bindings->SetItem(item, 4, it.RequiresShift() ? _("Y") : _(""));
-            ListCtrl_Bindings->SetItem(item, 5, it.RequiresRawControl() ? _("Y") : _(""));
+			ListCtrl_Bindings->SetItem(item, 5, it.RequiresRawControl() ? _("Y") : _(""));
+
 			if (it.GetEffectName() != "" && it.GetEffectString() != "")
 			{
 				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName() + ":" + it.GetEffectString());

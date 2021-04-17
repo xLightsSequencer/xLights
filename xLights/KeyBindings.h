@@ -40,16 +40,37 @@ public:
 
     explicit KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false);
     explicit KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false);
-    explicit KeyBinding(wxKeyCode k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false)
-        : _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+    explicit KeyBinding(wxKeyCode k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false) : 
+        _type("EFFECT"),
+        _effectName(name),
+        _effectString(eff),
+        _effectDataVersion(ver),
+        _control(control),
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _alt(alt),
+        _shift(shift),
+        _disabled(disabled),
+        _key(k)
     {
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
         _shift |= IsShiftedKey(_key);
         _tip = "Insert an effect.";
     }
-    explicit KeyBinding(const std::string& k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false)
-        : _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled)
+    explicit KeyBinding(const std::string& k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false, bool rcontrol = false) :
+        _type("EFFECT"), 
+        _effectName(name),
+        _effectString(eff),
+        _effectDataVersion(ver),
+        _control(control),
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _alt(alt),
+        _shift(shift),
+        _disabled(disabled)
     {
         _id = __nextid++;
         _key = DecodeKey(k);
@@ -58,16 +79,33 @@ public:
         _shift |= IsShiftedKey(_key);
         _tip = "Insert an effect.";
     }
-    explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& presetName, bool control, bool alt, bool shift, bool rcontrol)
-        : _type("PRESET"), _effectName(presetName), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+    explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& presetName, bool control, bool alt, bool shift, bool rcontrol) :
+        _type("PRESET"),
+        _effectName(presetName),
+        _control(control),
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _alt(alt),
+        _shift(shift),
+        _disabled(disabled),
+        _key(k)
     {
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
         _shift |= IsShiftedKey(_key);
         _tip = "Insert a preset effect.";
     }
-    explicit KeyBinding(bool disabled, const std::string& k, const std::string& presetName, bool control, bool alt, bool shift, bool rcontrol)
-        : _type("PRESET"), _effectName(presetName), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled)
+    explicit KeyBinding(bool disabled, const std::string& k, const std::string& presetName, bool control, bool alt, bool shift, bool rcontrol) :
+        _type("PRESET"),
+        _effectName(presetName),
+        _control(control),
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _alt(alt),
+        _shift(shift),
+        _disabled(disabled)
     {
         _id = __nextid++;
         _key = DecodeKey(k);
@@ -76,8 +114,17 @@ public:
         _shift |= IsShiftedKey(_key);
         _tip = "Insert a preset effect.";
     }
-	explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift, bool rcontrol)
-		: _type("APPLYSETTING"), _control(control), _rcontrol(rcontrol), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+	explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift, bool rcontrol) : 
+        _type("APPLYSETTING"), 
+        _control(control), 
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _effectString(eff), 
+        _effectDataVersion(ver), 
+        _alt(alt), _shift(shift), 
+        _disabled(disabled),
+        _key(k)
 	{
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
@@ -85,7 +132,17 @@ public:
         _tip = "Apply setting to selected effects.";
     }
 	explicit KeyBinding(bool disabled, const std::string& k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift, bool rcontrol)
-		: _type("APPLYSETTING"), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled)
+		: 
+        _type("APPLYSETTING"), 
+        _control(control),
+#ifdef __WXOSX__
+        _rcontrol(rcontrol),
+#endif
+        _effectString(eff),
+        _effectDataVersion(ver), 
+        _alt(alt),
+        _shift(shift), 
+        _disabled(disabled)
 	{
         _id = __nextid++;
         _key = DecodeKey(k);
