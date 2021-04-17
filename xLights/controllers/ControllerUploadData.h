@@ -76,7 +76,8 @@ public:
 
     int GetSmartTs(int currentTs);
     int GetBrightness(int currentBrightness);
-    int GetNullPixels(int currentNullPixels);
+    int GetStartNullPixels(int currentStartNullPixels);
+    int GetEndNullPixels(int currentEndNullPixels);
     float GetGamma(int currentGamma);
     std::string GetColourOrder(const std::string& currentColourOrder);
     std::string GetDirection(const std::string& currentDirection);
@@ -115,8 +116,10 @@ struct UDVirtualString
     bool _brightnessSet = false;
     int _brightness = 100;
     int _smartRemote = false;
-    bool _nullPixelsSet = false;
-    int _nullPixels = 0;
+    bool _startNullPixelsSet = false;
+    int _startNullPixels = 0;
+    bool _endNullPixelsSet = false;
+    int _endNullPixels = 0;
     bool _groupCountSet = false;
     int _groupCount = 1;
     bool _reverseSet = false;

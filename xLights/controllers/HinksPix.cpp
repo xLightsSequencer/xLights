@@ -245,7 +245,7 @@ void HinksPix::UpdatePortData(HinksPixOutput &pd, UDControllerPort* stringData, 
         pd.protocol = protocol;
     }
 
-    int const nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+    int const nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
     if (nullPix != -1) {
         pd.nullPixel = nullPix;
     }

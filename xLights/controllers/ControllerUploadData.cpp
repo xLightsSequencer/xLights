@@ -109,11 +109,19 @@ int UDControllerPortModel::GetBrightness(int currentBrightness) {
     return currentBrightness;
 }
 
-int UDControllerPortModel::GetNullPixels(int currentNullPixels) {
+int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) {
 
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
-    return currentNullPixels;
+    return currentStartNullPixels;
+}
+
+int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels)
+{
+
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("endNullNodes"))  return wxAtoi(node->GetAttribute("endNullNodes"));
+    return currentEndNullPixels;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs)
@@ -460,7 +468,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
     for (const auto& it : _models) {
         bool first = false;
         int brightness = it->GetBrightness(-9999);
-        int nullPixels = it->GetNullPixels(-9999);
+        int startNullPixels = it->GetStartNullPixels(-9999);
+        int endNullPixels = it->GetEndNullPixels(-9999);
         int smartRemote = it->GetSmartRemote();
         std::string reverse = it->GetDirection("unknown");
         std::string colourOrder = it->GetColourOrder("unknown");
@@ -486,8 +495,10 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_smartRemote = sr;
                     current->_gammaSet = false;
                     current->_gamma = 0;
-                    current->_nullPixelsSet = false;
-                    current->_nullPixels = 0;
+                    current->_startNullPixelsSet = false;
+                    current->_startNullPixels = 0;
+                    current->_endNullPixelsSet = false;
+                    current->_endNullPixels = 0;
                     current->_brightnessSet = false;
                     current->_brightness = 0;
                     current->_groupCountSet = false;
@@ -510,7 +521,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         else {
             wxASSERT(current != nullptr);
             if ((brightness != -9999 && current->_brightness != brightness) ||
-                (nullPixels != -9999) ||
+                (startNullPixels != -9999) ||
+                (endNullPixels != -9999) ||
                 (current->_smartRemote != smartRemote) ||
                 (reverse == "unknown" && current->_reverse == "Reverse") ||
                 (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
@@ -535,8 +547,10 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_smartRemote = sr;
                         current->_gammaSet = false;
                         current->_gamma = 0;
-                        current->_nullPixelsSet = false;
-                        current->_nullPixels = 0;
+                        current->_startNullPixelsSet = false;
+                        current->_startNullPixels = 0;
+                        current->_endNullPixelsSet = false;
+                        current->_endNullPixels = 0;
                         current->_brightnessSet = false;
                         current->_brightness = 0;
                         current->_groupCountSet = false;
@@ -578,13 +592,21 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_gammaSet = true;
                 current->_gamma = gamma;
             }
-            if (nullPixels == -9999) {
-                current->_nullPixelsSet = false;
-                current->_nullPixels = 0;
+            if (startNullPixels == -9999) {
+                current->_startNullPixelsSet = false;
+                current->_startNullPixels = 0;
             }
             else {
-                current->_nullPixelsSet = true;
-                current->_nullPixels = nullPixels;
+                current->_startNullPixelsSet = true;
+                current->_startNullPixels = startNullPixels;
+            }
+            if (endNullPixels == -9999) {
+                current->_endNullPixelsSet = false;
+                current->_endNullPixels = 0;
+            }
+            else {
+                current->_endNullPixelsSet = true;
+                current->_endNullPixels = endNullPixels;
             }
             if (brightness == -9999) {
                 current->_brightnessSet = false;

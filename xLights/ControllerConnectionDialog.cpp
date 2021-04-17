@@ -34,7 +34,9 @@ const long ControllerConnectionDialog::ID_PIXEL_reverse = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX5 = wxNewId();
 const long ControllerConnectionDialog::ID_PIXEL_colorOrder = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX2 = wxNewId();
-const long ControllerConnectionDialog::ID_PIXEL_nullNodes = wxNewId();
+const long ControllerConnectionDialog::ID_PIXEL_startNullNodes = wxNewId();
+const long ControllerConnectionDialog::ID_CHECKBOX7 = wxNewId();
+const long ControllerConnectionDialog::ID_SPINCTRL_EndNullNodes = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX3 = wxNewId();
 const long ControllerConnectionDialog::ID_PIXEL_brightness = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX4 = wxNewId();
@@ -119,13 +121,20 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	ColorOrder->Append(_("WBRG"));
 	ColorOrder->Disable();
 	FlexGridSizer2->Add(ColorOrder, 1, wxALL|wxEXPAND, 2);
-	CheckBox_NullNodes = new wxCheckBox(this, ID_CHECKBOX2, _("Set Null Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-	CheckBox_NullNodes->SetValue(false);
-	FlexGridSizer2->Add(CheckBox_NullNodes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	NullNodes = new wxSpinCtrl(this, ID_PIXEL_nullNodes, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 25, 0, _T("ID_PIXEL_nullNodes"));
-	NullNodes->SetValue(_T("0"));
-	NullNodes->Disable();
-	FlexGridSizer2->Add(NullNodes, 1, wxALL|wxEXPAND, 2);
+	CheckBox_StartNullNodes = new wxCheckBox(this, ID_CHECKBOX2, _("Set Start Null Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_StartNullNodes->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_StartNullNodes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StartNullNodes = new wxSpinCtrl(this, ID_PIXEL_startNullNodes, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 25, 0, _T("ID_PIXEL_startNullNodes"));
+	StartNullNodes->SetValue(_T("0"));
+	StartNullNodes->Disable();
+	FlexGridSizer2->Add(StartNullNodes, 1, wxALL|wxEXPAND, 2);
+	CheckBox_EndNullNodes = new wxCheckBox(this, ID_CHECKBOX7, _("Set End Null Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	CheckBox_EndNullNodes->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_EndNullNodes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	EndNullNodes = new wxSpinCtrl(this, ID_SPINCTRL_EndNullNodes, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 25, 0, _T("ID_SPINCTRL_EndNullNodes"));
+	EndNullNodes->SetValue(_T("0"));
+	EndNullNodes->Disable();
+	FlexGridSizer2->Add(EndNullNodes, 1, wxALL|wxEXPAND, 2);
 	CheckBox_Brightness = new wxCheckBox(this, ID_CHECKBOX3, _("Set Brightness"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_Brightness->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_Brightness, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -137,6 +146,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	CheckBox_Gamma->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_Gamma, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GammaPlaceHolder = new wxSpinCtrl(this, ID_PIXEL_gamma, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 10, 0, _T("ID_PIXEL_gamma"));
+	GammaPlaceHolder->Disable();
 	FlexGridSizer2->Add(GammaPlaceHolder, 1, wxALL|wxEXPAND, 2);
 	CheckBox_GroupCount = new wxCheckBox(this, ID_CHECKBOX6, _("Group Count"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	CheckBox_GroupCount->SetValue(false);
@@ -160,6 +170,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnPixelDirectionClick);
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_ColorOrderClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_NullNodesClick);
+	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_EndNullNodesClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_BrightnessClick);
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_GammaClick);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerConnectionDialog::OnCheckBox_GroupCountClick);
@@ -192,8 +203,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_PixelDirection->Hide();
         Brightness->Hide();
         CheckBox_Brightness->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         Gamma->Hide();
         CheckBox_Gamma->Hide();
         ColorOrder->Hide();
@@ -210,8 +223,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         SpinCtrl_Port->Hide();
         PixelDirection->Hide();
         CheckBox_PixelDirection->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         Gamma->Hide();
         CheckBox_Gamma->Hide();
         ColorOrder->Hide();
@@ -221,7 +236,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         SmartRemote->Hide();
         Choice_SmartRemote->Hide();
         break;
-    case controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES:
+    case controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES:
         StaticText1->Hide();
         StaticText2->Hide();
         Choice_Protocol->Hide();
@@ -238,6 +253,28 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_GroupCount->Hide();
         SmartRemote->Hide();
         Choice_SmartRemote->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
+        break;
+    case controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES:
+        StaticText1->Hide();
+        StaticText2->Hide();
+        Choice_Protocol->Hide();
+        SpinCtrl_Port->Hide();
+        PixelDirection->Hide();
+        CheckBox_PixelDirection->Hide();
+        Brightness->Hide();
+        CheckBox_Brightness->Hide();
+        Gamma->Hide();
+        CheckBox_Gamma->Hide();
+        ColorOrder->Hide();
+        CheckBox_ColorOrder->Hide();
+        GroupCount->Hide();
+        CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
         break;
     case controller_connection_bulkedit::CEBE_SMARTREMOTE:
         StaticText1->Hide();
@@ -254,8 +291,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERGAMMA:
         StaticText1->Hide();
@@ -266,8 +305,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_PixelDirection->Hide();
         Brightness->Hide();
         CheckBox_Brightness->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         ColorOrder->Hide();
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
@@ -284,8 +325,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_PixelDirection->Hide();
         Brightness->Hide();
         CheckBox_Brightness->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         Gamma->Hide();
         CheckBox_Gamma->Hide();
         GroupCount->Hide();
@@ -302,8 +345,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_PixelDirection->Hide();
         Brightness->Hide();
         CheckBox_Brightness->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         Gamma->Hide();
         CheckBox_Gamma->Hide();
         ColorOrder->Hide();
@@ -318,8 +363,10 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         SpinCtrl_Port->Hide();
         Brightness->Hide();
         CheckBox_Brightness->Hide();
-        NullNodes->Hide();
-        CheckBox_NullNodes->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
         Gamma->Hide();
         CheckBox_Gamma->Hide();
         ColorOrder->Hide();
@@ -377,11 +424,18 @@ void ControllerConnectionDialog::Set(wxXmlNode* node) {
                     Gamma->SetValue(wxAtof(node->GetAttribute("gamma")));
                 }
             }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES) {
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES) {
                 if (node->HasAttribute("nullNodes")) {
-                    CheckBox_NullNodes->SetValue(true);
-                    NullNodes->Enable(true);
-                    NullNodes->SetValue(wxAtoi(node->GetAttribute("nullNodes")));
+                    CheckBox_StartNullNodes->SetValue(true);
+                    StartNullNodes->Enable(true);
+                    StartNullNodes->SetValue(wxAtoi(node->GetAttribute("nullNodes")));
+                }
+            }
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES) {
+                if (node->HasAttribute("endNullNodes")) {
+                    CheckBox_EndNullNodes->SetValue(true);
+                    EndNullNodes->Enable(true);
+                    EndNullNodes->SetValue(wxAtoi(node->GetAttribute("endNullNodes")));
                 }
             }
             if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER) {
@@ -438,9 +492,13 @@ void ControllerConnectionDialog::Get(wxXmlNode* node) {
             node->DeleteAttribute("gamma");
             if (CheckBox_Gamma->IsChecked()) node->AddAttribute("gamma", wxString::Format("%f", Gamma->GetValue()));
         }
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES) {
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES) {
             node->DeleteAttribute("nullNodes");
-            if (CheckBox_NullNodes->IsChecked()) node->AddAttribute("nullNodes", wxString::Format("%d", NullNodes->GetValue()));
+            if (CheckBox_StartNullNodes->IsChecked()) node->AddAttribute("nullNodes", wxString::Format("%d", StartNullNodes->GetValue()));
+        }
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES) {
+            node->DeleteAttribute("endNullNodes");
+            if (CheckBox_EndNullNodes->IsChecked()) node->AddAttribute("endNullNodes", wxString::Format("%d", EndNullNodes->GetValue()));
         }
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER) {
             node->DeleteAttribute("colorOrder");
@@ -472,7 +530,7 @@ void ControllerConnectionDialog::OnPixelDirectionClick(wxCommandEvent& event)
 
 void ControllerConnectionDialog::OnCheckBox_NullNodesClick(wxCommandEvent& event)
 {
-    NullNodes->Enable(CheckBox_NullNodes->IsChecked());
+    StartNullNodes->Enable(CheckBox_StartNullNodes->IsChecked());
 }
 
 void ControllerConnectionDialog::OnCheckBox_GammaClick(wxCommandEvent& event)
@@ -498,4 +556,9 @@ void ControllerConnectionDialog::OnChoice_ProtocolSelect(wxCommandEvent& event)
 void ControllerConnectionDialog::OnCheckBox_GroupCountClick(wxCommandEvent& event)
 {
     GroupCount->Enable(CheckBox_GroupCount->IsChecked());
+}
+
+void ControllerConnectionDialog::OnCheckBox_EndNullNodesClick(wxCommandEvent& event)
+{
+    EndNullNodes->Enable(CheckBox_EndNullNodes->IsChecked());
 }

@@ -75,6 +75,7 @@ public:
     bool SupportsPixelPortBrightness() const;
     bool SupportsPixelPortGamma() const;
     bool SupportsPixelPortNullPixels() const;
+    bool SupportsPixelPortEndNullPixels() const;
     bool SupportsPixelPortGrouping() const;
     bool SupportsTs() const;
     bool SupportsPixelPortDirection() const;

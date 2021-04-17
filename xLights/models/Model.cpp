@@ -69,11 +69,13 @@ static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", 
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
 
 static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
-    "", "ws2811", "gece", "tm18xx", "lx1203",
-    "ws2801", "tls3001", "lpd6803", "apa102", "apa109", 
-    "ucs1903", "ucs2903", "dmx", "dmx-open", "dmx-pro", 
-    "pixelnet", "renard", "lor", "pixelnet-lynx", "pixelnet-open", 
-    "genericserial" };
+    "", "ws2811",
+    "gece", "lx1203", "tls3001", "tm18xx", 
+    "ws2801", "lpd6803", "lpd8806", "apa102",
+    "apa109", "sm16716", "ucs1903", "ucs2903", "ucs8903", "ucs8903 16 bit",
+    "ucs8904", "ucs8904 16 bit", "ws2811 slow", "dmx",
+    "dmx-open", "dmx-pro", "pixelnet", "renard", "lor",
+    "pixelnet-lynx", "pixelnet-open", "genericserial"};
 static wxArrayString CONTROLLER_PROTOCOLS(21, CONTROLLER_PROTOCOLS_VALUES);
 
 static std::set<wxString> SERIAL_PROTOCOLS = {
@@ -118,6 +120,7 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
         node->DeleteAttribute("gamma");
         node->DeleteAttribute("brightness");
         node->DeleteAttribute("nullNodes");
+        node->DeleteAttribute("endNullNodes");
         node->DeleteAttribute("colorOrder");
         node->DeleteAttribute("reverse");
         node->DeleteAttribute("groupCount");
@@ -935,14 +938,28 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     else if (IsPixelProtocol(protocol)) {
 
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
             sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Start Null Pixels", "ModelControllerConnectionPixelNullNodes",
                 wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 100);
             sp2->SetEditor("SpinCtrl");
             if (!node->HasAttribute("nullNodes")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
+        }
+
+        if (caps == nullptr || caps->SupportsPixelPortEndNullPixels()) {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set End Null Pixels", "ModelControllerConnectionPixelSetEndNullNodes", node->HasAttribute("endNullNodes")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("End Null Pixels", "ModelControllerConnectionPixelEndNullNodes",
+                wxAtoi(GetControllerConnection()->GetAttribute("endNullNodes", "0"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 100);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("endNullNodes")) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
@@ -1081,6 +1098,17 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
             else {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(true);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable();
+            }
+        }
+
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes") != nullptr)         {
+            if (!node->HasAttribute("endNullNodes")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable();
             }
         }
 
@@ -1586,6 +1614,24 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetNullNodes");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetNullNodes");
         return 0;
+    }
+    else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes") {
+    GetControllerConnection()->DeleteAttribute("endNullNodes");
+    wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
+    grid->EnableProperty(prop, event.GetValue().GetBool());
+    if (event.GetValue().GetBool()) {
+        GetControllerConnection()->AddAttribute("endNullNodes", "0");
+        prop->SetValueFromInt(0);
+        grid->Expand(event.GetProperty());
+    }
+    else {
+        grid->Collapse(event.GetProperty());
+    }
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
+    return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes") {
         GetControllerConnection()->DeleteAttribute("nullNodes");
         if (event.GetValue().GetLong() >= 0) {
@@ -1596,6 +1642,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         return 0;
+    }
+    else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes") {
+    GetControllerConnection()->DeleteAttribute("endNullNodes");
+    if (event.GetValue().GetLong() >= 0) {
+        GetControllerConnection()->AddAttribute("endNullNodes", wxString::Format("%i", (int)event.GetValue().GetLong()));
+    }
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
+    return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount") {
         GetControllerConnection()->DeleteAttribute("groupCount");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());

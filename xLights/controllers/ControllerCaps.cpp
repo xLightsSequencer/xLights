@@ -408,6 +408,12 @@ bool ControllerCaps::SupportsPixelPortNullPixels() const {
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
 }
 
+bool ControllerCaps::SupportsPixelPortEndNullPixels() const
+{
+
+    return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortEndNullPixels");
+}
+
 bool ControllerCaps::SupportsPixelPortDirection() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortDirection");

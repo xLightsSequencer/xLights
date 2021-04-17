@@ -1920,8 +1920,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     i -= i % 5;
                     vs["brightness"] = i;
                 }
-                if (pvs->_nullPixelsSet) {
-                    vs["nullNodes"] = pvs->_nullPixels;
+                if (pvs->_startNullPixelsSet) {
+                    vs["nullNodes"] = pvs->_startNullPixels;
                 }
                 if (pvs->_colourOrderSet) {
                     vs["colorOrder"] = pvs->_colourOrder;

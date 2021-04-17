@@ -333,7 +333,7 @@ bool AlphaPix::ExtractDMXEnabled(const wxString& page, const wxString& name) {
 void AlphaPix::UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, bool& changeColor) const {
 
     if (pd != nullptr) {
-        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        const int nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
         if (nullPix != -1 && pd->nullPixel != nullPix) {
             pd->nullPixel = nullPix;
             pd->upload = true;

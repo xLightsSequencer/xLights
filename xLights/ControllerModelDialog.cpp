@@ -2396,9 +2396,12 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             {
                 stringSettings += wxString::Format("\nGrouping: %d", udm->GetGroupCount(0));
             }
-            if (udm->GetNullPixels(-1) != -1)
+            if (udm->GetStartNullPixels(-1) != -1)
             {
-                stringSettings += wxString::Format("\nNull Pixels: %d", udm->GetNullPixels(0));
+                stringSettings += wxString::Format("\nStart Null Pixels: %d", udm->GetStartNullPixels(0));
+            }
+            if (udm->GetEndNullPixels(-1) != -1)             {
+                stringSettings += wxString::Format("\nEnd Null Pixels: %d", udm->GetEndNullPixels(0));
             }
             if (udm->GetSmartTs(-1) != -1) {
                 stringSettings += wxString::Format("\nSmart Ts: %d", udm->GetSmartTs(0));

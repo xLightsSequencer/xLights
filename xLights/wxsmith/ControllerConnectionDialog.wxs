@@ -129,8 +129,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_NullNodes" member="yes">
-							<label>Set Null Nodes</label>
+						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_StartNullNodes" member="yes">
+							<label>Set Start Null Nodes</label>
 							<handler function="OnCheckBox_NullNodesClick" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -138,7 +138,26 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_PIXEL_nullNodes" variable="NullNodes" member="yes">
+						<object class="wxSpinCtrl" name="ID_PIXEL_startNullNodes" variable="StartNullNodes" member="yes">
+							<value>0</value>
+							<max>25</max>
+							<enabled>0</enabled>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_EndNullNodes" member="yes">
+							<label>Set End Null Nodes</label>
+							<handler function="OnCheckBox_EndNullNodesClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL_EndNullNodes" variable="EndNullNodes" member="yes">
 							<value>0</value>
 							<max>25</max>
 							<enabled>0</enabled>
@@ -178,6 +197,7 @@
 						<object class="wxSpinCtrl" name="ID_PIXEL_gamma" variable="GammaPlaceHolder" member="no">
 							<value></value>
 							<max>10</max>
+							<enabled>0</enabled>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

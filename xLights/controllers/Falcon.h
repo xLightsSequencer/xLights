@@ -16,6 +16,8 @@
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
 
 class FalconString;
 
@@ -29,8 +31,67 @@ class Falcon : public BaseController
     int _versionnum = -1;
     std::string _modelString;
     int _modelnum = -1;
+    wxJSONValue _v4status;
     std::string _name;
     #pragma endregion
+
+#pragma region V4
+    
+    typedef struct FALCON_V4_INPUTS
+    {
+        int universe;
+        int channels;
+        int universeCount;
+        int protocol;
+    } FALCON_V4_INPUTS;
+
+    typedef struct FALCON_V4_STRING
+    {
+        int port; // p
+        int string; // s
+        int smartRemote; // r
+        int universe; // u
+        std::string name; // nm
+        bool blank; // bl
+        int gamma; // g
+        int brightness; // b
+        int zigcount; // z
+        int endNulls; // ne
+        int startNulls; // ns
+        int colourOrder; // o
+        int direction; // v
+        int group; // gp
+        int pixels; // n
+        int protocol; // l
+        unsigned long startChannel; // sc
+    } FALCON_V4_STRING;
+
+    int V4_GetBoardPorts(int boardMode);
+    int V4_GetMaxPortPixels(int boardMode, int protocol);
+    int V4_EncodeInputProtocol(const std::string& protocol);
+    void V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel);
+    int V4_EncodeColourOrder(const std::string co);
+    int V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconStrings, const int p, const int sr);
+    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error);
+    std::string V4_DecodePixelProtocol(int protocol);
+    int V4_EncodePixelProtocol(const std::string& protocol);
+    void V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str);
+    int V4_GetRebootSecs();
+    void V4_WaitForReboot(const std::string& name, wxWindow* parent);
+    std::string SendToFalconV4(std::string msg);
+    int CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const wxJSONValue& params, bool& finalCall, int& outbatch, bool& reboot, wxJSONValue& result);
+    bool V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res);
+    bool V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot);
+    bool V4_SendBoardMode(int boardMode, int controllerMode, unsigned long startChannel, bool& reboot);
+    bool V4_GetStatus(wxJSONValue& res);
+    bool V4_SetSerialConfig(int protocol, int universe, int startChannel, int rate);
+    bool V4_GetStrings(std::vector<FALCON_V4_STRING>& res);
+    bool V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot);
+
+    bool V4_SetInputUniverses(ControllerEthernet* controller, wxWindow* parent);
+    bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress);
+
+#pragma endregion
 
     #pragma region Private Functions
 
