@@ -235,10 +235,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("u", false, "UNLOCK_EFFECT", true),
     KeyBinding(".", false, "MARK_SPOT", true),
     KeyBinding("/", false, "RETURN_TO_SPOT", true),
-#ifdef __WXOSX__
     KeyBinding(std::string("."), false, "MARK_SPOT", false, false, false, true),
     KeyBinding(std::string("/"), false, "RETURN_TO_SPOT", false, false, false, true),
-#endif
     KeyBinding("", true, "EFFECT_DESCRIPTION", true),
     KeyBinding("", true, "EFFECT_ALIGN_START", true, true),
     KeyBinding("", true, "EFFECT_ALIGN_END", true, true),
@@ -366,15 +364,8 @@ const std::vector<std::pair<wxKeyCode /*to*/, wxKeyCode/*from*/>> KeyEquivalents
 
 #pragma region Constructors
 KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
-    _type(type),
-    _control(control),
-#ifdef __WXOSX__
-    _rcontrol(rcontrol),
-#endif
-    _alt(alt),
-    _shift(shift),
-    _disabled(disabled),
-    _key(k)
+    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift),
+    _disabled(disabled), _key(k)
 {
     _id = __nextid++;
 
@@ -400,14 +391,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
 }
 
 KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift, bool rcontrol) :
-    _type(type),
-    _control(control),
-#ifdef __WXOSX__
-    _rcontrol(rcontrol),
-#endif
-    _alt(alt),
-    _shift(shift),
-    _disabled(disabled)
+    _type(type), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled)
 {
     _id = __nextid++;
 
@@ -686,6 +670,21 @@ wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
 
     return static_cast<wxKeyCode>(static_cast<int8_t>(key[0]));
 }
+
+bool KeyBinding::IsControlEqual(KeyBinding const& key, const bool& ctrl, const bool& rctrl)
+{
+#ifdef __WXOSX__
+    return key.RequiresControl() == ctrl && key.RequiresRawControl() == rctrl;
+#else
+    if (ctrl && key.RequiresControl() == ctrl) {
+        return true;
+    }
+    if (rctrl && key.RequiresRawControl() == rctrl) {
+        return true;
+    }
+    return false;
+#endif
+}
 #pragma endregion Static functions
 
 std::string KeyBinding::KeyDescription() const noexcept
@@ -791,7 +790,7 @@ bool KeyBinding::IsDuplicateKey(const KeyBinding& b) const
     if (_id == b.GetId()) return false;
 
     if (b.GetScope() == GetScope() || GetScope() == KBSCOPE::All || b.GetScope() == KBSCOPE::All) {
-        if (b.GetKey() == GetKey() && b.RequiresAlt() == RequiresAlt() && b.RequiresControl() == RequiresControl() && b.RequiresShift() == RequiresShift()) {
+        if (b.GetKey() == GetKey() && b.RequiresAlt() == RequiresAlt() && KeyBinding::IsControlEqual(b, RequiresRawControl(), RequiresControl()) && b.RequiresShift() == RequiresShift()) {
             return true;
         }
     }
@@ -833,10 +832,6 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
                     bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
                     bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
-#if !defined(__WXOSX__)
-                    if (rcontrol) control = rcontrol;
-                    rcontrol = false;
-#endif
                     if (oldk != "") {
                         k = oldk;
                         if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
@@ -1060,23 +1055,18 @@ bool KeyBindingMap::IsDuplicateKey(const KeyBinding& b) const
 std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, KBSCOPE scope) const noexcept
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#ifdef __WXOSX__
-    bool const rctrl = event.RawControlDown();
-#else
-    bool const rctrl = false;
-#endif
-    bool ctrl = event.CmdDown() || event.ControlDown();
+
+
     wxKeyCode key = static_cast<wxKeyCode>(event.GetKeyCode());
     bool alt = event.AltDown();
     bool shift = event.ShiftDown();
+    bool rctrl = event.RawControlDown();
+    bool ctrl = event.CmdDown() || event.ControlDown();
 
     for (const auto& b : _bindings) {
         if (!b.IsDisabled() &&
             b.RequiresAlt() == alt &&
-            b.RequiresControl() == ctrl
-            &&
-            b.RequiresRawControl() == rctrl
-            &&
+            KeyBinding::IsControlEqual(b, ctrl, rctrl) &&
             (
             (b.RequiresShift() == shift && b.IsKey(key)) ||
                 (b.IsEquivalentKey(key))
