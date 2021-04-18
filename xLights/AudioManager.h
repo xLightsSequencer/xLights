@@ -47,7 +47,8 @@ enum class AUDIOSAMPLETYPE
     TREBLE,
     CUSTOM,
     ALTO,
-    NONVOCALS
+    NONVOCALS,
+    ANY
 };
 
 class xLightsVamp
@@ -186,14 +187,15 @@ public:
     bool IsListening();
 };
 
-struct FilteredAudioData
+typedef struct FilteredAudioData
 {
     AUDIOSAMPLETYPE type;
     int lowNote = 0;
     int highNote = 127;
-    float* data = nullptr;
-    int16_t *pcmdata = nullptr;
-};
+    float* data0 = nullptr;
+    float* data1 = nullptr;
+    int16_t* pcmdata = nullptr;
+} FilteredAudioData;
 
 class AudioManager
 {
@@ -253,6 +255,8 @@ class AudioManager
     void LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
     void SetLoadedData(long pos);
 
+    void NormaliseFilteredAudioData(FilteredAudioData* fad);
+
     static bool WriteAudioFrame( AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false );
 
 public:
@@ -294,13 +298,17 @@ public:
 	std::string FileName() const { return _audio_file; };
     std::string Hash();
 	long LengthMS() const { return _lengthMS; };
-	float GetRightData(long offset);
-	float GetLeftData(long offset);
+    float GetFilteredRightData(long offset);
+    float GetFilteredLeftData(long offset);
+    float GetRawRightData(long offset);
+    float GetRawLeftData(long offset);
     void SwitchTo(AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
-    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
-	float* GetRightDataPtr(long offset);
-	float* GetLeftDataPtr(long offset);
-	void SetStepBlock(int step, int block);
+    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type = AUDIOSAMPLETYPE::ANY, int lowNote = -1, int highNote = -1);
+	float* GetFilteredRightDataPtr(long offset);
+	float* GetFilteredLeftDataPtr(long offset);
+    float* GetRawRightDataPtr(long offset);
+    float* GetRawLeftDataPtr(long offset);
+    void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
 	const std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
@@ -312,8 +320,9 @@ public:
     void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
 
+    FilteredAudioData* GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote);
     static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
-    bool WriteCurrentAudio( const std::string& path, long bitrate );
+    bool WriteCurrentAudio( const std::string& path, long bitrate);
 
     bool AudioDeviceChanged();
 

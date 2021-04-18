@@ -97,8 +97,8 @@ class Waveform : public xlGLCanvas
         DRAG_MODE m_drag_mode;
 		AudioManager* _media;
         AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
-        int _lowNote = 0;
-        int _highNote = 127;
+        int _lowNote = -1;
+        int _highNote = -1;
         static const long ID_WAVE_MNU_RENDER;
         static const long ID_WAVE_MNU_RAW;
         static const long ID_WAVE_MNU_BASS;
@@ -112,8 +112,8 @@ class Waveform : public xlGLCanvas
         private:
             float mSamplesPerPixel = 1;
             int mZoomLevel = 0;
-            int _lowNote = 0;
-            int _highNote = 127;
+            int _lowNote = -1;
+            int _highNote = -1;
             AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
 
         public:

@@ -234,8 +234,16 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_WAVE_MNU_CUSTOM)
     {
+        int origLow = _lowNote;
+        int origHigh = _highNote;
+        if (_lowNote == -1) _lowNote = 0;
+        if (_highNote == -1) _highNote = 127;
         NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
-        if (dlg.ShowModal() == wxID_CANCEL) return;
+        if (dlg.ShowModal() == wxID_CANCEL)         {
+            _lowNote = origLow;
+            _highNote = origHigh;
+            return;
+        }
         _type = AUDIOSAMPLETYPE::CUSTOM;
     }
 

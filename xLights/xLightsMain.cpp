@@ -3065,8 +3065,8 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
             int trackSize = audioMgr->GetTrackSize();
             int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
             if (clampedSize > 0) {
-                const float* leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
-                const float* rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+                const float* leftptr = audioMgr->GetRawLeftDataPtr(audioFrameIndex);
+                const float* rightptr = audioMgr->GetRawRightDataPtr(audioFrameIndex);
 
                 if (leftptr != nullptr) {
                     std::memcpy(leftCh, leftptr, clampedSize * sizeof(float));
@@ -9881,7 +9881,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (audio != nullptr)
                 {
                     // check the data is actually loaded
-                    audio->GetLeftData(audio->GetTrackSize() - 1);
+                    audio->GetRawLeftData(audio->GetTrackSize() - 1);
 
                     SetStatusText("Combining audio clips.");
 
@@ -9899,8 +9899,8 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     // this code does not handle mixed sample rates
                     wxASSERT(inputSamples == outputSamples);
 
-                    float* lsource = audio->GetLeftDataPtr(startSample);
-                    float* rsource = audio->GetRightDataPtr(startSample);
+                    float* lsource = audio->GetRawLeftDataPtr(startSample);
+                    float* rsource = audio->GetRawRightDataPtr(startSample);
                     long fadeinsamples = it.fadein * audio->GetRate();
                     long fadeoutsamples = it.fadeout * audio->GetRate();
                     long fadeoutstart = inputSamples - fadeoutsamples;
@@ -9908,7 +9908,13 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     for (long i = 0; i < inputSamples; i++)
                     {
                         float l = lsource[i] * it.volume;
-                        float r = rsource[i] * it.volume;
+                        float r;
+                        if (rsource != nullptr) {
+                            r = rsource[i] * it.volume;
+                        }
+                        else                             {
+                            r = l;
+                        }
                         if (i < fadeinsamples)
                         {
                             // Linear
