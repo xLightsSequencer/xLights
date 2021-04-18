@@ -39,6 +39,11 @@ TerrianObject::~TerrianObject()
 
 void TerrianObject::InitModel() {
     _imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
+    if (_imageFile != ModelXml->GetAttribute("Image", "")) {
+        ModelXml->DeleteAttribute("Image");
+        ModelXml->AddAttribute("Image", _imageFile);
+    }
+
     ObtainAccessToURL(_imageFile);
 
     if (ModelXml->HasAttribute("Transparency")) {

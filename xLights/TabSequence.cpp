@@ -274,6 +274,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
+    if (mBackgroundImage != GetXmlSetting("backgroundImage", "")) {
+        SetXmlSetting("backgroundImage", mBackgroundImage);
+    }
+
     SetDisplay2DBoundingBox(GetXmlSetting("Display2DBoundingBox", "0") == "1");
     layoutPanel->SetDisplay2DBoundingBox(GetDisplay2DBoundingBox());
     SetDisplay2DCenter0(GetXmlSetting("Display2DCenter0", "0") == "1");

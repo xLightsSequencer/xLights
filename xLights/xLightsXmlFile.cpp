@@ -1211,6 +1211,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                     {
                         logger_base.debug("LoadSequence: mediaFile %s", (const char*)element->GetNodeContent().c_str());
                         media_file = FixFile(ShowDir, element->GetNodeContent());
+                        if (media_file != element->GetNodeContent()) element->SetContent(media_file);
                         logger_base.debug("LoadSequence: mediaFile after fix %s", (const char*)media_file.c_str());
                         wxFileName mf = media_file;
                         if (audio != nullptr)
@@ -1248,6 +1249,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 else if( element->GetName() == "imageDir")
                 {
                     image_dir = FixFile(ShowDir, element->GetNodeContent());
+                    if (image_dir != element->GetNodeContent()) element->SetContent(image_dir);
                 }
             }
        }
@@ -1286,8 +1288,21 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                     element->GetAttribute("num_channels", &num_channels);
                     element->GetAttribute("channel_offset", &channel_offset);
                     element->GetAttribute("lor_params", &lor_params);
-                    if (!data.StartsWith("<")) data = FixFile("", data);
+                    if (!data.StartsWith("<"))   
+                    {
+                        auto oldData = data;
+                        data = FixFile("", data);
+                        if (data != oldData)                             {
+                            element->DeleteAttribute("data");
+                            element->AddAttribute("data", data);
+                        }
+                    }
+                    auto oldSource = source;
 					source = FixFile("", source);
+                    if (source != oldSource) {
+                        element->DeleteAttribute("source");
+                        element->AddAttribute("source", source);
+                    }
 					if( name == "Nutcracker" )
                     {
                         mDataLayers.RemoveDataLayer(0);

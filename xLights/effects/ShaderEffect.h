@@ -168,6 +168,7 @@ class ShaderConfig
     bool _audioFFTMode = false;
     bool _hasRendersize = false;
     bool _hasTime = false;
+    bool _hasXLCoord = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
@@ -180,6 +181,7 @@ public:
     bool IsAudioFFTShader() const { return _audioFFTMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
+    bool HasXLCoord() const { return _hasXLCoord; }
     bool UsesEvents() const;
 };
 class ShaderRenderCache;

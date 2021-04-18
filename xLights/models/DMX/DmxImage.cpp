@@ -80,6 +80,10 @@ void DmxImage::SetScaleY(float value, BaseObject* base)
 void DmxImage::Init(BaseObject* base) {
 
     _imageFile = FixFile("", node_xml->GetAttribute("Image", ""));
+    if (_imageFile != node_xml->GetAttribute("Image", ""))     {
+        node_xml->DeleteAttribute("Image");
+        node_xml->AddAttribute("Image", _imageFile);
+    }
 
     offset_x = wxAtof(node_xml->GetAttribute("OffsetX", "0.0")) / OFFSET_SCALE;
     offset_y = wxAtof(node_xml->GetAttribute("OffsetY", "0.0")) / OFFSET_SCALE;

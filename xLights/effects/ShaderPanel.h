@@ -74,9 +74,9 @@ class ShaderPanel: public xlEffectPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
-		wxStaticText* StaticText4;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText6;
+		wxStaticText* StaticText_Shader_Offset_X;
+		wxStaticText* StaticText_Shader_Offset_Y;
+		wxStaticText* StaticText_Shader_Zoom;
 		//*)
 
 	protected:

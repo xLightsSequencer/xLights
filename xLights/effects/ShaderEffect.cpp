@@ -143,18 +143,25 @@ namespace
     const char* vsSrc =
         "#version 330 core\n"
         "uniform vec2 RENDERSIZE;\n"
+        "uniform vec2 XL_OFFSET;\n"
+        "uniform float XL_ZOOM;\n"
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
-        "out vec2 isf_FragNormCoord;"
-        "out vec2 isf_FragCoord;"
+        "out vec2 isf_FragNormCoord;\n"
+        "out vec2 isf_FragCoord;\n"
+        "out vec2 xl_FragNormCoord;\n"
+        "out vec2 xl_FragCoord;\n"
+        "vec2 XL_ZOOM_OFFSET(vec2 coord) {\n  return ((coord.xy - (XL_OFFSET - 0.5) - 0.5) / XL_ZOOM) + 0.5;\n}\n\n"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
         "   gl_Position = vec4(vpos,0,1);\n"
         "   texCoord = tpos;\n"
         "   isf_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   xl_FragNormCoord = XL_ZOOM_OFFSET(vec2(tpos.x, tpos.y));\n"
         "   isf_FragCoord = isf_FragNormCoord * RENDERSIZE;\n"
+        "   xl_FragCoord = xl_FragNormCoord * RENDERSIZE;\n"
         "}\n"
         "void main(){\n"
         "    isf_vertShaderInit();"
@@ -1408,6 +1415,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     _hasRendersize = Contains(code, "RENDERSIZE");
     _hasTime = Contains(code, "TIME");
+    _hasXLCoord = Contains(code, "xl_FragCoord");
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
@@ -1420,10 +1428,10 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform int PASSINDEX;\n"
     "uniform int FRAMEINDEX;\n"
     "uniform sampler2D texSampler;\n"
-    "uniform vec2 XL_OFFSET;\n"
-    "uniform float XL_ZOOM;\n"
     "in vec2 isf_FragNormCoord;\n"
     "in vec2 isf_FragCoord;\n"
+    "in vec2 xl_FragNormCoord;\n"
+    "in vec2 xl_FragCoord;\n"
     "out vec4 fragmentColor;\n"
     "uniform vec4 DATE;\n\n"
     "#define XL_SHADER\n\n"
@@ -1485,7 +1493,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
     prependText += _("vec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
-    prependText += _("vec2 XL_ZOOM_OFFSET(vec2 coord) {\n   return (((coord.xy / RENDERSIZE.xy - 0.5) / XL_ZOOM) - XL_OFFSET + 0.5) * RENDERSIZE.xy;\n}\n\n");
 
 #ifdef __DEBUG
     int i = 0;

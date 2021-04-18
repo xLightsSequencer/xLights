@@ -1940,6 +1940,7 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
                 if (type == "Matrix")
                 {
                     faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
+                    if (att->GetValue() != faceInfo[name][att->GetName().ToStdString()]) att->SetValue(faceInfo[name][att->GetName().ToStdString()]);
                 }
                 else {
                     faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
