@@ -18,6 +18,13 @@ class SequenceElements;
 #define SHADER_SPEED_MAX 1000
 #define SHADER_SPEED_DIVISOR 100
 
+#define SHADER_OFFSET_X_MIN -100
+#define SHADER_OFFSET_X_MAX 100
+#define SHADER_OFFSET_Y_MIN -100
+#define SHADER_OFFSET_Y_MAX 100
+#define SHADER_ZOOM_MIN -100
+#define SHADER_ZOOM_MAX 100
+
 enum class ShaderParmType
 {
     SHADER_PARM_IMAGE,

@@ -55,16 +55,28 @@ class ShaderPanel: public xlEffectPanel
 		//(*Declarations(ShaderPanel)
 		BulkEditFilePickerCtrl* FilePickerCtrl1;
 		BulkEditSlider* Slider_Shader_LeadIn;
+		BulkEditSlider* Slider_Shader_Offset_X;
+		BulkEditSlider* Slider_Shader_Offset_Y;
+		BulkEditSlider* Slider_Shader_Zoom;
 		BulkEditSliderF2* Slider_Shader_Speed;
 		BulkEditTextCtrl* TextCtrl_Shader_LeadIn;
+		BulkEditTextCtrl* TextCtrl_Shader_Offset_X;
+		BulkEditTextCtrl* TextCtrl_Shader_Offset_Y;
+		BulkEditTextCtrl* TextCtrl_Shader_Zoom;
 		BulkEditTextCtrlF2* TextCtrl_Shader_Speed;
+		BulkEditValueCurveButton* BitmapButton_Shader_Offset_X;
+		BulkEditValueCurveButton* BitmapButton_Shader_Offset_Y;
 		BulkEditValueCurveButton* BitmapButton_Shader_Speed;
+		BulkEditValueCurveButton* BitmapButton_Shader_Zoom;
 		wxButton* Button_Download;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		//*)
 
 	protected:
@@ -80,6 +92,18 @@ class ShaderPanel: public xlEffectPanel
 		static const long ID_SLIDER_Shader_Speed;
 		static const long ID_VALUECURVE_Shader_Speed;
 		static const long IDD_TEXTCTRL_Shader_Speed;
+		static const long ID_STATICTEXT4;
+		static const long IDD_SLIDER_Shader_Offset_X;
+		static const long ID_VALUECURVE_Shader_Offset_X;
+		static const long ID_TEXTCTRL_Shader_Offset_X;
+		static const long ID_STATICTEXT5;
+		static const long IDD_SLIDER_Shader_Offset_Y;
+		static const long ID_VALUECURVE_Shader_Offset_Y;
+		static const long ID_TEXTCTRL_Shader_Offset_Y;
+		static const long ID_STATICTEXT6;
+		static const long IDD_SLIDER_Shader_Zoom;
+		static const long ID_VALUECURVE_Shader_Zoom;
+		static const long ID_TEXTCTRL_Shader_Zoom;
 		//*)
 
 		ShaderPreview *   _preview;

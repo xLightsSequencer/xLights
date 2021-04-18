@@ -859,6 +859,23 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
 
+    double offsetX = GetValueCurveInt("Shader_Offset_X", 0, SettingsMap, oset, SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    // -100 - 100 -> 0-1
+    offsetX /= 200.0;
+    offsetX += 0.5;
+    double offsetY = GetValueCurveInt("Shader_Offset_Y", 0, SettingsMap, oset, SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    offsetY /= 200.0;
+    offsetY += 0.5;
+    double zoom = GetValueCurveInt("Shader_Zoom", 0, SettingsMap, oset, SHADER_ZOOM_MIN, SHADER_ZOOM_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    if (zoom < 0)     {
+        zoom = 1.0 - abs(zoom) / 100.0;
+    }
+    else if (zoom > 0)     {
+        zoom = 1.0 + (zoom * 9.0) / 100.0;
+    }
+    else     {
+        zoom = 1.0;
+    }
     if (buffer.needToInit) {
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
@@ -945,6 +962,22 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
         }
+    }
+
+    loc = glGetUniformLocation(programId, "XL_OFFSET");
+    if (loc >= 0) {
+        glUniform2f(loc, offsetX, offsetY);
+    }
+    else {
+        logger_base.warn("Unable to bind to XL_OFFSET");
+    }
+
+    loc = glGetUniformLocation(programId, "XL_ZOOM");
+    if (loc >= 0) {
+        glUniform1f(loc, (GLfloat)(zoom));
+    }
+    else {
+        logger_base.warn("Unable to bind to XL_ZOOM");
     }
 
     loc = glGetUniformLocation(programId, "TIME");
@@ -1387,17 +1420,19 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform int PASSINDEX;\n"
     "uniform int FRAMEINDEX;\n"
     "uniform sampler2D texSampler;\n"
+    "uniform vec2 XL_OFFSET;\n"
+    "uniform float XL_ZOOM;\n"
     "in vec2 isf_FragNormCoord;\n"
     "in vec2 isf_FragCoord;\n"
     "out vec4 fragmentColor;\n"
-    "uniform vec4 DATE;\n\n");
+    "uniform vec4 DATE;\n\n"
+    "#define XL_SHADER\n\n"
+    );
 
-    for (const auto& p : _parms)
-    {
+    for (const auto& p : _parms)     {
         wxString name(p._name);
         wxString str;
-        switch (p._type)
-        {
+        switch (p._type)         {
         case ShaderParmType::SHADER_PARM_FLOAT:
         {
             str = wxString::Format("uniform float %s;\n", name);
@@ -1450,6 +1485,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
     prependText += _("vec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
+    prependText += _("vec2 XL_ZOOM_OFFSET(vec2 coord) {\n   return (((coord.xy / RENDERSIZE.xy - 0.5) / XL_ZOOM) - XL_OFFSET + 0.5) * RENDERSIZE.xy;\n}\n\n");
 
 #ifdef __DEBUG
     int i = 0;

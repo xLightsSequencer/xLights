@@ -40,6 +40,18 @@ const long ShaderPanel::ID_STATICTEXT3 = wxNewId();
 const long ShaderPanel::ID_SLIDER_Shader_Speed = wxNewId();
 const long ShaderPanel::ID_VALUECURVE_Shader_Speed = wxNewId();
 const long ShaderPanel::IDD_TEXTCTRL_Shader_Speed = wxNewId();
+const long ShaderPanel::ID_STATICTEXT4 = wxNewId();
+const long ShaderPanel::IDD_SLIDER_Shader_Offset_X = wxNewId();
+const long ShaderPanel::ID_VALUECURVE_Shader_Offset_X = wxNewId();
+const long ShaderPanel::ID_TEXTCTRL_Shader_Offset_X = wxNewId();
+const long ShaderPanel::ID_STATICTEXT5 = wxNewId();
+const long ShaderPanel::IDD_SLIDER_Shader_Offset_Y = wxNewId();
+const long ShaderPanel::ID_VALUECURVE_Shader_Offset_Y = wxNewId();
+const long ShaderPanel::ID_TEXTCTRL_Shader_Offset_Y = wxNewId();
+const long ShaderPanel::ID_STATICTEXT6 = wxNewId();
+const long ShaderPanel::IDD_SLIDER_Shader_Zoom = wxNewId();
+const long ShaderPanel::ID_VALUECURVE_Shader_Zoom = wxNewId();
+const long ShaderPanel::ID_TEXTCTRL_Shader_Zoom = wxNewId();
 //*)
 
 ShaderPreview::ShaderPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -103,6 +115,30 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer3->Add(BitmapButton_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Shader_Speed = new BulkEditTextCtrlF2(this, IDD_TEXTCTRL_Shader_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("IDD_TEXTCTRL_Shader_Speed"));
 	FlexGridSizer3->Add(TextCtrl_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Offset X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Shader_Offset_X = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_X, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_X"));
+	FlexGridSizer3->Add(Slider_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Shader_Offset_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_X, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_X"));
+	FlexGridSizer3->Add(BitmapButton_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Shader_Offset_X = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_X, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_X"));
+	FlexGridSizer3->Add(TextCtrl_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Offset Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Shader_Offset_Y = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_Y, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_Y"));
+	FlexGridSizer3->Add(Slider_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Shader_Offset_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_Y, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_Y"));
+	FlexGridSizer3->Add(BitmapButton_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Shader_Offset_Y = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_Y, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_Y"));
+	FlexGridSizer3->Add(TextCtrl_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Zoom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer3->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Shader_Zoom = new BulkEditSlider(this, IDD_SLIDER_Shader_Zoom, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Zoom"));
+	FlexGridSizer3->Add(Slider_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Shader_Zoom = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Zoom"));
+	FlexGridSizer3->Add(BitmapButton_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Shader_Zoom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Zoom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Zoom"));
+	FlexGridSizer3->Add(TextCtrl_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer_Dynamic->AddGrowableCol(1);
@@ -122,6 +158,10 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
     BitmapButton_Shader_Speed->GetValue()->SetLimits(SHADER_SPEED_MIN, SHADER_SPEED_MAX);
     BitmapButton_Shader_Speed->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
+
+    BitmapButton_Shader_Offset_X->GetValue()->SetLimits(SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX);
+    BitmapButton_Shader_Offset_Y->GetValue()->SetLimits(SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX);
+    BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
 
 	_preview = new ShaderPreview( this, ID_CANVAS );
 
