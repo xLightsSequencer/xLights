@@ -148,8 +148,8 @@ namespace
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
-        "out vec2 isf_FragNormCoord;\n"
-        "out vec2 isf_FragCoord;\n"
+        "out vec2 orig_FragNormCoord;\n"
+        "out vec2 orig_FragCoord;\n"
         "out vec2 xl_FragNormCoord;\n"
         "out vec2 xl_FragCoord;\n"
         "vec2 XL_ZOOM_OFFSET(vec2 coord) {\n  return ((coord.xy - (XL_OFFSET - 0.5) - 0.5) / XL_ZOOM) + 0.5;\n}\n\n"
@@ -158,9 +158,9 @@ namespace
         //"   gl_Position = ftransform();\n"
         "   gl_Position = vec4(vpos,0,1);\n"
         "   texCoord = tpos;\n"
-        "   isf_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   orig_FragNormCoord = vec2(tpos.x, tpos.y);\n"
         "   xl_FragNormCoord = XL_ZOOM_OFFSET(vec2(tpos.x, tpos.y));\n"
-        "   isf_FragCoord = isf_FragNormCoord * RENDERSIZE;\n"
+        "   orig_FragCoord = orig_FragNormCoord * RENDERSIZE;\n"
         "   xl_FragCoord = xl_FragNormCoord * RENDERSIZE;\n"
         "}\n"
         "void main(){\n"
@@ -1413,10 +1413,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             });
     }
 
-    _hasRendersize = Contains(code, "RENDERSIZE");
-    _hasTime = Contains(code, "TIME");
-    _hasXLCoord = Contains(code, "xl_FragCoord");
-
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
     wxString prependText = _(
@@ -1427,13 +1423,18 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform bool resetNow;\n"
     "uniform int PASSINDEX;\n"
     "uniform int FRAMEINDEX;\n"
-    "uniform sampler2D texSampler;\n"
-    "in vec2 isf_FragNormCoord;\n"
-    "in vec2 isf_FragCoord;\n"
+    "uniform vec2 XL_OFFSET;\n"
+    "uniform float XL_ZOOM;\n"
+    "uniform sampler2D texSampler;\n\n"
+    "// THESE ARE THE PRE ZOOM AND OFFSET COORDS\n"
+    "in vec2 orig_FragNormCoord;\n"
+    "in vec2 orig_FragCoord;\n"
+    "// THESE ARE THE POST ZOOM AND OFFSET COORDS\n"
     "in vec2 xl_FragNormCoord;\n"
     "in vec2 xl_FragCoord;\n"
     "out vec4 fragmentColor;\n"
     "uniform vec4 DATE;\n\n"
+    "// USE THIS IN PUBLIC SHADERS FOR CODE WHICH ONLY RUNS IN XLIGHTS\n"
     "#define XL_SHADER\n\n"
     );
 
@@ -1484,13 +1485,13 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
     prependText += _("vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
     prependText += _("vec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
 
@@ -1521,7 +1522,11 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode = shaderCode.substr(pos + 2);
     }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
-    shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
+    shaderCode.Replace("vv_FragNormCoord", "xl_FragNormCoord");
+    shaderCode.Replace("isf_FragNormCoord", "xl_FragNormCoord");
+    shaderCode.Replace("isf_FragCoord", "xl_FragCoord");
+    shaderCode.Replace("gl_FragCoord", "xl_FragCoord");
+    shaderCode.Replace("gl_FragNormCoord", "xl_FragNormCoord");
     shaderCode.Replace("varying ", "uniform ");
     shaderCode.Replace("texture2D(", "texture(");
     shaderCode.Replace("texture2D (", "texture(");
@@ -1535,6 +1540,11 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode.Replace(canvasImgName, "texSampler");
         _canvasMode = true;
     }
+
+    _hasRendersize = Contains(shaderCode, "RENDERSIZE");
+    _hasTime = Contains(shaderCode, "TIME");
+    _hasCoord = Contains(shaderCode, "xl_FragCoord");
+
     _code = "#version 330\n\n";
     size_t idx = shaderCode.find("#extension");
     if (idx != std::string::npos) {

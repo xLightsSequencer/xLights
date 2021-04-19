@@ -72,10 +72,10 @@ class ShaderPanel: public xlEffectPanel
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText3;
+		wxStaticText* StaticText_Shader_LeadIn;
 		wxStaticText* StaticText_Shader_Offset_X;
 		wxStaticText* StaticText_Shader_Offset_Y;
+		wxStaticText* StaticText_Shader_Speed;
 		wxStaticText* StaticText_Shader_Zoom;
 		//*)
 

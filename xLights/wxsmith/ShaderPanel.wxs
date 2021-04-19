@@ -47,7 +47,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Shader_LeadIn" member="yes">
 							<label>Lead in frames:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -79,7 +79,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_Shader_Speed" member="yes">
 							<label>Time Speed:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -121,7 +121,7 @@
 							<label>Offset X</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -130,7 +130,7 @@
 							<size>200,-1</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -139,7 +139,7 @@
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -157,7 +157,7 @@
 							<label>Offset Y</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -166,7 +166,7 @@
 							<size>200,-1</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -175,7 +175,7 @@
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -193,7 +193,7 @@
 							<label>Zoom</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -202,7 +202,7 @@
 							<size>200,-1</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -211,7 +211,7 @@
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -221,7 +221,7 @@
 							<style>wxTE_RIGHT</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
