@@ -1247,6 +1247,13 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     wxJSONValue inputs = root["INPUTS"];
     wxString canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++) {
+
+        wxString name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "";
+
+        // we ignore these as xlights provides these settings
+        if (name == "XL_OFFSET") continue;
+        if (name == "XL_ZOOM") continue;
+
         wxString type = inputs[i]["TYPE"].AsString();
         if (type == "float") {
             _parms.push_back(ShaderParm(
