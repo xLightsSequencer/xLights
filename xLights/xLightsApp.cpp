@@ -510,6 +510,13 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
 
     // if we are in here a second time ... just return
     if (inHere) return;
+    
+#ifdef __WXOSX__
+    wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
+                 "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
+                 "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
+                 "This provides more information to the xLights developers than just our normal crash logs.");
+#endif
 
     inHere = true;
 

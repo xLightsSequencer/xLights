@@ -332,13 +332,13 @@ bool SDL::CloseAudioDevice()
 //#ifdef __WXMSW__
         if (_dev > 0)
         {
-                logger_base.debug("Pausing audio device %d.", _dev);
+            logger_base.debug("Pausing audio device %d.", _dev);
             SDL_ClearError();
             SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-            if (as == SDL_AUDIO_PLAYING)
-            {
+            if (as == SDL_AUDIO_PLAYING) {
                 SDL_PauseAudioDevice(_dev, 1);
             }
+            SDL_ClearQueuedAudio(_dev);
             logger_base.debug("    Result '%s'", SDL_GetError());
             logger_base.debug("Closing audio device %d.", _dev);
             SDL_ClearError();
@@ -1053,12 +1053,12 @@ void SDL::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Stop.");
+    _state = SDLSTATE::SDLNOTPLAYING;
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-    if (as == SDL_AUDIO_PLAYING)
-    {
+    if (as == SDL_AUDIO_PLAYING) {
         SDL_PauseAudioDevice(_dev, 1);
     }
-    _state = SDLSTATE::SDLNOTPLAYING;
+    SDL_ClearQueuedAudio(_dev);
 }
 
 // Audio Manager Functions
