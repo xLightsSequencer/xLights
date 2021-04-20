@@ -21,7 +21,7 @@
 
 int KeyBinding::__nextid = 0;
 
-static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes = 
+static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 {
     { "TIMING_ADD", KBSCOPE::Sequence },
     { "TIMING_SPLIT", KBSCOPE::Sequence },
@@ -386,7 +386,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     if (it2 != keyBindingTips.end()) {
         _tip = it2->second;
     }
-    
+
     _shift |= IsShiftedKey(_key);
 }
 
@@ -455,11 +455,11 @@ std::string KeyBinding::ParseKey(const std::string& k, bool& ctrl, bool& alt, bo
 std::vector<wxKeyCode>& KeyBinding::GetPossibleKeys()
 {
     static bool init = false;
-    static std::vector<wxKeyCode> keys = 
-    {   
+    static std::vector<wxKeyCode> keys =
+    {
         WXK_ESCAPE,
         WXK_HOME,
-        WXK_END, 
+        WXK_END,
         WXK_INSERT,
         WXK_SPACE,
         WXK_DELETE,
@@ -673,17 +673,15 @@ wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
 
 bool KeyBinding::IsControlEqual(KeyBinding const& key, const bool& ctrl, const bool& rctrl)
 {
-#ifdef __WXOSX__
-    return key.RequiresControl() == ctrl && key.RequiresRawControl() == rctrl;
-#else
+#if !defined(__WXOSX__)
     if (ctrl && key.RequiresControl() == ctrl) {
         return true;
     }
     if (rctrl && key.RequiresRawControl() == rctrl) {
         return true;
     }
-    return false;
 #endif
+    return key.RequiresControl() == ctrl && key.RequiresRawControl() == rctrl;
 }
 #pragma endregion Static functions
 
@@ -779,9 +777,9 @@ void KeyBinding::SetKey(const std::string& key)
     _disabled = (_key == WXK_NONE);
 }
 
-void KeyBinding::SetKey(const wxKeyCode key) 
-{ 
-    _key = key; 
+void KeyBinding::SetKey(const wxKeyCode key)
+{
+    _key = key;
     if (_key >= 97 && _key <= 122) _key = (wxKeyCode)(_key - 32);
     if (_key == WXK_NONE) _disabled = true; else _disabled = false; }
 
