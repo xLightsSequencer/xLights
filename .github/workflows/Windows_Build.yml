@@ -19,22 +19,8 @@ jobs:
       
     - name: Download wxWidgets
       run: 
-#          git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2021.09 https://github.com/dkulp/wxWidgets ..\wxWidgets\
-        C:\msys64\usr\bin\wget.exe -q https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.5/wxWidgets-3.1.5.zip
-        
-    - name: Extract wxWidgets
-      run: 
-        7z x wxWidgets-3.1.5.zip "-o..\wxWidgets\"
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2021.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
-    - name: Download wxWidgets patch 
-      working-directory: ..\wxWidgets\
-      run:       
-        C:\msys64\usr\bin\wget.exe -q https://raw.githubusercontent.com/smeighan/xLights/master/build_scripts/msw/wxwidgets_win.patch
-       
-    - name: Apply wxWidgets patch 
-      working-directory: ..\wxWidgets\
-      run:  git apply wxwidgets_win.patch
-        
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\
       run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"

@@ -16,7 +16,7 @@ QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.c
 
 SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
-WXWIDGETS_TAG=xlights_2021.11
+WXWIDGETS_TAG=xlights_2021.13
 
 .NOTPARALLEL:
 
@@ -61,7 +61,7 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.5"; \
+	@if test "`wx-config --version`" != "3.1.6"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
