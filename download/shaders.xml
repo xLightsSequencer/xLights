@@ -1201,6 +1201,22 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/onoiorw48zxbrdkcszkk</image>
 		<rating>3</rating>
 	</shader>
+	<shader>	
+		<name>PlasmaLike - V1</name>
+		<id>607cfa64d4849b0013135dbf</id>
+		<link>https://editor.isf.video/shaders/607cfa64d4849b0013135dbf</link>
+		<download>https://editor.isf.video/shaders/607cfa64d4849b0013135dbf/download</download>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1618975277/plasmaLikeV1_z2icnx.jpg</image>
+		<rating>3</rating>
+	</shader>
+	<shader>	
+		<name>Audio - PlasmaLike</name>
+		<id>607f9d0adf59c70014cdc691</id>
+		<link>https://editor.isf.video/shaders/607f9d0adf59c70014cdc691</link>
+		<download>https://editor.isf.video/shaders/607cfa64d4849b0013135dbf/download</download>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1618976664/plasmaLikeV2_z4e5qr.jpg</image>
+		<rating>3</rating>
+	</shader>
 	<!--	Entry format:
 	xxx is id from www.interactiveshaderformat.com (last part of URL when viewing shader)
 	used in id, link, and download
