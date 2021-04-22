@@ -929,7 +929,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
-    if (_shaderConfig->IsAudioFFTShader())
+    if ( _shaderConfig->IsAudioFFTShader() || _shaderConfig->IsAudioIntensityShader() )
     {
         if (s_audioTex == 0)
             s_audioTex = FFTAudioTexture();
@@ -937,14 +937,19 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         AudioManager* audioManager = buffer.GetMedia();
         if (audioManager != nullptr)
         {
-            auto fftData = audioManager->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+            FRAMEDATATYPE datatype = ( _shaderConfig->IsAudioFFTShader() ) ? FRAMEDATA_VU : FRAMEDATA_HIGH;
+            auto fftData = audioManager->GetFrameData(buffer.curPeriod, datatype, "");
 
-            std::vector<float> fft128(fftData->cbegin(), fftData->cend());
+            std::vector<float> fft128;
+            if ( _shaderConfig->IsAudioFFTShader() )
+               fft128.insert( fft128.begin(), fftData->cbegin(), fftData->cend()  );
+            else
+               fft128.insert( fft128.begin(), 127, *(fftData->cbegin()) );
             fft128.push_back( 0.f );
 
             LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
             LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
-            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, 128,1, GL_RED, GL_FLOAT, fft128.data()));
+            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
         }
     }
     else
@@ -1242,8 +1247,10 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     wxJSONValue root;
     reader.Parse(json, &root);
     _description = root["DESCRIPTION"].AsString();
-    if (_description == "xLights AudioFFT")
+    if ( _description == "xLights AudioFFT" )
         _audioFFTMode = true;
+    else if ( _description == "xLights Audio2" )
+       _audioIntensityMode = true;
     wxJSONValue inputs = root["INPUTS"];
     wxString canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++) {
