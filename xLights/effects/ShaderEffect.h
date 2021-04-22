@@ -166,6 +166,7 @@ class ShaderConfig
     std::string _code;
     bool _canvasMode = false;
     bool _audioFFTMode = false;
+    bool _audioIntensityMode = false;
     bool _hasRendersize = false;
     bool _hasTime = false;
     bool _hasCoord = false;
@@ -179,6 +180,7 @@ public:
     std::string GetCode() const { return _code; }
     bool IsCanvasShader() const { return _canvasMode; }
     bool IsAudioFFTShader() const { return _audioFFTMode; }
+    bool IsAudioIntensityShader() const { return _audioIntensityMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
     bool HasCoord() const { return _hasCoord; }

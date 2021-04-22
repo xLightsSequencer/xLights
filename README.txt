@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin) Add two new shaders and allow audio shaders to respond to either VU data or intensity
 2021.12 April 12 2021
    -- bug (scott) Fix superstring model multistring channel count
    -- bug (scott) Fix key bindings that use CTRL on Windows
