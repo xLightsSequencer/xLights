@@ -279,6 +279,7 @@ public:
     int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
+    char GetSmartRemoteLetter() const;
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;

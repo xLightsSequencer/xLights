@@ -439,6 +439,12 @@ int ControllerCaps::GetMaxInputE131Universes() const {
     return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));
 }
 
+int ControllerCaps::GetSmartRemoteCount() const
+{
+
+    return wxAtoi(GetXmlNodeContent(_config, "SupportsSmartRemotes"));
+}
+
 int ControllerCaps::GetMaxPixelPort() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxPixelPort"));

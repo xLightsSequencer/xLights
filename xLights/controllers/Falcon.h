@@ -66,6 +66,7 @@ class Falcon : public BaseController
         unsigned long startChannel; // sc
     } FALCON_V4_STRING;
 
+    bool V4_IsPortSmartRemoteEnabled(int boardMode, int port);
     int V4_GetBoardPorts(int boardMode);
     int V4_GetMaxPortPixels(int boardMode, int protocol);
     int V4_EncodeInputProtocol(const std::string& protocol);

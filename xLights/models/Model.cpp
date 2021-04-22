@@ -83,8 +83,11 @@ static std::set<wxString> SERIAL_PROTOCOLS = {
 };
 
 
-static const char *SMART_REMOTES_VALUES[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
-static wxArrayString SMART_REMOTES(6, SMART_REMOTES_VALUES);
+static const char *SMART_REMOTES_VALUES_3[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
+static wxArrayString SMART_REMOTES_3(6, SMART_REMOTES_VALUES_3);
+
+static const char* SMART_REMOTES_VALUES_6[] = { "N/A", "*A*->b->c->d->e->f", "a->*B*->c->d->e->f", "a->b->*C*->d->e->f", "a->b->c->*D*->e->f", "a->b->c->d->*E*->f", "a->b->c->d->e->*F*", "*A*->*B*->*C*->*D*->*E*->*F*", "a->*B*->*C*->*D*->*E*->*F*", "a->b->*C*->*D*->*E*->*F*", "a->b->c->*D*->*E*->*F*", "a->b->c->d->*E*->*F*" };
+static wxArrayString SMART_REMOTES_6(12, SMART_REMOTES_VALUES_6);
 
 static const char *CONTROLLER_DIRECTION_VALUES[] = {"Forward", "Reverse"};
 static wxArrayString CONTROLLER_DIRECTION(2, CONTROLLER_DIRECTION_VALUES);
@@ -912,9 +915,14 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     int idx = -1;
     GetControllerProtocols(cp, idx);
 
-    if (caps == nullptr || caps->SupportsSmartRemotes()) {
-        if (Model::IsPixelProtocol(protocol)) {
-            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
+    if (Model::IsPixelProtocol(protocol)) {
+        if (caps == nullptr || caps->GetSmartRemoteCount() == 3) {
+            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES_3, wxArrayInt(), GetSmartRemote()));
+        }
+        else if (caps->GetSmartRemoteCount() == 6) {
+            int sr = GetSmartRemote();
+            if (sr != 0) sr = sr - 100 + 1;
+            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES_6, wxArrayInt(), sr));
         }
     }
 
@@ -1443,7 +1451,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetActive(event.GetValue().GetBool());
         return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
-        SetSmartRemote(wxAtoi(event.GetValue().GetString()));
+
+        if (caps != nullptr && caps->GetSmartRemoteCount() == 6)         {
+            int sr = wxAtoi(event.GetValue().GetString());
+            if (sr != 0) sr += 100 - 1;
+            SetSmartRemote(sr);
+        }
+        else         {
+            SetSmartRemote(wxAtoi(event.GetValue().GetString()));
+        }
 
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
@@ -5982,13 +5998,23 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
+char Model::GetSmartRemoteLetter() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
+    int l = wxAtoi(s);
+    if (l == 0) return ' ';
+    if (l < 100) return char('A' + l - 1);
+    return char('A' + l - 100);
+}
+
 // This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
 int Model::GetSortableSmartRemote() const
 {
     wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
     int sr = wxAtoi(s);
 
-    if (sr < 4) return sr += 10;
+    if (sr < 4) return sr += 200;
+    if (sr < 106) return sr += 200;
     return sr;
 }
 
@@ -6005,17 +6031,21 @@ int Model::GetSmartRemoteForString(int string) const
     int sr = GetSmartRemote();
 
     if (sr < 4) return sr;
+    if (sr >= 100 && sr < 106) return sr;
 
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");
     int port = wxAtoi(s);
 
-    int perSmartRemote = 3;
-    if (sr == 5) perSmartRemote = 2;
+    bool sixsr = false;
+    int perSmartRemote = 7 - sr;
+    if (sr > 100)         {
+        perSmartRemote = 112 - sr;
+        sixsr = true;
+    }
+
     int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-    int firstmax = (3 * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
-    if (sr == 5) firstmax = (2 * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
-    int othermax = 3 * PORTS_PER_SMARTREMOTE;
-    if (sr == 5) othermax = 2 * PORTS_PER_SMARTREMOTE;
+    int firstmax = (perSmartRemote * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
+    int othermax = perSmartRemote * PORTS_PER_SMARTREMOTE;
 
     if (string <= firstfirstmax) {
         sr = ((string - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
@@ -6024,7 +6054,11 @@ int Model::GetSmartRemoteForString(int string) const
         sr = 1 + ((string - firstfirstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
     }
     else {
-        sr = ((string  - firstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
+        sr = ((string - firstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
+    }
+
+    if (sixsr)         {
+        sr += 100 - 1;
     }
 
     return sr;
@@ -6457,15 +6491,17 @@ int Model::GetControllerPort(int string) const
     int port = wxAtoi(s);
     if (port > 0) {
         int sr = GetSmartRemote();
-        if (sr < 4) {
+        if (sr < 4 || (sr >= 100 && sr < 106)) {
             port += string - 1;
         }
         else {
+            int per = 7 - sr;
+            if (sr > 100)                 {
+                per = 112 - sr;
+            }
             int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-            int firstmax = (3* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
-            if (sr == 5) firstmax = (2* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
-            int othermax = 3 * PORTS_PER_SMARTREMOTE;
-            if (sr == 5) othermax = 2 * PORTS_PER_SMARTREMOTE;
+            int firstmax = (per* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
+            int othermax = per * PORTS_PER_SMARTREMOTE;
 
             if (string <= firstfirstmax)                 {
                 port += (string - 1);

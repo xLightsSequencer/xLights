@@ -473,6 +473,33 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
 #define V4_BOARDCONFIG_4SR_4SR_4SR 10
 #define V4_BOARDCONFIG_4SR_4SR 11
 
+bool Falcon::V4_IsPortSmartRemoteEnabled(int boardMode, int port)
+{
+    switch (boardMode) {
+    case V4_BOARDCONFIG_16:
+        return false;
+    case V4_BOARDCONFIG_16_2SR:
+    case V4_BOARDCONFIG_16_16:
+        return port >= 16 && port < 24;
+    case V4_BOARDCONFIG_16_16_2SR:
+    case V4_BOARDCONFIG_16_16_16:
+        return port >= 32 && port < 40;
+    case V4_BOARDCONFIG_16_4SR:
+        return port >= 16 && port < 32;
+    case V4_BOARDCONFIG_16_4SR_2SR:
+    case V4_BOARDCONFIG_16_4SR_16:
+        return port >= 16 && port < 40;
+    case V4_BOARDCONFIG_16_16_4SR:
+        return port >= 32 && port < 48;
+    case V4_BOARDCONFIG_16_4SR_4SR:
+        return port >= 16 && port < 48;
+    case V4_BOARDCONFIG_4SR_4SR_4SR:
+    case V4_BOARDCONFIG_4SR_4SR:
+        return true;
+    }
+    return false;
+}
+
 int Falcon::V4_GetBoardPorts(int boardMode)
 {
     switch (boardMode) {
@@ -804,11 +831,15 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 int direction = 0;
                 int group = 1;
                 for (const auto& it : pp->GetVirtualStrings()) {
-                    if (it->_smartRemote == sr)                         {
+                    if ((sr == 0 && it->_smartRemote == 0) || it->_smartRemote - 100 + 1 == sr)                         {
                         FALCON_V4_STRING str;
                         str.port = p;
                         str.string = s++;
                         str.smartRemote = sr;
+                        if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].AsInt(), p))                             {
+                            error = wxString::Format("Port %d does not support smart remotes.", p + 1);
+                            return false;
+                        }
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
                         str.gamma = it->_gammaSet ? it->_gamma * 10 : gamma;

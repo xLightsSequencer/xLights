@@ -60,11 +60,22 @@ const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
@@ -93,14 +104,22 @@ END_EVENT_TABLE()
 #pragma region Colours
 wxColour __lightBlue(185, 246, 250, wxALPHA_OPAQUE);
 wxColour __lightRed(255, 133, 133, wxALPHA_OPAQUE);
+wxColour __lightYellow (255, 255, 133, wxALPHA_OPAQUE);
+wxColour __lightPink(255, 133, 255, wxALPHA_OPAQUE);
+wxColour __lightAqua(128, 255, 255, wxALPHA_OPAQUE);
 wxColour __lightGrey(225,225,225);
 wxColour __grey(128, 128, 128, wxALPHA_OPAQUE);
 wxColour __darkGrey(100, 100, 100);
 wxColour __charcoal(30, 30, 30);
 wxColour __lightGreen(153, 255, 145, wxALPHA_OPAQUE);
 wxColour __darkGreen(6,60,0, wxALPHA_OPAQUE);
+wxColour __darkBlue(0, 0, 60, wxALPHA_OPAQUE);
 wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxColour __darkPurple(49,0,74, wxALPHA_OPAQUE);
+wxColour __darkRed(60, 0, 0, wxALPHA_OPAQUE);
+wxColour __darkPink(60, 0, 60, wxALPHA_OPAQUE);
+wxColour __darkAqua(60, 90, 90, wxALPHA_OPAQUE);
+wxColour __darkYellow(60, 60, 0, wxALPHA_OPAQUE);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
 wxColour __darkOrange(150,54,3, wxALPHA_OPAQUE);
 wxColour __magenta(255, 0, 255, wxALPHA_OPAQUE);
@@ -116,9 +135,15 @@ wxBrush __modelSRNoneBrush;
 wxBrush __modelSRABrush;
 wxBrush __modelSRBBrush;
 wxBrush __modelSRCBrush;
+wxBrush __modelSRDBrush;
+wxBrush __modelSREBrush;
+wxBrush __modelSRFBrush;
 wxColour __modelSRAText;
 wxColour __modelSRBText;
 wxColour __modelSRCText;
+wxColour __modelSRDText;
+wxColour __modelSREText;
+wxColour __modelSRFText;
 wxPen __backgroundPen;
 wxBrush __backgroundBrush;
 #pragma endregion
@@ -214,11 +239,17 @@ public:
             __modelSRABrush.SetColour(__darkGreen);
             __modelSRBBrush.SetColour(__darkPurple);
             __modelSRCBrush.SetColour(__darkOrange);
+            __modelSRDBrush.SetColour(__darkAqua);
+            __modelSREBrush.SetColour(__darkPink);
+            __modelSRFBrush.SetColour(__darkYellow);
             __backgroundPen.SetColour(__charcoal);
             __backgroundBrush.SetColour(__charcoal);
             __modelSRAText = __lightGreen;
             __modelSRBText = __lightPurple;
             __modelSRCText = __lightOrange;
+            __modelSRDText = __lightAqua;
+            __modelSREText = __lightRed;
+            __modelSRFText = __lightYellow;
             __textForeground = __lightGrey;
         } else {
             __modelOutlinePen.SetColour(__grey);
@@ -229,11 +260,17 @@ public:
             __modelSRABrush.SetColour(__lightGreen);
             __modelSRBBrush.SetColour(__lightPurple);
             __modelSRCBrush.SetColour(__lightOrange);
+            __modelSRDBrush.SetColour(__lightAqua);
+            __modelSREBrush.SetColour(__lightPink);
+            __modelSRFBrush.SetColour(__lightYellow);
             __backgroundPen.SetColour(*wxWHITE);
             __backgroundBrush.SetColour(*wxWHITE);
             __modelSRAText = *wxBLACK;
             __modelSRBText = *wxBLACK;
             __modelSRCText = *wxBLACK;
+            __modelSRDText = *wxBLACK;
+            __modelSREText = *wxBLACK;
+            __modelSRFText = *wxBLACK;
             __textForeground = *wxBLACK;
         }
     }
@@ -613,16 +650,31 @@ public:
                 dc.SetBrush(__modelSRNoneBrush);
                 break;
             case 1:
+            case 100:
                 dc.SetBrush(__modelSRABrush);
                 dc.SetTextForeground(__modelSRAText);
                 break;
             case 2:
+            case 101:
                 dc.SetBrush(__modelSRBBrush);
                 dc.SetTextForeground(__modelSRBText);
                 break;
             case 3:
+            case 102:
                 dc.SetBrush(__modelSRCBrush);
                 dc.SetTextForeground(__modelSRCText);
+                break;
+            case 103:
+                dc.SetBrush(__modelSRDBrush);
+                dc.SetTextForeground(__modelSRDText);
+                break;
+            case 104:
+                dc.SetBrush(__modelSREBrush);
+                dc.SetTextForeground(__modelSREText);
+                break;
+            case 105:
+                dc.SetBrush(__modelSRFBrush);
+                dc.SetTextForeground(__modelSRFText);
                 break;
             }
         } else {
@@ -714,22 +766,50 @@ public:
     virtual void AddRightClickMenu(wxMenu& mnu) override {
         if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
-            if(_caps->SupportsSmartRemotes())
-            {
+            if (_caps->SupportsSmartRemotes())             {
                 mnu.AppendSeparator();
                 int sr = GetModel()->GetSmartRemote();
+
                 auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
                 mi->Check(sr == 0);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
-                mi->Check(sr == 1);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "a->*B*->c");
-                mi->Check(sr == 2);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
-                mi->Check(sr == 3);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC, "*A*->*B*->*C*");
-                mi->Check(sr == 4);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC, "a->*B*->*C*");
-                mi->Check(sr == 5);
+
+                // if we go beyond 2 or 3 possible counts then we are going to need to rethink this
+                if (_caps->GetSmartRemoteCount() == 3) {
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A, "*A*->b->c");
+                    mi->Check(sr == 1);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B, "a->*B*->c");
+                    mi->Check(sr == 2);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C, "a->b->*C*");
+                    mi->Check(sr == 3);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC, "*A*->*B*->*C*");
+                    mi->Check(sr == 4);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC, "a->*B*->*C*");
+                    mi->Check(sr == 5);
+                }
+                else if (_caps->GetSmartRemoteCount() == 6) {
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A, "*A*->b->c->d->e->f");
+                    mi->Check(sr == 100);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B, "a->*B*->c->d->e->f");
+                    mi->Check(sr == 101);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C, "a->b->*C*->d->e->f");
+                    mi->Check(sr == 102);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D, "a->b->c->*D*->e->f");
+                    mi->Check(sr == 103);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E, "a->b->c->d->*E*->f");
+                    mi->Check(sr == 104);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F, "a->b->c->d->e->*F*");
+                    mi->Check(sr == 105);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF, "*A*->*B*->*C*->*D*->*E*->*F*");
+                    mi->Check(sr == 106);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF, "a->*B*->*C*->*D*->*E*->*F*");
+                    mi->Check(sr == 107);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF, "a->b->*C*->*D*->*E*->*F*");
+                    mi->Check(sr == 108);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF, "a->b->c->*D*->*E*->*F*");
+                    mi->Check(sr == 109);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF, "a->b->c->d->*E*->*F*");
+                    mi->Check(sr == 110);
+                }
             }
             if (_caps->SupportsPixelPortBrightness())
             {
@@ -754,24 +834,68 @@ public:
             GetModel()->SetSmartRemote(0);
             return true;
         }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_A) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A) {
             GetModel()->SetSmartRemote(1);
             return true;
         }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_B) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B) {
             GetModel()->SetSmartRemote(2);
             return true;
         }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C) {
             GetModel()->SetSmartRemote(3);
             return true;
         }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC) {
             GetModel()->SetSmartRemote(4);
             return true;
         }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC) {
             GetModel()->SetSmartRemote(5);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A) {
+            GetModel()->SetSmartRemote(100);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B) {
+            GetModel()->SetSmartRemote(101);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C) {
+            GetModel()->SetSmartRemote(102);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D) {
+            GetModel()->SetSmartRemote(103);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E) {
+            GetModel()->SetSmartRemote(104);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F) {
+            GetModel()->SetSmartRemote(105);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF) {
+            GetModel()->SetSmartRemote(106);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF) {
+            GetModel()->SetSmartRemote(107);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF) {
+            GetModel()->SetSmartRemote(108);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF) {
+            GetModel()->SetSmartRemote(109);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF) {
+            GetModel()->SetSmartRemote(110);
             return true;
         }
         else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
@@ -2338,12 +2462,15 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         sr = "None";
         break;
     case 1:
+    case 100:
         sr = "A";
         break;
     case 2:
+    case 101:
         sr = "B";
         break;
     case 3:
+    case 102:
         sr = "C";
         break;
     case 4:
@@ -2352,10 +2479,35 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     case 5:
         sr = "B->C";
         break;
+    case 103:
+        sr = "D";
+        break;
+    case 104:
+        sr = "E";
+        break;
+    case 105:
+        sr = "F";
+        break;
+    case 106:
+        sr = "A->B->C->D->E->F";
+        break;
+    case 107:
+        sr = "B->C->D->E->F";
+        break;
+    case 108:
+        sr = "C->D->E->F";
+        break;
+    case 109:
+        sr = "D->E->F";
+        break;
+    case 110:
+        sr = "E->F";
+        break;
     default:
         sr = "error";
         break;
     }
+
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
 

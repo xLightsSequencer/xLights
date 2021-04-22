@@ -73,6 +73,7 @@ public:
     int GetUniverseStartChannel() const { return _universeStartChannel; }
 
     int GetSmartRemote() const { return _smartRemote; }
+    char GetSmartRemoteLetter() const;
 
     int GetSmartTs(int currentTs);
     int GetBrightness(int currentBrightness);

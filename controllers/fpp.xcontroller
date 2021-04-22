@@ -18,7 +18,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
-        <SupportsSmartRemotes/>
+        <SupportsSmartRemotes>3</SupportsSmartRemotes>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
@@ -33,7 +33,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
-        <SupportsSmartRemotes/>
+        <SupportsSmartRemotes>3</SupportsSmartRemotes>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
         </PixelProtocols>

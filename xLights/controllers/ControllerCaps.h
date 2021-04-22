@@ -83,6 +83,7 @@ public:
     bool SupportsEthernetInputProtols() const;
     bool SupportsSerialInputProtols() const;
 
+    int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;
     int GetMaxSerialPort() const;

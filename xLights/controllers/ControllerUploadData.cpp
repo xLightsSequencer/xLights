@@ -124,6 +124,13 @@ int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels)
     return currentEndNullPixels;
 }
 
+char UDControllerPortModel::GetSmartRemoteLetter() const
+{
+    if (_smartRemote == 0) return ' ';
+    if (_smartRemote < 100) return char('A' + _smartRemote - 1);
+    return char('A' + _smartRemote - 100);
+}
+
 int UDControllerPortModel::GetSmartTs(int currentSmartTs)
 {
     wxXmlNode* node = _model->GetControllerConnection();
@@ -479,7 +486,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
-                int curRemote = current == nullptr ? 0 : current->_smartRemote;
+                int curRemote = current == nullptr ? (smartRemote < 100 ? 0 : 99): current->_smartRemote < 100;
                 curRemote++;
                 for (int sr = curRemote; sr < smartRemote; sr++) {
                     // we seem to have missed one so create a dummy
@@ -837,7 +844,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
                 }
             }
             else {
-                res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %d channel %d to %d.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();
+                res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %c channel %d to %d.\n", _port, it->GetSmartRemoteLetter(), ch, it->GetStartChannel()).ToStdString();
             }
         }
         lastSmartRemote = it->GetSmartRemote();
@@ -857,7 +864,7 @@ std::string UDControllerPort::ExportAsCSV() const
     wxString line = wxString::Format("%s Port %d,",_type ,_port);
     for (const auto& it : GetModels()) {
         if (it->GetSmartRemote() > 0) {
-            char remote = ('@' + it->GetSmartRemote());
+            char remote = it->GetSmartRemoteLetter();
             line += "Remote ";
             line += remote;
             line += ":";
