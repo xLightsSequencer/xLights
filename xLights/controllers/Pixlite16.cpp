@@ -42,8 +42,10 @@ int Pixlite16::DecodeStringPortProtocol(std::string protocol) {
     if (p == "apa102") return 10;
     if (p == "my9221") return 11;
     if (p == "sk6812") return 12;
-    if (p == "ucs1903") return 13;
+    if (p == "ucs2903") return 13;
     if (p == "p9813") return 14;
+    if (p == "ucs1903") return 15;
+    if (p == "apa109") return 31;
 
     return -1;
 }
@@ -583,7 +585,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const {
     data[pos++] = 'h';
     data[pos++] = 0x00;
     Write16(data, pos, 5);
-    data[pos++] = 0x06;
+    data[pos++] = 0x08;
 
     memcpy(&data[pos], _config._mac, sizeof(_config._mac));
     pos += sizeof(_config._mac);
@@ -885,7 +887,7 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config) {
     logger_base.debug("    Static Subnet Mask : %d.%d.%d.%d", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
     logger_base.debug("    Network Protocol : %d", config._protocol);
     logger_base.debug("    Hold Last Frame : %d", config._holdLastFrame);
-    logger_base.debug("    Simple Config : %d", config._simpleConfig);
+    logger_base.debug("    Simple Config : %d (0 = simple)", config._simpleConfig);
     logger_base.debug("    Max Pixels Per Output : %d", config._maxPixelsPerOutput);
     logger_base.debug("    Num Pixel Outputs : %d but really %d", config._numOutputs, config._realOutputs);
     logger_base.debug("    Pixel Outputs :");
@@ -924,7 +926,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    /*
+    // DO NOT DISABLE THIS ... IF YOU DONT RUN DISCOVER HERE YOU CANNOT CONFIGURE THE CONTROLLER !!!!!
     auto configs = DoDiscover();
 
     for (const auto& it : configs)
@@ -944,7 +946,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
             _connected = false;
         }
     }
-     */
+
     if (!_connected) {
         logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
     }
@@ -1001,7 +1003,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             if (cud.HasPixelPort(pp)) {
 
                 // always go advanced ... it doesnt hurt and it makes the config always work
-                _config._simpleConfig = false;
+                _config._simpleConfig = 1;
 
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
 

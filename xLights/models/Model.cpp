@@ -70,10 +70,11 @@ static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
 
 static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
     "", "ws2811", "gece", "tm18xx", "lx1203",
-    "ws2801", "tls3001", "lpd6803", "apa102", "dmx",
-    "dmx-open", "dmx-pro", "pixelnet", "renard", "lor",
-    "pixelnet-lynx", "pixelnet-open", "genericserial"};
-static wxArrayString CONTROLLER_PROTOCOLS(18, CONTROLLER_PROTOCOLS_VALUES);
+    "ws2801", "tls3001", "lpd6803", "apa102", "apa109", 
+    "ucs1903", "ucs2903", "dmx", "dmx-open", "dmx-pro", 
+    "pixelnet", "renard", "lor", "pixelnet-lynx", "pixelnet-open", 
+    "genericserial" };
+static wxArrayString CONTROLLER_PROTOCOLS(21, CONTROLLER_PROTOCOLS_VALUES);
 
 static std::set<wxString> SERIAL_PROTOCOLS = {
     "dmx", "dmx-open", "dmx-pro",  "pixelnet", "pixelnet-lynx", "pixelnet-open", "renard", "lor", "genericserial"
