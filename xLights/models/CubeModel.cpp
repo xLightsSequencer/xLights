@@ -1237,7 +1237,7 @@ void CubeModel::ExportAsCustomXModel() const {
             for (int c = 0; c < width; c++)
             {
                 if (rr != "") rr += ",";
-                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l));
+                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l) + 1);
             }
             ll += rr;
         }
