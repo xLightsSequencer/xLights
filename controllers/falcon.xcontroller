@@ -38,6 +38,8 @@
             <Protocol>gece</Protocol>
             <Protocol>lpd8806</Protocol>
             <Protocol>apa102</Protocol>
+            <Protocol>ucs2903</Protocol>
+            <Protocol>tm1814a</Protocol>
         </PixelProtocols>
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV2Settings" Base="Falcon:BaseFalconSettings">

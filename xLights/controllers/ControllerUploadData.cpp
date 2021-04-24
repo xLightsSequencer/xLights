@@ -20,6 +20,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
+#include "../Pixels.h"
 
 #include <log4cpp/Category.hh>
 
@@ -366,7 +367,7 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
 }
 
 // Set all ports to the valid first protocol
-bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force)
+bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::string>& protocols, const std::string& force)
 {
     if (protocols.size() == 0) return false;
 
@@ -377,14 +378,27 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>
         if (it->IsFirstModelString())
         {
             if (p == "") {
-                if (std::find(protocols.begin(), protocols.end(), it->GetModel()->GetControllerProtocol()) != protocols.end()) {
+                std::string np = "";
+                // this tries to find a protocol the controller can handle that is compatible
+                if (GetType() == "PIXEL")                     {
+                    np = ChooseBestControllerPixel(protocols, it->GetModel()->GetControllerProtocol());
+                }
+                else                     {
+                    np = ChooseBestControllerSerial(protocols, it->GetModel()->GetControllerProtocol());
+                }
+                if (np == it->GetModel()->GetControllerProtocol()) {
                     p = it->GetModel()->GetControllerProtocol();
                 }
                 else
                 {
                     changed = true;
                     if (p == "") {
-                        it->GetModel()->SetControllerProtocol(protocols.front());
+                        if (np == "")                         {
+                            it->GetModel()->SetControllerProtocol(protocols.front());
+                        }
+                        else                             {
+                            it->GetModel()->SetControllerProtocol(np);
+                        }
                         p = it->GetModel()->GetControllerProtocol();
                     }
                     else {
@@ -733,7 +747,7 @@ int UDControllerPort::GetUniverseStartChannel() const {
 }
 
 bool UDControllerPort::IsPixelProtocol() const {
-    return Model::IsPixelProtocol(_protocol);
+    return ::IsPixelProtocol(_protocol);
 }
 
 float UDControllerPort::GetAmps(int defaultBrightness) const
@@ -1124,7 +1138,7 @@ bool UDController::SetAllModelsToControllerName(const std::string& controllerNam
     return changed;
 }
 
-bool UDController::SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame)
+bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame)
 {
     std::string force;
     bool changed = false;

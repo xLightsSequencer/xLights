@@ -522,6 +522,7 @@
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="preferences\BackupSettingsPanel.cpp" />
     <ClCompile Include="preferences\ColorManagerSettingsPanel.cpp" />
@@ -955,6 +956,7 @@
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="Pixels.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="preferences\BackupSettingsPanel.h" />
     <ClInclude Include="preferences\ColorManagerSettingsPanel.h" />

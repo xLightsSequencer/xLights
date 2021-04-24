@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <vector>
 #include <map>
 #include <string>
 
@@ -105,10 +106,10 @@ public:
     std::string GetID() const;
 
 
-    std::list<std::string> GetInputProtocols() const;
-    std::list<std::string> GetPixelProtocols() const;
-    std::list<std::string> GetSerialProtocols() const;
-    std::list<std::string> GetAllProtocols() const;
+    std::vector<std::string> GetInputProtocols() const;
+    std::vector<std::string> GetPixelProtocols() const;
+    std::vector<std::string> GetSerialProtocols() const;
+    std::vector<std::string> GetAllProtocols() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     

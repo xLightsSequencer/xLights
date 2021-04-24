@@ -635,9 +635,9 @@ wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std
     return def;
 }
 
-std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
+std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
 {
-    std::list<std::string> res;
+    std::vector<std::string> res;
 
     wxXmlNode* curr = parent;
     auto pe = wxSplit(path, '/');

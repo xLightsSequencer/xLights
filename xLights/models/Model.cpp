@@ -44,6 +44,7 @@
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
 #include "../controllers/ControllerCaps.h"
+#include "../pixels.h"
 
 #include <log4cpp/Category.hh>
 
@@ -67,103 +68,6 @@ static wxArrayString RGBW_HANDLING(5, RGBW_HANDLING_VALUES);
 
 static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
-
-// ***********************************************************************************************
-// *                                                                                             *
-// * The following table may not be accurate but it is my best understanding of protocol         *
-// * compatibility. This does not mean that controllers wont show them as seperate or even that  *
-// * some controllers having timing that means that things which could be equivalent with the    *
-// * righting timing choice are not in reality. This makes things messy but I do think having    *
-// * this documented somewhere is essential.                                                     *
-// *                                                                                             *
-// * I have arbitrarily chosen one of the pixel types as the group name. Typically because this  *
-// * is the most common or just because that is the one I randomly chose ... live with it        *
-// *                                                                                             *
-// * If you make changes please add a note explaining why as I am sure there is going to be      *
-// * disagreement.                                                                               *
-// *                                                                                             *
-// ***********************************************************************************************
-//
-// ----------------------------------------------------------------------------------------------------------------------------------------
-// | Group Name     | Characteristics        | Equivalent                                        | Controller Support                     |
-// |======================================================================================================================================|
-// | APA102         | RGB, 8bit, 4 wire      | APA101, APA102, APA102C, HD107S, SK9822           |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | APA109         | RGBW, 8bit, 3 wire     | APA109, SK6812RGBW, SK6818, SM16704, UCS2904      |                                        |
-// |                |                        | WS2814                                            |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | GW6205         | ?, 12 bit, ? wire      |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | LPD6803        | RGB, 5bit, 4 wire      | D705, LPD1101, LPD6803, UCS6909, UCS6912S         |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | LPD8806        | RGB, 7 bit, 4 wire     | LPD8803, LPD8806, LPD8809, UCS8812                |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | MBI6020        | ?, 10 bit, 4 wire      |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | MY9221         | RGB, 16 bit, 4 wire    |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | MY9291         | RGBW, 16 bit, 4 wire   |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | P9813          | RGB, 6 bit, 4 wire     |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | SJ1221         | RGB, 12 bit, 3 wire    |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | SM16716        | RGB, 8 bit, 4 wire     | SM16716, SM16726                                  |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | TLS3001        | RGB, 12 bit, 3 wire    | CY3005, TLS3001, TLS3002, QED3001                 |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | TLS3008        | RGB, 8 bit, 3 wire     |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | TM1814         | RGBW, 8 bit, 3 wire    |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | TM1829         | RGB, 5 bit, 3 wire     |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | UCS8903        | RGB, 16 bit, 3 wire    |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | UCS8904        | RGBW, 16 bit, 3 wire   |                                                   |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | WS2801         | RGB, 8 bit, 4 wire     | WS2801, WS2803                                    |                                        |
-// |--------------------------------------------------------------------------------------------------------------------------------------|
-// | WS2811         | RGB, 8 bit, 3 wire     | APA104, APA106, CS8812, GS8202, GS8206,           |                                        |
-// |                |                        | GS8208, INK1002, INK1003, LPD1882,                |                                        |
-// |                |                        | LX1203, P9883, SK6812, SK6822, SM16703,           |                                        |
-// |                |                        | SM16711, SM16712, TM1803, TM1804, TM1809,         |                                        |
-// |                |                        | TM1812, TM1914, UCS1903, UCS1904, UCS1909,        |                                        |
-// |                |                        | UCS1912, UCS2903, UCS2909, UCS2912, UCS9812,      |                                        |
-// |                |                        | WS2811, WS2812, WS2813, WS2815, WS2818            |                                        |
-// ----------------------------------------------------------------------------------------------------------------------------------------
-// 
-// I am undecided whether making this generally available to the user helps or hinders.
-// The problem is if certain pixels are not equivalent on their controller and we said they were  then we have issues
-//
-
-// This list should be a super set of all the protocols supported by all controllers.
-// There will be some naming difference which are hard to manage
-// When we upload to the controller we should use the exact match if available but if not we should automatically find an equivalent
-// This functionality is not implemented yet but it should be built
-
-
-static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
-    "", "ws2811",
-    
-    "apa102", "apa109",
-    "gece",
-    "lpd6803", "lpd8806",
-    "lx1203", 
-    "sm16716",
-    "tls3001", 
-    "tm18xx", 
-    "ucs1903", "ucs2903", "ucs8903", "ucs8903 16 bit", "ucs8904", "ucs8904 16 bit",
-    "ws2801",
-    "ws2811 slow", 
-
-    "dmx", "dmx-open", "dmx-pro", "lor", "renard", "genericserial", "pixelnet",
-    "pixelnet-lynx", "pixelnet-open"};
-static wxArrayString CONTROLLER_PROTOCOLS(28, CONTROLLER_PROTOCOLS_VALUES);
-
-static std::set<wxString> SERIAL_PROTOCOLS = {
-    "dmx", "dmx-open", "dmx-pro", "lor", "renard", "genericserial", "pixelnet", "pixelnet-lynx", "pixelnet-open"
-};
 
 static const char *SMART_REMOTES_VALUES_3[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
 static wxArrayString SMART_REMOTES_3(6, SMART_REMOTES_VALUES_3);
@@ -198,8 +102,8 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 static void clearUnusedProtocolProperties(wxXmlNode* node)
 {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = Model::IsSerialProtocol(protocol);
-    bool isPixel = Model::IsPixelProtocol(protocol);
+    bool isDMX = IsSerialProtocol(protocol);
+    bool isPixel = IsPixelProtocol(protocol);
 
     if (!isPixel) {
         node->DeleteAttribute("gamma");
@@ -943,29 +847,46 @@ void Model::ClearIndividualStartChannels()
 
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
 {
-
     auto caps = GetControllerCaps();
     wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
 
-    int i = 0;
-    if (caps == nullptr) {
-        for (const auto& it : CONTROLLER_PROTOCOLS) {
+    if (caps == nullptr)     {
+        for (const auto& it : GetAllPixelTypes(true, false)) {
             cp.push_back(it);
-            if (protocol == it.Lower()) {
-                idx = i;
-            }
-            i++;
         }
     }
-    else {
-        for (const auto& it : caps->GetAllProtocols()) {
+    else     {
+        auto controllerProtocols = caps->GetAllProtocols();
+        for (const auto& it : GetAllPixelTypes(controllerProtocols, false, true)) {
             cp.push_back(it);
-            if (protocol == Lower(it)) {
-                idx = i;
-            }
-            i++;
         }
+    }
+
+    // if this protocol is not supported by the controller ... choose a compatible one if one exists ... otherwise we blank it out
+    if (std::find(begin(cp), end(cp), protocol) == end(cp))     {
+        // not in the list ... maybe there is a compatible protocol we can choose
+        std::string np = "";
+        if (caps != nullptr)         {
+            auto controllerProtocols = caps->GetAllProtocols();
+            if (::IsPixelProtocol(protocol)) {
+                np = ChooseBestControllerPixel(controllerProtocols, protocol);
+            }
+            else {
+                np = ChooseBestControllerSerial(controllerProtocols, protocol);
+            }
+        }
+        if (protocol != np) SetControllerProtocol(np);
+    }
+
+    // now work out the index
+    int i = 0;
+    for (const auto& it : cp) {
+        if (it == protocol) {
+            idx = i;
+            break;
+        }
+        i++;
     }
 }
 
@@ -984,7 +905,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         sp->SetAttribute("Max", 48);
     }
     else {
-        if (IsPixelProtocol(GetControllerProtocol())) {
+        if (IsPixelProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxPixelPort());
         }
         else {
@@ -997,7 +918,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     int idx = -1;
     GetControllerProtocols(cp, idx);
 
-    if (Model::IsPixelProtocol(protocol)) {
+    if (IsPixelProtocol()) {
         if (caps == nullptr || caps->GetSmartRemoteCount() == 3) {
             grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES_3, wxArrayInt(), GetSmartRemote()));
         }
@@ -1025,7 +946,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         }
         sp->SetEditor("SpinCtrl");
     }
-    else if (IsPixelProtocol(protocol)) {
+    else if (IsPixelProtocol()) {
 
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
@@ -1176,9 +1097,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
     }
 
     wxXmlNode* node = GetControllerConnection();
-    wxString protocol = GetControllerProtocol();
-    protocol.LowerCase();
-    if (IsPixelProtocol(protocol)) {
+    if (IsPixelProtocol()) {
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes") != nullptr)
         {
             if (!node->HasAttribute("nullNodes")) {
@@ -1475,7 +1394,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             {
                 if (caps == nullptr)
                 {
-                    SetControllerProtocol(CONTROLLER_PROTOCOLS[1]);
+                    SetControllerProtocol(GetAllPixelTypes()[1]);
                 }
                 else
                 {
@@ -1575,14 +1494,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         UpdateControllerProperties(grid);
         std::string newProtocol = GetControllerProtocol();
 
-        if (!IsPixelProtocol(newProtocol)) {
+        if (!::IsPixelProtocol(newProtocol)) {
             if (GetControllerConnection()->GetAttribute("channel", "-1") == "-1") {
                 GetControllerConnection()->AddAttribute("channel", "1");
             }
         }
         if (
-            (IsSerialProtocol(newProtocol) && IsPixelProtocol(oldProtocol)) ||
-            (IsSerialProtocol(oldProtocol) && IsPixelProtocol(newProtocol)) ||
+            (::IsSerialProtocol(newProtocol) && ::IsPixelProtocol(oldProtocol)) ||
+            (::IsSerialProtocol(oldProtocol) && ::IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != "")) {
             // if we switch between a DMX and pixel protocol we need to rebuild the properties
@@ -6016,26 +5935,7 @@ std::list<std::string> Model::CheckModelSettings()
 
 bool Model::IsControllerConnectionValid() const
 {
-    return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
-}
-
-bool Model::IsPixelProtocol(const std::string& p)
-{
-    if (p == "") {
-        return false;
-    }
-    return !IsSerialProtocol(p);
-}
-
-bool Model::IsSerialProtocol(const std::string& p)
-{
-    if (p == "") {
-        return false;
-    }
-    wxString protocol = p;
-    protocol.MakeLower();
-
-    return SERIAL_PROTOCOLS.find(protocol) != SERIAL_PROTOCOLS.end();
+    return ((IsPixelProtocol() || IsSerialProtocol()) && GetControllerPort(1) > 0);
 }
 
 void Model::SetTagColour(wxColour colour)
@@ -6044,16 +5944,6 @@ void Model::SetTagColour(wxColour colour)
     ModelXml->AddAttribute("TagColour", colour.GetAsString());
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColour");
-}
-
-bool Model::IsPixelProtocol() const
-{
-    return GetControllerPort(1) != 0 && IsPixelProtocol(GetControllerProtocol());
-}
-
-bool Model::IsSerialProtocol() const
-{
-    return GetControllerPort(1) != 0 && IsSerialProtocol(GetControllerProtocol());
 }
 
 int32_t Model::GetStringStartChan(int x) const
@@ -6427,36 +6317,41 @@ std::string Model::GetControllerName() const
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
 }
 
-std::list<std::string> Model::GetProtocols()
-{
-    std::list<std::string> res;
-    for (auto a : CONTROLLER_PROTOCOLS) {
-        if (a != "") {
-            res.push_back(a.ToStdString());
-        }
-    }
-    return res;
-}
+//std::list<std::string> Model::GetProtocols()
+//{
+//    std::list<std::string> res;
+//    for (auto a : GetAllPixelTypes()) {
+//        if (a != "") {
+//            res.push_back(a);
+//        }
+//    }
+//    for (auto a : SERIAL_PROTOCOLS) {
+//        if (a != "") {
+//            res.push_back(a.ToStdString());
+//        }
+//    }
+//    return res;
+//}
 
-std::list<std::string> Model::GetLCProtocols()
-{
-    auto protocols = Model::GetProtocols();
+//std::list<std::string> Model::GetLCProtocols()
+//{
+//    auto protocols = Model::GetProtocols();
 
-    for (auto p = protocols.begin(); p != protocols.end(); ++p)
-    {
-        *p = wxString(*p).Lower().ToStdString();
-    }
+//    for (auto p = protocols.begin(); p != protocols.end(); ++p)
+//    {
+//        *p = wxString(*p).Lower().ToStdString();
+//    }
 
-    return protocols;
-}
+//    return protocols;
+//}
 
-bool Model::IsProtocolValid(std::string protocol)
-{
-    wxString p(protocol);
-    std::string prot = p.Lower().ToStdString();
-    auto protocols = Model::GetLCProtocols();
-    return (std::find(protocols.begin(), protocols.end(), prot) != protocols.end());
-}
+//bool Model::IsProtocolValid(std::string protocol)
+//{
+//    wxString p(protocol);
+//    std::string prot = p.Lower().ToStdString();
+//    auto protocols = Model::GetLCProtocols();
+//    return (std::find(protocols.begin(), protocols.end(), prot) != protocols.end());
+//}
 
 bool Model::CleanupFileLocations(xLightsFrame* frame)
 {
@@ -6642,4 +6537,15 @@ void Model::RestoreDisplayDimensions()
         }
         SetDepth(_savedDepth, true);
     }
+}
+
+// This is deliberately ! serial so that it defaults to thinking it is pixel
+bool Model::IsPixelProtocol() const
+{
+    return GetControllerPort(1) != 0 && !::IsSerialProtocol(GetControllerProtocol());
+}
+
+bool Model::IsSerialProtocol() const
+{
+    return GetControllerPort(1) != 0 && ::IsSerialProtocol(GetControllerProtocol());
 }

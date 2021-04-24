@@ -12,7 +12,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>opendmx</Protocol>
+				<Protocol>dmx-open</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -33,7 +33,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>opendmx</Protocol>
+				<Protocol>dmx-open</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -53,7 +53,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>opendmx</Protocol>
+				<Protocol>dmx-open</Protocol>
 			</SerialProtocols>
 			<SupportsAutoLayout/>
 			<InputProtocols>
@@ -74,7 +74,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>opendmx</Protocol>
+				<Protocol>dmx-open</Protocol>
 			</SerialProtocols>
 			<SupportsAutoLayout/>
 			<InputProtocols>

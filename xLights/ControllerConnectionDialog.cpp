@@ -16,6 +16,7 @@
 #include <wx/xml/xml.h>
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "Pixels.h"
 
 //(*InternalHeaders(ControllerConnectionDialog)
 #include <wx/intl.h>
@@ -186,7 +187,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
     FlexGridSizer1->SetSizeHints(this);
 
     Choice_Protocol->AppendString("");
-    auto protocols = Model::GetProtocols();
+    auto protocols = GetAllPixelTypes(true, true);
     for (auto it = protocols.begin(); it != protocols.end(); ++it) {
         Choice_Protocol->AppendString(wxString(it->c_str()));
     }
@@ -409,7 +410,7 @@ void ControllerConnectionDialog::Set(wxXmlNode* node) {
             SpinCtrl_Port->SetValue(wxAtoi(node->GetAttribute("Port", "1")));
         }
 
-        if (Model::IsPixelProtocol(_protocol)) {
+        if (IsPixelProtocol(_protocol)) {
             if (_type == controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS) {
                 if (node->HasAttribute("brightness")) {
                     CheckBox_Brightness->SetValue(true);
@@ -483,7 +484,7 @@ void ControllerConnectionDialog::Get(wxXmlNode* node) {
         node->AddAttribute("Port", wxString::Format("%d", SpinCtrl_Port->GetValue()));
     }
 
-    if (Model::IsPixelProtocol(_protocol)) {
+    if (IsPixelProtocol(_protocol)) {
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS) {
             node->DeleteAttribute("brightness");
             if (CheckBox_Brightness->IsChecked()) node->AddAttribute("brightness", wxString::Format("%d", Brightness->GetValue()));

@@ -251,16 +251,8 @@ public:
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     static std::string DecodeSmartRemote(int sr);
 
-    static std::list<std::string> GetProtocols();
-    static std::list<std::string> GetLCProtocols();
-    static bool IsProtocolValid(std::string protocol);
-    static bool IsPixelProtocol(const std::string& protocol);
-    static bool IsSerialProtocol(const std::string& protocol);
-
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
-    bool IsPixelProtocol() const;
-    bool IsSerialProtocol() const;
     int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
@@ -295,6 +287,9 @@ public:
     Model* GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr; }
     void RemoveSubModel(const std::string& name);
     std::list<int> ParseFaceNodes(std::string channels);
+
+    bool IsPixelProtocol() const;
+    bool IsSerialProtocol() const;
 
     unsigned long GetChangeCount() const { return changeCount; }
 
