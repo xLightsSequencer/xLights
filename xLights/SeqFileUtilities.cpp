@@ -1212,6 +1212,8 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
+    } else {
+        xsqPkg.FindRGBEffectsFile();
     }
     
     if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
@@ -1266,13 +1268,12 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
-    if(showModelBlending)
+    if (showModelBlending) {
         dlg.SetModelBlending(modelBlending);
-    
-    if (xsqPkg.IsPkg()) {
-        dlg.SetXsqPkg(&xsqPkg);
     }
-    
+
+    dlg.SetXsqPkg(&xsqPkg);
+
     std::vector<EffectLayer *> mapped;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, bool> timingTrackAlreadyExists;

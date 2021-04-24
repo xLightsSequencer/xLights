@@ -132,7 +132,6 @@ void SequencePackage::Extract() {
     _tempDir = wxString::Format("%s%c%s_%lld", wxFileName::GetTempDir(), wxFileName::GetPathSeparator(), _pkgFile.GetName(), wxGetUTCTimeMillis());
     logger_base.debug("Extracting Sequence Package '%s' to '%s'", _pkgFile.GetFullName().ToStdString().c_str(), _tempDir.GetFullPath().ToStdString().c_str());
 
-    
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
     
@@ -184,6 +183,7 @@ void SequencePackage::Extract() {
                     if (rgbEffects.Load(fnOutput.GetFullPath())) {
                         _rgbEffects = rgbEffects;
                         _pkgRoot = fnOutput.GetPath();
+                        _hasRGBEffects = true;
                     }
                 } else if (fnOutput.GetName() == "xlights_networks") {
                     _xlNetworks = fnOutput;
@@ -224,6 +224,18 @@ void SequencePackage::Extract() {
     }
 };
 
+void SequencePackage::FindRGBEffectsFile()
+{
+    wxString showDir = wxPathOnly(_xsqFile.GetFullPath());
+    if( wxFile::Exists(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+        wxXmlDocument rgbEffects;
+        if (rgbEffects.Load(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+            _rgbEffects = rgbEffects;
+            _hasRGBEffects = true;
+        }
+    }
+}
+
 bool SequencePackage::IsValid() const {
     if (_xsqOnly) {
         return _xsqFile.IsOk() && _xsqFile.Exists();
@@ -234,6 +246,10 @@ bool SequencePackage::IsValid() const {
 
 bool SequencePackage::IsPkg() {
     return !_xsqOnly;
+}
+
+bool SequencePackage::HasRGBEffects() const {
+    return _hasRGBEffects;
 }
 
 bool SequencePackage::HasMedia() const {
