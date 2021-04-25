@@ -1417,20 +1417,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     dir.clear();
     bool ok = true;
+    bool showDirFromCommandLine = false;
     if (!xLightsApp::showDir.IsNull())
     {
+        wxString t;
+        config->Read("LastDir", &t);
+
+        if (t != xLightsApp::showDir)         {
+            showDirFromCommandLine = true;
+        }
         dir = xLightsApp::showDir;
     }
     else
     {
         ok = config->Read("LastDir", &dir);
-        //wxString ConvertDir;
-        //ConvertDir.clear();
-        //if (ok && !config->Read("ConvertDir", &ConvertDir))
-        //{
-        //    ConvertDir=dir;
-        //}
-        //FileDialogConvert->SetDirectory(ConvertDir);
     }
     logger_base.debug("Show directory %s.", (const char *)dir.c_str());
 
@@ -1610,7 +1610,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
     {
-        if (!SetDir(dir, true)) {
+        if (!SetDir(dir, !showDirFromCommandLine)) {
             CurrentDir = "";
             if (!PromptForShowDirectory(true))
             {
