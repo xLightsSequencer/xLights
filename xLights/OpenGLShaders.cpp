@@ -10,6 +10,7 @@
 
 #include "wx/wx.h"
 
+
 #ifndef __WXMAC__
 #include <GL/gl.h>
 #ifdef _MSC_VER
@@ -19,7 +20,6 @@
 #endif
 
 #include "xlGLCanvas.h"
-#include "UtilFunctions.h"
 
 #include <memory>
 #include <iostream>
@@ -88,6 +88,7 @@ static bool canUseFramebufferObjects()
 }
 #endif
 
+#include "UtilFunctions.h"
 #include "OpenGLShaders.h"
 #include "DrawGLUtils.h"
 #include <log4cpp/Category.hh>

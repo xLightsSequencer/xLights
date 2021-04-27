@@ -677,9 +677,11 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
-    // On windows this call does nothing useful and as long as we have wxUSE_CMDLINE_PARSER defined in setup.h this 
-    // throws an error every time someone passes an xsq file on the command line.
-#ifndef __WXMSW__
+#if wxUSE_GLCANVAS_EGL
+    // this is only needed if using the EGL canvas as it's necessary to initialize the
+    // GL attributes and pixel formats.  Likely a bug in the EGL implementation,
+    // but not really sure.   In anycase, it's not needed on any of our "normal"
+    // platforms.  It's only needed if building on an EGL based Linux distribution.
     wxGLApp::OnInit();
 #endif
 
