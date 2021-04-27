@@ -677,7 +677,11 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
+    // On windows this call does nothing useful and as long as we have wxUSE_CMDLINE_PARSER defined in setup.h this 
+    // throws an error every time someone passes an xsq file on the command line.
+#ifndef __WXMSW__
     wxGLApp::OnInit();
+#endif
 
     wxTheApp->SetAppName("xLights");
     DumpConfig();
