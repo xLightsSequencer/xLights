@@ -19,6 +19,6 @@ public:
    static bool HasFramebufferObjects();
 
    static unsigned compile( const std::string& vertexSource, const std::string& fragmentSource );
-   static std::string OpenGLShaders::PrepareShaderCodeForLogging(const std::string& code);
+   static std::string PrepareShaderCodeForLogging(const std::string& code);
 };
 
