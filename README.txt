@@ -11,7 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (kevin) Add two new shaders and allow audio shaders to respond to either VU data or intensity
+2021.13 April 27 2021
+   -- enh (keith) Improve the visibility and playback of filtered waveforms
+   -- enh (several) Bunch of new shaders added for download
+   -- bug (scott) Fix some issues with ctrl key shortcuts on windows
+   -- bug (dkulp) Fix random crashes when add/remove headphones
+   -- change (dkulp) Deprecate and start removing support for mingw/gcc builds on Windows
+   -- enh (dkulp) Move to wxWidgets 3.1.5 (plus fixes) on all platforms
+   -- enh (scott) Add Pixie2 controller
+   -- bug (keith) Fix broken pixlite upload
+   -- bug (scott) Fix node numbers off by one on Cube Custom Model Export
+   -- enh (keith) Add new F16V2R variants
+   -- enh (keith) Add line numbers to shaders that are logged on compile failure
+   -- bug (keith) Fix problems starting xLights when double clicking on an xsq file.  Fixes #2611
+   -- enh (kevin) Allow audio shaders to respond to either VU data or intensity
    -- enh (scott) Load RGBEffects.xml File on XSQ Import for Group Names
 2021.12 April 12 2021
    -- bug (scott) Fix superstring model multistring channel count
