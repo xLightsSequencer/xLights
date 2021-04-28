@@ -11,45 +11,48 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.14 April 28 2021
+   -- bug (keith) Fix new audio sequence hangs after you select the audio file in some circumstances
+   -- bug (keith) Shader choice options containing commas dont display correctly
 2021.13 April 27 2021
    -- enh (keith) Improve the visibility and playback of filtered waveforms
    -- enh (several) Bunch of new shaders added for download
-   -- bug (scott) Fix some issues with ctrl key shortcuts on windows
-   -- bug (dkulp) Fix random crashes when add/remove headphones
-   -- change (dkulp) Deprecate and start removing support for mingw/gcc builds on Windows
    -- enh (dkulp) Move to wxWidgets 3.1.5 (plus fixes) on all platforms
    -- enh (scott) Add Pixie2 controller
-   -- bug (keith) Fix broken pixlite upload
-   -- bug (scott) Fix node numbers off by one on Cube Custom Model Export
    -- enh (keith) Add new F16V2R variants
    -- enh (keith) Add line numbers to shaders that are logged on compile failure
-   -- bug (keith) Fix problems starting xLights when double clicking on an xsq file.  Fixes #2611
    -- enh (kevin) Allow audio shaders to respond to either VU data or intensity
    -- enh (scott) Load RGBEffects.xml File on XSQ Import for Group Names
+   -- change (dkulp) Deprecate and start removing support for mingw/gcc builds on Windows
+   -- bug (scott) Fix some issues with ctrl key shortcuts on windows
+   -- bug (dkulp) Fix random crashes when add/remove headphones
+   -- bug (keith) Fix broken pixlite upload
+   -- bug (scott) Fix node numbers off by one on Cube Custom Model Export
+   -- bug (keith) Fix problems starting xLights when double clicking on an xsq file.  Fixes #2611
 2021.12 April 12 2021
+   -- enh (dkulp) OSX - Key Binding editor dialog should use the OSX key names and icons
+   -- enh (Old-Salt) Add bunch more shaders, restore some missing shader images
+   -- enh (keith) Add the IMG_SIZE shader function
    -- bug (scott) Fix superstring model multistring channel count
    -- bug (scott) Fix key bindings that use CTRL on Windows
    -- bug (dkulp) Fix several instances of crashes when manipulating models on Layout panel while rendering (aborts rendering)
-   -- enh (dkulp) OSX - Key Binding editor dialog should use the OSX key names and icons
    -- bug (dkulp) Fix crash in path editor/Value Curves.  Occurs most often with lots of points. Fixes #2587
-   -- enh (Old-Salt) Add bunch more shaders, restore some missing shader images
    -- bug (keith) Fix VUMeter does not work correctly with 40fps sequences
-   -- enh (keith) Add the IMG_SIZE shader function
 2021.11 April 3 2021
+   -- enh (dkulp) Move to latest wxWidgets patches for Linux
+   -- enh (dkulp) Allow using the Mac "raw control" key for key bindings. Fixes #2576
+   -- enh (scott) Sort Buffer Presets
    -- bug (dpriem) fix memory/loop issue in effect preview gen
    -- bug (dkulp) sysctl is only needed on OSX.  Fixes #2563
    -- bug (dkulp) Fix default values for shaders with integer drop down selections.  Fixes #2569
-   -- enh (dkulp) Move to latest wxWidgets patches for Linux
    -- bug (dkulp) Reset shader value curves on effect selection.  Fixes #2575
-   -- enh (dkulp) Allow using the Mac "raw control" key for key bindings. Fixes #2576
    -- bug (dkulp) Don't use alpha channel for brightness, is VERY slow on Windows if double buffering used. Fixes #2573
-   -- enh (scott) Sort Buffer Presets
    -- bug (scott) fix Morph swap button bulk edit
 2021.10 March 31 2021
    -- enh (dpriem) Add Dark Mode support for Visualiser
+   -- enh (scott)  Added the ability to Export Layout/Model/Wiring as a DXF File and Export Models as a STL/VRML File.
    -- bug (dkulp)  Fix decoding videos that don't have video frames at the start
    -- bug (dpriem) Fix drag/drop in import dialog
-   -- enh (scott)  Added the ability to Export Layout/Model/Wiring as a DXF File and Export Models as a STL/VRML File.
 2021.09 March 23 2021
    -- enh          Add some more xLights optimized shaders to shaders.xml
    -- enh (dkulp)  Adjust some colors in the download dialogs for OSX Dark Mode.
@@ -69,16 +72,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (scott)  Fix crash in swap transition
 2021.06 March 1 2021
    -- enh (kevin)  Add Circles and Shatter transitions
-   -- bug (scott)  Prevent groups with blank name
    -- enh (scott)  Add multi selection to submodel import in Faces dialog
-   -- bug (scott)  Fix AC toolbar
-   -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
    -- enh (scott)  Add BBB16 controller configuration
-   -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
    -- enh (dkulp)  Add KiNet uploads to FPP output universes
-   -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
    -- enh (kevin)  Allow reverse on star transition
    -- enh (kevin)  Add swap, shatter, and circles transitions
+   -- bug (scott)  Prevent groups with blank name
+   -- bug (scott)  Fix AC toolbar
+   -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
+   -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
+   -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
    -- bug (dkulp)  Fix issues with effects that need to render on the main thread being rendered WAY too often if "Per Model" used.
 2021.05 February 19 2021
    -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)

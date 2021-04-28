@@ -1240,10 +1240,11 @@ wxString SafeFloat(const wxString& s)
     return s;
 }
 
-wxString& SafeValueOption(wxString& value)
+wxString SafeValueOption(wxString value)
 {
-    value.Replace(",", "");
-    return value;
+    wxString res = value;
+    res.Replace(",", "");
+    return res;
 }
 
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
