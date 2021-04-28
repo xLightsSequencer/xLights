@@ -1612,6 +1612,11 @@ void AudioManager::DoPrepareFrameData()
 
     logger_base.info("DoPrepareFrameData: Data is loaded.");
 
+    // we need to ensure at least the raw data is available
+    if (_filtered.size() == 0) {
+        SwitchTo(AUDIOSAMPLETYPE::RAW, 0, 0);
+    }
+
     _frameData.clear();
 
 	// samples per frame
@@ -2110,6 +2115,7 @@ void AudioManager::SetFrameInterval(int intervalMS)
 
 		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
 		_intervalMS = intervalMS;
+
 		PrepareFrameData(true);
 	}
 }
@@ -2140,6 +2146,10 @@ AudioManager::~AudioManager()
         logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
         wxMilliSleep(100);
     }
+
+    // wait for async tasks to finish
+    _loadingAudio.wait();
+    _prepFrameData.wait();
 
     if (_pcmdata != nullptr)
     {
