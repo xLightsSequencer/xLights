@@ -1240,6 +1240,12 @@ wxString SafeFloat(const wxString& s)
     return s;
 }
 
+wxString& SafeValueOption(wxString& value)
+{
+    value.Replace(",", "");
+    return value;
+}
+
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1300,7 +1306,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 int no = std::min(ls.Size(), vs.Size());
                 for (int i = 0; i < no; i++)
                 {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = ls[i].AsString();
+                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString());
                 }
             }
             else
