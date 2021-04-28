@@ -1126,8 +1126,12 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (!wxFile::Exists(filename))
                 {
+                    logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                     wxFileOutputStream fout(filename);
                     zin.Read(fout);
+                }
+                if (!wxFile::Exists(filename))                     {
+                    logger_base.error("File extract failed.");
                 }
                 ent = zin.GetNextEntry();
             }
@@ -1135,9 +1139,9 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
 
             bool error = false;
-            for (auto it = files.begin(); it != files.end(); ++it)
+            for (const auto& it : files)
             {
-                wxFileName fn(*it);
+                wxFileName fn(it);
                 wxString basefn = fn.GetName().Lower();
                 bool eyesclosed = false;
                 if (basefn.EndsWith("_eo"))
@@ -1155,14 +1159,14 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (phoneme == "" || !IsValidPhoneme(phoneme))
                 {
-                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it->c_str());
+                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
                     error = true;
                 }
                 else
                 {
                     std::string key = "Mouth-" + phoneme + "-" + (eyesclosed ? "EyesClosed" : "EyesOpen");
-                    faceData[name][key] = *it;
-                    MatrixModelsGrid->SetCellValue(GetRowForPhoneme(phoneme), (eyesclosed ? 1 : 0), *it);
+                    faceData[name][key] = it;
+                    MatrixModelsGrid->SetCellValue(GetRowForPhoneme(phoneme), (eyesclosed ? 1 : 0), it);
                 }
             }
 
