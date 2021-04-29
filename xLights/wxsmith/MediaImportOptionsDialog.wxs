@@ -3,9 +3,11 @@
 	<object class="wxDialog" name="MediaImportOptionsDialog">
 		<title>Media Import Options</title>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 					<cols>3</cols>
@@ -13,7 +15,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Select the target directories for each media type where available files will be imported into.&#x0A;&#x0A;NOTE:  Only media files from mapped effects which actually exist in the sequence package &#x0A;you are mapping from will be imported.</label>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -52,13 +54,14 @@
 					<label>Faces</label>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-							<cols>3</cols>
+							<cols>2</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_FACES_FLD" variable="FacesFolder" member="yes">
 									<size>450,-1</size>
 									<style>wxTE_READONLY</style>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -77,7 +80,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -86,13 +89,14 @@
 					<label>Glediators</label>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-							<cols>3</cols>
+							<cols>2</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_GLEDIATORS_FLD" variable="GlediatorsFolder" member="yes">
 									<size>450,-1</size>
 									<style>wxTE_READONLY</style>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -111,7 +115,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -120,13 +124,14 @@
 					<label>Images</label>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-							<cols>3</cols>
+							<cols>2</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="ImagesFolder" member="yes">
 									<size>450,-1</size>
 									<style>wxTE_READONLY</style>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -145,7 +150,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -154,13 +159,14 @@
 					<label>Shaders</label>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-							<cols>3</cols>
+							<cols>2</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_SHADERS_FLD" variable="ShadersFolder" member="yes">
 									<size>450,-1</size>
 									<style>wxTE_READONLY</style>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -179,7 +185,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -188,13 +194,14 @@
 					<label>Videos</label>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-							<cols>3</cols>
+							<cols>2</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_VIDEOS_FLD" variable="VideosFolder" member="yes">
 									<size>450,-1</size>
 									<style>wxTE_READONLY</style>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -213,7 +220,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
