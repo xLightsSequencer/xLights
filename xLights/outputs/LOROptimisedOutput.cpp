@@ -78,6 +78,7 @@ void LOROptimisedOutput::InitialiseTypes() {
         __lorDeviceTypes.Add("RGB Controller");
         __lorDeviceTypes.Add("CCR");
         __lorDeviceTypes.Add("CCB");
+        __lorDeviceTypes.Add("Pixie2");
         __lorDeviceTypes.Add("Pixie4");
         __lorDeviceTypes.Add("Pixie8");
         __lorDeviceTypes.Add("Pixie16");
@@ -101,7 +102,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
     channels_per_pass = controller_channels_to_process;
     std::string type = cntrl->GetType();
     int unit_id = cntrl->GetUnitId();
-    if ((type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
+    if ((type == "Pixie2") || (type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
         std::size_t found = type.find("Pixie");
         if (found != std::string::npos) {
             int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
