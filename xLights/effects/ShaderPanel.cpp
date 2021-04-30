@@ -152,6 +152,9 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     //*)
 
     Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shader_Offset_X, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shader_Offset_Y, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shader_Zoom, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShaderPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShaderPanel::OnValidateWindow, 0, this);
