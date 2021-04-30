@@ -2113,10 +2113,15 @@ void AudioManager::SetFrameInterval(int intervalMS)
 	{
         logger_base.debug("Changing frame interval to %d", intervalMS);
 
-		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
-		_intervalMS = intervalMS;
+        // save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
+        
+        // need to lock first to make sure the background thread is done loading so to avoid
+        // changing the _intervalMS (and thus the size of structures) in the middle of loading.
+        std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+        _intervalMS = intervalMS;
+        locker.unlock();
 
-		PrepareFrameData(true);
+        PrepareFrameData(true);
 	}
 }
 
@@ -2524,6 +2529,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 #ifdef RESAMPLE_RATE
     {
         std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+        if (_trackSize < _loadedData) {
+            //loaded more than we anticipated consuming some of the extra space
+            _extra -= (_loadedData - _trackSize);
+        }
         _trackSize = _loadedData;
     }
 #endif
@@ -2600,6 +2609,8 @@ void AudioManager::LoadResampledAudio( int sampleCount, int out_channels, uint8_
         // I have seen this happen with a wma file ... but i dont know why
         logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%li", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%li", (long)_trackSize) +"] .");
 
+        // we've consumed some of the "extra" space, make sure we reduce that
+        _extra -= (read + sampleCount - _trackSize);
         // override the track size
         _trackSize = read + sampleCount;
     }
