@@ -67,6 +67,7 @@ enum MixTypes
     Mix_Shadow_2on1, /**< Take value and saturation from Effect 3 and put them onto effect 2, leave hue alone on effect 1 */
     Mix_Additive,
     Mix_Subtractive,
+    Mix_AsBrightness,
     Mix_Max,
     Mix_Min
 };
@@ -242,9 +243,9 @@ private:
 
     PixelBufferClass(const PixelBufferClass &cls);
     PixelBufferClass &operator=(const PixelBufferClass &);
-    int numLayers;
+    int numLayers = 0;
     std::vector<LayerInfo*> layers;
-    int frameTimeInMs;
+    int frameTimeInMs = 50;
 
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);
@@ -260,11 +261,13 @@ private:
     std::string lastBufferType;
     std::string lastCamera;
     std::string lastBufferTransform;
-    const Model *model;
-    Model *zbModel;
-    SingleLineModel *ssModel;
-    xLightsFrame *frame;
+    const Model *model = nullptr;
+    Model *zbModel = nullptr;
+    SingleLineModel *ssModel = nullptr;
+    xLightsFrame *frame = nullptr;
+
 public:
+    static std::vector<std::string> GetMixTypes();
     void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);

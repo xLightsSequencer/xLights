@@ -1082,12 +1082,22 @@ static std::map<std::string, MixTypes> MixTypesMap = {
     {"Normal", Mix_Normal},
     {"Additive", Mix_Additive},
     {"Subtractive", Mix_Subtractive},
+    {"Brightness", Mix_AsBrightness},
     {"Average", Mix_Average},
     {"Bottom-Top", Mix_BottomTop},
     {"Left-Right", Mix_LeftRight},
     {"Max", Mix_Max},
     {"Min", Mix_Min}
 };
+
+std::vector<std::string> PixelBufferClass::GetMixTypes()
+{
+    std::vector <std::string> res;
+    for (const auto& it : MixTypesMap) {
+        res.push_back(it.first);
+    }
+    return res;
+}
 
 // convert MixName to MixType enum
 void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
@@ -1344,6 +1354,14 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             int b = std::max(fg.blue, bg.blue);
             bg.Set(r, g, b);
         }
+        break;
+    case Mix_AsBrightness:
+        {
+        int r = fg.red * bg.red / 255;
+        int g = fg.green *  bg.green / 255;
+        int b = fg.blue * bg.blue / 255;
+        bg.Set(r, g, b);
+    }
         break;
     }
 }
