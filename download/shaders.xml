@@ -802,6 +802,14 @@
 		<rating>4</rating>
 	</shader>
 	<shader>
+		<name>RGB to Greyscale_xL</name>
+		<id>60898bb4d4849b0013135de2</id>
+		<link>https://editor.isf.video/shaders/60898bb4d4849b0013135de2</link>
+		<download>https://www.interactiveshaderformat.com/sketches/60898bb4d4849b0013135de2/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/rvqgeyu2xiwsdenzbyth</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
 		<name>RGBLaserGlobe_xL</name>
 		<id>604bcf6adf59c70014cdc5ff</id>
 		<link>https://editor.isf.video/shaders/604bcf6adf59c70014cdc5ff</link>
