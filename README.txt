@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (Old Salt) Added shader 'RGB to Greyscale_xL' to prepare layer for new 'Brightness' blending
 2021.14 April 28 2021
    -- bug (keith) Fix new audio sequence hangs after you select the audio file in some circumstances
    -- bug (keith) Shader choice options containing commas dont display correctly
