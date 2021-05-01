@@ -302,12 +302,34 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     BitmapButton_In_Transition_Adjust->SetLimits( 0, 100 );
     BitmapButton_Out_Transition_Adjust->SetLimits( 0, 100 );
 
-	for (const auto& it : PixelBufferClass::GetMixTypes()) {
-		Choice_LayerMethod->Append(it);
-	}
-	Choice_LayerMethod->Select(0);
+	// If i pull this from the map it sorts them alphabetically and I dont think that is what we want
+	Choice_LayerMethod->Append(_("Normal"));
+	Choice_LayerMethod->Append(_("Effect 1"));
+	Choice_LayerMethod->Append(_("Effect 2"));
+	Choice_LayerMethod->Append(_("1 is Mask"));
+	Choice_LayerMethod->Append(_("2 is Mask"));
+	Choice_LayerMethod->Append(_("1 is Unmask"));
+	Choice_LayerMethod->Append(_("2 is Unmask"));
+	Choice_LayerMethod->Append(_("1 is True Unmask"));
+	Choice_LayerMethod->Append(_("2 is True Unmask"));
+	Choice_LayerMethod->Append(_("1 reveals 2"));
+	Choice_LayerMethod->Append(_("2 reveals 1"));
+	Choice_LayerMethod->Append(_("Shadow 1 on 2"));
+	Choice_LayerMethod->Append(_("Shadow 2 on 1"));
+	Choice_LayerMethod->Append(_("Layered"));
+	Choice_LayerMethod->Append(_("Average"));
+	Choice_LayerMethod->Append(_("Bottom-Top"));
+	Choice_LayerMethod->Append(_("Left-Right"));
+	Choice_LayerMethod->Append(_("Additive"));
+	Choice_LayerMethod->Append(_("Subtractive"));
+	Choice_LayerMethod->Append(_("Brightness"));
+	Choice_LayerMethod->Append(_("Max"));
+	Choice_LayerMethod->Append(_("Min"));
+
+	Choice_LayerMethod->SetStringSelection("Normal");
 
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n"
+		                             "* Normal: This is the same as 1 reveals 2.\n"
 		                             "* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n"
 									 "* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n"
 									 "* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n"
@@ -369,7 +391,7 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
     {
         _layersSelected = "";
         CheckBox_LayerMorph->SetValue(false);
-        Choice_LayerMethod->SetSelection(0);
+        Choice_LayerMethod->SetStringSelection("Normal");
         CheckBox_Canvas->SetValue(false);
 	    TextCtrl_EffectLayerMix->SetValue("0");
         TextCtrl_Fadein->SetValue("0.00");
@@ -399,7 +421,7 @@ wxString TimingPanel::GetTimingString()
         s += "T_CHECKBOX_LayerMorph=1,";
     }
     // Layer Method
-    if (Choice_LayerMethod->GetSelection() != 0) {
+    if (Choice_LayerMethod->GetStringSelection() != "Normal") {
         s += wxString::Format("T_CHOICE_LayerMethod=%s,",
                               Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection()));
     }
