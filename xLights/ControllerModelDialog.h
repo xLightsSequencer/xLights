@@ -71,14 +71,17 @@ class ControllerModelDialog: public wxDialog
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
 	ModelCMObject* _dragging = nullptr;
+	wxPoint _dragStartLocation = { -99999, -99999 };
 	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
 	int _modelsy = 1;
 	int _controllersy = 1;
 	int _controllersx = 1;
 	double _scale = 1;
+	Model* _lastDropped = nullptr;
 	#pragma endregion
 
+	void DropModelFromModelsPaneOnModel(ModelCMObject* dropped, Model* on, bool rhs);
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse, wxPoint adjustedMouse);
 	BaseCMObject* GetControllerToDropOn();
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
@@ -89,6 +92,8 @@ class ControllerModelDialog: public wxDialog
 	std::string GetModelTooltip(ModelCMObject* m);
 	std::string GetPortTooltip(UDControllerPort* port, int virtualString);
 	void FixDMXChannels();
+	PortCMObject* GetPortContainingModel(Model* m);
+	ModelCMObject* GetModelsCMObject(Model* m);
 
 	public:
 
