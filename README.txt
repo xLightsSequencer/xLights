@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.15 May 3, 2021
+   -- enh (scott) Add resize to Media Import Options
+   -- enh (scott) Add Pixie2 to LOR optimized output
+   -- bug (keith) Fix some value curve dialogs not displaying on shader parameters
+   -- bug (dkulp) Fix some crashes in AudioManager
+   -- enh (keith) Add to visualiser concept of a selected model and then when you double click on a model on the models pane it chains to the end of the selected model
+   -- enh (keith) Add "Multiply" blending mode
    -- enh (Old Salt) Added shader 'RGB to Greyscale_xL' to prepare layer for new 'Brightness' blending
 2021.14 April 28 2021
    -- bug (keith) Fix new audio sequence hangs after you select the audio file in some circumstances
