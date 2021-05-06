@@ -189,7 +189,7 @@ void xScannerFrame::ScanUpdate(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (event.GetInt() == 100)         {
+    if (event.GetInt() == 100) {
         
         _progress->Update(100);
         _progress = nullptr;
@@ -225,7 +225,7 @@ void xScannerFrame::LoadScanResults()
 
     if (_scanner._computer._xScheduleFolder != "") {
         auto xs = _tree->AppendItem(comp, "xSchedule Show Folder");
-        if (_scanner._computer._xScheduleFolder == _scanner._computer._xLightsFolder)             {
+        if (_scanner._computer._xScheduleFolder == _scanner._computer._xLightsFolder) {
             _tree->SetItemText(xs, 1, "Same as xLights");
         }
         else {
@@ -297,7 +297,7 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
         if (ip._xLightsController->GetName() != "") {
             _tree->SetItemText(item, 1, ip._xLightsController->GetName());
         }
-        else if (ip._name != "")             {
+        else if (ip._name != "") {
             _tree->SetItemText(item, 1, ip._name);
         }
         item = _tree->AppendItem(ti, "Protocol");
@@ -310,7 +310,7 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
         if (ip._xLightsController->GetVMV() != "") {
             _tree->SetItemText(item, 1, ip._xLightsController->GetVMV());
         }
-        else if (ip._discovered != nullptr)             {
+        else if (ip._discovered != nullptr) {
             _tree->SetItemText(item, 1, ip._discovered->GetVMV());
         }
     }
@@ -362,7 +362,7 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
         _tree->SetItemText(item, 2, ip._macVendor);
     }
 
-    for (auto& it : _scanner.GetProxiedBy(ip._ip))         {
+    for (auto& it : _scanner.GetProxiedBy(ip._ip)) {
         auto ipc = _tree->AppendItem(ti, it._ip);
         AddIP(ipc, it);
         it.Displayed();
@@ -464,7 +464,7 @@ void xScannerFrame::OnMenuItemScanSelected(wxCommandEvent& event)
 void xScannerFrame::OnTreeItemActivated(wxTreeListEvent& event)
 {
     auto iptxt = _tree->GetItemText(event.GetItem()).BeforeFirst(' ');
-    if (::IsIPValid(iptxt))         {
+    if (::IsIPValid(iptxt)) {
         ::wxLaunchDefaultBrowser(iptxt);
     }
 }
@@ -505,7 +505,7 @@ void xScannerFrame::ExportItem(int skip, wxTreeListItem& item, wxFile& f)
 
 void xScannerFrame::OnPopup(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MNU_EXPORT)         {
+    if (event.GetId() == ID_MNU_EXPORT) {
         wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "xScanner.csv", wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 

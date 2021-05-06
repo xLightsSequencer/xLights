@@ -166,8 +166,8 @@ std::list<IPObject> Scanner::GetProxiedBy(const std::string& ip) const
 {
 	std::list<IPObject> res;
 
-	for (const auto& it : _ips) 		{
-		if (it._viaProxy == ip) 			{
+	for (const auto& it : _ips) {
+		if (it._viaProxy == ip) {
 			res.push_back(it);
 		}
 	}
@@ -177,8 +177,8 @@ std::list<IPObject> Scanner::GetProxiedBy(const std::string& ip) const
 
 void Scanner::SetDisplayed(const IPObject& ip)
 {
-	for (auto& it : _ips) 		{
-		if (it._ip == ip._ip) 			{
+	for (auto& it : _ips) {
+		if (it._ip == ip._ip) {
 			it.Displayed();
 			return;
 		}
@@ -268,7 +268,7 @@ bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
 	char szDestIp[128];
 	strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
 	std::string ipp = std::string(szDestIp) + "|" + proxy;
-	if (std::find(begin(_ipscanned), end(_ipscanned), ipp) == end(_ipscanned)) 		{
+	if (std::find(begin(_ipscanned), end(_ipscanned), ipp) == end(_ipscanned)) {
 		_ipscanned.push_back(ipp);
 		return false;
 	}
@@ -277,8 +277,8 @@ bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
 
 IPObject* Scanner::GetIP(std::list<IPObject>& ips, const std::string& ip)
 {
-	for (auto& it : ips) 		{
-		if (it._ip == ip) 			{
+	for (auto& it : ips) {
+		if (it._ip == ip) {
 			return &it;
 		}
 	}
@@ -304,7 +304,7 @@ void Scanner::CheckXSchedule(IPObject& ip, int port)
 void Scanner::SendProgress(int progress, const std::string& msg)
 {
 	wxCommandEvent event(EVT_SCANPROGRESS);
-	if (progress == -1) 		{
+	if (progress == -1) {
 		event.SetInt(_progressv);
 	}
 	else {
@@ -654,7 +654,7 @@ void Scanner::IPScan(IPObject& it)
 				}
 			}
 		}
-		else 			{
+		else {
 			logger_base.debug("    Not FPP");
 		}
 
@@ -691,7 +691,7 @@ void Scanner::IPScan(IPObject& it)
 								}
 							}
 						}
-						if (k0 != 0 || k1 != 0 || k2 != 0) 							{
+						if (k0 != 0 || k1 != 0 || k2 != 0) {
 							it._banks = wxString::Format("%d:%d:%d", k0, k1, k2);
 						}
 					}
@@ -730,6 +730,7 @@ void Scanner::IPScan(IPObject& it)
 		else if (Contains(home, "AlphaPix") || Contains(home, "Port Ethernet to SPI Controller")) it._type = "AlphaPix";
 		else if (Contains(home, "HinksPix")) it._type = "HinksPix";
 		else if (Contains(home, "DIYLEDExpress")) it._type = "DIYLEDExpress";
+		else if (Contains(home, "WLED")) it._type = "WLED";
 	}
 
 	if (it._type == "") {
