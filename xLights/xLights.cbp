@@ -781,6 +781,8 @@
 		<Unit filename="controllers/SanDevices.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
+		<Unit filename="controllers/WLED.cpp" />
+		<Unit filename="controllers/WLED.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
