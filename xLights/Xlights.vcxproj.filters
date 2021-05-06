@@ -895,6 +895,9 @@
     <ClCompile Include="cad\CADWriter.cpp">
       <Filter>cad</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\WLED.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1799,6 +1802,9 @@
     </ClInclude>
     <ClInclude Include="cad\CADPoint.h">
       <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\WLED.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
