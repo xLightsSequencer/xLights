@@ -1843,7 +1843,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
 
 bool CloseTo(const wxPoint& p1, const wxPoint& p2)
 {
-    return std::abs(p1.x - p2.x) < 3 && std::abs(p1.y - p2.y < 3);
+    return (std::abs(p1.x - p2.x) < 3) && (std::abs(p1.y - p2.y) < 3);
 }
 
 void ControllerModelDialog::DropFromController(const wxPoint& location, const std::string& name, wxPanel* target)

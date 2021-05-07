@@ -65,7 +65,7 @@ int AudioData::__nextId = 0;
 #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
 #endif
 
-#define PCMFUDGE 16384
+#define PCMFUDGE 32768
 
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
@@ -1294,7 +1294,7 @@ bool AudioManager::IsDataLoaded(long pos)
     }
 }
 
-AudioManager::AudioManager(const std::string& audio_file, int step, int block)
+AudioManager::AudioManager(const std::string& audio_file, int intervalMS)
     // :  _jobPool("AudioManager")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1312,8 +1312,8 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_resultMessage = "";
 	_data[0] = nullptr; // Left channel data
 	_data[1] = nullptr; // right channel data
-	_intervalMS = -1; // no length
-	_frameDataPrepared = false; // frame data is used by effects to react to the sone
+	_intervalMS = intervalMS; // no length
+	_frameDataPrepared = false; // frame data is used by effects to react to the song
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
@@ -1322,7 +1322,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     _trackSize = 0;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
-	_extra = std::max(step, block) + 1;
+	_extra = 32769;
 
 	// Open the media file
     logger_base.debug("Audio Manager Constructor: Loading media file.");
@@ -1333,20 +1333,16 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     if (_rate <= 0) _ok = false;
 
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
-	if (_intervalMS > 0 && _ok)
-	{
+	if (_intervalMS > 0 && _ok) {
         logger_base.debug("Audio Manager Constructor: Preparing frame data.");
         PrepareFrameData(true);
         logger_base.debug("Audio Manager Constructor: Preparing frame data done ... but maybe on a background thread.");
-    }
-    else if (_ok)
-    {
+    } else if (_ok) {
         logger_base.debug("Audio Manager Constructor: Skipping preparing frame data as timing not known yet.");
     }
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
-	if (_ok && _state == -1)
-	{
+	if (_ok && _state == -1) {
 		_state = 1;
         logger_base.info("Audio file loaded.");
         logger_base.info("    Filename: %s", (const char *)_audio_file.c_str());
@@ -1355,9 +1351,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
         logger_base.info("    Artist: %s", (const char *)_artist.c_str());
         logger_base.info("    Length: %ldms", _lengthMS);
         logger_base.info("    Channels %d, Bits: %d, Rate %ld", _channels, _bits, _rate);
-    }
-    else
-    {
+    } else {
         logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
     }
     AddAudioDeviceChangeListener([this]() {AudioDeviceChanged();});
@@ -1595,8 +1589,7 @@ void AudioManager::DoPrepareFrameData()
     wxStopWatch sw;
 
 	// if we have already done it ... bail
-	if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS)
-	{
+	if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS) {
 		logger_base.info("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
@@ -1604,8 +1597,7 @@ void AudioManager::DoPrepareFrameData()
     _frameDataPreparedForInterval = _intervalMS;
 
     // wait for the data to load
-    while (!IsDataLoaded())
-    {
+    while (!IsDataLoaded()) {
         logger_base.info("DoPrepareFrameData: waiting for audio data to load.");
         wxMilliSleep(1000);
     }
@@ -1800,34 +1792,30 @@ void AudioManager::DoPrepareFrameData()
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread)
 {
-	if (separateThread)
-	{
-        if (!_frameDataPrepared) {
+    //if frame data is already being processed, wait for that one to finish, otherwise
+    //_prepFrameData will get overwritten with a new future and the old will be lost
+    if (_prepFrameData.valid()) _prepFrameData.wait();
+	if (separateThread) {
+        if (!_frameDataPrepared || _frameDataPreparedForInterval != _intervalMS) {
             _prepFrameData = std::async(std::launch::async, [this]() {DoPrepareFrameData(); });
         }
-	}
-	else
-	{
+    } else {
 		DoPrepareFrameData();
 	}
 }
 
 void AudioManager::LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
 {
-    if (separateThread)
-    {
+    if (separateThread) {
         _loadingAudio = std::async(std::launch::async, [this, formatContext, codecContext, audioStream, frame]() {DoLoadAudioData(formatContext, codecContext, audioStream, frame); });
-    }
-    else
-    {
+    } else {
         DoLoadAudioData(formatContext, codecContext, audioStream, frame);
     }
 }
 
 void ProgressFunction(wxProgressDialog* pd, int p)
 {
-    if (pd != nullptr)
-    {
+    if (pd != nullptr) {
         pd->Update(p);
     }
 }
@@ -2109,8 +2097,7 @@ void AudioManager::SetFrameInterval(int intervalMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // If this is different from what it was previously
-	if (_intervalMS != intervalMS)
-	{
+	if (_intervalMS != intervalMS) {
         logger_base.debug("Changing frame interval to %d", intervalMS);
 
         // save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
@@ -2132,8 +2119,7 @@ void AudioManager::SetStepBlock(int step, int block)
 	int extra = std::max(step, block) + 1;
 
 	// we only need to reopen if the extra bytes are greater
-	if (extra > _extra)
-	{
+	if (extra > _extra) {
 		_extra = extra;
 		_state = -1;
 		OpenMediaFile();
@@ -2144,28 +2130,26 @@ void AudioManager::SetStepBlock(int step, int block)
 AudioManager::~AudioManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("AudioManager::~AudioManager");
     RemoveAudioDeviceChangeListener();
 
-    while (IsOk() && !IsDataLoaded())
-    {
+    while (IsOk() && !IsDataLoaded()) {
         logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
         wxMilliSleep(100);
     }
 
     // wait for async tasks to finish
     _loadingAudio.wait();
-    _prepFrameData.wait();
+    if (_prepFrameData.valid()) _prepFrameData.wait();
 
-    if (_pcmdata != nullptr)
-    {
+    if (_pcmdata != nullptr) {
         __sdl.Stop();
         __sdl.RemoveAudio(_sdlid);
         free(_pcmdata);
         _pcmdata = nullptr;
     }
 
-    while (_filtered.size() > 0)
-    {
+    while (_filtered.size() > 0) {
         if (_filtered.back()->data0) {
             free(_filtered.back()->data0);
         }
@@ -2185,16 +2169,15 @@ AudioManager::~AudioManager()
     // Grab the lock so we know the background process isnt runnning
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
-	if (_data[1] != _data[0] && _data[1] != nullptr)
-	{
+	if (_data[1] != _data[0] && _data[1] != nullptr) {
 		free(_data[1]);
 		_data[1] = nullptr;
 	}
-	if (_data[0] != nullptr)
-	{
+	if (_data[0] != nullptr) {
 		free(_data[0]);
 		_data[0] = nullptr;
 	}
+    logger_base.debug("AudioManager::~AudioManager Done");
 }
 
 // Split the MP# data into left and right and normalise the values
@@ -2426,9 +2409,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     }
 
     _pcmdatasize = _trackSize * out_channels * 2;
-    _pcmdata = (Uint8*)malloc(_pcmdatasize + PCMFUDGE); // PCMFUDGE is a fudge because some ogg files dont read consistently
-    if (_pcmdata == nullptr)
-    {
+    _pcmdata = (Uint8*)calloc(_pcmdatasize + PCMFUDGE, 1); // PCMFUDGE is a fudge because some ogg files dont read consistently
+    if (_pcmdata == nullptr) {
         _pcmdatasize = 0;
         logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + PCMFUDGE);
         _ok = false;
@@ -2785,7 +2767,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
     int16_t* pcm = fad->pcmdata;
     int min = 32000;
     int max = -32000;
-    for (int i = 0; i < (_pcmdatasize + PCMFUDGE) / sizeof(int16_t); i++)     {
+    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++)     {
         if (*pcm > max) max = *pcm;
         if (*pcm < min) min = *pcm;
         pcm++;
@@ -2806,7 +2788,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
     if (scale > 10.0) scale = 10.0;
 
     pcm = fad->pcmdata;
-    for (int i = 0; i < (_pcmdatasize + PCMFUDGE) / sizeof(int16_t); i++) {
+    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++) {
 
         int newv = ((double)(*pcm) * scale);
 
@@ -2835,7 +2817,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
 
     double fscale = 1.0;
     mm = std::max(fmax, abs(fmin));
-    wxASSERT(mm <= 1.0);
+    wxASSERT(mm <= 32767.0);
     if (fmax > 0) {
         fscale = 1.0 / mm;
     }
@@ -2892,8 +2874,8 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             fad->data1 = (float*)malloc(datasize);
             memcpy(fad->data1, _data[1], datasize);
         }
-        fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
-        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize + PCMFUDGE);
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize);
         fad->lowNote = 0;
         fad->highNote = 0;
         fad->type = AUDIOSAMPLETYPE::RAW;
@@ -2914,7 +2896,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                 if (_data[1] != nullptr) {
                     fad->data1 = (float*)malloc(datasize);
                 }
-                fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
+                fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
 
                 for (int i = 0; i < _trackSize; ++i) {
                     float v = _data[0][i];
@@ -2965,7 +2947,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             if (_data[1] != nullptr)             {
                 fad->data1 = (float*)malloc(datasize);
             }
-            fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
+            fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
 
             //Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
             float f1_c = lowHz / _rate;
@@ -3025,7 +3007,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     }
 
     if (fad && _pcmdata && fad->pcmdata) {
-        memcpy(_pcmdata, fad->pcmdata, _pcmdatasize + PCMFUDGE);
+        memcpy(_pcmdata, fad->pcmdata, _pcmdatasize);
     }
 
     {

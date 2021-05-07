@@ -1633,6 +1633,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
         wxString name = xml_file->GetFullPath();
         xLightsParent->CloseSequence();
         xLightsParent->OpenSequence( name, nullptr );
+        xml_file = xLightsParent->CurrentSeqXmlFile;
     }
 }
 
