@@ -47,7 +47,7 @@
     </Controller>
     <Controller Name="QuinLED-Dig-Uno">
         <Variant Name="" Base="WLED:BaseWLEDSettings">
-            <MaxPixelPort>1</MaxPixelPort>
+            <MaxPixelPort>2</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
         </Variant>
     </Controller>
