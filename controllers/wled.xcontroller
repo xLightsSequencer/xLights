@@ -3,15 +3,13 @@
         <!--SupportsPixelPortCommonSettings/-->
         <SupportsPixelPortDirection/>
         <SupportsPixelPortColourOrder/>
-        <!--SupportsUpload/-->
-        <!--SupportsInputOnlyUpload/-->
+        <SupportsUpload/>
         <MaxInputUniverses>9</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
         <MaxPixelPortChannels>4500</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
-		<NeedsDDPInputUpload/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
             <Protocol>tm18xx</Protocol>
