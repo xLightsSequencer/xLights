@@ -7,7 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
- 
+
 //(*InternalHeaders(NodeSelectGrid)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -36,6 +36,7 @@
 const long NodeSelectGrid::ID_CHECKBOX1 = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_ALL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_NONE = wxNewId();
+const long NodeSelectGrid::ID_BUTTON_INVERT_SELECT = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_LOAD_MODEL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_PLUS = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_MINUS = wxNewId();
@@ -219,7 +220,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     }
     selectBackColor = wxColour("grey");
 
-    
+
 	//(*Initialize(NodeSelectGrid)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -253,6 +254,8 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL|wxEXPAND, 5);
 	ButtonSelectNone = new wxButton(this, ID_BUTTON_SELECT_NONE, _("Select None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_NONE"));
 	FlexGridSizer3->Add(ButtonSelectNone, 1, wxALL|wxEXPAND, 5);
+	ButtonInvertSelect = new wxButton(this, ID_BUTTON_INVERT_SELECT, _("Invert"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_INVERT_SELECT"));
+	FlexGridSizer3->Add(ButtonInvertSelect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonLoadModel = new wxButton(this, ID_BUTTON_LOAD_MODEL, _("From Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD_MODEL"));
 	FlexGridSizer3->Add(ButtonLoadModel, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -305,6 +308,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBox_OrderedSelectionClick);
 	Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectAllClick);
 	Connect(ID_BUTTON_SELECT_NONE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectNoneClick);
+	Connect(ID_BUTTON_INVERT_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonInvertSelectClick);
 	Connect(ID_BUTTON_LOAD_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonLoadModelClick);
 	Connect(ID_BUTTON_ZOOM_PLUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomPlusClick);
 	Connect(ID_BUTTON_ZOOM_MINUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomMinusClick);
@@ -354,7 +358,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
         bool checked = true;
         wxConfigBase* config = wxConfigBase::Get();
         if (config != nullptr) {
-             checked = config->ReadBool("NodeSelectGridOrderedSelection", true);            
+             checked = config->ReadBool("NodeSelectGridOrderedSelection", true);
         }
         CheckBox_OrderedSelection->SetValue(checked);
     }
@@ -529,6 +533,34 @@ void NodeSelectGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
         }
     }
     TextCtrl_Nodes->SetValue("");
+    GridNodes->ClearSelection();
+    GridNodes->Refresh();
+    ValidateWindow();
+}
+
+void NodeSelectGrid::OnButtonInvertSelectClick(wxCommandEvent& event)
+{
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
+    {
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
+        {
+            const wxString value = GridNodes->GetCellValue(y, x);
+            if (!value.IsNull() && !value.IsEmpty())
+            {
+                if (GridNodes->GetCellTextColour(y, x) == selectColor)
+                {
+                    GridNodes->SetCellTextColour(y, x, unselectColor);
+                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                }
+                else
+                {
+                    GridNodes->SetCellTextColour(y, x, selectColor);
+                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                }
+            }
+        }
+    }
+    UpdateTextFromGrid();
     GridNodes->ClearSelection();
     GridNodes->Refresh();
     ValidateWindow();
@@ -1406,3 +1438,4 @@ void NodeSelectGrid::OnKeyDown(wxKeyEvent& event)
         event.Skip(true);
     }
 }
+

@@ -49,6 +49,7 @@ class NodeSelectGrid: public wxDialog
 		DrawGrid* GridNodes;
 		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButton1;
+		wxButton* ButtonInvertSelect;
 		wxButton* ButtonLoadModel;
 		wxButton* ButtonNodeSelectCancel;
 		wxButton* ButtonNodeSelectOK;
@@ -75,6 +76,7 @@ class NodeSelectGrid: public wxDialog
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_BUTTON_SELECT_NONE;
+		static const long ID_BUTTON_INVERT_SELECT;
 		static const long ID_BUTTON_LOAD_MODEL;
 		static const long ID_BUTTON_ZOOM_PLUS;
 		static const long ID_BUTTON_ZOOM_MINUS;
@@ -110,6 +112,7 @@ class NodeSelectGrid: public wxDialog
 		void OnGridNodesCellSelect(wxGridRangeSelectEvent& event);
 		void OnCheckBox_OrderedSelectionClick(wxCommandEvent& event);
 		void OnTextCtrl_NodesText(wxCommandEvent& event);
+		void OnButtonInvertSelectClick(wxCommandEvent& event);
 		//*)
 
         void OnCut(wxCommandEvent& event);
