@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott) Added WLED Upload Support, requires WLED v0.12.1 Build 2105110 or newer
+   -- enh (scott) Added the Ability To Join Submodels
 2021.15 May 3, 2021
    -- enh (scott) Add resize to Media Import Options
    -- enh (scott) Add Pixie2 to LOR optimized output

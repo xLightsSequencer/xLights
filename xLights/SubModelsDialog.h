@@ -186,6 +186,7 @@ protected:
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
+    static const long SUBMODEL_DIALOG_JOIN;
 
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
@@ -226,6 +227,8 @@ protected:
     void ExportSubModels(wxString const& filename);
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
 
+    void JoinSelectedModels();
+
 private:
 
     //(*Handlers(SubModelsDialog)
@@ -260,6 +263,7 @@ private:
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_EditClick(wxCommandEvent& event);
     void OnButton_ExportClick(wxCommandEvent& event);
+    void OnListCtrl_SubModelsItemRClick(wxListEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -271,6 +275,7 @@ private:
     void OnImportBtnPopup(wxCommandEvent& event);
     void OnEditBtnPopup(wxCommandEvent& event);
     void OnExportBtnPopup(wxCommandEvent& event);
+    void OnListPopup(wxCommandEvent& event);
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);

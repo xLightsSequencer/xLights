@@ -89,6 +89,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_JOIN = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -256,6 +257,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
+	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemRClick);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsKeyDown);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsColumnClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
@@ -430,7 +432,7 @@ wxString SubModelsDialog::GetSelectedNames()
     {
         if (IsItemSelected(ListCtrl_SubModels, i) )
         {
-            names+=ListCtrl_SubModels->GetItemText(i)+",";
+            names += ListCtrl_SubModels->GetItemText(i) + ",";
         }
     }
     if (names.EndsWith(",")) {
@@ -657,7 +659,6 @@ void SubModelsDialog::OnButton_ExportClick(wxCommandEvent& event)
     event.Skip();
 }
 
-
 void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_IMPORT_MODEL) {
@@ -728,6 +729,13 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
     }
 }
 
+void SubModelsDialog::OnListPopup(wxCommandEvent& event) 
+{
+    if (event.GetId() == SUBMODEL_DIALOG_JOIN) {
+        JoinSelectedModels();
+    }
+}
+
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -765,8 +773,7 @@ void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    if (sm != nullptr)
-    {
+    if (sm != nullptr) {
         sm->vertical = LayoutCheckbox->GetValue();
     }
 }
@@ -797,7 +804,6 @@ void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
     DisplayRange(sm->subBuffer);
 }
 
-
 void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
 {
     SelectRow(event.GetRow());
@@ -806,111 +812,16 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     }
 }
 
-void SubModelsDialog::Generate()
+void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
 {
-    SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
-
-    if (dialog.ShowModal() == wxID_OK)
+    if (ListCtrl_SubModels->GetSelectedItemCount() > 1)
     {
-        int last = 0;
-        for (int i = 0; i < dialog.GetCount(); i++)
-        {
-            wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
-            wxString name = GenerateSubModelName(basename);
+        wxMenu mnu;
+        mnu.Append(SUBMODEL_DIALOG_JOIN, "Join");
 
-            if (GetSubModelInfoIndex(name) != -1)
-            {
-                // this name clashes ... so I cant create it
-            }
-            else
-            {
-                SubModelInfo* sm = new SubModelInfo(name);
-                sm->vertical = false;
-                sm->strands.clear();
-                sm->strands.push_back("");
-
-                if (dialog.GetType() == "Vertical Slices")
-                {
-                    GenerateSegment(sm, 1, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Horizontal Slices")
-                {
-                    GenerateSegment(sm, 1, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 2 Wide")
-                {
-                    GenerateSegment(sm, 2, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 2 High")
-                {
-                    GenerateSegment(sm, 2, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 3 Wide")
-                {
-                    GenerateSegment(sm, 3, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 3 High")
-                {
-                    GenerateSegment(sm, 3, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Nodes")
-                {
-                    sm->isRanges = true;
-                    float per = (float)model->GetNodeCount() / (float)dialog.GetCount();
-                    int start = last + 1;
-                    int end = (i+1) * per;
-
-                    if (i == dialog.GetCount() - 1)
-                    {
-                        end = model->GetNodeCount();
-                    }
-
-                    last = end;
-                    if (start == end)
-                    {
-                        sm->strands[0] = wxString::Format("%i", start);
-                    }
-                    else
-                    {
-                        sm->strands[0] = wxString::Format("%i-%i", start, end);
-                    }
-                }
-                _subModels.push_back(sm);
-                PopulateList();
-                ValidateWindow();
-                //Select(name);
-            }
-        }
+        mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnListPopup, nullptr, this);
+        PopupMenu(&mnu);
     }
-}
-
-wxString SubModelsDialog::ReverseRow(wxString row)
-{
-    wxString newStrand = "";
-    auto nodes = wxSplit(row, ',');
-    for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
-    {
-        if (nit != nodes.rbegin()) newStrand += ",";
-        if (nit->Contains('-'))
-        {
-            auto range = wxSplit(*nit, '-');
-            if (range.size() == 2)
-            {
-                newStrand += range[1] + "-" + range[0];
-            }
-            else
-            {
-                // not valid so just copy
-                newStrand += *nit;
-            }
-        }
-        else
-        {
-            newStrand += *nit;
-        }
-    }
-
-    return newStrand;
 }
 
 void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
@@ -1199,10 +1110,13 @@ void SubModelsDialog::Select(const wxString &name)
                 NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Line %d", (x + 1)));
             }
             NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
+
         }
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);
-        SelectRow(0);
+        NodesGrid->ForceRefresh();
+        SelectRow(-1);
+
     } else {
         TypeNotebook->SetSelection(1);
         NodesGrid->BeginBatch();
@@ -1399,6 +1313,84 @@ void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
     } else {
         wxString first = tokenizer.GetNextToken();
         Select(first);
+    }
+}
+
+void SubModelsDialog::Generate()
+{
+    SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        int last = 0;
+        for (int i = 0; i < dialog.GetCount(); i++)
+        {
+            wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
+            wxString name = GenerateSubModelName(basename);
+
+            if (GetSubModelInfoIndex(name) != -1)
+            {
+                // this name clashes ... so I cant create it
+            }
+            else
+            {
+                SubModelInfo* sm = new SubModelInfo(name);
+                sm->vertical = false;
+                sm->strands.clear();
+                sm->strands.push_back("");
+
+                if (dialog.GetType() == "Vertical Slices")
+                {
+                    GenerateSegment(sm, 1, i, false, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Horizontal Slices")
+                {
+                    GenerateSegment(sm, 1, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 2 Wide")
+                {
+                    GenerateSegment(sm, 2, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 2 High")
+                {
+                    GenerateSegment(sm, 2, i, false, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 3 Wide")
+                {
+                    GenerateSegment(sm, 3, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 3 High")
+                {
+                    GenerateSegment(sm, 3, i, false, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Nodes")
+                {
+                    sm->isRanges = true;
+                    float per = (float)model->GetNodeCount() / (float)dialog.GetCount();
+                    int start = last + 1;
+                    int end = (i + 1) * per;
+
+                    if (i == dialog.GetCount() - 1)
+                    {
+                        end = model->GetNodeCount();
+                    }
+
+                    last = end;
+                    if (start == end)
+                    {
+                        sm->strands[0] = wxString::Format("%i", start);
+                    }
+                    else
+                    {
+                        sm->strands[0] = wxString::Format("%i-%i", start, end);
+                    }
+                }
+                _subModels.push_back(sm);
+                PopulateList();
+                ValidateWindow();
+                //Select(name);
+            }
+        }
     }
 }
 
@@ -1730,8 +1722,308 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
+{
+    const wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    NodeSelectGrid dialog(true, name, model, sm->strands, this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        sm->strands = dialog.GetRowData();
+
+        Select(GetSelectedName());
+        dialog.Close();
+
+        Panel3->SetFocus();
+        NodesGrid->SetFocus();
+
+        ValidateWindow();
+    }
+}
+
+void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
+{
+    OnNodesGridCellLeftDClick(event);
+}
+
+void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
+{
+    int row = event.GetRow();
+    const wxString name = GetSelectedName();
+    if (name == "" || row == -1) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
+    NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
+
+        Select(GetSelectedName());
+        dialog.Close();
+
+        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        Panel3->SetFocus();
+        NodesGrid->SetFocus();
+        SelectRow(row >= 0 ? row : 0);
+
+        ValidateWindow();
+    }
+}
+
+wxString SubModelsDialog::ReverseRow(wxString row)
+{
+    wxString newStrand = "";
+    auto nodes = wxSplit(row, ',');
+    for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
+    {
+        if (nit != nodes.rbegin()) newStrand += ",";
+        if (nit->Contains('-'))
+        {
+            auto range = wxSplit(*nit, '-');
+            if (range.size() == 2)
+            {
+                newStrand += range[1] + "-" + range[0];
+            }
+            else
+            {
+                // not valid so just copy
+                newStrand += *nit;
+            }
+        }
+        else
+        {
+            newStrand += *nit;
+        }
+    }
+
+    return newStrand;
+}
 #pragma endregion
 
+#pragma region Priveiw Selection
+void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
+{
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+
+        SelectAllInBoundingRect(event.ShiftDown());
+        m_creating_bound_rect = false;
+
+        //RenderModel();
+    }
+}
+
+void SubModelsDialog::OnPreviewMouseLeave(wxMouseEvent& event)
+{
+    m_creating_bound_rect = false;
+    RenderModel();
+}
+
+void SubModelsDialog::OnPreviewLeftDown(wxMouseEvent& event)
+{
+    m_creating_bound_rect = true;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    m_bound_start_x = ray_origin.x;
+    m_bound_start_y = ray_origin.y;
+    m_bound_end_x = m_bound_start_x;
+    m_bound_end_y = m_bound_start_y;
+}
+
+void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    int x = ray_origin.x;
+    int y = ray_origin.y;
+    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
+    if (stNode.IsEmpty())
+        return;
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    int row = NodesGrid->GetGridCursorRow();
+    if (row < 0)
+        return;
+
+    std::vector<wxRealPoint> pts;
+    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    auto oldNodeArrray = wxSplit(oldnodes, ',');
+
+    //toggle nodes if double click
+    bool found = false;
+    for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+        if (*it == stNode) {
+            oldNodeArrray.erase(it);//remove if in list
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        oldNodeArrray.push_back(stNode);//add if not in list
+    }
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+
+    Select(GetSelectedName());
+    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+    SelectRow(row >= 0 ? row : 0);
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+        RenderModel();
+    }
+}
+
+void SubModelsDialog::RenderModel()
+{
+    if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
+
+    if (m_creating_bound_rect) {
+        modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+    }
+    model->DisplayEffectOnWindow(modelPreview, 2);
+    modelPreview->EndDrawing();
+}
+
+void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
+{
+    VectorMath::ScreenPosToWorldRay(
+        x, modelPreview->getHeight() - y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetProjViewMatrix(),
+        ray_origin,
+        ray_direction
+    );
+}
+
+void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
+{
+    if (shiftDwn) {
+        RemoveNodes();
+        return;
+    }
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm->isRanges)
+        return;
+
+    int row = NodesGrid->GetGridCursorRow();
+    if (row < 0)
+        return;
+
+    std::vector<wxRealPoint> pts;
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    if (nodes.size() == 0)
+        return;
+    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+
+    auto oldNodeArrray = wxSplit(oldnodes, ',');
+    for (auto const& newNode : nodes) {
+        wxString stNode = wxString::Format("%d", newNode);
+        bool found = false;
+        for (auto const& oldNode : oldNodeArrray) {
+            if (oldNode == stNode) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            oldNodeArrray.push_back(stNode);
+        }
+    }
+
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+
+    Select(GetSelectedName());
+
+    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+    SelectRow(row >= 0 ? row : 0);
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::RemoveNodes()
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    if (!sm->isRanges)
+        return;
+
+    int row = NodesGrid->GetGridCursorRow();
+    if (row < 0)
+        return;
+
+    std::vector<wxRealPoint> pts;
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    if (nodes.size() == 0)
+        return;
+    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    auto oldNodeArrray = wxSplit(oldnodes, ',');
+
+    for (auto const& newNode : nodes) {
+        wxString stNode = wxString::Format("%d", newNode);
+        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+            if (*it == stNode) {
+                oldNodeArrray.erase(it);
+                break;
+            }
+        }
+    }
+
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+
+    Select(GetSelectedName());
+    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+    SelectRow(row >= 0 ? row : 0);
+    ValidateWindow();
+}
+#pragma endregion
+
+#pragma region Import Export Code
 //Import SubModel From xModel File
 void SubModelsDialog::ImportSubModel(std::string filename)
 {
@@ -1822,64 +2114,6 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
         choices.Add(m->Name());
     }
     return choices;
-}
-
-void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
-{
-    const wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-
-    SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(true, name, model, sm->strands, this);
-
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands = dialog.GetRowData();
-
-        Select(GetSelectedName());
-        dialog.Close();
-
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
-
-        ValidateWindow();
-    }
-}
-
-void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
-{
-    OnNodesGridCellLeftDClick(event);
-}
-
-void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
-{
-    int row = event.GetRow();
-    const wxString name = GetSelectedName();
-    if (name == "" || row == -1) {
-        return;
-    }
-
-    SubModelInfo* sm = GetSubModelInfo(name);
-
-    const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
-    NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], this);
-
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
-
-        Select(GetSelectedName());
-        dialog.Close();
-
-        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
-        SelectRow(row >= 0 ? row : 0);
-
-        ValidateWindow();
-    }
 }
 
 void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap)
@@ -2002,7 +2236,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                                     row += wxString::Format("%d,", nn+1);
                                     nodeMap[wxAtoi(c)] = nn;
                                 }
-                                else                                     {
+                                else {
                                     row += ",";
                                 }
                             }
@@ -2234,10 +2468,10 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
     for (const auto& strand : info->strands) {
         auto ranges = wxSplit(strand, ',');
 
-        for (const auto& r : ranges)             {
-            if (Contains(r, "-"))                 {
+        for (const auto& r : ranges) {
+            if (Contains(r, "-")) {
                 auto ss = wxSplit(r, '-');
-                if (ss.size() == 2)                     {
+                if (ss.size() == 2) {
                     int start = wxAtoi(Trim(ss[0]));
                     int end = wxAtoi(Trim(ss[1]));
                     if (start > 0 && end > 0) {
@@ -2247,7 +2481,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
                             std::vector<wxPoint> pts;
                             model->GetNodeCoords(n-1, pts);
 
-                            if (pts.size() > 0)                                 {
+                            if (pts.size() > 0) {
                                 data[pts[0].y][pts[0].x] = n;
                                 nodenums.push_back(n);
                             }
@@ -2255,7 +2489,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
                     }
                 }
             }
-            else                 {
+            else {
                 int n = wxAtoi(Trim(r));
                 if (n > 0) {
                     std::vector<wxPoint> pts;
@@ -2272,12 +2506,12 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
     nodenums.sort();
 
     // now go through and 1 base all the nodes
-    for (int r = 0; r < rows; r++)         {
-        for (int c = 0; c < cols; c++)             {
-            if (data[r][c] > 0)                 {
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            if (data[r][c] > 0) {
                 int newnum = 0;
-                for (const auto& it : nodenums)                     {
-                    if (it == data[r][c])                         {
+                for (const auto& it : nodenums) {
+                    if (it == data[r][c]) {
                         data[r][c] = newnum + 1;
                         break;
                     }
@@ -2298,7 +2532,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
 
     for (int r = rows - 1 ; r >= 0; r--) {
         for (int c = 0; c < cols; c++) {
-            if (data[r][c] != 0)                 {
+            if (data[r][c] != 0) {
                 cm += wxString::Format("%d", data[r][c]);
             }
             if (c != cols - 1) cm += ",";
@@ -2320,217 +2554,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
 
     f.Close();
 }
-
-void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
-{
-    if (m_creating_bound_rect) {
-        glm::vec3 ray_origin;
-        glm::vec3 ray_direction;
-        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-        m_bound_end_x = ray_origin.x;
-        m_bound_end_y = ray_origin.y;
-
-        SelectAllInBoundingRect(event.ShiftDown());
-        m_creating_bound_rect = false;
-
-        //RenderModel();
-    }
-}
-
-void SubModelsDialog::OnPreviewMouseLeave(wxMouseEvent& event)
-{
-    m_creating_bound_rect = false;
-    RenderModel();
-}
-
-void SubModelsDialog::OnPreviewLeftDown(wxMouseEvent& event)
-{
-    m_creating_bound_rect = true;
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-    m_bound_start_x = ray_origin.x;
-    m_bound_start_y = ray_origin.y;
-    m_bound_end_x = m_bound_start_x;
-    m_bound_end_y = m_bound_start_y;
-}
-
-void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
-{
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-    int x = ray_origin.x;
-    int y = ray_origin.y;
-    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
-    if (stNode.IsEmpty())
-        return;
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-
-    SubModelInfo* sm = GetSubModelInfo(name);
-    int row = NodesGrid->GetGridCursorRow();
-    if (row < 0)
-        return;
-
-    std::vector<wxRealPoint> pts;
-    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = wxSplit(oldnodes, ',');
-
-    //toggle nodes if double click
-    bool found = false;
-    for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-        if (*it == stNode) {
-            oldNodeArrray.erase(it);//remove if in list
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        oldNodeArrray.push_back(stNode);//add if not in list
-    }
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
-
-    Select(GetSelectedName());
-    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-    SelectRow(row >= 0 ? row : 0);
-
-    ValidateWindow();
-}
-
-void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
-{
-    event.ResumePropagation(1);
-    event.Skip();
-    if (m_creating_bound_rect) {
-        glm::vec3 ray_origin;
-        glm::vec3 ray_direction;
-        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-        m_bound_end_x = ray_origin.x;
-        m_bound_end_y = ray_origin.y;
-        RenderModel();
-    }
-}
-
-void SubModelsDialog::RenderModel()
-{
-    if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
-
-    if (m_creating_bound_rect) {
-        modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
-    }
-    model->DisplayEffectOnWindow(modelPreview, 2);
-    modelPreview->EndDrawing();
-}
-
-void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
-{
-    VectorMath::ScreenPosToWorldRay(
-        x, modelPreview->getHeight() - y,
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetProjViewMatrix(),
-        ray_origin,
-        ray_direction
-    );
-}
-
-void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
-{
-    if (shiftDwn) {
-        RemoveNodes();
-        return;
-    }
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-
-    SubModelInfo* sm = GetSubModelInfo(name);
-    if (!sm->isRanges)
-        return;
-
-    int row = NodesGrid->GetGridCursorRow();
-    if (row < 0)
-        return;
-
-    std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview,wxPoint(m_bound_start_x, m_bound_start_y),wxPoint(m_bound_end_x,m_bound_end_y));
-    if (nodes.size() == 0)
-        return;
-    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-
-    auto oldNodeArrray = wxSplit(oldnodes, ',');
-    for (auto const& newNode : nodes) {
-        wxString stNode = wxString::Format("%d", newNode);
-        bool found = false;
-        for (auto const& oldNode : oldNodeArrray) {
-            if (oldNode == stNode) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            oldNodeArrray.push_back(stNode);
-        }
-    }
-
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray,','));
-
-    Select(GetSelectedName());
-
-    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-    SelectRow(row >= 0 ? row : 0);
-
-    ValidateWindow();
-}
-
-void SubModelsDialog::RemoveNodes()
-{
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-    SubModelInfo* sm = GetSubModelInfo(name);
-
-    if (!sm->isRanges)
-        return;
-
-    int row = NodesGrid->GetGridCursorRow();
-    if (row < 0)
-        return;
-
-    std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
-    if (nodes.size() == 0)
-        return;
-    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = wxSplit(oldnodes, ',');
-
-    for (auto const& newNode : nodes) {
-        wxString stNode = wxString::Format("%d", newNode);
-        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-            if (*it == stNode) {
-                oldNodeArrray.erase(it);
-                break;
-            }
-        }
-    }
-
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
-
-    Select(GetSelectedName());
-    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-    SelectRow(row >= 0 ? row : 0);
-    ValidateWindow();
-}
+#pragma endregion
 
 //Shift nodes  numbering 1->21, 100->120
 void SubModelsDialog::Shift()
@@ -2576,7 +2600,6 @@ void SubModelsDialog::Shift()
     }
 }
 
-
 void SubModelsDialog::FlipHorizontal()
 {
     wxString name = GetSelectedName();
@@ -2595,7 +2618,6 @@ void SubModelsDialog::FlipHorizontal()
     Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
     TextCtrl_Name->SelectAll();
-
 }
 
 void SubModelsDialog::FlipVertical()
@@ -2652,6 +2674,43 @@ void SubModelsDialog::Reverse()
             }
         }
     }
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
+
+void SubModelsDialog::JoinSelectedModels()
+{
+    wxString name = GenerateSubModelName("SubModel-1");
+
+    SubModelInfo* new_sm = new SubModelInfo(name);
+
+    new_sm->isRanges = true;
+
+    wxString names = GetSelectedNames();
+    wxStringTokenizer tokenizer(names, ",");
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken();
+        int index = GetSubModelInfoIndex(token);
+
+        SubModelInfo* old_sm = _subModels.at(index);
+        if (!old_sm->isRanges) {
+            continue;
+        }
+        new_sm->vertical = old_sm->vertical;
+
+        for (auto const& stand : old_sm->strands) {
+            new_sm->strands.push_back(stand);
+        }
+    }
+
+    _subModels.push_back(new_sm);
+
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), new_sm->name);
+    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)new_sm);
     ValidateWindow();
     Select(name);
 
