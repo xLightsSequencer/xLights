@@ -72,13 +72,13 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _("0.000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
+	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
 	TextCtrl_Select_StartTime->SetMaxLength(7);
 	TextCtrl_Select_StartTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_StartTime, 1, wxALL, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("End"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _("0.000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
+	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
 	TextCtrl_Select_EndTime->SetMaxLength(7);
 	TextCtrl_Select_EndTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_EndTime, 1, wxALL, 5);
@@ -122,14 +122,15 @@ SelectPanel::~SelectPanel()
 
 void SelectPanel::populateModelsList(const std::string& effectType)
 {
-    if (effectType.empty())return;
+    if (effectType.empty()) return;
 
     std::vector<wxString> models;
 
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
         Element* el = mSequenceElements->GetElement(i);
-        if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+        if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
+        }
 
         for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
             EffectLayer* elay = el->GetEffectLayer(i);
@@ -138,6 +139,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                 break;
             }
         }
+
         if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr) {
@@ -164,7 +166,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
         populateEffectsList();
     }
 
-    TextCtrl_Select_EndTime->SetValue(wxString::Format("%.5f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
+    TextCtrl_Select_EndTime->SetValue(wxString::Format("%05.1f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
 }
 
 void SelectPanel::populateEffectsList()
@@ -181,18 +183,21 @@ void SelectPanel::populateEffectsList()
         for (auto value : modelsSelected) {
             auto const& modelname = ListBox_Select_Models->GetString(value);
             Element* el = mSequenceElements->GetElement(modelname);
-            if (el == nullptr || el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+            if (el == nullptr || el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 continue;
+            }
 
             wxString tmpname;
-            if (modelsSelected.size() > 1)
+            if (modelsSelected.size() > 1) {
                 tmpname = modelname;
+            }
 
             for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
                 EffectLayer* elay = el->GetEffectLayer(i);
                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
-                for (Effect* eff : effs)
-                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname),(void * )eff);
+                for (Effect* eff : effs) {
+                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                }
             }
 
             if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -204,8 +209,9 @@ void SelectPanel::populateEffectsList()
                             for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                                 EffectLayer* elay = sme->GetEffectLayer(j);
                                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
-                                for (Effect* eff : effs)
+                                for (Effect* eff : effs) {
                                     ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                                }
                             }
                         }
                     }
@@ -225,19 +231,15 @@ void SelectPanel::SelectEffects()
     wxArrayInt effectsSelected;
     ListBox_Select_Effects->GetSelections(effectsSelected);
 
-    if (effectsSelected.size() != 0)
-    {
+    if (effectsSelected.size() != 0) {
         bool first = true;
         mSequenceElements->UnSelectAllEffects();
 
-        for (auto value : effectsSelected)
-        {
+        for (auto value : effectsSelected) {
             Effect* eff = (Effect*)ListBox_Select_Effects->GetClientData(value);
-            if (eff != nullptr)
-            {
+            if (eff != nullptr) {
                 eff->SetSelected(EFFECT_SELECTED);
-                if (first)
-                {
+                if (first) {
                     mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(eff, false);
                     first = false;
                 }
@@ -270,8 +272,9 @@ void SelectPanel::OnListBox_Select_ModelsSelect(wxCommandEvent& event)
 
 void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListBox_Select_Models->GetCount(); ++i)
+    for (size_t i = 0; i < ListBox_Select_Models->GetCount(); ++i) {
         ListBox_Select_Models->SetSelection(i);
+    }
     populateEffectsList();
 }
 
@@ -302,8 +305,8 @@ std::pair< int, int > SelectPanel::GetStartAndEndTime()
 
 void SelectPanel::OnButton_Select_All_TimeClick(wxCommandEvent& event)
 {
-    TextCtrl_Select_StartTime->SetValue("0.000");
-    TextCtrl_Select_EndTime->SetValue(wxString::Format("%.5f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
+    TextCtrl_Select_StartTime->SetValue("000.0");
+    TextCtrl_Select_EndTime->SetValue(wxString::Format("%05.1f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
 }
 
 void SelectPanel::OnComboBox_Select_EffectDropdown(wxCommandEvent& event)
@@ -320,8 +323,9 @@ void SelectPanel::GetEffectTypes()
 {
     auto const& types = mSequenceElements->GetAllUsedEffectTypes();
     std::vector<wxString> keys;
-    for (std::string const& typ : types)
+    for (std::string const& typ : types) {
         keys.push_back(typ);
+    }
     std::sort(keys.begin(), keys.end());
     ComboBox_Select_Effect->Set(keys);
 }

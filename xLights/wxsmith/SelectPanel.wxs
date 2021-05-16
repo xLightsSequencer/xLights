@@ -78,7 +78,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_SELECT_STARTTIME" variable="TextCtrl_Select_StartTime" member="yes">
-							<value>0.000</value>
+							<value>000.0</value>
 							<maxlength>7</maxlength>
 							<size>30,-1d</size>
 							<minsize>35,-1d</minsize>
@@ -98,7 +98,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_SELECT_ENDTIME" variable="TextCtrl_Select_EndTime" member="yes">
-							<value>0.000</value>
+							<value>000.0</value>
 							<maxlength>7</maxlength>
 							<size>30,-1d</size>
 							<minsize>35,-1d</minsize>
