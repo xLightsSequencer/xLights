@@ -170,6 +170,7 @@ class ShaderConfig
     bool _hasRendersize = false;
     bool _hasTime = false;
     bool _hasCoord = false;
+    bool _hasPoint2D = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
@@ -183,7 +184,7 @@ public:
     bool IsAudioIntensityShader() const { return _audioIntensityMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
-    bool HasCoord() const { return _hasCoord; }
+    bool HasCoord() const { return (_hasCoord && !_hasPoint2D) ; }
     bool UsesEvents() const;
 };
 class ShaderRenderCache;
