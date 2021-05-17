@@ -1364,6 +1364,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 maxPt,
                 defPt
             ));
+ 		     _hasPoint2D = true ;
         }
         else if (type == "image")
         {
