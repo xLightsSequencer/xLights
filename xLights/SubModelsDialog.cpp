@@ -2695,8 +2695,13 @@ void SubModelsDialog::JoinSelectedModels()
     while (tokenizer.HasMoreTokens()) {
         wxString token = tokenizer.GetNextToken();
         int index = GetSubModelInfoIndex(token);
-
+        if (index == -1) {
+            continue;
+        }
         SubModelInfo* old_sm = _subModels.at(index);
+        if (old_sm == nullptr) {
+            continue;
+        }
         if (!old_sm->isRanges) {
             continue;
         }

@@ -84,8 +84,8 @@ class SubModelsDialog : public wxDialog
 
         wxString name;
         wxString oldName;
-        bool vertical;
-        bool isRanges;
+        bool vertical{false};
+        bool isRanges{true};
         wxString subBuffer;
         std::vector<wxString> strands;
     };
@@ -241,10 +241,8 @@ private:
     void OnAddRowButtonClick(wxCommandEvent& event);
     void OnDeleteRowButtonClick(wxCommandEvent& event);
     void OnSubBufferRangeChange(wxCommandEvent& event);
-    void OnNodesGridCellLeftClick(wxGridEvent& event);
     void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
     void OnNodesGridLabelLeftClick(wxGridEvent& event);
-    void OnButton_GenerateClick(wxCommandEvent& event);
     void OnButton_ReverseNodesClick(wxCommandEvent& event);
     void OnListCtrl_SubModelsItemSelect(wxListEvent& event);
     void OnListCtrl_SubModelsBeginDrag(wxListEvent& event);
