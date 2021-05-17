@@ -1431,7 +1431,7 @@ bool FPP::ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* con
     return true;
 }
 
-wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input) {
+wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input, std::map<int, int> *rngs) {
     wxJSONValue root;
     root["type"] = wxString("universes");
     root["enabled"] = 1;
@@ -1460,6 +1460,10 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
             universe["channelCount"] = it->GetChannels();
             universe["priority"] = 0;
             universe["address"] = wxString("");
+            
+            if (rngs && it->GetChannels() > 0 && controllerEnabled == Controller::ACTIVESTATE::ACTIVE) {
+                (*rngs)[c] = c + it->GetChannels() - 1;
+            }
 
             if (it->GetType() == OUTPUT_E131) {
                 universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);
@@ -1545,10 +1549,40 @@ bool FPP::Restart(const std::string &mode, bool ifNeeded) {
     if (ifNeeded && !restartNeeded) {
         return false;
     }
-    GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
+    if (majorVersion >= 5) {
+        GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
+    } else {
+        GetURLAsString("/fppxml.php?command=restartFPPD", val);
+    }
     GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=0", val);
     restartNeeded = false;
     return false;
+}
+void FPP::UpdateChannelRanges() {
+    wxJSONValue jval;
+    int count = 0;
+    while (count < 20) {
+        if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", jval, false)) {
+            if (jval.HasMember("channelRanges")) {
+                std::string r = jval["channelRanges"].AsString().ToStdString();
+                if (r.size() > 0) {
+                    //append the  new ranges,  then parse/reset which will do a merge/cleanup
+                    if (ranges.size() > 0) {
+                        ranges += ",";
+                    }
+                    ranges += r;
+                    std::map<int, int> rngs;
+                    FillRanges(rngs);
+                    SetNewRanges(rngs);
+                    return;
+                }
+            } else {
+                //fppd hasn't restarted yet, wait a tiny bit and try again
+                ++count;
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        }
+    }
 }
 
 void FPP::SetDescription(const std::string &st) {

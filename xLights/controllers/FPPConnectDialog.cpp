@@ -741,7 +741,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false);
+    std::map<int, int> udpRanges;
+    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
@@ -768,6 +769,10 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
                     cancelled |= inst->UploadUDPOut(outputs);
+                    //add the UDP ranges into the list of ranges
+                    std::map<int, int> rngs(udpRanges);
+                    inst->FillRanges(rngs);
+                    inst->SetNewRanges(rngs);
                     inst->SetRestartFlag();
                 } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
                     cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
@@ -787,6 +792,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     inst->SetRestartFlag();
                 }
+                //if restart flag is now set, restart and recheck range
+                inst->Restart("", true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
                 if (ipcontroller) {
@@ -798,7 +805,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
         row++;
     }
-    
+    row = 0;
+    for (const auto& inst : instances) {
+        if (!cancelled && doUpload[row]) {
+            std::string rowStr = std::to_string(row);
+            // update the channel ranges now that the config has been uploaded an fppd restarted
+            inst->UpdateChannelRanges();
+        }
+    }
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {

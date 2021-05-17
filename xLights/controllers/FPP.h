@@ -61,6 +61,11 @@ class FPP : public BaseController
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
+    
+    void UpdateChannelRanges();
+    void FillRanges(std::map<int, int> &rngs);
+    void SetNewRanges(const std::map<int, int> &rngs);
+
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
@@ -99,7 +104,7 @@ class FPP : public BaseController
 #ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
-    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input);
+    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
 #endif
     static std::string GetVendor(const std::string& type);
@@ -117,8 +122,6 @@ class FPP : public BaseController
 #pragma endregion
 
 private:
-    void FillRanges(std::map<int, int> &rngs);
-    void SetNewRanges(const std::map<int, int> &rngs);
     void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
