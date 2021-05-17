@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.16 May 17, 2021
+   -- bug (dkulp) FPP Connect - add UDP output ranges to sparse fseq files
+   -- bug (dkulp) Fix display issue in SubModels dialog where the list of ranges would not refresh properly
+   -- bug (dkulp) Fix more crashes in AudioManager
    -- enh (scott) Added WLED Upload Support, requires WLED v0.12.1 Build 2105110 or newer
    -- enh (scott) Added the Ability To Join Submodels
 2021.15 May 3, 2021
