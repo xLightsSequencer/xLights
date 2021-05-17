@@ -785,8 +785,7 @@ void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
         return;
     }
     SubModelInfo* sm = GetSubModelInfo(name);
-    if (sm != nullptr)
-    {
+    if (sm != nullptr) {
         sm->isRanges = TypeNotebook->GetSelection() == 0;
     }
     Select(name);
@@ -1124,6 +1123,7 @@ void SubModelsDialog::Select(const wxString &name)
             NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
         }
         NodesGrid->AppendRows(1); // we always need one row
+        NodesGrid->EndBatch();
         subBufferPanel->SetValue(sm->subBuffer.ToStdString());
         DisplayRange(sm->subBuffer);
     }
