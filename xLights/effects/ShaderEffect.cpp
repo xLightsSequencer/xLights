@@ -1284,7 +1284,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             for (int j = 0; j < _tmpStr.length(); j++) {
                 _tmpStr[j] = tolower(_tmpStr[j]);
             }
-            if (_tmpStr.find("zoom") > (_tmpStr.length() - 4)) _hasZoom = true;
+            // these are the two most common names used in shaders for this input
+            if (_tmpStr.find("zoom") < (_tmpStr.length() - 3)) _hasZoom = true;
+            if (_tmpStr.find("scale") < (_tmpStr.length() - 4)) _hasZoom = true;
         }
         else if (type == "long")
         {
