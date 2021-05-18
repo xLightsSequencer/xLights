@@ -270,20 +270,43 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
         }
 
         if (_shaderConfig->HasCoord()) {
-            StaticText_Shader_Offset_X->Show();
-            StaticText_Shader_Offset_Y->Show();
-            StaticText_Shader_Zoom->Show();
-            TextCtrl_Shader_Offset_X->Show();
-            TextCtrl_Shader_Offset_Y->Show();
-            TextCtrl_Shader_Zoom->Show();
-            Slider_Shader_Offset_X->Show();
-            Slider_Shader_Offset_Y->Show();
-            Slider_Shader_Zoom->Show();
-            BitmapButton_Shader_Offset_X->Show();
-            BitmapButton_Shader_Offset_Y->Show();
-            BitmapButton_Shader_Zoom->Show();
+            if (_shaderConfig->HasPoint2D()) {
+                // shader already implements offset controls
+                StaticText_Shader_Offset_X->Hide();
+                StaticText_Shader_Offset_Y->Hide();
+                TextCtrl_Shader_Offset_X->Hide();
+                TextCtrl_Shader_Offset_Y->Hide();
+                Slider_Shader_Offset_X->Hide();
+                Slider_Shader_Offset_Y->Hide();
+                BitmapButton_Shader_Offset_X->Hide();
+                BitmapButton_Shader_Offset_Y->Hide();
+            }
+            else {
+                StaticText_Shader_Offset_X->Show();
+                StaticText_Shader_Offset_Y->Show();
+                TextCtrl_Shader_Offset_X->Show();
+                TextCtrl_Shader_Offset_Y->Show();
+                Slider_Shader_Offset_X->Show();
+                Slider_Shader_Offset_Y->Show();
+                BitmapButton_Shader_Offset_X->Show();
+                BitmapButton_Shader_Offset_Y->Show();
+            }
+            if (_shaderConfig->HasZoom()) {
+                // shader already implements a zoom control
+                StaticText_Shader_Zoom->Hide();
+                TextCtrl_Shader_Zoom->Hide();
+                Slider_Shader_Zoom->Hide();
+                BitmapButton_Shader_Zoom->Hide();
+            }
+            else {
+                StaticText_Shader_Zoom->Show();
+                TextCtrl_Shader_Zoom->Show();
+                Slider_Shader_Zoom->Show();
+                BitmapButton_Shader_Zoom->Show();
+            }
         }
         else {
+						// No coordinates used in the shader - don't add them
             StaticText_Shader_Offset_X->Hide();
             StaticText_Shader_Offset_Y->Hide();
             StaticText_Shader_Zoom->Hide();

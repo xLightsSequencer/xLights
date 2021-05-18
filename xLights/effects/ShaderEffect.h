@@ -164,12 +164,15 @@ class ShaderConfig
     std::string _description;
     std::list<ShaderPass> _passes;
     std::string _code;
+    std::string _tmpStr;
     bool _canvasMode = false;
     bool _audioFFTMode = false;
     bool _audioIntensityMode = false;
     bool _hasRendersize = false;
     bool _hasTime = false;
     bool _hasCoord = false;
+    bool _hasPoint2D = false;
+    bool _hasZoom = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
@@ -183,7 +186,9 @@ public:
     bool IsAudioIntensityShader() const { return _audioIntensityMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
-    bool HasCoord() const { return _hasCoord; }
+    bool HasCoord() const { return _hasCoord ; }
+    bool HasPoint2D() const { return _hasPoint2D ; }
+    bool HasZoom() const { return _hasZoom ; }
     bool UsesEvents() const;
 };
 class ShaderRenderCache;
