@@ -313,20 +313,44 @@ bool ShaderEffect::needToAdjustSettings(const std::string& version)
 void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
+    if (RenderableEffect::needToAdjustSettings(version))     {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap& settings = effect->GetSettings();
 
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (file != "")
-    {
-        if (!wxFile::Exists(file))
-        {
+    if (file != "")     {
+        if (!wxFile::Exists(file))         {
             settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
         }
+    }
+
+    // The way we used to do names allowed for potential settings name clashes ... this should minimise them
+    std::list<std::pair<std::string, std::string>> renames;
+    for (auto& it : settings) {
+        if (it.first != "E_VALUECURVE_Shader_Zoom" &&
+            it.first != "E_VALUECURVE_Shader_Offset_Y" &&
+            it.first != "E_VALUECURVE_Shader_Speed" &&
+            it.first != "E_TEXTCTRL_Shader_LeadIn" &&
+            it.first != "E_0FILEPICKERCTRL_IFS" &&
+            it.first != "E_SLIDER_Shader_Speed" &&
+            it.first != "E_TEXTCTRL_Shader_Offset_X" &&
+            it.first != "E_TEXTCTRL_Shader_Offset_Y" &&
+            it.first != "E_TEXTCTRL_Shader_Zoom" &&
+            it.first != "E_ID_VALUECURVE_Shader_Offset_X"
+           )         {
+            if (StartsWith(it.first, "E_") && !Contains(it.first, "SHADERXYZZY")) {
+                std::string undecorated = AfterFirst(it.first, '_');
+                std::string name = AfterFirst(undecorated, '_');
+                std::string prefix = it.first.substr(0, it.first.size() - name.size());
+                renames.push_back({ it.first, prefix + "SHADERXYZZY_" + name });
+            }
+        }
+    }
+    for (const auto& it : renames)     {
+        settings[it.second] = settings[it.first];
+        settings.erase(it.first);
     }
 }
 
