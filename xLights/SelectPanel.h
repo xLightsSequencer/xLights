@@ -32,6 +32,8 @@ class SelectPanel: public wxPanel
 		SelectPanel(SequenceElements* elements, MainSequencer* sequencer, wxWindow* parent,wxWindowID id=wxID_ANY);
 		virtual ~SelectPanel();
 
+		void ClearData();
+
 		//(*Declarations(SelectPanel)
 		wxButton* Button_Select_All_Time;
 		wxButton* Button_Select_Effect_All;

@@ -39,6 +39,7 @@
 #include "ViewsModelsPanel.h"
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
+#include "SelectPanel.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -653,6 +654,9 @@ bool xLightsFrame::CloseSequence()
 
     SetPanelSequencerLabel("");
 
+    if (_selectPanel) {
+        _selectPanel->ClearData();
+    }
     mainSequencer->PanelEffectGrid->ClearSelection();
     mainSequencer->PanelWaveForm->CloseMedia();
     _seqData.init(0, 0, 50);

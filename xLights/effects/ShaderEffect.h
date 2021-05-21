@@ -122,19 +122,19 @@ struct ShaderParm
         switch (ctrl)
         {
         case ShaderCtrlType::SHADER_CTRL_CHECKBOX:
-            return wxString::Format("ID_CHECKBOX_%s", _name);
+            return wxString::Format("ID_CHECKBOX_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_SLIDER:
-            return wxString::Format("ID_SLIDER_%s", _name);
+            return wxString::Format("ID_SLIDER_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_TEXTCTRL:
-            return wxString::Format("IDD_TEXTCTRL_%s", _name);
+            return wxString::Format("IDD_TEXTCTRL_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_STATIC:
-            return wxString::Format("ID_STATICTEXT_%s", _name);
+            return wxString::Format("ID_STATICTEXT_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_VALUECURVE:
-            return wxString::Format("ID_VALUECURVE_%s", _name);
+            return wxString::Format("ID_VALUECURVE_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_CHOICE:
-            return wxString::Format("ID_CHOICE_%s", _name);
+            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_TIMING:
-            return wxString::Format("ID_CHOICE_%s", _name);
+            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
         }
         wxASSERT(false);
         return "NONAME";
