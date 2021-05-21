@@ -329,3 +329,10 @@ void SelectPanel::GetEffectTypes()
     std::sort(keys.begin(), keys.end());
     ComboBox_Select_Effect->Set(keys);
 }
+
+void SelectPanel::ClearData()
+{
+    ComboBox_Select_Effect->Clear();
+    ListBox_Select_Effects->Clear();
+    ListBox_Select_Models->Clear();
+}

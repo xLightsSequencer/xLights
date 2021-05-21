@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.17 May 20, 2021
+   -- bug (dkulp) Fix even more crashes in AudioManager (I hope)
+   -- bug (dkulp) Fix Vendor Model images if the URL's the vendor provide are invalid/404
+   -- bug (scott) Fix FPP upload of e1.31 inputs that are set for xLights only
+   -- enh (scott) Add AppProgess Indicator for rendering
 2021.16 May 17, 2021
    -- bug (dkulp) FPP Connect - add UDP output ranges to sparse fseq files
    -- bug (dkulp) Fix display issue in SubModels dialog where the list of ranges would not refresh properly

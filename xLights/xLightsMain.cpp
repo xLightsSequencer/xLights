@@ -1213,6 +1213,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
 	mRendering = false;
 
+    _appProgress = std::make_unique<wxAppProgressIndicator>(this);
+
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
     wxAuiPaneInfo &info = MainAuiManager->GetPane("EffectsToolBar");
@@ -1700,7 +1702,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     //to whatever the timing that is selected.   If the timer triggers and is then not
     //needed, it will be turned off later
     OutputTimer.Start(50, wxTIMER_CONTINUOUS);
-    
+
     // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model
     // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
@@ -2036,7 +2038,7 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
         //printf("Stopping timer\n");
         OutputTimer.Stop();
     }
-    
+
     PopTraceContext();
 }
 
@@ -2317,7 +2319,7 @@ bool xLightsFrame::DisableOutputs() {
         _outputManager.AllOff();
         _outputManager.StopOutput();
         EnableSleepModes();
-        
+
         for (auto &controller : _outputManager.GetControllers()) {
             if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
                 ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);
