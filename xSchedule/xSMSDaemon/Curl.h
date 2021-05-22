@@ -379,18 +379,11 @@ public:
                 /* Perform the request, res will get the return code */
                 CURLcode r = curl_easy_perform(curl);
 
-                if (r != CURLE_OK) {
+                if (r != CURLE_OK)
+                {
                     logger_base.error("Failure to access %s -> %s: %s.", (const char*)s.c_str(), (const char*)filename.c_str(),curl_easy_strerror(r));
                     res = false;
-                } else {
-                    int response_code = 0;
-                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-                    if (response_code >= 400) {
-                        //not found or server error or similar
-                        res = false;
-                    }
                 }
-                
                 /* always cleanup */
                 curl_easy_cleanup(curl);
                 if (chunk != nullptr)
@@ -399,9 +392,6 @@ public:
                 }
             }
             fclose(fp);
-            if (!res) {
-                remove(filename.c_str());
-            }
         }
         else
         {

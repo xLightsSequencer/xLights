@@ -48,7 +48,6 @@
 #include <wx/listctrl.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-#include <wx/appprogress.h>
 
 #include <unordered_map>
 #include <map>
@@ -953,12 +952,12 @@ public:
     bool previewLoaded = false;
     bool previewPlaying = false;
     wxFileName networkFile;
-
+    
     wxArrayString mruDirectories;  // most recently used directories
     wxMenuItem* mrud_MenuItem[MRUD_LENGTH];
     wxArrayString mruFiles;  // most recently used directories
     wxMenuItem* mruf_MenuItem[MRUF_LENGTH];
-
+    
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     long DragRowIdx;
@@ -996,8 +995,6 @@ public:
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
-
-    std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
     void TryCreatePresetIcon(const std::string& preset);
 
@@ -1135,7 +1132,7 @@ public:
     bool ToggleOutputs(bool ignoreCheck = false);
     bool DisableOutputs();
     void CycleOutputsIfOn();
-
+    
     bool ForceEnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
@@ -1198,9 +1195,9 @@ public:
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
-
+    
     void DoPostStartupCommands();
-
+    
     std::list<RenderProgressInfo *>renderProgressInfo;
     std::queue<RenderEvent*> mainThreadRenderEvents;
     std::mutex renderEventLock;

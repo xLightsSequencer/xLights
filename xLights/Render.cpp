@@ -322,7 +322,7 @@ public:
     const std::string GetName() const override {
         return name;
     }
-
+    
     virtual bool DeleteWhenComplete() override {
         return false;
     }
@@ -481,8 +481,8 @@ public:
             return wxString::Format(statusMsgChars, name, statusFrame, statusLayer) + PrintStatusMap();
         case 12:
             return statusMsgChars;
-
-
+                
+                
         }
         return statusMsg;
     }
@@ -1123,7 +1123,6 @@ void xLightsFrame::UpdateRenderStatus() {
             if (lastVal != pct) {
                 if (ProgressBar->GetValue() != (10 + pct)) {
                     ProgressBar->SetValue(10 + pct);
-                    _appProgress->SetValue(10 + pct);
                 }
                 lastVal = pct;
             }
@@ -1140,7 +1139,6 @@ void xLightsFrame::UpdateRenderStatus() {
                 delete rpi->renderProgressDialog;
                 rpi->renderProgressDialog = nullptr;
             }
-            _appProgress->SetValue(0);
             RenderDone();
             delete []rpi->jobs;
             delete []rpi->aggregators;
@@ -1168,7 +1166,7 @@ public:
         if (e == nullptr) {
             logger_base.crit("Render tree has a null model ... this is not going to end well.");
         }
-
+        
         ModelGroup *mg = dynamic_cast<ModelGroup*>(e);
         if (mg != nullptr) {
             // might need to recalculate the group nodes
@@ -1632,7 +1630,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     logger_base.debug("Rendering %d models %d frames.", models.size(), _seqData.NumFrames());
 
-
+    
 #ifdef DOTIMING
     wxStopWatch sw;
     Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
@@ -1761,14 +1759,13 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     if (endframe < startframe) {
         return;
     }
-
+    
     EnableSequenceControls(false);
     mRendering = true;
     ProgressBar->Show();
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers for time slice"));
     ProgressBar->SetValue(0);
-    _appProgress->SetValue(0);
     wxStopWatch sw; // start a stopwatch timer
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] {
         static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1780,7 +1777,6 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
         mRendering = false;
         EnableSequenceControls(true);
         ProgressBar->Hide();
-        _appProgress->SetValue(0);
         GaugeSizer->Layout();
     });
 }
@@ -1933,7 +1929,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
     if (effectObj != nullptr && effectObj->IsRenderDisabled()) return false;
 
     if (layer >= buffer.GetLayerCount()) {
-        logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
+        logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).", 
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer+1, buffer.GetLayerCount());
         wxASSERT(false);
         return false;
@@ -1985,7 +1981,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
 
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
-
+        
         if (reff) {
             RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
             if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {

@@ -1453,11 +1453,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
             int c = it->GetStartChannel();
 
             wxJSONValue universe;
-            if (!input) {
-                universe["active"] = controllerEnabled == Controller::ACTIVESTATE::ACTIVE ? 1 : 0;
-            } else {
-                universe["active"] = 1;
-            }
+            universe["active"] = controllerEnabled == Controller::ACTIVESTATE::ACTIVE ? 1 : 0;
             universe["description"] = stripInvalidChars(it2->GetName());
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;

@@ -5,7 +5,7 @@ name: Windows_Build
 on:
   release:
     types: [published]
-  workflow_dispatch:
+
 jobs:
   build:
     runs-on: windows-latest

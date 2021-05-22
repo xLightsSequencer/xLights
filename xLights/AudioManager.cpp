@@ -1606,9 +1606,7 @@ void AudioManager::DoPrepareFrameData()
 
     // we need to ensure at least the raw data is available
     if (_filtered.size() == 0) {
-        locker.unlock();
         SwitchTo(AUDIOSAMPLETYPE::RAW, 0, 0);
-        locker.lock();
     }
 
     _frameData.clear();
@@ -2843,11 +2841,11 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         logger_base.debug("SwitchTo waiting for data to be loaded.");
         wxMilliSleep(50);
     }
-    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
     // Cant be playing when switching
     bool wasPlaying = IsPlaying();
-    if (wasPlaying) {
+    if (wasPlaying)
+    {
         Pause();
     }
 

@@ -1085,7 +1085,6 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.info("   iseq above effects done. Render complete.");
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
-        _appProgress->SetValue(0);
         GaugeSizer->Layout();
 
         logger_base.info("Saving fseq file.");
@@ -1209,7 +1208,7 @@ void xLightsFrame::SaveSequence()
             (_seqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
             logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
-
+            
             //need to abort any render going on in order to change the SeqData size
             AbortRender();
 
@@ -1232,7 +1231,6 @@ void xLightsFrame::SaveSequence()
             RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
             logger_base.info("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
-            _appProgress->SetValue(0);
             ProgressBar->Hide();
             GaugeSizer->Layout();
 
@@ -1365,7 +1363,6 @@ void xLightsFrame::RenderAll()
         mRendering = false;
         EnableSequenceControls(true);
         ProgressBar->Hide();
-        _appProgress->SetValue(0);
         GaugeSizer->Layout();
     });
 }
@@ -1476,7 +1473,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     if (MenuItem_LogRenderState != nullptr) {
         MenuItem_LogRenderState->Enable();
     }
-
+    
     MenuItem_ViewLog->Enable(true);
 }
 
