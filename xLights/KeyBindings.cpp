@@ -484,7 +484,19 @@ std::vector<wxKeyCode>& KeyBinding::GetPossibleKeys()
         WXK_F9,
         WXK_F10,
         WXK_F11,
-        WXK_F12
+        WXK_F12,
+        WXK_F13,
+        WXK_F14,
+        WXK_F15,
+        WXK_F16,
+        WXK_F17,
+        WXK_F18,
+        WXK_F19,
+        WXK_F20,
+        WXK_F21,
+        WXK_F22,
+        WXK_F23,
+        WXK_F24
     };
 
     if (!init) {
@@ -559,6 +571,30 @@ std::string KeyBinding::EncodeKey(wxKeyCode key, bool shift) noexcept
         return "F11";
     case WXK_F12:
         return "F12";
+    case WXK_F13:
+        return "F13";
+    case WXK_F14:
+        return "F14";
+    case WXK_F15:
+        return "F15";
+    case WXK_F16:
+        return "F16";
+    case WXK_F17:
+        return "F17";
+    case WXK_F18:
+        return "F18";
+    case WXK_F19:
+        return "F19";
+    case WXK_F20:
+        return "F20";
+    case WXK_F21:
+        return "F21";
+    case WXK_F22:
+        return "F22";
+    case WXK_F23:
+        return "F23";
+    case WXK_F24:
+        return "F24";
     case WXK_NONE:
         return "";
     default:
@@ -662,6 +698,42 @@ wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
     }
     if (key == "F12") {
         return WXK_F12;
+    }
+    if (key == "F13") {
+        return WXK_F13;
+    }
+    if (key == "F14") {
+        return WXK_F14;
+    }
+    if (key == "F15") {
+        return WXK_F15;
+    }
+    if (key == "F16") {
+        return WXK_F16;
+    }
+    if (key == "F17") {
+        return WXK_F17;
+    }
+    if (key == "F18") {
+        return WXK_F18;
+    }
+    if (key == "F19") {
+        return WXK_F19;
+    }
+    if (key == "F20") {
+        return WXK_F20;
+    }
+    if (key == "F21") {
+        return WXK_F21;
+    }
+    if (key == "F22") {
+        return WXK_F22;
+    }
+    if (key == "F23") {
+        return WXK_F23;
+    }
+    if (key == "F24") {
+        return WXK_F24;
     }
 
     if (key.size() != 1) {

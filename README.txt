@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Added F13-F24 Keybindings Support
 2021.17 May 20, 2021
    -- bug (dkulp) Fix even more crashes in AudioManager (I hope)
    -- bug (dkulp) Fix Vendor Model images if the URL's the vendor provide are invalid/404
