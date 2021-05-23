@@ -1308,28 +1308,30 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     if (rules->GetNumberOfBanks() > 1) {
-        int const banksize = rules->GetMaxPixelPort() / rules->GetNumberOfBanks();
-        std::vector<int> bankSizes(rules->GetNumberOfBanks(), 0);
-        std::vector<int> bankLargestPort(rules->GetNumberOfBanks(), 0);
+        if (_pixelPorts.size() < rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
+            int const banksize = rules->GetMaxPixelPort() / rules->GetNumberOfBanks();
+            std::vector<int> bankSizes(rules->GetNumberOfBanks(), 0);
+            std::vector<int> bankLargestPort(rules->GetNumberOfBanks(), 0);
 
-        for (const auto& it : _pixelPorts) {
-            int const bank = (it.second->GetPort() - 1) / banksize;
-            if (it.second->Channels() > bankSizes[bank]) {
-                bankSizes[bank] = it.second->Channels();
-                bankLargestPort[bank] = it.second->GetPort();
+            for (const auto& it : _pixelPorts) {
+                int const bank = (it.second->GetPort() - 1) / banksize;
+                if (it.second->Channels() > bankSizes[bank]) {
+                    bankSizes[bank] = it.second->Channels();
+                    bankLargestPort[bank] = it.second->GetPort();
+                }
             }
-        }
 
-        int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
-        if (sum > rules->GetMaxPixelPortChannels()) {
-            res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
-            res += "     Largest ports on banks: ";
-            for (int i = 0; i < rules->GetNumberOfBanks(); i++) {
-                if (i != 0) res += ", ";
-                res += wxString::Format(" Bank %d - Port %d [%d (%d)]", i + 1, bankLargestPort[i], bankSizes[i], bankSizes[i] / 3);
+            int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
+            if (sum > rules->GetMaxPixelPortChannels()) {
+                res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
+                res += "     Largest ports on banks: ";
+                for (int i = 0; i < rules->GetNumberOfBanks(); i++) {
+                    if (i != 0) res += ", ";
+                    res += wxString::Format(" Bank %d - Port %d [%d (%d)]", i + 1, bankLargestPort[i], bankSizes[i], bankSizes[i] / 3);
+                }
+                res += "\n";
+                success = false;
             }
-            res += "\n";
-            success = false;
         }
     }
 
