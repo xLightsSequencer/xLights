@@ -142,7 +142,7 @@ struct ShaderParm
     // These are the labels that will be in the settings map
     wxString GetUndecoratedId(ShaderCtrlType ctrl) const
     {
-        if (ctrl == ShaderCtrlType::SHADER_CTRL_VALUECURVE) return _name;
+        if (ctrl == ShaderCtrlType::SHADER_CTRL_VALUECURVE) return "SHADERXYZZY_" + _name;
 
         return GetId(ctrl).AfterFirst('_');
     }
