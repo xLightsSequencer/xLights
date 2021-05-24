@@ -2541,7 +2541,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (prompt)
     {
-        if (wxNO == wxMessageBox("All xml files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
+        if (wxNO == wxMessageBox("All xml & xsq files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
             newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
         {
             return;
@@ -4040,7 +4040,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
 
     if (prompt) {
-        if (wxNO == wxMessageBox("All xml files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
+        if (wxNO == wxMessageBox("All xml & xsq files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
             newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO)) {
             return;
         }
