@@ -1804,13 +1804,10 @@
     <ClInclude Include="cad\CADPoint.h">
       <Filter>cad</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="controllers\WLED.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-=======
     <ClInclude Include="Pixels.h" />
->>>>>>> fb8c0738e... Try to improve the way we handle pixel/serial protocols on controllers.
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -257,6 +257,8 @@
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		</Variant>
+	</Controller>
+	<Controller Name="F48V4">
 		<Variant Name="4 + 4 + 4 Smart Receiver Chains" Base="Falcon:BaseV4FalconSettings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>

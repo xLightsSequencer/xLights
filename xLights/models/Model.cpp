@@ -69,12 +69,6 @@ static wxArrayString RGBW_HANDLING(5, RGBW_HANDLING_VALUES);
 static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
 
-static const char *SMART_REMOTES_VALUES_3[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
-static wxArrayString SMART_REMOTES_3(6, SMART_REMOTES_VALUES_3);
-
-static const char* SMART_REMOTES_VALUES_6[] = { "N/A", "*A*->b->c->d->e->f", "a->*B*->c->d->e->f", "a->b->*C*->d->e->f", "a->b->c->*D*->e->f", "a->b->c->d->*E*->f", "a->b->c->d->e->*F*", "*A*->*B*->*C*->*D*->*E*->*F*", "a->*B*->*C*->*D*->*E*->*F*", "a->b->*C*->*D*->*E*->*F*", "a->b->c->*D*->*E*->*F*", "a->b->c->d->*E*->*F*" };
-static wxArrayString SMART_REMOTES_6(12, SMART_REMOTES_VALUES_6);
-
 static const char *CONTROLLER_DIRECTION_VALUES[] = {"Forward", "Reverse"};
 static wxArrayString CONTROLLER_DIRECTION(2, CONTROLLER_DIRECTION_VALUES);
 
@@ -890,6 +884,16 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     }
 }
 
+wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount)
+{
+    wxArrayString res;
+    res.push_back("None");
+    for (int i = 0; i < smartRemoteCount; i++)     {
+        res.push_back(wxString((char)(65 + i)));
+    }
+    return res;
+}
+
 void Model::AddControllerProperties(wxPropertyGridInterface* grid)
 {
 
@@ -919,13 +923,31 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     GetControllerProtocols(cp, idx);
 
     if (IsPixelProtocol()) {
-        if (caps == nullptr || caps->GetSmartRemoteCount() == 3) {
-            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES_3, wxArrayInt(), GetSmartRemote()));
+        int smartRemoteCount = 15;
+        if (caps != nullptr) {
+            smartRemoteCount = caps->GetSmartRemoteCount();
         }
-        else if (caps->GetSmartRemoteCount() == 6) {
+        if (smartRemoteCount != 0)
+        {
             int sr = GetSmartRemote();
-            if (sr != 0) sr = sr - 100 + 1;
-            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES_6, wxArrayInt(), sr));
+            wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
+            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr));
+
+            sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", GetSRCascadeOnPort()));
+            sp->SetAttribute("UseCheckbox", true);
+            p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
+            if (sr == 0) {
+                grid->DisableProperty(sp);
+            }
+
+            sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
+            sp->SetAttribute("Min", 1);
+            sp->SetAttribute("Max", smartRemoteCount);
+            p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
+            sp->SetEditor("SpinCtrl");
+            if (sr == 0) {
+                grid->DisableProperty(sp);
+            }
         }
     }
 
@@ -1452,16 +1474,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetActive(event.GetValue().GetBool());
         return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
-
-        if (caps != nullptr && caps->GetSmartRemoteCount() == 6)         {
-            int sr = wxAtoi(event.GetValue().GetString());
-            if (sr != 0) sr += 100 - 1;
-            SetSmartRemote(sr);
-        }
-        else         {
-            SetSmartRemote(wxAtoi(event.GetValue().GetString()));
-        }
-
+        int sr = wxAtoi(event.GetValue().GetString());
+        SetSmartRemote(sr);
+        return 0;
+    } else if (event.GetPropertyName() == "CascadeOnPort") {
+        SetSRCascadeOnPort(event.GetValue().GetBool());
+        return 0;
+    } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
+        SetSRMaxCascade(event.GetValue().GetLong());
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         wxArrayString cp;
@@ -2791,7 +2811,7 @@ std::string Model::GetControllerConnectionAttributeString() const
         if (att->GetName() == "SmartRemote") {
             ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
         }
-        else if (att->GetName() != "Port" && att->GetName() != "Protocol") {
+        else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort") {
             ret += ":" + att->GetName() + "=" + att->GetValue();
         }
         att = att->GetNext();
@@ -5970,23 +5990,31 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
+bool Model::GetSRCascadeOnPort() const
+{
+    return GetControllerConnection()->GetAttribute("SRCascadeOnPort", "FALSE") == "TRUE";
+}
+
+int Model::GetSRMaxCascade() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SRMaxCascade", "1");
+    return wxAtoi(s);
+}
+
 char Model::GetSmartRemoteLetter() const
 {
     wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
     int l = wxAtoi(s);
     if (l == 0) return ' ';
-    if (l < 100) return char('A' + l - 1);
-    return char('A' + l - 100);
+    return char('A' + l - 1);
 }
 
 // This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
 int Model::GetSortableSmartRemote() const
 {
-    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
-    int sr = wxAtoi(s);
-
-    if (sr < 4) return sr += 200;
-    if (sr < 106) return sr += 200;
+    int sr = GetSmartRemote();
+    int max = GetSRMaxCascade();
+    if (max == 1) return sr + 200;
     return sr;
 }
 
@@ -6000,39 +6028,9 @@ int Model::GetSmartTs() const
 // string is one based
 int Model::GetSmartRemoteForString(int string) const
 {
-    int sr = GetSmartRemote();
-
-    if (sr < 4) return sr;
-    if (sr >= 100 && sr < 106) return sr;
-
-    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
-    int port = wxAtoi(s);
-
-    bool sixsr = false;
-    int perSmartRemote = 7 - sr;
-    if (sr > 100)         {
-        perSmartRemote = 112 - sr;
-        sixsr = true;
-    }
-
-    int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-    int firstmax = (perSmartRemote * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
-    int othermax = perSmartRemote * PORTS_PER_SMARTREMOTE;
-
-    if (string <= firstfirstmax) {
-        sr = ((string - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
-    }
-    else if (string <= firstmax) {
-        sr = 1 + ((string - firstfirstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
-    }
-    else {
-        sr = ((string - firstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
-    }
-
-    if (sixsr)         {
-        sr += 100 - 1;
-    }
-
+    int port;
+    int sr;
+    GetPortSR(string, port, sr);
     return sr;
 }
 
@@ -6056,6 +6054,37 @@ void Model::SetControllerDMXChannel(int ch)
     }
 }
 
+void Model::SetSRCascadeOnPort(bool cascade)
+{
+    if (GetSRCascadeOnPort() != cascade)         {
+        GetControllerConnection()->DeleteAttribute("SRCascadeOnPort");
+        GetControllerConnection()->AddAttribute("SRCascadeOnPort", cascade ? "TRUE": "FALSE");
+
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSRCascadeOnPort");
+        IncrementChangeCount();
+    }
+}
+
+void Model::SetSRMaxCascade(int max)
+{
+    if (GetSRMaxCascade() != max)         {
+
+        GetControllerConnection()->DeleteAttribute("SRMaxCascade");
+        GetControllerConnection()->AddAttribute("SRMaxCascade", wxString::Format("%d", max));
+
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSRMaxCascade");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSRMaxCascade");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSRMaxCascade");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSRMaxCascade");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSRMaxCascade");
+        IncrementChangeCount();
+    }
+}
+
 void Model::SetSmartRemote(int sr)
 {
     if (GetSmartRemote() != sr)
@@ -6069,6 +6098,10 @@ void Model::SetSmartRemote(int sr)
         if (sr != 0)
         {
             GetControllerConnection()->AddAttribute("SmartRemote", wxString::Format("%d", sr));
+        }
+        else         {
+            SetSRMaxCascade(1);
+            SetSRCascadeOnPort(false);
         }
     }
 
@@ -6456,6 +6489,59 @@ int Model::GetControllerDMXChannel() const
     return wxAtoi(GetControllerConnection()->GetAttribute("channel", "1"));
 }
 
+void Model::GetPortSR(int string, int& outport, int& outsr) const
+{
+    // we need to work with 0 based strings
+    string = string - 1;
+
+    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
+    int port = wxAtoi(s);
+    int sr = GetSmartRemote();
+
+    if (port == 0 || string == 0)         {
+        outport = port;
+        outsr = sr;
+    }
+    else if (sr == 0)         {
+        outport = port + string;
+        outsr = 0;
+    }
+    else {
+        bool cascadeOnPort = GetSRCascadeOnPort();
+        int max = GetSRMaxCascade();
+
+        if (cascadeOnPort)             {
+            outport = port + string / max;
+            outsr = sr + (string % max);
+        }
+        else             {
+            int currp = port;
+            int currsr = sr;
+
+            for (int p = 0; p < string; p++) {
+                int newp = currp + 1;
+                if ((newp - 1) / PORTS_PER_SMARTREMOTE != (currp - 1) / PORTS_PER_SMARTREMOTE) {
+                    int newsr = currsr + 1;
+                    if (newsr - sr >= max) {
+                        currsr = sr;
+                        currp = newp;
+                    }
+                    else {
+                        currsr = newsr;
+                        currp = ((currp - 1) / PORTS_PER_SMARTREMOTE) * PORTS_PER_SMARTREMOTE + 1;
+                    }
+                }
+                else {
+                    currp = newp;
+                }
+            }
+
+            outport = currp;
+            outsr = currsr;
+        }
+    }
+}
+
 int Model::GetControllerPort(int string) const
 {
     wxString p = wxString::Format("%d", string);
@@ -6463,34 +6549,10 @@ int Model::GetControllerPort(int string) const
         wxString s = GetControllerConnection()->GetAttribute(p);
         return wxAtoi(s);
     }
-    
-    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
-    int port = wxAtoi(s);
-    if (port > 0) {
-        int sr = GetSmartRemote();
-        if (sr < 4 || (sr >= 100 && sr < 106)) {
-            port += string - 1;
-        }
-        else {
-            int per = 7 - sr;
-            if (sr > 100)                 {
-                per = 112 - sr;
-            }
-            int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-            int firstmax = (per* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
-            int othermax = per * PORTS_PER_SMARTREMOTE;
 
-            if (string <= firstfirstmax)                 {
-                port += (string - 1);
-            }
-            else if (string <= firstmax) {
-                port += (string - 1 - firstfirstmax) % PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-            }
-            else {
-                port += PORTS_PER_SMARTREMOTE + (string - firstmax - 1) % PORTS_PER_SMARTREMOTE + ((string - firstmax - 1) / othermax) * PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
-            }
-        }
-    }
+    int port;
+    int sr;
+    GetPortSR(string, port, sr);
     return port;
 }
 

@@ -60,24 +60,8 @@ const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS = wxNewId();
@@ -215,8 +199,8 @@ public:
     }
     virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
-    virtual void AddRightClickMenu(wxMenu& mnu) {}
-    virtual bool HandlePopup(wxWindow* parent, int id) { return false; }
+    virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) {}
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) { return false; }
     virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
     void DrawTextLimited(wxDC& dc, const std::string& text, const wxPoint& pt, const wxSize& size) {
@@ -418,7 +402,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
     dc.SetPen(origPen);
     dc.SetTextForeground(origText);
 }
-virtual void AddRightClickMenu(wxMenu& mnu) override
+virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
 {
     if (_caps != nullptr) {
         if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
@@ -432,7 +416,7 @@ virtual void AddRightClickMenu(wxMenu& mnu) override
     }
 }
 
-    virtual bool HandlePopup(wxWindow* parent, int id) override {
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
         if (id == ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS) {
             if (_type == PORTTYPE::PIXEL) {
                 auto port = _cud->GetControllerPixelPort(GetPort());
@@ -637,7 +621,7 @@ public:
             dc.SetPen(*wxTRANSPARENT_PEN);
         }
         else {
-            if (!printing && m == lastDropped)             {
+            if (!printing && m == lastDropped && _main)             {
                 dc.SetPen(__modelOutlineLastDroppedPen);
             }
             else             {
@@ -646,37 +630,55 @@ public:
         }
         
         if (udcpm != nullptr) {
-            switch (udcpm->GetSmartRemote()) {
-            case 0:
-                dc.SetBrush(__modelSRNoneBrush);
-                break;
-            case 1:
-            case 100:
-                dc.SetBrush(__modelSRABrush);
-                dc.SetTextForeground(__modelSRAText);
-                break;
-            case 2:
-            case 101:
-                dc.SetBrush(__modelSRBBrush);
-                dc.SetTextForeground(__modelSRBText);
-                break;
-            case 3:
-            case 102:
-                dc.SetBrush(__modelSRCBrush);
-                dc.SetTextForeground(__modelSRCText);
-                break;
-            case 103:
-                dc.SetBrush(__modelSRDBrush);
-                dc.SetTextForeground(__modelSRDText);
-                break;
-            case 104:
-                dc.SetBrush(__modelSREBrush);
-                dc.SetTextForeground(__modelSREText);
-                break;
-            case 105:
-                dc.SetBrush(__modelSRFBrush);
-                dc.SetTextForeground(__modelSRFText);
-                break;
+
+            int maxSR = 15;
+            if (_caps != nullptr) maxSR = _caps->GetSmartRemoteCount();
+
+            if (udcpm->GetSmartRemote() > maxSR)                 {
+                dc.SetBrush(__invalidBrush);
+            }
+            else             {
+                switch (udcpm->GetSmartRemote()) {
+                case 0:
+                    dc.SetBrush(__modelSRNoneBrush);
+                    break;
+                case 1:
+                case 7:
+                case 13:
+                    dc.SetBrush(__modelSRABrush);
+                    dc.SetTextForeground(__modelSRAText);
+                    break;
+                case 2:
+                case 8:
+                case 14:
+                    dc.SetBrush(__modelSRBBrush);
+                    dc.SetTextForeground(__modelSRBText);
+                    break;
+                case 3:
+                case 9:
+                case 15:
+                    dc.SetBrush(__modelSRCBrush);
+                    dc.SetTextForeground(__modelSRCText);
+                    break;
+                case 4:
+                case 10:
+                case 16:
+                    dc.SetBrush(__modelSRDBrush);
+                    dc.SetTextForeground(__modelSRDText);
+                    break;
+                case 5:
+                case 11:
+                case 17:
+                    dc.SetBrush(__modelSREBrush);
+                    dc.SetTextForeground(__modelSREText);
+                    break;
+                case 6:
+                case 12:
+                case 18:
+                    dc.SetBrush(__modelSRFBrush);
+                    dc.SetTextForeground(__modelSRFText);
+                    break;
+                }
             }
         } else {
             dc.SetBrush(__modelSRNoneBrush);
@@ -764,54 +766,38 @@ public:
         dc.SetTextForeground(origText);
     }
 
-    virtual void AddRightClickMenu(wxMenu& mnu) override {
+    virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override {
         if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
-            if (_caps->SupportsSmartRemotes())             {
-                mnu.AppendSeparator();
-                int sr = GetModel()->GetSmartRemote();
+            if (_caps->SupportsSmartRemotes()) {
 
-                auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
-                mi->Check(sr == 0);
+                wxMenu* srMenu = new wxMenu();
 
-                // if we go beyond 2 or 3 possible counts then we are going to need to rethink this
-                if (_caps->GetSmartRemoteCount() == 3) {
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A, "*A*->b->c");
-                    mi->Check(sr == 1);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B, "a->*B*->c");
-                    mi->Check(sr == 2);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C, "a->b->*C*");
-                    mi->Check(sr == 3);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC, "*A*->*B*->*C*");
-                    mi->Check(sr == 4);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC, "a->*B*->*C*");
-                    mi->Check(sr == 5);
+                int srcount = _caps->GetSmartRemoteCount();
+
+                auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
+                if (GetModel()->GetSmartRemote() == 0) mi->Check();
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                    if (GetModel()->GetSmartRemote() == i+1) mi->Check();
                 }
-                else if (_caps->GetSmartRemoteCount() == 6) {
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A, "*A*->b->c->d->e->f");
-                    mi->Check(sr == 100);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B, "a->*B*->c->d->e->f");
-                    mi->Check(sr == 101);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C, "a->b->*C*->d->e->f");
-                    mi->Check(sr == 102);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D, "a->b->c->*D*->e->f");
-                    mi->Check(sr == 103);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E, "a->b->c->d->*E*->f");
-                    mi->Check(sr == 104);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F, "a->b->c->d->e->*F*");
-                    mi->Check(sr == 105);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF, "*A*->*B*->*C*->*D*->*E*->*F*");
-                    mi->Check(sr == 106);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF, "a->*B*->*C*->*D*->*E*->*F*");
-                    mi->Check(sr == 107);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF, "a->b->*C*->*D*->*E*->*F*");
-                    mi->Check(sr == 108);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF, "a->b->c->*D*->*E*->*F*");
-                    mi->Check(sr == 109);
-                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF, "a->b->c->d->*E*->*F*");
-                    mi->Check(sr == 110);
+                srMenu->AppendSeparator();
+                mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade down port");
+                mi->Check(GetModel()->GetSRCascadeOnPort());
+
+                wxMenu* srMax = new wxMenu();
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i+1));
+                    if (GetModel()->GetSRMaxCascade() == i + 1) mi->Check();
                 }
+
+                srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
+                srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+
+                srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                mnu.AppendSubMenu(srMenu, "Smart Remote");
             }
+
             if (_caps->SupportsPixelPortBrightness())
             {
                 mnu.AppendSeparator();
@@ -828,75 +814,11 @@ public:
         }        
     }
 
-    virtual bool HandlePopup(wxWindow* parent, int id) override {
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
         if (GetModel() == nullptr) return false;
 
-        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_None) {
-            GetModel()->SetSmartRemote(0);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_A) {
-            GetModel()->SetSmartRemote(1);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_B) {
-            GetModel()->SetSmartRemote(2);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_C) {
-            GetModel()->SetSmartRemote(3);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_ABC) {
-            GetModel()->SetSmartRemote(4);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_3_BC) {
-            GetModel()->SetSmartRemote(5);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_A) {
-            GetModel()->SetSmartRemote(100);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_B) {
-            GetModel()->SetSmartRemote(101);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_C) {
-            GetModel()->SetSmartRemote(102);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_D) {
-            GetModel()->SetSmartRemote(103);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_E) {
-            GetModel()->SetSmartRemote(104);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_F) {
-            GetModel()->SetSmartRemote(105);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_ABCDEF) {
-            GetModel()->SetSmartRemote(106);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_BCDEF) {
-            GetModel()->SetSmartRemote(107);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_CDEF) {
-            GetModel()->SetSmartRemote(108);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_DEF) {
-            GetModel()->SetSmartRemote(109);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_6_EF) {
-            GetModel()->SetSmartRemote(110);
+        if (id == ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT) {
+            GetModel()->SetSRCascadeOnPort(((wxMenu*)event.GetEventObject())->IsChecked(id));
             return true;
         }
         else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
@@ -932,6 +854,24 @@ public:
         else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
             GetModel()->ClearControllerBrightness();
             return true;
+        }
+        else         {
+            wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
+            if (label == "None") {
+                GetModel()->SetSmartRemote(0);
+                return true;
+            }
+            else if (label >= "A" && label <= "Z") {
+                GetModel()->SetSmartRemote(int(label[0]) - 64);
+                return true;
+            }
+            else {
+                int max = wxAtoi(label);
+                if (max >= 1) {
+                    GetModel()->SetSRMaxCascade(max);
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -1554,7 +1494,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         ReloadModels();
     }
     else if (_popup != nullptr) {
-        if (_popup->HandlePopup(this, id)) {
+        if (_popup->HandlePopup(this, event, id)) {
             while (!_xLights->DoAllWork()) {
                 // dont get into a redraw loop from here
                 _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
@@ -2692,7 +2632,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
     BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);
     if (cm != nullptr) {
-        cm->AddRightClickMenu(mnu);
+        cm->AddRightClickMenu(mnu, this);
     }
     _popup = cm;
 
@@ -2957,7 +2897,7 @@ void ControllerModelDialog::OnPanelModelsRightDown(wxMouseEvent& event) {
 
     BaseCMObject* cm = GetModelsCMObjectAt(mouse);
     if (cm != nullptr) {
-        cm->AddRightClickMenu(mnu);
+        cm->AddRightClickMenu(mnu, this);
     }
     _popup = cm;
 

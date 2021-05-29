@@ -336,6 +336,8 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     // {"T":"S","M":"SP","B":14,"E":16,"I":14,"P":{"AD":1,"B":0,"ps":0,"A":[{"t":"P","l":13,"p":14,"r":0,"s":0,"v":0,"u":15,"sc":0,"n":100,"z":0,"ns":0,"ne":0,"g":10,"o":0,"b":40,"gp":1,"nm":"Port 15","bl":0}]}}
     // {"R":200,"T":"S","M":"SP","F":0,"B":0,"RB":0,"P":{},"W":" ","L":""}
 
+    // strings must be in port order. Within port they must be in smart remote order. Within smart remote they must be in string order.
+
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
     if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0) batches--;
 
@@ -401,25 +403,27 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 
 #define V4_PIXEL_PROTOCOL_APA102 0
 #define V4_PIXEL_PROTOCOL_APA109 1
-#define V4_PIXEL_PROTOCOL_LPD6803 2
-#define V4_PIXEL_PROTOCOL_LPD8806 3
-#define V4_PIXEL_PROTOCOL_SM16716 4
-#define V4_PIXEL_PROTOCOL_TLS3001 5
-#define V4_PIXEL_PROTOCOL_TM1814 6
-#define V4_PIXEL_PROTOCOL_TM1829 7
-#define V4_PIXEL_PROTOCOL_UCS8903 8
-#define V4_PIXEL_PROTOCOL_UCS8903_16 9
-#define V4_PIXEL_PROTOCOL_UCS8904 10
-#define V4_PIXEL_PROTOCOL_UCS8904_16 11
-#define V4_PIXEL_PROTOCOL_WS2801 12
-#define V4_PIXEL_PROTOCOL_WS2811 13
-#define V4_PIXEL_PROTOCOL_WS2811_SLOW 14
+#define V4_PIXEL_PROTOCOL_DMX512P 2
+#define V4_PIXEL_PROTOCOL_LPD6803 3
+#define V4_PIXEL_PROTOCOL_LPD8806 4
+#define V4_PIXEL_PROTOCOL_SM16716 5
+#define V4_PIXEL_PROTOCOL_TLS3001 6
+#define V4_PIXEL_PROTOCOL_TM1814 7
+#define V4_PIXEL_PROTOCOL_TM1829 8
+#define V4_PIXEL_PROTOCOL_UCS8903 9
+#define V4_PIXEL_PROTOCOL_UCS8903_16 10
+#define V4_PIXEL_PROTOCOL_UCS8904 11
+#define V4_PIXEL_PROTOCOL_UCS8904_16 12
+#define V4_PIXEL_PROTOCOL_WS2801 13
+#define V4_PIXEL_PROTOCOL_WS2811 14
+#define V4_PIXEL_PROTOCOL_WS2811_SLOW 15
 
 std::string Falcon::V4_DecodePixelProtocol(int protocol)
 {
     switch (protocol) {
     case V4_PIXEL_PROTOCOL_APA102: return "apa102";
     case V4_PIXEL_PROTOCOL_APA109: return "apa109";
+    case V4_PIXEL_PROTOCOL_DMX512P: return "dmx512p";
     case V4_PIXEL_PROTOCOL_LPD6803: return "lpd6803";
     case V4_PIXEL_PROTOCOL_LPD8806: return "lpd8806";
     case V4_PIXEL_PROTOCOL_SM16716: return "sm16716";
@@ -441,6 +445,7 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
 {
     if (protocol == "apa102") return V4_PIXEL_PROTOCOL_APA102;
     if (protocol == "apa109") return V4_PIXEL_PROTOCOL_APA109;
+    if (protocol == "dmx512p") return V4_PIXEL_PROTOCOL_DMX512P;
     if (protocol == "lpd6803") return V4_PIXEL_PROTOCOL_LPD6803;
     if (protocol == "lpd8806") return V4_PIXEL_PROTOCOL_LPD8806;
     if (protocol == "sm16716") return V4_PIXEL_PROTOCOL_SM16716;
@@ -549,6 +554,8 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 704;
         case V4_PIXEL_PROTOCOL_TLS3001:
             return 192;
+        case V4_PIXEL_PROTOCOL_DMX512P:
+            return 510;
         }
     }
     else {
@@ -574,6 +581,8 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 1024;
         case V4_PIXEL_PROTOCOL_TLS3001:
             return 288;
+        case V4_PIXEL_PROTOCOL_DMX512P:
+            return 743;
         }
     }
 
@@ -764,7 +773,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             if (pp->AtLeastOneModelIsUsingSmartRemote()) {
                 for (const auto& it : pp->GetVirtualStrings()) {
                     if (it->_smartRemote > smartRemotes[p]) {
-                        if ((it->_smartRemote > 0 && smartRemotes[p] <= 0) || (it->_smartRemote == 0 && smartRemotes[p] > 0)) {
+                        if ((it->_smartRemote > 0 && smartRemotes[p] == 0) || (it->_smartRemote == 0 && smartRemotes[p] > 0)) {
                             error == wxString::Format("Port %d has an invalid smart remote configuration.", p + 1);
                             return false;
                         }
@@ -809,19 +818,18 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
     }
 
     for (int p = 0; p < caps->GetMaxPixelPort(); p++) {
-        if (cud.HasPixelPort(p+1) && cud.GetControllerPixelPort(p + 1)->GetModelCount() > 0) {
+        if (cud.HasPixelPort(p + 1) && cud.GetControllerPixelPort(p + 1)->GetModelCount() > 0) {
             // take data from cud
-            auto pp = cud.GetControllerPixelPort(p+1);
+            auto pp = cud.GetControllerPixelPort(p + 1);
 
             int bank = p / 16;
             int maxPixels = V4_GetMaxPortPixels(_v4status["B"].AsInt(), protocols[bank]);
-            if (pp->Pixels() > maxPixels)                 {
+            if (pp->Pixels() > maxPixels) {
                 error = wxString::Format("Port %d has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
                 return false;
             }
 
             pp->CreateVirtualStrings(caps->MergeConsecutiveVirtualStrings());
-            int s = 0;
             for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
                 int gamma = 10;
                 int brightness = defaultBrightness;
@@ -830,13 +838,16 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 int colourOrder = 0;
                 int direction = 0;
                 int group = 1;
+                int s = 0;
+                bool done = false;
                 for (const auto& it : pp->GetVirtualStrings()) {
-                    if ((sr == 0 && it->_smartRemote == 0) || it->_smartRemote - 100 + 1 == sr)                         {
+                    if (it->_smartRemote == sr) {
+                        done = true;
                         FALCON_V4_STRING str;
                         str.port = p;
                         str.string = s++;
                         str.smartRemote = sr;
-                        if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].AsInt(), p))                             {
+                        if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].AsInt(), p)) {
                             error = wxString::Format("Port %d does not support smart remotes.", p + 1);
                             return false;
                         }
@@ -848,7 +859,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : endNulls;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : startNulls;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
-                        str.direction = it->_reverseSet ? (it->_reverse ==  "F" ? 0 : 1) : direction;
+                        str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
                         str.pixels = it->Channels() / it->_channelsPerPixel;
                         str.protocol = protocols[p / 16];
@@ -864,6 +875,27 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         direction = str.direction;
                         group = str.group;
                     }
+                }
+                if (!done) {
+                    // create a default string
+                    FALCON_V4_STRING str;
+                    str.port = p;
+                    str.string = 0;
+                    str.smartRemote = sr;
+                    str.name = wxString::Format("Port %d", p + 1);
+                    str.blank = false;
+                    str.gamma = 10;
+                    str.brightness = defaultBrightness;
+                    str.zigcount = 0;
+                    str.endNulls = 0;
+                    str.startNulls = 0;
+                    str.colourOrder = 0;
+                    str.direction = 0;
+                    str.group = 1;
+                    str.pixels = 0;
+                    str.protocol = protocols[p / 16];
+                    V4_GetStartChannel(cud.GetFirstOutput()->GetUniverse(), 1, cud.GetFirstOutput()->GetStartChannel(), str.universe, str.startChannel);
+                    uploadStrings.push_back(str);
                 }
             }
         }

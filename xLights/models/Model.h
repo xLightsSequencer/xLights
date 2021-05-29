@@ -271,6 +271,10 @@ public:
     int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
+    bool GetSRCascadeOnPort() const;
+    int GetSRMaxCascade() const;
+
+    void GetPortSR(int string, int& outport, int& outsr) const;
     char GetSmartRemoteLetter() const;
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
@@ -278,6 +282,8 @@ public:
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
+    void SetSRCascadeOnPort(bool cascade);
+    void SetSRMaxCascade(int max);
     void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model*>& GetSubModels() const { return subModels; }
@@ -290,6 +296,7 @@ public:
 
     bool IsPixelProtocol() const;
     bool IsSerialProtocol() const;
+    static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 
     unsigned long GetChangeCount() const { return changeCount; }
 

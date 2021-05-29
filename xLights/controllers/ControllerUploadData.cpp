@@ -199,6 +199,9 @@ bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
         res += wxString::Format("WARN: Model %s uses channels not being sent to this controller.\n", GetName());
     }
+    if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount())         {
+        res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
+    }
     return success;
 }
 #pragma endregion
