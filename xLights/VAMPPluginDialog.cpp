@@ -24,6 +24,7 @@
 
 #include "vamp-hostsdk/PluginLoader.h"
 #include "UtilFunctions.h"
+#include "xLightsMain.h"
 
 //(*IdInit(VAMPPluginDialog)
 const long VAMPPluginDialog::ID_TEXTCTRL1 = wxNewId();
@@ -169,11 +170,11 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             }
             if (name == pname) {
                 output = x;
-                TimingName->SetValue(outputName);
+                TimingName->SetValue(xLightsParent->GetUniqueTimingName(outputName));
             }
         }
     } else {
-        TimingName->SetValue(p->getName());
+        TimingName->SetValue(xLightsParent->GetUniqueTimingName(p->getName()));
     }
 
     PluginBase::ParameterList params = p->getParameterDescriptors();

@@ -10204,3 +10204,14 @@ void xLightsFrame::OnMenuItem_xScannerSelected(wxCommandEvent& event)
     wxExecute("xScanner.exe");
 #endif
 }
+
+std::string xLightsFrame::GetUniqueTimingName(const std::string& baseName)
+{
+    if (CurrentSeqXmlFile == nullptr) return baseName;
+    std::string name = baseName;
+    int suffix = 2;
+    while (CurrentSeqXmlFile->TimingAlreadyExists(name, this)) {
+        name = wxString::Format("%s_%d", baseName, suffix++);
+    }
+    return name;
+}
