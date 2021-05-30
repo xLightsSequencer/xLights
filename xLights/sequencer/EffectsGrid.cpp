@@ -5839,6 +5839,7 @@ void EffectsGrid::DrawEffects()
                 }
                 highlight_color.alpha = 128;
                 selectedBoxes.AddRect(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
+                mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
     }

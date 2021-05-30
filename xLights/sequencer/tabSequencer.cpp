@@ -1265,6 +1265,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         UpdateEffectAssistWindow(last_effect_created, eff);
 	}
 
+    mainSequencer->PanelRowHeadings->Refresh(false);
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 
@@ -1372,6 +1373,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         UpdateEffectAssistWindow(last_effect_created, eff);
     }
 
+    mainSequencer->PanelRowHeadings->Refresh(false);
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 

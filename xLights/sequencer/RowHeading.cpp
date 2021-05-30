@@ -19,6 +19,8 @@
 #include "models/ModelGroup.h"
 #include "../SelectTimingsDialog.h"
 #include "models/SubModel.h"
+#include "MainSequencer.h"
+#include "EffectsGrid.h"
 #include "ColorManager.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
@@ -1374,6 +1376,8 @@ void RowHeading::Draw()
     int row = 0;
     int endY = 0;
 
+    int dragRow = mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelEffectGrid->GetDropRow();
+
     xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
     wxColor labelWxColor = labelColor.asWxColor();
     
@@ -1387,7 +1391,7 @@ void RowHeading::Draw()
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1) {
             layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
         }
-        xlColor rowHeaderColor = GetHeaderColor(rowInfo);
+        xlColor rowHeaderColor = GetHeaderColor(rowInfo, dragRow);
         wxBrush brush2(rowHeaderColor.asWxColor(), wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
         int startY = DEFAULT_ROW_HEADING_HEIGHT*row;
@@ -1560,14 +1564,15 @@ void RowHeading::Draw()
     dc.DrawRectangle(0,endY,w,h);
 }
 
-xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info) const
+xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) const
 {
     if (info->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
         return ColorManager::instance()->GetTimingColor(info->colorIndex);
     }
-    if (info->RowNumber == mSelectedRow) {
+    if (info->RowNumber == mSelectedRow || info->RowNumber == dragRow) {
         return ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_SELECTED);
     }
+
     return ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
 }
 

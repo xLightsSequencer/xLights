@@ -62,7 +62,7 @@ private:
     bool HitTestTimingActive(int row, int x, bool* IsActive);
     void BreakdownTimingPhrases(TimingElement* element);
     void BreakdownTimingWords(TimingElement* element);
-    xlColor GetHeaderColor(Row_Information_Struct* info) const;
+    xlColor GetHeaderColor(Row_Information_Struct* info, int dragRow) const;
     bool ExpandElementIfEffects(Element* e);
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
