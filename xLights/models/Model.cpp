@@ -888,7 +888,7 @@ wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount)
 {
     wxArrayString res;
     res.push_back("None");
-    for (int i = 0; i < smartRemoteCount; i++)     {
+    for (int i = 0; i < smartRemoteCount; i++) {
         res.push_back(wxString((char)(65 + i)));
     }
     return res;
@@ -2856,15 +2856,8 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
 
 std::string Model::DecodeSmartRemote(int sr)
 {
-    switch (sr) {
-    case 0: return "None";
-    case 1: return "A";
-    case 2: return "B";
-    case 3: return "C";
-    case 4: return "A->B->C";
-    case 5: return "B->C";
-    }
-    return wxString::Format("Invalid (%d)", sr).ToStdString();
+    if(sr == 0) return "None";
+    return std::string (1, ('A' + sr - 1));
 }
 
 wxXmlNode *Model::GetControllerConnection() const {
@@ -6056,7 +6049,7 @@ void Model::SetControllerDMXChannel(int ch)
 
 void Model::SetSRCascadeOnPort(bool cascade)
 {
-    if (GetSRCascadeOnPort() != cascade)         {
+    if (GetSRCascadeOnPort() != cascade) {
         GetControllerConnection()->DeleteAttribute("SRCascadeOnPort");
         GetControllerConnection()->AddAttribute("SRCascadeOnPort", cascade ? "TRUE": "FALSE");
 
@@ -6071,7 +6064,7 @@ void Model::SetSRCascadeOnPort(bool cascade)
 
 void Model::SetSRMaxCascade(int max)
 {
-    if (GetSRMaxCascade() != max)         {
+    if (GetSRMaxCascade() != max) {
 
         GetControllerConnection()->DeleteAttribute("SRMaxCascade");
         GetControllerConnection()->AddAttribute("SRMaxCascade", wxString::Format("%d", max));
@@ -6498,11 +6491,11 @@ void Model::GetPortSR(int string, int& outport, int& outsr) const
     int port = wxAtoi(s);
     int sr = GetSmartRemote();
 
-    if (port == 0 || string == 0)         {
+    if (port == 0 || string == 0) {
         outport = port;
         outsr = sr;
     }
-    else if (sr == 0)         {
+    else if (sr == 0) {
         outport = port + string;
         outsr = 0;
     }
@@ -6510,11 +6503,11 @@ void Model::GetPortSR(int string, int& outport, int& outsr) const
         bool cascadeOnPort = GetSRCascadeOnPort();
         int max = GetSRMaxCascade();
 
-        if (cascadeOnPort)             {
+        if (cascadeOnPort) {
             outport = port + string / max;
             outsr = sr + (string % max);
         }
-        else             {
+        else {
             int currp = port;
             int currsr = sr;
 
