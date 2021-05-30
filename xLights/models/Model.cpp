@@ -44,7 +44,7 @@
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
 #include "../controllers/ControllerCaps.h"
-#include "../pixels.h"
+#include "../Pixels.h"
 
 #include <log4cpp/Category.hh>
 
