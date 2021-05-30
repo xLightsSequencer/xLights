@@ -623,6 +623,8 @@
 		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
+		<Unit filename="Pixels.cpp" />
+		<Unit filename="Pixels.h" />
 		<Unit filename="PixelTestDialog.cpp" />
 		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="PlayerFrame.h" />
