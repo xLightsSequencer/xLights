@@ -843,7 +843,8 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
 {
     auto caps = GetControllerCaps();
     wxString protocol = GetControllerProtocol();
-    protocol.LowerCase();
+    wxString protocolLC = protocol;
+    protocolLC.LowerCase();
 
     if (caps == nullptr)     {
         for (const auto& it : GetAllPixelTypes(true, false)) {
@@ -858,7 +859,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     }
 
     // if this protocol is not supported by the controller ... choose a compatible one if one exists ... otherwise we blank it out
-    if (std::find(begin(cp), end(cp), protocol) == end(cp))     {
+    if (std::find(begin(cp), end(cp), protocol) == end(cp) && std::find(begin(cp), end(cp), protocolLC) == end(cp)) {
         // not in the list ... maybe there is a compatible protocol we can choose
         std::string np = "";
         if (caps != nullptr)         {
@@ -876,7 +877,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     // now work out the index
     int i = 0;
     for (const auto& it : cp) {
-        if (it == protocol) {
+        if (it == protocol || it == protocolLC) {
             idx = i;
             break;
         }

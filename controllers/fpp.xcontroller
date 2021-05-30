@@ -38,13 +38,13 @@
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
         <SerialProtocols>
-            <Protocol>dmx-pro</Protocol>
-            <Protocol>dmx-Open</Protocol>
-            <Protocol>genericserial</Protocol>
-            <Protocol>lor</Protocol>
-            <Protocol>pixelnet-lynx</Protocol>
-            <Protocol>pixelnet-open</Protocol>
-            <Protocol>renard</Protocol>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
         </SerialProtocols>
     </AbstractVariant>
 	<Controller Name="LED Panels">
@@ -87,13 +87,13 @@
 				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-                <Protocol>dmx-pro</Protocol>
-                <Protocol>dmx-open</Protocol>
-                <Protocol>genericserial</Protocol>
-                <Protocol>lor</Protocol>
-                <Protocol>pixelnet-lynx</Protocol>
-                <Protocol>pixelnet-open</Protocol>
-                <Protocol>renard</Protocol>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
 			</SerialProtocols>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
 		</Variant>

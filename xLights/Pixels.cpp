@@ -170,6 +170,11 @@ std::string ChooseBestControllerPixel(const std::vector<std::string>& controller
 			}
 		}
 	}
+    std::string p1 = selectedPixel;
+    std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
+    if (p1 != selectedPixel) {
+        return ChooseBestControllerSerial(controllerPixels, p1);
+    }
 
 	// no good match
 	return "";
@@ -181,10 +186,16 @@ std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& contro
 
 	std::vector<std::string> res;
 
-	for (const auto& it : superset) 		{
-		if (std::find(begin(controllerPixels), end(controllerPixels), it) != end(controllerPixels)) 			{
+	for (const auto& it : controllerPixels) {
+		if (std::find(begin(superset), end(superset), it) != end(superset)) {
 			res.push_back(it);
-		}
+        } else {
+            std::string p1 = it;
+            std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
+            if (std::find(begin(superset), end(superset), p1) != end(superset)) {
+                res.push_back(it);
+            }
+        }
 	}
 
 	return res;
@@ -232,11 +243,17 @@ std::vector<std::string> GetAllSerialTypes(const std::vector<std::string>& contr
 
 	std::vector<std::string> res;
 
-	for (const auto& it : superset) {
-		if (std::find(begin(controllerSerial), end(controllerSerial), it) != end(controllerSerial)) {
-			res.push_back(it);
-		}
-	}
+    for (const auto& it : controllerSerial) {
+        if (std::find(begin(superset), end(superset), it) != end(superset)) {
+            res.push_back(it);
+        } else {
+            std::string p1 = it;
+            std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
+            if (std::find(begin(superset), end(superset), p1) != end(superset)) {
+                res.push_back(it);
+            }
+        }
+    }
 
 	return res;
 }
@@ -259,19 +276,33 @@ std::string ChooseBestControllerSerial(const std::vector<std::string>& controlle
 			}
 		}
 	}
-
+    std::string p1 = selectedSerial;
+    std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
+    if (p1 != selectedSerial) {
+        return ChooseBestControllerSerial(controllerSerial, p1);
+    }
 	// no good match
 	return "";
 }
 
-bool IsPixelProtocol(const std::string& p)
+bool IsPixelProtocol(const std::string& p1)
 {
 	auto pt = GetAllPixelTypes(false, true);
-	return std::find(begin(pt), end(pt), p) != end(pt);
+    if (std::find(begin(pt), end(pt), p1) != end(pt)) {
+        std::string p = p1;
+        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+        return std::find(begin(pt), end(pt), p) != end(pt);
+    }
+    return true;
 }
 
-bool IsSerialProtocol(const std::string& p)
+bool IsSerialProtocol(const std::string& p1)
 {
 	auto st = GetAllSerialTypes();
-	return std::find(begin(st), end(st), p) != end(st);
+    if (std::find(begin(st), end(st), p1) == end(st)) {
+        std::string p = p1;
+        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+        return std::find(begin(st), end(st), p) != end(st);
+    }
+    return true;
 }
