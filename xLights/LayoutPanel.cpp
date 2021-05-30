@@ -143,7 +143,8 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_TAGCOLOUR = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
-const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
@@ -1697,8 +1698,11 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     if (id == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION;
     }
-    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES) {
-        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES;
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES;
     }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGAMMA;
@@ -4183,7 +4187,8 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER, "Controller Colour Order");
-            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES, "Controller Null Nodes");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES, "Controller Start Null Nodes");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES, "Controller Start Null Nodes");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT, "Controller Group Count");
         }
     }
@@ -4364,7 +4369,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         }
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
@@ -6821,7 +6827,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         }
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||

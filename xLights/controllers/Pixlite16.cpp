@@ -1018,7 +1018,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._outputUniverse[pp-1] = port->GetUniverse();
                 _config._outputStartChannel[pp-1] = port->GetUniverseStartChannel();
                 _config._outputPixels[pp-1] = port->Pixels();
-                _config._outputNullPixels[pp-1] = port->GetFirstModel()->GetNullPixels(0);
+                _config._outputNullPixels[pp-1] = port->GetFirstModel()->GetStartNullPixels(0);
                 _config._outputGrouping[pp-1] = port->GetFirstModel()->GetGroupCount(1);
                 _config._outputBrightness[pp-1] = port->GetFirstModel()->GetBrightness(100);
                 if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {

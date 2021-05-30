@@ -50,6 +50,7 @@
 #include "CheckboxSelectDialog.h"
 #include "Parallel.h"
 #include <log4cpp/Category.hh>
+#include "../Pixels.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -678,7 +679,7 @@ bool ModelManager::ReworkStartChannel() const
                 ) // we dont muck with unassigned models or no protocol models
             {
                 wxString cc;
-                if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
+                if (IsPixelProtocol(itm.second->GetControllerProtocol()))
                 {
                     cc = wxString::Format("%s:%02d:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote()).Lower();
                 }

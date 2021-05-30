@@ -550,6 +550,7 @@
     <ClCompile Include="..\xLights\Discovery.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
+    <ClCompile Include="wxJSON\jsonwriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1093,6 +1094,7 @@
     <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
+    <ClInclude Include="wxJSON\jsonwriter.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

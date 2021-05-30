@@ -457,6 +457,27 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
 
+    if (version < "0007") {
+        // fix any no longer supported smart remote settings *A*->*B*->*C* and a->*B*->*C*
+        for (wxXmlNode* model = ModelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
+            if (model->GetName() == "model") {
+                for (wxXmlNode* cc = model->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
+                    auto sr = cc->GetAttribute("SmartRemote", "0");
+                    if (sr == "4") {
+                        cc->DeleteAttribute("SmartRemote");
+                        cc->AddAttribute("SmartRemote", "1");
+                        cc->AddAttribute("SRMaxCascade", "3");
+                    }
+                    else if (sr == "5") {
+                        cc->DeleteAttribute("SmartRemote");
+                        cc->AddAttribute("SmartRemote", "2");
+                        cc->AddAttribute("SRMaxCascade", "2");
+                    }
+                }
+            }
+        }
+    }
+
     // update version
     EffectsNode->DeleteAttribute("version");
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);

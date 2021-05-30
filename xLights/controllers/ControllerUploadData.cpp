@@ -20,6 +20,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
+#include "../Pixels.h"
 
 #include <log4cpp/Category.hh>
 
@@ -109,11 +110,26 @@ int UDControllerPortModel::GetBrightness(int currentBrightness) {
     return currentBrightness;
 }
 
-int UDControllerPortModel::GetNullPixels(int currentNullPixels) {
+int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) {
 
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
-    return currentNullPixels;
+    return currentStartNullPixels;
+}
+
+int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels)
+{
+
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("endNullNodes"))  return wxAtoi(node->GetAttribute("endNullNodes"));
+    return currentEndNullPixels;
+}
+
+char UDControllerPortModel::GetSmartRemoteLetter() const
+{
+    if (_smartRemote == 0) return ' ';
+    if (_smartRemote < 100) return char('A' + _smartRemote - 1);
+    return char('A' + _smartRemote - 100);
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs)
@@ -182,6 +198,9 @@ bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort
     bool success = true;
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
         res += wxString::Format("WARN: Model %s uses channels not being sent to this controller.\n", GetName());
+    }
+    if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount())         {
+        res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
     }
     return success;
 }
@@ -351,7 +370,7 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
 }
 
 // Set all ports to the valid first protocol
-bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force)
+bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::string>& protocols, const std::string& force)
 {
     if (protocols.size() == 0) return false;
 
@@ -362,14 +381,27 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>
         if (it->IsFirstModelString())
         {
             if (p == "") {
-                if (std::find(protocols.begin(), protocols.end(), it->GetModel()->GetControllerProtocol()) != protocols.end()) {
+                std::string np = "";
+                // this tries to find a protocol the controller can handle that is compatible
+                if (GetType() == "PIXEL")                     {
+                    np = ChooseBestControllerPixel(protocols, it->GetModel()->GetControllerProtocol());
+                }
+                else                     {
+                    np = ChooseBestControllerSerial(protocols, it->GetModel()->GetControllerProtocol());
+                }
+                if (np == it->GetModel()->GetControllerProtocol()) {
                     p = it->GetModel()->GetControllerProtocol();
                 }
                 else
                 {
                     changed = true;
                     if (p == "") {
-                        it->GetModel()->SetControllerProtocol(protocols.front());
+                        if (np == "")                         {
+                            it->GetModel()->SetControllerProtocol(protocols.front());
+                        }
+                        else                             {
+                            it->GetModel()->SetControllerProtocol(np);
+                        }
                         p = it->GetModel()->GetControllerProtocol();
                     }
                     else {
@@ -460,7 +492,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
     for (const auto& it : _models) {
         bool first = false;
         int brightness = it->GetBrightness(-9999);
-        int nullPixels = it->GetNullPixels(-9999);
+        int startNullPixels = it->GetStartNullPixels(-9999);
+        int endNullPixels = it->GetEndNullPixels(-9999);
         int smartRemote = it->GetSmartRemote();
         std::string reverse = it->GetDirection("unknown");
         std::string colourOrder = it->GetColourOrder("unknown");
@@ -470,7 +503,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
-                int curRemote = current == nullptr ? 0 : current->_smartRemote;
+                int curRemote = current == nullptr ? (smartRemote < 100 ? 0 : 99): current->_smartRemote < 100;
                 curRemote++;
                 for (int sr = curRemote; sr < smartRemote; sr++) {
                     // we seem to have missed one so create a dummy
@@ -486,8 +519,10 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_smartRemote = sr;
                     current->_gammaSet = false;
                     current->_gamma = 0;
-                    current->_nullPixelsSet = false;
-                    current->_nullPixels = 0;
+                    current->_startNullPixelsSet = false;
+                    current->_startNullPixels = 0;
+                    current->_endNullPixelsSet = false;
+                    current->_endNullPixels = 0;
                     current->_brightnessSet = false;
                     current->_brightness = 0;
                     current->_groupCountSet = false;
@@ -510,7 +545,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         else {
             wxASSERT(current != nullptr);
             if ((brightness != -9999 && current->_brightness != brightness) ||
-                (nullPixels != -9999) ||
+                (startNullPixels != -9999) ||
+                (endNullPixels != -9999) ||
                 (current->_smartRemote != smartRemote) ||
                 (reverse == "unknown" && current->_reverse == "Reverse") ||
                 (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
@@ -535,8 +571,10 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_smartRemote = sr;
                         current->_gammaSet = false;
                         current->_gamma = 0;
-                        current->_nullPixelsSet = false;
-                        current->_nullPixels = 0;
+                        current->_startNullPixelsSet = false;
+                        current->_startNullPixels = 0;
+                        current->_endNullPixelsSet = false;
+                        current->_endNullPixels = 0;
                         current->_brightnessSet = false;
                         current->_brightness = 0;
                         current->_groupCountSet = false;
@@ -578,13 +616,21 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_gammaSet = true;
                 current->_gamma = gamma;
             }
-            if (nullPixels == -9999) {
-                current->_nullPixelsSet = false;
-                current->_nullPixels = 0;
+            if (startNullPixels == -9999) {
+                current->_startNullPixelsSet = false;
+                current->_startNullPixels = 0;
             }
             else {
-                current->_nullPixelsSet = true;
-                current->_nullPixels = nullPixels;
+                current->_startNullPixelsSet = true;
+                current->_startNullPixels = startNullPixels;
+            }
+            if (endNullPixels == -9999) {
+                current->_endNullPixelsSet = false;
+                current->_endNullPixels = 0;
+            }
+            else {
+                current->_endNullPixelsSet = true;
+                current->_endNullPixels = endNullPixels;
             }
             if (brightness == -9999) {
                 current->_brightnessSet = false;
@@ -704,7 +750,7 @@ int UDControllerPort::GetUniverseStartChannel() const {
 }
 
 bool UDControllerPort::IsPixelProtocol() const {
-    return Model::IsPixelProtocol(_protocol);
+    return ::IsPixelProtocol(_protocol);
 }
 
 float UDControllerPort::GetAmps(int defaultBrightness) const
@@ -815,7 +861,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
                 }
             }
             else {
-                res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %d channel %d to %d.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();
+                res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %c channel %d to %d.\n", _port, it->GetSmartRemoteLetter(), ch, it->GetStartChannel()).ToStdString();
             }
         }
         lastSmartRemote = it->GetSmartRemote();
@@ -835,7 +881,7 @@ std::string UDControllerPort::ExportAsCSV() const
     wxString line = wxString::Format("%s Port %d,",_type ,_port);
     for (const auto& it : GetModels()) {
         if (it->GetSmartRemote() > 0) {
-            char remote = ('@' + it->GetSmartRemote());
+            char remote = it->GetSmartRemoteLetter();
             line += "Remote ";
             line += remote;
             line += ":";
@@ -1095,7 +1141,7 @@ bool UDController::SetAllModelsToControllerName(const std::string& controllerNam
     return changed;
 }
 
-bool UDController::SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame)
+bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame)
 {
     std::string force;
     bool changed = false;

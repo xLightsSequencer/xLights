@@ -834,7 +834,7 @@ void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* strin
             sd->upload = true;
         sd->pixels = pixels;
 
-        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        const int nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
         if (nullPix != -1) {
             if (nullPix != sd->nullPixel)
                 sd->upload = true;
@@ -928,7 +928,7 @@ void SanDevices::UpdateSubPortDataV4(SanDevicesOutputV4* pd, int subport, UDCont
         if (subport != pd->outputSize) pd->upload = true;
         pd->outputSize = subport;
 
-        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        const int nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
         if (nullPix != -1) {
             if (nullPix != pd->nullPixel[subport - 1]) pd->upload = true;
             pd->nullPixel[subport - 1] = nullPix;

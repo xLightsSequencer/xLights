@@ -251,16 +251,8 @@ public:
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     static std::string DecodeSmartRemote(int sr);
 
-    static std::list<std::string> GetProtocols();
-    static std::list<std::string> GetLCProtocols();
-    static bool IsProtocolValid(std::string protocol);
-    static bool IsPixelProtocol(const std::string& protocol);
-    static bool IsSerialProtocol(const std::string& protocol);
-
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
-    bool IsPixelProtocol() const;
-    bool IsSerialProtocol() const;
     int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
@@ -279,12 +271,19 @@ public:
     int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
+    bool GetSRCascadeOnPort() const;
+    int GetSRMaxCascade() const;
+
+    void GetPortSR(int string, int& outport, int& outsr) const;
+    char GetSmartRemoteLetter() const;
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
+    void SetSRCascadeOnPort(bool cascade);
+    void SetSRMaxCascade(int max);
     void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model*>& GetSubModels() const { return subModels; }
@@ -294,6 +293,10 @@ public:
     Model* GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr; }
     void RemoveSubModel(const std::string& name);
     std::list<int> ParseFaceNodes(std::string channels);
+
+    bool IsPixelProtocol() const;
+    bool IsSerialProtocol() const;
+    static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 
     unsigned long GetChangeCount() const { return changeCount; }
 

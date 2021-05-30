@@ -37,6 +37,7 @@
 #include "models/Model.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
+#include "Pixels.h"
 
 #include <log4cpp/Category.hh>
 
@@ -59,13 +60,8 @@ const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC = wxNewId();
-const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS = wxNewId();
@@ -93,14 +89,22 @@ END_EVENT_TABLE()
 #pragma region Colours
 wxColour __lightBlue(185, 246, 250, wxALPHA_OPAQUE);
 wxColour __lightRed(255, 133, 133, wxALPHA_OPAQUE);
+wxColour __lightYellow (255, 255, 133, wxALPHA_OPAQUE);
+wxColour __lightPink(255, 133, 255, wxALPHA_OPAQUE);
+wxColour __lightAqua(128, 255, 255, wxALPHA_OPAQUE);
 wxColour __lightGrey(225,225,225);
 wxColour __grey(128, 128, 128, wxALPHA_OPAQUE);
 wxColour __darkGrey(100, 100, 100);
 wxColour __charcoal(30, 30, 30);
 wxColour __lightGreen(153, 255, 145, wxALPHA_OPAQUE);
 wxColour __darkGreen(6,60,0, wxALPHA_OPAQUE);
+wxColour __darkBlue(0, 0, 60, wxALPHA_OPAQUE);
 wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxColour __darkPurple(49,0,74, wxALPHA_OPAQUE);
+wxColour __darkRed(60, 0, 0, wxALPHA_OPAQUE);
+wxColour __darkPink(60, 0, 60, wxALPHA_OPAQUE);
+wxColour __darkAqua(60, 90, 90, wxALPHA_OPAQUE);
+wxColour __darkYellow(60, 60, 0, wxALPHA_OPAQUE);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
 wxColour __darkOrange(150,54,3, wxALPHA_OPAQUE);
 wxColour __magenta(255, 0, 255, wxALPHA_OPAQUE);
@@ -116,9 +120,15 @@ wxBrush __modelSRNoneBrush;
 wxBrush __modelSRABrush;
 wxBrush __modelSRBBrush;
 wxBrush __modelSRCBrush;
+wxBrush __modelSRDBrush;
+wxBrush __modelSREBrush;
+wxBrush __modelSRFBrush;
 wxColour __modelSRAText;
 wxColour __modelSRBText;
 wxColour __modelSRCText;
+wxColour __modelSRDText;
+wxColour __modelSREText;
+wxColour __modelSRFText;
 wxPen __backgroundPen;
 wxBrush __backgroundBrush;
 #pragma endregion
@@ -189,8 +199,8 @@ public:
     }
     virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
-    virtual void AddRightClickMenu(wxMenu& mnu) {}
-    virtual bool HandlePopup(wxWindow* parent, int id) { return false; }
+    virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) {}
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) { return false; }
     virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
     void DrawTextLimited(wxDC& dc, const std::string& text, const wxPoint& pt, const wxSize& size) {
@@ -214,11 +224,17 @@ public:
             __modelSRABrush.SetColour(__darkGreen);
             __modelSRBBrush.SetColour(__darkPurple);
             __modelSRCBrush.SetColour(__darkOrange);
+            __modelSRDBrush.SetColour(__darkAqua);
+            __modelSREBrush.SetColour(__darkPink);
+            __modelSRFBrush.SetColour(__darkYellow);
             __backgroundPen.SetColour(__charcoal);
             __backgroundBrush.SetColour(__charcoal);
             __modelSRAText = __lightGreen;
             __modelSRBText = __lightPurple;
             __modelSRCText = __lightOrange;
+            __modelSRDText = __lightAqua;
+            __modelSREText = __lightRed;
+            __modelSRFText = __lightYellow;
             __textForeground = __lightGrey;
         } else {
             __modelOutlinePen.SetColour(__grey);
@@ -229,11 +245,17 @@ public:
             __modelSRABrush.SetColour(__lightGreen);
             __modelSRBBrush.SetColour(__lightPurple);
             __modelSRCBrush.SetColour(__lightOrange);
+            __modelSRDBrush.SetColour(__lightAqua);
+            __modelSREBrush.SetColour(__lightPink);
+            __modelSRFBrush.SetColour(__lightYellow);
             __backgroundPen.SetColour(*wxWHITE);
             __backgroundBrush.SetColour(*wxWHITE);
             __modelSRAText = *wxBLACK;
             __modelSRBText = *wxBLACK;
             __modelSRCText = *wxBLACK;
+            __modelSRDText = *wxBLACK;
+            __modelSREText = *wxBLACK;
+            __modelSRFText = *wxBLACK;
             __textForeground = *wxBLACK;
         }
     }
@@ -380,7 +402,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
     dc.SetPen(origPen);
     dc.SetTextForeground(origText);
 }
-virtual void AddRightClickMenu(wxMenu& mnu) override
+virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
 {
     if (_caps != nullptr) {
         if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
@@ -394,7 +416,7 @@ virtual void AddRightClickMenu(wxMenu& mnu) override
     }
 }
 
-    virtual bool HandlePopup(wxWindow* parent, int id) override {
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
         if (id == ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS) {
             if (_type == PORTTYPE::PIXEL) {
                 auto port = _cud->GetControllerPixelPort(GetPort());
@@ -467,14 +489,14 @@ virtual void AddRightClickMenu(wxMenu& mnu) override
             {
                 if (_type == PORTTYPE::PIXEL)
                 {
-                    for (const auto& it : _caps->GetPixelProtocols())
+                    for (const auto& it : GetAllPixelTypes(_caps->GetPixelProtocols(), false, true))
                     {
                         choices.push_back(it);
                     }
                 }
                 else
                 {
-                    for (const auto& it : _caps->GetSerialProtocols())
+                    for (const auto& it : GetAllSerialTypes(_caps->GetSerialProtocols()))
                     {
                         choices.push_back(it);
                     }
@@ -482,13 +504,13 @@ virtual void AddRightClickMenu(wxMenu& mnu) override
             }
             else
             {
-                for (const auto& it : Model::GetProtocols())
+                for (const auto& it : GetAllPixelTypes(true, true))
                 {
-                    if (_type == PORTTYPE::PIXEL && Model::IsPixelProtocol(it))
+                    if (_type == PORTTYPE::PIXEL && IsPixelProtocol(it))
                     {
                         choices.push_back(it);
                     }
-                    else if (_type == PORTTYPE::SERIAL && !Model::IsPixelProtocol(it))
+                    else if (_type == PORTTYPE::SERIAL && !IsPixelProtocol(it))
                     {
                         choices.push_back(it);
                     }
@@ -599,7 +621,7 @@ public:
             dc.SetPen(*wxTRANSPARENT_PEN);
         }
         else {
-            if (!printing && m == lastDropped)             {
+            if (!printing && m == lastDropped && _main) {
                 dc.SetPen(__modelOutlineLastDroppedPen);
             }
             else             {
@@ -608,22 +630,55 @@ public:
         }
         
         if (udcpm != nullptr) {
-            switch (udcpm->GetSmartRemote()) {
-            case 0:
-                dc.SetBrush(__modelSRNoneBrush);
-                break;
-            case 1:
-                dc.SetBrush(__modelSRABrush);
-                dc.SetTextForeground(__modelSRAText);
-                break;
-            case 2:
-                dc.SetBrush(__modelSRBBrush);
-                dc.SetTextForeground(__modelSRBText);
-                break;
-            case 3:
-                dc.SetBrush(__modelSRCBrush);
-                dc.SetTextForeground(__modelSRCText);
-                break;
+
+            int maxSR = 15;
+            if (_caps != nullptr) maxSR = _caps->GetSmartRemoteCount();
+
+            if (udcpm->GetSmartRemote() > maxSR) {
+                dc.SetBrush(__invalidBrush);
+            }
+            else             {
+                switch (udcpm->GetSmartRemote()) {
+                case 0:
+                    dc.SetBrush(__modelSRNoneBrush);
+                    break;
+                case 1:
+                case 7:
+                case 13:
+                    dc.SetBrush(__modelSRABrush);
+                    dc.SetTextForeground(__modelSRAText);
+                    break;
+                case 2:
+                case 8:
+                case 14:
+                    dc.SetBrush(__modelSRBBrush);
+                    dc.SetTextForeground(__modelSRBText);
+                    break;
+                case 3:
+                case 9:
+                case 15:
+                    dc.SetBrush(__modelSRCBrush);
+                    dc.SetTextForeground(__modelSRCText);
+                    break;
+                case 4:
+                case 10:
+                case 16:
+                    dc.SetBrush(__modelSRDBrush);
+                    dc.SetTextForeground(__modelSRDText);
+                    break;
+                case 5:
+                case 11:
+                case 17:
+                    dc.SetBrush(__modelSREBrush);
+                    dc.SetTextForeground(__modelSREText);
+                    break;
+                case 6:
+                case 12:
+                case 18:
+                    dc.SetBrush(__modelSRFBrush);
+                    dc.SetTextForeground(__modelSRFText);
+                    break;
+                }
             }
         } else {
             dc.SetBrush(__modelSRNoneBrush);
@@ -711,26 +766,38 @@ public:
         dc.SetTextForeground(origText);
     }
 
-    virtual void AddRightClickMenu(wxMenu& mnu) override {
+    virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override {
         if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
-            if(_caps->SupportsSmartRemotes())
-            {
-                mnu.AppendSeparator();
-                int sr = GetModel()->GetSmartRemote();
-                auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
-                mi->Check(sr == 0);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
-                mi->Check(sr == 1);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "a->*B*->c");
-                mi->Check(sr == 2);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
-                mi->Check(sr == 3);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC, "*A*->*B*->*C*");
-                mi->Check(sr == 4);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC, "a->*B*->*C*");
-                mi->Check(sr == 5);
+            if (_caps->SupportsSmartRemotes()) {
+
+                wxMenu* srMenu = new wxMenu();
+
+                int srcount = _caps->GetSmartRemoteCount();
+
+                auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
+                if (GetModel()->GetSmartRemote() == 0) mi->Check();
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                    if (GetModel()->GetSmartRemote() == i+1) mi->Check();
+                }
+                srMenu->AppendSeparator();
+                mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
+                mi->Check(GetModel()->GetSRCascadeOnPort());
+
+                wxMenu* srMax = new wxMenu();
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i+1));
+                    if (GetModel()->GetSRMaxCascade() == i + 1) mi->Check();
+                }
+
+                srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
+                srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+
+                srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                mnu.AppendSubMenu(srMenu, "Smart Remote");
             }
+
             if (_caps->SupportsPixelPortBrightness())
             {
                 mnu.AppendSeparator();
@@ -747,31 +814,11 @@ public:
         }        
     }
 
-    virtual bool HandlePopup(wxWindow* parent, int id) override {
+    virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
         if (GetModel() == nullptr) return false;
 
-        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_None) {
-            GetModel()->SetSmartRemote(0);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_A) {
-            GetModel()->SetSmartRemote(1);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_B) {
-            GetModel()->SetSmartRemote(2);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C) {
-            GetModel()->SetSmartRemote(3);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC) {
-            GetModel()->SetSmartRemote(4);
-            return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC) {
-            GetModel()->SetSmartRemote(5);
+        if (id == ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT) {
+            GetModel()->SetSRCascadeOnPort(((wxMenu*)event.GetEventObject())->IsChecked(id));
             return true;
         }
         else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
@@ -787,8 +834,8 @@ public:
                 auto port = _cud->GetPortContainingModel(GetModel());
                 bool start = false;
                 auto ch = dlg.GetValue();
-                for (const auto& it : port->GetModels())                     {
-                    if (start || it->GetModel() == GetModel())                         {
+                for (const auto& it : port->GetModels()) {
+                    if (start || it->GetModel() == GetModel()) {
                         it->GetModel()->SetControllerDMXChannel(ch);
                         ch += it->Channels();
                         start = true;
@@ -807,6 +854,24 @@ public:
         else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
             GetModel()->ClearControllerBrightness();
             return true;
+        }
+        else         {
+            wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
+            if (label == "None") {
+                GetModel()->SetSmartRemote(0);
+                return true;
+            }
+            else if (label >= "A" && label <= "Z") {
+                GetModel()->SetSmartRemote(int(label[0]) - 64);
+                return true;
+            }
+            else {
+                int max = wxAtoi(label);
+                if (max >= 1) {
+                    GetModel()->SetSRMaxCascade(max);
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -1233,7 +1298,7 @@ bool ModelSortName(const BaseCMObject* first, const BaseCMObject* second)
     auto mm1 = dynamic_cast<const ModelCMObject*>(first);
     auto mm2 = dynamic_cast<const ModelCMObject*>(second);
 
-    if (mm1 == nullptr || mm2 == nullptr)         {
+    if (mm1 == nullptr || mm2 == nullptr) {
         return first->GetType() < second->GetType();
     }
 
@@ -1429,7 +1494,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         ReloadModels();
     }
     else if (_popup != nullptr) {
-        if (_popup->HandlePopup(this, id)) {
+        if (_popup->HandlePopup(this, event, id)) {
             while (!_xLights->DoAllWork()) {
                 // dont get into a redraw loop from here
                 _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
@@ -1567,12 +1632,12 @@ void ControllerModelDialog::FixDMXChannels() {
 PortCMObject* ControllerModelDialog::GetPortContainingModel(Model* m)
 {
     PortCMObject* lastPort = nullptr;
-    for (const auto& it : _controllers)         {
+    for (const auto& it : _controllers) {
         auto mm = dynamic_cast<ModelCMObject*>(it);
-        if (mm != nullptr && mm->GetModel() == m)             {
+        if (mm != nullptr && mm->GetModel() == m) {
             return lastPort;
         }
-        else             {
+        else {
             auto p = dynamic_cast<PortCMObject*>(it);
             if (p != nullptr) lastPort = p;
         }
@@ -1705,7 +1770,17 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0)                     {
+                        // try to find a compatible protocol
+                        auto np = ChooseBestControllerPixel(_caps->GetPixelProtocols(), m->GetControllerProtocol());
+                        if (np != "")
+                        {
+                            m->SetControllerProtocol(np);
+                        }
+                        else                         {
+                            m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                        }
+                    }
                     if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                 }
                 else {
@@ -1717,7 +1792,16 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             }
             else {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0)                     {
+                        // try to find a compatible protocol
+                        auto np = ChooseBestControllerSerial(_caps->GetSerialProtocols(), m->GetControllerProtocol());
+                        if (np != "")                         {
+                            m->SetControllerProtocol(np);
+                        }
+                        else {
+                            m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                        }
+                    }
                     if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                     if (m->GetControllerDMXChannel() == 0) m->SetControllerDMXChannel(1);
                 }
@@ -1745,7 +1829,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     if (fmud != nullptr && fmud->IsFirstModelString()) {
                         Model* lm = fmud->GetModel();
                         if (lm != nullptr) {
-                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL)                                 {
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                                 m->SetModelChain("");
                                 int nextch = lm->GetControllerDMXChannel() + lm->GetChanCount();
                                 if (m->GetControllerDMXChannel() < nextch) m->SetControllerDMXChannel(nextch);
@@ -1878,7 +1962,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
     }
     else {
         // we only do something if the model was actually moved
-        if (!CloseTo(location, _dragStartLocation))         {
+        if (!CloseTo(location, _dragStartLocation)) {
             logger_base.debug("    onto the controller pane.");
 
             auto port = GetControllerPortAtLocation(location);
@@ -1887,7 +1971,15 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 m->SetControllerPort(port->GetPort());
                 if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                     if (port->GetModelCount() == 0) {
-                        if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                        if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) {
+                            auto np = ChooseBestControllerPixel(_caps->GetPixelProtocols(), m->GetControllerProtocol());
+                            if (np != "") {
+                                m->SetControllerProtocol(np);
+                            }
+                            else {
+                                m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                            }
+                        }
                         if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
                     }
                     else {
@@ -1896,153 +1988,167 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 }
                 else {
                     if (port->GetModelCount() == 0) {
-                        if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                        if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) {
+                            auto np = ChooseBestControllerSerial(_caps->GetSerialProtocols(), m->GetControllerProtocol());
+                            if (np != "") {
+                                m->SetControllerProtocol(np);
+                            }
+                            else {
+                                m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                            }
+                        }
                         if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                     }
                     else {
-                        m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
-                    }
-                }
-
-                if (_autoLayout) {
-                    m->SetControllerName(_controller->GetName());
-                }
-
-                auto ob = GetControllerToDropOn();
-                ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
-                BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
-                if (ob != nullptr) hit = ob->HitTest(location);
-
-                if (mob != nullptr && mob->GetModel() == m) {
-                    // dropped onto ourselves ... nothing to do
-                }
-                else if (mob == nullptr || !mob->IsMain()) {
-                    logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
-
-                    // dropped on a port .. or not on the first string of a model
-                    // If no model already there put it at the beginning ... else chain it
-                    if (_autoLayout) {
-                        UDControllerPort* cudp = port->GetUDPort();
-
-                        // Because we are moving a model already in a chain we need to patch that over first
-                        Model* nextfrom = _cud->GetModelAfter(m);
-                        if (nextfrom != nullptr) {
-                            logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
-                            nextfrom->SetModelChain(m->GetModelChain());
-                        }
-
-                        auto fmud = cudp->GetLastModel();
-                        if (fmud == nullptr) {
-                            m->SetModelChain("");
-                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
-                                m->SetControllerDMXChannel(1);
-                            }
+                        if (port->GetModelCount() == 0) {
+                            if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                            if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                         }
                         else {
-                            if (fmud != nullptr && fmud->IsFirstModelString()) {
-                                Model* lm = fmud->GetModel();
-                                if (lm != nullptr) {
-                                    m->SetModelChain(">" + lm->GetName());
-                                }
-                            }
-                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
-                                m->SetModelChain("");
-                                Model* last = port->GetUDPort()->GetLastModel()->GetModel();
-                                if (last == m) {
-                                    last = port->GetUDPort()->GetModelBefore(last);
-                                }
-                                if (last == nullptr) {
-                                    // nothing to do
-                                }
-                                else {
-                                    int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
-                                    if (m->GetControllerDMXChannel() < nextch) {
-                                        m->SetControllerDMXChannel(nextch);
-                                    }
-                                }
-                            }
+                            m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                         }
                     }
-                    _lastDropped = m;
-                }
-                else {
-                    Model* droppedOn = _mm->GetModel(mob->GetName());
-                    logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
 
-                    // dropped on a model
                     if (_autoLayout) {
-                        m->SetSmartRemote(droppedOn->GetSmartRemote());
-                        // Because we are moving a model already in a chain we need to patch that over first
-                        Model* nextfrom = _cud->GetModelAfter(m);
-                        if (nextfrom != nullptr) {
-                            if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
-                                (">" + droppedOn->GetName() == m->GetModelChain())) {
-                                logger_base.debug("    Model did not actually move.");
-                            }
-                            else {
+                        m->SetControllerName(_controller->GetName());
+                    }
+
+                    auto ob = GetControllerToDropOn();
+                    ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
+                    BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
+                    if (ob != nullptr) hit = ob->HitTest(location);
+
+                    if (mob != nullptr && mob->GetModel() == m) {
+                        // dropped onto ourselves ... nothing to do
+                    }
+                    else if (mob == nullptr || !mob->IsMain()) {
+                        logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
+
+                        // dropped on a port .. or not on the first string of a model
+                        // If no model already there put it at the beginning ... else chain it
+                        if (_autoLayout) {
+                            UDControllerPort* cudp = port->GetUDPort();
+
+                            // Because we are moving a model already in a chain we need to patch that over first
+                            Model* nextfrom = _cud->GetModelAfter(m);
+                            if (nextfrom != nullptr) {
                                 logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
                                 nextfrom->SetModelChain(m->GetModelChain());
                             }
-                        }
 
-                        if (hit == BaseCMObject::HITLOCATION::LEFT) {
-                            logger_base.debug("    On the left hand side.");
-                            logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
-                            if (droppedOn->GetModelChain() != ">" + m->GetName()) {
-                                m->SetModelChain(droppedOn->GetModelChain());
-                                droppedOn->SetModelChain(">" + m->GetName());
-                            }
-                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                            auto fmud = cudp->GetLastModel();
+                            if (fmud == nullptr) {
                                 m->SetModelChain("");
-                                droppedOn->SetModelChain("");
-                                Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
-                                int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
-                                if (nextch < 1) nextch = 1;
-                                if (last != nullptr) {
-                                    if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
-                                        nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                    m->SetControllerDMXChannel(1);
+                                }
+                            }
+                            else {
+                                if (fmud != nullptr && fmud->IsFirstModelString()) {
+                                    Model* lm = fmud->GetModel();
+                                    if (lm != nullptr) {
+                                        m->SetModelChain(">" + lm->GetName());
                                     }
                                 }
-                                if (m->GetControllerDMXChannel() < nextch) {
-                                    m->SetControllerDMXChannel(nextch);
-                                }
-                                else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
-                                    m->SetControllerDMXChannel(nextch);
-                                }
-                                Model* next = droppedOn;
-                                last = m;
-                                while (next != nullptr) {
-                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
-                                    if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
-                                    last = next;
-                                    next = port->GetUDPort()->GetModelAfter(last);
+                                if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                    m->SetModelChain("");
+                                    Model* last = port->GetUDPort()->GetLastModel()->GetModel();
+                                    if (last == m) {
+                                        last = port->GetUDPort()->GetModelBefore(last);
+                                    }
+                                    if (last == nullptr) {
+                                        // nothing to do
+                                    }
+                                    else {
+                                        int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                        if (m->GetControllerDMXChannel() < nextch) {
+                                            m->SetControllerDMXChannel(nextch);
+                                        }
+                                    }
                                 }
                             }
                         }
-                        else {
-                            logger_base.debug("    On the right hand side.");
-                            if (m->GetModelChain() != ">" + droppedOn->GetName()) {
-                                Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
-                                if (next != nullptr) {
-                                    logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
-                                    next->SetModelChain(">" + m->GetName());
+                        _lastDropped = m;
+                    }
+                    else {
+                        Model* droppedOn = _mm->GetModel(mob->GetName());
+                        logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
+
+                        // dropped on a model
+                        if (_autoLayout) {
+                            m->SetSmartRemote(droppedOn->GetSmartRemote());
+                            // Because we are moving a model already in a chain we need to patch that over first
+                            Model* nextfrom = _cud->GetModelAfter(m);
+                            if (nextfrom != nullptr) {
+                                if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
+                                    (">" + droppedOn->GetName() == m->GetModelChain())) {
+                                    logger_base.debug("    Model did not actually move.");
                                 }
                                 else {
-                                    logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
+                                    logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                                    nextfrom->SetModelChain(m->GetModelChain());
                                 }
-                                m->SetModelChain(">" + droppedOn->GetName());
+                            }
+
+                            if (hit == BaseCMObject::HITLOCATION::LEFT) {
+                                logger_base.debug("    On the left hand side.");
+                                logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
+                                if (droppedOn->GetModelChain() != ">" + m->GetName()) {
+                                    m->SetModelChain(droppedOn->GetModelChain());
+                                    droppedOn->SetModelChain(">" + m->GetName());
+                                }
                                 if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                                     m->SetModelChain("");
                                     droppedOn->SetModelChain("");
-                                    if (next != nullptr) next->SetModelChain("");
-                                    int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
-                                    m->SetControllerDMXChannel(nextch);
-                                    Model* last = m;
+                                    Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
+                                    int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
+                                    if (nextch < 1) nextch = 1;
+                                    if (last != nullptr) {
+                                        if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                                            nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                        }
+                                    }
+                                    if (m->GetControllerDMXChannel() < nextch) {
+                                        m->SetControllerDMXChannel(nextch);
+                                    }
+                                    else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
+                                        m->SetControllerDMXChannel(nextch);
+                                    }
+                                    Model* next = droppedOn;
+                                    last = m;
                                     while (next != nullptr) {
                                         nextch = last->GetControllerDMXChannel() + last->GetChanCount();
                                         if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
                                         last = next;
                                         next = port->GetUDPort()->GetModelAfter(last);
+                                    }
+                                }
+                            }
+                            else {
+                                logger_base.debug("    On the right hand side.");
+                                if (m->GetModelChain() != ">" + droppedOn->GetName()) {
+                                    Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
+                                    if (next != nullptr) {
+                                        logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
+                                        next->SetModelChain(">" + m->GetName());
+                                    }
+                                    else {
+                                        logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
+                                    }
+                                    m->SetModelChain(">" + droppedOn->GetName());
+                                    if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                        m->SetModelChain("");
+                                        droppedOn->SetModelChain("");
+                                        if (next != nullptr) next->SetModelChain("");
+                                        int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                                        m->SetControllerDMXChannel(nextch);
+                                        Model* last = m;
+                                        while (next != nullptr) {
+                                            nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                            if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                            last = next;
+                                            next = port->GetUDPort()->GetModelAfter(last);
+                                        }
                                     }
                                 }
                             }
@@ -2054,15 +2160,15 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 logger_base.debug("    but not onto a port ... so nothing to do.");
             }
         }
-    }
+        
+        _dragStartLocation = wxPoint(-99999, -99999);
 
-    _dragStartLocation = wxPoint(-99999, -99999);
-
-    while (!_xLights->DoAllWork()) {
-        // dont get into a redraw loop from here
-        _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
+        ReloadModels();
     }
-    ReloadModels();
 }
 
 void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
@@ -2081,12 +2187,12 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
             if (m->IsMain()) {
 
                 // when a model is clicked on then it becomes the last dropped 
-                if (_lastDropped != m->GetModel())                 {
+                if (_lastDropped != m->GetModel()) {
 
                     // redraw the model that used to be last dropped
-                    if (_lastDropped != nullptr)                     {
+                    if (_lastDropped != nullptr) {
                         auto mm = GetModelsCMObject(_lastDropped);
-                        if (mm != nullptr)                             {
+                        if (mm != nullptr) {
                             wxRect rect = mm->GetRect();
                             rect.Offset(-1 * GetScrollPosition(PanelController));
                             PanelController->RefreshRect(rect);
@@ -2192,7 +2298,7 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
     else {
         std::string tt = "";
 
-        if (event.GetPosition().x < _controllers.front()->GetRect().GetRight() + 2)             {
+        if (event.GetPosition().x < _controllers.front()->GetRect().GetRight() + 2) {
             for (const auto& it : _controllers) {
                 if (it->GetType() == "PORT") {
                     if (it->HitYTest(mouse)) {
@@ -2332,30 +2438,13 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     auto m = mob->GetModel();
     if (m == nullptr) return "";
 
-    std::string sr;
-    switch (m->GetSmartRemote()) {
-    case 0:
-        sr = "None";
-        break;
-    case 1:
-        sr = "A";
-        break;
-    case 2:
-        sr = "B";
-        break;
-    case 3:
-        sr = "C";
-        break;
-    case 4:
-        sr = "A->B->C";
-        break;
-    case 5:
-        sr = "B->C";
-        break;
-    default:
-        sr = "error";
-        break;
+    wxString sr;
+    if (m->GetSmartRemote() != 0) {
+       sr += m->GetSmartRemoteLetter();
+       sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", m->GetSRCascadeOnPort() ? "true" : "false");
+       sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
     }
+
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
 
@@ -2364,7 +2453,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     }
 
     std::string mdescription;
-    if (m->description != "")         {
+    if (m->description != "") {
         mdescription = "\nDescription: '" + m->description + "'";
     }
 
@@ -2396,9 +2485,12 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             {
                 stringSettings += wxString::Format("\nGrouping: %d", udm->GetGroupCount(0));
             }
-            if (udm->GetNullPixels(-1) != -1)
+            if (udm->GetStartNullPixels(-1) != -1)
             {
-                stringSettings += wxString::Format("\nNull Pixels: %d", udm->GetNullPixels(0));
+                stringSettings += wxString::Format("\nStart Null Pixels: %d", udm->GetStartNullPixels(0));
+            }
+            if (udm->GetEndNullPixels(-1) != -1)             {
+                stringSettings += wxString::Format("\nEnd Null Pixels: %d", udm->GetEndNullPixels(0));
             }
             if (udm->GetSmartTs(-1) != -1) {
                 stringSettings += wxString::Format("\nSmart Ts: %d", udm->GetSmartTs(0));
@@ -2495,7 +2587,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
     BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);
     if (cm != nullptr) {
-        cm->AddRightClickMenu(mnu);
+        cm->AddRightClickMenu(mnu, this);
     }
     _popup = cm;
 
@@ -2599,7 +2691,7 @@ PortCMObject* ControllerModelDialog::GetPixelPort(int port) const
     for (const auto& it : _controllers) {
         if (it->GetType() == "PORT") {
             auto p = dynamic_cast<PortCMObject*>(it);
-            if (p->GetPortType() == PortCMObject::PORTTYPE::PIXEL && p->GetPort() == port)                 {
+            if (p->GetPortType() == PortCMObject::PORTTYPE::PIXEL && p->GetPort() == port) {
                 return p;
             }
         }
@@ -2760,7 +2852,7 @@ void ControllerModelDialog::OnPanelModelsRightDown(wxMouseEvent& event) {
 
     BaseCMObject* cm = GetModelsCMObjectAt(mouse);
     if (cm != nullptr) {
-        cm->AddRightClickMenu(mnu);
+        cm->AddRightClickMenu(mnu, this);
     }
     _popup = cm;
 

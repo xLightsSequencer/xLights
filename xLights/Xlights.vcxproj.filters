@@ -898,6 +898,7 @@
     <ClCompile Include="controllers\WLED.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="Pixels.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1806,6 +1807,7 @@
     <ClInclude Include="controllers\WLED.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="Pixels.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -17,6 +17,9 @@
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
 
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
+
 #include <curl/curl.h>
 
 #include <wx/msgdlg.h>
@@ -60,10 +63,11 @@ void HinksPixOutput::SetConfig(wxString const& data)
         logger_base.error("Mismatched output ports data port:'%d' data:'%s'", output, (const char*)data.c_str());
         return;
     }
-    if (config[1] != "undefined")
+    if (config[1] != "undefined") {
         protocol = wxAtoi(config[1]);
-    else
-        protocol = 0;
+    } else { 
+        protocol = 0; 
+    }
     controlerStartChannel = wxAtoi(config[2]);
     pixels = wxAtoi(config[3]);
     controlerEndChannel = wxAtoi(config[4]);
@@ -85,8 +89,9 @@ void HinksPixOutput::setControllerChannels(const int startChan)
 {
     controlerStartChannel = startChan;
     int chanPerPix = 3;//RGB nodes
-    if (colorOrder == 6 || colorOrder == 7)//RGBW nodes
+    if (colorOrder == 6 || colorOrder == 7) {//RGBW nodes
         chanPerPix = 4;
+    }
     controlerEndChannel = controlerStartChannel + (pixels * chanPerPix) - 1;
 }
 #pragma endregion
@@ -133,6 +138,46 @@ wxString HinksPixSerial::BuildCommand() const
     return wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d,F,%d,G,%d,H,%d",
         mode, e131Enabled, ddpEnabled, e131Universe, e131StartChannel,
         e131NumOfChan, ddpStartChannel, ddpNumOfChan);
+}
+#pragma endregion
+
+#pragma region HinksPixSmart
+void HinksSmartOutput::Dump() const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("  ID %d Type %d Port 1 Start Pixel %d Port 2 Start Pixel %d Port 3 Start Pixel %d Port 4 Start Pixel %d",
+        id,
+        type,
+        portStartPixel[0],
+        portStartPixel[1],
+        portStartPixel[2],
+        portStartPixel[3]
+    );
+}
+
+void HinksSmartOutput::SetConfig(wxString const& data)
+{
+    const wxArrayString config = Split(data, { ',' });
+    if (config.size() != 6) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
+        return;
+    }
+
+    id = wxAtoi(config[0]);
+    type = wxAtoi(config[1]);
+    portStartPixel[0] = wxAtoi(config[2]);
+    portStartPixel[1] = wxAtoi(config[3]);
+    portStartPixel[2] = wxAtoi(config[4]);
+    portStartPixel[3] = wxAtoi(config[5]);
+}
+
+wxString HinksSmartOutput::BuildCommand() const
+{
+    //{"V":"1,0,51,51,51,51"}
+    return wxString::Format("{\"V\":\"%d,%d,%d,%d,%d,%d,\"}",
+        id, type, portStartPixel[0], portStartPixel[1],
+        portStartPixel[2], portStartPixel[3]);
 }
 #pragma endregion
 
@@ -245,7 +290,7 @@ void HinksPix::UpdatePortData(HinksPixOutput &pd, UDControllerPort* stringData, 
         pd.protocol = protocol;
     }
 
-    int const nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+    int const nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
     if (nullPix != -1) {
         pd.nullPixel = nullPix;
     }
@@ -333,6 +378,85 @@ void HinksPix::UpdateSerialData( HinksPixSerial & pd, UDControllerPort* serialDa
     }
 }
 
+void HinksPix::UploadSmartRecievers(bool& worked) 
+{
+    int exp = 0;
+    for (auto const & expan: _smartOutputs)
+    {
+        int bnk = 0;
+        for (auto const& bank : expan)
+        {
+            UploadSmartRecieverData(exp, bnk, _smartOutputs[exp][bnk], worked);
+            ++bnk;
+        }
+        ++exp;
+    }
+}
+
+void HinksPix::UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Building SmartReciever upload Expansion %d Bank %d:", expan, bank);
+    if (receivers.size() == 0) {
+        logger_base.info("No SmartReciever found");
+        return;
+    }
+    //{"CMD":"SCONFIG","BOARD":"0","Port4":"0","LIST":[{"V":"0,1,1,1,1,1"},{"V":"1,0,51,51,51,51"},{"V":"2,0,101,101,101,101"},{"V":"3,0,151,151,151,151"},{"V":"6,2,0,1,0,0"},{"V":"8,0,201,1,1,1"}]}
+    wxString requestString = wxString::Format("{\"CMD\":\"SCONFIG\",\"BOARD\":\"%d\",\"Port4\":\"%d\",\"LIST\":[",
+        expan, bank);
+    
+    for (int i = 0; i < receivers.size(); i++) {
+        receivers[i].Dump();
+        requestString += receivers[i].BuildCommand();
+        requestString += ",";
+    }
+    requestString.RemoveLast();//remove last ","
+    requestString += "]}";
+
+    auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
+    if (ret.find("\"OK\"") == std::string::npos) {
+        logger_base.error("Failed Return %s", (const char*)ret.c_str());
+        worked = false;
+    }
+}
+
+void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData)
+{
+    if (!stringData->AtLeastOneModelIsUsingSmartRemote()) {
+        return;
+    }
+    int port = stringData->GetPort() - 1;
+    int expansionBoard = port / 16;
+    int expansionPort = port % 16;
+    int bank = expansionPort / 4;
+    int subPort = (expansionPort % 4);
+    int32_t portStartChan = stringData->GetStartChannel();
+    int prevID = -1;
+    for (const auto& it : stringData->GetModels()) {
+        if (it->GetSmartRemote() > 0) {
+            int id = it->GetSmartRemote() - 1;
+            if (prevID == id) {//skip multiple models on the save port
+                continue;
+            }
+            int32_t startChan = it->GetStartChannel();
+            auto smartOut = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
+                    return so.id == id;
+                });
+            if (smartOut != _smartOutputs[expansionBoard][bank].end()) {
+                smartOut->portStartPixel[subPort] = ((startChan - portStartChan) / it->GetChannelsPerPixel()) + 1;
+            } else {
+                auto & smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
+                //if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0 )){
+                //    smartPort.type = 1;
+                //}
+                smartPort.portStartPixel[subPort] = ((startChan - portStartChan) / it->GetChannelsPerPixel()) + 1;
+            }
+            prevID = id;
+        }
+    }
+}
+
 //Pixels Outputs use a controller start channel, this maps xlights uni/start chan to the controller channel
 int HinksPix::CalcControllerChannel(int universe,int startChan, std::map<int, int> const& uniChan) const
 {
@@ -412,13 +536,74 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
     return res;
 }
 
+//all of the Controller data is retrieved/set by "GET"ing different values
+std::string HinksPix::GetJSONControllerData(std::string const& url, std::string const& data)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+
+    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+
+    CURL* curl = curl_easy_init();
+    struct curl_slist* list = NULL;
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+
+        list = curl_slist_append(list, "Content-type: text/plain");
+
+        if (!data.empty()) {
+            list = curl_slist_append(list, std::string("DATA: " + data).c_str());
+            logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+
+        std::string response_string;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+
+        /* Perform the request, res will get the return code */
+        CURLcode r = curl_easy_perform(curl);
+
+        if (r != CURLE_OK) {
+            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+        }
+        else {
+            res = response_string;
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    return res;
+}
+
+bool HinksPix::GetControllerDatasJSON(const std::string& url, std::string const& data, wxJSONValue& val) {
+    std::string const sval = GetJSONControllerData(url, data);
+    if (!sval.empty()) {
+        wxJSONReader reader;
+        reader.Parse(sval, &val);
+        return true;
+    }
+    return false;
+}
+
 //create a map of E131 channels to the local controller channels  
 std::map<int, int> HinksPix::MapE131Addresses()
 {
     std::map<int, int> uniToChan;
     auto const data = GetControllerData(902);
-    if (data.empty())
+    if (data.empty()) {
         return uniToChan;
+    }
 
     const auto map = StringToMap(data);
 
@@ -429,14 +614,16 @@ std::map<int, int> HinksPix::MapE131Addresses()
     for (int i = 0; i < calls; ++i) {
         wxString const data = GetControllerE131Data(i);
         const wxArrayString items = Split(data, { ',' });
-        if (items.size() % 6 != 0)
+        if (items.size() % 6 != 0) {
             continue;
+        }
 
         for (int j = 0; j < items.size(); j += 6) {
             int univ = wxAtoi(items[j + 1]);
             int contChan = wxAtoi(items[j + 4]);
-            if (univ == 0 && contChan == 0)
+            if (univ == 0 && contChan == 0) {
                 continue;
+            }
             uniToChan.insert({ univ, contChan });
         }
     }
@@ -499,16 +686,18 @@ int HinksPix::EncodeBrightness(int brightness) const
 {
     //HinkPix Allows brightness values of 100,90,80,70,60,50,40,30,20,15
     const int newVal = (brightness / 10) * 10;//round to the 10's
-    if (newVal < 20)
+    if (newVal < 20) {
         return 15;
+    }
     return newVal;
 }
 
 int HinksPix::EncodeGamma(int gamma) const
 {
     //HinkPix Allows gamma value of 1-4 as integer values
-    if (gamma > 4)
+    if (gamma > 4) {
         return 4;
+    }
     return gamma;
 }
 
@@ -522,11 +711,9 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
     //Get Controller Info
     wxString  data;
 
-    for (int x = 0; x < 3; x++)
-    {
+    for (int x = 0; x < 3; x++) {
         data = GetControllerData(1100);
-        if (!data.empty())
-        {
+        if (!data.empty()) {
             break;
         }
     }
@@ -541,8 +728,9 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
         _connected = true;
         _Flex = wxAtoi(controlInfo.at("E"));
 
-        if (!_Flex)
+        if (!_Flex) {
             _numberOfOutputs = 16;
+        }
     }
     else {
         _connected = false;
@@ -567,8 +755,9 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
             logger_base.error("Error Get Firmware Info");
         }
 
-        if (!_Flex)
+        if (!_Flex) {
             _model = "EasyLights Pix16";
+        }
         _model = "HinksPix PRO";
 
         logger_base.debug("Connected to HinksPix controller model %s.", (const char*)GetFullName().c_str());
@@ -593,8 +782,9 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
     std::list<Output*> outputs = controller->GetOutputs();
 
     auto const data = GetControllerData(902);
-    if (data.empty())
+    if (data.empty()) {
         return false;
+    }
 
     const auto map = StringToMap(data);
 
@@ -637,8 +827,9 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
     }
 
     //if DDP, skip the next part
-    if (type == 1)
+    if (type == 1) {
         return true;
+    }
 
     //Joes code allows 6 universe settings uploaded at a time
     //loop though and submit every 6
@@ -661,8 +852,9 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
         wxString msg = wxString::Format("ROWCNT=16:ROW=%d:", j);
         for (int i = 0; i < 6; i++) {
             if (it != outputs.end()) {
-                if (i != 0)
+                if (i != 0) {
                     msg += ",";
+                }
                 msg += wxString::Format("%d,%d,%d,1,%d,%d", index,
                     (*it)->GetUniverse(), (*it)->GetChannels(), cntr_start,
                     (cntr_start + (*it)->GetChannels() - 1));
@@ -671,8 +863,9 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
                 index++;
             }
             else if(index <= maxUnv) {
-                if (i != 0)
+                if (i != 0) {
                     msg += ",";
+                }
                 msg += wxString::Format("%d", index);
                 msg += ",0,0,0,0,0";
                 index++;
@@ -683,17 +876,20 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
         }
         //post data
         auto const res = GetControllerData(2001, msg);
-        if (res != "done")
+        if (res != "done") {
             worked = false;
+        }
     }
 
     //reboot
-    auto const resetres = GetControllerData(1111);
-    if (resetres != "done")
-        worked = false;
+    //auto const resetres = GetControllerData(1111);
+    //if (resetres != "done") {
+    //    worked = false;
+    //}
 
-    if (!worked)
+    if (!worked) {
         DisplayError("HinksPix E131 Input command FAILED.");
+    }
 
     return worked;
 }
@@ -772,10 +968,17 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
             auto pixOut = std::find_if(_pixelOutputs.begin(), _pixelOutputs.end(), [port](auto const& po) {return po.output == port; });
-            if (pixOut != _pixelOutputs.end())
+            if (pixOut != _pixelOutputs.end()) {
                 UpdatePortData(*pixOut, portData, map);
+            }
+
+            CalculateSmartRecievers(portData);
         }
     }
+
+    logger_base.info("Uploading SmartRecievers Information.");
+    progress.Update(40, "Uploading SmartRecievers Information.");
+    UploadSmartRecievers(worked);
 
     logger_base.info("Uploading String Output Information.");
     progress.Update(50, "Uploading String Output Information.");
@@ -806,8 +1009,9 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Rebooting Controller.");
     progress.Update(90, "Rebooting Controller.");
     auto const resetres = GetControllerData(1111);
-    if (resetres != "done")
+    if (resetres != "done") {
         worked = false;
+    }
 
     progress.Update(100, "Done.");
     return worked;

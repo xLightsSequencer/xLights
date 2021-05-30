@@ -120,13 +120,8 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLERModel_PRINT;
 		static const long CONTROLLERModel_SAVE_CSV;
 		static const long CONTROLLER_REMOVEALLMODELS;
-		static const long CONTROLLER_SMARTREMOTE_None;
-		static const long CONTROLLER_SMARTREMOTE_A;
-		static const long CONTROLLER_SMARTREMOTE_B;
-		static const long CONTROLLER_SMARTREMOTE_C;
-		static const long CONTROLLER_SMARTREMOTE_ABC;
-		static const long CONTROLLER_SMARTREMOTE_BC;
 		static const long CONTROLLER_DMXCHANNEL;
+		static const long CONTROLLER_CASCADEDOWNPORT;
 		static const long CONTROLLER_DMXCHANNELCHAIN;
 		static const long CONTROLLER_PROTOCOL;
 		static const long CONTROLLER_REMOVEPORTMODELS;
@@ -140,6 +135,7 @@ class ControllerModelDialog: public wxDialog
 		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
 		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
 		wxPoint GetScrollPosition(wxPanel* panel) const;
+		void OnPopupCommand(wxCommandEvent& event);
 
 	protected:
 
@@ -200,7 +196,6 @@ class ControllerModelDialog: public wxDialog
 
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
-		void OnPopupCommand(wxCommandEvent & event);
 		void PrintScreen();
 		void SaveCSV();
 		double getFontSize();

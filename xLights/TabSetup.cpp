@@ -2390,15 +2390,15 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
 
     wxByte np = 0;
     if (vs != nullptr) {
-        if (vs->_nullPixelsSet) {
-            np = vs->_nullPixels;
+        if (vs->_startNullPixelsSet) {
+            np = vs->_startNullPixels;
         }
     }
     else if (m != nullptr) {
-        np = m->GetNullPixels(0);
+        np = m->GetStartNullPixels(0);
     }
     p->nullPixels = np;
-    logger_zcpp.debug("       Null Pixels %d", (int)np);
+    logger_zcpp.debug("       Start Null Pixels %d", (int)np);
 
     wxByte b = 100;
     if (vs != nullptr) {

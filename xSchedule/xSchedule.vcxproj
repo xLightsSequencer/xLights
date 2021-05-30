@@ -415,6 +415,7 @@
     <ClCompile Include="wxHTTPServer\status.cpp" />
     <ClCompile Include="wxJSON\jsonreader.cpp" />
     <ClCompile Include="wxJSON\jsonval.cpp" />
+    <ClCompile Include="wxJSON\jsonwriter.cpp" />
     <ClCompile Include="wxMIDI\src\wxMidi.cpp" />
     <ClCompile Include="wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
@@ -644,6 +645,7 @@
     <ClInclude Include="wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="wxJSON\jsonreader.h" />
     <ClInclude Include="wxJSON\jsonval.h" />
+    <ClInclude Include="wxJSON\jsonwriter.h" />
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />

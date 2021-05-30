@@ -20,6 +20,7 @@
 				<Protocol>ws2801</Protocol>
 				<Protocol>tls3001</Protocol>
 				<Protocol>gece</Protocol>
+				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
@@ -50,6 +51,7 @@
 				<Protocol>apa102</Protocol>
 				<Protocol>lpd8806</Protocol>
 				<Protocol>gece</Protocol>
+				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
@@ -80,6 +82,7 @@
 				<Protocol>ws2801</Protocol>
 				<Protocol>tls3001</Protocol>
 				<Protocol>gece</Protocol>
+				<Protocol>sm16716</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
@@ -112,6 +115,7 @@
 				<Protocol>ws2801</Protocol>
 				<Protocol>apa102</Protocol>
 				<Protocol>lpd8806</Protocol>
+				<Protocol>sm16716</Protocol>
 				<Protocol>gece</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -143,6 +147,7 @@
 				<Protocol>lpd6803</Protocol>
 				<Protocol>ws2801</Protocol>
 				<Protocol>tls3001</Protocol>
+				<Protocol>sm16716</Protocol>
 				<Protocol>gece</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
