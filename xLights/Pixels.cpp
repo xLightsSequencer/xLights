@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "Pixels.h"
+#include <algorithm>
 
 #include <algorithm>
 
