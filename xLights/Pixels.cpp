@@ -10,6 +10,8 @@
 
 #include "Pixels.h"
 
+#include <algorithm>
+
 // ***********************************************************************************************
 // *                                                                                             *
 // * The following table may not be accurate but it is my best understanding of protocol         *
