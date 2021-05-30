@@ -852,7 +852,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     }
     else     {
         auto controllerProtocols = caps->GetAllProtocols();
-        for (const auto& it : GetAllPixelTypes(controllerProtocols, false, true)) {
+        for (const auto& it : GetAllPixelTypes(controllerProtocols, true, true)) {
             cp.push_back(it);
         }
     }
