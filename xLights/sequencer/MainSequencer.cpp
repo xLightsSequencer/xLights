@@ -674,6 +674,30 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 PanelEffectGrid->InsertEffectLayerAbove();
             }
+            else if (type == "AUDIO_FULL_SPEED")             {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.0);
+            }
+            else if (type == "AUDIO_F_1_5_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.5);
+            }
+            else if (type == "AUDIO_F_2_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(2.0);
+            }
+            else if (type == "AUDIO_F_3_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(3.0);
+            }
+            else if (type == "AUDIO_F_4_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(4.0);
+            }
+            else if (type == "AUDIO_S_3_4_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.75);
+            }
+            else if (type == "AUDIO_S_1_2_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.5);
+            }
+            else if (type == "AUDIO_S_1_4_SPEED") {
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.25);
+            }
             else if (type == "SELECT_ALL")
             {
                 mSequenceElements->SelectAllEffects();

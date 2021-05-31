@@ -3205,50 +3205,81 @@ void xLightsFrame::SetGridNodeValues(bool b)
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
+void xLightsFrame::SetPlaySpeedTo(float speed)
+{
+    playAnimation = false;
+    playSpeed = speed;
+
+    AudioManager::SetPlaybackRate(playSpeed);
+    if (CurrentSeqXmlFile != nullptr) 	{
+        if (CurrentSeqXmlFile->GetMedia() == nullptr)         {
+            playAnimation = true;
+        }
+    }
+
+    if (speed == 1.0)     {
+        AudioMenu->Check(ID_PLAY_FULL, true);
+    }
+    else if (speed == 1.5) {
+        AudioMenu->Check(ID_MNU_1POINT5SPEED, true);
+    }
+    else if (speed == 2) {
+        AudioMenu->Check(ID_MN_2SPEED, true);
+    }
+    else if (speed == 3) {
+        AudioMenu->Check(ID_MNU_3SPEED, true);
+    }
+    else if (speed == 4) {
+        AudioMenu->Check(ID_MNU_4SPEED, true);
+    }
+    else if (speed == 0.75) {
+        AudioMenu->Check(ID_PLAY_3_4, true);
+    }
+    else if (speed == 0.5) {
+        AudioMenu->Check(ID_PLAY_1_2, true);
+    }
+    else if (speed == 0.25) {
+        AudioMenu->Check(ID_PLAY_1_4, true);
+    }
+}
+
 void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 {
-    playSpeed = 1.0;
-    playAnimation = false;
     if (event.GetId() == ID_PLAY_FULL)
     {
-        playSpeed = 1.0;
+        SetPlaySpeedTo(1.0);
     }
     else if (event.GetId() == ID_PLAY_3_4)
     {
-        playSpeed = 0.75;
+        SetPlaySpeedTo(0.75);
     }
     else if (event.GetId() == ID_PLAY_1_2)
     {
-        playSpeed = 0.5;
+        SetPlaySpeedTo(0.5);
     }
     else if (event.GetId() == ID_PLAY_1_4)
     {
-        playSpeed = 0.25;
+        SetPlaySpeedTo(0.25);
     }
     else if (event.GetId() == ID_MNU_1POINT5SPEED)
     {
-        playSpeed = 1.5;
+        SetPlaySpeedTo(1.5);
     }
     else if (event.GetId() == ID_MN_2SPEED)
     {
-        playSpeed = 2.0;
+        SetPlaySpeedTo(2.0);
     }
     else if (event.GetId() == ID_MNU_3SPEED)
     {
-        playSpeed = 3.0;
+        SetPlaySpeedTo(3.0);
     }
     else if (event.GetId() == ID_MNU_4SPEED)
     {
-        playSpeed = 4.0;
+        SetPlaySpeedTo(4.0);
     }
-    AudioManager::SetPlaybackRate(playSpeed);
-	if (CurrentSeqXmlFile != nullptr)
-	{
-	    if( CurrentSeqXmlFile->GetMedia() == nullptr )
-        {
-            playAnimation = true;
-        }
-	}
+    else         {
+        SetPlaySpeedTo(1.0);
+    }
 }
 
 void xLightsFrame::SetRenderOnSave(bool b)

@@ -102,7 +102,15 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "PRESETS_TOGGLE", KBSCOPE::Sequence },
     { "FOCUS_SEQUENCER", KBSCOPE::All }, // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
     { "VALUECURVES_TOGGLE", KBSCOPE::Sequence },
-    { "COLOR_DROPPER_TOGGLE", KBSCOPE::Sequence }
+    { "COLOR_DROPPER_TOGGLE", KBSCOPE::Sequence },
+    { "AUDIO_FULL_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_F_1_5_SPEED",  KBSCOPE::Sequence },
+    { "AUDIO_F_2_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_F_3_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_F_4_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_S_3_4_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_S_1_2_SPEED", KBSCOPE::Sequence },
+    { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
@@ -186,7 +194,15 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "PRESETS_TOGGLE", "Toggle display of the presets panel." },
     { "FOCUS_SEQUENCER", "Force keyboard focus to the effects gid." }, // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
     { "VALUECURVES_TOGGLE", "Toggle display of the value curves droppper panel." },
-    { "COLOR_DROPPER_TOGGLE", "Toggle display of the color dropper panel." }
+    { "COLOR_DROPPER_TOGGLE", "Toggle display of the color dropper panel." },
+    { "AUDIO_FULL_SPEED", "Playback audio at normal speed." },
+    { "AUDIO_F_1_5_SPEED", "Playback audio at 1.5 times speed." },
+    { "AUDIO_F_2_SPEED", "Playback audio at 2 times speed." },
+    { "AUDIO_F_3_SPEED", "Playback audio at 3 times speed." },
+    { "AUDIO_F_4_SPEED", "Playback audio at 4 times speed." },
+    { "AUDIO_S_3_4_SPEED", "Playback audio at 3/4 speed." },
+    { "AUDIO_S_1_2_SPEED", "Playback audio at 1/2 speed." },
+    { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -212,6 +228,14 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("SPACE", false, "TOGGLE_PLAY"),
     KeyBinding("", true, "STOP"),
     KeyBinding("PAUSE", false, "PAUSE"),
+    KeyBinding("", true, "AUDIO_FULL_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_F_1_5_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_F_2_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_F_3_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_F_4_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_S_3_4_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_S_1_2_SPEED", true, true),
+    KeyBinding("", true, "AUDIO_S_1_4_SPEED", true, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),

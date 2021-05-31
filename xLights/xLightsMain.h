@@ -421,6 +421,7 @@ public:
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
+    void SetPlaySpeedTo(float speed);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
