@@ -506,12 +506,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT || k == WXK_RAW_CONTROL) return false;
 
         if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown() && !event.RawControlDown()) ||
-            (k == 'A' && (event.ControlDown() || event.CmdDown() || event.RawControlDown()) && !event.AltDown()))
-        {
+            (k == 'A' && (event.ControlDown() || event.CmdDown() || event.RawControlDown()) && !event.AltDown()))         {
             // Just a regular key ... If current focus is a control then we need to not process this
             if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-                (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
-            {
+                (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))             {
                 return false;
             }
         }
@@ -519,29 +517,23 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         auto binding = keyBindings.Find(event, KBSCOPE::Sequence);
         if (binding != nullptr) {
             std::string type = binding->GetType();
-            if (type == "TIMING_ADD")
-            {
+            if (type == "TIMING_ADD")             {
                 InsertTimingMarkFromRange();
             }
-            else if (type == "TIMING_SPLIT")
-            {
+            else if (type == "TIMING_SPLIT")             {
                 SplitTimingMark();
             }
-            else if (type == "ZOOM_IN")
-            {
+            else if (type == "ZOOM_IN")             {
                 PanelTimeLine->ZoomIn();
             }
-            else if (type == "ZOOM_OUT")
-            {
+            else if (type == "ZOOM_OUT")             {
                 PanelTimeLine->ZoomOut();
             }
-            else if (type == "RANDOM")
-            {
+            else if (type == "RANDOM")             {
                 Effect* ef = PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
                 SelectEffect(ef);
             }
-            else if (type == "EFFECT")
-            {
+            else if (type == "EFFECT")             {
                 if (PanelEffectGrid->GetSelectedEffect() == nullptr) {
                     // reset default settings if appropriate
                     if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
@@ -554,127 +546,107 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                     }
                 }
             }
-            else if (type == "APPLYSETTING")
-            {
+            else if (type == "APPLYSETTING")             {
                 SettingsMap newSetting = SettingsMap();
                 newSetting.Parse(binding->GetEffectString());
-                
+
                 // Apply setting on the UI
                 mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
 
                 // Now apply it to all selected effects
-                for (const auto& s : newSetting)
-                {
+                for (const auto& s : newSetting)                 {
                     ApplyEffectSettingToSelected("", s.first, s.second, nullptr, "");
                 }
             }
-            else if (type == "PRESET")
-            {
-               Effect* ef = mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+            else if (type == "PRESET")             {
+                Effect* ef = mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
                 PanelEffectGrid->SelectEffect(ef);
             }
-            else if (type == "EFFECT_SETTINGS_TOGGLE")
-            {
+            else if (type == "EFFECT_SETTINGS_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
             }
-            else if (type == "SAVE_SEQUENCE")
-            {
+            else if (type == "SAVE_SEQUENCE")             {
                 mSequenceElements->GetXLightsFrame()->SaveSequence();
             }
-            else if (type == "SAVEAS_SEQUENCE")
-            {
+            else if (type == "SAVEAS_SEQUENCE")             {
                 mSequenceElements->GetXLightsFrame()->SaveAsSequence();
             }
-            else if (type == "EFFECT_ASSIST_TOGGLE")
-            {
+            else if (type == "EFFECT_ASSIST_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideEffectAssistWindow(e);
             }
-            else if (type == "COLOR_TOGGLE")
-            {
+            else if (type == "COLOR_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideColorWindow(e);
             }
-            else if (type == "LAYER_SETTING_TOGGLE")
-            {
+            else if (type == "LAYER_SETTING_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideBufferSettingsWindow(e);
             }
-            else if (type == "LAYER_BLENDING_TOGGLE")
-            {
+            else if (type == "LAYER_BLENDING_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideLayerTimingWindow(e);
             }
-            else if (type == "MODEL_PREVIEW_TOGGLE")
-            {
+            else if (type == "MODEL_PREVIEW_TOGGLE")             {
                 ToggleModelPreview();
             }
-            else if (type == "HOUSE_PREVIEW_TOGGLE")
-            {
+            else if (type == "HOUSE_PREVIEW_TOGGLE")             {
                 ToggleHousePreview();
             }
-            else if (type == "EFFECTS_TOGGLE")
-            {
+            else if (type == "EFFECTS_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideEffectDropper(e);
             }
-            else if (type == "DISPLAY_ELEMENTS_TOGGLE")
-            {
+            else if (type == "DISPLAY_ELEMENTS_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHideDisplayElementsWindow(e);
             }
-            else if (type == "JUKEBOX_TOGGLE")
-            {
+            else if (type == "JUKEBOX_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
             }
-            else if (type == "LOCK_EFFECT")
-            {
+            else if (type == "LOCK_EFFECT")             {
                 PanelEffectGrid->LockEffects(true);
             }
-            else if (type == "CANCEL_RENDER")
-            {
+            else if (type == "CANCEL_RENDER")             {
                 CancelRender();
             }
-            else if (type == "TOGGLE_RENDER")
-            {
+            else if (type == "TOGGLE_RENDER")             {
                 CheckBox_SuspendRender->SetValue(!CheckBox_SuspendRender->GetValue());
                 ToggleRender(CheckBox_SuspendRender->GetValue());
             }
-            else if (type == "UNLOCK_EFFECT")
-            {
+            else if (type == "UNLOCK_EFFECT")             {
                 PanelEffectGrid->LockEffects(false);
             }
-            else if (type == "MARK_SPOT")
-            {
+            else if (type == "MARK_SPOT")             {
                 SavePosition();
             }
-            else if (type == "RETURN_TO_SPOT")
-            {
+            else if (type == "RETURN_TO_SPOT")             {
                 RestorePosition();
             }
-            else if (type == "EFFECT_DESCRIPTION")
-            {
+            else if (type == "PRIOR_TAG") {
+                PanelTimeLine->GoToPriorTag();
+            }
+            else if (type == "NEXT_TAG") {
+                PanelTimeLine->GoToNextTag();
+            }
+            else if (type == "EFFECT_DESCRIPTION")             {
                 PanelEffectGrid->SetEffectsDescription();
             }
-            else if (type == "EFFECT_ALIGN_START")
-            {
+            else if (type == "EFFECT_ALIGN_START")             {
                 PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
             }
-            else if (type == "EFFECT_ALIGN_END")
-            {
+            else if (type == "EFFECT_ALIGN_END")             {
                 PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
             }
-            else if (type == "EFFECT_ALIGN_BOTH")
-            {
+            else if (type == "EFFECT_ALIGN_BOTH")             {
                 PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
             }
-            else if (type == "INSERT_LAYER_ABOVE")
-            {
+            else if (type == "INSERT_LAYER_ABOVE")             {
                 PanelEffectGrid->InsertEffectLayerAbove();
             }
-            else if (type == "AUDIO_FULL_SPEED")             {
+            else if (type == "AUDIO_FULL_SPEED") {
                 mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.0);
             }
             else if (type == "AUDIO_F_1_5_SPEED") {
@@ -698,64 +670,51 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "AUDIO_S_1_4_SPEED") {
                 mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.25);
             }
-            else if (type == "SELECT_ALL")
-            {
+            else if (type == "SELECT_ALL")             {
                 mSequenceElements->SelectAllEffects();
                 PanelEffectGrid->Refresh();
             }
-            else if (type == "SELECT_ALL_NO_TIMING")
-            {
+            else if (type == "SELECT_ALL_NO_TIMING")             {
                 mSequenceElements->SelectAllEffectsNoTiming();
                 PanelEffectGrid->Refresh();
             }
-            else if (type == "INSERT_LAYER_BELOW")
-            {
+            else if (type == "INSERT_LAYER_BELOW")             {
                 PanelEffectGrid->InsertEffectLayerBelow();
             }
-            else if (type == "TOGGLE_ELEMENT_EXPAND")
-            {
+            else if (type == "TOGGLE_ELEMENT_EXPAND")             {
                 PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
             }
-            else if (type == "SHOW_PRESETS")
-            {
+            else if (type == "SHOW_PRESETS")             {
                 mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
             }
-            else if (type == "PRESETS_TOGGLE")
-            {
+            else if (type == "PRESETS_TOGGLE")             {
                 mSequenceElements->GetXLightsFrame()->TogglePresetsPanel();
             }
-            else if (type == "VALUECURVES_TOGGLE")
-            {
+            else if (type == "VALUECURVES_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->OnMenuItem_ValueCurvesSelected(e);
             }
-            else if (type == "COLOR_DROPPER_TOGGLE")
-            {
+            else if (type == "COLOR_DROPPER_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->OnMenuItem_ColourDropperSelected(e);
             }
-            else if (type == "SEARCH_TOGGLE")
-            {
+            else if (type == "SEARCH_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
             }
-            else if (type == "PERSPECTIVES_TOGGLE")
-            {
+            else if (type == "PERSPECTIVES_TOGGLE")             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
             }
-            else if (type == "EFFECT_UPDATE")
-            {
+            else if (type == "EFFECT_UPDATE")             {
                 wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
                 wxPostEvent(GetParent(), eventEffectUpdated);
             }
-            else if (type == "COLOR_UPDATE")
-            {
+            else if (type == "COLOR_UPDATE")             {
                 wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
                 wxPostEvent(GetParent(), eventEffectUpdated);
             }
-            else
-            {
+            else             {
                 logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
                 wxASSERT(false);
                 return false;

@@ -110,7 +110,9 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "AUDIO_F_4_SPEED", KBSCOPE::Sequence },
     { "AUDIO_S_3_4_SPEED", KBSCOPE::Sequence },
     { "AUDIO_S_1_2_SPEED", KBSCOPE::Sequence },
-    { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence }
+    { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence },
+    { "PRIOR_TAG", KBSCOPE::Sequence },
+    { "NEXT_TAG", KBSCOPE::Sequence }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
@@ -202,7 +204,9 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "AUDIO_F_4_SPEED", "Playback audio at 4 times speed." },
     { "AUDIO_S_3_4_SPEED", "Playback audio at 3/4 speed." },
     { "AUDIO_S_1_2_SPEED", "Playback audio at 1/2 speed." },
-    { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." }
+    { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." },
+    { "PRIOR_TAG", "Jump to prior audio tag." },
+    { "NEXT_TAG", "Jump to next audio tag." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -236,6 +240,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "AUDIO_S_3_4_SPEED", true, true),
     KeyBinding("", true, "AUDIO_S_1_2_SPEED", true, true),
     KeyBinding("", true, "AUDIO_S_1_4_SPEED", true, true),
+    KeyBinding("", true, "PRIOR_TAG", true, true),
+    KeyBinding("", true, "NEXT_TAG", true, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),

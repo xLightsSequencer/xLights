@@ -112,6 +112,8 @@ public:
     int GetNewEndTimeMS() const;    // return the time where to end playing
     int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker; };
     void GoToTag(int tag);
+    void GoToPriorTag();
+    void GoToNextTag();
     int GetTagPosition(int tag);
     void SetTagPosition(int tag, int position);
     void ClearTags();
