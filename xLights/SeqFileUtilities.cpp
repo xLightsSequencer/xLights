@@ -1259,16 +1259,17 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
 
 // backwards compatible for tabSequencer call
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
-                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
-    SequencePackage xsqPkg(filename, this);
-    ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
+bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
+SequencePackage xsqPkg(filename, this);
+ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
-void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-                                                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::map<std::string, EffectLayer *> layerMap;
-    std::map<std::string, Element *>elementMap;
+void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
+    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::map<std::string, EffectLayer*> layerMap;
+    std::map<std::string, Element*>elementMap;
     xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
@@ -1278,16 +1279,15 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     dlg.SetXsqPkg(&xsqPkg);
 
-    std::vector<EffectLayer *> mapped;
+    std::vector<EffectLayer*> mapped;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, bool> timingTrackAlreadyExists;
     std::map<std::string, TimingElement*> timingTracks;
 
     for (const auto& it : elements) {
-        Element *e = it;
-        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
-        {
-            ModelElement *el = dynamic_cast<ModelElement*>(e);
+        Element* e = it;
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)         {
+            ModelElement* el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
             for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
@@ -1298,9 +1298,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             elementMap[el->GetName()] = el;
             int s = 0;
             for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
-                SubModelElement *sme = el->GetSubModel(sm);
+                SubModelElement* sme = el->GetSubModel(sm);
 
-                StrandElement *ste = dynamic_cast<StrandElement *>(sme);
+                StrandElement* ste = dynamic_cast<StrandElement*>(sme);
                 std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     s++;
@@ -1314,7 +1314,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
-                        NodeLayer *nl = ste->GetNodeLayer(n, true);
+                        NodeLayer* nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
                             if (nodeName == "") {
@@ -1326,8 +1326,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     }
                 }
             }
-        } else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            TimingElement *tel = dynamic_cast<TimingElement*>(e);
+        }
+        else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            TimingElement* tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
                 bool hasEffects = false;
                 for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
@@ -1356,6 +1357,13 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     if (showModelBlending && dlg.GetImportModelBlending()) {
         CurrentSeqXmlFile->setSupportsModelBlending(modelBlending);
         GetSequenceElements().SetSupportsModelBlending(modelBlending);
+    }
+
+    // if the user is importing at least one timing element and the current sequence only has one timing track called New Timing with no timing marks in it ...
+    if (dlg.TimingTrackListBox->GetCount() > 0 && _sequenceElements.GetNumberOfTimingElements() == 1 && _sequenceElements.GetTimingElement("New Timing") != nullptr && !_sequenceElements.GetTimingElement("New Timing")->HasEffects())
+    {
+        // Delete the New Timing timing track
+        _sequenceElements.DeleteElement("New Timing");
     }
 
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {

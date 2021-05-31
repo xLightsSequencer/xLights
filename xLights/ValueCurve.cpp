@@ -509,9 +509,9 @@ void ValueCurve::Reverse()
 
     if (_type == "Custom")
     {
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        for (auto& it : _values)
         {
-            it->x = 1.0 - it->x;
+            it.x = 1.0 - it.x;
         }
     }
     else if (_type == "Ramp")
@@ -584,9 +584,9 @@ void ValueCurve::Flip()
 {
     if (_type == "Custom")
     {
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        for (auto& it : _values)
         {
-            it->y = 1.0 - it->y;
+            it.y = 1.0 - it.y;
         }
     }
     else if (_type == "Ramp" || _type == "Saw Tooth" || _type == "Square" || _type == "Random")
@@ -789,9 +789,9 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         wxASSERT(_min != MINVOIDF);
         wxASSERT(_max != MAXVOIDF);
 
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        for (auto& it : _values)
         {
-            it->y = it->y * newrange / oldrange;
+            it.y = it.y * newrange / oldrange;
         }
     }
 }

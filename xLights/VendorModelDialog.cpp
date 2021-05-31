@@ -280,8 +280,8 @@ public:
         }
         _imageFiles.clear();
 
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            std::string fn = VendorModelDialog::GetCache().GetFile(*it, CACHEFOR::CACHETIME_LONG);
+        for (const auto& it : _images) {
+            std::string fn = VendorModelDialog::GetCache().GetFile(it, CACHEFOR::CACHETIME_LONG);
             if (fn != "") {
                 _imageFiles.push_back(wxFileName(fn));
             }
@@ -1013,9 +1013,9 @@ VendorModelDialog::~VendorModelDialog()
 
     _cache.Save();
 
-    for (auto it = _vendors.begin(); it != _vendors.end(); ++it)
+    for (const auto& it : _vendors)
     {
-        delete *it;
+        delete it;
     }
 }
 
