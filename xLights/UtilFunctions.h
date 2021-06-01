@@ -288,6 +288,11 @@ static inline double toDegrees(double radians) {
     return (radians / (2 * M_PI)) * 360.0;
 }
 
+inline const char* const toStr(bool b)
+{
+    return b ? "true" : "false";
+}
+
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
 bool IsValidLocalIP(const std::string& ip);

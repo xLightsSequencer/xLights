@@ -32,21 +32,23 @@
 #pragma region Output Classes
 struct WLEDOutput {
     const int output;
-    int startCount = 0;
-    int pixels = 0;
-    int colorOrder = 0;
-    int protocol = 1;
-    bool reverse = false;
-    uint8_t pin = 255;
+    int startCount{ 0 };
+    int pixels{ 0 };
+    int colorOrder{ 0 };
+    int protocol{ 1 };
+    bool reverse{ false };
+    int nullPixels{ 0 }; //skip is an int in the JSON, but a checkbox in the WebUI. WLED backend looks to support multiple nulls
+    uint8_t pin{ 255 };
 
     WLEDOutput(int output_) : output(output_) { }
     void Dump() const {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Start %d Pixels %d Rev %d ColorOrder %d Protocol %d Pin %d",
+        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Nulls %d ColorOrder %d Protocol %d Pin %d",
             output,
             startCount,
             pixels,
-            reverse,
+            toStr(reverse),
+            nullPixels,
             colorOrder,
             protocol,
             pin
@@ -63,7 +65,7 @@ struct WLEDOutput {
         portJson["type"] = protocol;
         portJson["order"] = colorOrder;
         portJson["rev"] = reverse;
-        portJson["skip"] = 0;
+        portJson["skip"] = nullPixels;
 
         json.Append(portJson);
     }
@@ -90,7 +92,8 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
             if(_model.find("32") != std::string::npos) {
                 _controllerType = WLEDType::ESP32;
             }
-
+            //2105110 added json config
+            //2105200 added per string null pixel to GUI but older builds have it in the JSON
             if (vid < 2105110) {
                 logger_base.error("Build 2105110 of WLED Is Required, '%d' is Installed .", vid);
                 _connected = false;
@@ -121,7 +124,7 @@ WLED::~WLED() {
 
 #pragma region Private Functions
 
-bool WLED::ParseOutputJSON(wxJSONValue & jsonVal) {
+bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal) {
 
     _pixelOutputs.clear();
 
@@ -134,34 +137,37 @@ bool WLED::ParseOutputJSON(wxJSONValue & jsonVal) {
     return true;
 }
 
-WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue& jsonVal, int port) {
+WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port) {
 
     WLEDOutput* output = new WLEDOutput(port);
 
-    auto json = jsonVal["hw"]["led"]["ins"][port - 1];
+    auto const& json = jsonVal.ItemAt("hw").ItemAt("led").ItemAt("ins").ItemAt(port - 1);
 
     if (json.IsValid()) {
-        if (json["len"].IsInt()) {
-            output->pixels = json["len"].AsInt();
+        if (json.ItemAt("len").IsInt()) {
+            output->pixels = json.ItemAt("len").AsInt();
         }
-        if (json["start"].IsInt()) {
-            output->startCount = json["start"].AsInt();
+        if (json.ItemAt("start").IsInt()) {
+            output->startCount = json.ItemAt("start").AsInt();
         }
-        if (json["pin"].IsArray()) {
-            if (json["pin"][0].IsValid()) {
-                output->pin = json["pin"][0].AsInt();
+        if (json.ItemAt("pin").IsArray()) {
+            if (json.ItemAt("pin").ItemAt(0).IsValid()) {
+                output->pin = json.ItemAt("pin").ItemAt(0).AsInt();
             }
         }
-        if (json["type"].IsInt()) {
-            output->protocol = json["type"].AsInt();
+        if (json.ItemAt("type").IsInt()) {
+            output->protocol = json.ItemAt("type").AsInt();
         }
-        if (json["order"].IsInt()) {
-            output->colorOrder = json["order"].AsInt();
+        if (json.ItemAt("order").IsInt()) {
+            output->colorOrder = json.ItemAt("order").AsInt();
         }
-        if (json["rev"].IsBool()) {
-            output->reverse = json["rev"].AsBool();
+        if (json.ItemAt("rev").IsBool()) {
+            output->reverse = json.ItemAt("rev").AsBool();
         }
-
+        //skip is an int in the JSON but checkbox in the WebUI 
+        if (json.ItemAt("skip").IsInt()) {
+            output->nullPixels = json.ItemAt("skip").AsInt();
+        }
     }
     //work around for un-setup pins
     if (output->pin == 255) {
@@ -190,6 +196,11 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
         int const protocol = EncodeStringPortProtocol(stringData->GetFirstModel()->GetProtocol());
         if (protocol != -1) {
             pd->protocol = protocol;
+        }
+
+        const int nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
+        if (nullPix != -1) {
+            pd->nullPixels = nullPix;
         }
 
         if (pd->startCount != startNumber) {
@@ -289,9 +300,11 @@ bool WLED::SetupInput(ControllerEthernet* controller, wxJSONValue& jsonVal) {
     int port = 0;
     auto o = controller->GetFirstOutput();
 
-    if (o->GetChannels() > 510) {
-        DisplayError(wxString::Format("Attempt to upload a universe of size %d to the WLED controller, but only a size of 510 or smaller is supported", o->GetChannels()).ToStdString());
-        return false;
+    if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
+        if (o->GetChannels() > 510) {
+            DisplayError(wxString::Format("Attempt to upload a universe of size %d to the WLED controller, but only a size of 510 or smaller is supported", o->GetChannels()).ToStdString());
+            return false;
+        }
     }
 
     if (o->GetType() == OUTPUT_E131) {

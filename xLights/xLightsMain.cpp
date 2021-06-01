@@ -1319,19 +1319,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
         (const char*)config->GetVendorName().c_str());
 
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
-    logger_base.debug("Play Controls On Preview: %s.", _playControlsOnPreview ? "true" : "false");
+    logger_base.debug("Play Controls On Preview: %s.", toStr( _playControlsOnPreview ));
 
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
-    logger_base.debug("Autoshow House Preview: %s.", _autoShowHousePreview ? "true" : "false");
+    logger_base.debug("Autoshow House Preview: %s.", toStr( _autoShowHousePreview ));
 
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
-    logger_base.debug("Small Waveform: %s.", _smallWaveform ? "true" : "false");
+    logger_base.debug("Small Waveform: %s.", toStr(_smallWaveform ));
 
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
-    logger_base.debug("Model Blend Default Off: %s.", _modelBlendDefaultOff ? "true" : "false");
+    logger_base.debug("Model Blend Default Off: %s.", toStr( _modelBlendDefaultOff ));
 
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
-    logger_base.debug("Snap To Timing Marks: %s.", _snapToTimingMarks ? "true" : "false");
+    logger_base.debug("Snap To Timing Marks: %s.", toStr( _snapToTimingMarks ));
 
     config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
 
@@ -1458,24 +1458,24 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     logger_base.debug("Perspectives loaded.");
 
     config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
-    logger_base.debug("Backup subdirectories: %s.", _backupSubfolders ? "true" : "false");
+    logger_base.debug("Backup subdirectories: %s.", toStr( _backupSubfolders ));
 
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
-    logger_base.debug("Exclude Presets From Packaged Sequences: %s.", _excludePresetsFromPackagedSequences ? "true" : "false");
+    logger_base.debug("Exclude Presets From Packaged Sequences: %s.", toStr( _excludePresetsFromPackagedSequences ));
 
     config->Read("xLightsPromptBatchRenderIssues", &_promptBatchRenderIssues, true);
-    logger_base.debug("Prompt for issues during batch render: %s.", _promptBatchRenderIssues ? "true" : "false");
+    logger_base.debug("Prompt for issues during batch render: %s.", toStr( _promptBatchRenderIssues ));
 
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
-    logger_base.debug("Exclude Audio From Packaged Sequences: %s.", _excludeAudioFromPackagedSequences ? "true" : "false");
+    logger_base.debug("Exclude Audio From Packaged Sequences: %s.", toStr( _excludeAudioFromPackagedSequences ));
 
     config->Read("xLightsShowACLights", &_showACLights, false);
     MenuItem_ACLIghts->Check(_showACLights);
-    logger_base.debug("Show AC Lights toolbar: %s.", _showACLights ? "true" : "false");
+    logger_base.debug("Show AC Lights toolbar: %s.", toStr( _showACLights ));
 
     config->Read("xLightsShowACRamps", &_showACRamps, false);
     MenuItem_ShowACRamps->Check(_showACRamps);
-    logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
+    logger_base.debug("Show AC Ramps: %s.", toStr( _showACRamps ));
 
     bool bit64 = GetBitness() == "64bit";
     config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
@@ -1490,13 +1490,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
-    logger_base.debug("Autosave perspectives: %s.", _autoSavePerspecive ? "true" : "false");
+    logger_base.debug("Autosave perspectives: %s.", toStr( _autoSavePerspecive ));
 
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
-    logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+    logger_base.debug("Render on save: %s.", toStr( mRenderOnSave));
 
     config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
-    logger_base.debug("Save Fseq on save: %s.", mSaveFseqOnSave ? "true" : "false");
+    logger_base.debug("Save Fseq on save: %s.", toStr( mSaveFseqOnSave ));
 
     if (!mSaveFseqOnSave) {
         logger_base.debug("Render on save changed to false, because Save Fseq on save is false.");
@@ -1507,13 +1507,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     logger_base.debug("Model Handle Size: %d.", _modelHandleSize);
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
-    logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
+    logger_base.debug("Backup on save: %s.", toStr( mBackupOnSave ));
 
     config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
-    logger_base.debug("Backup on launch: %s.", mBackupOnLaunch? "true" : "false");
+    logger_base.debug("Backup on launch: %s.", toStr( mBackupOnLaunch ));
 
     config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
-    logger_base.debug("Suppress Transition Hints: %s.", mSuppressFadeHints ? "true" : "false");
+    logger_base.debug("Suppress Transition Hints: %s.", toStr( mSuppressFadeHints ));
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
@@ -1580,15 +1580,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, true);
     SetGridIconBackgrounds(mGridIconBackgrounds);
-    logger_base.debug("Grid icon backgrounds: %s.", mGridIconBackgrounds ? "true" : "false");
+    logger_base.debug("Grid icon backgrounds: %s.", toStr( mGridIconBackgrounds ));
 
     config->Read("xLightsTimingPlayOnDClick", &mTimingPlayOnDClick, true);
     SetTimingPlayOnDClick(mTimingPlayOnDClick);
-    logger_base.debug("Timing Play on DClick: %s.", mTimingPlayOnDClick ? "true" : "false");
+    logger_base.debug("Timing Play on DClick: %s.", toStr( mTimingPlayOnDClick ));
 
     config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
     SetGridNodeValues(mGridNodeValues);
-    logger_base.debug("Grid node values: %s.", mGridNodeValues ? "true" : "false");
+    logger_base.debug("Grid node values: %s.", toStr( mGridNodeValues ));
 
     config->Read("xLightsEffectAssistMode", &mEffectAssistMode, EFFECT_ASSIST_TOGGLE_MODE);
     if (mEffectAssistMode < 0 || mEffectAssistMode > EFFECT_ASSIST_TOGGLE_MODE) {
@@ -1677,7 +1677,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);
-    logger_base.debug("Sync: %s.", me131Sync ? "true" : "false");
+    logger_base.debug("Sync: %s.", toStr( me131Sync ));
 
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");

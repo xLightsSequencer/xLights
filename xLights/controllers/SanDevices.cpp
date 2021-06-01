@@ -32,7 +32,7 @@
 void SanDevicesOutput::Dump() const {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d Output %d Port %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %d ColorOrder %c Nulls %d Brightness %c Chase %d firstZig %d thenEvery %d",
+    logger_base.debug("    Group %d Output %d Port %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %s ColorOrder %c Nulls %d Brightness %c Chase %s firstZig %d thenEvery %d Upload %s",
         group,
         output,
         stringport,
@@ -40,45 +40,48 @@ void SanDevicesOutput::Dump() const {
         startChannel,
         pixels,
         groupCount,
-        reverse,
+        toStr(reverse),
         colorOrder,
         nullPixel,
         brightness,
-        chase,
+        toStr(chase),
         firstZig,
-        thenEvery
+        thenEvery,
+        toStr(upload)
         );
 }
 
 void SanDevicesProtocol::Dump() const {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d Protocol %c Timing %c",
+    logger_base.debug("    Group %d Protocol %c Timing %c Upload %s",
         getGroup(),
         getProtocol(),
-        getTiming());
+        getTiming(),
+        toStr(shouldUpload()));
 }
 
 void SanDevicesOutputV4::Dump() const {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d outputSize %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %d,%d,%d,%d ColorOrder %d Nulls %d,%d,%d,%d ZigZag %d",
+    logger_base.debug("    Group %d outputSize %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %s,%s,%s,%s ColorOrder %d Nulls %d,%d,%d,%d ZigZag %d Upload %s",
         group,
         outputSize,
         universe,
         startChannel,
         pixels,
         groupCount,
-        reverse[0],
-        reverse[1],
-        reverse[2],
-        reverse[3],
+        toStr(reverse[0]),
+        toStr(reverse[1]),
+        toStr(reverse[2]),
+        toStr(reverse[3]),
         colorOrder,
         nullPixel[0],
         nullPixel[1],
         nullPixel[2],
         nullPixel[3],
-        zigzag
+        zigzag,
+        toStr(upload)
     );
 }
 #pragma endregion

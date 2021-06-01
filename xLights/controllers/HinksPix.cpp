@@ -100,16 +100,16 @@ void HinksPixOutput::setControllerChannels(const int startChan)
 void HinksPixSerial::Dump() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("   E131 Uni %d E131 StartChan %d E131 NumOfChan %d E131 Enabled %d Mode %d DDP StartChan %d DDP NumOfChan %d DPP Enabled %d Upload %d",
+    logger_base.debug("   E131 Uni %d E131 StartChan %d E131 NumOfChan %d E131 Enabled %s Mode %d DDP StartChan %d DDP NumOfChan %d DPP Enabled %s Upload %s",
         e131Universe,
         e131StartChannel,
         e131NumOfChan,
-        e131Enabled,
+        toStr(e131Enabled),
         mode,
         ddpStartChannel,
         ddpNumOfChan,
-        ddpEnabled,
-        upload
+        toStr(ddpEnabled),
+        toStr(upload)
     );
 }
 

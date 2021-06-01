@@ -2441,7 +2441,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     wxString sr;
     if (m->GetSmartRemote() != 0) {
        sr += m->GetSmartRemoteLetter();
-       sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", m->GetSRCascadeOnPort() ? "true" : "false");
+       sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
        sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
     }
 

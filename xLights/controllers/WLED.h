@@ -41,9 +41,9 @@ class WLED : public BaseController
 
     WLEDOutput* FindPortData(int port);
 
-    bool ParseOutputJSON(wxJSONValue & jsonVal);
+    bool ParseOutputJSON(wxJSONValue const& jsonVal);
 
-    WLEDOutput* ExtractOutputJSON(wxJSONValue & jsonVal, int port);
+    WLEDOutput* ExtractOutputJSON(wxJSONValue const& jsonVal, int port);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
