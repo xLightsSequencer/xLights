@@ -3,6 +3,7 @@
         <!--SupportsPixelPortCommonSettings/-->
         <SupportsPixelPortDirection/>
         <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortNullPixels/>
         <SupportsUpload/>
         <MaxInputUniverses>9</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
