@@ -10,6 +10,7 @@
 
 #include "VendorMusicHelpers.h"
 #include "CachedFileDownloader.h"
+#include "UtilFunctions.h"
 
 bool MSLSequenceLyric::InCategory(std::string category)
 {
@@ -230,6 +231,11 @@ std::string MSLVendor::GetDescription() const
 	return desc;
 }
 
+bool compare_seq_lyrics(const MSLSequenceLyric* first, const MSLSequenceLyric* second)
+{
+	return Lower(first->_title) < Lower(second->_title);
+}
+
 MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
 {
 	_max = max;
@@ -318,6 +324,8 @@ MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
 			}
 		}
 	}
+
+	_sequencesLyrics.sort(compare_seq_lyrics);
 }
 
 MSLVendor::~MSLVendor()
