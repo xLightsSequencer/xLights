@@ -39,8 +39,15 @@ static const char *LEFT_RIGHT_VALUES[] = {
     "Green Square", 
     "Blue Square"
 };
-
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
+
+static const char* LEFT_RIGHT_INSIDE_OUTSIDE_VALUES[] = {
+    "Green Square Inside",
+    "Green Square Outside",
+    "Blue Square Inside",
+    "Blue Square Outside"
+};
+static wxPGChoices LEFT_RIGHT_INSIDE_OUTSIDE(wxArrayString(4, LEFT_RIGHT_INSIDE_OUTSIDE_VALUES));
 
 void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid)
 {
@@ -94,7 +101,12 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid)
         p->SetEditor("SpinCtrl");
     }
 
-    grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+    if (GetLayerSizeCount() != 0)     {
+        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, IsLtoR ? 0 : 2 + isBotToTop ? 0 : 1));
+    }
+    else         {
+        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+    }
 }
 
 int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -198,8 +210,17 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         return 0;
     }
     else if ("ArchesStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        int value = event.GetValue().GetLong();
+        if (GetLayerSizeCount() != 0) {
+            ModelXml->DeleteAttribute("Dir");
+            ModelXml->AddAttribute("Dir", (value == 0 || value == 1) ? "L" : "R");
+            ModelXml->DeleteAttribute("StartSide");
+            ModelXml->AddAttribute("StartSide", (value == 0 || value == 2) ? "T" : "B");
+        }
+        else         {
+            ModelXml->DeleteAttribute("Dir");
+            ModelXml->AddAttribute("Dir", value == 0 ? "L" : "R");
+        }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesStart");
@@ -245,8 +266,6 @@ void ArchesModel::InitRenderBufferNodes(const std::string& type, const std::stri
 
 void ArchesModel::InitModel()
 {
-
-    isBotToTop = true;
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
     _hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "70"));
 
@@ -319,16 +338,19 @@ void ArchesModel::InitModel()
 
         int idx = 0;
         bool dir = IsLtoR;
+        bool in_out = isBotToTop;
         float y = 0;
         for (const auto& it : GetLayerSizes()) {
+            int yy = y;
+            if (in_out) yy = GetLayerSizeCount() - y - 1;
             if (idx < Nodes.size()) {
                 if (it == 1) {
                     int startChan = stringStartChan[0] + idx * GetNodeChannelCount(StringType);
                     Nodes[idx]->ActChan = startChan;
-                    Nodes[idx]->StringNum = y;
+                    Nodes[idx]->StringNum = yy;
                     for (size_t c = 0; c < GetCoordCount(idx); c++) {
                         Nodes[idx]->Coords[c].bufX = maxLen / 2;
-                        Nodes[idx]->Coords[c].bufY = y;
+                        Nodes[idx]->Coords[c].bufY = yy;
                     }
                     idx++;
                 }
@@ -347,7 +369,7 @@ void ArchesModel::InitModel()
 
                             for (size_t c = 0; c < GetCoordCount(idx); c++) {
                                 Nodes[idx]->Coords[c].bufX = xx;
-                                Nodes[idx]->Coords[c].bufY = y;
+                                Nodes[idx]->Coords[c].bufY = yy;
                             }
                         }
                         idx++;
