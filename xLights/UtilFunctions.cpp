@@ -704,7 +704,7 @@ void DownloadVamp()
     ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/archive/qm-vamp-plugins-1.8.dmg");
 #else
     // likely can/should be used for all platforms
-    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2625/qm-vamp-plugins-1.8.0-linux64.tar.gz");
+    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/projects/vamp-plugin-pack");
 #endif
 }
 
