@@ -11,7 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.18 June 2, 2021
    -- enh (scott) Added F13-F24 Keybindings Support
+   -- enh (scott) Add null pixel support to WLED
+   -- enh (scott) Add Shift selected nodes to custom model editor
+   -- enh (keith) Upgrade vamp links to v1.8.0 on windows
+   -- enh (keith) Allow control over start point for layered arches to be inside or outside
+   -- enh (keith) In sequences/lyrics download sort the items
+   -- enh (keith) Add keybindings for prior and next audio tag
+   -- enh (keith) Add keybindings for audio playback speed
+   -- enh (keith) Remove default timing track when importing a sequence when only default exists, no timing marks exist and the import includes a timing track
+   -- enh (keith) When adding vamp timing tracks default them to unique names
+   -- enh (keith) When dragging effect onto grid highlight the model name we are on ... makes it easier to see what row you are on on super wide screens
+   -- enh (keith) Add Falcon V4 support
+   -- enh (keith) Add ability to support more than 3 smart remotes on a controller - this is enabled for Hinkspix and Falcon V4 at this time
+				  *** If you use *A*->*B*->*C* or a->*B*->*C* smart remote styles then you will not be able to regress from this version unless you re-set up your smart remotes
+   -- enh (keith) Rework the way we handle pixel protocols in the controller connection to try to be a lot smarter about compatible protocols
+   -- bug (keith) Fix shader float and point2d parameters not working
+   -- bug (keith) Fix shader variables can clash with other xlights settings
+   -- bug (scott) Fix visualiser crash if pixel port is over the max pixel port count
 2021.17 May 20, 2021
    -- bug (dkulp) Fix even more crashes in AudioManager (I hope)
    -- bug (dkulp) Fix Vendor Model images if the URL's the vendor provide are invalid/404
