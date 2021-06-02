@@ -150,6 +150,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
+        <SupportsPixelPortEndNullPixels/>
 
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
