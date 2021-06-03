@@ -910,11 +910,14 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         sp->SetAttribute("Max", 48);
     }
     else {
-        if (IsPixelProtocol()) {
+        if (IsSerialProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxSerialPort());
+        }
+        else if (IsPixelProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxPixelPort());
         }
         else {
-            sp->SetAttribute("Max", caps->GetMaxSerialPort());
+            sp->SetAttribute("Max", 48);
         }
     }
     sp->SetEditor("SpinCtrl");
