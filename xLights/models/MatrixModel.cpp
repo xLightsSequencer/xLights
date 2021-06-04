@@ -26,6 +26,7 @@ MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zero
 {
     SetFromXml(node, zeroBased);
 }
+
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     //ctor
@@ -296,7 +297,6 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
         CopyBufCoord2ScreenCoord();
     }
 }
-
 
 // initialize buffer coordinates
 // parm1=NumStrings

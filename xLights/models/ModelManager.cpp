@@ -1223,6 +1223,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("DisplayAs", "Tree 360");
         model = new TreeModel(node, *this, false);
     } else if (type == "Matrix") {
+        node->DeleteAttribute("StartSide");
+        node->AddAttribute("StartSide", "T");
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", "Horiz Matrix");
         node->DeleteAttribute("parm1");

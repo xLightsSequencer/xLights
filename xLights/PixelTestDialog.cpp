@@ -1059,7 +1059,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 	FlexGridSizer8->AddGrowableRow(1);
 	StaticText3 = new wxStaticText(PanelStandard, ID_STATICTEXT3, _("Background\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Standard_Background = new wxSlider(PanelStandard, ID_SLIDER_Standard_Background, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER_Standard_Background"));
+	Slider_Standard_Background = new wxSlider(PanelStandard, ID_SLIDER_Standard_Background, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Background"));
 	FlexGridSizer8->Add(Slider_Standard_Background, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer9 = new wxFlexGridSizer(2, 1, 0, 0);
@@ -1067,7 +1067,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText4 = new wxStaticText(PanelStandard, ID_STATICTEXT4, _("Highlight\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer9->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Standard_Highlight = new wxSlider(PanelStandard, ID_SLIDER_Standard_Highlight, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER_Standard_Highlight"));
+	Slider_Standard_Highlight = new wxSlider(PanelStandard, ID_SLIDER_Standard_Highlight, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Highlight"));
 	FlexGridSizer9->Add(Slider_Standard_Highlight, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6->Add(BoxSizer1, 1, wxALL|wxEXPAND, 2);
@@ -1172,13 +1172,12 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 	FlexGridSizer3->SetSizeHints(Panel2);
 	SplitterWindow1->SplitVertically(Panel1, Panel2);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
-	StatusBar1 = new wxStaticText(this, ID_STATICTEXT7, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDOUBLE_BORDER, _T("ID_STATICTEXT7"));
+	StatusBar1 = new wxStaticText(this, ID_STATICTEXT7, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBORDER_DOUBLE, _T("ID_STATICTEXT7"));
 	FlexGridSizer1->Add(StatusBar1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	Timer1.SetOwner(this, ID_TIMER1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
-	Center();
 
 	Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_SaveClick);
@@ -1245,6 +1244,19 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
     CheckBox_OutputToLights->SetValue(true);
 
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsTestDialogPosition", sz, loc);
+    if (loc.x != -1) {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
+    EnsureWindowHeaderIsOnScreen(this);
+
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
         DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
@@ -1273,6 +1285,8 @@ PixelTestDialog::~PixelTestDialog()
 	Panel_Outputs->RemoveChild(TreeListCtrl_Outputs);
 	Panel_Models->RemoveChild(TreeListCtrl_Models);
 	Panel_ModelGroups->RemoveChild(TreeListCtrl_ModelGroups);
+
+    SaveWindowPosition("xLightsTestDialogPosition", this);
 
 	//(*Destroy(PixelTestDialog)
 	//*)

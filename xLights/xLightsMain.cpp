@@ -3471,7 +3471,6 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 
 	// display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
-    dialog.CenterOnParent();
     dialog.ShowModal();
 
     logger_base.debug("Test: Test dialog closed.");
