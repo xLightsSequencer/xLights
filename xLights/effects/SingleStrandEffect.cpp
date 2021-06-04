@@ -559,7 +559,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                         
                         y += new_x / buffer.BufferWi;
                         new_x = new_x % buffer.BufferWi;
-                        mirrory += new_x / buffer.BufferWi;
+                        mirrory += mirrorx / buffer.BufferWi;
                         mirrorx = mirrorx % buffer.BufferWi;
                         if (Chase_Fade3d1) {
                             xlColor c;
