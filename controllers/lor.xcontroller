@@ -3,6 +3,7 @@
 		<Variant Name="">
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
+			<SupportsAutoLayout/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
