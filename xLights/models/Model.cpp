@@ -3873,7 +3873,10 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
             }
         }
     } else if (NodesPerString == 0) {
-        if (FourChannelNodes()) {
+        if (StringType == "Node Single Color") {
+            Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(0, 0, customColor, GetNextName())));
+        }
+        else  if (FourChannelNodes()) {
             bool wLast = StringType[3] == 'W';
             Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(0, 0, rgbOrder, wLast, rgbwHandlingType, GetNextName())));
         }
