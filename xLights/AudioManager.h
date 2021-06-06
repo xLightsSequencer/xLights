@@ -141,6 +141,7 @@ class SDL
     std::string _device;
     std::string _inputDevice;
     int _listeners = 0;
+    bool _audioDeviceFailed = false;
 
     void Reopen();
     AudioData* GetData(int id);
@@ -185,6 +186,7 @@ public:
     void StartListening(const std::string& inputDevice = "");
     void StopListening();
     bool IsListening();
+    bool IsNoAudio() { return _audioDeviceFailed; }
 };
 
 typedef struct FilteredAudioData

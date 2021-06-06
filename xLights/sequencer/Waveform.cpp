@@ -450,6 +450,13 @@ void Waveform::DrawWaveView(const WaveView &wv)
     vac.PreAlloc(18);
     xlColor color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 
+    // Set a red background if there is no audio device
+    if (_media != nullptr) {
+        if (AudioManager::GetSDL()->IsNoAudio()) {
+            color = xlRED;
+        }
+    }
+
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);
     vac.AddVertex(mWindowWidth, mWindowHeight, color);

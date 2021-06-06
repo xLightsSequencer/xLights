@@ -152,6 +152,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _audioDeviceFailed = false;
     _listeners = 0;
     _dev = 0;
     _inputdev = 0;
@@ -183,6 +184,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
     if (!OpenAudioDevice(device))
     {
         logger_base.error("Could not open SDL audio");
+        _audioDeviceFailed = true;
         return;
     }
 
