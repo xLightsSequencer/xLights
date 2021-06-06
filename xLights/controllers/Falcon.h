@@ -20,6 +20,7 @@
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
 class FalconString;
+class wxProgressDialog;
 
 class Falcon : public BaseController
 {
@@ -80,6 +81,8 @@ class Falcon : public BaseController
     int V4_GetRebootSecs();
     void V4_WaitForReboot(const std::string& name, wxWindow* parent);
     std::string SendToFalconV4(std::string msg);
+    std::vector<std::string> V4_GetMediaFiles();
+    int V4_GetConversionProgress();
     int CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const wxJSONValue& params, bool& finalCall, int& outbatch, bool& reboot, wxJSONValue& result);
     bool V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res);
     bool V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot);
@@ -179,6 +182,7 @@ public:
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    bool UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress);
     #endif
     
     std::string GetName() const { return _name; }

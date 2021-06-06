@@ -34,25 +34,27 @@ class FPP : public BaseController
     std::string fullVersion;
     std::string platform;
     std::string model;
-    uint32_t majorVersion;
-    uint32_t minorVersion;
+    uint32_t majorVersion = 0;
+    uint32_t minorVersion = 0;
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    int type = 0;
     
     std::string proxy;
     std::set<std::string> proxies;
 
     std::string username;
     std::string password;
-    bool isFPP;
+    bool isFPP =  false;
+    bool iszlib = false;
     
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
 
-    wxWindow *parent;
+    wxWindow *parent = nullptr;
     wxProgressDialog *progressDialog = nullptr;
     std::list<std::string> messages;
     int defaultConnectTimeout = 2000;
@@ -78,6 +80,8 @@ class FPP : public BaseController
     bool WillUploadSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
+    std::string GetTempFile() const { return tempFileName; }
+    void ClearTempFile() { tempFileName = ""; }
 #endif
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);

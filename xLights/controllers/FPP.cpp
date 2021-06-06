@@ -724,7 +724,6 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-
     
     fileobj.Seek(0);
     data.data = (uint8_t*)memBuffPre.GetData();
@@ -771,7 +770,6 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
 
     return data.cancelled | cancelled;
 }
-
 
 bool FPP::copyFile(const std::string &filename,
                            const std::string &file,
@@ -833,6 +831,15 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
 }
 
 #ifndef DISCOVERYONLY
+// types
+// 0 - V1
+// 1 - V2 zstd
+// 2 - V2 sparse zstd
+// 3 - V2 sparse uncompressed
+// 4 - V2 uncompressed
+// 5 - V2 zlib
+// 6 - V2 sparse zlib
+
 bool FPP::PrepareUploadSequence(const FSEQFile &file,
                                 const std::string &seq,
                                 const std::string &media,
@@ -850,7 +857,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     std::string baseName = fn.GetFullName();
     std::string mediaBaseName = "";
     bool cancelled = false;
-    if (media != "") {
+    if (media != "" && isFPP) {
         wxFileName mfn(media);
         mediaBaseName = mfn.GetFullName();
         
@@ -882,17 +889,19 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     
     FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
-    if (type == 3) {
+    if (type == 3 || type == 4) {
         ctype = ::FSEQFile::CompressionType::none;
     }
-
+    else if (type == 5 || type == 6) {
+        ctype = ::FSEQFile::CompressionType::zlib;
+    }
 
     bool doSeqUpload = true;
     int currentMaxChannel = 0;
     int currentChannelCount = 0;
     std::vector<std::pair<uint32_t, uint32_t>> currentRanges;
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
-    if (!IsDrive()) {
+    if (!IsDrive() && isFPP) {
         wxJSONValue currentMeta;
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
@@ -931,7 +940,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     
     int channelCount = 0;
-    if (type <= 1) {
+    if (type <= 1 || type == 4 || type == 5) {
         //full file, non sparse
         if (currentMaxChannel != file.getMaxChannel()) doSeqUpload = true;
         if (currentChannelCount != file.getMaxChannel()) doSeqUpload = true;
@@ -963,27 +972,36 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return false;
     }
 
-    if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
-        //these just get uploaded directly
-        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
-    }
-    if (type == 1 && file.getVersionMajor() == 2) {
-        // Full v2 file, upload directly
-        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+    if (isFPP)     {
+        if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
+            //these just get uploaded directly
+            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+        }
+        if (type == 1 && file.getVersionMajor() == 2) {
+            // Full v2 file, upload directly
+            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+        }
     }
     baseSeqName = baseName;
     
     int clevel = 2;
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
-    if (model.find(" Zero") != std::string::npos
-        || model.find("Pi Model A") != std::string::npos
-        || model.find("Pi Model B") != std::string::npos) {
-        clevel = fastLevel;
-    } else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
-        // lots of channels actually needed.  Possibly a P# panel or similar
-        // where we'll need CPU to actually process the channels so
-        // drop to lower compression, faster decommpression
-        clevel = channelCount > 30000 ? fastLevel : 1;
+
+    if (ctype == ::FSEQFile::CompressionType::zlib)         {
+        clevel = 9;
+    }
+    else     {
+        if (model.find(" Zero") != std::string::npos
+            || model.find("Pi Model A") != std::string::npos
+            || model.find("Pi Model B") != std::string::npos) {
+            clevel = fastLevel;
+        }
+        else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
+            // lots of channels actually needed.  Possibly a P# panel or similar
+            // where we'll need CPU to actually process the channels so
+            // drop to lower compression, faster decommpression
+            clevel = channelCount > 30000 ? fastLevel : 1;
+        }
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
@@ -1000,13 +1018,13 @@ bool FPP::WillUploadSequence() const {
     return outputFile != nullptr;
 }
 
-
 bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
     if (outputFile) {
         outputFile->addFrame(frame, data);
     }
     return false;
 }
+
 bool FPP::FinalizeUploadSequence() {
     bool cancelled = false;
     if (outputFile) {
@@ -1014,7 +1032,7 @@ bool FPP::FinalizeUploadSequence() {
 
         delete outputFile;
         outputFile = nullptr;
-        if (tempFileName != "") {
+        if (tempFileName != "" && isFPP) {
             cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
             ::wxRemoveFile(tempFileName);
             tempFileName = "";
@@ -1022,6 +1040,7 @@ bool FPP::FinalizeUploadSequence() {
     }
     return cancelled;
 }
+
 bool FPP::UploadPlaylist(const std::string &name) {
     wxJSONValue origJson;
     std::string fn;
@@ -1563,6 +1582,7 @@ bool FPP::Restart(const std::string &mode, bool ifNeeded) {
     return false;
 }
 void FPP::UpdateChannelRanges() {
+    if (!isFPP) return;
     wxJSONValue jval;
     int count = 0;
     while (count < 20) {
@@ -2732,6 +2752,15 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         }
         return res->majorVersion >= 4 && res->mode == "remote";
     }
+    if (res->typeId == 0x85)         {
+        // Falcon V4 supported by FPP connect
+        if (res->majorVersion >= 4) {
+            return true;
+        }
+        else             {
+            return false;
+        }
+    }
     return false;
 }
 
@@ -2775,9 +2804,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->username = res->username;
                 fpp->password = res->password;
                 fpp->isFPP = res->typeId < 0x80;
+                fpp->iszlib = res->typeId == 0x85; // these controllers suppport uncompressed and zlib (including sparse)
                 fpp->controllerVendor = res->vendor;
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
+                fpp->type = res->typeId;
 
                 instances.push_back(fpp);
             } else {
@@ -2799,6 +2830,8 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 fpp->isFPP = res->typeId < 0x80;
+                fpp->iszlib = res->typeId == 0x85; // these controllers suppport uncompressed and zlib (including sparse)
+                fpp->type = res->typeId;
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());

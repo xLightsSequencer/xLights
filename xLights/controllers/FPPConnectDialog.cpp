@@ -28,6 +28,7 @@
 #include "../FSEQFile.h"
 #include "../Parallel.h"
 #include "../Discovery.h"
+#include "Falcon.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -352,6 +353,19 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->Append(_("V2 Sparse/Uncompressed"));
             Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
             FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+        }
+        else if (inst->iszlib) {
+            wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
+            Choice1->Append(_("V1"));
+            Choice1->Append(_("V2 zlib"));
+            Choice1->Append(_("V2 Sparse/zlib"));
+            Choice1->Append(_("V2 Sparse/Uncompressed"));
+            Choice1->Append(_("V2 Uncompressed"));
+            Choice1->SetSelection(2);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
         } else if (!inst->isFPP) {
             label = new wxStaticText(FPPInstanceList, wxID_ANY, "V2 Sparse/Uncompressed", wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATIC_TEXT_FS_" + rowStr));
             FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -834,7 +848,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         int fseqType = 0;
                         if (inst->isFPP) {
                             fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
-                        } else {
+                        }
+                        else if (inst->iszlib) {
+                            fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
+                            // need to adjust so they are unique
+                            if (fseqType == 1) fseqType = 5;
+                            if (fseqType == 2) fseqType = 6;
+                        }
+                        else {
                             fseqType = 3;
                         }
                         cancelled |= inst->PrepareUploadSequence(*seq,
@@ -896,6 +917,27 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     for (const auto &inst : instances) {
                         if (!cancelled && doUpload[row]) {
                             cancelled |= inst->FinalizeUploadSequence();
+
+                            if (inst->iszlib)                                 {
+
+                                // we need to send the FSEQ and maybe the media to the controller
+                                if (inst->type == 0x85)                                     {
+                                    // a falcon
+                                    std::string proxy = "";
+                                    auto c = _outputManager->GetControllers(inst->ipAddress);
+                                    if (c.size() == 1) proxy = c.front()->GetFPPProxy();
+                                    Falcon falcon(inst->ipAddress, proxy);
+
+                                    if (falcon.IsConnected())                                     {
+                                        cancelled |= falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : media, &prgs);
+                                    }
+                                    else {
+                                        cancelled = true;
+                                    }
+                                }
+
+                                inst->ClearTempFile();
+                            }
                         }
                         row++;
                     }

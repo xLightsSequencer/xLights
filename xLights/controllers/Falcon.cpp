@@ -21,6 +21,7 @@
 #ifndef DISCOVERONLY
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
+#include "../../xSchedule/xSMSDaemon/Curl.h"
 #include "ControllerUploadData.h"
 #endif
 
@@ -36,6 +37,65 @@
 std::string Falcon::SendToFalconV4(std::string msg)
 {
     return PutURL("/api", msg, true, "", "");
+}
+
+std::vector<std::string> Falcon::V4_GetMediaFiles()
+{
+    // {"T":"Q","M":"WV","B":0,"E":0,"I":0,"P":{}}
+    // {"R":200,"T":"Q","F":1,"B":0,"M":"IN","RB":0,"P":{"F":["xxx.wav"]},"W":" ","L":""}
+
+    std::vector<std::string> res;
+
+    bool success = true;
+    bool done = false;
+    int batch = 0;
+    wxJSONValue p(wxJSONTYPE_OBJECT);
+    while (!done) {
+        bool finalCall;
+        int outBatch;
+        bool reboot;
+        wxJSONValue outParams;
+        if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+
+            const wxJSONInternalArray* parr = outParams["F"].AsArray();
+
+            for (size_t i = 0; i < parr->Count(); i++) {
+                res.push_back(parr->Item(i).AsString());
+            }
+
+            batch++;
+            if (finalCall) done = true;
+        }
+        else {
+            done = true;
+            res.clear();
+            success = false;
+        }
+    }
+
+    return res;
+}
+
+int Falcon::V4_GetConversionProgress()
+{
+    int batch = 0;
+    bool finalCall;
+    int outBatch;
+    bool reboot;
+    wxJSONValue p(wxJSONTYPE_OBJECT);
+    wxJSONValue outParams;
+    if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+        int d = outParams["D"].AsInt();
+
+        if (d == 1) return 100;
+
+        int mp3 = outParams["MP3"].AsInt();
+
+        return mp3;
+    }
+    else {
+        return 100;
+    }
 }
 
 int Falcon::CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const wxJSONValue& params, bool& finalCall, int& outbatch, bool& reboot, wxJSONValue& result)
@@ -1918,6 +1978,57 @@ bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* ou
     SetInputUniverses(controller, parent);
     SetOutputs(allmodels, outputManager, controller, parent, false);
     return true;
+}
+
+bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress)
+{
+    bool res = true;
+
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+    std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
+
+    if (media != "")     {
+        wxFileName fn(media);
+        std::string origfile = fn.GetFullName().Lower().ToStdString();
+        bool ismp3 = fn.GetExt().Lower() == "mp3";
+        fn.SetExt("wav");
+        std::string wavfile = fn.GetFullName().Lower().ToStdString();
+
+        // check to see if controller has the media file
+        auto wavs = V4_GetMediaFiles();
+        bool found = false;
+
+        for (const auto& it : wavs)             {
+            if (Lower(it) == wavfile)                 {
+                found = true;
+                break;
+            }
+        }
+
+        // if not then upload it
+        if (!found)             {
+
+            res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
+
+            if (ismp3) {
+                progress->SetTitle("Converting media file.");
+                wxSleep(1);
+                int p = 0;
+                while (p != 100) {
+                    p = V4_GetConversionProgress();
+                    progress->Update(p);
+                    if (p != 100) wxSleep(5);
+                }
+            }
+        }
+    }
+
+    // upload the fseq
+    {
+        wxFileName fn(file);
+        res = res && Curl::HTTPUploadFile(url, seq, fn.GetFullName().Lower().ToStdString(), progress);
+    }
+    return res;
 }
 
 bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
