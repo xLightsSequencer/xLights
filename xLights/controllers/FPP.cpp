@@ -211,7 +211,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
 }
 
-bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError)  {
+bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     setupCurl();
@@ -506,7 +506,7 @@ void FPP::parseConfig(const std::string& v) {
     std::string to;
 
     std::map<std::string, std::string> settings;
-    while(std::getline(ss, to, '\n')){
+    while(std::getline(ss, to, '\n')) {
         to = trimfront(to);
         if (to.substr(0, 8) == "settings") {
             to = to.substr(10);
@@ -630,7 +630,7 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
     return PostToURL(url, memBuffPost, contentType);
 }
 
-bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
+bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxString fn;
@@ -891,8 +891,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
     if (type == 3 || type == 4) {
         ctype = ::FSEQFile::CompressionType::none;
-    }
-    else if (type == 5 || type == 6) {
+    } else if (type == 5 || type == 6) {
         ctype = ::FSEQFile::CompressionType::zlib;
     }
 
@@ -930,7 +929,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             currentMaxChannel = currentMeta["MaxChannel"].AsLong();
             currentChannelCount = currentMeta["ChannelCount"].AsLong();
             if (currentMeta.HasMember("Ranges")) {
-                for (int x = 0; x < currentMeta["Ranges"].Size(); x++)  {
+                for (int x = 0; x < currentMeta["Ranges"].Size(); x++) {
                     int s = currentMeta["Ranges"][x]["Start"].AsLong();
                     int l = currentMeta["Ranges"][x]["Length"].AsLong();
                     currentRanges.push_back(std::pair<uint32_t, uint32_t>(s, l));
@@ -972,7 +971,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return false;
     }
 
-    if (isFPP)     {
+    if (isFPP) {
         if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
             //these just get uploaded directly
             return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
@@ -987,16 +986,14 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int clevel = 2;
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
 
-    if (ctype == ::FSEQFile::CompressionType::zlib)         {
+    if (ctype == ::FSEQFile::CompressionType::zlib) {
         clevel = 9;
-    }
-    else     {
+    } else {
         if (model.find(" Zero") != std::string::npos
             || model.find("Pi Model A") != std::string::npos
             || model.find("Pi Model B") != std::string::npos) {
             clevel = fastLevel;
-        }
-        else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
+        } else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
             // lots of channels actually needed.  Possibly a P# panel or similar
             // where we'll need CPU to actually process the channels so
             // drop to lower compression, faster decommpression
@@ -1691,7 +1688,7 @@ static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const Contro
     if (origMod != "" && rules->GetModel() != origMod) {
         wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
             + origMod + ".   Continue?";
-        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES)  {
+        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
             return false;
         }
     }
@@ -1907,6 +1904,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["reverse"] = vo["reverse"];
                     vs["colorOrder"] = vo["colorOrder"];
                     vs["nullNodes"] = vo["nullNodes"];
+                    vs["endNulls"] = vo.HasMember("endNulls") ? vo["endNulls"] : 0;
                     vs["zigZag"] = vo["zigZag"];
                     vs["brightness"] = vo["brightness"];
                     vs["gamma"] = vo["gamma"];
@@ -1921,6 +1919,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                         vs["colorOrder"] = wxString("RGB");
                     }
                     vs["nullNodes"] = 0;
+                    vs["endNulls"] = 0;
                     vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
                     vs["brightness"] = 100;
                     vs["gamma"] = wxString("1.0");
@@ -1942,6 +1941,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 if (pvs->_startNullPixelsSet) {
                     vs["nullNodes"] = pvs->_startNullPixels;
+                }
+                if (pvs->_endNullPixelsSet) {
+                    vs["endNulls"] = pvs->_endNullPixels;
                 }
                 if (pvs->_colourOrderSet) {
                     vs["colorOrder"] = pvs->_colourOrder;
@@ -1983,6 +1985,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["reverse"] = 0;
             vs["colorOrder"] = wxString("RGB");
             vs["nullNodes"] = 0;
+            vs["endNulls"] = 0;
             vs["zigZag"] = 0;
             vs["brightness"] = 100;
             vs["gamma"] = wxString("1.0");
@@ -2727,7 +2730,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
     if (res->typeId == 0) {
         return false;
     }
-    if (res->typeId < 0x80)  {
+    if (res->typeId < 0x80) {
         if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true ) {
             // genuine FPP instance and able to connect via http
             return true;
@@ -2752,12 +2755,11 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         }
         return res->majorVersion >= 4 && res->mode == "remote";
     }
-    if (res->typeId == 0x85)         {
+    if (res->typeId == 0x85) {
         // Falcon V4 supported by FPP connect
         if (res->majorVersion >= 4) {
             return true;
-        }
-        else             {
+        } else {
             return false;
         }
     }
@@ -2778,7 +2780,7 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
 void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
-        if (supportedForFPPConnect(res, outputManager))  {
+        if (supportedForFPPConnect(res, outputManager)) {
             logger_base.info("FPP Discovery - Found Supported FPP Instance: %s", res->ip.c_str());
             FPP *fpp = nullptr;
             

@@ -102,7 +102,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid)
     }
 
     if (GetLayerSizeCount() != 0)     {
-        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, IsLtoR ? 0 : 2 + isBotToTop ? 0 : 1));
+        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, IsLtoR ? 0 : 2 + (isBotToTop ? 0 : 1)));
     }
     else         {
         grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
