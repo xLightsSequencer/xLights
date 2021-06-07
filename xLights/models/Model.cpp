@@ -504,7 +504,7 @@ void Model::SetProperty(wxString property, wxString value, bool apply)
 }
 
 void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    
+
     UpdateTypeProperties(grid);
 
     if (grid->GetPropertyByName("Controller") != nullptr) {
@@ -612,7 +612,7 @@ Controller* Model::GetController() const
     }
     if (controller == "") {
         int32_t start;
-        Controller *cp = modelManager.GetXLightsFrame()->GetOutputManager()->GetController(GetFirstChannel(), start);
+        Controller *cp = modelManager.GetXLightsFrame()->GetOutputManager()->GetController(GetFirstChannel() + 1, start);
         if (cp != nullptr) {
             return cp;
         }
@@ -2304,13 +2304,13 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
 bool Model::IsValidStartChannelString() const
 {
     wxString sc;
-    
+
     if (GetDisplayAs() == "SubModel") {
         sc = this->ModelStartChannel;
     } else {
         sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
     }
-    
+
     if (sc.IsNumber() && wxAtol(sc) > 0 && ! sc.Contains('.')) return true; // absolule
 
     if (!sc.Contains(':')) return false; // all other formats need a colon
@@ -3139,7 +3139,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
             firstChar = '0';
         }
     }
-    else 
+    else
     {
         firstChar = '0';
         modelFormat = "0";
@@ -3222,6 +3222,7 @@ uint32_t Model::GetLastChannel() const {
     return LastChan;
 }
 
+//zero based channel number, i.e. 0 is the first channel
 uint32_t Model::GetFirstChannel() const {
     uint32_t FirstChan = 0xFFFFFFFF;
     size_t NodeCount = GetNodeCount();
@@ -3699,7 +3700,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             float fy = ((float)(maxY - minY)) / 2048.0f;
             factor = fx > fy ? fx : fy;
         }
-        
+
 
         minX /= factor;
         maxX /= factor;
@@ -3716,7 +3717,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             offy = 0;
         }
         bufferHt = bufferWi = -1;
- 
+
         // we can skip all the scaling for individual models that are being recursively handled from a ModelGroup
         if (!(pcamera != nullptr && camera != "2D" && GetDisplayAs() != "ModelGroup" && noOff)) {
             auto itx = outx.begin();
@@ -3793,7 +3794,7 @@ bool Model::FourChannelNodes() const
 {
     // true if string contains WRGB or any variant thereof
     // I do the W search first to try to abort quickly for strings unlikely to be 4 channel
-    return (Contains(StringType, "W") && 
+    return (Contains(StringType, "W") &&
         (Contains(StringType, "RGBW") ||
          Contains(StringType, "WRGB") ||
          Contains(StringType, "WRBG") ||
@@ -3806,7 +3807,7 @@ bool Model::FourChannelNodes() const
          Contains(StringType, "BRGW") ||
          Contains(StringType, "WBGR") ||
          Contains(StringType, "BGRW")));
-} 
+}
 
 // set size of Nodes vector and each Node's Coords vector
 void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder) {
@@ -4809,7 +4810,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 
             if (pixelStyle < 2) {
                 GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-            
+
                 xlColor c3(color);
 
                 if (n + 1 == highlightpixel) {
@@ -6223,7 +6224,7 @@ void Model::SetSuperStringColour(int index, xlColor c)
 {
     superStringColours[index] = c;
     SaveSuperStringColours();
-    
+
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSuperStringColour");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSuperStringColour");
@@ -6271,7 +6272,7 @@ void Model::SetControllerProtocol(const std::string& protocol)
     if (protocol != "") {
         GetControllerConnection()->AddAttribute("Protocol", protocol);
     }
-    
+
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerProtocol");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerProtocol");
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerProtocol");
@@ -6289,7 +6290,7 @@ void Model::SetControllerPort(int port)
     if (port > 0) {
         GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
     }
-    
+
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerPort");
