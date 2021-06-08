@@ -2011,12 +2011,11 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
             res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
 
             if (ismp3) {
-                progress->SetTitle("Converting media file.");
                 wxSleep(1);
                 int p = 0;
                 while (p != 100) {
                     p = V4_GetConversionProgress();
-                    progress->Update(p);
+                    progress->Update(p, "Converting to WAV file.");
                     if (p != 100) wxSleep(5);
                 }
             }

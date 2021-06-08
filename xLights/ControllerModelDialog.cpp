@@ -2160,15 +2160,15 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 logger_base.debug("    but not onto a port ... so nothing to do.");
             }
         }
-        
-        _dragStartLocation = wxPoint(-99999, -99999);
-
-        while (!_xLights->DoAllWork()) {
-            // dont get into a redraw loop from here
-            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
-        }
-        ReloadModels();
     }
+
+    _dragStartLocation = wxPoint(-99999, -99999);
+
+    while (!_xLights->DoAllWork()) {
+        // dont get into a redraw loop from here
+        _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+    }
+    ReloadModels();
 }
 
 void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
