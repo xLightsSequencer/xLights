@@ -145,7 +145,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	ButtonCopy = new wxButton(Panel2, ID_BUTTONCOPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCOPY"));
 	ButtonCopy->SetToolTip(_("Copy Selected Submodel"));
 	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	Button_Edit = new wxButton(Panel2, ID_BUTTON_EDIT, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT"));
+	Button_Edit = new wxButton(Panel2, ID_BUTTON_EDIT, _("Action ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT"));
 	Button_Edit->SetToolTip(_("Generate SubBuffer Slices"));
 	FlexGridSizer10->Add(Button_Edit, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
@@ -729,7 +729,7 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
     }
 }
 
-void SubModelsDialog::OnListPopup(wxCommandEvent& event) 
+void SubModelsDialog::OnListPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_JOIN) {
         JoinSelectedModels();

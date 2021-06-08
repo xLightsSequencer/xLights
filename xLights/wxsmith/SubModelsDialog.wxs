@@ -79,7 +79,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_EDIT" variable="Button_Edit" member="yes">
-												<label>Edit</label>
+												<label>Action ...</label>
 												<tooltip>Generate SubBuffer Slices</tooltip>
 												<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
 											</object>
