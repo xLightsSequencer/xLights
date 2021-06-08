@@ -730,7 +730,6 @@ void Scanner::IPScan(IPObject& it)
 		else if (Contains(home, "AlphaPix") || Contains(home, "Port Ethernet to SPI Controller")) it._type = "AlphaPix";
 		else if (Contains(home, "HinksPix")) it._type = "HinksPix";
 		else if (Contains(home, "DIYLEDExpress")) it._type = "DIYLEDExpress";
-		else if (Contains(home, "WLED")) it._type = "WLED";
 	}
 
 	if (it._type == "") {
