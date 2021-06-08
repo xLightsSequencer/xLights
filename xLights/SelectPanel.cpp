@@ -16,6 +16,7 @@
 #include "sequencer/Effect.h"
 #include "sequencer/Element.h"
 #include "UtilFunctions.h"
+#include "Color.h"
 
 //(*InternalHeaders(SelectPanel)
 #include <wx/intl.h>
@@ -34,6 +35,9 @@ const long SelectPanel::ID_TEXTCTRL_SELECT_STARTTIME = wxNewId();
 const long SelectPanel::ID_STATICTEXT5 = wxNewId();
 const long SelectPanel::ID_TEXTCTRL_SELECT_ENDTIME = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_ALL_TIME = wxNewId();
+const long SelectPanel::ID_STATICTEXT7 = wxNewId();
+const long SelectPanel::ID_COLOURPICKERCTRL_SELECT = wxNewId();
+const long SelectPanel::ID_SLIDER_COLOR_SENSITIVITY = wxNewId();
 const long SelectPanel::ID_STATICTEXT4 = wxNewId();
 const long SelectPanel::ID_LISTBOX_SELECT_EFFECTS = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
@@ -48,6 +52,7 @@ END_EVENT_TABLE()
 SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, wxWindow* parent,wxWindowID id)
 {
 	//(*Initialize(SelectPanel)
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 
@@ -85,6 +90,16 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Select_All_Time = new wxButton(this, ID_BUTTON_SELECT_ALL_TIME, _("Select All "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL_TIME"));
 	FlexGridSizer1->Add(Button_Select_All_Time, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	ColourPickerCtrlSelect = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_SELECT, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_SELECT"));
+	BoxSizer1->Add(ColourPickerCtrlSelect, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SliderColorSensitivity = new wxSlider(this, ID_SLIDER_COLOR_SENSITIVITY, 255, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_COLOR_SENSITIVITY"));
+	SliderColorSensitivity->SetToolTip(_("Sensitivity of Color Match"));
+	BoxSizer1->Add(SliderColorSensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effects\nby Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ListBox_Select_Effects = new wxListBox(this, ID_LISTBOX_SELECT_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_EFFECTS"));
@@ -105,6 +120,8 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Connect(ID_TEXTCTRL_SELECT_STARTTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_StartTimeText);
 	Connect(ID_TEXTCTRL_SELECT_ENDTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_EndTimeText);
 	Connect(ID_BUTTON_SELECT_ALL_TIME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_TimeClick);
+	Connect(ID_COLOURPICKERCTRL_SELECT,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&SelectPanel::OnColourPickerCtrlSelectColourChanged);
+	Connect(ID_SLIDER_COLOR_SENSITIVITY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SelectPanel::OnSliderColorSensitivityCmdSliderUpdated);
 	Connect(ID_LISTBOX_SELECT_EFFECTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_EffectsSelect);
 	Connect(ID_BUTTON_SELECT_EFFECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
 	Connect(ID_BUTTON_SELECT_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
@@ -178,7 +195,7 @@ void SelectPanel::populateEffectsList()
     auto const& type = ComboBox_Select_Effect->GetValue().ToStdString();
 
     if (modelsSelected.size() != 0) {
-        auto const startendtime = GetStartAndEndTime();
+        auto const[starttime, endtime] = GetStartAndEndTime();
         std::vector<std::string> models;
         for (auto value : modelsSelected) {
             auto const& modelname = ListBox_Select_Models->GetString(value);
@@ -194,9 +211,11 @@ void SelectPanel::populateEffectsList()
 
             for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
                 EffectLayer* elay = el->GetEffectLayer(i);
-                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
-                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                    if (ContainsColor(eff)) {
+                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                    }
                 }
             }
 
@@ -208,9 +227,11 @@ void SelectPanel::populateEffectsList()
                         if (sme != nullptr) {
                             for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                                 EffectLayer* elay = sme->GetEffectLayer(j);
-                                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
-                                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                                    if (ContainsColor(eff)) {
+                                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                                    }
                                 }
                             }
                         }
@@ -280,8 +301,9 @@ void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 
 void SelectPanel::OnButton_Select_Effect_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListBox_Select_Effects->GetCount(); ++i)
+    for (size_t i = 0; i < ListBox_Select_Effects->GetCount(); ++i) {
         ListBox_Select_Effects->SetSelection(i);
+    }
     SelectEffects();
 }
 
@@ -335,4 +357,30 @@ void SelectPanel::ClearData()
     ComboBox_Select_Effect->Clear();
     ListBox_Select_Effects->Clear();
     ListBox_Select_Models->Clear();
+}
+
+bool SelectPanel::ContainsColor(Effect* eff) const
+{
+    int const diff = SliderColorSensitivity->GetValue();
+
+    xlColor const search_color = xlColor(ColourPickerCtrlSelect->GetColour());
+
+    for (auto const& color : eff->GetPalette()) {
+        if (std::abs(search_color.Red() - color.Red()) <= diff &&
+            std::abs(search_color.Green() - color.Green()) <= diff &&
+            std::abs(search_color.Blue() - color.Blue()) <= diff) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void SelectPanel::OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event)
+{
+    populateEffectsList();
+}
+
+void SelectPanel::OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event)
+{
+    populateEffectsList();
 }

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Added Color Filter To Effect Select Panel
 2021.18 June 2, 2021
    -- enh (scott) Added F13-F24 Keybindings Support
    -- enh (scott) Add null pixel support to WLED

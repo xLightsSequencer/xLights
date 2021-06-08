@@ -123,6 +123,45 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+					<label>Color:</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_SELECT" variable="ColourPickerCtrlSelect" member="yes">
+							<colour>#000000</colour>
+							<handler function="OnColourPickerCtrlSelectColourChanged" entry="EVT_COLOURPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_COLOR_SENSITIVITY" variable="SliderColorSensitivity" member="yes">
+							<value>255</value>
+							<max>255</max>
+							<tooltip>Sensitivity of Color Match</tooltip>
+							<handler function="OnSliderColorSensitivityCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 					<label>Effects&#x0A;by Time:</label>
 				</object>
