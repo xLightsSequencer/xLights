@@ -19,20 +19,11 @@
 class wxJSONValue;
 struct WLEDOutput;
 
-enum class WLEDType
-{
-    ESP8266,
-    ESP32,
-    QuinLEDDigQuadESP8266,
-    QuinLEDDigQuadESP32
-};
-
 class WLED : public BaseController
 {
     #pragma region Member Variables
     std::vector<WLEDOutput*> _pixelOutputs;
 
-    WLEDType _controllerType{ WLEDType::ESP8266 };
     #pragma endregion
 
     #pragma region Private Functions
@@ -41,9 +32,9 @@ class WLED : public BaseController
 
     WLEDOutput* FindPortData(int port);
 
-    bool ParseOutputJSON(wxJSONValue const& jsonVal);
+    bool ParseOutputJSON(wxJSONValue const& jsonVal, int maxPort, ControllerCaps* caps);
 
-    WLEDOutput* ExtractOutputJSON(wxJSONValue const& jsonVal, int port);
+    WLEDOutput* ExtractOutputJSON(wxJSONValue const& jsonVal, int port, ControllerCaps* caps);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
@@ -54,10 +45,8 @@ class WLED : public BaseController
     bool PostJSON(wxJSONValue const& jsonVal);
 
     const std::string GetFirmware() { return _version; }
-    const int GetNumberOfOutputs();
-    const int GetNumberOfSerial() { return 0; }
 
-    const uint8_t GetOutputPin(int port);
+    const uint8_t GetOutputPin( int port, ControllerCaps* caps);
     #pragma endregion
 
     #pragma region Private Static Functions

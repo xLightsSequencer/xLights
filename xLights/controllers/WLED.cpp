@@ -39,11 +39,12 @@ struct WLEDOutput {
     bool reverse{ false };
     int nullPixels{ 0 }; //skip is an int in the JSON, but a checkbox in the WebUI. WLED backend looks to support multiple nulls
     uint8_t pin{ 255 };
+    bool upload{ false };
 
     WLEDOutput(int output_) : output(output_) { }
     void Dump() const {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Nulls %d ColorOrder %d Protocol %d Pin %d",
+        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
             output,
             startCount,
             pixels,
@@ -51,11 +52,12 @@ struct WLEDOutput {
             nullPixels,
             colorOrder,
             protocol,
-            pin
+            pin,
+            toStr(upload)
         );
     }
 
-    void UpdateJSON(wxJSONValue& json) {
+    wxJSONValue GetJSON() {
         wxJSONValue portJson;
         portJson["len"] = pixels;
         portJson["start"] = startCount;
@@ -67,7 +69,7 @@ struct WLEDOutput {
         portJson["rev"] = reverse;
         portJson["skip"] = nullPixels;
 
-        json.Append(portJson);
+        return std::move(portJson);
     }
 };
 #pragma endregion
@@ -89,9 +91,6 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
             _model = jsonVal["arch"].AsString();
             _connected = true;
 
-            if(_model.find("32") != std::string::npos) {
-                _controllerType = WLEDType::ESP32;
-            }
             //2105110 added json config
             //2105200 added per string null pixel to GUI but older builds have it in the JSON
             if (vid < 2105110) {
@@ -124,12 +123,12 @@ WLED::~WLED() {
 
 #pragma region Private Functions
 
-bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal) {
+bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal, int maxPort, ControllerCaps* caps) {
 
     _pixelOutputs.clear();
 
-    for (int i = 1; i <= GetNumberOfOutputs(); i++) {
-        WLEDOutput* output = ExtractOutputJSON(jsonVal, i);
+    for (int i = 1; i <= maxPort; i++) {
+        WLEDOutput* output = ExtractOutputJSON(jsonVal, i, caps);
         output->Dump();
         _pixelOutputs.push_back(output);
     }
@@ -137,7 +136,7 @@ bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal) {
     return true;
 }
 
-WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port) {
+WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port, ControllerCaps* caps) {
 
     WLEDOutput* output = new WLEDOutput(port);
 
@@ -171,7 +170,7 @@ WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port) {
     }
     //work around for un-setup pins
     if (output->pin == 255) {
-        output->pin = GetOutputPin(port);
+        output->pin = GetOutputPin(port, caps);
     }
 
     return output;
@@ -214,6 +213,8 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
         if (pd->pixels != stringData->Pixels()) {
             pd->pixels = stringData->Pixels();
         }
+
+        pd->upload = true;
     }
 }
 
@@ -227,8 +228,8 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& js
     //Port Pixel Count
     wxJSONValue newLEDS;
     for (const auto& pixelPort : _pixelOutputs) {
-        if (pixelPort->pixels != 0) {
-            pixelPort->UpdateJSON(newLEDS);
+        if (pixelPort->upload) {
+            newLEDS.Append(pixelPort->GetJSON());
         }
     }
 
@@ -394,86 +395,9 @@ WLEDOutput* WLED::FindPortData(int port) {
     return nullptr;
 }
 
-const int WLED::GetNumberOfOutputs() {
+const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
 
-    if (_controllerType == WLEDType::QuinLEDDigQuadESP8266 ) {
-        return 3; 
-    }
-    if (_controllerType == WLEDType::QuinLEDDigQuadESP32) {
-        return 4;
-    }
-    if (_controllerType == WLEDType::ESP32) {
-        return 8;
-    }
-    if (_controllerType == WLEDType::ESP8266) {
-        return 2;
-    }
-    return 2;
-}
-
-const uint8_t WLED::GetOutputPin(int port) {
-    //Config upload needs GPIO output Pin, This Makes Generic List
-    if (_controllerType == WLEDType::ESP8266) {
-        switch (port) {
-        case 1:
-            return 2;
-        case 2:
-            return 1;
-        case 3:
-            return 3;
-        default:
-            return 2;
-        }
-    } else if (_controllerType == WLEDType::ESP32) {
-        //esp32dev board
-        switch (port) {
-        case 1:
-            return 2;
-        case 2:
-            return 13;
-        case 3:
-            return 12;
-        case 4:
-            return 14;
-        case 5:
-            return 27;
-        case 6:
-            return 26;
-        case 7:
-            return 25;
-        case 8:
-            return 33;
-        default:
-            return 2;
-        }
-    } else if (_controllerType == WLEDType::QuinLEDDigQuadESP8266) {
-        //v2 pinout
-        switch (port) {
-        case 1:
-            return 2;
-        case 2:
-            return 3;
-        case 3:
-            return 1;
-        default:
-            return 2;
-        }
-    } else if (_controllerType == WLEDType::QuinLEDDigQuadESP32) {
-        //v2 pinout
-        switch (port) {
-        case 1:
-            return 16;
-        case 2:
-            return 3;
-        case 3:
-            return 1;
-        case 4:
-            return 4;
-        default:
-            return 16;
-        }
-    }
-    return 2;
+    return wxAtoi(caps->GetCustomPropertyByPath(wxString::Format("Port%d", port), "2"));
 }
 
 #pragma endregion
@@ -507,12 +431,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    //QuinLED-Dig-Quad Override
-    if (controller->GetModel().find("QuinLED") != std::string::npos &&
-        controller->GetModel().find("Quad") != std::string::npos) {
-        if (_controllerType == WLEDType::ESP8266) _controllerType = WLEDType::QuinLEDDigQuadESP8266;
-        if (_controllerType == WLEDType::ESP32) _controllerType = WLEDType::QuinLEDDigQuadESP32;
-    }
+    int maxPort = caps->GetMaxPixelPort();
 
     //get current config JSON
     const std::string page = GetURL(GetCfgURL());
@@ -533,7 +452,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    worked = ParseOutputJSON(val);
+    worked = ParseOutputJSON(val, maxPort, caps);
     if (!worked) {
         DisplayError("Unable to Parse JSON.", parent);
         progress.Update(100, "Aborting.");
@@ -545,16 +464,16 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
 
     //loop to setup string outputs
     int totalCount = 0;
-    for (int port = 1; port <= GetNumberOfOutputs(); port++) {
+    for (int port = 1; port <= maxPort; port++) {
         WLEDOutput* pixOut = FindPortData(port);
         if(pixOut == nullptr) {
             continue;
         }
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
-            UpdatePortData(pixOut, portData, totalCount); 
+            UpdatePortData(pixOut, portData, totalCount);
+            totalCount += pixOut->pixels;
         }
-        totalCount += pixOut->pixels;
     }
 
     logger_base.info("Updating String Output Information.");
