@@ -37,6 +37,7 @@ class SelectPanel: public wxPanel
 		void ClearData();
 
 		//(*Declarations(SelectPanel)
+		wxButton* Button_Select_All_Color;
 		wxButton* Button_Select_All_Time;
 		wxButton* Button_Select_Effect_All;
 		wxButton* Button_Select_Model_All;
@@ -74,6 +75,7 @@ class SelectPanel: public wxPanel
 		static const long ID_STATICTEXT7;
 		static const long ID_COLOURPICKERCTRL_SELECT;
 		static const long ID_SLIDER_COLOR_SENSITIVITY;
+		static const long ID_BUTTON_SELECT_ALL_COLOR;
 		static const long ID_STATICTEXT4;
 		static const long ID_LISTBOX_SELECT_EFFECTS;
 		static const long ID_BUTTON_SELECT_EFFECT_ALL;
@@ -109,6 +111,7 @@ class SelectPanel: public wxPanel
 		void OnComboBox_Select_EffectSelected(wxCommandEvent& event);
 		void OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event);
 		void OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event);
+		void OnButton_Select_All_ColorClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

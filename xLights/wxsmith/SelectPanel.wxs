@@ -6,12 +6,12 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>3</cols>
 			<growablecols>1</growablecols>
-			<growablerows>3</growablerows>
+			<growablerows>4</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>Effect Type:</label>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -156,7 +156,11 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="spacer">
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON_SELECT_ALL_COLOR" variable="Button_Select_All_Color" member="yes">
+					<label>Reset</label>
+					<handler function="OnButton_Select_All_ColorClick" entry="EVT_BUTTON" />
+				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -165,7 +169,7 @@
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 					<label>Effects&#x0A;by Time:</label>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

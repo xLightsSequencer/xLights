@@ -38,6 +38,7 @@ const long SelectPanel::ID_BUTTON_SELECT_ALL_TIME = wxNewId();
 const long SelectPanel::ID_STATICTEXT7 = wxNewId();
 const long SelectPanel::ID_COLOURPICKERCTRL_SELECT = wxNewId();
 const long SelectPanel::ID_SLIDER_COLOR_SENSITIVITY = wxNewId();
+const long SelectPanel::ID_BUTTON_SELECT_ALL_COLOR = wxNewId();
 const long SelectPanel::ID_STATICTEXT4 = wxNewId();
 const long SelectPanel::ID_LISTBOX_SELECT_EFFECTS = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
@@ -60,9 +61,9 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Hide();
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
-	FlexGridSizer1->AddGrowableRow(3);
+	FlexGridSizer1->AddGrowableRow(4);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Effect Type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ComboBox_Select_Effect = new wxComboBox(this, ID_COMBOBOX_SELECT_EFFECT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SELECT_EFFECT"));
 	FlexGridSizer1->Add(ComboBox_Select_Effect, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -99,9 +100,10 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	SliderColorSensitivity->SetToolTip(_("Sensitivity of Color Match"));
 	BoxSizer1->Add(SliderColorSensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Select_All_Color = new wxButton(this, ID_BUTTON_SELECT_ALL_COLOR, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL_COLOR"));
+	FlexGridSizer1->Add(Button_Select_All_Color, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effects\nby Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ListBox_Select_Effects = new wxListBox(this, ID_LISTBOX_SELECT_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_EFFECTS"));
 	FlexGridSizer1->Add(ListBox_Select_Effects, 1, wxALL|wxEXPAND, 5);
 	Button_Select_Effect_All = new wxButton(this, ID_BUTTON_SELECT_EFFECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_EFFECT_ALL"));
@@ -122,6 +124,7 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Connect(ID_BUTTON_SELECT_ALL_TIME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_TimeClick);
 	Connect(ID_COLOURPICKERCTRL_SELECT,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&SelectPanel::OnColourPickerCtrlSelectColourChanged);
 	Connect(ID_SLIDER_COLOR_SENSITIVITY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SelectPanel::OnSliderColorSensitivityCmdSliderUpdated);
+	Connect(ID_BUTTON_SELECT_ALL_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_ColorClick);
 	Connect(ID_LISTBOX_SELECT_EFFECTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_EffectsSelect);
 	Connect(ID_BUTTON_SELECT_EFFECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
 	Connect(ID_BUTTON_SELECT_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
@@ -377,10 +380,17 @@ bool SelectPanel::ContainsColor(Effect* eff) const
 
 void SelectPanel::OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event)
 {
+    SliderColorSensitivity->SetValue(0);
     populateEffectsList();
 }
 
 void SelectPanel::OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event)
 {
     populateEffectsList();
+}
+
+void SelectPanel::OnButton_Select_All_ColorClick(wxCommandEvent& event)
+{
+    ColourPickerCtrlSelect->SetColour(*wxBLACK);
+    SliderColorSensitivity->SetValue(255);
 }
