@@ -72,9 +72,7 @@ void wxModelGridCellRenderer::CreateImage()
             }
             bmp = wxBitmap(img);
             if (bmp.IsOk()) {
-                wxBitmap bmp2(width, height);
-                bmpDC.SelectObjectAsSource(bmp2);
-                bmpDC.DrawBitmap(bmp, 0, 0);
+                bmpDC.SelectObjectAsSource(bmp);
             } else {
                 bmpDC.SelectObjectAsSource(wxNullBitmap);
             }
