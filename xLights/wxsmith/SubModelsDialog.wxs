@@ -80,7 +80,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_EDIT" variable="Button_Edit" member="yes">
 												<label>Action...</label>
-												<tooltip>Generate SubBuffer Slices</tooltip>
+												<tooltip>Preform actions on the submodels</tooltip>
 												<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -90,7 +90,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_IMPORT" variable="ButtonImport" member="yes">
 												<label>Import...</label>
-												<tooltip>Import to Submodels</tooltip>
+												<tooltip>Import Submodels</tooltip>
 												<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -100,7 +100,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON10" variable="Button_Export" member="yes">
 												<label>Export...</label>
-												<tooltip>Export SubModel as CSV File</tooltip>
+												<tooltip>Export SubModel as File</tooltip>
 												<handler function="OnButton_ExportClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>

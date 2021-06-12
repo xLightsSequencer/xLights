@@ -146,13 +146,13 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	ButtonCopy->SetToolTip(_("Copy Selected Submodel"));
 	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Edit = new wxButton(Panel2, ID_BUTTON_EDIT, _("Action..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT"));
-	Button_Edit->SetToolTip(_("Generate SubBuffer Slices"));
+	Button_Edit->SetToolTip(_("Preform actions on the submodels"));
 	FlexGridSizer10->Add(Button_Edit, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
-	ButtonImport->SetToolTip(_("Import to Submodels"));
+	ButtonImport->SetToolTip(_("Import Submodels"));
 	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Export = new wxButton(Panel2, ID_BUTTON10, _("Export..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
-	Button_Export->SetToolTip(_("Export SubModel as CSV File"));
+	Button_Export->SetToolTip(_("Export SubModel as File"));
 	FlexGridSizer10->Add(Button_Export, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
