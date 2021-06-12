@@ -105,6 +105,8 @@ protected:
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
 
+    bool GetConfig();
+
     bool SendConfig(bool logresult = false) const;
 
     static void DumpConfiguration(Pixlite16::Config& config);
@@ -123,7 +125,6 @@ public:
 #endif
     virtual bool UsesHTTP() const override { return false; }
     static void PrepareDiscovery(Discovery &discovery);
-    static std::list<Pixlite16::Config> DoDiscover();
 #pragma endregion
 };
 
