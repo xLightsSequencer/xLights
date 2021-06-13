@@ -1057,41 +1057,13 @@ int LOREdit::GetModelLayers(const std::string& model) const
 // If a prop has sequenced channels this calculates how many there are
 int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) const
 {
+    bool match = false;
     rows = 0;
     cols = 0;
     int count = 0;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr && !match; e = e->GetNext()) {
         if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             // look for a match first
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
-                    if (name == "")
-                    {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
-                            {
-                                name = ap->GetAttribute("Name");
-                            }
-                        }
-                    }
-                    if (name == model)
-                    {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "channel") {
-                                if (tc->GetChildren() != nullptr)
-                                {
-                                    rows = std::max(rows, wxAtoi(tc->GetAttribute("row", "0")) + 1);
-                                    cols = std::max(cols, wxAtoi(tc->GetAttribute("col", "0")) + 1);
-                                    count++;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            // no match so try a starts with
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
                 if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
@@ -1102,13 +1074,14 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
                             }
                         }
                     }
-                    if (StartsWith(model, name)) {
+                    if (name == model) {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if (tc->GetName() == "channel") {
                                 if (tc->GetChildren() != nullptr) {
                                     rows = std::max(rows, wxAtoi(tc->GetAttribute("row", "0")) + 1);
                                     cols = std::max(cols, wxAtoi(tc->GetAttribute("col", "0")) + 1);
                                     count++;
+                                    match = true;
                                 }
                             }
                         }
@@ -1116,11 +1089,38 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
                     }
                 }
             }
+            if (!match) {
+                // no match so try a starts with
+                for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
+                    if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                        std::string name = prop->GetAttribute("name").ToStdString();
+                        if (name == "") {
+                            for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                                if (ap->GetName() == "PropClass") {
+                                    name = ap->GetAttribute("Name");
+                                }
+                            }
+                        }
+                        if (StartsWith(model, name)) {
+                            for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
+                                if (tc->GetName() == "channel") {
+                                    if (tc->GetChildren() != nullptr) {
+                                        rows = std::max(rows, wxAtoi(tc->GetAttribute("row", "0")) + 1);
+                                        cols = std::max(cols, wxAtoi(tc->GetAttribute("col", "0")) + 1);
+                                        count++;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
-    if (count > 1 && rows == 1 && cols == 1)
-    {
+    // I only think I want to use count when nothing matched perfectly
+    if (!match && count > 1 && rows == 1 && cols == 1) {
         cols = count;
     }
 
