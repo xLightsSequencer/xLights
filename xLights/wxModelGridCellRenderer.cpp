@@ -72,7 +72,15 @@ void wxModelGridCellRenderer::CreateImage()
             }
             bmp = wxBitmap(img);
             if (bmp.IsOk()) {
-                bmpDC.SelectObjectAsSource(bmp);
+                wxBitmap bmp2(width, height);
+                bmpDC.SelectObjectAsSource(bmp2);
+                wxBrush b(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                wxPen p(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                bmpDC.SetBrush(b);
+                bmpDC.SetBackground(b);
+                bmpDC.SetPen(p);
+                bmpDC.DrawRectangle(0, 0, width, height);
+                bmpDC.DrawBitmap(bmp, 0, 0);
             } else {
                 bmpDC.SelectObjectAsSource(wxNullBitmap);
             }
