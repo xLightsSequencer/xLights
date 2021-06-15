@@ -211,6 +211,8 @@ protected:
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string& rgbOrder);
     void CopyBufCoord2ScreenCoord();
 
+    bool FindCustomModelScale(int scale) const;
+
     void SetLineCoord();
     std::string GetNextName();
 

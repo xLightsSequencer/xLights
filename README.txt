@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott) Added Color Filter To Effect Select Panel
+   -- bug (scott) Fix Built-in Model to Custom Model Export missing nodes
 2021.18 June 2, 2021
    -- enh (scott) Added F13-F24 Keybindings Support
    -- enh (scott) Add null pixel support to WLED

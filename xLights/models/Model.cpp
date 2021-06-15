@@ -4324,6 +4324,16 @@ void Model::ExportAsCustomXModel() const {
         if (Sbufy > maxsy) maxsy = Sbufy;
     }
 
+    int scale = 1;
+
+    while (!FindCustomModelScale(scale)) {
+        ++scale;
+        if (scale > 100) { //I(Scott) am afraid of infinite while loops
+            scale = 1;
+            break;
+        }
+    }
+
     int minx = std::floor(minsx);
     int miny = std::floor(minsy);
     int maxx = std::ceil(maxsx);
@@ -4331,14 +4341,17 @@ void Model::ExportAsCustomXModel() const {
     int sizex = maxx - minx + 1;
     int sizey = maxy - miny + 1;
 
+    sizex *= scale;
+    sizey *= scale;
+
     int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
     memset(nodeLayout, 0x00, sizey * sizex * sizeof(int));
 
     for (int i = 0; i < nodeCount; i++)
     {
-        int x = Nodes[i]->Coords[0].screenX - minx;
-        int y = sizey - (Nodes[i]->Coords[0].screenY - miny) - 1;
-        nodeLayout[y*sizex + x] = i+1;
+        int x = (Nodes[i]->Coords[0].screenX - minx) * scale;
+        int y = (sizey - ((Nodes[i]->Coords[0].screenY - miny) * scale) - 1);
+        nodeLayout[y * sizex + x] = i + 1;
     }
 
     for (int i = 0; i < sizey * sizex; i++)
@@ -4415,6 +4428,26 @@ void Model::ExportAsCustomXModel() const {
     }
     f.Write("</custommodel>");
     f.Close();
+}
+
+bool Model::FindCustomModelScale(int scale) const
+{
+    size_t nodeCount = GetNodeCount();
+    if (nodeCount <= 1) {
+        return true;
+    }
+    for (int i = 0; i < nodeCount; i++) {
+        for (int j = i + 1; j < nodeCount; j++) {
+            int x1 = (Nodes[i]->Coords[0].screenX * scale);
+            int y1 = (Nodes[i]->Coords[0].screenY * scale);
+            int x2 = (Nodes[j]->Coords[0].screenX * scale);
+            int y2 = (Nodes[j]->Coords[0].screenY * scale);
+            if (x1 == x2 && y1 == y2) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 std::string Model::GetStartLocation() const
