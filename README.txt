@@ -11,8 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.19 June 16, 2021
    -- enh (scott) Added Color Filter To Effect Select Panel
-   -- bug (scott) Fix Built-in Model to Custom Model Export missing nodes
+   -- enh (dkulp) Add end nulls to FPP boards
+   -- enh (keith) Add option to sort views in the same order as the master view
+   -- enh (keith) Add sequence/audio upload to Falcon V4 from FPP Connect
+   -- enh (keith) Provide visual clues that audio device cannot be found as this prevents playback
+   -- bug (scott) Fix Built-in Model to Custom Model Export to minimise missing nodes
+   -- bug (dkulp) Fix custom model background image is black when adjusting brightness
+   -- bug (keith) Further fix to s5 import for channel data
+   -- bug (keith) Fix Pixlite sometimes wont upload configuration
+   -- bug (keith) Fix drag model off port on visualiser does not update screen
+   -- bug (keith) Fix node single colour does not work with custom models
+   -- bug (keith) Fix some groups arches single strand effects not rendering correctly
 2021.18 June 2, 2021
    -- enh (scott) Added F13-F24 Keybindings Support
    -- enh (scott) Add null pixel support to WLED
