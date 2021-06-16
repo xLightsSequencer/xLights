@@ -128,6 +128,7 @@ const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYSCGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYCPGMSIZE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYMASTERVIEW = wxNewId();
 
 BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
@@ -1506,6 +1507,9 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYCPGMSIZE, "By Controller/Port But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGM, "By Start Channel But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGMSIZE, "By Start Channel But Groups At Top by Size")->Enable(models > 0);
+    if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW) {
+        mnuSort->Append(ID_MODELS_SORTBYMASTERVIEW, "The same as current master view")->Enable(models > 0);
+    }
     mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
     mnuSort->Append(ID_MODELS_BUBBLEUPGROUPS, "Bubble Up Groups")->Enable(models > 0);
@@ -1591,6 +1595,9 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     }
     else if (id == ID_MODELS_SORTBYSCGMSIZE) {
         SortModelsBySCGM(true);
+    }
+    else if (id == ID_MODELS_SORTBYMASTERVIEW) {
+        SortModelsByMasterView();
     }
     ValidateWindow();
 }
@@ -1912,6 +1919,36 @@ void ViewsModelsPanel::SortModelsBySCGM(bool sortGroupsBySize)
     else {
         view->SetModels(wxJoin(modelArray, ',').ToStdString());
     }
+
+    SelectView(_sequenceViewManager->GetSelectedView()->GetName());
+    MarkViewsChanged();
+    PopulateModels();
+
+    _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::SortModelsByMasterView()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    auto v_models = view->GetModelsString();
+    wxArrayString v_models_array = wxSplit(v_models, ',');
+
+    auto mv_models = GetMasterViewModels();
+    wxArrayString mv_models_array = wxSplit(mv_models, ',');
+
+    wxArrayString modelArray;
+
+    for (const auto& it : mv_models_array)         {
+        if (std::find(begin(v_models_array), end(v_models_array), it) != end(v_models_array))             {
+            modelArray.push_back(it);
+        }
+    }
+
+    // we should not have dropped any models
+    wxASSERT(v_models_array.size() == modelArray.size());
+
+    view->SetModels(wxJoin(modelArray, ',').ToStdString());
 
     SelectView(_sequenceViewManager->GetSelectedView()->GetName());
     MarkViewsChanged();

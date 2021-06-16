@@ -96,6 +96,7 @@ class ViewsModelsPanel: public wxPanel
     void SortModelsByNameGM(bool sortGroupsBySize = false);
     void SortModelsByCPGM(bool sortGroupsBySize = false);
     void SortModelsBySCGM(bool sortGroupsBySize = false);
+    void SortModelsByMasterView();
     void SortModelsByType();
     void SortModelsUnderThisGroup(int groupIndex);
     void SortModelsBubbleUpGroups();
@@ -193,6 +194,7 @@ class ViewsModelsPanel: public wxPanel
         static const long ID_MODELS_SORTBYNAMEGMSIZE;
         static const long ID_MODELS_SORTBYCPGMSIZE;
         static const long ID_MODELS_SORTBYSCGMSIZE;
+        static const long ID_MODELS_SORTBYMASTERVIEW;
 
 	private:
 
