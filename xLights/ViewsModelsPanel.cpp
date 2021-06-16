@@ -1508,7 +1508,7 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYSCGM, "By Start Channel But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGMSIZE, "By Start Channel But Groups At Top by Size")->Enable(models > 0);
     if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW) {
-        mnuSort->Append(ID_MODELS_SORTBYMASTERVIEW, "The same as current master view")->Enable(models > 0);
+        mnuSort->Append(ID_MODELS_SORTBYMASTERVIEW, "The Same as Current Master View")->Enable(models > 0);
     }
     mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
