@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Added the Ability to Import Views from RGBEffects File and Sequence Files
 2021.19 June 16, 2021
    -- enh (scott) Added Color Filter To Effect Select Panel
    -- enh (dkulp) Add end nulls to FPP boards

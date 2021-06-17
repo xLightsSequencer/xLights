@@ -107,7 +107,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 					<cols>1</cols>
-					<rows>5</rows>
+					<rows>6</rows>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_AddView" member="yes">
 							<label>Add</label>
@@ -139,6 +139,15 @@
 						<object class="wxButton" name="ID_BUTTON8" variable="ButtonClone" member="yes">
 							<label>Clone</label>
 							<handler function="OnButtonCloneClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_IMPORT" variable="ButtonImport" member="yes">
+							<label>Import...</label>
+							<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
