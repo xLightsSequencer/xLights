@@ -144,6 +144,7 @@ class ViewsModelsPanel: public wxPanel
 		wxButton* Button_AddAll;
 		wxButton* Button_AddSelected;
 		wxButton* Button_AddView;
+		wxButton* Button_Bottom;
 		wxButton* Button_DeleteView;
 		wxButton* Button_MakeMaster;
 		wxButton* Button_MoveDown;
@@ -169,6 +170,7 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON_TOP;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
+		static const long ID_BUTTON_BOTTOM;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON7;
@@ -236,6 +238,7 @@ class ViewsModelsPanel: public wxPanel
 		void OnListCtrlModelsItemActivated(wxListEvent& event);
 		void OnButton_TopClick(wxCommandEvent& event);
 		void OnButtonImportClick(wxCommandEvent& event);
+		void OnButton_BottomClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);
