@@ -788,10 +788,12 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     {
         wxASSERT(_min != MINVOIDF);
         wxASSERT(_max != MAXVOIDF);
-
+        //old max of 10, 1.0 = 10 
+        //new max of 20, 0.5 = 10 
+        //y = y * 0.5 or 10/20 i.e. old range/new range
         for (auto& it : _values)
         {
-            it.y = it.y * newrange / oldrange;
+            it.y = it.y * oldrange / newrange;
         }
     }
 }
