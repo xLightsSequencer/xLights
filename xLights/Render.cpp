@@ -1141,6 +1141,7 @@ void xLightsFrame::UpdateRenderStatus() {
                 rpi->renderProgressDialog = nullptr;
             }
             _appProgress->SetValue(0);
+            _appProgress->Reset();
             RenderDone();
             delete []rpi->jobs;
             delete []rpi->aggregators;
@@ -1769,6 +1770,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     SetStatusText(_("Rendering all layers for time slice"));
     ProgressBar->SetValue(0);
     _appProgress->SetValue(0);
+    _appProgress->Reset();
     wxStopWatch sw; // start a stopwatch timer
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] {
         static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1781,6 +1783,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
         EnableSequenceControls(true);
         ProgressBar->Hide();
         _appProgress->SetValue(0);
+        _appProgress->Reset();
         GaugeSizer->Layout();
     });
 }

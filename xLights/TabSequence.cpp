@@ -1107,6 +1107,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
         _appProgress->SetValue(0);
+        _appProgress->Reset();
         GaugeSizer->Layout();
 
         logger_base.info("Saving fseq file.");
@@ -1254,6 +1255,7 @@ void xLightsFrame::SaveSequence()
             logger_base.info("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
             _appProgress->SetValue(0);
+            _appProgress->Reset();
             ProgressBar->Hide();
             GaugeSizer->Layout();
 
@@ -1387,6 +1389,7 @@ void xLightsFrame::RenderAll()
         EnableSequenceControls(true);
         ProgressBar->Hide();
         _appProgress->SetValue(0);
+        _appProgress->Reset();
         GaugeSizer->Layout();
     });
 }
