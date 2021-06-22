@@ -1760,7 +1760,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
         SetNewRanges(rngs);
         return false;
-    } else if (rules->SupportsLEDPanelMatrix()) {
+    } else if (rules->SupportsVirtualMatrix()) {
         int startChannel = -1;
         if (cud.GetMaxPixelPort()) {
             //The matrix actually has the controller connection defined, we'll use it
