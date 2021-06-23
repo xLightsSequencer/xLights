@@ -254,8 +254,10 @@ bool ArtNetOutput::Open() {
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(ARTNET_PORT);
 
+    wxString ipAddr = _remoteAddr.IPAddress();
+
     // work out our broascast address
-    wxArrayString ipc = wxSplit(_ip.c_str(), '.');
+    wxArrayString ipc = wxSplit(ipAddr, '.');
     if (__ip1 == -1) {
         __ip1 = wxAtoi(ipc[0]);
         __ip2 = wxAtoi(ipc[1]);
