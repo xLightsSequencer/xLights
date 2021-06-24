@@ -136,6 +136,7 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));

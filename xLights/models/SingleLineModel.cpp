@@ -185,6 +185,7 @@ void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
 
         p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", parm3));
         p->SetAttribute("Min", 1);
