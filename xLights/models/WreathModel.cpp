@@ -83,6 +83,7 @@ void WreathModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 640);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "WreathStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
