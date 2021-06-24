@@ -254,7 +254,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
     AddInstanceHeader("Media", "Enable to Upload MP3, MP4 Media Files.");
     AddInstanceHeader("Models", "Enable to Upload Models for Dispaly Testing.");
-    AddInstanceHeader("UDP Out", "'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'. \n \n 'Proxied' will set UDP Out only for Controllers with a Proxy IP adress set.");
+    AddInstanceHeader("UDP Out", "'None'- Device is not going to send Pixel data across the network. \n \n 'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'. \n \n 'Proxied' will set UDP Out only for Controllers with a Proxy IP adress set.");
     AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
     AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
 
