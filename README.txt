@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (bill) Add FPP Connect button to Controllers page
    -- enh (bill) Added/change a few tool tips to help new users 
    -- enh (scott) Added the Ability to Import Views from RGBEffects File and Sequence Files
 2021.19 June 16, 2021
