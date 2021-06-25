@@ -730,6 +730,20 @@
 															<border>3</border>
 															<option>1</option>
 														</object>
+														<object class="spacer">
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON12" variable="ButtonFPPConnect" member="yes">
+																<label>FPP Connect</label>
+																<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 													<option>1</option>

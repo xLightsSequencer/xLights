@@ -655,6 +655,7 @@ public:
     static const long ID_BUTTON6;
     static const long ID_BUTTON10;
     static const long ID_BUTTON5;
+    static const long ID_BUTTON12;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON2;
     static const long ID_PANEL2;
@@ -802,6 +803,7 @@ public:
     wxButton* ButtonAddControllerSerial;
     wxButton* ButtonControllerDelete;
     wxButton* ButtonDiscover;
+    wxButton* ButtonFPPConnect;
     wxButton* ButtonOpen;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonUploadInput;

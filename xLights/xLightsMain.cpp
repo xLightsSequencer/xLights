@@ -201,6 +201,7 @@ const long xLightsFrame::ID_BUTTON9 = wxNewId();
 const long xLightsFrame::ID_BUTTON6 = wxNewId();
 const long xLightsFrame::ID_BUTTON10 = wxNewId();
 const long xLightsFrame::ID_BUTTON5 = wxNewId();
+const long xLightsFrame::ID_BUTTON12 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_PANEL2 = wxNewId();
@@ -677,6 +678,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
     ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
+    BoxSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonFPPConnect = new wxButton(PanelSetup, ID_BUTTON12, _("FPP Connect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
+    BoxSizer1->Add(ButtonFPPConnect, 1, wxALL|wxEXPAND, 3);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
@@ -1076,6 +1080,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
     Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerNullClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDiscoverClick);
+    Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonVisualiseClick);
