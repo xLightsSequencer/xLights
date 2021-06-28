@@ -1743,14 +1743,50 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
     wxTreeListCtrl* tree = _rcTree;
     wxTreeListItem selected = _rcItem;
+    wxTreeListItem root = tree->GetFirstChild(tree->GetRootItem());
     long id = event.GetId();
     if (id == ID_MNU_TEST_SELECTALL)
     {
+        wxTreeListItem curr = root;
+        while (curr.IsOk()) {
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(curr);
+            if (tc != nullptr) {
+                if (tc->IsContiguous()) {
+                    _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                }
+                else {
+                    long ch = tc->GetFirstChannel();
+                    while (ch != -1) {
+                        _channelTracker.AddRange(ch, ch);
+                        ch = tc->GetNextChannel();
+                    }
+                }
+            }
+            curr = tree->GetNextSibling(curr);
+        }
+
         tree->CheckItem(tree->GetRootItem(), wxCHK_CHECKED);
         CascadeSelected(tree, tree->GetRootItem(), wxCHK_CHECKED);
     }
     else if (id == ID_MNU_TEST_DESELECTALL)
     {
+        wxTreeListItem curr = root;
+        while (curr.IsOk()) {
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(curr);
+            if (tc != nullptr) {
+                if (tc->IsContiguous()) {
+                    _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                }
+                else {
+                    long ch = tc->GetFirstChannel();
+                    while (ch != -1) {
+                        _channelTracker.RemoveRange(ch, ch);
+                        ch = tc->GetNextChannel();
+                    }
+                }
+            }
+            curr = tree->GetNextSibling(curr);
+        }
         tree->CheckItem(tree->GetRootItem(), wxCHK_UNCHECKED);
         CascadeSelected(tree, tree->GetRootItem(), wxCHK_UNCHECKED);
     }
@@ -1765,7 +1801,22 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
                 while (count > 0 && selected.IsOk())
                 {
+                    TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+
                     tree->CheckItem(selected, wxCHK_CHECKED);
+
+                    RollUpAll(tree, selected);
+
                     selected = tree->GetNextSibling(selected);
                     count--;
                 }
@@ -1783,7 +1834,22 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
                 while (count > 0 && selected.IsOk())
                 {
+                    TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+
                     tree->CheckItem(selected, wxCHK_UNCHECKED);
+
+                    RollUpAll(tree, selected);
+
                     selected = tree->GetNextSibling(selected);
                     count--;
                 }
