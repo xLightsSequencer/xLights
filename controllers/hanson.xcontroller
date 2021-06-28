@@ -41,6 +41,27 @@
 			</InputProtocols>
 		</Variant>
 	</Controller>
+	<Controller Name="DMX2-24">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>dmx-open</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>opendmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
 	<Controller Name="DMX36">
 		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
@@ -80,6 +101,123 @@
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
 				<Protocol>opendmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="rPi-28D">
+		<Variant Name="" ID="rPi-28D" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>3</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+			</SerialProtocols>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+		</Variant>
+	</Controller>
+	<Controller Name="rPi-MFC">
+		<Variant Name="" ID="rPi-MFC" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsLEDPanelMatrix/>
+			<SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+			</SerialProtocols>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+		</Variant>
+	</Controller>	
+	<Controller Name="HE123">
+        <Variant Name="" ID="HE123" Base="FPP:FPPStringCape">
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
+			<fpp>6</fpp>
+			<fpp1>1,8</fpp1>
+			<fpp2>9,8</fpp2>
+			<fpp3>17,8</fpp3>
+			<fpp4>25,8</fpp4>
+			<fpp5>33,8</fpp5>
+			<fpp6>41,8</fpp6>
+		</Variant>
+	</Controller>
+	<Controller Name="rPi-P10">
+		<Variant Name="" ID="rPi-P10" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<SupportsLEDPanelMatrix/>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="Octoscroller">
+		<Variant Name="" ID="Octoscroller" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<SupportsLEDPanelMatrix/>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="oPi8">
+		<Variant Name="" ID="oPi8" Base="FPP:LED Panels">
+			<NoWebUI/>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>34</MaxInputUniverses>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 		</Variant>
 	</Controller>
