@@ -11,8 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (bill) Added/change a few tool tips to help new users 
+2021.20 June 28, 2021
+   -- enh (billc) Added/change a few tool tips to help new users 
    -- enh (scott) Added the Ability to Import Views from RGBEffects File and Sequence Files
+   -- enh (scott) Increase range of shockwave and single strand effect
+   -- enh (dkulp) Allow DDP discovery to also work using the STATUS packet
+   -- enh (keith) On display elements add button to move models to the bottom of the list
+   -- bug (keith) Fix twinkle effect (new style) on really large render buffers
+   -- bug (keith) Fix test dialog right click options dont work correctly
+   -- bug (dkulp) Prevent crash using artnet with hostnames
+   -- bug (dkulp) Ensure render progress bar goes away when done
+   -- bug (dkulp) Fix FPP Virtual matrix not setting start channel
+   -- bug (scott) Fix rgb effects file not marked dirty when importing models and views
 2021.19 June 16, 2021
    -- enh (scott) Added Color Filter To Effect Select Panel
    -- enh (dkulp) Add end nulls to FPP boards
