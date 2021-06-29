@@ -218,7 +218,7 @@ class TestItemBase
 protected:
     std::string _name; // what to display on the tree
 
-    // either range is contiguous start->end or non contiguous ... but it cant be both
+    // either range is contiguous start->end or non contiguous ... but it can't be both
     long _absoluteStartChannel;
     long _absoluteEndChannel;
     std::vector<int> _nonContiguousChannels;
@@ -702,10 +702,10 @@ class ModelGroupTestItem : public TestItemBase
     std::list<ModelTestItem*> _models;
     std::list<ModelGroupTestItem*> _modelGroups;
     std::list<SubModelTestItem*> _subModels;
-    
+
     void Process(ModelGroup* modelGroup)
     {
-        
+
     }
 
 public:
@@ -1259,7 +1259,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
-        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
+        DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
 
     if (!parent->ForceEnableOutputs())
@@ -1674,7 +1674,7 @@ void PixelTestDialog::OnTreeListCtrlItemExpanding(wxTreeListEvent& event)
             if (tib->GetType() == "Nodes" || tib->GetType() == "Model")
             {
                 ModelTestItem* mti = nullptr;
-                
+
                 if (tib->GetType() == "Nodes")
                 {
                     mti = (ModelTestItem*)TreeListCtrl_Models->GetItemData(TreeListCtrl_Models->GetItemParent(item));
@@ -2711,11 +2711,11 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	{
         if (_outputManager->IsOutputOpenInAnotherProcess())
         {
-            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
+            DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
         }
 
         xLightsFrame *f = (xLightsFrame *)GetParent();
-        
+
         if (!f->ForceEnableOutputs())
         {
             DisplayWarning("At least one output could not be started. See log file for details.", this);
@@ -2864,7 +2864,7 @@ std::string PixelTestDialog::SerialiseSettings()
     return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s",
         speed,
         standardFunction, standardBackground, standardHighlight,
-        rgbFunction, rgbBackgroundR, rgbBackgroundG, rgbBackgroundB, 
+        rgbFunction, rgbBackgroundR, rgbBackgroundG, rgbBackgroundB,
         rgbHighlightR, rgbHighlightG, rgbHighlightB,
         rgbCycleFunction, suspend ? "T" : "F").ToStdString();
 }

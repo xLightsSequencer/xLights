@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="SubModelsDialog">
-		<title>Sub Models</title>
+		<title>SubModels</title>
 		<centered>1</centered>
 		<size>778,368</size>
 		<id_arg>0</id_arg>
@@ -50,7 +50,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
 												<label>Add</label>
-												<tooltip>Add New Submodel</tooltip>
+												<tooltip>Add New SubModel</tooltip>
 												<handler function="OnAddButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -60,7 +60,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
 												<label>Delete</label>
-												<tooltip>Delete Selected Submodel</tooltip>
+												<tooltip>Delete Selected SubModel</tooltip>
 												<handler function="OnDeleteButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -70,7 +70,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTONCOPY" variable="ButtonCopy" member="yes">
 												<label>Copy</label>
-												<tooltip>Copy Selected Submodel</tooltip>
+												<tooltip>Copy Selected SubModel</tooltip>
 												<handler function="OnButton_Sub_CopyClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -80,7 +80,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_EDIT" variable="Button_Edit" member="yes">
 												<label>Action...</label>
-												<tooltip>Preform actions on the submodels</tooltip>
+												<tooltip>Perform Actions on the SubModels</tooltip>
 												<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -90,7 +90,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_IMPORT" variable="ButtonImport" member="yes">
 												<label>Import...</label>
-												<tooltip>Import Submodels</tooltip>
+												<tooltip>Import SubModels</tooltip>
 												<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -139,7 +139,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="ID_TEXTCTRL_NAME" variable="TextCtrl_Name" member="yes">
-													<value>Submodel Name</value>
+													<value>SubModel Name</value>
 													<style>wxTE_PROCESS_ENTER</style>
 													<handler function="OnTextCtrl_NameText_Change" entry="EVT_TEXT" />
 												</object>

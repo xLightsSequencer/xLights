@@ -12,7 +12,7 @@
 
 #include "LOROutput.h"
 
-// This is aparently the same as LOR Output
+// This is apparently the same as LOR Output
 class DLightOutput : public LOROutput
 {
 public:

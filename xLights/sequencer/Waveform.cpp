@@ -386,7 +386,7 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
-// Open Media file and return elapsed time in millseconds
+// Open Media file and return elapsed time in milliseconds
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;

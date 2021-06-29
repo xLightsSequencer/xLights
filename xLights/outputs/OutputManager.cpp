@@ -1036,9 +1036,9 @@ bool OutputManager::StartOutput() {
             auto name = it->GetIP();
             if (name == "") name = it->GetCommPort();
 
-            logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
+            logger_base.error("An error occurred opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
             if (OutputManager::IsInteractive()) {
-                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
+                if (wxMessageBox(wxString::Format(wxT("An error occurred opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
             }
             err = true;
         }

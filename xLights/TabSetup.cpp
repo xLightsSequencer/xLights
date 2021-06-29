@@ -804,7 +804,7 @@ bool xLightsFrame::SaveNetworksFile() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        SaveNetworksFile.");
 
-    // if any of the controllers are in auto layout mode ... recalulate them
+    // if any of the controllers are in auto layout mode ... recalculate them
     bool autoLayout = false;
     for (const auto& it : _outputManager.GetControllers()) {
         if (it->IsAutoLayout()) {
@@ -868,7 +868,7 @@ void xLightsFrame::PingController(Controller* e) {
 				DisplayWarning("Serial Port Exists but couldn't be opened: " + name, this);
 				break;
 			case Output::PINGSTATE::PING_UNAVAILABLE:
-				DisplayWarning("Controller Status is Unavailible: " + name, this);
+				DisplayWarning("Controller Status is Unavailable: " + name, this);
 				break;
 			case Output::PINGSTATE::PING_UNKNOWN:
 				DisplayWarning("Controller Status is Unknown: " + name, this);
@@ -1547,7 +1547,7 @@ void xLightsFrame::SetControllersProperties() {
 
         wxPGProperty* p = Controllers_PropertyEditor->Append(new wxBoolProperty("Controller Sync", "ControllerSync", me131Sync));
         p->SetEditor("CheckBox");
-        p->SetHelpString("Sends a sync packet at the end of each frame for controllers to syncronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
+        p->SetHelpString("Sends a sync packet at the end of each frame for controllers to synchronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
 
         // nothing selected or many items selected - display global properties
         if (me131Sync) {

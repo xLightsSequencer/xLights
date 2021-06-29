@@ -2985,7 +2985,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         if (se != nullptr) {
                             MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
-                        else                             {
+                        else {
                             logger_base.debug("LMS Import: Strand %d not found.", str);
                         }
                     }
@@ -2998,8 +2998,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                 s->_mapping,
                                 s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
-                        else                             {
-                            logger_base.debug("LMS Import: Submodel %d not found.", str);
+                        else {
+                            logger_base.debug("LMS Import: SubModel %d not found.", str);
                         }
                     }
                 }

@@ -29,8 +29,8 @@ struct CADWriter
 	virtual void WriteHeader() { };
 	virtual void WriteEndOfFile() { };
 
-	virtual void WriteText(CADPoint const& loc, std::string const& text, float height, float rotaion = 0.0 ) = 0;
-	virtual void WriteWire(CADPoint const& loc1 , CADPoint const& loc2) = 0;	
+	virtual void WriteText(CADPoint const& loc, std::string const& text, float height, float rotation = 0.0 ) = 0;
+	virtual void WriteWire(CADPoint const& loc1 , CADPoint const& loc2) = 0;
 	virtual void WriteNode(CADPoint const& loc) = 0;
 
 	virtual void WriteFirstNode(CADPoint const& loc);
@@ -48,4 +48,4 @@ protected:
 	std::ofstream m_file;
 };
 
-#endif 
+#endif

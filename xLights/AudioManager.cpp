@@ -167,13 +167,13 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
 
 #ifndef __WXMSW__
     // TODO we need to replace this on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     _device = "";
 #else
     // override the default driver on windows so we can access the microphone
     if (SDL_AudioInit("directsound") != 0)
     {
-        logger_base.error("Failed to access DirectSound ... Microphone wont be available.");
+        logger_base.error("Failed to access DirectSound ... Microphone won't be available.");
     }
     _device = device;
     _inputDevice = inputDevice;
@@ -188,7 +188,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
         return;
     }
 
-    logger_base.debug("SDL initialised output: '%s' input: '%s'", (const char *)device.c_str(), (const char*)inputDevice.c_str());
+    logger_base.debug("SDL initialized output: '%s' input: '%s'", (const char *)device.c_str(), (const char*)inputDevice.c_str());
 }
 
 void SDL::StartListening(const std::string& inputDevice)
@@ -260,7 +260,7 @@ SDL::~SDL()
         delete toremove;
     }
 
-    logger_base.debug("SDL uninitialised");
+    logger_base.debug("SDL uninitialized");
 }
 
 long SDL::Tell(int id)
@@ -296,7 +296,7 @@ std::list<std::string> SDL::GetAudioDevices()
 
 #ifdef __WXMSW__
     // TODO we need to this working on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(0);
 
     for (int i = 0; i < count; i++)
@@ -314,7 +314,7 @@ std::list<std::string> SDL::GetInputAudioDevices()
 
 #ifdef __WXMSW__
     // TODO we need to this working on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(1);
 
     for (int i = 0; i < count; i++)
@@ -425,7 +425,7 @@ int SDL::GetInputMax(int ms)
     SDL_ClearError();
     read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
 
-    // if we didnt get anything bailout
+    // if we didn't get anything bailout
     if (read == 0)
     {
         return -1;
@@ -540,7 +540,7 @@ std::vector<float> SDL::GetInputSpectrum(int ms)
     SDL_ClearError();
     read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
 
-    // if we didnt get anything bailout
+    // if we didn't get anything bailout
     if (read == 0)
     {
         return res;
@@ -2170,7 +2170,7 @@ AudioManager::~AudioManager()
     // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
     // this is only tripped if we try to open a new song too soon after opening another one
 
-    // Grab the lock so we know the background process isnt runnning
+    // Grab the lock so we know the background process isnt running
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
 	if (_data[1] != _data[0] && _data[1] != nullptr) {
@@ -2206,7 +2206,7 @@ void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSiz
     }
 }
 
-// Calculate the song lenth in MS
+// Calculate the song length in MS
 long AudioManager::CalcLengthMS() const
 {
 	float seconds = (float)_trackSize * (1.0f / (float)_rate);
@@ -2398,7 +2398,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
     logger_base.debug("Preparing to load song data.");
 
-    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
 
@@ -2444,7 +2444,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     int lastpct = 0;
     int status;
 
-    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;

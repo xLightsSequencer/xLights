@@ -1047,7 +1047,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             std::string mn = text.ReadLine().ToStdString();
             if (TreeContainsModel(mn) == nullptr) {
                 if (!modelwarning) {
-                    if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                    if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
                     {
                         modelwarning = true;
                     }
@@ -1099,7 +1099,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
                 if (mi == nullptr || (msi == nullptr && strand != "") || (mni == nullptr && node != "")) {
                     if (mi != nullptr && !strandwarning) {
-                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
                         {
                             strandwarning = true;
                         }

@@ -87,7 +87,7 @@ inline std::array<int, 4> getIPBytes(const wxString& ip)
 
 void HSEQFile::writeHeader() {
     //this format was copied from Joe's HSA 2.0 JavaScript sourcecode
-    //320 bytes of HSEQ header data 
+    //320 bytes of HSEQ header data
     //16 bytes of garbage???, so I wrote part of old FESQ header, probably doesn't matter
     static int fixedHeaderLength = 336;
     // data offset
@@ -104,7 +104,7 @@ void HSEQFile::writeHeader() {
     if (_slave1)
         num_of_Addition_Controllers++;
     if (_slave2)
-        num_of_Addition_Controllers++;   
+        num_of_Addition_Controllers++;
 
     header[9] = num_of_Addition_Controllers; //# of Slave Controllers
 
@@ -272,7 +272,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     AddInstanceHeader("Drive");
     AddInstanceHeader("Slave1");
     AddInstanceHeader("Slave2");
-    
+
     CheckListBox_Sequences->EnableCheckBoxes();
 
     CreateDriveList();
@@ -366,7 +366,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetModel(), wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODEL_" + rowStr));
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
-  
+
         wxChoice* Choice1 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODE_COL + rowStr);
 
         Choice1->Append(_("Master"));
@@ -402,15 +402,15 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
             Choice2->Enable(false);
             Choice3->Enable(false);
         }
-        else if (otherControllers.size() == 1) 
+        else if (otherControllers.size() == 1)
         {
             Choice3->Enable(false);
         }
- 
+
         row++;
     }
 
-    Connect(wxID_ANY, wxEVT_CHOICE, (wxObjectEventFunction)&HinksPixExportDialog::OnChoiceSelected);    
+    Connect(wxID_ANY, wxEVT_CHOICE, (wxObjectEventFunction)&HinksPixExportDialog::OnChoiceSelected);
 
     HinkControllerList->FitInside();
     HinkControllerList->SetScrollRate(10, 10);
@@ -664,7 +664,7 @@ void HinksPixExportDialog::CreateDriveList()
         d2.Open("/media/" + dir);
         wxString dir2;
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2) 
+        while (fcont2)
         {
             _drives.push_back("/media/" + dir + "/" + dir2);
             fcont2 = d2.GetNext(&dir2);
@@ -724,8 +724,8 @@ void HinksPixExportDialog::ApplySavedSettings()
      */
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr) { 
-     
+    if (config != nullptr) {
+
         int row = 0;
         for (const auto& hix : _hixControllers) {
             std::string rowStr = std::to_string(row);
@@ -815,7 +815,7 @@ void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& event)
     for (int i = 0; i< _hixControllers.size(); i++) {
         std::string rowStr = std::to_string(i);
         SetDropDownItems(DISK_COL + rowStr, _drives);
-    }    
+    }
 }
 
 void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
@@ -831,7 +831,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     wxString errorMsg;
     int count = 0;
     int row = 0;
-    for (auto hix : _hixControllers) 
+    for (auto hix : _hixControllers)
     {
         std::string const rowStr = std::to_string(row);
         ++row;
@@ -854,7 +854,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
             error = true;
             errorMsg = wxString::Format("Slave Controller 1 and 2 cannot not be the same: '%s'", slaveName1);
             continue;
-        }  
+        }
 
         auto slave1 = getSlaveController(slaveName1);
         auto slave2 = getSlaveController(slaveName2);
@@ -880,12 +880,12 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 errorMsg = wxString::Format("Too Many Slave Controller Universes for '%s'", hix->GetName());
                 continue;
             }
-        } 
+        }
 
         wxString drive = GetChoiceValue(DISK_COL + rowStr);
 
         if (drive.IsEmpty()) {
-            error = true; 
+            error = true;
             errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
             continue;
         }
@@ -1040,15 +1040,15 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
 
                     if (text == slaveName1 || text == slaveName2)
                     {
-                        DisplayError(wxString::Format("Cannot use the Same Slave Controller accross multiple HinksPix Controllers '%s' ", text));
+                        DisplayError(wxString::Format("Cannot use the Same Slave Controller across multiple HinksPix Controllers '%s' ", text));
                         cb->SetSelection(0);
                         event.Skip();
                         return;
                     }
                 }
-            }            
+            }
         }
-    }   
+    }
 }
 
 void HinksPixExportDialog::moveSequenceItem(int to, int from, bool select)
@@ -1182,7 +1182,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
         logger_base.error(errorMsg);
         return false;
     }
-   
+
     uint8_t* src, * dest;
 
     ef->setChannelCount(ef_Num_Channel_To_Write);
@@ -1210,7 +1210,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
         dest = WriteBuf;
         memmove(dest, src, hix->GetChannels());
         dest += hix->GetChannels();
-        
+
         if (slave1)
         {
             src = tmpBuf + slave1->GetStartChannel() - 1;
@@ -1223,7 +1223,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
             src = tmpBuf + slave2->GetStartChannel() - 1;
             memmove(dest, src, slave2->GetChannels());
             dest += slave2->GetChannels();
-        }        
+        }
 
         ef->addFrame(frame, WriteBuf);
 

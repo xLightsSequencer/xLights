@@ -200,7 +200,7 @@ void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     } else {
         cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
     }
-    //wierd calculation, but adds a slight abmount of jitter to the speed
+    //weird calculation, but adds a slight amount of jitter to the speed
     //example: if mSpeed is 10, the speeds for the first few frames would be:  2, 3, 2...
     int mspeed = cache->effectState / 4;
     cache->effectState -= mspeed * 4;

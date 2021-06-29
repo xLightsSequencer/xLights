@@ -16,7 +16,7 @@
 
 CADWriter::CADWriter(std::string fileName) :
 	m_fileName(std::move(fileName))
-{ 
+{
 }
 
 CADWriter::~CADWriter()

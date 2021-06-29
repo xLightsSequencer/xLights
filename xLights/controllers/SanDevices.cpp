@@ -467,7 +467,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
 
     if (page2.empty()) {
         logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
-        wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
+        wxMessageBox("Error occurred trying to upload to SanDevices.", "Error", wxOK, parent);
         return false;
     }
 
@@ -523,7 +523,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     const wxString p(page);
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
-        // extact the universes
+        // extract the universes
         const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
@@ -548,7 +548,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     const wxString p(page);
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
-        // extact the universes
+        // extract the universes
         const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
@@ -710,13 +710,13 @@ SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, i
 
     start = p.find(tofind, start);
 
-    // extact the Protocol
+    // extract the Protocol
     const char proto = ExtractCharFromPage(page, "E", "select", 'A', start);
 
-    // extact the timing
-    const char timming = ExtractCharFromPage(page, "K", "select", 'A', start);
+    // extract the timing
+    const char timing = ExtractCharFromPage(page, "K", "select", 'A', start);
 
-    return new SanDevicesProtocol(group, proto, timming);
+    return new SanDevicesProtocol(group, proto, timing);
 }
 
 SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int group, int port) {
@@ -734,7 +734,7 @@ SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int g
 
     SanDevicesOutput* output = new SanDevicesOutput(group, port, EncodeXlightsOutput(group, port));
 
-    // extact the pixel
+    // extract the pixel
     output->pixels = ExtractIntFromPage(page, "A", "input", 0, start);
 
     output->colorOrder = ExtractCharFromPage(page, "E", "select", 'A', start);
@@ -782,7 +782,7 @@ SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int
 
     output->protocol = ExtractCharFromPage(page, "B", "select", 'A', start);
 
-    // extact the pixel
+    // extract the pixel
     output->pixels = ExtractIntFromPage(page, "C", "input", 0, start);
     output->groupCount = ExtractIntFromPage(page, "D", "input", 1, start);
 
@@ -962,7 +962,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
 
     // extract reverse
     std::string rev;
-    if (outputData->reverse) //if check add to request, based on my testing firmware will check if present reguardless of value
+    if (outputData->reverse) //if check add to request, based on my testing firmware will check if present regardless of value
         rev = "&N=1";
 
     // extract null pixels
@@ -972,7 +972,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
 
     // extract chase
     std::string chase;
-    if (outputData->chase) //if check add to request, based on my testing firmware will check if present reguardless of value
+    if (outputData->chase) //if check add to request, based on my testing firmware will check if present regardless of value
         chase = "&F=1";
     else
         chase = "";
@@ -1460,4 +1460,4 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     wxASSERT(false);
     return false;
 }
-#pragma endregion 
+#pragma endregion

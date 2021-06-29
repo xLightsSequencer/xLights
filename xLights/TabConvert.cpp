@@ -167,7 +167,7 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsign
     Note pos="2000" is the TimeInterval timing mark point.
 
     First observation
-    Each track allways ends with the line
+    Each track always ends with the line
     <TimeInterval eff="7" dat="" gui="" in="1" out="1" pos="100000000" sin="-1" att="0" />
     It is the only line with the value of att="0"
 
@@ -212,7 +212,7 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsign
     This does not seem change from pattern to pattern save.
     I also removed it from a saved pattern and it didn't seem to make any difference with or without it.
 
-    Another observation is that an OFF line is allways:
+    Another observation is that an OFF line is always:
     <TimeInterval eff="4" dat="" gui="{09A9DFBE-9833-413c-95FA-4FFDFEBF896F}" in="1" out="1" pos="4410" sin="-1" att="0" bst="-1" ben="-1" />
     The only changing value is the time position 'pos'
 
@@ -302,10 +302,10 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsign
     f.Write("\t<Tracks>\n");
 
 
-    int old_bst = 999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
+    int old_bst = 999;   // pick a value to guarantee we will use a eff=3 line on the next pass
     for (int ch = 0; ch + (cpn - 1) < numChans; ch += cpn)   // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
-        old_bst = 999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
+        old_bst = 999;   // pick a value to guarantee we will use a eff=3 line on the next pass
 
         if (ch % 9 == 0)
         {
@@ -394,7 +394,7 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsign
                 }
                 old_bst = bst;
             }
-            //  old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
+            //  old_bst=999;   // pick a value to guarantee we will use a eff=3 line on the next pass
         }
         //  f.Write(string_format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
         f.Write("\t\t</Intervals>\n");
@@ -890,7 +890,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         return;
     }
 
-    // Choose the output video formate
+    // Choose the output video format
     if (compressed)
     {
         fmt->video_codec = AV_CODEC_ID_H264;
@@ -1130,7 +1130,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     logger_base.debug("Model video written successfully.");
 }
 
-std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const 
+std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const
 {
     wxString filename = preset + ".gif";
     filename.Replace("/", "_");
@@ -1225,7 +1225,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                     startRow = it->Row();
                 }
             }
-                        
+
             for (const auto& it : pd.Effects()) {
                 // adjust before loop so we don't end up with a (-) row value but still maintaining effect
                 // layer order. If we get to the while loop with a neg int it gets converted to a really
@@ -1236,7 +1236,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 while (row >= elem->GetEffectLayerCount()) {
                     elem->AddEffectLayer();
                 }
-                
+
                 EffectLayer* el = elem->GetEffectLayer(row);
                 el->AddEffect(0, it->EffectName(), it->Settings(), it->Palette(), it->StartTime() - pd.StartTime(), it->EndTime() - pd.StartTime(), false, false, true);
             }
@@ -1278,7 +1278,7 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
     // must be a multiple of 2
     logger_base.debug("   GIF dimensions %dx%d.",  width, height);
     logger_base.debug("   GIF frames %ld.", endFrame - startFrame);
-           
+
     wxImageArray imgArray;
 
     for (size_t i = startFrame; i < endFrame; i++)
@@ -1333,7 +1333,7 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
     else
     {
         logger_base.debug("Model GIF written successfully.");
-    }   
+    }
 }
 
 void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
@@ -1485,6 +1485,6 @@ void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
                                    &mediaFilename, // media filename
                                    nullptr,
                                    filename);
-    
+
     FileConverter::WriteFalconPiFile(write_params);
 }

@@ -71,7 +71,7 @@ FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minor
         hostName = ad;
         ipAddress = address.IPAddress();
         _ip = ipAddress;
-        
+
     }
     _connected = true; // well not really but i need to fake it
 }
@@ -120,11 +120,11 @@ void FPP::setIPAddress(const std::string &ip) {
 struct FPPWriteData {
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
-    
+
     uint8_t *data;
     size_t dataSize;
     size_t curPos;
-    
+
     wxFile *file;
 
     uint8_t *postData;
@@ -135,7 +135,7 @@ struct FPPWriteData {
     size_t totalWritten;
     size_t lastDone;
     bool cancelled;
-    
+
     size_t readData(void *ptr, size_t buffer_size) {
         if (data != nullptr) {
             size_t remaining = dataSize - curPos;
@@ -165,7 +165,7 @@ struct FPPWriteData {
         if (file != nullptr) {
             size_t t = file->Read(ptr, buffer_size);
             totalWritten += t;
-            
+
             if (progress) {
                 size_t donePct = totalWritten;
                 donePct *= 1000;
@@ -237,7 +237,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    
+
     bool retValue = false;
     int i = curl_easy_perform(curl);
     if (i != CURLE_OK) {
@@ -311,7 +311,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    
+
     logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
     struct curl_slist *chunk = nullptr;
     chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
@@ -654,15 +654,15 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     std::string ct = "Content-Type: application/octet-stream";
     bool deleteFile = false;
     std::string fullFileName = file;
-    
+
     setupCurl();
     //if we cannot upload it in 5 minutes, we have serious issues
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
 
     curlInputBuffer.clear();
     char error[1024];
-    
-    
+
+
     std::string fullUrl = ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
     if (!isFPP) {
@@ -705,7 +705,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
         addString(memBuffPost, bound);
         addString(memBuffPost, "--\r\n");
-        
+
         std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
         cd += fn.ToStdString();
         cd += "\"\r\n";
@@ -724,7 +724,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-    
+
     fileobj.Seek(0);
     data.data = (uint8_t*)memBuffPre.GetData();
     data.dataSize = memBuffPre.GetDataLen();
@@ -734,7 +734,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     data.postDataSize = memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-    
+
     data.progress = progressDialog;
     data.progressString = "Transferring " + filename + " to " + ipAddress;
     data.lastDone = lastDone;
@@ -758,7 +758,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
             }
         } else {
             messages.push_back("ERROR Uploading file: " + filename + "     Response Code: " + std::to_string(response_code) + " - " + error);
-            logger_base.warn("Did not get 200 resonse code:  %d", response_code);
+            logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
     } else {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -860,7 +860,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     if (media != "" && isFPP) {
         wxFileName mfn(media);
         mediaBaseName = mfn.GetFullName();
-        
+
         bool doMediaUpload = true;
         wxJSONValue currentMeta;
         if (GetURLAsJSON("/api/media/" + URLEncode(mediaBaseName) + "/meta", currentMeta, false)) {
@@ -887,7 +887,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         tempFileName = wxFileName::CreateTempFileName(baseName);
         fileName = tempFileName;
     }
-    
+
     FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
     if (type == 3 || type == 4) {
         ctype = ::FSEQFile::CompressionType::none;
@@ -925,7 +925,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             if (currentMeta["ID"].AsString() != buf) doSeqUpload = true;
             if (currentMeta["NumFrames"].AsLong() != file.getNumFrames()) doSeqUpload = true;
             if (currentMeta["StepTime"].AsLong() != file.getStepTime()) doSeqUpload = true;
-            
+
             currentMaxChannel = currentMeta["MaxChannel"].AsLong();
             currentChannelCount = currentMeta["ChannelCount"].AsLong();
             if (currentMeta.HasMember("Ranges")) {
@@ -937,7 +937,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             }
         }
     }
-    
+
     int channelCount = 0;
     if (type <= 1 || type == 4 || type == 5) {
         //full file, non sparse
@@ -982,7 +982,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         }
     }
     baseSeqName = baseName;
-    
+
     int clevel = 2;
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
 
@@ -1115,33 +1115,33 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
     wxJSONValue models;
     for (const auto& m : *allmodels) {
         Model* model = m.second;
-        
+
         if (model->GetDisplayAs() == "ModelGroup")
             continue;
-        
+
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         wxString name(model->name);
         name.Replace(" ", "_");
-        
-        
+
+
         int numStr = model->GetNumStrings();
         if (numStr == 0) {
             numStr = 1;
         }
         int straPerStr =  model->GetNumStrands() / numStr;
         if (straPerStr < 1) straPerStr = 1;
-        
+
         if (model->GetDisplayAs() == "Custom") {
             straPerStr = 1;
         }
-        
+
         wxJSONValue jm;
         jm["Name"] = name;
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
         jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
-        
+
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
             if (mm->isVerticalMatrix()) {
@@ -1163,7 +1163,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
-        
+
         models.Append(jm);
     }
     json["models"] = models;
@@ -1192,7 +1192,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
             first = 0;
             ret += "# Preview Size\n";
             ret += wxString::Format("%d,%d\n", model->GetModelScreenLocation().previewW, model->GetModelScreenLocation().previewH);
-            
+
             if (center0) {
                 xoffset = model->GetModelScreenLocation().previewW / 2;
             }
@@ -1327,7 +1327,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     }
 
     wxJSONValue f = CreateUniverseFile(selected, false);
-    
+
     std::map<int, int> rng;
     FillRanges(rng);
     for (int x = 0; x < f["channelOutputs"][0]["universes"].Size(); x++) {
@@ -1337,7 +1337,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
         rng[start] = len;
     }
     SetNewRanges(rng);
-    
+
     return UploadUDPOut(f);
 }
 
@@ -1480,7 +1480,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
             universe["channelCount"] = it->GetChannels();
             universe["priority"] = 0;
             universe["address"] = wxString("");
-            
+
             if (rngs && it->GetChannels() > 0 && controllerEnabled == Controller::ACTIVESTATE::ACTIVE) {
                 (*rngs)[c] = c + it->GetChannels() - 1;
             }
@@ -1490,7 +1490,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
-                
+
                 // TODO this needs work to restore the loading of multiple universes as a single line
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
@@ -1709,7 +1709,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
-    
+
     std::map<int, int> rngs;
     FillRanges(rngs);
 
@@ -1869,11 +1869,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
             return true;
         }
-        
+
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }
-    
+
     if (maxport > rules->GetMaxPixelPort()) {
         maxport = rules->GetMaxPixelPort();
     }
@@ -1895,7 +1895,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 vs["description"] = pvs->_description;
                 vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
                 vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
-                
+
                 rngs[pvs->_startChannel - 1] = pvs->Channels();
 
                 if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
@@ -1967,7 +1967,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 if (pvs->_smartRemote >= 1) {
                     stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
                 }
-                
+
                 stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
             }
         }
@@ -2034,7 +2034,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
-    
+
     bool isDMX = true;
     int maxChan = 0;
     bool hasSerial = false;
@@ -2054,7 +2054,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             maxChan = std::max(mx, maxChan);
         }
     }
-    
+
     wxJSONValue bbbDmxData;
     bool hasBBBDmx = false;
     wxJSONValue otherDmxData;
@@ -2097,7 +2097,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 port["type"] = tp;
                 otherDmxData["channelOutputs"].Append(port);
             }
-            
+
         } else if (portType == "BBBSerial") {
             hasBBBDmx = true;
             port["startChannel"] = 0;
@@ -2283,7 +2283,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
             continue;
         }
         if (address.length() > 16) {
-            //ignore for some reason, FPP is occassionally returning an IPV6 address
+            //ignore for some reason, FPP is occasionally returning an IPV6 address
             continue;
         }
         DiscoveredData *found = discovery.FindByIp(address, hostName);
@@ -2292,7 +2292,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
         if (!system["Platform"].IsNull()) {
             inst.platform = system["Platform"].AsString();
         }
-        
+
         if (!system["model"].IsNull()) {
             inst.platformModel = system["model"].AsString();
         }
@@ -2436,7 +2436,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
 }
 
 static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip, const std::string &outputs) {
-    
+
     wxJSONValue val;
     wxJSONReader reader;
     bool parsed = reader.Parse(outputs, &val) == 0;
@@ -2588,7 +2588,7 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
             if (!inst) {
                 inst = discovery.FindByIp(ip, hostname, true);
-                
+
                 if (buffer[9] < 0x80) {
                     std::string ipAddr = ip;
                     discovery.AddCurl(ipAddr, "/fppjson.php?command=getFPPSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
@@ -2783,7 +2783,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
         if (supportedForFPPConnect(res, outputManager)) {
             logger_base.info("FPP Discovery - Found Supported FPP Instance: %s", res->ip.c_str());
             FPP *fpp = nullptr;
-            
+
             for (auto f : instances) {
                 if (f->ipAddress == res->ip) {
                     fpp = f;
@@ -2806,7 +2806,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->username = res->username;
                 fpp->password = res->password;
                 fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x85; // these controllers suppport uncompressed and zlib (including sparse)
+                fpp->iszlib = res->typeId == 0x85; // these controllers support uncompressed and zlib (including sparse)
                 fpp->controllerVendor = res->vendor;
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
@@ -2832,7 +2832,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x85; // these controllers suppport uncompressed and zlib (including sparse)
+                fpp->iszlib = res->typeId == 0x85; // these controllers support uncompressed and zlib (including sparse)
                 fpp->type = res->typeId;
             }
         } else {

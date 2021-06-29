@@ -25,7 +25,7 @@ public:
 	void LoadModel(Model * model, bool twoD, bool addNodeNumbers, bool addConnections);
 	void ShiftModel(float x , float y, float z);
 	void WriteToCAD(CADWriter* writer );
-	
+
 private:
 	std::vector<CADPoint> m_nodes;
 	std::vector<CADLine> m_wires;

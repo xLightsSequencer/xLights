@@ -163,7 +163,7 @@ WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port, Contro
         if (json.ItemAt("rev").IsBool()) {
             output->reverse = json.ItemAt("rev").AsBool();
         }
-        //skip is an int in the JSON but checkbox in the WebUI 
+        //skip is an int in the JSON but checkbox in the WebUI
         if (json.ItemAt("skip").IsInt()) {
             output->nullPixels = json.ItemAt("skip").AsInt();
         }
@@ -285,7 +285,7 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
 
 bool WLED::SetupInput(ControllerEthernet* controller, wxJSONValue& jsonVal) {
 
-    //get prevous RGB Mode
+    //get previous RGB Mode
     int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
 
     if (controller->GetOutputCount() > 9) {

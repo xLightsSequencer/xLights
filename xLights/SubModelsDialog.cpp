@@ -119,7 +119,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	wxPanel* Panel1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("SubModels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxSize(778,368));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -137,19 +137,19 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer9->Add(ListCtrl_SubModels, 0, wxALL|wxEXPAND, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(4, 3, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	AddButton->SetToolTip(_("Add New Submodel"));
+	AddButton->SetToolTip(_("Add New SubModel"));
 	FlexGridSizer10->Add(AddButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	DeleteButton = new wxButton(Panel2, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	DeleteButton->SetToolTip(_("Delete Selected Submodel"));
+	DeleteButton->SetToolTip(_("Delete Selected SubModel"));
 	FlexGridSizer10->Add(DeleteButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonCopy = new wxButton(Panel2, ID_BUTTONCOPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCOPY"));
-	ButtonCopy->SetToolTip(_("Copy Selected Submodel"));
+	ButtonCopy->SetToolTip(_("Copy Selected SubModel"));
 	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Edit = new wxButton(Panel2, ID_BUTTON_EDIT, _("Action..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT"));
-	Button_Edit->SetToolTip(_("Preform actions on the submodels"));
+	Button_Edit->SetToolTip(_("Perform Actions on the SubModels"));
 	FlexGridSizer10->Add(Button_Edit, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonImport = new wxButton(Panel2, ID_BUTTON_IMPORT, _("Import..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
-	ButtonImport->SetToolTip(_("Import Submodels"));
+	ButtonImport->SetToolTip(_("Import SubModels"));
 	FlexGridSizer10->Add(ButtonImport, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Export = new wxButton(Panel2, ID_BUTTON10, _("Export..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	Button_Export->SetToolTip(_("Export SubModel as File"));
@@ -170,7 +170,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer7->AddGrowableCol(1);
 	StaticTextName = new wxStaticText(Panel3, ID_STATICTEXT_NAME, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_NAME"));
 	FlexGridSizer7->Add(StaticTextName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Name = new wxTextCtrl(Panel3, ID_TEXTCTRL_NAME, _("Submodel Name"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_NAME"));
+	TextCtrl_Name = new wxTextCtrl(Panel3, ID_TEXTCTRL_NAME, _("SubModel Name"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_NAME"));
 	FlexGridSizer7->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
 	TypeNotebook = new wxNotebook(Panel3, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
@@ -587,9 +587,9 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
     wxString msg = "";
     int count = tokenizer.CountTokens();
     if ( count > 1) {
-        msg.Printf(wxT("Are you sure you want to delete %d sub models? \n\nCurrent open sequence effects will be removed as well. "), count);
+        msg.Printf(wxT("Are you sure you want to delete %d SubModels? \n\nCurrent open sequence effects will be removed as well. "), count);
     } else {
-        msg = "Are you sure you want to delete sub model " + names + "? \n\nCurrent open sequence effects will be removed as well.";
+        msg = "Are you sure you want to delete SubModel " + names + "? \n\nCurrent open sequence effects will be removed as well.";
     }
     int answer = wxMessageBox(msg,
                           "Delete Model",
@@ -673,13 +673,13 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
         //Import Submodels xModel File
-        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportSubModel(filename);
     }
     else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CUSTOM) {
         //Import model as a overlay on matrix
-        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCustomModel(filename);
     }
@@ -721,7 +721,7 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
         }
 
         wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-        wxString filename = wxFileSelector(_("Save Custom xModel File"), wxEmptyString, name, ".xmodel", "Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxString filename = wxFileSelector(_("Save Custom xModel File"), wxEmptyString, name, ".xmodel", "Model Files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
         if (filename.IsEmpty()) return;
 

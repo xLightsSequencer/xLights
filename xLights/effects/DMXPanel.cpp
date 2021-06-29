@@ -869,7 +869,7 @@ std::list<Model*> DMXPanel::GetActiveModels()
 							}
 						}
 						else if (model->GetDisplayAs() == "SubModel") {
-							// dont add sub models
+							// don't add SubModels
 						}
 						else {
 							res.push_back(model);

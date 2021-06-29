@@ -728,7 +728,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
+    p = grid->Append(new PopupDialogProperty(this, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
 
     auto modelGroups = modelManager.GetGroupsContainingModel(this);
@@ -1751,16 +1751,16 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 0;
     }
     else if (event.GetPropertyName() == "SubModels") {
-        // We cant know which submodels changed so increment all their change counts to ensure anything using them knows they may have changed
+        // We cant know which subModels changed so increment all their change counts to ensure anything using them knows they may have changed
         for (auto& it : GetSubModels()) {
             it->IncrementChangeCount();
         }
         IncrementChangeCount();
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(modelManager.GetXLightsFrame(), eventForceRefresh);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::OnPropertyGridChange::Submodels");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::Submodels");
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Submodels");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::OnPropertyGridChange::SubModels");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::SubModels");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SubModels");
 
         return 0;
     } else if (event.GetPropertyName() == "Description") {
@@ -3454,7 +3454,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
     {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes
-        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segement with zero pixels or a cutom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
     }
 
     // Don't add model group nodes if its a 3D preview render buffer
@@ -3771,12 +3771,12 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
     // This can happen when a strand is zero length ... maybe also a custom model with no nodes
     if (bufferHt == 0)
     {
-        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overidden to be 1.");
+        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
         bufferHt = 1;
     }
     if (bufferWi == 0)
     {
-        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overidden to be 1.");
+        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
 

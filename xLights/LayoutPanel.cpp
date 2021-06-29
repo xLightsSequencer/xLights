@@ -1125,7 +1125,7 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 }
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
-    //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
+    //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
 }
@@ -1394,7 +1394,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
         }
 
-        //delete all items will atempt to resort as each item is deleted, however, our Model pointers
+        //delete all items will attempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
         std::list<std::string> expanded;
@@ -2290,7 +2290,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         if (dynamic_cast<SubModel*>(base_object) != nullptr) {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Submodel names cannot be changed here.");
+            p->SetHelpString("SubModel names cannot be changed here.");
         }
     } else {
         propertyEditor->Append(new wxStringProperty("Name", "ObjectName", base_object->name));

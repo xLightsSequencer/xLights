@@ -15,7 +15,7 @@
 // ***********************************************************************************************
 // *                                                                                             *
 // * The following table may not be accurate but it is my best understanding of protocol         *
-// * compatibility. This does not mean that controllers wont show them as seperate or even that  *
+// * compatibility. This does not mean that controllers wont show them as separate or even that  *
 // * some controllers having timing that means that things which could be equivalent with the    *
 // * righting timing choice are not in reality. This makes things messy but I do think having    *
 // * this documented somewhere is essential.                                                     *
@@ -87,7 +87,7 @@
 // The problem is if certain pixels are not equivalent on their controller and we said they were  then we have issues
 //
 
-// This table includes some artifical types such as tm18xx which dont exist but are themselves a group within a group of compatible pixels
+// This table includes some artificial types such as tm18xx which don't exist but are themselves a group within a group of compatible pixels
 // These are required because some controllers list them as a type
 
 // the "preferred" pixel type should be at the start of each list
@@ -99,7 +99,7 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
 	  "lx1203", "p9883", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
 	  "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
 	  "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818"
-	  // artifical
+	  // artificial
 	  "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x"
 	},
 	{ "apa101", "apa102", "apa102c", "hd107s", "sk9822" },

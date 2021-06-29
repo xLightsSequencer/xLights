@@ -191,7 +191,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
             (!mTimingPlayOnDClick && !event.ShiftDown())) {
             if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer()) {
-                    if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Varible Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
+                    if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Variable Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
                         TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
                         te->SetFixedTiming(0);
                     }
@@ -3435,7 +3435,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         }
     }
     else if (MultipleEffectsSelected()) {
-        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving mulitple effects.");
+        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
 
         // check if its clear for all effects
         bool all_clear = true;

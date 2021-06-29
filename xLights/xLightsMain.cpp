@@ -2306,7 +2306,7 @@ bool xLightsFrame::ForceEnableOutputs() {
 
 bool xLightsFrame::EnableOutputs(bool ignoreCheck) {
     if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
-        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
+        DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
     bool ok = ForceEnableOutputs();
     CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
@@ -3682,7 +3682,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    // check the curent sequence to ensure this analysis is in the log
+    // check the current sequence to ensure this analysis is in the log
     CheckSequence(false);
 
     logger_base.debug("Dumping registry configuration:");
@@ -4678,8 +4678,8 @@ void xLightsFrame::CheckSequence(bool display)
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Full host name: " + fullhostname.ToStdString());
-    LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
-    LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
+    LogAndWrite(f, "IP Address we are outputting data from: " + addr.IPAddress().ToStdString());
+    LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isn't your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
     if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error() != wxSOCKET_NOERROR)
@@ -5637,7 +5637,7 @@ void xLightsFrame::CheckSequence(bool display)
             if (mg == nullptr)
             {
                 // this should never happen
-                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it.second->GetName().c_str());
+                logger_base.error("Model %s says it is a model group but it doesn't cast as one.", (const char *)it.second->GetName().c_str());
             }
             else
             {
@@ -5828,7 +5828,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     // Check for submodels with no nodes
     LogAndWrite(f, "");
-    LogAndWrite(f, "Submodels with no nodes");
+    LogAndWrite(f, "SubModels with no nodes");
 
     for (const auto& it : AllModels)
     {
@@ -5839,7 +5839,7 @@ void xLightsFrame::CheckSequence(bool display)
                 Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0)
                 {
-                    wxString msg = wxString::Format("    ERR: Submodel '%s' contains no nodes.", sm->GetFullName());
+                    wxString msg = wxString::Format("    ERR: SubModel '%s' contains no nodes.", sm->GetFullName());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5854,9 +5854,9 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    // Check for submodels that point to nodes outside parent model name
+    // Check for SubModels that point to nodes outside parent model name
     LogAndWrite(f, "");
-    LogAndWrite(f, "Submodels with nodes not in parent model");
+    LogAndWrite(f, "SubModels with nodes not in parent model");
 
     for (const auto& it : AllModels)
     {
@@ -5867,7 +5867,7 @@ void xLightsFrame::CheckSequence(bool display)
                 SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid())
                 {
-                    wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.",
+                    wxString msg = wxString::Format("    ERR: SubModel '%s' has invalid nodes outside the range of the parent model.",
                         sm->GetFullName());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
@@ -6156,18 +6156,18 @@ void xLightsFrame::CheckSequence(bool display)
 
         if (usesShader) {
             if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
-                LogAndWrite(f, "    ERR: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.");
+                LogAndWrite(f, "    ERR: Sequence has one or more shader effects but open GL version is lower than version 3. These effects will not render.");
                 errcount++;
             }
         }
 
         if (videoCacheWarning) {
-            LogAndWrite(f, "    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
+            LogAndWrite(f, "    WARN: Sequence has one or more video effects where render caching is turned off. This will render slowly.");
             warncount++;
         }
 
         if (disabledEffects) {
-            LogAndWrite(f, "    WARN: Seqeuence has one or more effects which are disabled. They are being ignored.");
+            LogAndWrite(f, "    WARN: Sequence has one or more effects which are disabled. They are being ignored.");
             warncount++;
         }
 
@@ -6264,7 +6264,7 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     if (it2 == showdir)
                     {
-                        wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it wont be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
+                        wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it won't be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -7802,7 +7802,7 @@ void xLightsFrame::DoDonate()
         f.Close();
         ::wxLaunchDefaultBrowser("file://" + filename);
 
-        // this is a bit dodgy ... basically I wait threee seconds and then delete the temporary file.
+        // this is a bit dodgy ... basically I wait three seconds and then delete the temporary file.
         // To keep the app responsive I yield frequently
         for (int i = 0; i < 300; ++i)
         {
@@ -9344,7 +9344,7 @@ void xLightsFrame::StartxFadeListener()
 
     //enable event handling
     _xFadeSocket->SetEventHandler(*this, ID_XFADESERVER);
-    //Notify us about incomming data
+    //Notify us about incoming data
     _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
     //enable event handling
     _xFadeSocket->Notify(true);
@@ -9885,7 +9885,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     if (ok && outputRate != it.second->GetRate())
                     {
                         logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
-                        wxMessageBox("In order to preapre the audio all the input songs must have the same bitrate.");
+                        wxMessageBox("In order to prepare the audio all the input songs must have the same bitrate.");
                         ok = false;
                     }
                 }

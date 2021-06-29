@@ -23,7 +23,7 @@ void STLWriter::WriteEndOfFile()
 	m_file << "endsolid xLights\n";
 }
 
-void STLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotaion)
+void STLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
 {
 	//not implemented
 }

@@ -272,7 +272,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
 
     if (full_refresh) {
         int width = 0;
-        //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
+        //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewObjects->SetColumnWidth(0, 10);
         //turn off the sorting as that is ALSO really slow
         TreeListViewObjects->SetItemComparator(nullptr);
@@ -282,7 +282,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
             TreeListViewObjects->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
         }
 
-        //delete all items will atempt to resort as each item is deleted, however, our Model pointers
+        //delete all items will attempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewObjects->GetFirstItem();
         std::list<std::string> expanded;

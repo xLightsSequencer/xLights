@@ -21,7 +21,7 @@
 #define E131_PORT 5568
 #define E131_DEFAULT_PRIORITY 100
 #define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
-#pragma endregion 
+#pragma endregion
 
 class E131Output : public IPOutput
 {
@@ -32,7 +32,7 @@ class E131Output : public IPOutput
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram = nullptr;
 
-    // Deprecated properies only accessed for conversion
+    // Deprecated properties only accessed for conversion
     int _numUniverses_CONVERT = 1;
     std::list<Output*> _outputs_CONVERT;
     #pragma endregion
@@ -51,12 +51,12 @@ public:
     E131Output(E131Output* output);
     virtual ~E131Output() override;
     virtual wxXmlNode* Save() override;
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Static Functions
     static void SendSync(int syncUniverse);
     static std::string GetTag();
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Getters and Setters
     virtual int GetPriority() const { return _priority; }
@@ -75,24 +75,24 @@ public:
     virtual std::list<Output*> GetOutputs_CONVERT() const override { return _outputs_CONVERT; }
     virtual bool IsOutputCollection_CONVERT() const override { return _numUniverses_CONVERT > 1; }
     virtual int GetUniverses_CONVERT() const override { return _numUniverses_CONVERT; }
-    
+
     virtual void SetTransientData(int32_t& startChannel, int nullnumber) override;
-    #pragma region 
+    #pragma region
 
     #pragma region Start and Stop
     virtual bool Open() override;
     virtual void Close() override;
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
     virtual void ResetFrame() override;
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Data Setting
     virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
-    #pragma endregion 
+    #pragma endregion
 };

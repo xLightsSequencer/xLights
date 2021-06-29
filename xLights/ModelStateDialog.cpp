@@ -21,6 +21,8 @@
 #include "xLightsMain.h"
 #include "support/VectorMath.h"
 
+#include <log4cpp/Category.hh>
+
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -426,7 +428,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
 void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int i = wxMessageBox("Delete state model definion?", "Are you sure you want to delete " + name + "?",
+    int i = wxMessageBox("Delete state model definition?", "Are you sure you want to delete " + name + "?",
                          wxICON_WARNING | wxOK , this);
     if (i == wxID_OK || i == wxOK) {
 
@@ -814,24 +816,57 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
 
 void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
 {
-    wxArrayString choices;
-    for (Model* sm : model->GetSubModels())
-    {
-        choices.Add(sm->Name());
-    }
+	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+	wxArrayString choices;
+	for (Model* sm : model->GetSubModels()) {
+		choices.Add(sm->Name());
+	}
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        Model* sm = model->GetSubModel(dlg.GetStringSelection());
-        const auto nodes = getSubmodelNodes(sm);
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, nodes);
-        NodeRangeGrid->Refresh();
-        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
-        dlg.Close();
-    }
+	// don't offer a choice if there is nothing to choose
+	if (choices.GetCount() == 0) {
+		wxMessageBox("No SubModels Found.");
+		return;
+	}
+
+	const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+	wxMultiChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+
+	if (dlg.ShowModal() == wxID_OK) {
+		wxArrayString allNodes;
+		for (auto const& idx : dlg.GetSelections()) {
+			Model* sm = model->GetSubModel(choices.at(idx));
+			if (sm == nullptr) {
+				logger_base.error(
+					"Strange ... ModelStateDialog::ImportSubmodel returned no model "
+					"for %s but it was in the list we gave the user.",
+					(const char*)choices.at(idx).c_str());
+				continue;
+			}
+			const auto nodes = getSubmodelNodes(sm);
+			if (!nodes.IsEmpty()) {
+				allNodes.Add(nodes);
+			}
+		}
+		const auto newNodes = wxJoin(allNodes, ',', '\0');
+
+		auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
+
+		//sort
+		std::sort(newNodeArrray.begin(), newNodeArrray.end(),
+			[](const wxString& a, const wxString& b)
+		{
+			return wxAtoi(a) < wxAtoi(b);
+		});
+
+		//make unique
+		newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
+
+		NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
+		NodeRangeGrid->Refresh();
+		GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
+		dlg.Close();
+	}
 }
 
 wxString ModelStateDialog::getSubmodelNodes(Model* sm)
@@ -867,7 +902,7 @@ void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == STATE_DIALOG_IMPORT_FILE)
     {
-        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
 
         ImportStates(filename);
@@ -1294,13 +1329,13 @@ void ModelStateDialog::ShiftStateNodes()
     if (name == "") {
         return;
     }
-    
+
     if (stateData[name]["Type"] != "NodeRange") {
         return;
     }
     long min = 0;
     long max = model->GetNodeCount();
-    
+
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
@@ -1318,11 +1353,11 @@ void ModelStateDialog::ReverseStateNodes()
     if (name == "") {
         return;
     }
-    
+
     if (stateData[name]["Type"] != "NodeRange") {
         return;
     }
-    
+
     long max = model->GetNodeCount() + 1;
 
     ReverseNodes(stateData[name], max);

@@ -1214,7 +1214,7 @@ public:
         }
         while (it2 != ranges.end()) {
             if ((it->end + 1) == it2->start) {
-                //it2 is immediatly at the end of it
+                //it2 is immediately at the end of it
                 it->end = it2->end;
                 it2 = ranges.erase(it2);
             } else if (it->end >= (it2->start - 1) && (it->end <= it2->end)) {

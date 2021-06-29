@@ -24,7 +24,7 @@ void VRMLWriter::WriteHeader()
         << "}\n";
 }
 
-void VRMLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotaion)
+void VRMLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
 {
 	m_file
 		<< "Transform {\n"

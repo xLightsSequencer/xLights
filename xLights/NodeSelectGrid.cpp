@@ -198,7 +198,7 @@ public:
     }
 };
 
-//overloading contructor
+//overloading constructor
 NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString& row, wxWindow* parent, wxWindowID id)
     : NodeSelectGrid(multiline, title, m, std::vector<wxString>(1, row), parent, id)
 {
@@ -802,7 +802,7 @@ wxString NodeSelectGrid::GetNodeList(const bool sort)
 {
     if (CheckBox_OrderedSelection->IsChecked()) return CompressNodes(TextCtrl_Nodes->GetValue());
 
-    //encode with dashs
+    //encode with dashes
     std::vector<wxString> nodeList;
     for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
@@ -815,7 +815,7 @@ wxString NodeSelectGrid::GetNodeList(const bool sort)
             }
         }
     }
-    //encode with dashs
+    //encode with dashes
     return EncodeNodeLine(nodeList, sort);
 }
 
@@ -866,7 +866,7 @@ std::vector<int> NodeSelectGrid::DecodeNodeList(const std::vector<wxString> &row
     return nodeList;
 }
 
-//encode node list with dashs
+//encode node list with dashes
 wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes, const bool sort) const
 {
     wxString rowValue;
@@ -1086,7 +1086,7 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
     for (int i = 0; i < GridNodes->GetNumberRows(); i++)        // step through all lines
     {
         bool something_in_this_line = false;             // nothing found yet
-        for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all colums
+        for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all columns
         {
             if (GridNodes->IsInSelection(i, k))     // this field is selected!!!
             {
@@ -1098,7 +1098,7 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
                     }
                     something_in_this_line = true;
                 }
-                else                                    // if not the first field in this line we need a field seperator (TAB)
+                else                                    // if not the first field in this line we need a field separator (TAB)
                 {
                     copy_data += "\t";  // next COLUMN
                 }
@@ -1218,7 +1218,7 @@ void NodeSelectGrid::UpdateBackground()
 
         for (int i = 0; i< GridNodes->GetNumberRows(); i++)        // step through all lines
         {
-            for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all colums
+            for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all columns
             {
                 const wxString value = GridNodes->GetCellValue(i, k);
                 if (!value.IsNull() && !value.IsEmpty())

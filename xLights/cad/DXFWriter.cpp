@@ -28,9 +28,9 @@ void DXFWriter::WriteEndOfFile()
 	m_file << "EOF\n";
 }
 
-void DXFWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotaion)
+void DXFWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
 {
-	DrawText(loc.X, loc.Y, loc.Z, text, height, rotaion, 1, 1);
+	DrawText(loc.X, loc.Y, loc.Z, text, height, rotation, 1, 1);
 }
 
 void DXFWriter::WriteWire(CADPoint const& loc1, CADPoint const& loc2)
@@ -43,13 +43,13 @@ void DXFWriter::WriteNode(CADPoint const& loc)
 	DrawCircle(loc.X, loc.Y, loc.Z, 0.2f, 1, 0);
 }
 
-void DXFWriter::DrawText(float x, float y, float z, std::string const& text, float height, float rotaion, int thickness, int layer)
+void DXFWriter::DrawText(float x, float y, float z, std::string const& text, float height, float rotation, int thickness, int layer)
 {
 	m_file << "0\n";
 	m_file << "TEXT\n";
 	m_file << "8\n";
 	m_file << std::to_string(layer) << '\n';
-	
+
 	if (thickness != 1) {
 		m_file << "39\n";
 		m_file << std::to_string(thickness) << '\n';
@@ -66,9 +66,9 @@ void DXFWriter::DrawText(float x, float y, float z, std::string const& text, flo
 	m_file << "40\n";
 	m_file << std::to_string(height) << '\n';
 
-	if (rotaion != 0) {
+	if (rotation != 0) {
 		m_file << "50\n";
-		m_file << std::to_string(rotaion) << '\n';
+		m_file << std::to_string(rotation) << '\n';
 	}
 }
 

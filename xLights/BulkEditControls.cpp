@@ -75,7 +75,7 @@ BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString val
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditTextCtrl::OnRightDown, nullptr, this);
 }
 
-BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : 
+BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) :
     wxFilePickerCtrl(parent, id, path, message, wildcard, pos, size, style, validator, name)
 {
     _wildcard = wildcard;
@@ -680,7 +680,7 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
             else {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id + "_SF", dlg.GetPath(), nullptr, "");
             }
- 
+
             if (e != nullptr) {
                 SetFileName(wxFileName(e->GetSettings().Get(id, GetFileName().GetFullPath())));
             }
@@ -1134,7 +1134,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects < 2)
     {
-        logger_base.debug("Bulk edit refused ... insufficent effects selected.");
+        logger_base.debug("Bulk edit refused ... insufficient effects selected.");
         return false;
     }
 

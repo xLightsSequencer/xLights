@@ -58,14 +58,14 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 	}
 }
 
-void CADModel::ShiftModel(float x, float y, float z) 
+void CADModel::ShiftModel(float x, float y, float z)
 {
 	for (auto & pt : m_nodes) {
 		pt.X += x;
 		pt.Y += y;
 		pt.Z += z;
 	}
-	
+
 	for (auto& ln : m_wires) {
 		ln.Loc1.X += x;
 		ln.Loc1.Y += y;

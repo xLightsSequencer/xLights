@@ -59,7 +59,7 @@
 #include <unistd.h>
 #endif
 #ifdef WINDOWS
-#inlcude <windows.h>
+#include <windows.h>
 #endif
 
 #include "outputs/OutputManager.h"

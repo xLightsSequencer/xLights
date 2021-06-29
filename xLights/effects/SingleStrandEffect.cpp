@@ -282,7 +282,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6); // initialize it once at the beggining of this sequence.
+        ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6); // initialize it once at the beginning of this sequence.
     }
 
     bool Mirror = false;
@@ -360,16 +360,16 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     int startState;
     // If we are wrapping, cap the width the buffer width
     if (Number_Chases > 1) {
-        // The +1 assure that the chaes start at index 0 (rather than index -1 or index [width] - 1 in the case of wrapping)
+        // The +1 assure that the chases start at index 0 (rather than index -1 or index [width] - 1 in the case of wrapping)
         startState = width * rtval + 1;
     }
     // If we aren't wrapping, add the chaseWidth to the total so the chase fully completes
     else
     {
-        // The -1 assures divides the time apprpriately so an equal amount of time is spent at each index
+        // The -1 assures divides the time appropriately so an equal amount of time is spent at each index
         // Imagine a 10 pixel wide buffer, and a 2 pixel wide chase. We want to start the chase with 1 pixel visible, and end with 1 pixel visible, so that means there are actually 11 time slots ( [width] + [scaledChaseWidth] - 1 )
         // The only problem is when we hit 1.0 exactly for the time, we'll roll over to the 12th slot, so the if statement fudges the math so the last slot actually gets 1 extra frame
-        // The +1 assure that the chaes start at index 0 rather than index -1
+        // The +1 assure that the chases start at index 0 rather than index -1
         startState = (width + scaledChaseWidth - 1) * rtval + 1; // -2) + 1
         if (rtval >= 0.999999) {
             startState -= 1;

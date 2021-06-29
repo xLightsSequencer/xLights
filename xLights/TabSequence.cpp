@@ -116,7 +116,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 else {
                     if (wxFile::Exists(fn.GetFullPath())) {
                         //set the backup to be older than the XML files to avoid re-promting
-                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resolution is 2 seconds
                         asfn.SetTimes(&xmltime, &xmltime, &xmltime);
                     }
                 }
@@ -610,7 +610,7 @@ void xLightsFrame::SaveModelsFile()
         }
         else if (model->GetDisplayAs() == "SubModel")
         {
-            // Dont export sub models ... they arent useful
+            // Dont export SubModels ... they arent useful
 
             //if (!first)
             //{
@@ -1504,7 +1504,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     MenuItem_ViewLog->Enable(true);
 }
 
-//modifed for partially random -DJ
+//modified for partially random -DJ
 std::string xLightsFrame::CreateEffectStringRandom(std::string& settings, std::string& palette)
 {
     int eff1 = ChooseRandomEffect();

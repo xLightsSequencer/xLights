@@ -1227,7 +1227,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 
     // don't offer a choice if there is nothing to choose
     if (choices.GetCount() == 0) {
-        wxMessageBox("No submodels found.");
+        wxMessageBox("No SubModels Found.");
         return;
     }
 
@@ -1301,7 +1301,7 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == FACES_DIALOG_IMPORT_FILE)
     {
-        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
 
         ImportFaces(filename);
@@ -1745,13 +1745,13 @@ void ModelFaceDialog::ShiftFaceNodes()
     if (name == "") {
         return;
     }
-    
+
     if (faceData[name]["Type"] != "NodeRange") {
         return;
     }
     long min = 0;
     long max = model->GetNodeCount();
-    
+
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
@@ -1769,11 +1769,11 @@ void ModelFaceDialog::ReverseFaceNodes()
     if (name == "") {
         return;
     }
-    
+
     if (faceData[name]["Type"] != "NodeRange") {
         return;
     }
-    
+
     long max = model->GetNodeCount() + 1;
 
     ReverseNodes(faceData[name], max);
