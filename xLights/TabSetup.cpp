@@ -1256,8 +1256,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     bool hasChanges = false;
 
     Discovery discovery(this, &_outputManager);
-    ZCPPOutput::PrepareDiscovery(discovery);
     ArtNetOutput::PrepareDiscovery(discovery);
+    ZCPPOutput::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);

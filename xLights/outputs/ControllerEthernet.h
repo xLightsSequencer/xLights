@@ -72,6 +72,8 @@ public:
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);
 
+    void AddOutput();
+
     int GetVersion() const { return _version; }
     void SetVersion(int version);
 
