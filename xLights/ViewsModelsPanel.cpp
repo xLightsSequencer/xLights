@@ -2775,9 +2775,10 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                 {
                     if (!element->HasEffects())
                     {
-                        // model shouldnt be in master
-                        //_sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
-                        _sequenceElements->DeleteElement(name);
+                        //remove all not found elements(models) from the current master view without Effects
+                        //They will be added back or move into the correct order with the "SetMasterViewModels" call below if needed
+                        _sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
+                        //_sequenceElements->DeleteElement(name); //this removes models not found in the "new" master view from ALL Views, not just the master view, causing models to disappear from random Views
                         RemoveModelFromLists(name);
                         --i;
                     }
