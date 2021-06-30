@@ -266,7 +266,7 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
         {
             return true;
         }
-        
+
         // we want to cache rotations because of compute cost
         if (Contains(it.first, "VALUECURVE_Rotations"))
         {
@@ -909,11 +909,12 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     const std::string vn = "VALUECURVE_" + name;
     const std::string &vc = SettingsMap.Get(vn, EMPTY_STRING);
     if (vc != EMPTY_STRING) {
-        ValueCurve valc(vc);
+        ValueCurve valc;
+        valc.SetDivisor(divisor);
+        valc.SetLimits(min, max);
+        valc.Deserialise(vc);
         if (valc.IsActive()) {
             bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
-            valc.SetLimits(min, max);
-            valc.SetDivisor(divisor);
 
             // If we ask for a double we always want it pre-divided
             //if (slider)
@@ -931,7 +932,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
             return res;
         }
     }
-    
+
     const std::string sn = "SLIDER_" + name;
     const std::string tn = "TEXTCTRL_" + name;
     if (SettingsMap.Contains(sn)) {
@@ -966,7 +967,7 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
             //}
 
             if (needsUpgrade) {
-                // this updates the settings map ... but not the actual settings on the effect ... 
+                // this updates the settings map ... but not the actual settings on the effect ...
                 // this is a problem as the error will keep occuring next time the sequence is loaded.
                 // To fix it the user needs to click on the offending effect and save and it will go away
                 SettingsMap[vn] = valc.Serialise();
