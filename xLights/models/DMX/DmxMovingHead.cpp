@@ -26,7 +26,7 @@
 #include "../../UtilFunctions.h"
 
 DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-  : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
+  : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
     dmx_style_val(0), beam_length(4)
 {
     beam_width = GetDefaultBeamWidth();
@@ -239,7 +239,7 @@ void DmxMovingHead::InitModel() {
     green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "0"));
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
-    
+
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
 	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
 	pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "540"));
@@ -267,6 +267,10 @@ void DmxMovingHead::InitModel() {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE_BARS;
     } else if (dmx_style == "Moving Head 3D") {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_3D;
+    }
+
+    if (dmx_style.empty()) {
+        dmx_style = "Moving Head Top";
     }
 }
 
@@ -948,7 +952,7 @@ void DmxMovingHead::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
-    wxString s = ModelXml->GetAttribute("DmxStyle");
+    wxString s = ModelXml->GetAttribute("DmxStyle", dmx_style);
     wxString pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "540");
     wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "180");
     wxString pc = ModelXml->GetAttribute("DmxPanChannel", "0");
@@ -963,6 +967,10 @@ void DmxMovingHead::ExportXlightsModel()
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
     wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
+
+    if (s.empty()) {
+        s = "Moving Head Top";
+    }
 
     f.Write(wxString::Format("DmxStyle=\"%s\" ", s));
     f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));

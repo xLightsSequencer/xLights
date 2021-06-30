@@ -816,57 +816,57 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
 
 void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-	wxArrayString choices;
-	for (Model* sm : model->GetSubModels()) {
-		choices.Add(sm->Name());
-	}
+    wxArrayString choices;
+    for (Model* sm : model->GetSubModels()) {
+        choices.Add(sm->Name());
+    }
 
-	// don't offer a choice if there is nothing to choose
-	if (choices.GetCount() == 0) {
-		wxMessageBox("No SubModels Found.");
-		return;
-	}
+    // don't offer a choice if there is nothing to choose
+    if (choices.GetCount() == 0) {
+        wxMessageBox("No SubModels Found.");
+        return;
+    }
 
-	const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-	wxMultiChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    wxMultiChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
 
-	if (dlg.ShowModal() == wxID_OK) {
-		wxArrayString allNodes;
-		for (auto const& idx : dlg.GetSelections()) {
-			Model* sm = model->GetSubModel(choices.at(idx));
-			if (sm == nullptr) {
-				logger_base.error(
-					"Strange ... ModelStateDialog::ImportSubmodel returned no model "
-					"for %s but it was in the list we gave the user.",
-					(const char*)choices.at(idx).c_str());
-				continue;
-			}
-			const auto nodes = getSubmodelNodes(sm);
-			if (!nodes.IsEmpty()) {
-				allNodes.Add(nodes);
-			}
-		}
-		const auto newNodes = wxJoin(allNodes, ',', '\0');
+    if (dlg.ShowModal() == wxID_OK) {
+        wxArrayString allNodes;
+        for (auto const& idx : dlg.GetSelections()) {
+            Model* sm = model->GetSubModel(choices.at(idx));
+            if (sm == nullptr) {
+                logger_base.error(
+                    "Strange ... ModelStateDialog::ImportSubmodel returned no model "
+                    "for %s but it was in the list we gave the user.",
+                    (const char*)choices.at(idx).c_str());
+                continue;
+            }
+            const auto nodes = getSubmodelNodes(sm);
+            if (!nodes.IsEmpty()) {
+                allNodes.Add(nodes);
+            }
+        }
+        const auto newNodes = wxJoin(allNodes, ',', '\0');
 
-		auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
+        auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
 
-		//sort
-		std::sort(newNodeArrray.begin(), newNodeArrray.end(),
-			[](const wxString& a, const wxString& b)
-		{
-			return wxAtoi(a) < wxAtoi(b);
-		});
+        //sort
+        std::sort(newNodeArrray.begin(), newNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+        {
+            return wxAtoi(a) < wxAtoi(b);
+        });
 
-		//make unique
-		newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
+        //make unique
+        newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
 
-		NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
-		NodeRangeGrid->Refresh();
-		GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
-		dlg.Close();
-	}
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
+        NodeRangeGrid->Refresh();
+        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
+        dlg.Close();
+    }
 }
 
 wxString ModelStateDialog::getSubmodelNodes(Model* sm)
@@ -964,23 +964,22 @@ void ModelStateDialog::ImportStates(const wxString & filename)
         std::map<std::string, std::map<std::string, std::string> > newStateInfo = stateData;
         wxXmlNode* root = doc.GetRoot();
         bool stateFound = false;
-        if (root->GetName() == "custommodel")
+
+        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
         {
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            if (n->GetName() == "stateInfo")
             {
-                if (n->GetName() == "stateInfo")
+                std::map<std::string, std::map<std::string, std::string> > stateInfo;
+                Model::ParseStateInfo(n, stateInfo);
+                if (stateInfo.size() == 0)
                 {
-                    std::map<std::string, std::map<std::string, std::string> > stateInfo;
-                    Model::ParseStateInfo(n, stateInfo);
-                    if (stateInfo.size() == 0)
-                    {
-                        continue;
-                    }
-                    stateFound = true;
-                    AddStates(stateInfo);
+                    continue;
                 }
+                stateFound = true;
+                AddStates(stateInfo);
             }
         }
+
         if (stateFound)
         {
             NameChoice->Enable();

@@ -1362,23 +1362,22 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
     {
         wxXmlNode* root = doc.GetRoot();
         bool facesFound = false;
-        if (root->GetName() == "custommodel")
+
+        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
         {
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            if (n->GetName() == "faceInfo")
             {
-                if (n->GetName() == "faceInfo")
+                std::map<std::string, std::map<std::string, std::string> > faceInfo;
+                Model::ParseFaceInfo(n, faceInfo);
+                if (faceInfo.size() == 0)
                 {
-                    std::map<std::string, std::map<std::string, std::string> > faceInfo;
-                    Model::ParseFaceInfo(n, faceInfo);
-                    if (faceInfo.size() == 0)
-                    {
-                        continue;
-                    }
-                    facesFound = true;
-                    AddFaces(faceInfo);
+                    continue;
                 }
+                facesFound = true;
+                AddFaces(faceInfo);
             }
         }
+
         if (facesFound)
         {
             NameChoice->Enable();

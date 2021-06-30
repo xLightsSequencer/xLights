@@ -111,7 +111,7 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     if ("DmxChannelCount" == event.GetPropertyName()) {
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
-    } 
+    }
 
     return Model::OnPropertyGridChange(grid, event);
 }
@@ -309,7 +309,6 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
-    wxString ds = ModelXml->GetAttribute("DmxStyle");
     wxString v = xlights_version_string;
 
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -327,7 +326,6 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(wxString::Format("DmxStyle=\"%s\" ", ds));
 }
 
 void DmxModel::ImportBaseParameters(wxXmlNode* root)
@@ -345,7 +343,6 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     wxString sn = root->GetAttribute("StrandNames");
     wxString nn = root->GetAttribute("NodeNames");
     wxString da = root->GetAttribute("DisplayAs");
-    wxString ds = root->GetAttribute("DmxStyle");
 
     SetProperty("parm1", p1);
     SetProperty("parm2", p2);
@@ -360,5 +357,4 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("StrandNames", sn);
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
-    SetProperty("DmxStyle", ds);
 }
