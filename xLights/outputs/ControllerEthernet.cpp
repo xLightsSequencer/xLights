@@ -254,15 +254,15 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
     }
 }
 
-void ControllerEthernet::SetFPPProxy(const std::string& proxy) { 
+void ControllerEthernet::SetFPPProxy(const std::string& proxy) {
 
-    if (_fppProxy != proxy) { 
-        _fppProxy = proxy; 
-        _dirty = true; 
+    if (_fppProxy != proxy) {
+        _fppProxy = proxy;
+        _dirty = true;
         for (auto& it : _outputs) {
             it->SetFPPProxyIP(proxy);
         }
-    } 
+    }
 }
 
 std::string ControllerEthernet::GetFPPProxy() const {
@@ -818,34 +818,6 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     }
 }
 
-void ControllerEthernet::AddOutput()
-{
-    if (_type == OUTPUT_E131) {
-        _outputs.push_back(new E131Output());
-    }
-    else if (_type == OUTPUT_ARTNET) {
-        _outputs.push_back(new ArtNetOutput());
-    }
-    else if (_type == OUTPUT_KINET) {
-        _outputs.push_back(new KinetOutput());
-    }
-    else if (_type == OUTPUT_xxxETHERNET) {
-        _outputs.push_back(new xxxEthernetOutput());
-    }
-    else if (_type == OUTPUT_OPC) {
-        _outputs.push_back(new OPCOutput());
-    }
-    else {
-        wxASSERT(false);
-    }
-    _outputs.back()->SetIP(_outputs.front()->GetIP());
-    _outputs.back()->SetChannels(_outputs.front()->GetChannels());
-    _outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
-    _outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());
-    _outputs.back()->SetUniverse(_outputs.front()->GetUniverse() + _outputs.size() - 1);
-    _outputs.back()->Enable(IsActive());
-}
-
 bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
@@ -857,7 +829,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::IP");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);        
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
         return true;
     }
     else if (name == "Multicast") {
@@ -1056,6 +1028,34 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
     }
 }
 #endif
+
+void ControllerEthernet::AddOutput()
+{
+	if (_type == OUTPUT_E131) {
+		_outputs.push_back(new E131Output());
+	}
+	else if (_type == OUTPUT_ARTNET) {
+		_outputs.push_back(new ArtNetOutput());
+	}
+	else if (_type == OUTPUT_KINET) {
+		_outputs.push_back(new KinetOutput());
+	}
+	else if (_type == OUTPUT_xxxETHERNET) {
+		_outputs.push_back(new xxxEthernetOutput());
+	}
+	else if (_type == OUTPUT_OPC) {
+		_outputs.push_back(new OPCOutput());
+	}
+	else {
+		wxASSERT(false);
+	}
+	_outputs.back()->SetIP(_outputs.front()->GetIP());
+	_outputs.back()->SetChannels(_outputs.front()->GetChannels());
+	_outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
+	_outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());
+	_outputs.back()->SetUniverse(_outputs.front()->GetUniverse() + _outputs.size() - 1);
+	_outputs.back()->Enable(IsActive());
+}
 
 void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
 {
