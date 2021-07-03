@@ -2775,7 +2775,6 @@ void SubModelsDialog::JoinSelectedModels()
 void SubModelsDialog::SortSubModelsByName()
 {
 	std::sort(std::begin(_subModels), std::end(_subModels), [](SubModelInfo* a, SubModelInfo* b) {
-		//return (*a).name < (*b).name;
         return (wxStringNumberAwareStringCompare((*a).name, (*b).name) == -1);
 	});
 
