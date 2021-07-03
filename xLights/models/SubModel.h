@@ -17,6 +17,8 @@ public:
     SubModel(Model *p, wxXmlNode *n);
     virtual ~SubModel() {}
 
+    static const std::vector<std::string> BUFFER_STYLES;
+
     virtual std::string GetFullName() const override { return parent->GetFullName() + "/" + name;}
 
     virtual const ModelScreenLocation &GetModelScreenLocation() const override { return parent->GetModelScreenLocation(); }
@@ -28,7 +30,7 @@ public:
 
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override {}
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
     virtual bool SupportsExportAsCustom() const override { return false; }
@@ -36,8 +38,17 @@ public:
     bool IsNodesAllValid() const { return _nodesAllValid; }
 
     Model* GetParent() const { return parent; }
+
+    static const std::vector<std::string> GetBufferStyleList() {
+        return BUFFER_STYLES;
+    }
+
 private:
     Model *parent = nullptr;
     bool _nodesAllValid = false;
+    const std::string _layout;
+    const std::string _type;
+    const std::string _bufferStyle;
+    std::string _properyGridDisplay;
 };
 

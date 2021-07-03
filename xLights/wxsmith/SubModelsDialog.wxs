@@ -162,12 +162,29 @@
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 																<cols>1</cols>
-																<rows>2</rows>
+																<rows>3</rows>
 																<growablecols>0</growablecols>
 																<growablerows>1</growablerows>
 																<object class="sizeritem">
 																	<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 																		<cols>3</cols>
+																		<growablecols>1</growablecols>
+																		<object class="sizeritem">
+																			<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+																				<label>Buffer Style:</label>
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxChoice" name="ID_CHOICE_BUFFER_STYLE" variable="ChoiceBufferStyle" member="yes">
+																				<handler function="OnChoiceBufferStyleSelect" entry="EVT_CHOICE" />
+																			</object>
+																			<flag>wxALL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
 																		<object class="sizeritem">
 																			<object class="wxCheckBox" name="ID_CHECKBOX1" variable="LayoutCheckbox" member="yes">
 																				<label>Vertical Buffer Layout</label>
@@ -177,26 +194,8 @@
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON6" variable="Button_ReverseNodes" member="yes">
-																				<label>Reverse Nodes</label>
-																				<handler function="OnButton_ReverseNodesClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON8" variable="Button_ReverseRows" member="yes">
-																				<label>Reverse Rows</label>
-																				<handler function="OnButton_ReverseRowsClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
 																	</object>
-																	<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																	<flag>wxALL|wxFIXED_MINSIZE</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
@@ -219,6 +218,31 @@
 																		<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON6" variable="Button_ReverseNodes" member="yes">
+																				<label>Reverse Nodes</label>
+																				<handler function="OnButton_ReverseNodesClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON8" variable="Button_ReverseRows" member="yes">
+																				<label>Reverse Rows</label>
+																				<handler function="OnButton_ReverseRowsClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
