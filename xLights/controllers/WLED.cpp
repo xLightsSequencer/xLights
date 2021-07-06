@@ -69,7 +69,7 @@ struct WLEDOutput {
         portJson["rev"] = reverse;
         portJson["skip"] = nullPixels;
 
-        return std::move(portJson);
+        return portJson;
     }
 };
 #pragma endregion
