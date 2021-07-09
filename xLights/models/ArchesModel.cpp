@@ -555,7 +555,9 @@ void ArchesModel::ExportXlightsModel()
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("Hollow=\"%s\" ", h));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);
@@ -628,7 +630,7 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
-
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::ImportXlightsModel");

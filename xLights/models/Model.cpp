@@ -4410,6 +4410,7 @@ void Model::ExportAsCustomXModel() const {
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
     if (face != "")
@@ -4428,6 +4429,38 @@ void Model::ExportAsCustomXModel() const {
     }
     f.Write("</custommodel>");
     f.Close();
+}
+
+wxString Model::ExportSuperStringColors() const
+{
+    if (superStringColours.size() == 0) {
+        return "";
+    }
+    wxString colors;
+    for (int i = 0; i < superStringColours.size(); i++)
+    {
+        colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, (wxString)superStringColours[i]);
+    }
+    return colors;
+}
+
+void Model::ImportSuperStringColours(wxXmlNode* root)
+{
+    bool found = true;
+    int index = 0;
+    while (found) {
+        auto an = wxString::Format("SuperStringColour%d", index);
+        if (root->HasAttribute(an)) {
+            superStringColours.push_back(xlColor(root->GetAttribute(an)));
+        }
+        else {
+            found = false;
+        }
+
+        index++;
+    }
+
+    SaveSuperStringColours();
 }
 
 bool Model::FindCustomModelScale(int scale) const

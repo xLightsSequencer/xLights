@@ -410,6 +410,7 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -487,6 +488,7 @@ void MatrixModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");

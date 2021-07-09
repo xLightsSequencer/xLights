@@ -1164,6 +1164,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             int num_points = wxAtoi(pts);
@@ -1255,6 +1256,7 @@ void PolyLineModel::ExportXlightsModel()
     f.Write(wxString::Format("PointData=\"%s\" ", point_data));
     f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "") {

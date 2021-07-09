@@ -414,6 +414,7 @@ void TreeModel::ExportXlightsModel()
     f.Write(wxString::Format("TreePerspective=\"%s\" ", tp));
     f.Write(wxString::Format("TreeSpiralRotations=\"%s\" ", tsr));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -499,6 +500,7 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::ImportXlightsModel");

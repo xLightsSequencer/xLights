@@ -343,7 +343,9 @@ void CircleModel::ExportXlightsModel()
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("InsideOut=\"%s\" ", io));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+
     wxString state = SerialiseState();
     if (state != "") {
         f.Write(state);
@@ -417,6 +419,7 @@ void CircleModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");

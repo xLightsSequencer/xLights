@@ -213,6 +213,9 @@ protected:
 
     bool FindCustomModelScale(int scale) const;
 
+    wxString ExportSuperStringColors() const;
+    void ImportSuperStringColours(wxXmlNode* root);
+
     void SetLineCoord();
     std::string GetNextName();
 

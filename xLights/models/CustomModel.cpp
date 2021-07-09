@@ -1164,6 +1164,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             GetModelScreenLocation().SetMWidth(max_x - min_x);
@@ -1471,6 +1472,7 @@ void CustomModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString v = xlights_version_string;
+
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
@@ -1487,6 +1489,7 @@ void CustomModel::ExportXlightsModel()
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
     if (face != "")
