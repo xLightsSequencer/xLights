@@ -1283,6 +1283,7 @@ void CubeModel::ExportAsCustomXModel() const {
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString groups = SerialiseGroups();
     if (groups != "")         {
