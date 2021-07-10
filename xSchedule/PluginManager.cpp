@@ -79,8 +79,6 @@ void PluginManager::ScanFolder(const std::string& folder)
 
 #ifdef __WXMSW__
     std::string filespec = "*.dll";
-#elif defined __WXOSX__
-    std::string filespec = "*.dylib";
 #else
     std::string filespec = "*.so";
 #endif

@@ -26,14 +26,11 @@ void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc,
     }
 
     // draw bitmap slice
-    if( image != nullptr && draw_picture )
-    {
-        if( bmp.IsOk() )
-        {
+    if( image != nullptr && draw_picture ) {
+        if (bmp.IsOk()) {
             if( (rect.x + rect.width ) <= bmp.GetWidth() &&
-                (rect.y + rect.height) <= bmp.GetHeight() )
-            {
-                dc.DrawBitmap(bmp.GetSubBitmap(rect), rect.x, rect.y);
+                (rect.y + rect.height) <= bmp.GetHeight() ) {
+                dc.Blit(rect.x, rect.y, rect.width, rect.height, &bmpDC, rect.x, rect.y);
             }
         }
     }
@@ -67,16 +64,26 @@ void wxModelGridCellRenderer::CreateImage()
             img.InitAlpha();
             int alpha = (100 - lightness) * 255 / 100;
 
-            for (int x = 0; x < img.GetWidth(); x++)
-            {
-                for (int y = 0; y < img.GetHeight(); y++)
-                {
+            for (int x = 0; x < img.GetWidth(); x++) {
+                for (int y = 0; y < img.GetHeight(); y++) {
                     //int temp = img.GetAlpha(x, y);
                     img.SetAlpha(x, y, alpha);
                 }
             }
-
             bmp = wxBitmap(img);
+            if (bmp.IsOk()) {
+                wxBitmap bmp2(width, height);
+                bmpDC.SelectObjectAsSource(bmp2);
+                wxBrush b(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                wxPen p(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                bmpDC.SetBrush(b);
+                bmpDC.SetBackground(b);
+                bmpDC.SetPen(p);
+                bmpDC.DrawRectangle(0, 0, width, height);
+                bmpDC.DrawBitmap(bmp, 0, 0);
+            } else {
+                bmpDC.SelectObjectAsSource(wxNullBitmap);
+            }
         }
     }
 }

@@ -34,25 +34,27 @@ class FPP : public BaseController
     std::string fullVersion;
     std::string platform;
     std::string model;
-    uint32_t majorVersion;
-    uint32_t minorVersion;
+    uint32_t majorVersion = 0;
+    uint32_t minorVersion = 0;
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    int type = 0;
     
     std::string proxy;
     std::set<std::string> proxies;
 
     std::string username;
     std::string password;
-    bool isFPP;
+    bool isFPP =  false;
+    bool iszlib = false;
     
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
 
-    wxWindow *parent;
+    wxWindow *parent = nullptr;
     wxProgressDialog *progressDialog = nullptr;
     std::list<std::string> messages;
     int defaultConnectTimeout = 2000;
@@ -61,6 +63,11 @@ class FPP : public BaseController
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
+    
+    void UpdateChannelRanges();
+    void FillRanges(std::map<int, int> &rngs);
+    void SetNewRanges(const std::map<int, int> &rngs);
+
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
@@ -73,6 +80,8 @@ class FPP : public BaseController
     bool WillUploadSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
+    std::string GetTempFile() const { return tempFileName; }
+    void ClearTempFile() { tempFileName = ""; }
 #endif
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
@@ -99,7 +108,7 @@ class FPP : public BaseController
 #ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
-    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input);
+    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
 #endif
     static std::string GetVendor(const std::string& type);
@@ -117,8 +126,6 @@ class FPP : public BaseController
 #pragma endregion
 
 private:
-    void FillRanges(std::map<int, int> &rngs);
-    void SetNewRanges(const std::map<int, int> &rngs);
     void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);

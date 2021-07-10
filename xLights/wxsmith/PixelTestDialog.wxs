@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxDialog" name="PixelTestDialog">
 		<title>Test Lights</title>
-		<centered>1</centered>
 		<id_arg>0</id_arg>
 		<size_arg>1</size_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
@@ -264,7 +263,7 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_Standard_Background" variable="Slider_Standard_Background" member="yes">
 																		<max>255</max>
-																		<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER</style>
+																		<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE</style>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
@@ -293,7 +292,7 @@
 																	<object class="wxSlider" name="ID_SLIDER_Standard_Highlight" variable="Slider_Standard_Highlight" member="yes">
 																		<value>255</value>
 																		<max>255</max>
-																		<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER</style>
+																		<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE</style>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
@@ -655,7 +654,7 @@
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StatusBar1" member="yes">
 					<label></label>
-					<style>wxDOUBLE_BORDER</style>
+					<style>wxBORDER_DOUBLE</style>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>

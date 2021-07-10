@@ -234,8 +234,16 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_WAVE_MNU_CUSTOM)
     {
+        int origLow = _lowNote;
+        int origHigh = _highNote;
+        if (_lowNote == -1) _lowNote = 0;
+        if (_highNote == -1) _highNote = 127;
         NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
-        if (dlg.ShowModal() == wxID_CANCEL) return;
+        if (dlg.ShowModal() == wxID_CANCEL)         {
+            _lowNote = origLow;
+            _highNote = origHigh;
+            return;
+        }
         _type = AUDIOSAMPLETYPE::CUSTOM;
     }
 
@@ -378,7 +386,7 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
-// Open Media file and return elapsed time in millseconds
+// Open Media file and return elapsed time in milliseconds
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;
@@ -441,6 +449,13 @@ void Waveform::DrawWaveView(const WaveView &wv)
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
     xlColor color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
+
+    // Set a red background if there is no audio device
+    if (_media != nullptr) {
+        if (AudioManager::GetSDL()->IsNoAudio()) {
+            color = xlRED;
+        }
+    }
 
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);

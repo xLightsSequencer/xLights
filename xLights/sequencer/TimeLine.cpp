@@ -141,6 +141,42 @@ int TimeLine::GetTagCount()
     return count;
 }
 
+void TimeLine::GoToNextTag()
+{
+    int pos = GetStartTimeMS();
+    int end = GetTimeLength();
+
+    int next = end;
+
+    for (const auto& it : _tagPositions)         {
+        if (it != -1)             {
+            if (it > pos && it < next)                 {
+                next = it;
+            }
+        }
+    }
+
+    SetStartTimeMS(next);
+    RaiseChangeTimeline();
+}
+
+void TimeLine::GoToPriorTag()
+{
+    int pos = GetStartTimeMS();
+    int prior = 0;
+
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it < pos && it > prior) {
+                prior = it;
+            }
+        }
+    }
+
+    SetStartTimeMS(prior);
+    RaiseChangeTimeline();
+}
+
 void TimeLine::GoToTag(int tag)
 {
     int pos = GetTagPosition(tag);

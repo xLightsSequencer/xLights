@@ -506,6 +506,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
     p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
@@ -514,8 +515,8 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetEditor("SpinCtrl");
 
     int ssl = 0;
-    for (int i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)         {
-        if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation)             {
+    for (int i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
+        if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
             ssl = i;
             break;
         }        
@@ -649,6 +650,7 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString groups = SerialiseGroups();
     if (groups != "") {
@@ -736,6 +738,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");

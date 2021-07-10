@@ -26,11 +26,11 @@
 #include "OptionChooser.h"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
-#include "osxMacUtils.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "sequencer/TimeLine.h"
 #include "Vixen3.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -258,7 +258,7 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     if ((filename != wxEmptyString) && wxFileExists(filename) && wxIsReadable(filename))
     {
         logger_base.debug("SetMediaFile: Creating audio manager");
-        audio = new AudioManager(std::string(filename.c_str()), 4096, 32768);
+        audio = new AudioManager(std::string(filename.c_str()), GetFrameMS());
 
         if (audio != nullptr)
         {
@@ -1154,6 +1154,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
         root->AddAttribute("FixedPointTiming","1");
     }
 
+    std::string mediaFileName = "";
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
        if (e->GetName() == "head")
@@ -1211,6 +1212,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                     {
                         logger_base.debug("LoadSequence: mediaFile %s", (const char*)element->GetNodeContent().c_str());
                         media_file = FixFile(ShowDir, element->GetNodeContent());
+                        if (media_file != element->GetNodeContent()) element->SetContent(media_file);
                         logger_base.debug("LoadSequence: mediaFile after fix %s", (const char*)media_file.c_str());
                         wxFileName mf = media_file;
                         if (audio != nullptr)
@@ -1220,34 +1222,21 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                             delete audio;
                             audio = nullptr;
                         }
-                        if( mf.FileExists() && mf.IsFileReadable() )
-                        {
-                            ObtainAccessToURL(media_file.ToStdString());
-                            logger_base.debug("LoadSequence: Creating audio manager");
-                            audio = new AudioManager(media_file.ToStdString(), 4096, 32768);
-                            ValueCurve::SetAudio(audio);
-                            logger_base.debug("LoadSequence: audio manager creation done");
-                        }
-                        else
-                        {
-                            if (!mf.FileExists())
-                            {
+                        if (mf.FileExists() && mf.IsFileReadable()) {
+                            mediaFileName = media_file.ToStdString();
+                        } else {
+                            if (!mf.FileExists()) {
                                 logger_base.error("LoadSequence: audio file does not exist.");
-                            }
-                            else if (!mf.IsFileReadable())
-                            {
+                            } else if (!mf.IsFileReadable()) {
                                 logger_base.error("LoadSequence: audio file not readable.");
                             }
                         }
                     }
-                }
-                else if( element->GetName() == "sequenceDuration")
-                {
+                } else if( element->GetName() == "sequenceDuration") {
                     SetSequenceDuration(element->GetNodeContent());
-                }
-                else if( element->GetName() == "imageDir")
-                {
+                } else if( element->GetName() == "imageDir") {
                     image_dir = FixFile(ShowDir, element->GetNodeContent());
+                    if (image_dir != element->GetNodeContent()) element->SetContent(image_dir);
                 }
             }
        }
@@ -1286,8 +1275,21 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                     element->GetAttribute("num_channels", &num_channels);
                     element->GetAttribute("channel_offset", &channel_offset);
                     element->GetAttribute("lor_params", &lor_params);
-                    if (!data.StartsWith("<")) data = FixFile("", data);
+                    if (!data.StartsWith("<"))   
+                    {
+                        auto oldData = data;
+                        data = FixFile("", data);
+                        if (data != oldData)                             {
+                            element->DeleteAttribute("data");
+                            element->AddAttribute("data", data);
+                        }
+                    }
+                    auto oldSource = source;
 					source = FixFile("", source);
+                    if (source != oldSource) {
+                        element->DeleteAttribute("source");
+                        element->AddAttribute("source", source);
+                    }
 					if( name == "Nutcracker" )
                     {
                         mDataLayers.RemoveDataLayer(0);
@@ -1302,16 +1304,13 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
        }
     }
 
-	if (audio != nullptr)
-	{
-        logger_base.info("LoadSequence: Audio loaded. Audio frame interval %dms. Our frame interval %dms", audio->GetFrameInterval(), GetFrameMS());
-        if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
-		{
-			audio->SetFrameInterval(GetFrameMS());
-		}
-	}
-    else
-    {
+    if (mediaFileName != "") {
+        ObtainAccessToURL(mediaFileName);
+        logger_base.debug("LoadSequence: Creating audio manager");
+        audio = new AudioManager(mediaFileName, GetFrameMS());
+        ValueCurve::SetAudio(audio);
+        logger_base.debug("LoadSequence: audio manager creation done");
+    } else {
         logger_base.info("LoadSequence: No Audio loaded.");
     }
 
@@ -1326,10 +1325,8 @@ void xLightsXmlFile::CleanUpEffects() const
     wxXmlNode* root = seqDocument.GetRoot();
     wxXmlNode* node = nullptr;
 
-    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-       if (e->GetName() == "ElementEffects")
-       {
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+       if (e->GetName() == "ElementEffects") {
             node = e;
             break;
        }

@@ -185,11 +185,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show submodels to add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_ShowModelGroups = new wxCheckBox(this, ID_CHECKBOX2, _("Show model groups to add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_ShowModelGroups = new wxCheckBox(this, ID_CHECKBOX2, _("Show Model Groups to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_ShowModelGroups->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowModelGroups, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);

@@ -8,7 +8,7 @@ Ubuntu packages are provided for users at https://code.launchpad.net/~chris-debe
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights is v3.1.  This can be compiled from
+of wxWidgets for xLights is v3.1.5.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 The provided makefile will download and build wxWidgets if needed - including
 application of a small patch from the end of this file to fix the sizing of
@@ -23,7 +23,7 @@ https://github.com/google/liquidfun
 If you wish to build for linux from other platforms or without having to touch your local install you can use Docker to test building
 To setup the nessecary docker image you can checkout the build file from git and build directly via:
 
-    docker build -t xlights-build https://github.com/cjd/xlights-build-docker.git
+    docker build -t xlights-build https://github.com/xLightsSequencer/xlights-build-docker.git
 
 This will leave you with a suitable base image
 Once this is setup you can build xLights via:
@@ -135,7 +135,7 @@ using Code::Blocks, proceed to step 'd'.:
      You will need to run 'make' from the command line once to build and
      patch wxwidgets.  Then ensure that the wx-config command is in your
      PATH so that codeblocks can find it. The simplest way to do this is
-     to go into the wxWidgets-3.1.2 directory and run 'sudo make install'
+     to go into the wxWidgets-3.1.5 directory and run 'sudo make install'
 
      Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the xLights.cbp file.

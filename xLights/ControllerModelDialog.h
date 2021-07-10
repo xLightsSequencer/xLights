@@ -71,14 +71,17 @@ class ControllerModelDialog: public wxDialog
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
 	ModelCMObject* _dragging = nullptr;
+	wxPoint _dragStartLocation = { -99999, -99999 };
 	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
 	int _modelsy = 1;
 	int _controllersy = 1;
 	int _controllersx = 1;
 	double _scale = 1;
+	Model* _lastDropped = nullptr;
 	#pragma endregion
 
+	void DropModelFromModelsPaneOnModel(ModelCMObject* dropped, Model* on, bool rhs);
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse, wxPoint adjustedMouse);
 	BaseCMObject* GetControllerToDropOn();
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
@@ -89,6 +92,8 @@ class ControllerModelDialog: public wxDialog
 	std::string GetModelTooltip(ModelCMObject* m);
 	std::string GetPortTooltip(UDControllerPort* port, int virtualString);
 	void FixDMXChannels();
+	PortCMObject* GetPortContainingModel(Model* m);
+	ModelCMObject* GetModelsCMObject(Model* m);
 
 	public:
 
@@ -115,13 +120,8 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLERModel_PRINT;
 		static const long CONTROLLERModel_SAVE_CSV;
 		static const long CONTROLLER_REMOVEALLMODELS;
-		static const long CONTROLLER_SMARTREMOTE_None;
-		static const long CONTROLLER_SMARTREMOTE_A;
-		static const long CONTROLLER_SMARTREMOTE_B;
-		static const long CONTROLLER_SMARTREMOTE_C;
-		static const long CONTROLLER_SMARTREMOTE_ABC;
-		static const long CONTROLLER_SMARTREMOTE_BC;
 		static const long CONTROLLER_DMXCHANNEL;
+		static const long CONTROLLER_CASCADEDOWNPORT;
 		static const long CONTROLLER_DMXCHANNELCHAIN;
 		static const long CONTROLLER_PROTOCOL;
 		static const long CONTROLLER_REMOVEPORTMODELS;
@@ -135,6 +135,7 @@ class ControllerModelDialog: public wxDialog
 		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
 		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
 		wxPoint GetScrollPosition(wxPanel* panel) const;
+		void OnPopupCommand(wxCommandEvent& event);
 
 	protected:
 
@@ -195,7 +196,6 @@ class ControllerModelDialog: public wxDialog
 
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
-		void OnPopupCommand(wxCommandEvent & event);
 		void PrintScreen();
 		void SaveCSV();
 		double getFontSize();

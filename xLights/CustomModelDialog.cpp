@@ -41,8 +41,8 @@
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "ModelPreview.h"
-#include "osxMacUtils.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -80,6 +80,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFTSELECTED = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FIND = wxNewId();
@@ -805,10 +806,6 @@ void CustomModelDialog::OnGridCustomCellSelected(wxGridEvent& event)
     UpdatePreview();
 }
 
-#ifdef __WXOSX__
-wxString GetOSXFormattedClipboardData();
-#endif
-
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
     _changed = true;
@@ -917,11 +914,7 @@ void CustomModelDialog::Paste()
     _changed = true;
     wxString copy_data = "";
 
-#ifdef __WXOSX__
-    //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
-    //native ObjectC code can get the proper tab formatted version.
-    copy_data = GetOSXFormattedClipboardData();
-#endif
+    copy_data = GetOSFormattedClipboardData();
 
     if (copy_data == "") {
         if (wxTheClipboard->Open())
@@ -1820,7 +1813,7 @@ void CustomModelDialog::Shift()
                 //Rewrite the grid values
                 for (auto c = 0; c < grid->GetNumberCols(); c++)
                 {
-                    std::list<wxString> vals;
+
                     for (auto r = 0; r < grid->GetNumberRows(); ++r)
                     {
                         wxString s = grid->GetCellValue(r, c);
@@ -1849,6 +1842,39 @@ void CustomModelDialog::Shift()
                 }
             }
 
+            UpdateBackground();
+            UpdatePreview();
+            ValidateWindow();
+        }
+    }
+}
+
+void CustomModelDialog::ShiftSelected()
+{
+    //I think not "wrapping around" is better when shifting selected nodes. 
+    //I see this being used when a Node is missed and only half need to be shifted by one.
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -10000, 10000);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            for (auto grid : _grids) {
+                //Rewrite the grid values
+                for (auto c = 0; c < grid->GetNumberCols(); c++) {
+                    for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                        if (grid->IsInSelection(r, c)) { //only if selected
+                            wxString s = grid->GetCellValue(r, c);
+                            if (s.IsEmpty() == false) {
+                                long val;
+                                if (s.ToCLong(&val) == true) {
+                                    long newVal = val + scaleFactor;
+                                    s.Printf("%d", newVal);
+                                    grid->SetCellValue(r, c, s);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             UpdateBackground();
             UpdatePreview();
             ValidateWindow();
@@ -1969,6 +1995,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_SHIFT)
     {
         Shift();
+    }
+    else if (id == CUSTOMMODELDLGMNU_SHIFTSELECTED)
+    {
+        ShiftSelected();
     }
     else if (id == CUSTOMMODELDLGMNU_INSERT)
     {
@@ -2505,18 +2535,18 @@ void CustomModelDialog::OnGridLabelRightClick(wxGridEvent& event)
         mnu.AppendSeparator();
         if (selRow >= 0)
         {
-            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW, "Create Submodel From Row");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW, "Create Minimal Submodel From Row");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS, "Create Submodel From All Rows");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS, "Create Minimal Submodel From All Rows");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW, "Create SubModel From Row");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW, "Create Minimal SubModel From Row");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS, "Create SubModel From All Rows");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS, "Create Minimal SubModel From All Rows");
             _selRow = selRow;
         }
         if (selCol >= 0)
         {
-            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN, "Create Submodel From Column");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN, "Create Minimal Submodel From Column");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS, "Create Submodel From AllColumns");
-            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS, "Create Minimal Submodel From All Columns");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN, "Create SubModel From Column");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN, "Create Minimal SubModel From Column");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS, "Create SubModel From AllColumns");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS, "Create Minimal SubModel From All Columns");
             _selCol = selCol;
         }
 
@@ -2566,6 +2596,9 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_ROTATE, "Rotate x");
     mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
     mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0) {
+        mnu.Append(CUSTOMMODELDLGMNU_SHIFTSELECTED, "Shift Selected");
+    }
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
     mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
     mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");

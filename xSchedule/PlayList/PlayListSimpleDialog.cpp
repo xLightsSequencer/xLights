@@ -19,7 +19,6 @@
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemAudio.h"
-#include "../../xLights/osxMacUtils.h"
 #include "../../xLights/UtilFunctions.h"
 
 #include <wx/xml/xml.h>
@@ -195,9 +194,6 @@ void PlayListSimpleDialog::SwapPage(wxNotebookPage* newpage, const std::string& 
         return;
     }
 
-    WINDOW_LOCKER(Panel2, lockPanel);
-    WINDOW_LOCKER(Notebook1, lockNotebook);
-
     if (Notebook1->GetPageCount() > 0)
     {
         wxNotebookPage* p = Notebook1->GetPage(0);
@@ -285,8 +281,6 @@ void PlayListSimpleDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& even
             {
                 // get the playlist entry
                 PlayListItem* pli = pls->GetItems().front();
-                WINDOW_LOCKER(Panel2, lockPanel);
-                WINDOW_LOCKER(Notebook1, lockNotebook);
                 SwapPage(nullptr);
                 pli->Configure(Notebook1);
             }

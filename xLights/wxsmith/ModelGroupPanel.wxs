@@ -146,7 +146,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_ShowSubmodels" member="yes">
-									<label>Show submodels to add</label>
+									<label>Show SubModels to Add</label>
 									<checked>1</checked>
 									<handler function="OnCheckBox_ShowSubmodelsClick" entry="EVT_CHECKBOX" />
 								</object>
@@ -161,7 +161,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_ShowModelGroups" member="yes">
-									<label>Show model groups to add</label>
+									<label>Show Model Groups to Add</label>
 									<checked>1</checked>
 									<handler function="OnCheckBox_ShowModelGroupsClick" entry="EVT_CHECKBOX" />
 								</object>

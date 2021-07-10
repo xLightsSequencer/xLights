@@ -1,23 +1,75 @@
 <Vendor Name="WLED">
-	<Controller Name="WLED">
-		<Variant Name="">
-			<!--SupportsPixelPortCommonSettings/-->
-			<MaxInputUniverses>9</MaxInputUniverses>
-			<MaxPixelPort>1</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4500</MaxPixelPortChannels>
-			<AllInputUniversesMustBeSameSize/>
-			<UniversesMustBeSequential/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols/>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-		</Variant>	
-	</Controller>
+    <AbstractVariant Name="BaseWLEDSettings">
+        <!--SupportsPixelPortCommonSettings/-->
+        <SupportsPixelPortDirection/>
+        <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortNullPixels/>
+        <SupportsUpload/>
+        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4500</MaxPixelPortChannels>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsAutoLayout/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+        </PixelProtocols>
+        <SerialProtocols/>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+    <Controller Name="WLED">
+        <Variant Name="Generic ESP8266" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>1</Port2>
+            <Port3>3</Port3>
+        </Variant>
+        <Variant Name="Generic ESP32" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>13</Port2>
+            <Port3>12</Port3>
+            <Port4>14</Port4>
+            <Port5>27</Port5>
+            <Port6>26</Port6>
+            <Port7>25</Port7>
+            <Port8>33</Port8>
+        </Variant>
+    </Controller>
+    <Controller Name="QuinLED-Dig-Quad">
+        <Variant Name="ESP32" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>5</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>16</Port1>
+            <Port2>3</Port2>
+            <Port3>1</Port3>
+            <Port4>4</Port4>
+            <Port5>19</Port5>
+        </Variant>
+        <Variant Name="ESP8266" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>3</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>3</Port2>
+            <Port3>1</Port3>	
+        </Variant>
+    </Controller>
+    <Controller Name="QuinLED-Dig-Uno">
+        <Variant Name="" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>1</Port2>
+        </Variant>
+    </Controller>
 </Vendor>

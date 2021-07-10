@@ -50,16 +50,17 @@ class SequencePackage {
         SequencePackage(const wxFileName& zipFile, xLightsFrame* xlights);
         virtual ~SequencePackage();
         void Extract();
+        void FindRGBEffectsFile();
         bool IsValid() const;
         bool IsPkg();
         bool HasMedia() const;
+        bool HasRGBEffects() const;
         bool HasMissingMedia() const;
         bool ModelsChanged() const;
         SeqPkgImportOptions* GetImportOptions();
         wxFileName& GetXsqFile();
         wxXmlDocument& GetRgbEffectsFile();
-        wxFileName& GetMedia(const wxString& fileName);
-        void ClearMedia();
+
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
         wxFileName CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy);
@@ -67,6 +68,7 @@ class SequencePackage {
     private:
         xLightsFrame*   _xlights;
         bool            _xsqOnly = true;
+        bool            _hasRGBEffects{false};
         wxFileName      _xsqFile;
         std::string     _xsqName;
         wxFileName      _pkgFile;

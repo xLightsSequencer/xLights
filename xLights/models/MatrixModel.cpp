@@ -26,6 +26,7 @@ MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zero
 {
     SetFromXml(node, zeroBased);
 }
+
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     //ctor
@@ -58,7 +59,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 10000);
     p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller. *This would also be the 'Height' of a Virtual Matrix.");
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
@@ -70,12 +71,14 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String. \n *This would also be the 'Width' of a Virtual Matrix.");
     }
 
     p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 2500);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically how many times the #String ZigZags.");
 
     grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
@@ -297,7 +300,6 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
     }
 }
 
-
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
@@ -408,6 +410,7 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -485,6 +488,7 @@ void MatrixModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");

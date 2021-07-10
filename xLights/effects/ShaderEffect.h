@@ -18,6 +18,13 @@ class SequenceElements;
 #define SHADER_SPEED_MAX 1000
 #define SHADER_SPEED_DIVISOR 100
 
+#define SHADER_OFFSET_X_MIN -100
+#define SHADER_OFFSET_X_MAX 100
+#define SHADER_OFFSET_Y_MIN -100
+#define SHADER_OFFSET_Y_MAX 100
+#define SHADER_ZOOM_MIN -100
+#define SHADER_ZOOM_MAX 100
+
 enum class ShaderParmType
 {
     SHADER_PARM_IMAGE,
@@ -115,19 +122,19 @@ struct ShaderParm
         switch (ctrl)
         {
         case ShaderCtrlType::SHADER_CTRL_CHECKBOX:
-            return wxString::Format("ID_CHECKBOX_%s", _name);
+            return wxString::Format("ID_CHECKBOX_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_SLIDER:
-            return wxString::Format("ID_SLIDER_%s", _name);
+            return wxString::Format("ID_SLIDER_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_TEXTCTRL:
-            return wxString::Format("IDD_TEXTCTRL_%s", _name);
+            return wxString::Format("IDD_TEXTCTRL_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_STATIC:
-            return wxString::Format("ID_STATICTEXT_%s", _name);
+            return wxString::Format("ID_STATICTEXT_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_VALUECURVE:
-            return wxString::Format("ID_VALUECURVE_%s", _name);
+            return wxString::Format("ID_VALUECURVE_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_CHOICE:
-            return wxString::Format("ID_CHOICE_%s", _name);
+            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_TIMING:
-            return wxString::Format("ID_CHOICE_%s", _name);
+            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
         }
         wxASSERT(false);
         return "NONAME";
@@ -135,7 +142,7 @@ struct ShaderParm
     // These are the labels that will be in the settings map
     wxString GetUndecoratedId(ShaderCtrlType ctrl) const
     {
-        if (ctrl == ShaderCtrlType::SHADER_CTRL_VALUECURVE) return _name;
+        if (ctrl == ShaderCtrlType::SHADER_CTRL_VALUECURVE) return "SHADERXYZZY_" + _name;
 
         return GetId(ctrl).AfterFirst('_');
     }
@@ -159,8 +166,10 @@ class ShaderConfig
     std::string _code;
     bool _canvasMode = false;
     bool _audioFFTMode = false;
+    bool _audioIntensityMode = false;
     bool _hasRendersize = false;
     bool _hasTime = false;
+    bool _hasCoord = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
@@ -171,8 +180,10 @@ public:
     std::string GetCode() const { return _code; }
     bool IsCanvasShader() const { return _canvasMode; }
     bool IsAudioFFTShader() const { return _audioFFTMode; }
+    bool IsAudioIntensityShader() const { return _audioIntensityMode; }
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
+    bool HasCoord() const { return _hasCoord; }
     bool UsesEvents() const;
 };
 class ShaderRenderCache;

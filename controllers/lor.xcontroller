@@ -3,6 +3,7 @@
 		<Variant Name="">
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
+			<SupportsAutoLayout/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
@@ -36,7 +37,32 @@
 			</InputProtocols>
 		</Variant>
 	</Controller>
-	<Controller Name="Pixe 4">
+	<Controller Name="Pixie 2">
+		<Variant Name="">
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>0</MaxInputUniverses>
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>300</MaxPixelPortChannels>
+			<NoWebUI/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>sm16716</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>lor</Protocol>
+				<Protocol>lor optimised</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="Pixie 4">
 		<Variant Name="">
 			<SupportsAutoLayout/>
 			<MaxInputUniverses>0</MaxInputUniverses>

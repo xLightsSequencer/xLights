@@ -24,6 +24,7 @@
 
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
+#include "ExternalHooks.h"
 
 #include <mutex>
 
@@ -34,6 +35,9 @@
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#endif
+
+#ifdef __WXOSX__
 #include <sys/sysctl.h>
 #endif
 
@@ -631,9 +635,9 @@ wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std
     return def;
 }
 
-std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
+std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
 {
-    std::list<std::string> res;
+    std::vector<std::string> res;
 
     wxXmlNode* curr = parent;
     auto pe = wxSplit(path, '/');
@@ -691,9 +695,9 @@ void DownloadVamp()
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
 #ifdef __WXMSW__
     if (GetBitness() == "64bit") {
-        ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin64.exe");
+        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
     } else {
-        ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin32.exe");
+        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2621/qm-vamp-plugins-1.8.0-win32.zip");
     }
 #elif defined(__WXOSX__) && defined(__aarch64__)
     // plugin pack is only for x86_64 and won't run native on M1 macs, download build of QM
@@ -913,13 +917,9 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
     }
 }
 
-#ifdef __WXOSX__
-double xlOSXGetMainScreenContentScaleFactor();
-#endif
-
 double GetSystemContentScaleFactor() {
 #ifdef __WXOSX__
-    return xlOSXGetMainScreenContentScaleFactor();
+    return xlOSGetMainScreenContentScaleFactor();
 #else
     return double(wxScreenDC().GetPPI().y) / 96.0;
 #endif

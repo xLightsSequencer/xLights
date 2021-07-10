@@ -13,7 +13,7 @@
 #include "ModelPreview.h"
 #include "HousePreviewPanel.h"
 #include "LayoutPanel.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 
 #define PREVIEWROTATIONFACTOR 3
 

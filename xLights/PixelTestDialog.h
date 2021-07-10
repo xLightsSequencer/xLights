@@ -36,10 +36,6 @@
 #include "outputs/OutputManager.h"
 #include "SequenceData.h"
 
-#ifdef __WXOSX__
-#include "osxMacUtils.h"
-#endif
-
 class ModelGroup;
 typedef SequenceData SeqDataType;
 class xLightsFrame;

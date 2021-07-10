@@ -19,6 +19,8 @@
 #include "models/ModelGroup.h"
 #include "../SelectTimingsDialog.h"
 #include "models/SubModel.h"
+#include "MainSequencer.h"
+#include "EffectsGrid.h"
 #include "ColorManager.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
@@ -1351,10 +1353,11 @@ void RowHeading::Draw()
     dc.GetSize(&w,&h);
     xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
     xlColor outlineCol(32, 32, 32);
-    if ((rowHeaderCol.Red() + rowHeaderCol.Blue() + rowHeaderCol.Green()) < 128) {
-        outlineCol.Set(211, 211, 211);
+    bool isDark = wxSystemSettings::GetAppearance().IsDark();
+    if (isDark) {
+        outlineCol.Set(55, 55, 55);
     }
-    wxPen penOutline(outlineCol.asWxColor(), 0.1);
+    wxPen penOutline(outlineCol.asWxColor());
 
     wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
@@ -1373,28 +1376,31 @@ void RowHeading::Draw()
     int row = 0;
     int endY = 0;
 
-    for (int i = 0; i< mSequenceElements->GetVisibleRowInformationSize(); i++)
-    {
+    int dragRow = mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelEffectGrid->GetDropRow();
+
+    xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
+    wxColor labelWxColor = labelColor.asWxColor();
+    
+    for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
         wxString layers;
         if (rowInfo->submodel) {
             prefix = "  ";
         }
-        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
-        {
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1) {
             layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
         }
-        wxBrush brush2(GetHeaderColor(rowInfo).asWxColor(),wxBRUSHSTYLE_SOLID);
+        xlColor rowHeaderColor = GetHeaderColor(rowInfo, dragRow);
+        wxBrush brush2(rowHeaderColor.asWxColor(), wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
         int startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
-        dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
+        dc.DrawRectangle(0, startY, w, DEFAULT_ROW_HEADING_HEIGHT + (i == 0 ? 0 : 1));
 
         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
-        if (m != nullptr && m->GetTagColour() != *wxBLACK)
-        {
+        if (m != nullptr && m->GetTagColour() != *wxBLACK) {
             wxBrush tagBrush(m->GetTagColour(), wxBRUSHSTYLE_SOLID);
             wxPen tagPen(m->GetTagColour());
             dc.SetBrush(tagBrush);
@@ -1404,10 +1410,19 @@ void RowHeading::Draw()
 
         dc.SetBrush(brush2);
         dc.SetPen(penOutline);
-        dc.SetTextForeground(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT).asWxColor());
-        if(rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0)   // If effect layer = 0
-        {
-            dc.SetPen(*wxLIGHT_GREY_PEN);
+        if (labelColor.HasSufficientContrast(rowHeaderColor)) {
+            dc.SetTextForeground(labelWxColor);
+        } else if (xlBLACK.HasSufficientContrast(rowHeaderColor)) {
+            dc.SetTextForeground(*wxBLACK);
+        } else {
+            dc.SetTextForeground(*wxWHITE);
+        }
+        if (rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0) {  // If effect layer = 0
+            if (isDark) {
+                dc.SetPen(*wxMEDIUM_GREY_PEN);
+            } else {
+                dc.SetPen(*wxLIGHT_GREY_PEN);
+            }
             dc.DrawLine(1,startY,w-1,startY);
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
@@ -1426,16 +1441,12 @@ void RowHeading::Draw()
                     dc.DrawLabel(prefix + "     " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else if (rowInfo->layerIndex == 0) {
                     dc.DrawLabel(prefix + "  " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
-                }
-                else
-                {
+                } else {
                     dc.SetPen(*wxBLUE_PEN);
                     wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
                     dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
                 }
-            }
-            else
-            {
+            } else {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN, startY, w - DEFAULT_ROW_HEADING_MARGIN, DEFAULT_ROW_HEADING_HEIGHT);
                 dc.SetPen(*wxBLUE_PEN);
                 wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
@@ -1443,9 +1454,8 @@ void RowHeading::Draw()
             }
             dc.SetPen(penOutline);
             dc.SetBrush(brush2);
-        }
-        else        // Draw label
-        {
+        } else {
+            // Draw label
             auto name = rowInfo->element->GetName();
             if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
@@ -1484,18 +1494,16 @@ void RowHeading::Draw()
             dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
-        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if(rowInfo->element->GetEffectLayerCount() > 1
-               && rowInfo->layerIndex == 0
-               && rowInfo->nodeIndex == -1)
-            {
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (rowInfo->element->GetEffectLayerCount() > 1
+                && rowInfo->layerIndex == 0
+                && rowInfo->nodeIndex == -1) {
+                // The +/- to expand/contract the elements layers
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);
                 dc.DrawRectangle(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4,9,9);
                 dc.DrawLine(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2,9,startY + DEFAULT_ROW_HEADING_HEIGHT/2);
-                if(rowInfo->Collapsed)
-                {
+                if (rowInfo->Collapsed) {
                     dc.DrawLine(6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4,6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
                 }
                 dc.SetPen(penOutline);
@@ -1503,31 +1511,20 @@ void RowHeading::Draw()
             }
             // draw Model Group icon if necessary
             Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
-            if (m != nullptr)
-            {
-                if (m->GetDisplayAs() == "ModelGroup")
-                {
+            if (m != nullptr) {
+                if (m->GetDisplayAs() == "ModelGroup") {
                     dc.DrawBitmap(model_group_icon, getWidth() - ICON_SPACE, startY + 3, true);
-                }
-                else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color")
-                {
-                    if (m->GetNodeCount() > 0)
-                    {
+                } else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color") {
+                    if (m->GetNodeCount() > 0) {
                         xlColor color;
-                        if (m->GetDisplayAs() == "Channel Block")
-                        {
+                        if (m->GetDisplayAs() == "Channel Block") {
                             StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
-                            if (se != nullptr)
-                            {
+                            if (se != nullptr) {
                                 color = m->GetNodeMaskColor(se->GetStrand());
-                            }
-                            else
-                            {
+                            } else {
                                 color = xlWHITE;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             color = m->GetNodeMaskColor(0);
                         }
                         dc.SetPen(*wxBLACK_PEN);
@@ -1538,33 +1535,24 @@ void RowHeading::Draw()
                     }
                 }
             }
-        }
-        else if(rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if( rowInfo->layerIndex == 0 )
-            {
+        } else if (rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING) {
+            if (rowInfo->layerIndex == 0) {
                 dc.SetPen(*wxBLACK_PEN);
-                if(dynamic_cast<TimingElement*>(rowInfo->element)->GetActive())
-                {
+                if(dynamic_cast<TimingElement*>(rowInfo->element)->GetActive()) {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
 
                     dc.SetBrush(*wxGREY_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,2);
-                }
-                else
-                {
+                } else {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                if(rowInfo->element->GetEffectLayerCount() == 2)
-                {
+                if (rowInfo->element->GetEffectLayerCount() == 2) {
                     dc.DrawBitmap(papagayox_icon, getWidth() - ICON_SPACE, startY + 3, true);
-                }
-                else if(rowInfo->element->GetEffectLayerCount() > 2)
-                {
+                } else if (rowInfo->element->GetEffectLayerCount() > 2) {
                     dc.DrawBitmap(papagayo_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
             }
@@ -1576,21 +1564,16 @@ void RowHeading::Draw()
     dc.DrawRectangle(0,endY,w,h);
 }
 
-xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info) const
+xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) const
 {
-    if (info->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-    {
+    if (info->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
         return ColorManager::instance()->GetTimingColor(info->colorIndex);
     }
+    if (info->RowNumber == mSelectedRow || info->RowNumber == dragRow) {
+        return ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_SELECTED);
+    }
 
-    if (info->RowNumber == mSelectedRow )
-    {
-        return  ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_SELECTED);
-    }
-    else
-    {
-        return ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
-    }
+    return ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
 }
 
 void RowHeading::SetSequenceElements(SequenceElements* elements)

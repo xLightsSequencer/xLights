@@ -16,6 +16,7 @@
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 
@@ -27,7 +28,7 @@
 #include "../FSEQFile.h"
 #include "../Parallel.h"
 #include "../Discovery.h"
-#include "../osxMacUtils.h"
+#include "Falcon.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -252,8 +253,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     AddInstanceHeader("Version", "FPP Software Version.");
     AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
     AddInstanceHeader("Media", "Enable to Upload MP3, MP4 Media Files.");
-    AddInstanceHeader("Models", "Enable to Upload Models for Dispaly Testing.");
-    AddInstanceHeader("UDP Out", "'All' Uploads All E1.31/DDP Ouput Definitions, 'Proxied' Upload E1.31/DDP Ouput Definitions of Proxied Controllers.");
+    AddInstanceHeader("Models", "Enable to Upload Models for Display Testing.");
+    AddInstanceHeader("UDP Out", "'None'- Device is not going to send Pixel data across the network. \n \n 'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'. \n \n 'Proxied' will set UDP Out only for Controllers with a Proxy IP address set.");
     AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
     AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
 
@@ -352,6 +353,19 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->Append(_("V2 Sparse/Uncompressed"));
             Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
             FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+        }
+        else if (inst->iszlib) {
+            wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
+            Choice1->Append(_("V1"));
+            Choice1->Append(_("V2 zlib"));
+            Choice1->Append(_("V2 Sparse/zlib"));
+            Choice1->Append(_("V2 Sparse/Uncompressed"));
+            Choice1->Append(_("V2 Uncompressed"));
+            Choice1->SetSelection(2);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
         } else if (!inst->isFPP) {
             label = new wxStaticText(FPPInstanceList, wxID_ANY, "V2 Sparse/Uncompressed", wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATIC_TEXT_FS_" + rowStr));
             FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -741,7 +755,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false);
+    std::map<int, int> udpRanges;
+    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
@@ -768,6 +783,10 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
                     cancelled |= inst->UploadUDPOut(outputs);
+                    //add the UDP ranges into the list of ranges
+                    std::map<int, int> rngs(udpRanges);
+                    inst->FillRanges(rngs);
+                    inst->SetNewRanges(rngs);
                     inst->SetRestartFlag();
                 } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
                     cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
@@ -787,6 +806,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     inst->SetRestartFlag();
                 }
+                //if restart flag is now set, restart and recheck range
+                inst->Restart("", true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
                 if (ipcontroller) {
@@ -798,7 +819,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
         row++;
     }
-    
+    row = 0;
+    for (const auto& inst : instances) {
+        if (!cancelled && doUpload[row]) {
+            std::string rowStr = std::to_string(row);
+            // update the channel ranges now that the config has been uploaded an fppd restarted
+            inst->UpdateChannelRanges();
+        }
+    }
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
@@ -820,7 +848,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         int fseqType = 0;
                         if (inst->isFPP) {
                             fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
-                        } else {
+                        }
+                        else if (inst->iszlib) {
+                            fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
+                            // need to adjust so they are unique
+                            if (fseqType == 1) fseqType = 5;
+                            if (fseqType == 2) fseqType = 6;
+                        }
+                        else {
                             fseqType = 3;
                         }
                         cancelled |= inst->PrepareUploadSequence(*seq,
@@ -882,6 +917,27 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     for (const auto &inst : instances) {
                         if (!cancelled && doUpload[row]) {
                             cancelled |= inst->FinalizeUploadSequence();
+
+                            if (inst->iszlib)                                 {
+
+                                // we need to send the FSEQ and maybe the media to the controller
+                                if (inst->type == 0x85)                                     {
+                                    // a falcon
+                                    std::string proxy = "";
+                                    auto c = _outputManager->GetControllers(inst->ipAddress);
+                                    if (c.size() == 1) proxy = c.front()->GetFPPProxy();
+                                    Falcon falcon(inst->ipAddress, proxy);
+
+                                    if (falcon.IsConnected())                                     {
+                                        cancelled |= falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : media, &prgs);
+                                    }
+                                    else {
+                                        cancelled = true;
+                                    }
+                                }
+
+                                inst->ClearTempFile();
+                            }
                         }
                         row++;
                     }

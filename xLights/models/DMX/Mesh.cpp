@@ -18,9 +18,9 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "../../UtilFunctions.h"
+#include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
-#include "../../osxMacUtils.h"
 #include <log4cpp/Category.hh>
 
 #include <glm/gtc/quaternion.hpp>
@@ -49,6 +49,11 @@ void Mesh::SetRenderScaling(float s) {
 
 void Mesh::Init(BaseObject* base, bool set_size) {
 	_objFile = FixFile("", node_xml->GetAttribute("ObjFile", ""));
+    if (_objFile != node_xml->GetAttribute("ObjFile", ""))     {
+        node_xml->DeleteAttribute("ObjFile");
+        node_xml->AddAttribute("ObjFile", _objFile);
+    }
+
     mesh_only = node_xml->GetAttribute("MeshOnly", "0") == "1";
 
     brightness = wxAtoi(node_xml->GetAttribute("Brightness", "100"));

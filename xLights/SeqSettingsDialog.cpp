@@ -36,7 +36,7 @@
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -1447,7 +1447,9 @@ void SeqSettingsDialog::MediaChooser()
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
 
+        SetCursor(wxCURSOR_WAIT);
         MediaLoad(name_and_path);
+        SetCursor(wxCURSOR_DEFAULT);
     }
 }
 
@@ -1631,6 +1633,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
         wxString name = xml_file->GetFullPath();
         xLightsParent->CloseSequence();
         xLightsParent->OpenSequence( name, nullptr );
+        xml_file = xLightsParent->CurrentSeqXmlFile;
     }
 }
 

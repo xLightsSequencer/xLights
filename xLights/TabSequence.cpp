@@ -22,8 +22,8 @@
 #include "models/SubModel.h"
 #include "SequenceViewManager.h"
 #include "LayoutPanel.h"
-#include "osxMacUtils.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "BufferPanel.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
@@ -116,7 +116,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 else {
                     if (wxFile::Exists(fn.GetFullPath())) {
                         //set the backup to be older than the XML files to avoid re-promting
-                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resolution is 2 seconds
                         asfn.SetTimes(&xmltime, &xmltime, &xmltime);
                     }
                 }
@@ -274,6 +274,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
+    if (mBackgroundImage != GetXmlSetting("backgroundImage", "")) {
+        SetXmlSetting("backgroundImage", mBackgroundImage);
+    }
+
     SetDisplay2DBoundingBox(GetXmlSetting("Display2DBoundingBox", "0") == "1");
     layoutPanel->SetDisplay2DBoundingBox(GetDisplay2DBoundingBox());
     SetDisplay2DCenter0(GetXmlSetting("Display2DCenter0", "0") == "1");
@@ -453,6 +457,27 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
 
+    if (version < "0007") {
+        // fix any no longer supported smart remote settings *A*->*B*->*C* and a->*B*->*C*
+        for (wxXmlNode* model = ModelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
+            if (model->GetName() == "model") {
+                for (wxXmlNode* cc = model->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
+                    auto sr = cc->GetAttribute("SmartRemote", "0");
+                    if (sr == "4") {
+                        cc->DeleteAttribute("SmartRemote");
+                        cc->AddAttribute("SmartRemote", "1");
+                        cc->AddAttribute("SRMaxCascade", "3");
+                    }
+                    else if (sr == "5") {
+                        cc->DeleteAttribute("SmartRemote");
+                        cc->AddAttribute("SmartRemote", "2");
+                        cc->AddAttribute("SRMaxCascade", "2");
+                    }
+                }
+            }
+        }
+    }
+
     // update version
     EffectsNode->DeleteAttribute("version");
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
@@ -585,7 +610,7 @@ void xLightsFrame::SaveModelsFile()
         }
         else if (model->GetDisplayAs() == "SubModel")
         {
-            // Dont export sub models ... they arent useful
+            // Dont export SubModels ... they arent useful
 
             //if (!first)
             //{
@@ -764,6 +789,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     if (OldName == NewName) {
         return false;
     }
+    AbortRender();
 
     logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 
@@ -1080,6 +1106,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.info("   iseq above effects done. Render complete.");
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
+        _appProgress->SetValue(0);
+        _appProgress->Reset();
         GaugeSizer->Layout();
 
         logger_base.info("Saving fseq file.");
@@ -1203,7 +1231,7 @@ void xLightsFrame::SaveSequence()
             (_seqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
             logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
-            
+
             //need to abort any render going on in order to change the SeqData size
             AbortRender();
 
@@ -1226,6 +1254,8 @@ void xLightsFrame::SaveSequence()
             RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
             logger_base.info("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
+            _appProgress->SetValue(0);
+            _appProgress->Reset();
             ProgressBar->Hide();
             GaugeSizer->Layout();
 
@@ -1358,6 +1388,8 @@ void xLightsFrame::RenderAll()
         mRendering = false;
         EnableSequenceControls(true);
         ProgressBar->Hide();
+        _appProgress->SetValue(0);
+        _appProgress->Reset();
         GaugeSizer->Layout();
     });
 }
@@ -1468,11 +1500,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     if (MenuItem_LogRenderState != nullptr) {
         MenuItem_LogRenderState->Enable();
     }
-    
+
     MenuItem_ViewLog->Enable(true);
 }
 
-//modifed for partially random -DJ
+//modified for partially random -DJ
 std::string xLightsFrame::CreateEffectStringRandom(std::string& settings, std::string& palette)
 {
     int eff1 = ChooseRandomEffect();

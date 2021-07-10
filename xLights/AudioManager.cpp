@@ -24,7 +24,7 @@
 #include "AudioManager.h"
 #include "kiss_fft/tools/kiss_fftr.h"
 #include "../xSchedule/md5.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 #include "Parallel.h"
 
 extern "C"
@@ -65,7 +65,7 @@ int AudioData::__nextId = 0;
 #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
 #endif
 
-#define PCMFUDGE 16384
+#define PCMFUDGE 32768
 
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
@@ -152,6 +152,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _audioDeviceFailed = false;
     _listeners = 0;
     _dev = 0;
     _inputdev = 0;
@@ -166,13 +167,13 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
 
 #ifndef __WXMSW__
     // TODO we need to replace this on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     _device = "";
 #else
     // override the default driver on windows so we can access the microphone
     if (SDL_AudioInit("directsound") != 0)
     {
-        logger_base.error("Failed to access DirectSound ... Microphone wont be available.");
+        logger_base.error("Failed to access DirectSound ... Microphone won't be available.");
     }
     _device = device;
     _inputDevice = inputDevice;
@@ -183,10 +184,11 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
     if (!OpenAudioDevice(device))
     {
         logger_base.error("Could not open SDL audio");
+        _audioDeviceFailed = true;
         return;
     }
 
-    logger_base.debug("SDL initialised output: '%s' input: '%s'", (const char *)device.c_str(), (const char*)inputDevice.c_str());
+    logger_base.debug("SDL initialized output: '%s' input: '%s'", (const char *)device.c_str(), (const char*)inputDevice.c_str());
 }
 
 void SDL::StartListening(const std::string& inputDevice)
@@ -258,7 +260,7 @@ SDL::~SDL()
         delete toremove;
     }
 
-    logger_base.debug("SDL uninitialised");
+    logger_base.debug("SDL uninitialized");
 }
 
 long SDL::Tell(int id)
@@ -294,7 +296,7 @@ std::list<std::string> SDL::GetAudioDevices()
 
 #ifdef __WXMSW__
     // TODO we need to this working on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(0);
 
     for (int i = 0; i < count; i++)
@@ -312,7 +314,7 @@ std::list<std::string> SDL::GetInputAudioDevices()
 
 #ifdef __WXMSW__
     // TODO we need to this working on OSX/Linux
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(1);
 
     for (int i = 0; i < count; i++)
@@ -332,13 +334,13 @@ bool SDL::CloseAudioDevice()
 //#ifdef __WXMSW__
         if (_dev > 0)
         {
-                logger_base.debug("Pausing audio device %d.", _dev);
+            logger_base.debug("Pausing audio device %d.", _dev);
             SDL_ClearError();
             SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-            if (as == SDL_AUDIO_PLAYING)
-            {
+            if (as == SDL_AUDIO_PLAYING) {
                 SDL_PauseAudioDevice(_dev, 1);
             }
+            SDL_ClearQueuedAudio(_dev);
             logger_base.debug("    Result '%s'", SDL_GetError());
             logger_base.debug("Closing audio device %d.", _dev);
             SDL_ClearError();
@@ -423,7 +425,7 @@ int SDL::GetInputMax(int ms)
     SDL_ClearError();
     read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
 
-    // if we didnt get anything bailout
+    // if we didn't get anything bailout
     if (read == 0)
     {
         return -1;
@@ -538,7 +540,7 @@ std::vector<float> SDL::GetInputSpectrum(int ms)
     SDL_ClearError();
     read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
 
-    // if we didnt get anything bailout
+    // if we didn't get anything bailout
     if (read == 0)
     {
         return res;
@@ -1053,12 +1055,12 @@ void SDL::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Stop.");
+    _state = SDLSTATE::SDLNOTPLAYING;
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-    if (as == SDL_AUDIO_PLAYING)
-    {
+    if (as == SDL_AUDIO_PLAYING) {
         SDL_PauseAudioDevice(_dev, 1);
     }
-    _state = SDLSTATE::SDLNOTPLAYING;
+    SDL_ClearQueuedAudio(_dev);
 }
 
 // Audio Manager Functions
@@ -1294,7 +1296,7 @@ bool AudioManager::IsDataLoaded(long pos)
     }
 }
 
-AudioManager::AudioManager(const std::string& audio_file, int step, int block)
+AudioManager::AudioManager(const std::string& audio_file, int intervalMS)
     // :  _jobPool("AudioManager")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1312,8 +1314,8 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_resultMessage = "";
 	_data[0] = nullptr; // Left channel data
 	_data[1] = nullptr; // right channel data
-	_intervalMS = -1; // no length
-	_frameDataPrepared = false; // frame data is used by effects to react to the sone
+	_intervalMS = intervalMS; // no length
+	_frameDataPrepared = false; // frame data is used by effects to react to the song
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
@@ -1322,7 +1324,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     _trackSize = 0;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
-	_extra = std::max(step, block) + 1;
+	_extra = 32769;
 
 	// Open the media file
     logger_base.debug("Audio Manager Constructor: Loading media file.");
@@ -1333,20 +1335,16 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     if (_rate <= 0) _ok = false;
 
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
-	if (_intervalMS > 0 && _ok)
-	{
+	if (_intervalMS > 0 && _ok) {
         logger_base.debug("Audio Manager Constructor: Preparing frame data.");
         PrepareFrameData(true);
         logger_base.debug("Audio Manager Constructor: Preparing frame data done ... but maybe on a background thread.");
-    }
-    else if (_ok)
-    {
+    } else if (_ok) {
         logger_base.debug("Audio Manager Constructor: Skipping preparing frame data as timing not known yet.");
     }
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
-	if (_ok && _state == -1)
-	{
+	if (_ok && _state == -1) {
 		_state = 1;
         logger_base.info("Audio file loaded.");
         logger_base.info("    Filename: %s", (const char *)_audio_file.c_str());
@@ -1355,12 +1353,10 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
         logger_base.info("    Artist: %s", (const char *)_artist.c_str());
         logger_base.info("    Length: %ldms", _lengthMS);
         logger_base.info("    Channels %d, Bits: %d, Rate %ld", _channels, _bits, _rate);
-    }
-    else
-    {
+    } else {
         logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
     }
-    AddAudioDeviceChangeListener(this);
+    AddAudioDeviceChangeListener([this]() {AudioDeviceChanged();});
 }
 
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const
@@ -1485,8 +1481,9 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 fn(dlg, progress);
                 lastProgress = progress;
             }
-            pdata[0] = GetLeftDataPtr(start);
-            pdata[1] = GetRightDataPtr(start);
+            pdata[0] = GetRawLeftDataPtr(start);
+            wxASSERT(pdata[0] != nullptr);
+            pdata[1] = GetRawRightDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
@@ -1594,20 +1591,29 @@ void AudioManager::DoPrepareFrameData()
     wxStopWatch sw;
 
 	// if we have already done it ... bail
-	if (_frameDataPrepared)
-	{
+	if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS) {
 		logger_base.info("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
 
+    _frameDataPreparedForInterval = _intervalMS;
+
     // wait for the data to load
-    while (!IsDataLoaded())
-    {
+    while (!IsDataLoaded()) {
         logger_base.info("DoPrepareFrameData: waiting for audio data to load.");
         wxMilliSleep(1000);
     }
 
     logger_base.info("DoPrepareFrameData: Data is loaded.");
+
+    // we need to ensure at least the raw data is available
+    if (_filtered.size() == 0) {
+        locker.unlock();
+        SwitchTo(AUDIOSAMPLETYPE::RAW, 0, 0);
+        locker.lock();
+    }
+
+    _frameData.clear();
 
 	// samples per frame
 	int samplesperframe = _rate * _intervalMS / 1000;
@@ -1659,8 +1665,9 @@ void AudioManager::DoPrepareFrameData()
 		while (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples)
 		{
 			std::list<float> subspectrogram;
-			pdata[0] = GetLeftDataPtr(pos);
-			pdata[1] = GetRightDataPtr(pos);
+			pdata[0] = GetRawLeftDataPtr(pos);
+            wxASSERT(pdata[0] != nullptr);
+			pdata[1] = GetRawRightDataPtr(pos);
 			float max2 = 0;
 
 			if (pdata[0] == nullptr)
@@ -1704,7 +1711,7 @@ void AudioManager::DoPrepareFrameData()
 		// now do the raw data analysis for the frame
 		for (int j = 0; j < samplesperframe; j++)
 		{
-			float data = GetLeftData(i * samplesperframe + j);
+			float data = GetRawLeftData(i * samplesperframe + j);
 
 			// Max data
 			if (data > max)
@@ -1789,34 +1796,30 @@ void AudioManager::DoPrepareFrameData()
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread)
 {
-	if (separateThread)
-	{
-        if (!_frameDataPrepared) {
+    //if frame data is already being processed, wait for that one to finish, otherwise
+    //_prepFrameData will get overwritten with a new future and the old will be lost
+    if (_prepFrameData.valid()) _prepFrameData.wait();
+	if (separateThread) {
+        if (!_frameDataPrepared || _frameDataPreparedForInterval != _intervalMS) {
             _prepFrameData = std::async(std::launch::async, [this]() {DoPrepareFrameData(); });
         }
-	}
-	else
-	{
+    } else {
 		DoPrepareFrameData();
 	}
 }
 
 void AudioManager::LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
 {
-    if (separateThread)
-    {
+    if (separateThread) {
         _loadingAudio = std::async(std::launch::async, [this, formatContext, codecContext, audioStream, frame]() {DoLoadAudioData(formatContext, codecContext, audioStream, frame); });
-    }
-    else
-    {
+    } else {
         DoLoadAudioData(formatContext, codecContext, audioStream, frame);
     }
 }
 
 void ProgressFunction(wxProgressDialog* pd, int p)
 {
-    if (pd != nullptr)
-    {
+    if (pd != nullptr) {
         pd->Update(p);
     }
 }
@@ -2098,13 +2101,18 @@ void AudioManager::SetFrameInterval(int intervalMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // If this is different from what it was previously
-	if (_intervalMS != intervalMS)
-	{
+	if (_intervalMS != intervalMS) {
         logger_base.debug("Changing frame interval to %d", intervalMS);
 
-		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
-		_intervalMS = intervalMS;
-		PrepareFrameData(true);
+        // save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
+        
+        // need to lock first to make sure the background thread is done loading so to avoid
+        // changing the _intervalMS (and thus the size of structures) in the middle of loading.
+        std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+        _intervalMS = intervalMS;
+        locker.unlock();
+
+        PrepareFrameData(true);
 	}
 }
 
@@ -2115,8 +2123,7 @@ void AudioManager::SetStepBlock(int step, int block)
 	int extra = std::max(step, block) + 1;
 
 	// we only need to reopen if the extra bytes are greater
-	if (extra > _extra)
-	{
+	if (extra > _extra) {
 		_extra = extra;
 		_state = -1;
 		OpenMediaFile();
@@ -2127,26 +2134,31 @@ void AudioManager::SetStepBlock(int step, int block)
 AudioManager::~AudioManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    RemoveAudioDeviceChangeListener(this);
+    logger_base.debug("AudioManager::~AudioManager");
+    RemoveAudioDeviceChangeListener();
 
-    while (IsOk() && !IsDataLoaded())
-    {
+    while (IsOk() && !IsDataLoaded()) {
         logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
         wxMilliSleep(100);
     }
 
-    if (_pcmdata != nullptr)
-    {
+    // wait for async tasks to finish
+    _loadingAudio.wait();
+    if (_prepFrameData.valid()) _prepFrameData.wait();
+
+    if (_pcmdata != nullptr) {
         __sdl.Stop();
         __sdl.RemoveAudio(_sdlid);
         free(_pcmdata);
         _pcmdata = nullptr;
     }
 
-    while (_filtered.size() > 0)
-    {
-        if (_filtered.back()->data) {
-            free(_filtered.back()->data);
+    while (_filtered.size() > 0) {
+        if (_filtered.back()->data0) {
+            free(_filtered.back()->data0);
+        }
+        if (_filtered.back()->data1) {
+            free(_filtered.back()->data1);
         }
         if (_filtered.back()->pcmdata) {
             free(_filtered.back()->pcmdata);
@@ -2158,19 +2170,18 @@ AudioManager::~AudioManager()
     // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
     // this is only tripped if we try to open a new song too soon after opening another one
 
-    // Grab the lock so we know the background process isnt runnning
+    // Grab the lock so we know the background process isnt running
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
-	if (_data[1] != _data[0] && _data[1] != nullptr)
-	{
+	if (_data[1] != _data[0] && _data[1] != nullptr) {
 		free(_data[1]);
 		_data[1] = nullptr;
 	}
-	if (_data[0] != nullptr)
-	{
+	if (_data[0] != nullptr) {
 		free(_data[0]);
 		_data[0] = nullptr;
 	}
+    logger_base.debug("AudioManager::~AudioManager Done");
 }
 
 // Split the MP# data into left and right and normalise the values
@@ -2195,7 +2206,7 @@ void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSiz
     }
 }
 
-// Calculate the song lenth in MS
+// Calculate the song length in MS
 long AudioManager::CalcLengthMS() const
 {
 	float seconds = (float)_trackSize * (1.0f / (float)_rate);
@@ -2387,7 +2398,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
     logger_base.debug("Preparing to load song data.");
 
-    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
 
@@ -2402,9 +2413,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     }
 
     _pcmdatasize = _trackSize * out_channels * 2;
-    _pcmdata = (Uint8*)malloc(_pcmdatasize + PCMFUDGE); // PCMFUDGE is a fudge because some ogg files dont read consistently
-    if (_pcmdata == nullptr)
-    {
+    _pcmdata = (Uint8*)calloc(_pcmdatasize + PCMFUDGE, 1); // PCMFUDGE is a fudge because some ogg files dont read consistently
+    if (_pcmdata == nullptr) {
         _pcmdatasize = 0;
         logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + PCMFUDGE);
         _ok = false;
@@ -2434,7 +2444,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     int lastpct = 0;
     int status;
 
-    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
@@ -2505,6 +2515,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 #ifdef RESAMPLE_RATE
     {
         std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+        if (_trackSize < _loadedData) {
+            //loaded more than we anticipated consuming some of the extra space
+            _extra -= (_loadedData - _trackSize);
+        }
         _trackSize = _loadedData;
     }
 #endif
@@ -2581,6 +2595,8 @@ void AudioManager::LoadResampledAudio( int sampleCount, int out_channels, uint8_
         // I have seen this happen with a wma file ... but i dont know why
         logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%li", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%li", (long)_trackSize) +"] .");
 
+        // we've consumed some of the "extra" space, make sure we reduce that
+        _extra -= (read + sampleCount - _trackSize);
         // override the track size
         _trackSize = read + sampleCount;
     }
@@ -2701,7 +2717,7 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 }
 
 // Access a single piece of track data
-float AudioManager::GetLeftData(long offset)
+float AudioManager::GetFilteredLeftData(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -2715,6 +2731,22 @@ float AudioManager::GetLeftData(long offset)
 		return 0;
 	}
 	return _data[0][offset];
+}
+
+float AudioManager::GetRawLeftData(long offset)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))     {
+        logger_base.debug("GetLeftData waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+
+    if (fad != nullptr && fad->data0 != nullptr && offset <= _trackSize)     {
+        return fad->data0[offset];
+    }
+    return 0;
 }
 
 double AudioManager::MidiToFrequency(int midi)
@@ -2733,17 +2765,91 @@ std::string AudioManager::MidiToNote(int midi)
     return wxString::Format("%s%d", notes[offset], octave).ToStdString();
 }
 
+void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
+{
+    // PCM Data is the displayed waveform
+    int16_t* pcm = fad->pcmdata;
+    int min = 32000;
+    int max = -32000;
+    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++)     {
+        if (*pcm > max) max = *pcm;
+        if (*pcm < min) min = *pcm;
+        pcm++;
+    }
+
+    double scale = 1.0;
+    double mm = (double)std::max(max, abs(min));
+    wxASSERT(mm <= 32768.0);
+    if (mm > 0)     {
+        scale = 32768.0 / mm;
+    }
+
+    // extra scaling based on the amount of frequency chosen
+    if (fad->highNote - fad->lowNote != 0)     {
+        scale *= 128 / (fad->highNote - fad->lowNote);
+    }
+    // but dont let the scaling get out of hand
+    if (scale > 10.0) scale = 10.0;
+
+    pcm = fad->pcmdata;
+    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++) {
+
+        int newv = ((double)(*pcm) * scale);
+
+        // clip if necessary
+        if (newv > 32767) newv = 32767;
+        if (newv < -32768) newv = -32768;
+
+        *pcm = newv;
+        pcm++;
+    }
+
+    float* data0 = fad->data0;
+    float* data1 = fad->data1;
+    float fmax = -99.0;
+    float fmin = 99.0;
+    for (int i = 0; i < _trackSize; i++) {
+        if (*data0 > fmax) fmax = *data0;
+        if (*data0 < fmin) fmin = *data0;
+        if (data1 != nullptr) {
+            if (*data1 > fmax) fmax = *data1;
+            if (*data1 < fmin) fmin = *data1;
+            data1++;
+        }
+        data0++;
+    }
+
+    double fscale = 1.0;
+    mm = std::max(fmax, abs(fmin));
+    wxASSERT(mm <= 32767.0);
+    if (fmax > 0) {
+        fscale = 1.0 / mm;
+    }
+
+    // data is the played music
+    data0 = fad->data0;
+    data1 = fad->data1;
+    for (int i = 0; i < _trackSize; i++) {
+        *data0 = *data0 * fscale;
+        if (data1 != nullptr)         {
+            *data1 = *data1 * fscale;
+            data1++;
+        }
+        data0++;
+    }
+}
+
 void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     while (!IsDataLoaded()) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("SwitchTo waiting for data to be loaded.");
         wxMilliSleep(50);
     }
+    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
     // Cant be playing when switching
     bool wasPlaying = IsPlaying();
-    if (wasPlaying)
-    {
+    if (wasPlaying) {
         Pause();
     }
 
@@ -2765,9 +2871,15 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     if (_filtered.empty()) {
         //save original pcm
         FilteredAudioData *fad = new FilteredAudioData();
-        fad->data = nullptr;
-        fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
-        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize + PCMFUDGE);
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)malloc(datasize);
+        memcpy(fad->data0, _data[0], datasize);
+        if (_data[1] != nullptr)         {
+            fad->data1 = (float*)malloc(datasize);
+            memcpy(fad->data1, _data[1], datasize);
+        }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize);
         fad->lowNote = 0;
         fad->highNote = 0;
         fad->type = AUDIOSAMPLETYPE::RAW;
@@ -2778,16 +2890,17 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     switch (type) {
         case AUDIOSAMPLETYPE::NONVOCALS:
         {
+            // This assumes the vocals are in one track
             // grab it from my cache if i have it
-            for (const auto& it : _filtered) {
-                if (it->type == type) {
-                    fad = it;
-                }
-            }
+            fad = GetFilteredAudioData(type, -1, -1);
             if (fad == nullptr)  {
                 fad = new FilteredAudioData();
-                fad->data = (float*)malloc(sizeof(float) * _trackSize);
-                fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
+                long datasize = sizeof(float) * (_trackSize + _extra);
+                fad->data0 = (float*)malloc(datasize);
+                if (_data[1] != nullptr) {
+                    fad->data1 = (float*)malloc(datasize);
+                }
+                fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
 
                 for (int i = 0; i < _trackSize; ++i) {
                     float v = _data[0][i];
@@ -2795,7 +2908,8 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                         float v1 = _data[1][i];
                         v = (v - v1);
                     }
-                    fad->data[i] = v;
+                    fad->data0[i] = v;
+                    if (fad->data1) fad->data1[i] = v;
 
                     v = v * 32768;
                     int v2 = (int)v;
@@ -2808,29 +2922,22 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                 fad->lowNote = 0;
                 fad->highNote = 0;
                 fad->type = type;
+                NormaliseFilteredAudioData(fad);
                 _filtered.push_back(fad);
             }
         }
         break;
     case AUDIOSAMPLETYPE::RAW:
         // grab it from my cache if i have it
-        for (const auto& it : _filtered) {
-            if (it->type == type) {
-                fad = it;
-            }
-        }
-    break;
+        fad = GetFilteredAudioData(type, -1, -1);
+        break;
     case AUDIOSAMPLETYPE::ALTO:
     case AUDIOSAMPLETYPE::BASS:
     case AUDIOSAMPLETYPE::TREBLE:
     case AUDIOSAMPLETYPE::CUSTOM:
     {
         // grab it from my cache if i have it
-        for (const auto& it : _filtered) {
-            if (it->lowNote == lowNote && it->highNote == highNote) {
-                fad = it;
-            }
-        }
+        fad = GetFilteredAudioData(AUDIOSAMPLETYPE::ANY, lowNote, highNote);
 
         // if we didnt find it ... create it
         if (fad == nullptr)  {
@@ -2839,8 +2946,12 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
 
             fad = new FilteredAudioData();
 
-            fad->data = (float*)malloc(sizeof(float) * _trackSize);
-            fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
+            long datasize = sizeof(float) * (_trackSize + _extra);
+            fad->data0 = (float*)malloc(datasize);
+            if (_data[1] != nullptr)             {
+                fad->data1 = (float*)malloc(datasize);
+            }
+            fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
 
             //Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
             float f1_c = lowHz / _rate;
@@ -2870,7 +2981,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                         }
                     }
                 }
-                fad->data[i] = lvalue;
+                fad->data0[i] = lvalue;
 
                 lvalue = lvalue * 32768;
                 int v2 = (int)lvalue;
@@ -2878,6 +2989,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                 if (_channels > 1)
                 {
                     if (_data[1]) {
+                        fad->data1[i] = rvalue;
                         rvalue = rvalue * 32768;
                         v2 = (int)rvalue;
                         fad->pcmdata[i * _channels + 1] = v2;
@@ -2891,6 +3003,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             fad->lowNote = lowNote;
             fad->highNote = highNote;
             fad->type = type;
+            NormaliseFilteredAudioData(fad);
             _filtered.push_back(fad);
         }
     }
@@ -2898,13 +3011,38 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     }
 
     if (fad && _pcmdata && fad->pcmdata) {
-        memcpy(_pcmdata, fad->pcmdata, _pcmdatasize + PCMFUDGE);
+        memcpy(_pcmdata, fad->pcmdata, _pcmdatasize);
+    }
+
+    {
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        if (fad && _data[0] && fad->data0) {
+            memcpy(_data[0], fad->data0, datasize);
+        }
+
+        if (fad && _data[1] && fad->data1) {
+            memcpy(_data[1], fad->data1, datasize);
+        }
     }
 
     if (wasPlaying)
     {
         Play();
     }
+}
+
+FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote)
+{
+    while (_filtered.size() == 0)         {
+        wxMilliSleep(100);
+    }
+
+    for (const auto& it : _filtered) {
+        if ((type == AUDIOSAMPLETYPE::ANY || it->type == type) && (lowNote == -1 || (it->lowNote == lowNote && it->highNote == highNote))) {
+            return it;
+        }
+    }
+    return nullptr;
 }
 
 void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote)
@@ -2919,54 +3057,19 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     minimum = 0;
     maximum = 0;
 
-    if (type == AUDIOSAMPLETYPE::NONVOCALS || type == AUDIOSAMPLETYPE::RAW) {
-        lowNote = 0;
-        highNote = 0;
-    } else if (type == AUDIOSAMPLETYPE::BASS) {
-        lowNote = 48;
-        highNote = 60;
-    } else if (type == AUDIOSAMPLETYPE::TREBLE) {
-        lowNote = 60;
-        highNote = 72;
-    } else if (type == AUDIOSAMPLETYPE::ALTO) {
-        lowNote = 72;
-        highNote = 84;
-    }
-
-    FilteredAudioData *fad = nullptr;
-    for (const auto& it : _filtered) {
-        if (it->type == type && it->lowNote == lowNote && it->highNote == highNote) {
-            fad = it;
-        }
-    }
+    FilteredAudioData *fad = GetFilteredAudioData(type, lowNote, highNote);
     if (!fad) {
         return;
     }
 
-    switch (type) {
-    case AUDIOSAMPLETYPE::ALTO:
-    case AUDIOSAMPLETYPE::BASS:
-    case AUDIOSAMPLETYPE::TREBLE:
-    case AUDIOSAMPLETYPE::CUSTOM:
-    case AUDIOSAMPLETYPE::NONVOCALS:
-        if (fad != nullptr) {
-            for (int j = start; j < std::min(end, _trackSize); j++) {
-                minimum = std::min(minimum, fad->data[j]);
-                maximum = std::max(maximum, fad->data[j]);
-            }
-        }
-        break;
-    case AUDIOSAMPLETYPE::RAW:
-        for (int j = start; j < std::min(end, _trackSize); j++) {
-            minimum = std::min(minimum, _data[0][j]);
-            maximum = std::max(maximum, _data[0][j]);
-        }
-        break;
+    for (int j = start; j < std::min(end, _trackSize); j++) {
+        minimum = std::min(minimum, fad->data0[j]);
+        maximum = std::max(maximum, fad->data0[j]);
     }
 }
 
 // Access a single piece of track data
-float AudioManager::GetRightData(long offset)
+float AudioManager::GetFilteredRightData(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -2982,8 +3085,24 @@ float AudioManager::GetRightData(long offset)
 	return _data[1][offset];
 }
 
+float AudioManager::GetRawRightData(long offset)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset)) {
+        logger_base.debug("GetRightData waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+
+    if (fad != nullptr && fad->data1 != nullptr && offset <= _trackSize) {
+        return fad->data1[offset];
+    }
+    return 0;
+}
+
 // Access track data but get a pointer so you can then read a block directly
-float* AudioManager::GetLeftDataPtr(long offset)
+float* AudioManager::GetFilteredLeftDataPtr(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -3000,8 +3119,36 @@ float* AudioManager::GetLeftDataPtr(long offset)
 	return &_data[0][offset];
 }
 
+float* AudioManager::GetRawLeftDataPtr(long offset)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))     {
+        logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+
+    if (fad != nullptr && offset <= _trackSize) return &fad->data0[offset];
+    return nullptr;
+}
+
+float* AudioManager::GetRawRightDataPtr(long offset)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset)) {
+        logger_base.debug("GetRightDataPtr waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+
+    if (fad != nullptr && fad->data1 != nullptr && offset <= _trackSize) return &fad->data1[offset];
+    return nullptr;
+}
+
 // Access track data but get a pointer so you can then read a block directly
-float* AudioManager::GetRightDataPtr(long offset)
+float* AudioManager::GetFilteredRightDataPtr(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))

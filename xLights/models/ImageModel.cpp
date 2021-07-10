@@ -17,8 +17,8 @@
 #include "../ModelPreview.h"
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
-#include "../osxMacUtils.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -196,6 +196,10 @@ void ImageModel::InitModel()
     parm3 = 1;
 
 	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
+    if (_imageFile != ModelXml->GetAttribute("Image", ""))         {
+        ModelXml->DeleteAttribute("Image");
+        ModelXml->AddAttribute("Image", _imageFile);
+    }
 	_whiteAsAlpha = ModelXml->GetAttribute("WhiteAsAlpha", "False") == "True";
 	_offBrightness = wxAtoi(ModelXml->GetAttribute("OffBrightness", "80"));
 

@@ -12,13 +12,12 @@
 #include <wx/image.h>
 #include "xlGLCanvas.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
     EVT_SIZE(xlGLCanvas::Resized)
     EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
-
-#include "osxMacUtils.h"
 
 #include <wx/log.h>
 #include <wx/config.h>
@@ -201,7 +200,6 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
 
-    xlSetOpenGLRetina(*this);
     this->GetGLCTXAttrs().PlatformDefaults();
 
 #ifdef __WXMSW__
@@ -278,7 +276,6 @@ _name(name) {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
 
-    xlSetOpenGLRetina(*this);
     this->GetGLCTXAttrs().PlatformDefaults();
 
 #ifdef __WXMSW__
@@ -584,7 +581,7 @@ void xlGLCanvas::CreateGLContext() {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
-        //trying to detect OGL verions and stuff can result in unwanted logs
+        //trying to detect OGL versions and stuff can result in unwanted logs
         wxLogLevel cur = wxLog::GetLogLevel();
         wxLog::SetLogLevel(wxLOG_Error);
         wxLog::Suspend();

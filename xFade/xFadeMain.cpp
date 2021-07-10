@@ -23,7 +23,6 @@
 
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/UtilFunctions.h"
-#include "../xLights/osxMacUtils.h"
 #include "UniverseEntryDialog.h"
 #include "Emitter.h"
 #include "MIDIListener.h"

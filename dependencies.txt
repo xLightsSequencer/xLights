@@ -6,10 +6,11 @@ Library:     wxWidgets
 Usage:       Platform independence
 Link:        https://www.wxwidgets.org/
 Source:      https://github.com/wxWidgets/wxWidgets
-Last Pulled: Jan 6, 2021
-Version:     3.1.4 [As at Jan 2021 this is the latest version]
+We use a fork with patches from: https://github.com/xLightsSequencer/wxWidgets
+Last Pulled: Apr 20, 2021
+Version:     xlights_2021.13 [wxWidgets 3.1.5 plus a few patches]
 License:     wxWindows Library License
-Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git. Windows 64 bit release binaries are included in the repository.
+Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git and build it.
 
 Library:     log4cpp
 Usage:       Logging

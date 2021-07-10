@@ -48,7 +48,7 @@ std::string EscapeCSV(const std::string& s);
 inline bool isOdd(int n) { return n % 2 != 0; }
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def = "");
-std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName);
+std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName);
 bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path);
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
@@ -286,6 +286,11 @@ static inline double toRadians(float degrees)
 
 static inline double toDegrees(double radians) {
     return (radians / (2 * M_PI)) * 360.0;
+}
+
+inline const char* const toStr(bool b)
+{
+    return b ? "true" : "false";
 }
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);

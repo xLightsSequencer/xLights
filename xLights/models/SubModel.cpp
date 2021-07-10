@@ -12,10 +12,23 @@
 
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
+#include <wx/propgrid/propgrid.h>
 
 #include <log4cpp/Category.hh>
 
-SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent(p) {
+static const std::string DEFAULT("Default");
+static const std::string KEEP_XY("Keep XY");
+static const std::string STACKED_STRANDS("Stacked Strands");
+
+const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
+
+SubModel::SubModel(Model* p, wxXmlNode* n) :
+    Model(p->GetModelManager()),
+    parent(p),
+    _layout(n->GetAttribute("layout")),
+    _type(n->GetAttribute("type", "ranges")),
+    _bufferStyle(n->GetAttribute("bufferstyle", DEFAULT))
+{
 
     // copy change count from owning model ... otherwise we lose track of changes when the model is recreated
     changeCount = p->changeCount;
@@ -34,104 +47,166 @@ SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
-    bool vert = n->GetAttribute("layout") == "vertical";
-    bool isRanges = n->GetAttribute("type", "ranges") == "ranges";
+    bool vert = _layout == "vertical";
+    bool isRanges = _type == "ranges";
+
+    auto getRange = [](wxString const& a) {
+        if (a.Contains("-")) {
+            int idx = a.Index('-');
+            return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
+        }
+        return std::make_pair(wxAtoi(a), wxAtoi(a));
+    };
 
     unsigned int startChannel = UINT32_MAX;
     if (isRanges) {
-        int row = 0;
-        int col = 0;
-        int line = 0;
-        int maxRow = 0;
-        int maxCol = 0;
-        while (n->HasAttribute(wxString::Format("line%d", line))) {
-            wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-            //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
-            wxStringTokenizer wtkz(nodes, ",");
-            while (wtkz.HasMoreTokens()) {
-                wxString valstr = wtkz.GetNextToken();
+        if (_bufferStyle == KEEP_XY) {
+            int line = 0;
+            std::set<int> nodeIdx;
+            while (n->HasAttribute(wxString::Format("line%d", line))) {
+                wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
+                _properyGridDisplay = nodes + "," + _properyGridDisplay;
+                wxStringTokenizer wtkz(nodes, ",");
+                while (wtkz.HasMoreTokens()) {
+                    wxString valstr = wtkz.GetNextToken();
+                    auto [start, end] = getRange(valstr);
+                    if (start != 0) {
+                        if (start > end) {//order is always lowest to highest for grid
+                            std::swap(start, end);
+                        }
+                        start--;
+                        end--;
+                        for (int i = start; i <= end; i++) {
+                            nodeIdx.insert(i);
+                        }
+                    }
+                }
+                line++;
+            }
 
-                int start, end;
-                if (valstr.Contains("-")) {
-                    int idx = valstr.Index('-');
-                    start = wxAtoi(valstr.Left(idx));
-                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+            float minx = 10000;
+            float maxx = -1;
+            float miny = 10000;
+            float maxy = -1;
+            for (auto const& idx : nodeIdx) {
+                NodeBaseClass* node = p->Nodes[idx]->clone();
+                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                    if (c->bufX < minx) minx = c->bufX;
+                    if (c->bufY < miny) miny = c->bufY;
+                    if (c->bufX > maxx) maxx = c->bufX;
+                    if (c->bufY > maxy) maxy = c->bufY;
                 }
-                else {
-                    start = end = wxAtoi(valstr);
+                delete node;
+            }
+            for (auto const& idx : nodeIdx) {
+                NodeBaseClass* node = p->Nodes[idx]->clone();
+                startChannel = (std::min)(startChannel, node->ActChan);
+                Nodes.push_back(NodeBaseClassPtr(node));
+                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                    c->bufX -= minx;
+                    c->bufY -= miny;
                 }
-                if (start == 0)
-                {
-                    if (vert) {
-                        row++;
-                    }
-                    else {
-                        col++;
-                    }
-                }
-                else
-                {
-                    start--;
-                    end--;
-                    bool done = false;
-                    int nn = start;
-                    while (!done) {
-                        if (nn < p->GetNodeCount()) {
-                            NodeBaseClass* node = p->Nodes[nn]->clone();
-                            startChannel = (std::min)(startChannel, node->ActChan);
-                            Nodes.push_back(NodeBaseClassPtr(node));
-                            for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                                c->bufX = col;
-                                c->bufY = row;
-                            }
-                            if (vert) {
-                                row++;
-                            }
-                            else {
-                                col++;
-                            }
-                        }
-                        else
-                        {
-                            _nodesAllValid = false;
-                        }
-                        if (start > end) {
-                            nn--;
-                            done = nn < end;
+            }
+            if (maxx < minx || maxy < miny || Nodes.size() == 0) {
+                SetBufferSize(1, 1);
+            }
+            else {
+                int x_size = int(std::ceil(maxx - minx)) + 1;
+                int y_size = int(std::ceil(maxy - miny)) + 1;
+                SetBufferSize(y_size, x_size);
+            }
+        } else { //default and stacked buffer styles
+            int row = 0;
+            int col = 0;
+            int line = 0;
+            int maxRow = 0;
+            int maxCol = 0;
+            while (n->HasAttribute(wxString::Format("line%d", line))) {
+                wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
+                //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
+                _properyGridDisplay = nodes + "," + _properyGridDisplay;
+                wxStringTokenizer wtkz(nodes, ",");
+                while (wtkz.HasMoreTokens()) {
+                    wxString valstr = wtkz.GetNextToken();
+                    auto [start, end] = getRange(valstr);
+                    if (start == 0)
+                    {
+                        if (vert) {
+                            row++;
                         }
                         else {
-                            nn++;
-                            done = nn > end;
+                            col++;
+                        }
+                    }
+                    else
+                    {
+                        start--;
+                        end--;
+                        bool done = false;
+                        int nn = start;
+                        while (!done) {
+                            if (nn < p->GetNodeCount()) {
+                                NodeBaseClass* node = p->Nodes[nn]->clone();
+                                startChannel = (std::min)(startChannel, node->ActChan);
+                                Nodes.push_back(NodeBaseClassPtr(node));
+                                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                                    c->bufX = col;
+                                    c->bufY = row;
+                                }
+                                if (vert) {
+                                    row++;
+                                }
+                                else {
+                                    col++;
+                                }
+                            }
+                            else {
+                                _nodesAllValid = false;
+                            }
+                            if (start > end) {
+                                nn--;
+                                done = nn < end;
+                            }
+                            else {
+                                nn++;
+                                done = nn > end;
+                            }
                         }
                     }
                 }
+                if (vert) {
+                    row--;
+                }
+                else {
+                    col--;
+                }
+                if (maxRow < row) {
+                    maxRow = row;
+                }
+                if (maxCol < col) {
+                    maxCol = col;
+                }
+                if (_bufferStyle == STACKED_STRANDS) {
+                    row = 0;
+                    col = 0;
+                } else {
+                    if (vert) {
+                        row = 0;
+                        col++;
+                    }
+                    else {
+                        col = 0;
+                        row++;
+                    }
+                }
+                line++;
             }
-            if (vert) {
-                row--;
-            }
-            else {
-                col--;
-            }
-            if (maxRow < row) {
-                maxRow = row;
-            }
-            if (maxCol < col) {
-                maxCol = col;
-            }
-            if (vert) {
-                row = 0;
-                col++;
-            }
-            else {
-                col = 0;
-                row++;
-            }
-            line++;
+            SetBufferSize(maxRow + 1, maxCol + 1);
         }
-        SetBufferSize(maxRow + 1, maxCol + 1);
     }
     else {
         wxString range = n->GetAttribute("subBuffer");
+        _properyGridDisplay = range;
         float x1 = 0;
         float x2 = 100;
         float y1 = 0;
@@ -203,9 +278,28 @@ SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent
     //ModelStartChannel is 1 based
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
 
-    // inheret pixel properties from parent model
+    // inherit pixel properties from parent model
     pixelStyle = p->pixelStyle;
     transparency = p->transparency;
     blackTransparency = p->blackTransparency;
     pixelSize = p->pixelSize;
+}
+
+void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
+    wxPGProperty* p = grid->Append(new wxStringProperty("SubModel Type", "SMT", _type));
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+
+    p = grid->Append(new wxStringProperty("SubModel Layout", "SML", _layout));
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+
+    p = grid->Append(new wxStringProperty("SubModel Buffer Style", "SMBS", _bufferStyle));
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+
+    p = grid->Append(new wxStringProperty("SubModel", "SMN", _properyGridDisplay));
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
 }

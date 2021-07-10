@@ -145,8 +145,8 @@ void ListenerARTNet::Poll()
                 else if (buffer[9] == 0x99)
                 {
                     // Trigger data packet
-                    int oem = (((int)buffer[14])<<8) + buffer[15];
-                    _listenerManager->ProcessPacket(GetType() + " Trigger", oem, &buffer[16], 2);
+                    int oem = (((int)buffer[12])<<8) + buffer[13];
+                    _listenerManager->ProcessPacket(GetType() + "Trigger", oem, &buffer[14], 2);
                 }
                 else if (buffer[9] == 0x97)
                 {

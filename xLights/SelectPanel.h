@@ -12,10 +12,12 @@
 
 //(*Headers(SelectPanel)
 #include <wx/button.h>
+#include <wx/clrpicker.h>
 #include <wx/combobox.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -32,20 +34,26 @@ class SelectPanel: public wxPanel
 		SelectPanel(SequenceElements* elements, MainSequencer* sequencer, wxWindow* parent,wxWindowID id=wxID_ANY);
 		virtual ~SelectPanel();
 
+		void ClearData();
+
 		//(*Declarations(SelectPanel)
+		wxButton* Button_Select_All_Color;
 		wxButton* Button_Select_All_Time;
 		wxButton* Button_Select_Effect_All;
 		wxButton* Button_Select_Model_All;
 		wxButton* Button_Select_Refresh;
+		wxColourPickerCtrl* ColourPickerCtrlSelect;
 		wxComboBox* ComboBox_Select_Effect;
 		wxListBox* ListBox_Select_Effects;
 		wxListBox* ListBox_Select_Models;
+		wxSlider* SliderColorSensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxTextCtrl* TextCtrl_Select_EndTime;
 		wxTextCtrl* TextCtrl_Select_StartTime;
 		//*)
@@ -64,6 +72,10 @@ class SelectPanel: public wxPanel
 		static const long ID_STATICTEXT5;
 		static const long ID_TEXTCTRL_SELECT_ENDTIME;
 		static const long ID_BUTTON_SELECT_ALL_TIME;
+		static const long ID_STATICTEXT7;
+		static const long ID_COLOURPICKERCTRL_SELECT;
+		static const long ID_SLIDER_COLOR_SENSITIVITY;
+		static const long ID_BUTTON_SELECT_ALL_COLOR;
 		static const long ID_STATICTEXT4;
 		static const long ID_LISTBOX_SELECT_EFFECTS;
 		static const long ID_BUTTON_SELECT_EFFECT_ALL;
@@ -81,6 +93,8 @@ class SelectPanel: public wxPanel
 
 		void GetEffectTypes();
 
+		bool ContainsColor(Effect* eff) const;
+
         std::pair< int, int > GetStartAndEndTime();
 
 		//(*Handlers(SelectPanel)
@@ -95,6 +109,9 @@ class SelectPanel: public wxPanel
 		void OnButton_Select_All_TimeClick(wxCommandEvent& event);
 		void OnComboBox_Select_EffectDropdown(wxCommandEvent& event);
 		void OnComboBox_Select_EffectSelected(wxCommandEvent& event);
+		void OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event);
+		void OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event);
+		void OnButton_Select_All_ColorClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

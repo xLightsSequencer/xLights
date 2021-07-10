@@ -73,10 +73,12 @@ public:
     int GetUniverseStartChannel() const { return _universeStartChannel; }
 
     int GetSmartRemote() const { return _smartRemote; }
+    char GetSmartRemoteLetter() const;
 
     int GetSmartTs(int currentTs);
     int GetBrightness(int currentBrightness);
-    int GetNullPixels(int currentNullPixels);
+    int GetStartNullPixels(int currentStartNullPixels);
+    int GetEndNullPixels(int currentEndNullPixels);
     float GetGamma(int currentGamma);
     std::string GetColourOrder(const std::string& currentColourOrder);
     std::string GetDirection(const std::string& currentDirection);
@@ -115,8 +117,10 @@ struct UDVirtualString
     bool _brightnessSet = false;
     int _brightness = 100;
     int _smartRemote = false;
-    bool _nullPixelsSet = false;
-    int _nullPixels = 0;
+    bool _startNullPixelsSet = false;
+    int _startNullPixels = 0;
+    bool _endNullPixelsSet = false;
+    int _endNullPixels = 0;
     bool _groupCountSet = false;
     int _groupCount = 1;
     bool _reverseSet = false;
@@ -156,7 +160,7 @@ class UDControllerPort
     bool ContainsModel(Model* m, int string) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     bool SetAllModelsToControllerName(const std::string& controllerName);
-    bool SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force);
+    bool SetAllModelsToValidProtocols(const std::vector<std::string>& protocols, const std::string& force);
     bool ClearSmartRemoteOnAllModels();
     bool EnsureAllModelsAreChained();
     #pragma endregion
@@ -252,7 +256,7 @@ class UDController
     bool HasModels() const;
 
     bool SetAllModelsToControllerName(const std::string& controllerName);
-    bool SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame);
+    bool SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame);
     bool ClearSmartRemoteOnAllModels();
 
     bool IsValid(ControllerCaps* rules) const;

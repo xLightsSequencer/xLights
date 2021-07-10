@@ -120,9 +120,9 @@ void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             //	row =1, the $p is in second row from bottom
             b = (int) ((effectState)/buffer.BufferWi)%Branches; // what branch we are on based on frame #
             //
-            //	b = 0, we are on bottomow row of tree during frames 1 to BufferWi
+            //	b = 0, we are on bottom row of tree during frames 1 to BufferWi
             //	b = 1, we are on second row from bottom, frames = BufferWi+1 to 2*BufferWi
-            //	b = 2, we are on third row from bottome, frames - 2*BufferWi+1 to 3*BufferWi
+            //	b = 2, we are on third row from bottom, frames - 2*BufferWi+1 to 3*BufferWi
             f_mod = (effectState/4)%buffer.BufferWi;
             //   if(f_mod==0) f_mod=BufferWi;
             //	f_mod is  to BufferWi-1 on each row

@@ -71,7 +71,6 @@
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
-    <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -878,6 +877,28 @@
     <ClCompile Include="CopyFormat1.cpp" />
     <ClCompile Include="MediaImportOptionsDialog.cpp" />
     <ClCompile Include="SequencePackage.cpp" />
+    <ClCompile Include="cad\CADModel.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="cad\DXFWriter.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="cad\ModelToCAD.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="cad\STLWriter.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="cad\VRMLWriter.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="cad\CADWriter.cpp">
+      <Filter>cad</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\WLED.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="Pixels.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -939,8 +960,7 @@
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
     <ClInclude Include="OptionChooser.h" />
-    <ClInclude Include="osxMacUtils.h" />
-    <ClInclude Include="osx_utils\TouchBars.h" />
+    <ClInclude Include="ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
@@ -1763,6 +1783,31 @@
     <ClInclude Include="CopyFormat1.h" />
     <ClInclude Include="MediaImportOptionsDialog.h" />
     <ClInclude Include="SequencePackage.h" />
+    <ClInclude Include="cad\CADModel.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\CADWriter.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\DXFWriter.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\ModelToCAD.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\STLWriter.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\VRMLWriter.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="cad\CADPoint.h">
+      <Filter>cad</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\WLED.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="Pixels.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1785,6 +1830,9 @@
     </Filter>
     <Filter Include="sequencer">
       <UniqueIdentifier>{3f511f30-f755-4c36-bc33-eaba751cc83e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cad">
+      <UniqueIdentifier>{1096ad9f-b290-43d7-9267-5716023074ad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

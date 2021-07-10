@@ -458,7 +458,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy) : BaseControll
 
     logger_base.debug("Connecting to Minleon on %s.", (const char*)_ip.c_str());
 
-    logger_base.debug("Geting minleon status.");
+    logger_base.debug("Getting minleon status.");
     auto status = DDPOutput::Query(_ip, DDP_ID_STATUS);
 
 #ifdef USEDDP
@@ -471,7 +471,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy) : BaseControll
         logger_base.debug("   Push: %s", (const char*)status["status"]["push"].AsString().c_str());
         logger_base.debug("   MAC: %s", (const char*)status["status"]["mac"].AsString().c_str());
 
-        logger_base.debug("Geting minleon status.");
+        logger_base.debug("Getting minleon status.");
         auto config = DDPOutput::Query(_ip, DDP_ID_CONFIG);
         _ports = config["config"]["ports"].AsArray()->Count();
         ParseStringPorts(_stringPorts, config["config"]["ports"]);
@@ -679,7 +679,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                         it->_startChannel = vs->_startChannel - controller->GetStartChannel() + 1;
 
                         if (vs->Channels() / 3 > maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2)) {
-                            check += wxString::Format("Port %d has %d pixels but can only suppoort %d.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
+                            check += wxString::Format("Port %d has %d pixels but can only support %d.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
                             success = false;
                         }
                     }

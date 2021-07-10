@@ -15,7 +15,7 @@
 #include "ViewObject.h"
 #include "Model.h"
 
-ViewObject::ViewObject(const ObjectManager &manger)
+ViewObject::ViewObject(const ObjectManager &manager)
 : only_3d(true)
 {
 }
@@ -79,7 +79,7 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
     GetObjectScreenLocation().Write(ModelXml);
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ViewObject::OnPropertyGridChange");
-    
+
     return i;
 }
 

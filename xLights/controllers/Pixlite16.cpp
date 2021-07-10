@@ -13,7 +13,6 @@
 #include <wx/regex.h>
 
 #include "Pixlite16.h"
-//#include "models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "../UtilFunctions.h"
@@ -25,7 +24,8 @@
 #include <log4cpp/Category.hh>
 
 #pragma region Encode and Decode
-int Pixlite16::DecodeStringPortProtocol(std::string protocol) {
+int Pixlite16::DecodeStringPortProtocol(std::string protocol)
+{
     wxString p(protocol);
     p = p.Lower();
 
@@ -42,14 +42,16 @@ int Pixlite16::DecodeStringPortProtocol(std::string protocol) {
     if (p == "apa102") return 10;
     if (p == "my9221") return 11;
     if (p == "sk6812") return 12;
-    if (p == "ucs1903") return 13;
+    if (p == "ucs2903") return 13;
     if (p == "p9813") return 14;
+    if (p == "ucs1903") return 15;
+    if (p == "apa109") return 31;
 
     return -1;
 }
 
-int Pixlite16::DecodeSerialOutputProtocol(std::string protocol) {
-
+int Pixlite16::DecodeSerialOutputProtocol(std::string protocol)
+{
     wxString p(protocol);
     p = p.Lower();
     if (p == "dmx") return 0;
@@ -58,28 +60,28 @@ int Pixlite16::DecodeSerialOutputProtocol(std::string protocol) {
 #pragma endregion
 
 #pragma region Private Functions
-uint16_t Pixlite16::Read16(uint8_t* data, int& pos) {
-
+uint16_t Pixlite16::Read16(uint8_t* data, int& pos)
+{
     uint16_t res = (static_cast<uint16_t>(data[pos]) << 8) + data[pos + 1];
     pos += 2;
     return res;
 }
 
-void Pixlite16::Write16(uint8_t* data, int& pos, int value) {
-
+void Pixlite16::Write16(uint8_t* data, int& pos, int value)
+{
     data[pos++] = (value & 0xFF00) >> 8;
     data[pos++] = value & 0xFF;
 }
 
-void Pixlite16::WriteString(uint8_t* data, int& pos, int len, const std::string& value) {
-
+void Pixlite16::WriteString(uint8_t* data, int& pos, int len, const std::string& value)
+{
     memset(&data[pos], 0x00, len);
     strncpy(reinterpret_cast<char*>(&data[pos]), static_cast<const char*>(value.c_str()), std::min(len, static_cast<int>(value.length())));
     pos += len;
 }
 
-bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config) {
-
+bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config)
+{
     int pos = 12;
     char buffer[256];
 
@@ -224,9 +226,8 @@ bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config) {
     return true;
 }
 
-
-bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
-
+bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config)
+{
     int pos = 12;
     char buffer[256];
     memcpy(config._mac, &data[pos], sizeof(config._mac));
@@ -339,8 +340,8 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
     return true;
 }
 
-bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
-
+bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config)
+{
     int pos = 13;
     char buffer[256];
     memcpy(config._mac, &data[pos], sizeof(config._mac));
@@ -454,8 +455,8 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
     return true;
 }
 
-int Pixlite16::PrepareV4Config(uint8_t* data) const {
-
+int Pixlite16::PrepareV4Config(uint8_t* data) const
+{
     int pos = 0;
 
     data[pos++] = 'A';
@@ -521,8 +522,8 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const {
     return pos;
 }
 
-int Pixlite16::PrepareV5Config(uint8_t* data) const {
-
+int Pixlite16::PrepareV5Config(uint8_t* data) const
+{
     int pos = 0;
 
     data[pos++] = 'A';
@@ -569,7 +570,8 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const {
     return pos;
 }
 
-int Pixlite16::PrepareV6Config(uint8_t* data) const {
+int Pixlite16::PrepareV6Config(uint8_t* data) const
+{
 
     int pos = 0;
 
@@ -583,7 +585,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const {
     data[pos++] = 'h';
     data[pos++] = 0x00;
     Write16(data, pos, 5);
-    data[pos++] = 0x06;
+    data[pos++] = 0x08;
 
     memcpy(&data[pos], _config._mac, sizeof(_config._mac));
     pos += sizeof(_config._mac);
@@ -617,115 +619,115 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const {
     return pos;
 }
 
-std::list<Pixlite16::Config> Pixlite16::DoDiscover()
+bool Pixlite16::GetConfig()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::list<Pixlite16::Config> res;
+    bool res = false;
+
+    memset(&_config, 0x00, sizeof(_config));
 
     // broadcast packet to find all of them
     wxIPV4address localAddr;
     localAddr.AnyAddress();
     localAddr.Service(49150);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
 
     if (discovery == nullptr) {
-        logger_base.error("Error initialising PixLite/PixCon discovery datagram.");
-        return res;
+        logger_base.error("Error initialising PixLite/PixCon datagram.");
     }
     else if (!discovery->IsOk()) {
-        logger_base.error("Error initialising PixLite/PixCon discovery datagram ... is network connected? OK : FALSE");
+        logger_base.error("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
         delete discovery;
-        return res;
     }
     else if (discovery->Error()) {
-        logger_base.error("Error creating socket to broadcast from => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        logger_base.error("Error creating PixLite/PixCon socket => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         delete discovery;
-        return res;
     }
+    else {
+        wxIPV4address remoteAddr;
+        remoteAddr.Hostname(_ip);
+        remoteAddr.Service(49150);
 
-    wxString broadcast = "255.255.255.255";
-    logger_base.debug("PixLite/PixCon broadcasting to %s.", (const char*)broadcast.c_str());
-    wxIPV4address broadcastAddr;
-    broadcastAddr.Hostname(broadcast);
-    broadcastAddr.Service(49150);
+        wxByte discoveryData[12];
+        discoveryData[0] = 'A';
+        discoveryData[1] = 'd';
+        discoveryData[2] = 'v';
+        discoveryData[3] = 'a';
+        discoveryData[4] = 't';
+        discoveryData[5] = 'e';
+        discoveryData[6] = 'c';
+        discoveryData[7] = 'h';
+        discoveryData[8] = 0x00;
+        discoveryData[9] = 0x00;
+        discoveryData[10] = 0x01;
+        discoveryData[11] = 0x06;
+        discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
 
-    wxByte discoveryData[12];
-    discoveryData[0] = 'A';
-    discoveryData[1] = 'd';
-    discoveryData[2] = 'v';
-    discoveryData[3] = 'a';
-    discoveryData[4] = 't';
-    discoveryData[5] = 'e';
-    discoveryData[6] = 'c';
-    discoveryData[7] = 'h';
-    discoveryData[8] = 0x00;
-    discoveryData[9] = 0x00;
-    discoveryData[10] = 0x01;
-    discoveryData[11] = 0x06;
-    discovery->SendTo(broadcastAddr, discoveryData, sizeof(discoveryData));
-
-    if (discovery->Error()) {
-        logger_base.error("PixLite/PixCon error broadcasting to %s => %d : %s.", (const char*)broadcast.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
-        return res ;
-    }
-
-    wxMilliSleep(500);
-
-    // look through responses for one that matches my ip
-
-    while (discovery->IsData()) {
-        uint8_t data[1500];
-        memset(data, 0x00, sizeof(data));
-        wxIPV4address pixliteAddr;
-        discovery->RecvFrom(pixliteAddr, data, sizeof(data));
-
-        if (!discovery->Error() && data[10] == 0x02) {
-            Pixlite16::Config config;
-            memset(&config, 0x00, sizeof(config));
-            bool connected = false;
-            config._protocolVersion = data[11];
-            switch (config._protocolVersion) {
-            case 4:
-                connected = ParseV4Config(data, config);
-                break;
-            case 5:
-                connected = ParseV5Config(data, config);
-                break;
-            case 6:
-                connected = ParseV6Config(data, config);
-                break;
-            default:
-                logger_base.error("Unsupported protocol : %d.", config._protocolVersion);
-                wxASSERT(false);
-                break;
-            }
-
-            if (connected) {
-                wxString rcvIP = wxString::Format("%i.%i.%i.%i", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
-
-                logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
-                logger_base.debug("    Model %s %.1f.", (const char*)config._modelName.c_str(), (float)config._hwRevision / 10.0);
-                logger_base.debug("    Firmware %s.", (const char*)config._firmwareVersion.c_str());
-                logger_base.debug("    Nickname %s.", (const char*)config._nickname.c_str());
-                logger_base.debug("    Brand %d.", config._brand);
-
-                res.push_back(config);
-            }
+        if (discovery->Error()) {
+            logger_base.error("PixLite/PixCon error sending to %s => %d : %s.", (const char*)_ip.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         }
-        else if (discovery->Error()) {
-            logger_base.error("Error reading broadcast response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        else {
+            wxMilliSleep(500);
+
+            // look through responses for one that matches my ip
+
+            while (discovery->IsData()) {
+                uint8_t data[1500];
+                memset(data, 0x00, sizeof(data));
+                wxIPV4address pixliteAddr;
+                discovery->RecvFrom(pixliteAddr, data, sizeof(data));
+
+                if (!discovery->Error() && data[10] == 0x02) {
+                    bool connected = false;
+                    _config._protocolVersion = data[11];
+                    switch (_config._protocolVersion) {
+                    case 4:
+                        connected = ParseV4Config(data, _config);
+                        break;
+                    case 5:
+                        connected = ParseV5Config(data, _config);
+                        break;
+                    case 6:
+                        connected = ParseV6Config(data, _config);
+                        break;
+                    default:
+                        logger_base.error("Unsupported protocol : %d.", _config._protocolVersion);
+                        wxASSERT(false);
+                        break;
+                    }
+
+                    if (connected) {
+                        wxString rcvIP = wxString::Format("%i.%i.%i.%i", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
+
+                        logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
+                        logger_base.debug("    Model %s %.1f.", (const char*)_config._modelName.c_str(), (float)_config._hwRevision / 10.0);
+                        logger_base.debug("    Firmware %s.", (const char*)_config._firmwareVersion.c_str());
+                        logger_base.debug("    Nickname %s.", (const char*)_config._nickname.c_str());
+                        logger_base.debug("    Brand %d.", _config._brand);
+                        res = true;
+                        break;
+                    }
+                    else {
+                        logger_base.error("Unable to download PixLite/PixCon controller configuration from %s.", (const char*)_ip.c_str());
+                    }
+                }
+                else if (discovery->Error()) {
+                    logger_base.error("Error reading PixLite/PixCon response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+                }
+            }
+            discovery->Close();
+            delete discovery;
         }
     }
-
-    discovery->Close();
-    delete discovery;
 
     return res;
 }
-void Pixlite16::PrepareDiscovery(Discovery &discovery) {
-    
+
+void Pixlite16::PrepareDiscovery(Discovery& discovery)
+{
+
     uint8_t discoveryData[12];
     discoveryData[0] = 'A';
     discoveryData[1] = 'd';
@@ -739,9 +741,9 @@ void Pixlite16::PrepareDiscovery(Discovery &discovery) {
     discoveryData[9] = 0x00;
     discoveryData[10] = 0x01;
     discoveryData[11] = 0x06;
-    
-    
-    discovery.AddBroadcast(49150, [&discovery](wxDatagramSocket* socket, uint8_t *data, int len) {
+
+
+    discovery.AddBroadcast(49150, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (data[10] == 0x02) {
             Pixlite16::Config it;
@@ -773,7 +775,7 @@ void Pixlite16::PrepareDiscovery(Discovery &discovery) {
                 logger_base.debug("    Nickname %s.", (const char*)it._nickname.c_str());
                 logger_base.debug("    Brand %d.", it._brand);
 
-                
+
                 auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
                 eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
                 eth->SetProtocol(OUTPUT_E131);
@@ -785,28 +787,33 @@ void Pixlite16::PrepareDiscovery(Discovery &discovery) {
                     if (it._outputPixels.size() >= 16) {
                         if (mkII) {
                             eth->SetModel("PixLite 16 MkII");
-                        } else {
+                        }
+                        else {
                             eth->SetModel("PixLite 16");
                         }
-                    } else {
+                    }
+                    else {
                         if (mkII) {
                             eth->SetModel("PixLite 4 MkII");
-                        } else {
+                        }
+                        else {
                             eth->SetModel("PixLite 4");
                         }
                     }
-                } else {
+                }
+                else {
                     eth->SetVendor("LOR");
                     eth->SetModel("PixCon 16");
                 }
                 discovery.AddController(eth);
             }
         }
-    });
+        });
     discovery.SendBroadcastData(49150, discoveryData, sizeof(discoveryData));
 }
 
-bool Pixlite16::SendConfig(bool logresult) const {
+bool Pixlite16::SendConfig(bool logresult) const
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -867,7 +874,8 @@ bool Pixlite16::SendConfig(bool logresult) const {
     return true;
 }
 
-void Pixlite16::DumpConfiguration(Pixlite16::Config& config) {
+void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Dumping PixLite/PixCon configuration: Packet Version: %d.", config._protocolVersion);
@@ -885,7 +893,7 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config) {
     logger_base.debug("    Static Subnet Mask : %d.%d.%d.%d", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
     logger_base.debug("    Network Protocol : %d", config._protocol);
     logger_base.debug("    Hold Last Frame : %d", config._holdLastFrame);
-    logger_base.debug("    Simple Config : %d", config._simpleConfig);
+    logger_base.debug("    Simple Config : %d (0 = simple)", config._simpleConfig);
     logger_base.debug("    Max Pixels Per Output : %d", config._maxPixelsPerOutput);
     logger_base.debug("    Num Pixel Outputs : %d but really %d", config._numOutputs, config._realOutputs);
     logger_base.debug("    Pixel Outputs :");
@@ -920,33 +928,23 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
+Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    /*
-    auto configs = DoDiscover();
-
-    for (const auto& it : configs)
-    {
-        wxString rcvIP = wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
-
-        if (_ip == rcvIP) {
-            logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
-            _config = it;
-            _protocolVersion = _config._protocolVersion;
-            _model = _config._modelName;
-            _version = _config._firmwareVersion;
-            _connected = true;
-            break;
-        }
-        else {
-            _connected = false;
-        }
+    if (GetConfig()) {
+        logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
+        _protocolVersion = _config._protocolVersion;
+        _model = _config._modelName;
+        _version = _config._firmwareVersion;
+        _connected = true;
     }
-     */
+    else {
+        _connected = false;
+    }
+
     if (!_connected) {
-        logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
+        logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
     }
 
     if (_connected) {
@@ -957,12 +955,13 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
+{
     //ResetStringOutputs(); // this shouldnt be used normally
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
     std::string check;
     UDController cud(controller, outputManager, allmodels, check, false);
 
@@ -975,7 +974,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     // Handle varying maximum pixels based on expansion mode
     int maxPixels = 0;
-    if (_config._numOutputs == 4 || _config._numOutputs == 8)         {
+    if (_config._numOutputs == 4 || _config._numOutputs == 8) {
         // 4 board
         if (cud.GetMaxPixelPort() > 4) {
             maxPixels = 510;
@@ -984,13 +983,12 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             maxPixels = 1020;
         }
     }
-    else if (_config._numOutputs == 16 || _config._numOutputs == 32)
-    {
+    else if (_config._numOutputs == 16 || _config._numOutputs == 32) {
         // 16 board
-        if (cud.GetMaxPixelPort() > 16)             {
+        if (cud.GetMaxPixelPort() > 16) {
             maxPixels = 510;
         }
-        else             {
+        else {
             maxPixels = 1020;
         }
     }
@@ -1001,11 +999,11 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             if (cud.HasPixelPort(pp)) {
 
                 // always go advanced ... it doesnt hurt and it makes the config always work
-                _config._simpleConfig = false;
+                _config._simpleConfig = 1;
 
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
 
-                if (port->Pixels() > maxPixels)                     {
+                if (port->Pixels() > maxPixels) {
                     check += wxString::Format("ERR: String port %d has more pixels than this controller supports (%d when maximum is %d).\n", pp, port->Pixels(), maxPixels);
                     success = false;
                 }
@@ -1013,17 +1011,17 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 // update the data
                 _config._currentDriver = DecodeStringPortProtocol(port->GetProtocol());
 
-                _config._outputUniverse[pp-1] = port->GetUniverse();
-                _config._outputStartChannel[pp-1] = port->GetUniverseStartChannel();
-                _config._outputPixels[pp-1] = port->Pixels();
-                _config._outputNullPixels[pp-1] = port->GetFirstModel()->GetNullPixels(0);
-                _config._outputGrouping[pp-1] = port->GetFirstModel()->GetGroupCount(1);
-                _config._outputBrightness[pp-1] = port->GetFirstModel()->GetBrightness(100);
+                _config._outputUniverse[pp - 1] = port->GetUniverse();
+                _config._outputStartChannel[pp - 1] = port->GetUniverseStartChannel();
+                _config._outputPixels[pp - 1] = port->Pixels();
+                _config._outputNullPixels[pp - 1] = port->GetFirstModel()->GetStartNullPixels(0);
+                _config._outputGrouping[pp - 1] = port->GetFirstModel()->GetGroupCount(1);
+                _config._outputBrightness[pp - 1] = port->GetFirstModel()->GetBrightness(100);
                 if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {
-                    _config._outputReverse[pp-1] =  1;
+                    _config._outputReverse[pp - 1] = 1;
                 }
                 else {
-                    _config._outputReverse[pp-1] = 0;
+                    _config._outputReverse[pp - 1] = 0;
                 }
 
                 port->CreateVirtualStrings(true);
@@ -1040,8 +1038,8 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 if (cud.HasSerialPort(sp)) {
                     UDControllerPort* port = cud.GetControllerSerialPort(sp);
 
-                    _config._dmxUniverse[sp-1] = port->GetUniverse();
-                    _config._dmxOn[sp-1] = 0x01; // turn it on
+                    _config._dmxUniverse[sp - 1] = port->GetUniverse();
+                    _config._dmxOn[sp - 1] = 0x01; // turn it on
 
                     port->CreateVirtualStrings(true);
                     if (port->GetVirtualStringCount() > 1) {

@@ -17,7 +17,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "RulerObject.h"
-#include "../osxMacUtils.h"
+#include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
 TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)
@@ -39,6 +39,11 @@ TerrianObject::~TerrianObject()
 
 void TerrianObject::InitModel() {
     _imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
+    if (_imageFile != ModelXml->GetAttribute("Image", "")) {
+        ModelXml->DeleteAttribute("Image");
+        ModelXml->AddAttribute("Image", _imageFile);
+    }
+
     ObtainAccessToURL(_imageFile);
 
     if (ModelXml->HasAttribute("Transparency")) {

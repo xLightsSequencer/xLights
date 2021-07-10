@@ -344,7 +344,7 @@ void DmxServo3d::InitModel() {
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
-        std::string msg = wxString::Format("Channel count increased to %d to accomodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
         wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
     }
 

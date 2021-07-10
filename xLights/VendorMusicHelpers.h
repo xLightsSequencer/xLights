@@ -39,14 +39,14 @@ class MSLSequenceLyric
 {
 public:
 
-    enum MSLTYPE { MSL_SEQUENCE, MSL_LYRIC };
+    enum class MSLTYPE { MSL_SEQUENCE, MSL_LYRIC, MSL_UNKNOWN };
 
     std::list<std::string> _hashes;
     std::list<std::string> _categoryIds;
     std::string _title;
     std::string _creator;
     std::string _artist;
-    MSLTYPE _type;
+    MSLTYPE _type = MSLTYPE::MSL_UNKNOWN;
     wxURI _webpage;
     wxURI _download;
     wxURI _video;

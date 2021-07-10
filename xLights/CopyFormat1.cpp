@@ -63,7 +63,7 @@ CopyFormat1::CopyFormat1(const std::string& data)
     }
 
     int numTimings = wxAtoi(cols[1]);
-    int numEffects = wxAtoi(cols[2]);
+    //int numEffects = wxAtoi(cols[2]);
     _numTimingRows = wxAtoi(cols[3]);
     _lastRow = wxAtoi(cols[4]);
     _startColumn = wxAtoi(cols[5]);

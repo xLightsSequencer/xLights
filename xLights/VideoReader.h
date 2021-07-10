@@ -72,6 +72,7 @@ private:
     AVFrame* _srcFrame = nullptr; // the src frame
     AVFrame* _srcFrame2 = nullptr; // the src frame
     int _curPos = 0;
+    int _firstFramePos = -1;
     SwsContext *_swsCtx = nullptr;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;

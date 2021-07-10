@@ -41,6 +41,7 @@
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsRemotes/>
+			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>144</MaxInputUniverses>

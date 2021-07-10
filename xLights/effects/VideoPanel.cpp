@@ -11,7 +11,7 @@
 #include "VideoPanel.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
-#include "../osxMacUtils.h"
+#include "ExternalHooks.h"
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/artprov.h>

@@ -33,31 +33,31 @@ class AlphaPixOutput
 {
 public:
     const int output;
-    int universe = 1;
-    int startChannel = 1;
-    int pixels = 1;
-    int nullPixel = 0;
-    int colorOrder = 0;
-    bool reverse = false;
-    int brightness = 100;
-    int zigZag = 0;
-    bool upload = false;
+    int universe{ 1 };
+    int startChannel{ 1 };
+    int pixels{ 1 };
+    int nullPixel{ 0 };
+    int colorOrder{ 0 };
+    bool reverse{ false };
+    int brightness{ 100 };
+    int zigZag{ 0 };
+    bool upload{ false };
 
     AlphaPixOutput(int output_) : output(output_) { }
     void Dump() const {
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Rev %d Nulls %d Brightness %d ZigZag %d ColorOrder %d  Upload %d",
+        logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Rev %s Nulls %d Brightness %d ZigZag %d ColorOrder %d Upload %s",
             output,
             universe,
             startChannel,
             pixels,
-            reverse,
+            toStr(reverse),
             nullPixel,
             brightness,
             zigZag,
             colorOrder,
-            upload
+            toStr(upload)
         );
     }
 };
@@ -66,19 +66,19 @@ class AlphaPixSerial
 {
 public:
     const int output;
-    int universe = 1;
-    bool enabled = false;
-    bool upload = false;
+    int universe{ 1 };
+    bool enabled{ false };
+    bool upload{ false };
 
     AlphaPixSerial(int output_) : output(output_) { }
     void Dump() const {
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Uni %d Enabled %d Upload %d",
+        logger_base.debug("    Output %d Uni %d Enabled %s Upload %s",
             output,
             universe,
-            enabled,
-            upload
+            toStr(enabled),
+            toStr(upload)
         );
     }
 };
@@ -87,8 +87,8 @@ class AlphaPixData
 {
 public:
     wxString name;
-    int protocol = 0;
-    int inputMode = 0;
+    int protocol{ 0 };
+    int inputMode{ 0 };
     AlphaPixData() {}
     void Dump() const {
 
@@ -136,7 +136,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
             _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
         }
 
-        if (_page.Contains("name=\"U01\"")) {//look for certian web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
+        if (_page.Contains("name=\"U01\"")) {//look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
             logger_base.debug("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
         } else {
@@ -333,7 +333,7 @@ bool AlphaPix::ExtractDMXEnabled(const wxString& page, const wxString& name) {
 void AlphaPix::UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, bool& changeColor) const {
 
     if (pd != nullptr) {
-        const int nullPix = stringData->GetFirstModel()->GetNullPixels(-1);
+        const int nullPix = stringData->GetFirstModel()->GetStartNullPixels(-1);
         if (nullPix != -1 && pd->nullPixel != nullPix) {
             pd->nullPixel = nullPix;
             pd->upload = true;
@@ -354,8 +354,7 @@ void AlphaPix::UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, 
         const std::string color = stringData->GetFirstModel()->GetColourOrder("");
         if (!color.empty()) {
             int newcolor = EncodeColorOrder(color);
-            if (pd->colorOrder != newcolor)
-            {
+            if (pd->colorOrder != newcolor) {
                 pd->colorOrder = newcolor;
                 changeColor = true;
             }

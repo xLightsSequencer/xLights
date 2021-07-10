@@ -8,6 +8,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -20,12 +21,14 @@
 				<Protocol>lpd6803</Protocol>
 				<Protocol>lpd8806</Protocol>
 				<Protocol>apa102</Protocol>
+				<Protocol>apa109</Protocol>
 				<Protocol>sm16716</Protocol>
 				<Protocol>mb16020</Protocol>
 				<Protocol>my9231</Protocol>
 				<Protocol>my9221</Protocol>
 				<Protocol>sk6812</Protocol>
 				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
@@ -46,6 +49,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -57,12 +61,14 @@
 				<Protocol>lpd6803</Protocol>
 				<Protocol>lpd8806</Protocol>
 				<Protocol>apa102</Protocol>
+				<Protocol>apa109</Protocol>
 				<Protocol>sm16716</Protocol>
 				<Protocol>mb16020</Protocol>
 				<Protocol>my9231</Protocol>
 				<Protocol>my9221</Protocol>
 				<Protocol>sk6812</Protocol>
 				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
@@ -83,6 +89,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -94,12 +101,14 @@
 				<Protocol>lpd6803</Protocol>
 				<Protocol>lpd8806</Protocol>
 				<Protocol>apa102</Protocol>
+				<Protocol>apa109</Protocol>
 				<Protocol>sm16716</Protocol>
 				<Protocol>mb16020</Protocol>
 				<Protocol>my9231</Protocol>
 				<Protocol>my9221</Protocol>
 				<Protocol>sk6812</Protocol>
 				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
@@ -120,6 +129,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
 			<NoWebUI/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -131,12 +141,14 @@
 				<Protocol>lpd6803</Protocol>
 				<Protocol>lpd8806</Protocol>
 				<Protocol>apa102</Protocol>
+				<Protocol>apa109</Protocol>
 				<Protocol>sm16716</Protocol>
 				<Protocol>mb16020</Protocol>
 				<Protocol>my9231</Protocol>
 				<Protocol>my9221</Protocol>
 				<Protocol>sk6812</Protocol>
 				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>

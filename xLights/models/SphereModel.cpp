@@ -200,6 +200,7 @@ void SphereModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -283,6 +284,7 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
@@ -438,6 +440,7 @@ void SphereModel::ExportAsCustomXModel() const {
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
     if (face != "")

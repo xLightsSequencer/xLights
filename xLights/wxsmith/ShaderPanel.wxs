@@ -47,7 +47,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Shader_LeadIn" member="yes">
 							<label>Lead in frames:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -79,7 +79,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_Shader_Speed" member="yes">
 							<label>Time Speed:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -100,7 +100,7 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Speed" member="yes">
 							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -109,6 +109,114 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shader_Speed" subclass="BulkEditTextCtrlF2" variable="TextCtrl_Shader_Speed" member="yes">
 							<value>1.00</value>
+							<size>40,-1d</size>
+							<style>wxTE_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText_Shader_Offset_X" member="yes">
+							<label>Offset X</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Shader_Offset_X" subclass="BulkEditSlider" variable="Slider_Shader_Offset_X" member="yes">
+							<min>-100</min>
+							<size>200,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Offset_X" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Offset_X" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Shader_Offset_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Shader_Offset_X" member="yes">
+							<value>0</value>
+							<size>40,-1d</size>
+							<style>wxTE_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_Shader_Offset_Y" member="yes">
+							<label>Offset Y</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Shader_Offset_Y" subclass="BulkEditSlider" variable="Slider_Shader_Offset_Y" member="yes">
+							<min>-100</min>
+							<size>200,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Offset_Y" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Offset_Y" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Shader_Offset_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Shader_Offset_Y" member="yes">
+							<value>0</value>
+							<size>40,-1d</size>
+							<style>wxTE_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText_Shader_Zoom" member="yes">
+							<label>Zoom</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Shader_Zoom" subclass="BulkEditSlider" variable="Slider_Shader_Zoom" member="yes">
+							<min>-100</min>
+							<size>200,-1</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Zoom" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Zoom" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Shader_Zoom" subclass="BulkEditTextCtrl" variable="TextCtrl_Shader_Zoom" member="yes">
+							<value>0</value>
 							<size>40,-1d</size>
 							<style>wxTE_RIGHT</style>
 						</object>

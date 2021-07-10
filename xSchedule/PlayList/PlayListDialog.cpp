@@ -46,8 +46,6 @@
 #include "PlayListItemARTNetTrigger.h"
 #include "../../xLights/UtilFunctions.h"
 
-#include "../xLights/osxMacUtils.h"
-
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
 #include <wx/notebook.h>
@@ -257,9 +255,6 @@ void PlayListDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
         return;
     }
 
-    WINDOW_LOCKER(Panel2, lockPanel);
-    WINDOW_LOCKER(Notebook1, lockNotebook);
-
     if (Notebook1->GetPageCount() > 0)
     {
         wxNotebookPage* p = Notebook1->GetPage(0);
@@ -362,8 +357,6 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
     {
         // must be a playlist entry
         PlayListItem* pli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        WINDOW_LOCKER(Panel2, lockPanel);
-        WINDOW_LOCKER(Notebook1, lockNotebook);
         SwapPage(nullptr);
         pli->Configure(Notebook1);
     }
@@ -637,7 +630,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_REMOVEEMPTYSTEPS, "Remove Empty Steps");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&PlayListDialog::OnTreeCtrlMenu, nullptr, this);
-    ModalPopup(this, mnu);
+    PopupMenu(&mnu);
 }
 
 int PlayListDialog::GetPos(const wxTreeItemId& item)

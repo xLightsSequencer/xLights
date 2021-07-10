@@ -18,7 +18,10 @@
 #include "EffectsGrid.h"
 #include "Waveform.h"
 #include "../KeyBindings.h"
-#include "../osx_utils/TouchBars.h"
+
+#if __has_include("osxUtils/TouchBars.h")
+#include "osxUtils/TouchBars.h"
+#endif
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -87,7 +90,6 @@ class MainSequencer: public wxPanel
         void ToggleHousePreview();
         void ToggleModelPreview();
         void TouchPlayControl(const std::string &event);
-        void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
     //(*Declarations(MainSequencer)
     EffectsGrid* PanelEffectGrid;
@@ -102,8 +104,12 @@ class MainSequencer: public wxPanel
 
         KeyBindingMap keyBindings;
         TimeDisplayControl *timeDisplay;
+
+#ifdef __XLIGHTS_HAS_TOUCHBARS__
+        void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
         xlTouchBarSupport touchBarSupport;
-        EffectGridTouchBar *effectGridTouchbar;
+        std::unique_ptr<EffectGridTouchBar> effectGridTouchbar;
+#endif
 	protected:
 
 		//(*Identifiers(MainSequencer)

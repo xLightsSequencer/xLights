@@ -114,16 +114,24 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 
 	ListCtrl_Bindings->AppendColumn("Type");
 	ListCtrl_Bindings->AppendColumn("Key", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Control", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Alt", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Shift", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
-	ListCtrl_Bindings->AppendColumn("Details");
+#ifdef __WXOSX__
+    ListCtrl_Bindings->AppendColumn("Command \u2318", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Option \u2325", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Shift \u21E7", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Control \u2303", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+#else
+    ListCtrl_Bindings->AppendColumn("Control", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Alt", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("Shift", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+    ListCtrl_Bindings->AppendColumn("macOS Ctrl", wxLIST_FORMAT_CENTRE, wxLIST_AUTOSIZE_USEHEADER);
+#endif
+    ListCtrl_Bindings->AppendColumn("Details");
 
-	LoadList();
+    LoadList();
 
-	ListCtrl_Bindings->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-	ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
-	ListCtrl_Bindings->SetColumnWidth(5, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+    ListCtrl_Bindings->SetColumnWidth(6, wxCOL_WIDTH_AUTOSIZE);
 
 	_propertyGrid = new wxPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		// Here are just some of the supported window styles
@@ -197,6 +205,9 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 
 	p = _propertyGrid->Append(new wxBoolProperty("Shift", "KBShift", b.RequiresShift()));
 	p->SetEditor("CheckBox");
+
+    p = _propertyGrid->Append(new wxBoolProperty("RawControl", "KBRawControl", b.RequiresRawControl()));
+    p->SetEditor("CheckBox");
 
 	if (b.GetType() == "EFFECT")
 	{
@@ -274,6 +285,9 @@ void KeyBindingEditDialog::OnControllerPropertyGridChange(wxPropertyGridEvent& e
 	else if (name == "KBControl") {
 		b.SetControl(event.GetValue().GetBool());
 	}
+    else if (name == "KBRawControl") {
+        b.SetRawControl(event.GetValue().GetBool());
+    }
 	else if (name == "KBAlt") {
 		b.SetAlt(event.GetValue().GetBool());
 	}
@@ -348,17 +362,18 @@ void KeyBindingEditDialog::LoadList()
 			ListCtrl_Bindings->SetItem(item, 2, it.RequiresControl() ? _("Y") : _(""));
 			ListCtrl_Bindings->SetItem(item, 3, it.RequiresAlt() ? _("Y") : _(""));
 			ListCtrl_Bindings->SetItem(item, 4, it.RequiresShift() ? _("Y") : _(""));
+            ListCtrl_Bindings->SetItem(item, 5, it.RequiresRawControl() ? _("Y") : _(""));
 			if (it.GetEffectName() != "" && it.GetEffectString() != "")
 			{
-				ListCtrl_Bindings->SetItem(item, 5, it.GetEffectName() + ":" + it.GetEffectString());
+				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName() + ":" + it.GetEffectString());
 			}
 			else if (it.GetEffectString() != "")
 			{
-				ListCtrl_Bindings->SetItem(item, 5, it.GetEffectString());
+				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectString());
 			}
 			else if (it.GetEffectName() != "")
 			{
-				ListCtrl_Bindings->SetItem(item, 5, it.GetEffectName());
+				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName());
 			}
 			ListCtrl_Bindings->SetItemData(item, it.GetId());
 			if (it.GetKey() != WXK_NONE && _keyBindings->IsDuplicateKey(it))
@@ -412,6 +427,7 @@ void KeyBindingEditDialog::OnListCtrl_BindingsKeyDown(wxListEvent& event)
 					b.SetShift(false);
 					b.SetAlt(false);
 					b.SetControl(false);
+                    b.SetRawControl(false);
 				}
 				LoadList();
 			}
@@ -459,7 +475,7 @@ void KeyBindingEditDialog::OnButton_AddEffectClick(wxCommandEvent& event)
 
 void KeyBindingEditDialog::OnButtonAddApplySettingClick(wxCommandEvent& event)
 {
-	int id = _keyBindings->AddKey(KeyBinding(false, _(""), _(""), _("2020.15"), false, false, false));
+	int id = _keyBindings->AddKey(KeyBinding(false, _(""), _(""), _("2020.15"), false, false, false, false));
 	LoadList();
 	SelectKey(id);
 	SetKeyBindingProperties();
@@ -468,7 +484,7 @@ void KeyBindingEditDialog::OnButtonAddApplySettingClick(wxCommandEvent& event)
 void KeyBindingEditDialog::OnButtonAddPresetClick(wxCommandEvent& event)
 {
 	std::string empty;
-	int id = _keyBindings->AddKey(KeyBinding(false, _(""), _(""), false, false, false));
+	int id = _keyBindings->AddKey(KeyBinding(false, _(""), _(""), false, false, false, false));
 	LoadList();
 	SelectKey(id);
 	SetKeyBindingProperties();

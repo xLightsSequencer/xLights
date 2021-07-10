@@ -116,7 +116,7 @@ void SequenceData::Cleanup()
 #ifdef USE_MMAP_BLOCKS
     for (auto& p : _dataBlocks) {
         if (p.get() && p.get()->type == BlockType::HUGE_PAGE) {
-            //save these for later, HUGE_PAGE blocks are limitted and hard to come by
+            //save these for later, HUGE_PAGE blocks are limited and hard to come by
             //so if we get any, we'll hold onto them
             std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
             HUGE_BLOCK_CACHE.emplace_back(std::move(p));

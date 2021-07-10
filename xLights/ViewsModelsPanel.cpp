@@ -7,7 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
- 
+
 #define TRACEMOVES
 
 //(*InternalHeaders(ViewsModelsPanel)
@@ -96,10 +96,12 @@ const long ViewsModelsPanel::ID_BUTTON6 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON_TOP = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON9 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON10 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON_BOTTOM = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON_IMPORT = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON11 = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
@@ -128,6 +130,9 @@ const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYSCGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYCPGMSIZE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYMASTERVIEW = wxNewId();
+const long ViewsModelsPanel::VIEWSMODELS_IMPORT_RGBEFFECTS = wxNewId();
+const long ViewsModelsPanel::VIEWSMODELS_IMPORT_SEQUENCE = wxNewId();
 
 BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
@@ -166,9 +171,11 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	BoxSizer1->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	BoxSizer1->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Bottom = new wxButton(this, ID_BUTTON_BOTTOM, _("vv"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_BOTTOM"));
+	BoxSizer1->Add(Button_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(1, 1), wxGBSpan(3, 1), wxEXPAND, 0);
-	FlexGridSizer8 = new wxFlexGridSizer(5, 1, 0, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(6, 1, 0, 0);
 	Button_AddView = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxEXPAND, 2);
 	Button_DeleteView = new wxButton(this, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
@@ -177,6 +184,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer8->Add(ButtonRename, 1, wxALL|wxEXPAND, 2);
 	ButtonClone = new wxButton(this, ID_BUTTON8, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxEXPAND, 2);
+	ButtonImport = new wxButton(this, ID_BUTTON_IMPORT, _("Import..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+	FlexGridSizer8->Add(ButtonImport, 1, wxALL|wxEXPAND, 2);
 	Button_MakeMaster = new wxButton(this, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
 	FlexGridSizer8->Add(Button_MakeMaster, 1, wxALL|wxEXPAND, 2);
 	GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
@@ -206,10 +215,12 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_BUTTON_TOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_TopClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
+	Connect(ID_BUTTON_BOTTOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_BottomClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
+	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonImportClick);
 	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
@@ -969,12 +980,14 @@ void ViewsModelsPanel::ValidateWindow()
     {
         Button_MoveUp->Enable(true);
         Button_MoveDown->Enable(true);
+        Button_Bottom->Enable(true);
         Button_Top->Enable(true);
     }
     else
     {
         Button_MoveUp->Enable(false);
         Button_MoveDown->Enable(false);
+        Button_Bottom->Enable(false);
         Button_Top->Enable(false);
     }
 
@@ -1506,6 +1519,9 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYCPGMSIZE, "By Controller/Port But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGM, "By Start Channel But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGMSIZE, "By Start Channel But Groups At Top by Size")->Enable(models > 0);
+    if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW) {
+        mnuSort->Append(ID_MODELS_SORTBYMASTERVIEW, "The Same as Current Master View")->Enable(models > 0);
+    }
     mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
     mnuSort->Append(ID_MODELS_BUBBLEUPGROUPS, "Bubble Up Groups")->Enable(models > 0);
@@ -1591,6 +1607,9 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     }
     else if (id == ID_MODELS_SORTBYSCGMSIZE) {
         SortModelsBySCGM(true);
+    }
+    else if (id == ID_MODELS_SORTBYMASTERVIEW) {
+        SortModelsByMasterView();
     }
     ValidateWindow();
 }
@@ -1912,6 +1931,36 @@ void ViewsModelsPanel::SortModelsBySCGM(bool sortGroupsBySize)
     else {
         view->SetModels(wxJoin(modelArray, ',').ToStdString());
     }
+
+    SelectView(_sequenceViewManager->GetSelectedView()->GetName());
+    MarkViewsChanged();
+    PopulateModels();
+
+    _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::SortModelsByMasterView()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    auto v_models = view->GetModelsString();
+    wxArrayString v_models_array = wxSplit(v_models, ',');
+
+    auto mv_models = GetMasterViewModels();
+    wxArrayString mv_models_array = wxSplit(mv_models, ',');
+
+    wxArrayString modelArray;
+
+    for (const auto& it : mv_models_array) {
+        if (std::find(begin(v_models_array), end(v_models_array), it) != end(v_models_array)) {
+            modelArray.push_back(it);
+        }
+    }
+
+    // we should not have dropped any models
+    wxASSERT(v_models_array.size() == modelArray.size());
+
+    view->SetModels(wxJoin(modelArray, ',').ToStdString());
 
     SelectView(_sequenceViewManager->GetSelectedView()->GetName());
     MarkViewsChanged();
@@ -2380,87 +2429,6 @@ void ViewsModelsPanel::ClearUndo()
 
 #pragma endregion Undo
 
-void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
-{
-    if (GetSelectionIsMixed()) return;
-
-    SaveUndo();
-    bool itemsMoved = false;
-    int currentView = _sequenceViewManager->GetSelectedViewIndex();
-
-    wxArrayString movedModels;
-    int selcnt = 0;
-    int lastsel = -1;
-    int timing_count = GetTimingCount();
-
-    for (int i = ListCtrlModels->GetItemCount()-1; i >= 0; --i)
-    {
-        if (IsItemSelected(ListCtrlModels, i))
-        {
-            int from = i;
-            int to = from + 2;
-            if ((((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING))
-            {
-                if (currentView != MASTER_VIEW)
-                {
-                    return;  // currently can only move timings in master view
-                }
-                else
-                {
-                    itemsMoved = true;
-                    movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                    from = _sequenceElements->GetElementIndexOfTimingFromListIndex(from);
-                    to = _sequenceElements->GetElementIndexOfTimingFromListIndex(to);
-                }
-            }
-            else
-            {
-                itemsMoved = true;
-
-                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                from -= timing_count;
-                to = from + 2;
-
-                // Only the master view contains the timings
-                if (currentView == MASTER_VIEW)
-                {
-                    from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
-                    to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
-                }
-            }
-
-            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
-            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
-
-#ifdef TRACEMOVES
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", GetTimingCount());
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
-                to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
-#endif
-            if (lastsel < 0)
-            {
-                lastsel = to;
-            }
-
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
-            SelectItem(ListCtrlModels, i, false);
-
-            selcnt++;
-            i++;
-        }
-    }
-
-    if (itemsMoved)
-    {
-        MarkViewsChanged();
-        UpdateModelsForSelectedView();
-        PopulateModels(wxJoin(movedModels, ',').ToStdString());
-        ListCtrlModels->EnsureVisible(lastsel);
-        _xlFrame->DoForceSequencerRefresh();
-    }
-}
-
 bool ViewsModelsPanel::GetSelectionIsMixed()
 {
     int model_count = 0;
@@ -2807,9 +2775,10 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                 {
                     if (!element->HasEffects())
                     {
-                        // model shouldnt be in master
-                        //_sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
-                        _sequenceElements->DeleteElement(name);
+                        //remove all not found elements(models) from the current master view without Effects
+                        //They will be added back or move into the correct order with the "SetMasterViewModels" call below if needed
+                        _sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
+                        //_sequenceElements->DeleteElement(name); //this removes models not found in the "new" master view from ALL Views, not just the master view, causing models to disappear from random Views
                         RemoveModelFromLists(name);
                         --i;
                     }
@@ -2892,4 +2861,325 @@ void ViewsModelsPanel::OnListCtrlModelsItemActivated(wxListEvent& event)
 {
     wxCommandEvent e;
     OnButton_RemoveSelectedClick(e);
+}
+
+void ViewsModelsPanel::OnButtonImportClick(wxCommandEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(VIEWSMODELS_IMPORT_RGBEFFECTS, "View From Layout File");
+    mnu.Append(VIEWSMODELS_IMPORT_SEQUENCE, "Master View From Sequence File");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ViewsModelsPanel::OnImportBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
+    event.Skip();
+}
+
+void ViewsModelsPanel::OnImportBtnPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == VIEWSMODELS_IMPORT_RGBEFFECTS) {
+        ImportRGBEffectsView();
+    }
+    else if (event.GetId() == VIEWSMODELS_IMPORT_SEQUENCE) {
+        ImportSequenceMasterView();
+    }
+}
+
+void ViewsModelsPanel :: ImportRGBEffectsView()
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+#ifdef __WXOSX__
+    wxString const wildcard = "*.xml";
+#else
+    wxString const wildcard = "xlights_rgbeffects.xml";
+#endif
+    wxString const filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString,
+        XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
+        "RGB Effects Files (xlights_rgbeffects.xml)|" + wildcard,
+        wxFD_FILE_MUST_EXIST | wxFD_OPEN);
+
+    if (filename.IsEmpty()) return;
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Importing View From: %s", (const char*)filename.c_str());
+
+    wxXmlDocument doc;
+    doc.Load(filename);
+    if (doc.IsOk()) {
+        wxXmlNode* views = nullptr;
+        for (wxXmlNode* node = doc.GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
+            if (node->GetName() == "views") {
+                views = node;
+                break;
+            }
+        }
+
+        if (views) {
+            std::map<std::string, std::string> viewMap;
+            wxArrayString viewList;
+
+            for (wxXmlNode* node = views->GetChildren(); node != nullptr; node = node->GetNext()) {
+                wxString const view_name = node->GetAttribute("name");
+                wxString const view_models = node->GetAttribute("models");
+                viewMap.insert({ view_name , view_models});
+                viewList.emplace_back(view_name);
+            }
+
+            wxSingleChoiceDialog dlg(GetParent(), "", "Select View", viewList);
+
+            if (dlg.ShowModal() == wxID_OK) {
+                auto const sel_view = dlg.GetStringSelection();
+                auto const sel_models = viewMap.at(sel_view);
+                wxArrayString split_model = wxSplit(sel_models, ',');
+                ImportViewData(sel_view, split_model);
+            }
+        }
+    }
+}
+
+void ViewsModelsPanel::ImportSequenceMasterView()
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+
+    wxString const wildcards = "xLights Sequence files (*.xsq)|*.xsq|Old xLights Sequence files (*.xml)|*.xml";
+    wxString const filename = wxFileSelector(_("Choose Sequence File to Open"),
+                                              _xlFrame->GetShowDirectory(),
+                                              wxEmptyString, "*.xsq", wildcards,
+                                              wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (filename.IsEmpty()) return;
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Importing Master View From: %s", (const char*)filename.c_str());
+
+    wxXmlDocument doc;
+    doc.Load(filename);
+    if (doc.IsOk()) {
+
+        wxXmlNode* dispElements = nullptr;
+        for (wxXmlNode* node = doc.GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
+            if (node->GetName() == "DisplayElements") {
+                dispElements = node;
+                break;
+            }
+        }
+
+        if (dispElements) {
+            wxArrayString modelList;
+            wxArrayString timingList;
+
+            for (wxXmlNode* node = dispElements->GetChildren(); node != nullptr; node = node->GetNext()) {
+                wxString const elem_name = node->GetAttribute("name");
+                wxString const elem_type = node->GetAttribute("type");
+
+                if (elem_type == "timing") {
+                    timingList.emplace_back(elem_name);
+                } else{
+                    modelList.emplace_back(elem_name);
+                }
+            }
+            ImportViewData("Imported Master", modelList, timingList);
+        }
+    }
+}
+
+void ViewsModelsPanel::ImportViewData(wxString const& name, wxArrayString const& models, wxArrayString timings)
+{
+	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto const sel_view = CreateUniqueName(name);
+    logger_base.debug("Importing View: %s", (const char*)sel_view.c_str());
+    wxArrayString new_models;
+    for (auto const& new_mod : models) {//check if models exists
+        Model* m = _xlFrame->GetModel(new_mod);
+        if (m != nullptr) {
+            new_models.Add(new_mod);
+            logger_base.debug("Model Found: %s", (const char*)new_mod.c_str());
+        }else {
+            logger_base.debug("Model Not Found: %s", (const char*)new_mod.c_str());
+        }
+    }
+    auto const new_sel_models = wxJoin(new_models, ',');
+
+    logger_base.debug("Models Found: %s", (const char*)new_sel_models.c_str());
+
+    SequenceView* view = _sequenceViewManager->AddView(sel_view);
+
+    view->SetModels(new_sel_models);
+
+    AddViewToList(sel_view, true);
+    _sequenceElements->AddView(sel_view);
+
+    std::vector<std::string> newtimings;
+    for (auto const& tim : timings) {
+        Element* elem = _sequenceElements->GetElement(tim);
+        if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            newtimings.push_back(elem->GetName());
+            logger_base.debug("Timing Found: %s", (const char*)tim.c_str());
+        } else {
+            logger_base.debug("Timing Not Found: %s", (const char*)tim.c_str());
+        }
+    }
+
+    if (!newtimings.empty()) {
+        _sequenceElements->AddViewToTimings(newtimings, view->GetName());
+        _sequenceElements->SetTimingVisibility(view->GetName());
+    } else {
+        logger_base.debug("No Timings Added to View");
+    }
+
+    SelectView(sel_view);
+    MarkViewsChanged();
+    PopulateViews();
+    ValidateWindow();
+}
+
+wxString ViewsModelsPanel::CreateUniqueName(wxString const& prefix)
+{
+    if (_sequenceViewManager->GetView(prefix) == nullptr) return prefix;
+
+    wxString n;
+    int i = 1;
+    do {
+        n = wxString::Format("%s_%d", prefix, i++);
+    } while (_sequenceViewManager->GetView(n) != nullptr);
+    return n;
+}
+
+void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
+{
+    if (GetSelectionIsMixed()) return;
+
+    SaveUndo();
+    bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+    int lastsel = -1;
+    int timing_count = GetTimingCount();
+
+    for (int i = ListCtrlModels->GetItemCount() - 1; i >= 0; --i) {
+        if (IsItemSelected(ListCtrlModels, i)) {
+            int from = i;
+            int to = from + 2;
+            if ((((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)) {
+                if (currentView != MASTER_VIEW) {
+                    return;  // currently can only move timings in master view
+                }
+                else {
+                    itemsMoved = true;
+                    movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                    from = _sequenceElements->GetElementIndexOfTimingFromListIndex(from);
+                    to = _sequenceElements->GetElementIndexOfTimingFromListIndex(to);
+                }
+            }
+            else {
+                itemsMoved = true;
+
+                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                from -= timing_count;
+                to = from + 2;
+
+                // Only the master view contains the timings
+                if (currentView == MASTER_VIEW) {
+                    from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
+                    to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                }
+            }
+
+            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
+            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
+
+#ifdef TRACEMOVES
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Timing count in models list: %d", GetTimingCount());
+            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+            if (lastsel < 0) {
+                lastsel = to;
+            }
+
+            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            SelectItem(ListCtrlModels, i, false);
+
+            selcnt++;
+            i++;
+        }
+    }
+
+    if (itemsMoved) {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(lastsel);
+        _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
+{
+    if (GetSelectionIsMixed()) return;
+
+    SaveUndo();
+    bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+    int timing_count = GetTimingCount();
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+        if (IsItemSelected(ListCtrlModels, i)) {
+            int from = i;
+            int to = -1;
+            if ((((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING)) {
+                if (currentView != MASTER_VIEW) {
+                    return;  // currently can only move timings in master view
+                }
+                else {
+                    itemsMoved = true;
+                    movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                    from = _sequenceElements->GetElementIndexOfTimingFromListIndex(from - movedModels.size() + 1);
+                    to = _sequenceElements->GetElementIndexOfTimingFromListIndex(timing_count);
+                }
+            }
+            else {
+                itemsMoved = true;
+
+                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                from -= timing_count;
+
+                // Only the master view contains the timings
+                if (currentView == MASTER_VIEW) {
+                    from = _sequenceElements->GetIndexOfModelFromModelIndex(from - movedModels.size() + 1);
+                    to = _sequenceElements->GetIndexOfModelFromModelIndex(ListCtrlModels->GetItemCount()-1);
+                }
+            }
+
+            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
+            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
+
+#ifdef TRACEMOVES
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Timing count in models list: %d", timing_count);
+            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+
+            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            SelectItem(ListCtrlModels, i, false);
+
+            selcnt++;
+            i--;
+        }
+    }
+
+    if (itemsMoved) {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(ListCtrlModels->GetItemCount() - 1);
+        _xlFrame->DoForceSequencerRefresh();
+    }
 }

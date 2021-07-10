@@ -32,7 +32,10 @@
 #include "ColorCurve.h"
 #include "BulkEditControls.h"
 #include "effects/EffectPanelUtils.h"
-#include "osx_utils/TouchBars.h"
+
+#if __has_include("osxUtils/TouchBars.h")
+#include "osxUtils/TouchBars.h"
+#endif
 
 #define COLORPANEL_BRIGHTNESS_MIN 0
 #define COLORPANEL_BRIGHTNESS_MAX 400
@@ -73,8 +76,11 @@ public:
     
         void SetDefaultPalette();
     
+#ifdef __XLIGHTS_HAS_TOUCHBARS__
         ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);
-        ColorPanelTouchBar *GetTouchBar() const { return touchBar; }
+        ColorPanelTouchBar *GetTouchBar() const { return touchBar.get(); }
+        std::unique_ptr<ColorPanelTouchBar> touchBar;
+#endif
 private:
         std::string GetCurrentPalette() const;
         wxString FindPaletteFile(const wxString& filename, const wxString& palette) const;
@@ -204,7 +210,6 @@ public:
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
         std::map<int, std::string> lastColors;
-        ColorPanelTouchBar *touchBar;
 
 		DECLARE_EVENT_TABLE()
 

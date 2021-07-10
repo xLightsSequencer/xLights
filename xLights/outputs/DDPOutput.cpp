@@ -262,56 +262,115 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
 void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
 
-    uint8_t packet[DDP_DISCOVERPACKET_LEN];
-    memset(&packet, 0x00, sizeof(packet));
-
-    packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
-    packet[3] = DDP_ID_CONFIG;
-    
     discovery.AddBroadcast(DDP_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *response, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (response[0] & DDP_FLAGS1_QUERY) {
             //getting my own QUERY request, ignore
             return;
         }
-        if (response[3] == DDP_ID_CONFIG) {
-            logger_base.debug(" Valid response.");
+        if (response[3] == DDP_ID_STATUS) {
+            logger_base.debug(" Valid DDP Status Response.");
             logger_base.debug((const char*)&response[10]);
 
             wxIPV4address add;
             socket->GetPeer(add);
-            auto ip = add.IPAddress();
+            std::string ip = add.IPAddress();
+            DiscoveredData *dd = discovery.FindByIp(ip);
+            if (dd == nullptr) {
+                ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
+                controller->SetProtocol(OUTPUT_DDP);
+                logger_base.debug("   IP %s", (const char*)ip.c_str());
+                controller->SetIP(ip);
+                controller->SetId(1);
+                controller->EnsureUniqueId();
+                controller->SetName("DDP_" + ip);
+                dd = discovery.AddController(controller);
+            }
+            ControllerEthernet* controller = dd->controller;
 
-            ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
-            controller->SetProtocol(OUTPUT_DDP);
+            wxJSONReader reader;
+            wxJSONValue val;
+            reader.Parse(wxString(&response[10]), &val);
+            if (val.HasMember("status")) {
+                std::string name = "";
+                if (val["status"].HasMember("man")) {
+                    name = val["status"]["man"].AsString().ToStdString();
+                    dd->SetVendor(name);
+                }
+                if (val["status"].HasMember("mod")) {
+                    if (name != "") {
+                        name += "-";
+                    }
+                    name += val["status"]["mod"].AsString().ToStdString();
+                    dd->SetModel(val["status"]["mod"].AsString().ToStdString());
+                }
+                if (val["status"].HasMember("ver")) {
+                    if (name != "") {
+                        name += "-";
+                    }
+                    name += val["status"]["ver"].AsString().ToStdString();
+                    dd->version = val["status"]["ver"].AsString().ToStdString();
+                }
+                dd->description = name;
+                controller->SetDescription(name);
+            }
 
-            logger_base.debug("   IP %s", (const char*)ip.c_str());
-            controller->SetIP(ip);
-            controller->SetName("DDP_" + ip);
-            controller->SetId(1);
-            controller->EnsureUniqueId();
+            uint8_t packet[DDP_DISCOVERPACKET_LEN];
+            memset(&packet, 0x00, sizeof(packet));
+            packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
+            packet[3] = DDP_ID_CONFIG;
+            // send a unicast CONFIG request in case it doesn't respond to config
+            // on the broadcast
+            discovery.SendData(DDP_PORT, ip, packet, DDP_DISCOVERPACKET_LEN);
+        } else if (response[3] == DDP_ID_CONFIG) {
+            logger_base.debug(" Valid DDP Config Response.");
+            logger_base.debug((const char*)&response[10]);
+
+            wxIPV4address add;
+            socket->GetPeer(add);
+            std::string ip = add.IPAddress();
+            DiscoveredData *dd = discovery.FindByIp(ip);
+            if (dd == nullptr) {
+                ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
+                controller->SetProtocol(OUTPUT_DDP);
+                logger_base.debug("   IP %s", (const char*)ip.c_str());
+                controller->SetIP(ip);
+                controller->SetId(1);
+                controller->EnsureUniqueId();
+                controller->SetName("DDP_" + ip);
+                dd = discovery.AddController(controller);
+            }
+            ControllerEthernet* controller = dd->controller;
 
             wxJSONReader reader;
             wxJSONValue val;
             reader.Parse(wxString(&response[10]), &val);
 
-            int channels = 0;
-            auto ports = val["config"]["ports"].AsArray();
-            for (int i = 0; i < ports->Count(); i++)                                 {
-                auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
-                auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
-                channels += ts * l * 3;
+            if (val.HasMember("config") && val["config"].HasMember("ports")) {
+                int channels = 0;
+                auto ports = val["config"]["ports"].AsArray();
+                for (int i = 0; i < ports->Count(); i++)                                 {
+                    auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
+                    auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
+                    channels += ts * l * 3;
+                }
+                controller->GetOutputs().front()->SetChannels(channels);
+            } else {
+                controller->GetOutputs().front()->SetChannels(512);
             }
-            controller->GetOutputs().front()->SetChannels(channels);
-
-            logger_base.info("DDP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
-
-            discovery.AddController(controller);
         } else {
             // non discovery response packet
             logger_base.info("DDP Discovery strange packet received.");
         }
     });
+
+    uint8_t packet[DDP_DISCOVERPACKET_LEN];
+    memset(&packet, 0x00, sizeof(packet));
+    packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
+    packet[3] = DDP_ID_STATUS;
+    discovery.SendBroadcastData(DDP_PORT, packet, DDP_DISCOVERPACKET_LEN);
+    packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
+    packet[3] = DDP_ID_CONFIG;
     discovery.SendBroadcastData(DDP_PORT, packet, DDP_DISCOVERPACKET_LEN);
 }
 #pragma endregion

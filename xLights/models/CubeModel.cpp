@@ -1024,6 +1024,7 @@ void CubeModel::ExportXlightsModel()
     f.Write(wxString::Format("Style=\"%s\" ", s2));
     f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
     f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString groups = SerialiseGroups();
     if (groups != "") {
@@ -1111,6 +1112,7 @@ void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
 
+            ImportSuperStringColours(root);
             ImportModelChildren(root, xlights, newname);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
@@ -1237,7 +1239,7 @@ void CubeModel::ExportAsCustomXModel() const {
             for (int c = 0; c < width; c++)
             {
                 if (rr != "") rr += ",";
-                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l));
+                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l) + 1);
             }
             ll += rr;
         }
@@ -1281,6 +1283,7 @@ void CubeModel::ExportAsCustomXModel() const {
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString groups = SerialiseGroups();
     if (groups != "")         {

@@ -164,25 +164,62 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     packet[6] = 't';
     packet[9] = 0x20;
     packet[11] = 0x0E; // Protocol version Low
-    packet[12] = 0x02;
-    packet[13] = 0xe0; //Critical messages Only
+    packet[12] = 0x10;
+    packet[13] = 0x00; //Critical messages Only
 
     discovery.AddBroadcast(ARTNET_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
-            logger_base.debug(" Valid response.");
+            logger_base.debug(" ArtNET Valid response.");
             uint32_t channels = 512;
 
-            ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
-            c->SetProtocol(OUTPUT_ARTNET);
-            c->SetName(std::string((char*)& buffer[26]));
-            ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
-            o->SetChannels(channels);
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-            c->SetIP(ip.ToStdString());
 
-            logger_base.info("ArtNet Discovery adding controller %s.", (const char*)c->GetIP().c_str());
-            discovery.AddController(c);
+            // We cant use Get IP as controller may have responded to multiple discovery requests
+            ControllerEthernet* existing = nullptr;
+            for (const auto& it : discovery.GetResults())                 {
+                if (it->ip == ip && it->controller->GetProtocol() == OUTPUT_ARTNET && it->controller->GetName() == std::string((char*)&buffer[26]))                     {
+                    existing = it->controller;
+                }
+            }
+
+            if (existing != nullptr) {
+                // a second response from this controller
+                for (uint8_t i = 0; i < 4; i++) {
+                    if ((buffer[174 + i] & 0x80) != 0) {
+                        // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
+                        // where due to network pathing we see controllers more than once.
+                        int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
+                        if (u == existing->GetOutputs().back()->GetUniverse() + 1) {
+                            existing->AddOutput();
+                            logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                        }
+                    }
+                }
+            }
+            else {
+                logger_base.info("ArtNET Discovery adding controller %s.", (const char*)ip.c_str());
+                ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
+                c->SetProtocol(OUTPUT_ARTNET);
+                c->SetName(std::string((char*)&buffer[26]));
+                ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
+                o->SetUniverse(GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]));
+                for (uint8_t i = 1; i < 4; i++)                     {
+                    if ((buffer[174+i] & 0x80) != 0)                         {
+                        // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
+                        // where due to network pathing we see controllers more than once.
+                        int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
+                        if (u == c->GetOutputs().back()->GetUniverse() + 1) {
+                            c->AddOutput();
+                            logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                        }
+                    }
+                }
+                o->SetChannels(channels);
+                c->SetIP(ip.ToStdString());
+
+                discovery.AddController(c);
+            }
         } else {
             // non discovery response packet
             logger_base.info("ArtNet Discovery strange packet received.");
@@ -254,8 +291,10 @@ bool ArtNetOutput::Open() {
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(ARTNET_PORT);
 
+    wxString ipAddr = _remoteAddr.IPAddress();
+
     // work out our broascast address
-    wxArrayString ipc = wxSplit(_ip.c_str(), '.');
+    wxArrayString ipc = wxSplit(ipAddr, '.');
     if (__ip1 == -1) {
         __ip1 = wxAtoi(ipc[0]);
         __ip2 = wxAtoi(ipc[1]);

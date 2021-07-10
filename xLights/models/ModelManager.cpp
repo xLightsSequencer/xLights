@@ -50,6 +50,7 @@
 #include "CheckboxSelectDialog.h"
 #include "Parallel.h"
 #include <log4cpp/Category.hh>
+#include "../Pixels.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -88,7 +89,7 @@ inline BaseObject *ModelManager::GetObject(const std::string &name) const {
 
 bool ModelManager::IsModelValid(const Model* m) const {
 
-    // we do this because it is a BaseObject recast as a Model so it clearly isnt a model and so we assume it is valid
+    // we do this because it is a BaseObject recast as a Model so it clearly isn't a model and so we assume it is valid
     if (m == nullptr) return true;
 
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
@@ -186,7 +187,7 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
 
     Model *model = GetModel(on);
     if (model == nullptr) return false;
-    
+
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     models.erase(models.find(on));
     models[nn] = model;
@@ -280,9 +281,9 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
 
     for (const auto& it : models)
     {
-        if (it.second->GetDisplayAs() != "ModelGroup" && 
-            it.second->GetControllerName() == controllerName && 
-            it.second->GetControllerPort() == port && 
+        if (it.second->GetDisplayAs() != "ModelGroup" &&
+            it.second->GetControllerName() == controllerName &&
+            it.second->GetControllerPort() == port &&
             it.second->GetControllerProtocol() == protocol &&
             it.second->GetLastChannel() > highestEndChannel && it.first != excludeModel)
         {
@@ -380,7 +381,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
     if (models.find(mgname) != models.end()) {
 
         if (ask) {
-            wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Aready Exists"), wxYES_NO);
+            wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Already Exists"), wxYES_NO);
             int returnCode = confirm.ShowModal();
             if (returnCode == wxID_YES)
                 merge = true;
@@ -395,11 +396,11 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                 for (const auto& it : mmg->ModelNames()) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/"))
-                    {//only add new submodel if the name matches an old submodel name, I dont understand why?
+                    {//only add new SubModel if the name matches an old SubModel name, I don't understand why?
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end())                             {
+                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end()) {
                             mmg->AddModel(mgmn);
                             found = true;
                         }
@@ -413,8 +414,8 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                 }
 
                 if (!found ) {
-                    //Add Submodel if not found with keiths way. 
-                    //I think it makes sence to add the model if the group is in the xmodel file.
+                    //Add SubModel if not found with keiths way.
+                    //I think it makes sense to add the model if the group is in the xmodel file.
                     const auto& newNames = wxSplit(grpModels, ',');
                     for (const auto& it : newNames) {
                         auto mmnmn = mmg->ModelNames();
@@ -540,7 +541,7 @@ bool ModelManager::RecalcStartChannels() const {
 
     if (countInvalid > 0) {
         DisplayStartChannelCalcWarning();
-    }  
+    }
     return changed;
 }
 
@@ -571,7 +572,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
     auto port = m->GetControllerPort();
     if (port == 0) return true; // we dont check these
-    
+
     auto chain = m->GetModelChain();
     if (StartsWith(chain, ">"))
     {
@@ -678,7 +679,7 @@ bool ModelManager::ReworkStartChannel() const
                 ) // we dont muck with unassigned models or no protocol models
             {
                 wxString cc;
-                if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
+                if (IsPixelProtocol(itm.second->GetControllerProtocol()))
                 {
                     cc = wxString::Format("%s:%02d:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote()).Lower();
                 }
@@ -864,7 +865,7 @@ bool ModelManager::ReworkStartChannel() const
                 else
                 {
                     // when chained the use next channel
-                    if (last != "" && itm->GetControllerDMXChannel() == 0 && 
+                    if (last != "" && itm->GetControllerDMXChannel() == 0 &&
                         (itm->GetModelChain() == last ||
                             itm->GetModelChain() == ">" + last))
                     {
@@ -908,10 +909,10 @@ bool ModelManager::ReworkStartChannel() const
         {
             if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
             {
-                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));                
-                
+                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
+
                 auto oldC = it->GetChannels();
-                // Set channel size wont always change the number of channels for some protocols
+                // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1));
                 if (it->GetChannels() != oldC) {
                     outputManager->SomethingChanged();
@@ -960,7 +961,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
         }
     }
 
-    // add in models and submodels
+    // add in models and SubModels
     for (const auto& it : models)
     {
         allModels.push_back(it.second->GetName());
@@ -1222,6 +1223,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("DisplayAs", "Tree 360");
         model = new TreeModel(node, *this, false);
     } else if (type == "Matrix") {
+        node->DeleteAttribute("StartSide");
+        node->AddAttribute("StartSide", "T");
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", "Horiz Matrix");
         node->DeleteAttribute("parm1");

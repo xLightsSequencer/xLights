@@ -158,7 +158,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	Slider_Chase_Rotations = new BulkEditSliderF1(Panel1, IDD_SLIDER_Chase_Rotations, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Rotations"));
+	Slider_Chase_Rotations = new BulkEditSliderF1(Panel1, IDD_SLIDER_Chase_Rotations, 10, 1, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Rotations"));
 	FlexGridSizer3->Add(Slider_Chase_Rotations, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Chase_Rotations = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Chase_Rotations, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Chase_Rotations"));
 	FlexGridSizer3->Add(BitmapButton_Chase_Rotations, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);

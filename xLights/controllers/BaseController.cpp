@@ -30,6 +30,7 @@
 #include "ESPixelStick.h"
 #include "SanDevices.h"
 #include "Minleon.h"
+#include "WLED.h"
 
 
 #pragma region Constructors and Destructors
@@ -75,6 +76,8 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy);
+    } else if (vendor == "WLED") {
+        bc = new WLED(ip, proxy);
     }
     return bc;
 }

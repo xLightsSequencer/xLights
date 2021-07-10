@@ -21,8 +21,10 @@
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
+class wxBoxSizer;
 class wxButton;
 class wxCheckBox;
+class wxChoice;
 class wxFlexGridSizer;
 class wxGrid;
 class wxGridEvent;
@@ -67,16 +69,17 @@ class SubModelTextDropTarget : public wxTextDropTarget
 
 class SubModelsDialog : public wxDialog
 {
-    class SubModelInfo {
-    public:
+    struct SubModelInfo {
         SubModelInfo() {}
         SubModelInfo(const wxString &n) : name(n), oldName(n) {}
         SubModelInfo(const SubModelInfo &n) : name(n.name), oldName(n.oldName),
-            vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer), strands(n.strands) {}
+            vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer),
+            bufferStyle(n.bufferStyle), strands(n.strands) {}
 
-        bool operator==(const SubModelInfo &n) const { 
-            return (name == n.name && oldName == n.oldName && vertical == n.vertical && 
-                isRanges == n.isRanges && subBuffer == n.subBuffer && strands == n.strands);
+        bool operator==(const SubModelInfo &n) const {
+            return (name == n.name && oldName == n.oldName && vertical == n.vertical &&
+                isRanges == n.isRanges && subBuffer == n.subBuffer &&
+                strands == n.strands && bufferStyle == n.bufferStyle);
         }
         bool operator!=(const SubModelInfo &n) const {
             return !(*this == n);
@@ -84,9 +87,10 @@ class SubModelsDialog : public wxDialog
 
         wxString name;
         wxString oldName;
-        bool vertical;
-        bool isRanges;
+        bool vertical{false};
+        bool isRanges{true};
         wxString subBuffer;
+        wxString bufferStyle{"Default"};
         std::vector<wxString> strands;
     };
 
@@ -128,6 +132,7 @@ public:
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
+    wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
     wxFlexGridSizer* SubBufferSizer;
     wxGrid* NodesGrid;
@@ -139,6 +144,7 @@ public:
     wxPanel* SubBufferPanelHolder;
     wxSplitterWindow* SplitterWindow1;
     wxStaticText* StaticText1;
+    wxStaticText* StaticText2;
     wxStaticText* StaticTextName;
     wxTextCtrl* TextCtrl_Name;
     //*)
@@ -157,10 +163,12 @@ protected:
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
+    static const long ID_STATICTEXT2;
+    static const long ID_CHOICE_BUFFER_STYLE;
     static const long ID_CHECKBOX1;
+    static const long ID_GRID1;
     static const long ID_BUTTON6;
     static const long ID_BUTTON8;
-    static const long ID_GRID1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON_MOVE_UP;
@@ -175,7 +183,7 @@ protected:
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
     //*)
-    
+
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
@@ -186,6 +194,8 @@ protected:
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
+    static const long SUBMODEL_DIALOG_JOIN;
+    static const long SUBMODEL_DIALOG_SORT_BY_NAME;
 
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
@@ -208,7 +218,7 @@ protected:
     void Select(const wxString &name);
     void SelectAll(const wxString &names);
     void UnSelectAll();
-    
+
     void Generate();
     void Shift();
     void FlipHorizontal();
@@ -226,6 +236,9 @@ protected:
     void ExportSubModels(wxString const& filename);
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
 
+    void JoinSelectedModels();
+    void SortSubModelsByName();
+
 private:
 
     //(*Handlers(SubModelsDialog)
@@ -238,10 +251,8 @@ private:
     void OnAddRowButtonClick(wxCommandEvent& event);
     void OnDeleteRowButtonClick(wxCommandEvent& event);
     void OnSubBufferRangeChange(wxCommandEvent& event);
-    void OnNodesGridCellLeftClick(wxGridEvent& event);
     void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
     void OnNodesGridLabelLeftClick(wxGridEvent& event);
-    void OnButton_GenerateClick(wxCommandEvent& event);
     void OnButton_ReverseNodesClick(wxCommandEvent& event);
     void OnListCtrl_SubModelsItemSelect(wxListEvent& event);
     void OnListCtrl_SubModelsBeginDrag(wxListEvent& event);
@@ -260,6 +271,8 @@ private:
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_EditClick(wxCommandEvent& event);
     void OnButton_ExportClick(wxCommandEvent& event);
+    void OnListCtrl_SubModelsItemRClick(wxListEvent& event);
+    void OnChoiceBufferStyleSelect(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -267,10 +280,11 @@ private:
     void OnPreviewLeftDown(wxMouseEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
-    
+
     void OnImportBtnPopup(wxCommandEvent& event);
     void OnEditBtnPopup(wxCommandEvent& event);
     void OnExportBtnPopup(wxCommandEvent& event);
+    void OnListPopup(wxCommandEvent& event);
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);

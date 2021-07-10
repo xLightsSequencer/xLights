@@ -408,6 +408,12 @@ bool ControllerCaps::SupportsPixelPortNullPixels() const {
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
 }
 
+bool ControllerCaps::SupportsPixelPortEndNullPixels() const
+{
+
+    return DoesXmlNodeExist(_config, "SupportsPixelPortEndNullPixels");
+}
+
 bool ControllerCaps::SupportsPixelPortDirection() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortDirection");
@@ -431,6 +437,12 @@ bool ControllerCaps::SupportsPixelPortCommonSettings() const {
 int ControllerCaps::GetMaxInputE131Universes() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));
+}
+
+int ControllerCaps::GetSmartRemoteCount() const
+{
+
+    return wxAtoi(GetXmlNodeContent(_config, "SupportsSmartRemotes"));
 }
 
 int ControllerCaps::GetMaxPixelPort() const {
@@ -506,25 +518,26 @@ bool ControllerCaps::IsSerialController() const
     return (!IsValidInputProtocol("e131") && !IsValidInputProtocol("artnet") && !IsValidInputProtocol("ddp") && !IsValidInputProtocol("zcpp") && !IsValidInputProtocol("xxx ethernet") && !IsValidInputProtocol("opc") && !IsValidInputProtocol("kinet"));
 }
 
-std::list<std::string> ControllerCaps::GetInputProtocols() const {
+std::vector<std::string> ControllerCaps::GetInputProtocols() const {
 
     return GetXmlNodeListContent(_config, "InputProtocols", "Protocol");
 }
 
-std::list<std::string> ControllerCaps::GetPixelProtocols() const {
+std::vector<std::string> ControllerCaps::GetPixelProtocols() const {
 
     return GetXmlNodeListContent(_config, "PixelProtocols", "Protocol");
 }
 
-std::list<std::string> ControllerCaps::GetSerialProtocols() const {
+std::vector<std::string> ControllerCaps::GetSerialProtocols() const {
 
     return GetXmlNodeListContent(_config, "SerialProtocols", "Protocol");
 }
 
-std::list<std::string> ControllerCaps::GetAllProtocols() const
+std::vector<std::string> ControllerCaps::GetAllProtocols() const
 {
-    std::list<std::string> res = GetPixelProtocols();
-	res.splice(res.end(), GetSerialProtocols());
+    std::vector<std::string> res = GetPixelProtocols();
+    auto serial = GetSerialProtocols();
+    res.insert(end(res), begin(serial), end(serial));
     return res;
 }
 

@@ -604,10 +604,6 @@ namespace
    }
 
    // code for pinwheel transition
-   double sign( double v )
-   {
-      return ( v == 0. ) ? 0. : ( ( v < 0. ) ? -1. : 1. );
-   }
    xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double wheelAdjust )
    {
       double x = s - 0.5;
@@ -686,8 +682,6 @@ namespace
    namespace SwapTransitionCode
    {
       double reflection = 0.4f;
-      double perspective = 0.2f;
-      double depth = 3.f;
 
       const Vec2D boundMin( 0.0, 0.0 );
       const Vec2D boundMax( 1.0, 1.0 );
@@ -813,7 +807,7 @@ namespace
          originalLength = texCentered.Len();
 
       Vec2D originalLocation( Vec2D( 0.5, 0.5 )  + originalLength * Vec2D( RenderBuffer::cos( ang ), RenderBuffer::sin( ang ) ) );
-      Vec2D ol( texCentered / (progress + 1. ) + Vec2D( 0.5, 0.5 ) );
+      //Vec2D ol( texCentered / (progress + 1. ) + Vec2D( 0.5, 0.5 ) );
       Vec2D originalShard( ShatterTransitionCode::voronoi( num * originalLocation ) );
       Vec2D originalCenter( originalShard.x / num, originalShard.y / num );
       double ca = std::atan2( originalCenter.y - 0.5, originalCenter.x - 0.5 );
@@ -1088,12 +1082,22 @@ static std::map<std::string, MixTypes> MixTypesMap = {
     {"Normal", Mix_Normal},
     {"Additive", Mix_Additive},
     {"Subtractive", Mix_Subtractive},
+    {"Brightness", Mix_AsBrightness},
     {"Average", Mix_Average},
     {"Bottom-Top", Mix_BottomTop},
     {"Left-Right", Mix_LeftRight},
     {"Max", Mix_Max},
     {"Min", Mix_Min}
 };
+
+std::vector<std::string> PixelBufferClass::GetMixTypes()
+{
+    std::vector <std::string> res;
+    for (const auto& it : MixTypesMap) {
+        res.push_back(it.first);
+    }
+    return res;
+}
 
 // convert MixName to MixType enum
 void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
@@ -1350,6 +1354,14 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             int b = std::max(fg.blue, bg.blue);
             bg.Set(r, g, b);
         }
+        break;
+    case Mix_AsBrightness:
+        {
+        int r = fg.red * bg.red / 255;
+        int g = fg.green *  bg.green / 255;
+        int b = fg.blue * bg.blue / 255;
+        bg.Set(r, g, b);
+    }
         break;
     }
 }

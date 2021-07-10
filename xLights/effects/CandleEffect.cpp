@@ -124,7 +124,7 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
         flame++;
     }
 
-    //Depending on the wind strength and the calmnes modifer we calcuate the odds
+    //Depending on the wind strength and the calmness modifier we calculate the odds
     //of the wind knocking down the flame by setting it to random values
     if (wxByte(rand01() * 255) < (wind >> windCalmness)) {
         flame = wxByte(rand01() * 255);

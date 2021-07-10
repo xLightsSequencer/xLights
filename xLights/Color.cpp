@@ -377,3 +377,26 @@ int xlColor::Brightness() const
 {
     return std::max((int)red, std::max((int)blue, (int)green)) * (int)alpha / 255;
 }
+
+
+inline float GetSRGB(float r) {
+    r /= 255.0f;
+    return r <= 0.03928f ? r / 12.92f : std::pow((r + 0.055f) / 1.055f, 2.4f);
+}
+inline float GetRelativeLuminance(const xlColor& c) {
+    // based on https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+    return
+        0.2126f * GetSRGB(c.red) +
+        0.7152f * GetSRGB(c.green) +
+        0.0722f * GetSRGB(c.blue);
+}
+inline float GetColourContrast(const xlColor& c1, const xlColor& c2) {
+    // based on https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast7.html
+    float L1 = GetRelativeLuminance(c1);
+    float L2 = GetRelativeLuminance(c2);
+    return L1 > L2 ? (L1 + 0.05f) / (L2 + 0.05f) : (L2 + 0.05f) / (L1 + 0.05f);
+}
+
+bool xlColor::HasSufficientContrast(const xlColor& bg) const {
+    return GetColourContrast(bg, *this) >= 4.5f;
+}

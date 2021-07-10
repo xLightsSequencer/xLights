@@ -135,6 +135,10 @@ public:
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);
     void DisableRenderEffects(bool disable);
+    int GetDropRow() const { 
+        if (mDragDropping) return mDropRow; 
+        return -1;
+    }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;

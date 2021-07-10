@@ -20,8 +20,8 @@
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
-#include "../xLightsMain.h"
-#include "../osxMacUtils.h"
+#include "ExternalHooks.h"
+#include "xLightsMain.h"
 
 #include <log4cpp/Category.hh>
 
@@ -53,6 +53,11 @@ MeshObject::~MeshObject()
 
 void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
+    if (_objFile != ModelXml->GetAttribute("ObjFile", ""))     {
+        ModelXml->DeleteAttribute("ObjFile");
+        ModelXml->AddAttribute("ObjFile", _objFile);
+    }
+
     checkAccessToFile(_objFile);
     mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
 

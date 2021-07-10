@@ -15,6 +15,7 @@
 
 #include <wx/stdpaths.h>
 #include <wx/config.h>
+#include <wx/version.h>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -27,7 +28,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
-#include "osxMacUtils.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -65,7 +66,7 @@
     #pragma comment(lib, "msvcprtd.lib")
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
-#else   
+#else
     #pragma comment(lib, "wxbase31u.lib")
     #pragma comment(lib, "wxbase31u_net.lib")
     #pragma comment(lib, "wxmsw31u_core.lib")
@@ -99,7 +100,7 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
-#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
@@ -257,6 +258,8 @@ void DumpConfig()
     logger_base.info(versionStr);
     logger_base.info("Bits: " + std::string(GetBitness().c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
+    logger_base.info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
+
     logger_base.info("Machine configuration:");
     logger_base.info("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
     wxMemorySize s = wxGetFreeMemory();
@@ -292,6 +295,8 @@ void DumpConfig()
     {
         logger_base.info("      Big Endian");
     }
+    logger_base.info("  CPU Arch: " + std::string(wxGetCpuArchitectureName().c_str()));
+
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
     logger_base.info("  " + std::string(l.Id.c_str()) \
@@ -322,7 +327,7 @@ int main(int argc, char **argv)
     XInitThreads();
 #endif
     wxDISABLE_DEBUG_SUPPORT();
-    
+
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
     logger_base.info("Main: Starting wxWidgets ...");
@@ -510,6 +515,13 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
 
     // if we are in here a second time ... just return
     if (inHere) return;
+    
+#ifdef __WXOSX__
+    wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
+                 "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
+                 "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
+                 "This provides more information to the xLights developers than just our normal crash logs.");
+#endif
 
     inHere = true;
 
@@ -579,7 +591,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     wxString fileName = fileNames[0];
     logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
     ObtainAccessToURL(fileName);
-    
+
     wxString showDir = wxPathOnly(fileName);
     while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
         auto old = showDir;
@@ -634,7 +646,7 @@ bool SetupFatalExceptionHandlers() {
         ok &= sigaction(SIGILL, &act, &s_handlerILL) == 0;
         ok &= sigaction(SIGBUS, &act, &s_handlerBUS) == 0;
         ok &= sigaction(SIGSEGV, &act, &s_handlerSEGV) == 0;
-        
+
         if (!ok) {
             wxLogDebug(wxT("Failed to install our signal handler."));
         }
@@ -665,11 +677,17 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
+#if wxUSE_GLCANVAS_EGL
+    // this is only needed if using the EGL canvas as it's necessary to initialize the
+    // GL attributes and pixel formats.  Likely a bug in the EGL implementation,
+    // but not really sure.   In anycase, it's not needed on any of our "normal"
+    // platforms.  It's only needed if building on an EGL based Linux distribution.
     wxGLApp::OnInit();
-    
+#endif
+
     wxTheApp->SetAppName("xLights");
     DumpConfig();
-    
+
     int id = (int)wxThread::GetCurrentId();
     logger_base.info("Main thread id: 0x%X or %i", id, id);
 

@@ -10,6 +10,7 @@
 
 #include "wx/wx.h"
 
+
 #ifndef __WXMAC__
 #include <GL/gl.h>
 #ifdef _MSC_VER
@@ -21,6 +22,8 @@
 #include "xlGLCanvas.h"
 
 #include <memory>
+#include <iostream>
+#include <string>
 
 extern PFNGLCREATESHADERPROC      glCreateShader;
 extern PFNGLSHADERSOURCEPROC      glShaderSource;
@@ -85,6 +88,7 @@ static bool canUseFramebufferObjects()
 }
 #endif
 
+#include "UtilFunctions.h"
 #include "OpenGLShaders.h"
 #include "DrawGLUtils.h"
 #include <log4cpp/Category.hh>
@@ -152,6 +156,24 @@ bool OpenGLShaders::HasFramebufferObjects()
    return canUseFramebufferObjects();
 }
 
+std::string OpenGLShaders::PrepareShaderCodeForLogging(const std::string& code)
+{
+    std::string res = "\n";
+
+    std::istringstream reader(code);
+
+    int line = 1;
+    char buffer[4096];
+    do {
+        reader.getline(buffer, sizeof(buffer));
+        res += wxString::Format("%04d: %s\n", line++, buffer);
+    } while (!reader.eof());
+
+    Replace(res, "\r", "");
+
+    return res;
+}
+
 unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
 {
     AddTraceMessage("In vshader compile");
@@ -184,7 +206,8 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
         LOG_GL_ERRORV(glDeleteShader(fragmentShader));
 
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-        logger_opengl.error("%s", (const char*)fragmentSource.c_str());
+
+        logger_opengl.error("%s", (const char*)PrepareShaderCodeForLogging(fragmentSource).c_str());
         return 0;
     }
     AddTraceMessage("Compile successful");

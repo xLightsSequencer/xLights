@@ -10,8 +10,8 @@
 
 #include "TextPanel.h"
 #include "EffectPanelUtils.h"
+#include "ExternalHooks.h"
 #include "../FontManager.h"
-#include "../osxMacUtils.h"
 
 //(*InternalHeaders(TextPanel)
 #include <wx/artprov.h>

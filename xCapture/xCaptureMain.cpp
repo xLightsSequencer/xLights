@@ -19,7 +19,6 @@
 #include <wx/filename.h>
 #include "../xLights/xLightsVersion.h"
 #include <wx/debugrpt.h>
-#include "../xLights/osxMacUtils.h"
 #include <wx/protocol/http.h>
 #include "UniverseEntryDialog.h"
 #include <wx/filedlg.h>

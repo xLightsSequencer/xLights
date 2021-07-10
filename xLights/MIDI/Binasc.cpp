@@ -762,7 +762,6 @@ int Binasc::readMidiEvent(ostream& out, istream& infile, int& trackbytes,
             case 0xfe:
                cerr << "Error command not yet handled" << endl;
                return 0;
-               break;
             case 0xff:  // meta message
                {
                metatype = ch;
@@ -1279,7 +1278,6 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
               writeLittleEndianFloat(out, floatOutput);
            }
            return 1;
-           break;
          case 8:
            if (endianIndex == -1) {
               writeBigEndianDouble(out, doubleOutput);
@@ -1287,7 +1285,6 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
               writeLittleEndianDouble(out, doubleOutput);
            }
            return 1;
-           break;
          default:
             cerr << "Error on line " << lineNum << " at token: " << word
                  << endl;
@@ -1341,7 +1338,6 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
             out << ucharOutput;
             return 1;
          }
-         break;
       case 2:
          if (signIndex != -1) {
             long tempLong = atoi(&word[quoteIndex + 1]);
@@ -1362,7 +1358,6 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
             }
             return 1;
          }
-         break;
       case 3:
          {
          if (signIndex != -1) {
@@ -1387,7 +1382,6 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
          }
          return 1;
          }
-         break;
       case 4:
          if (signIndex != -1) {
             long tempLong = atoi(&word[quoteIndex + 1]);
@@ -1406,15 +1400,13 @@ int Binasc::processDecimalWord(ostream& out, const string& word, int lineNum) {
             }
             return 1;
          }
-         break;
       default:
-         cerr << "Error on line " << lineNum << " at token: " << word
-              << endl;
-         cerr << "invalid byte count specification for decimal number" << endl;
-         return 0;
+         break;
    }
-
-   return 1;
+    cerr << "Error on line " << lineNum << " at token: " << word
+         << endl;
+    cerr << "invalid byte count specification for decimal number" << endl;
+    return 0;
 }
 
 

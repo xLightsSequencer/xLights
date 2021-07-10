@@ -95,7 +95,7 @@ public:
 
     static PathDrawingContext* GetContext();
     static void ReleaseContext(PathDrawingContext* pdc);
-    
+
     virtual void Clear() override;
 
     void SetPen(wxPen& pen);
@@ -109,7 +109,7 @@ class TextDrawingContext : public DrawingContext {
 public:
     TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
     virtual ~TextDrawingContext();
-    
+
     static TextDrawingContext* GetContext();
     static void ReleaseContext(TextDrawingContext* pdc);
 
@@ -423,7 +423,7 @@ public:
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
     void CopyNodeColorsToPixels(std::vector<bool> &done);
-    
+
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
 
@@ -444,7 +444,7 @@ public:
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
 
-    //aproximation of sin/cos, but much faster
+    //approximation of sin/cos, but much faster
     static float sin(float rad);
     static float cos(float rad);
     static float cot(float rad) { return cos(rad) / sin(rad); }

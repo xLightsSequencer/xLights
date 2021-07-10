@@ -792,7 +792,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
             }
             // remove any weird nodes
-            for (const auto& it : toremove)                 {
+            for (const auto& it : toremove) {
                 e->RemoveChild(it);
             }
         }

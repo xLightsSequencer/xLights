@@ -15,7 +15,8 @@
 #include <wx/filename.h>
 
 #include "../../ResizeImageDialog.h"
-#include "../../osxMacUtils.h"
+
+#include "ExternalHooks.h"
 #include "UtilFunctions.h"
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";

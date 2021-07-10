@@ -16,7 +16,7 @@ QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.c
 
 SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
-WXWIDGETS_TAG=xlights_2021.02
+WXWIDGETS_TAG=xlights_2021.13
 
 .NOTPARALLEL:
 
@@ -61,12 +61,11 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.5"; \
+	@if test "`wx-config --version`" != "3.1.6"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
-			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/dkulp/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
+			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
-		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
 		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
@@ -118,10 +117,10 @@ install:
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
-	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-6.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/16x16/apps/xschedule.png
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-9.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
-	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
+	$(foreach size, $(ICON_SIZES), install -D -m 644 images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	install -D -m 644 images/xLightsIcons/16x16.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/16x16/apps/xschedule.png
+	install -D -m 644 images/xLightsIcons/32x32.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
+	install -D -m 644 images/xLightsIcons/256x256.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
 	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so

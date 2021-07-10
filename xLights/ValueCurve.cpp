@@ -509,9 +509,9 @@ void ValueCurve::Reverse()
 
     if (_type == "Custom")
     {
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        for (auto& it : _values)
         {
-            it->x = 1.0 - it->x;
+            it.x = 1.0 - it.x;
         }
     }
     else if (_type == "Ramp")
@@ -584,9 +584,9 @@ void ValueCurve::Flip()
 {
     if (_type == "Custom")
     {
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        for (auto& it : _values)
         {
-            it->y = 1.0 - it->y;
+            it.y = 1.0 - it.y;
         }
     }
     else if (_type == "Ramp" || _type == "Saw Tooth" || _type == "Square" || _type == "Random")
@@ -788,10 +788,12 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     {
         wxASSERT(_min != MINVOIDF);
         wxASSERT(_max != MAXVOIDF);
-
-        for (auto it = _values.begin(); it != _values.end(); ++it)
+        //old max of 10, 1.0 = 10 
+        //new max of 20, 0.5 = 10 
+        //y = y * 0.5 or 10/20 i.e. old range/new range
+        for (auto& it : _values)
         {
-            it->y = it->y * newrange / oldrange;
+            it.y = it.y * oldrange / newrange;
         }
     }
 }
@@ -1956,7 +1958,7 @@ void ValueCurve::RemoveExcessCustomPoints()
     {
         if (it1->y == it2->y && it2->y == it3->y)
         {
-            _values.remove(*it2);
+            _values.erase(it2);
             it2 = it1;
             ++it2;
             it3 = it2;

@@ -30,6 +30,7 @@
 #include "ConvertLogDialog.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "models/ModelGroup.h"
 #include "HousePreviewPanel.h"
 #include "FontManager.h"
@@ -38,6 +39,7 @@
 #include "ViewsModelsPanel.h"
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
+#include "SelectPanel.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -49,7 +51,6 @@
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
 #include "Vixen3.h"
-#include "osxMacUtils.h"
 #include "SequencePackage.h"
 
 #include <log4cpp/Category.hh>
@@ -236,7 +237,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         if (wxFileName(filename).GetExt().Lower() == "xbkp")
         {
-            wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xml file overwriting any existing sequence .xml file", "Warning");
+            wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xsq file overwriting any existing sequence .xsq file", "Warning");
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
@@ -653,6 +654,9 @@ bool xLightsFrame::CloseSequence()
 
     SetPanelSequencerLabel("");
 
+    if (_selectPanel) {
+        _selectPanel->ClearData();
+    }
     mainSequencer->PanelEffectGrid->ClearSelection();
     mainSequencer->PanelWaveForm->CloseMedia();
     _seqData.init(0, 0, 50);
@@ -678,15 +682,9 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 // Returns true if file exists and was read successfully
 bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
-    // I dont this is necessary and explains why fseq open stopped workin
-    //if( xml_file.IsOpen() )
-    //{
-        LoadSequencer(xml_file);
-        xml_file.SetSequenceLoaded(true);
-        return true;
-    //}
-
-    return false;
+    LoadSequencer(xml_file);
+    xml_file.SetSequenceLoaded(true);
+    return true;
 }
 
 void xLightsFrame::ClearSequenceData()
@@ -1218,6 +1216,8 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
+    } else {
+        xsqPkg.FindRGBEffectsFile();
     }
     
     if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
@@ -1259,36 +1259,35 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
 
 // backwards compatible for tabSequencer call
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
-                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
-    SequencePackage xsqPkg(filename, this);
-    ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
+bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
+SequencePackage xsqPkg(filename, this);
+ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
-void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-                                                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::map<std::string, EffectLayer *> layerMap;
-    std::map<std::string, Element *>elementMap;
+void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
+    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::map<std::string, EffectLayer*> layerMap;
+    std::map<std::string, Element*>elementMap;
     xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
-    if(showModelBlending)
+    if (showModelBlending) {
         dlg.SetModelBlending(modelBlending);
-    
-    if (xsqPkg.IsPkg()) {
-        dlg.SetXsqPkg(&xsqPkg);
     }
-    
-    std::vector<EffectLayer *> mapped;
+
+    dlg.SetXsqPkg(&xsqPkg);
+
+    std::vector<EffectLayer*> mapped;
     std::vector<std::string> timingTrackNames;
     std::map<std::string, bool> timingTrackAlreadyExists;
     std::map<std::string, TimingElement*> timingTracks;
 
     for (const auto& it : elements) {
-        Element *e = it;
-        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
-        {
-            ModelElement *el = dynamic_cast<ModelElement*>(e);
+        Element* e = it;
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)         {
+            ModelElement* el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
             for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
@@ -1299,9 +1298,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             elementMap[el->GetName()] = el;
             int s = 0;
             for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
-                SubModelElement *sme = el->GetSubModel(sm);
+                SubModelElement* sme = el->GetSubModel(sm);
 
-                StrandElement *ste = dynamic_cast<StrandElement *>(sme);
+                StrandElement* ste = dynamic_cast<StrandElement*>(sme);
                 std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     s++;
@@ -1315,7 +1314,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
-                        NodeLayer *nl = ste->GetNodeLayer(n, true);
+                        NodeLayer* nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
                             if (nodeName == "") {
@@ -1327,8 +1326,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     }
                 }
             }
-        } else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            TimingElement *tel = dynamic_cast<TimingElement*>(e);
+        }
+        else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            TimingElement* tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
                 bool hasEffects = false;
                 for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
@@ -1357,6 +1357,13 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     if (showModelBlending && dlg.GetImportModelBlending()) {
         CurrentSeqXmlFile->setSupportsModelBlending(modelBlending);
         GetSequenceElements().SetSupportsModelBlending(modelBlending);
+    }
+
+    // if the user is importing at least one timing element and the current sequence only has one timing track called New Timing with no timing marks in it ...
+    if (dlg.TimingTrackListBox->GetCount() > 0 && _sequenceElements.GetNumberOfTimingElements() == 1 && _sequenceElements.GetTimingElement("New Timing") != nullptr && !_sequenceElements.GetTimingElement("New Timing")->HasEffects())
+    {
+        // Delete the New Timing timing track
+        _sequenceElements.DeleteElement("New Timing");
     }
 
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
@@ -2978,7 +2985,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         if (se != nullptr) {
                             MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
-                        else                             {
+                        else {
                             logger_base.debug("LMS Import: Strand %d not found.", str);
                         }
                     }
@@ -2991,8 +2998,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                 s->_mapping,
                                 s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
-                        else                             {
-                            logger_base.debug("LMS Import: Submodel %d not found.", str);
+                        else {
+                            logger_base.debug("LMS Import: SubModel %d not found.", str);
                         }
                     }
                 }

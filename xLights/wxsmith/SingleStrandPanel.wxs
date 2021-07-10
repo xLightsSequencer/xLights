@@ -180,7 +180,7 @@
 											<object class="wxSlider" name="IDD_SLIDER_Chase_Rotations" subclass="BulkEditSliderF1" variable="Slider_Chase_Rotations" member="yes">
 												<value>10</value>
 												<min>1</min>
-												<max>200</max>
+												<max>500</max>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>

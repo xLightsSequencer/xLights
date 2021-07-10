@@ -24,11 +24,11 @@
 #include "models/ViewObject.h"
 #include "PreviewPane.h"
 #include "DrawGLUtils.h"
-#include "osxMacUtils.h"
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
 #include "models/ModelGroup.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1225,7 +1225,7 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
             // 3 or 4 draws the pixels first so they may have black bands around them and strong moire, but
             //      seems to work around some video card drivers that cause extreme banding
-            // 5 is the 2019.03 order, but floods will look aweful (black circles)
+            // 5 is the 2019.03 order, but floods will look awful (black circles)
             // 2 is the 2019.04 order, floods are OK, no transparent windows
             case 0:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);

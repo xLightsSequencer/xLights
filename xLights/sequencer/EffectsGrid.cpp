@@ -51,6 +51,7 @@
 #define EFFECT_RESIZE_MOVE                  3
 #define EFFECT_RESIZE_LEFT_EDGE             4
 #define EFFECT_RESIZE_RIGHT_EDGE            5
+#define TIMING_ALPHA (0x60)
 
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
 EVT_MOTION(EffectsGrid::mouseMoved)
@@ -190,7 +191,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
             (!mTimingPlayOnDClick && !event.ShiftDown())) {
             if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer()) {
-                    if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Varible Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
+                    if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Variable Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
                         TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
                         te->SetFixedTiming(0);
                     }
@@ -3434,7 +3435,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         }
     }
     else if (MultipleEffectsSelected()) {
-        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving mulitple effects.");
+        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
 
         // check if its clear for all effects
         bool all_clear = true;
@@ -5837,8 +5838,9 @@ void EffectsGrid::DrawEffects()
                 else {
                     highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
-                highlight_color.alpha = 128;
+                highlight_color.alpha = TIMING_ALPHA;
                 selectedBoxes.AddRect(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
+                mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
     }
@@ -5949,7 +5951,7 @@ void EffectsGrid::DrawTimingEffects(int row)
     bool fixed = element->IsFixedTiming();
 
     xlColor c(xlights->color_mgr.GetTimingColor(ri->colorIndex));
-    c.alpha = 128;
+    c.alpha = TIMING_ALPHA;
 
     int toffset = 0;
     float factor = translateToBacking(1.0);
@@ -6145,6 +6147,7 @@ void EffectsGrid::DrawSelectedCells()
 
              if( !xlights->IsACActive() ) {
                 xlColor highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+                highlight_color.alpha = TIMING_ALPHA;
                 LOG_GL_ERRORV(glEnable(GL_BLEND));
                 DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
                 LOG_GL_ERRORV(glDisable(GL_BLEND));

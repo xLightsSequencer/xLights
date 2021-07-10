@@ -19,6 +19,7 @@
 #include "UtilFunctions.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(ViewObjectPanel)
 #include <wx/intl.h>
@@ -187,18 +188,15 @@ int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
         return open ? Icon_FolderOpened : Icon_FolderClosed;
     } else {
         const std::string type = view_object->GetDisplayAs();
-        if( type == "Image" ) {
+        if (type == "Image") {
             return Icon_Image;
         } else if( type == "Poly Line" ) {
             return Icon_Poly;
-        } else {
-            return Icon_File;
         }
     }
-    return 0;
+    return Icon_File;
 }
 
-#include <log4cpp/Category.hh>
 
 int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     int width = 0;
@@ -274,7 +272,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
 
     if (full_refresh) {
         int width = 0;
-        //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
+        //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewObjects->SetColumnWidth(0, 10);
         //turn off the sorting as that is ALSO really slow
         TreeListViewObjects->SetItemComparator(nullptr);
@@ -284,7 +282,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
             TreeListViewObjects->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
         }
 
-        //delete all items will atempt to resort as each item is deleted, however, our Model pointers
+        //delete all items will attempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewObjects->GetFirstItem();
         std::list<std::string> expanded;

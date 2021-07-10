@@ -43,12 +43,12 @@
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "MatrixFaceDownloadDialog.h"
 #include "xLightsMain.h"
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
 #include "xLightsApp.h"
-#include "osxMacUtils.h"
 #include "support/VectorMath.h"
 
 #include <log4cpp/Category.hh>
@@ -1126,8 +1126,12 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (!wxFile::Exists(filename))
                 {
+                    logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                     wxFileOutputStream fout(filename);
                     zin.Read(fout);
+                }
+                if (!wxFile::Exists(filename))                     {
+                    logger_base.error("File extract failed.");
                 }
                 ent = zin.GetNextEntry();
             }
@@ -1135,9 +1139,9 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
 
             bool error = false;
-            for (auto it = files.begin(); it != files.end(); ++it)
+            for (const auto& it : files)
             {
-                wxFileName fn(*it);
+                wxFileName fn(it);
                 wxString basefn = fn.GetName().Lower();
                 bool eyesclosed = false;
                 if (basefn.EndsWith("_eo"))
@@ -1155,14 +1159,14 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (phoneme == "" || !IsValidPhoneme(phoneme))
                 {
-                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it->c_str());
+                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
                     error = true;
                 }
                 else
                 {
                     std::string key = "Mouth-" + phoneme + "-" + (eyesclosed ? "EyesClosed" : "EyesOpen");
-                    faceData[name][key] = *it;
-                    MatrixModelsGrid->SetCellValue(GetRowForPhoneme(phoneme), (eyesclosed ? 1 : 0), *it);
+                    faceData[name][key] = it;
+                    MatrixModelsGrid->SetCellValue(GetRowForPhoneme(phoneme), (eyesclosed ? 1 : 0), it);
                 }
             }
 
@@ -1223,7 +1227,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 
     // don't offer a choice if there is nothing to choose
     if (choices.GetCount() == 0) {
-        wxMessageBox("No submodels found.");
+        wxMessageBox("No SubModels Found.");
         return;
     }
 
@@ -1297,7 +1301,7 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == FACES_DIALOG_IMPORT_FILE)
     {
-        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
 
         ImportFaces(filename);
@@ -1358,23 +1362,22 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
     {
         wxXmlNode* root = doc.GetRoot();
         bool facesFound = false;
-        if (root->GetName() == "custommodel")
+
+        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
         {
-            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            if (n->GetName() == "faceInfo")
             {
-                if (n->GetName() == "faceInfo")
+                std::map<std::string, std::map<std::string, std::string> > faceInfo;
+                Model::ParseFaceInfo(n, faceInfo);
+                if (faceInfo.size() == 0)
                 {
-                    std::map<std::string, std::map<std::string, std::string> > faceInfo;
-                    Model::ParseFaceInfo(n, faceInfo);
-                    if (faceInfo.size() == 0)
-                    {
-                        continue;
-                    }
-                    facesFound = true;
-                    AddFaces(faceInfo);
+                    continue;
                 }
+                facesFound = true;
+                AddFaces(faceInfo);
             }
         }
+
         if (facesFound)
         {
             NameChoice->Enable();
@@ -1741,13 +1744,13 @@ void ModelFaceDialog::ShiftFaceNodes()
     if (name == "") {
         return;
     }
-    
+
     if (faceData[name]["Type"] != "NodeRange") {
         return;
     }
     long min = 0;
     long max = model->GetNodeCount();
-    
+
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
@@ -1765,11 +1768,11 @@ void ModelFaceDialog::ReverseFaceNodes()
     if (name == "") {
         return;
     }
-    
+
     if (faceData[name]["Type"] != "NodeRange") {
         return;
     }
-    
+
     long max = model->GetNodeCount() + 1;
 
     ReverseNodes(faceData[name], max);

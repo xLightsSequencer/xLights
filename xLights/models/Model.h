@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <tuple>
 
 #include "ModelScreenLocation.h"
 #include "../Color.h"
@@ -210,6 +211,11 @@ protected:
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string& rgbOrder);
     void CopyBufCoord2ScreenCoord();
 
+    bool FindCustomModelScale(int scale) const;
+
+    wxString ExportSuperStringColors() const;
+    void ImportSuperStringColours(wxXmlNode* root);
+
     void SetLineCoord();
     std::string GetNextName();
 
@@ -250,16 +256,8 @@ public:
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     static std::string DecodeSmartRemote(int sr);
 
-    static std::list<std::string> GetProtocols();
-    static std::list<std::string> GetLCProtocols();
-    static bool IsProtocolValid(std::string protocol);
-    static bool IsPixelProtocol(const std::string& protocol);
-    static bool IsSerialProtocol(const std::string& protocol);
-
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
-    bool IsPixelProtocol() const;
-    bool IsSerialProtocol() const;
     int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
@@ -278,12 +276,19 @@ public:
     int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
+    bool GetSRCascadeOnPort() const;
+    int GetSRMaxCascade() const;
+
+    void GetPortSR(int string, int& outport, int& outsr) const;
+    char GetSmartRemoteLetter() const;
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
+    void SetSRCascadeOnPort(bool cascade);
+    void SetSRMaxCascade(int max);
     void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model*>& GetSubModels() const { return subModels; }
@@ -293,6 +298,10 @@ public:
     Model* GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr; }
     void RemoveSubModel(const std::string& name);
     std::list<int> ParseFaceNodes(std::string channels);
+
+    bool IsPixelProtocol() const;
+    bool IsSerialProtocol() const;
+    static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 
     unsigned long GetChangeCount() const { return changeCount; }
 
@@ -362,6 +371,7 @@ public:
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
+    int32_t NodeEndChannel(size_t nodenum) const;
     const std::string& NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
 
@@ -390,6 +400,7 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts);
     void GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint>& pts);
+    void GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts);
 
     bool GetIsLtoR() const { return IsLtoR; }
     bool GetIsBtoT() const { return isBotToTop; }
@@ -467,7 +478,7 @@ public:
     size_t GetLayerSizesTotalNodes() const
     {
         size_t count = 0;
-        for (const auto it : layerSizes)             {
+        for (const auto it : layerSizes) {
             count += it;
         }
         return count;
@@ -477,10 +488,10 @@ public:
         if (GetLayerSizeCount() <= layer) return;
         auto layers = layerSizes;
         layerSizes.resize(0);
-        for (size_t i = 0; i < layer; i++)             {
+        for (size_t i = 0; i < layer; i++) {
             layerSizes.push_back(layers[i]);
         }
-        for (size_t i = layer + 1; i < layers.size(); i++)             {
+        for (size_t i = layer + 1; i < layers.size(); i++) {
             layerSizes.push_back(layers[i]);
         }
     }
@@ -488,7 +499,7 @@ public:
     {
         auto layers = layerSizes;
         layerSizes.resize(0);
-        for (size_t i = 0; i < layer; i++)             {
+        for (size_t i = 0; i < layer; i++) {
             layerSizes.push_back(layers[i]);
         }
         layerSizes.push_back(1);

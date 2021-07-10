@@ -27,6 +27,8 @@
 #include <wx/prntbase.h>
 #include <wx/msgdlg.h>
 
+#include "cad/DXFWriter.h"
+
 #include "WiringDialog.h"
 #include "models/Model.h"
 #include "UtilFunctions.h"
@@ -43,6 +45,7 @@ const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
 const long WiringDialog::ID_MNU_RESET = wxNewId();
 const long WiringDialog::ID_MNU_EXPORT = wxNewId();
 const long WiringDialog::ID_MNU_EXPORTLARGE = wxNewId();
+const long WiringDialog::ID_MNU_EXPORTDXF = wxNewId();
 const long WiringDialog::ID_MNU_PRINT = wxNewId();
 const long WiringDialog::ID_MNU_DARK = wxNewId();
 const long WiringDialog::ID_MNU_GRAY = wxNewId();
@@ -614,8 +617,8 @@ void WiringDialog::RotatePoints(int rotateBy) {
 
 WiringDialog::~WiringDialog()
 {
-	//(*Destroy(WiringDialog)
-	//*)
+    //(*Destroy(WiringDialog)
+    //*)
 }
 
 void WiringDialog::OnResize(wxSizeEvent& event)
@@ -631,6 +634,7 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
     mnuLayer.AppendSeparator();
     mnuLayer.Append(ID_MNU_EXPORT, "Export");
     mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
+    mnuLayer.Append(ID_MNU_EXPORTDXF, "Export as DXF");
     mnuLayer.Append(ID_MNU_PRINT, "Print");
     mnuLayer.AppendSeparator();
     auto dark = mnuLayer.Append(ID_MNU_DARK, "Dark", "", wxITEM_RADIO);
@@ -699,6 +703,10 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
             wxImage img = Render(4096, 2048).ConvertToImage();
             img.SaveFile(filename, wxBITMAP_TYPE_PNG);
         }
+    }
+    else if (id == ID_MNU_EXPORTDXF)
+    {
+        Export_DXF();
     }
     else if (id == ID_MNU_PRINT)
     {
@@ -907,4 +915,75 @@ void WiringDialog::LeftDClick(wxMouseEvent& event)
     _zoom = 1.0;
     _start = wxPoint(0, 0);
     Render();
+}
+
+void WiringDialog::Export_DXF()
+{
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _modelname + "_wiring", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename != "") {
+        DXFWriter dxfFile(filename.ToStdString());
+        if (!dxfFile.Open()) {
+            DisplayError("Unable to create file : " + filename);
+            return;
+        }
+        dxfFile.WriteHeader();
+
+        int minX = 0;
+        // draw the lines
+        for (auto itp = _points.begin(); itp != _points.end(); ++itp) {
+            int last = -10;
+            wxRealPoint lastpt = wxRealPoint(0.0, 0.0);
+
+            for (auto it = itp->second.begin(); it != itp->second.end(); ++it) {
+                int x = it->second.front().x;
+
+                int y = it->second.front().y ;
+
+                if (it->first == last + 1) {
+                    int lastx = (lastpt.x) ;
+
+                    int lasty = lastpt.y ;
+                    dxfFile.WriteWire(CADPoint( _start.x - lastx, _start.y - lasty, 0),
+                        CADPoint( _start.x - x,  _start.y - y, 0));
+                }
+
+                last = it->first;
+                lastpt = it->second.front();
+            }
+        }
+
+        // now the circles
+        for (auto itp = _points.begin(); itp != _points.end(); ++itp) {
+            for (auto it = itp->second.begin(); it != itp->second.end(); ++it) {
+                int x = it->second.front().x;
+                int y = it->second.front().y ;
+                dxfFile.WriteNode(CADPoint( _start.x - x, _start.y - y, 0));
+                minX = std::min(_start.x - x, minX);
+            }
+        }
+
+        // render the text after the lines so the text is not drawn over
+        int string = 1;
+        for (auto itp = _points.begin(); itp != _points.end(); ++itp) {
+            for (auto it = itp->second.begin(); it != itp->second.end(); ++it) {
+                int x = it->second.front().x;
+                int y = it->second.front().y ;
+
+                std::string label;
+                if (_points.size() == 1) {
+                    label = wxString::Format("%d", it->first).ToStdString();
+                } else {
+                    label = wxString::Format("%d:%d", string, it->first).ToStdString();
+                }
+
+                dxfFile.WriteText(CADPoint( _start.x - x, _start.y - y, 0), label, 0.5 );
+            }
+            string++;
+        }
+
+        dxfFile.WriteText(CADPoint(minX, _start.y + 2  , 0), "Model: " + _modelname, 1);
+        dxfFile.WriteText(CADPoint(minX, _start.y, 0), "CAUTION: Rear view", 1);
+
+        dxfFile.WriteEndOfFile();
+    }
 }

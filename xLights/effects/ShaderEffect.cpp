@@ -60,10 +60,6 @@
     #include "OpenGL/gl3.h"
     #define __gl_h_
     #include <OpenGL/OpenGL.h>
-
-    //defined in xlMacUtils.mm
-    void WXGLUnsetCurrentContext();
-
 #endif
 
 #include "ShaderEffect.h"
@@ -76,6 +72,7 @@
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "../../xSchedule/wxJSON/jsonreader.h"
 
 #include <wx/regex.h>
@@ -146,18 +143,25 @@ namespace
     const char* vsSrc =
         "#version 330 core\n"
         "uniform vec2 RENDERSIZE;\n"
+        "uniform vec2 XL_OFFSET;\n"
+        "uniform float XL_ZOOM;\n"
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
-        "out vec2 isf_FragNormCoord;"
-        "out vec2 isf_FragCoord;"
+        "out vec2 orig_FragNormCoord;\n"
+        "out vec2 orig_FragCoord;\n"
+        "out vec2 xl_FragNormCoord;\n"
+        "out vec2 xl_FragCoord;\n"
+        "vec2 XL_ZOOM_OFFSET(vec2 coord) {\n  return ((coord.xy - (XL_OFFSET - 0.5) - 0.5) / XL_ZOOM) + 0.5;\n}\n\n"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
         "   gl_Position = vec4(vpos,0,1);\n"
         "   texCoord = tpos;\n"
-        "   isf_FragNormCoord = vec2(tpos.x, tpos.y);\n"
-        "   isf_FragCoord = isf_FragNormCoord * RENDERSIZE;\n"
+        "   orig_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   xl_FragNormCoord = XL_ZOOM_OFFSET(vec2(tpos.x, tpos.y));\n"
+        "   orig_FragCoord = orig_FragNormCoord * RENDERSIZE;\n"
+        "   xl_FragCoord = xl_FragNormCoord * RENDERSIZE;\n"
         "}\n"
         "void main(){\n"
         "    isf_vertShaderInit();"
@@ -270,6 +274,35 @@ void ShaderEffect::SetDefaultParameters()
     SetSliderValue(fp->Slider_Shader_LeadIn, 0);
     SetSliderValue(fp->Slider_Shader_Speed, 100);
     fp->FilePickerCtrl1->SetFileName(wxFileName());
+    
+    
+    if (fp->_shaderConfig != nullptr) {
+        for (const auto& it : fp->_shaderConfig->GetParms()) {
+            if (it.ShowParm()) {
+                if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
+                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
+                    wxWindow *c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                    id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
+                    c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                } else {
+                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
+                    wxWindow *c = fp->FindWindow(id);
+                    if (c != nullptr) {
+                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
+                        vcb->SetActive(false);
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -280,20 +313,44 @@ bool ShaderEffect::needToAdjustSettings(const std::string& version)
 void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
+    if (RenderableEffect::needToAdjustSettings(version))     {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap& settings = effect->GetSettings();
 
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (file != "")
-    {
-        if (!wxFile::Exists(file))
-        {
+    if (file != "")     {
+        if (!wxFile::Exists(file))         {
             settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
         }
+    }
+
+    // The way we used to do names allowed for potential settings name clashes ... this should minimise them
+    std::list<std::pair<std::string, std::string>> renames;
+    for (auto& it : settings) {
+        if (it.first != "E_VALUECURVE_Shader_Zoom" &&
+            it.first != "E_VALUECURVE_Shader_Offset_Y" &&
+            it.first != "E_VALUECURVE_Shader_Speed" &&
+            it.first != "E_TEXTCTRL_Shader_LeadIn" &&
+            it.first != "E_0FILEPICKERCTRL_IFS" &&
+            it.first != "E_SLIDER_Shader_Speed" &&
+            it.first != "E_TEXTCTRL_Shader_Offset_X" &&
+            it.first != "E_TEXTCTRL_Shader_Offset_Y" &&
+            it.first != "E_TEXTCTRL_Shader_Zoom" &&
+            it.first != "E_ID_VALUECURVE_Shader_Offset_X"
+           )         {
+            if (StartsWith(it.first, "E_") && !Contains(it.first, "SHADERXYZZY")) {
+                std::string undecorated = AfterFirst(it.first, '_');
+                std::string name = AfterFirst(undecorated, '_');
+                std::string prefix = it.first.substr(0, it.first.size() - name.size());
+                renames.push_back({ it.first, prefix + "SHADERXYZZY_" + name });
+            }
+        }
+    }
+    for (const auto& it : renames)     {
+        settings[it.second] = settings[it.first];
+        settings.erase(it.first);
     }
 }
 
@@ -612,8 +669,9 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
     return true;
 #elif defined(__WXMSW__) && defined(WINDOWSBACKGROUND)
     return true;
-#endif
+#else
     return false;
+#endif
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
@@ -832,6 +890,23 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
 
+    double offsetX = GetValueCurveInt("Shader_Offset_X", 0, SettingsMap, oset, SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    // -100 - 100 -> 0-1
+    offsetX /= 200.0;
+    offsetX += 0.5;
+    double offsetY = GetValueCurveInt("Shader_Offset_Y", 0, SettingsMap, oset, SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    offsetY /= 200.0;
+    offsetY += 0.5;
+    double zoom = GetValueCurveInt("Shader_Zoom", 0, SettingsMap, oset, SHADER_ZOOM_MIN, SHADER_ZOOM_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+    if (zoom < 0)     {
+        zoom = 1.0 - abs(zoom) / 100.0;
+    }
+    else if (zoom > 0)     {
+        zoom = 1.0 + (zoom * 9.0) / 100.0;
+    }
+    else     {
+        zoom = 1.0;
+    }
     if (buffer.needToInit) {
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
@@ -878,7 +953,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
-    if (_shaderConfig->IsAudioFFTShader())
+    if ( _shaderConfig->IsAudioFFTShader() || _shaderConfig->IsAudioIntensityShader() )
     {
         if (s_audioTex == 0)
             s_audioTex = FFTAudioTexture();
@@ -886,14 +961,19 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         AudioManager* audioManager = buffer.GetMedia();
         if (audioManager != nullptr)
         {
-            auto fftData = audioManager->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+            FRAMEDATATYPE datatype = ( _shaderConfig->IsAudioFFTShader() ) ? FRAMEDATA_VU : FRAMEDATA_HIGH;
+            auto fftData = audioManager->GetFrameData(buffer.curPeriod, datatype, "");
 
-            std::vector<float> fft128(fftData->cbegin(), fftData->cend());
+            std::vector<float> fft128;
+            if ( _shaderConfig->IsAudioFFTShader() )
+               fft128.insert( fft128.begin(), fftData->cbegin(), fftData->cend()  );
+            else
+               fft128.insert( fft128.begin(), 127, *(fftData->cbegin()) );
             fft128.push_back( 0.f );
 
             LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
             LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
-            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, 128,1, GL_RED, GL_FLOAT, fft128.data()));
+            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
         }
     }
     else
@@ -918,6 +998,22 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
         }
+    }
+
+    loc = glGetUniformLocation(programId, "XL_OFFSET");
+    if (loc >= 0) {
+        glUniform2f(loc, offsetX, offsetY);
+    }
+    else {
+        logger_base.warn("Unable to bind to XL_OFFSET");
+    }
+
+    loc = glGetUniformLocation(programId, "XL_ZOOM");
+    if (loc >= 0) {
+        glUniform1f(loc, (GLfloat)(zoom));
+    }
+    else {
+        logger_base.warn("Unable to bind to XL_ZOOM");
     }
 
     loc = glGetUniformLocation(programId, "TIME");
@@ -1168,6 +1264,13 @@ wxString SafeFloat(const wxString& s)
     return s;
 }
 
+wxString SafeValueOption(wxString value)
+{
+    wxString res = value;
+    res.Replace(",", "");
+    return res;
+}
+
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1175,11 +1278,20 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     wxJSONValue root;
     reader.Parse(json, &root);
     _description = root["DESCRIPTION"].AsString();
-    if (_description == "xLights AudioFFT")
+    if ( _description == "xLights AudioFFT" )
         _audioFFTMode = true;
+    else if ( _description == "xLights Audio2" )
+       _audioIntensityMode = true;
     wxJSONValue inputs = root["INPUTS"];
     wxString canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++) {
+
+        wxString name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "";
+
+        // we ignore these as xlights provides these settings
+        if (name == "XL_OFFSET") continue;
+        if (name == "XL_ZOOM") continue;
+
         wxString type = inputs[i]["TYPE"].AsString();
         if (type == "float") {
             _parms.push_back(ShaderParm(
@@ -1219,7 +1331,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 int no = std::min(ls.Size(), vs.Size());
                 for (int i = 0; i < no; i++)
                 {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = ls[i].AsString();
+                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString());
                 }
             }
             else
@@ -1346,9 +1458,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             });
     }
 
-    _hasRendersize = Contains(code, "RENDERSIZE");
-    _hasTime = Contains(code, "TIME");
-
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
     wxString prependText = _(
@@ -1359,18 +1468,25 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform bool resetNow;\n"
     "uniform int PASSINDEX;\n"
     "uniform int FRAMEINDEX;\n"
-    "uniform sampler2D texSampler;\n"
-    "in vec2 isf_FragNormCoord;\n"
-    "in vec2 isf_FragCoord;\n"
+    "uniform vec2 XL_OFFSET;\n"
+    "uniform float XL_ZOOM;\n"
+    "uniform sampler2D texSampler;\n\n"
+    "// THESE ARE THE PRE ZOOM AND OFFSET COORDS\n"
+    "in vec2 orig_FragNormCoord;\n"
+    "in vec2 orig_FragCoord;\n"
+    "// THESE ARE THE POST ZOOM AND OFFSET COORDS\n"
+    "in vec2 xl_FragNormCoord;\n"
+    "in vec2 xl_FragCoord;\n"
     "out vec4 fragmentColor;\n"
-    "uniform vec4 DATE;\n\n");
+    "uniform vec4 DATE;\n\n"
+    "// USE THIS IN PUBLIC SHADERS FOR CODE WHICH ONLY RUNS IN XLIGHTS\n"
+    "#define XL_SHADER\n\n"
+    );
 
-    for (const auto& p : _parms)
-    {
+    for (const auto& p : _parms)     {
         wxString name(p._name);
         wxString str;
-        switch (p._type)
-        {
+        switch (p._type)         {
         case ShaderParmType::SHADER_PARM_FLOAT:
         {
             str = wxString::Format("uniform float %s;\n", name);
@@ -1414,14 +1530,15 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
     prependText += _("vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
+    prependText += _("vec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
 
 #ifdef __DEBUG
     int i = 0;
@@ -1450,7 +1567,11 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode = shaderCode.substr(pos + 2);
     }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
-    shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
+    shaderCode.Replace("vv_FragNormCoord", "xl_FragNormCoord");
+    shaderCode.Replace("isf_FragNormCoord", "xl_FragNormCoord");
+    shaderCode.Replace("isf_FragCoord", "xl_FragCoord");
+    shaderCode.Replace("gl_FragCoord", "xl_FragCoord");
+    shaderCode.Replace("gl_FragNormCoord", "xl_FragNormCoord");
     shaderCode.Replace("varying ", "uniform ");
     shaderCode.Replace("texture2D(", "texture(");
     shaderCode.Replace("texture2D (", "texture(");
@@ -1464,6 +1585,11 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode.Replace(canvasImgName, "texSampler");
         _canvasMode = true;
     }
+
+    _hasRendersize = Contains(shaderCode, "RENDERSIZE");
+    _hasTime = Contains(shaderCode, "TIME");
+    _hasCoord = Contains(shaderCode, "xl_FragCoord");
+
     _code = "#version 330\n\n";
     size_t idx = shaderCode.find("#extension");
     if (idx != std::string::npos) {

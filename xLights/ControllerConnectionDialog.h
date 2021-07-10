@@ -27,8 +27,9 @@ enum class controller_connection_bulkedit
     CEBE_CONTROLLERCOLOURORDER,
     CEBE_CONTROLLERGROUPCOUNT,
     CEBE_CONTROLLERDIRECTION,
-    CEBE_CONTROLLERNULLNODES,
-    CEBE_CONTROLLERBRIGHTNESS,
+	CEBE_CONTROLLERSTARTNULLNODES,
+	CEBE_CONTROLLERENDNULLNODES,
+	CEBE_CONTROLLERBRIGHTNESS,
     CEBE_SMARTREMOTE
 };
 
@@ -49,18 +50,20 @@ class ControllerConnectionDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_Brightness;
 		wxCheckBox* CheckBox_ColorOrder;
+		wxCheckBox* CheckBox_EndNullNodes;
 		wxCheckBox* CheckBox_Gamma;
 		wxCheckBox* CheckBox_GroupCount;
-		wxCheckBox* CheckBox_NullNodes;
 		wxCheckBox* CheckBox_PixelDirection;
+		wxCheckBox* CheckBox_StartNullNodes;
 		wxChoice* Choice_Protocol;
 		wxChoice* Choice_SmartRemote;
 		wxChoice* ColorOrder;
 		wxChoice* PixelDirection;
 		wxSpinCtrl* Brightness;
+		wxSpinCtrl* EndNullNodes;
 		wxSpinCtrl* GroupCount;
-		wxSpinCtrl* NullNodes;
 		wxSpinCtrl* SpinCtrl_Port;
+		wxSpinCtrl* StartNullNodes;
 		wxStaticText* SmartRemote;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -85,7 +88,9 @@ class ControllerConnectionDialog: public wxDialog
 		static const long ID_CHECKBOX5;
 		static const long ID_PIXEL_colorOrder;
 		static const long ID_CHECKBOX2;
-		static const long ID_PIXEL_nullNodes;
+		static const long ID_PIXEL_startNullNodes;
+		static const long ID_CHECKBOX7;
+		static const long ID_SPINCTRL_EndNullNodes;
 		static const long ID_CHECKBOX3;
 		static const long ID_PIXEL_brightness;
 		static const long ID_CHECKBOX4;
@@ -108,6 +113,7 @@ class ControllerConnectionDialog: public wxDialog
 		void OnCheckBox_ColorOrderClick(wxCommandEvent& event);
 		void OnChoice_ProtocolSelect(wxCommandEvent& event);
 		void OnCheckBox_GroupCountClick(wxCommandEvent& event);
+		void OnCheckBox_EndNullNodesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

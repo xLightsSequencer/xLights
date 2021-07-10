@@ -48,6 +48,7 @@
 #include <wx/listctrl.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/appprogress.h>
 
 #include <unordered_map>
 #include <map>
@@ -58,7 +59,7 @@
 #include <unistd.h>
 #endif
 #ifdef WINDOWS
-#inlcude <windows.h>
+#include <windows.h>
 #endif
 
 #include "outputs/OutputManager.h"
@@ -420,6 +421,7 @@ public:
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
+    void SetPlaySpeedTo(float speed);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
@@ -611,8 +613,8 @@ public:
     static const long ID_AUITOOLBARITEM5;
     static const long ID_AUITOOLBARITEM7;
     static const long ID_AUITOOLBARITEM3;
-    static const long ID_AUITOOLBARITEM1;
-    static const long ID_AUITOOLBARITEM4;
+    static const long ID_TOGGLE_MODEL_PREVIEW;
+    static const long ID_TOGGLE_HOUSE_PREVIEW;
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUITOOLBARITEM8;
     static const long ID_AUITOOLBARITEM9;
@@ -725,8 +727,8 @@ public:
     static const long ID_MNU_PERSPECTIVES_AUTOSAVE;
     static const long ID_MENUITEM7;
     static const long ID_MENUITEM_DISPLAY_ELEMENTS;
-    static const long ID_MENUITEM12;
-    static const long ID_MENUITEM3;
+    static const long ID_MENU_TOGGLE_MODEL_PREVIEW;
+    static const long ID_MENU_TOGGLE_HOUSE_PREVIEW;
     static const long ID_MENUITEM14;
     static const long ID_MENUITEM15;
     static const long ID_MENUITEM16;
@@ -952,12 +954,12 @@ public:
     bool previewLoaded = false;
     bool previewPlaying = false;
     wxFileName networkFile;
-    
+
     wxArrayString mruDirectories;  // most recently used directories
     wxMenuItem* mrud_MenuItem[MRUD_LENGTH];
     wxArrayString mruFiles;  // most recently used directories
     wxMenuItem* mruf_MenuItem[MRUF_LENGTH];
-    
+
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     long DragRowIdx;
@@ -995,6 +997,8 @@ public:
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
+
+    std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
     void TryCreatePresetIcon(const std::string& preset);
 
@@ -1132,7 +1136,7 @@ public:
     bool ToggleOutputs(bool ignoreCheck = false);
     bool DisableOutputs();
     void CycleOutputsIfOn();
-    
+
     bool ForceEnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
@@ -1195,9 +1199,9 @@ public:
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
-    
+
     void DoPostStartupCommands();
-    
+
     std::list<RenderProgressInfo *>renderProgressInfo;
     std::queue<RenderEvent*> mainThreadRenderEvents;
     std::mutex renderEventLock;
@@ -1659,5 +1663,6 @@ public:
 
 	void DoPlaySequence();
     void RecalcModels();
+    std::string GetUniqueTimingName(const std::string& baseName);
 };
 

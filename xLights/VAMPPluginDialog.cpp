@@ -24,6 +24,7 @@
 
 #include "vamp-hostsdk/PluginLoader.h"
 #include "UtilFunctions.h"
+#include "xLightsMain.h"
 
 //(*IdInit(VAMPPluginDialog)
 const long VAMPPluginDialog::ID_TEXTCTRL1 = wxNewId();
@@ -169,11 +170,11 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             }
             if (name == pname) {
                 output = x;
-                TimingName->SetValue(outputName);
+                TimingName->SetValue(xLightsParent->GetUniqueTimingName(outputName));
             }
         }
     } else {
-        TimingName->SetValue(p->getName());
+        TimingName->SetValue(xLightsParent->GetUniqueTimingName(p->getName()));
     }
 
     PluginBase::ParameterList params = p->getParameterDescriptors();
@@ -296,8 +297,8 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             channels = 1;
         }
         p->initialise(channels, step, block);
-        pdata[0] =media->GetLeftDataPtr(0);
-        pdata[1] = media->GetRightDataPtr(0);
+        pdata[0] =media->GetFilteredLeftDataPtr(0);
+        pdata[1] = media->GetFilteredRightDataPtr(0);
         
         wxProgressDialog progress("Processing Audio", "");
         long totalLen = media->GetTrackSize();
@@ -308,8 +309,8 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             //int request = block;
             //if (request > len) request = len;
 
-			pdata[0] = media->GetLeftDataPtr(start);
-			pdata[1] = media->GetRightDataPtr(start);
+			pdata[0] = media->GetFilteredLeftDataPtr(start);
+			pdata[1] = media->GetFilteredRightDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, media->GetRate());
             Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);

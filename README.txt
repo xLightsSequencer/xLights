@@ -11,22 +11,140 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.20 June 28, 2021
+   -- enh (billc) Added/change a few tool tips to help new users 
+   -- enh (scott) Added the Ability to Import Views from RGBEffects File and Sequence Files
+   -- enh (scott) Increase range of shockwave and single strand effect
+   -- enh (dkulp) Allow DDP discovery to also work using the STATUS packet
+   -- enh (keith) On display elements add button to move models to the bottom of the list
+   -- bug (keith) Fix twinkle effect (new style) on really large render buffers
+   -- bug (keith) Fix test dialog right click options dont work correctly
+   -- bug (dkulp) Prevent crash using artnet with hostnames
+   -- bug (dkulp) Ensure render progress bar goes away when done
+   -- bug (dkulp) Fix FPP Virtual matrix not setting start channel
+   -- bug (scott) Fix rgb effects file not marked dirty when importing models and views
+2021.19 June 16, 2021
+   -- enh (scott) Added Color Filter To Effect Select Panel
+   -- enh (dkulp) Add end nulls to FPP boards
+   -- enh (keith) Add option to sort views in the same order as the master view
+   -- enh (keith) Add sequence/audio upload to Falcon V4 from FPP Connect
+   -- enh (keith) Provide visual clues that audio device cannot be found as this prevents playback
+   -- bug (scott) Fix Built-in Model to Custom Model Export to minimise missing nodes
+   -- bug (dkulp) Fix custom model background image is black when adjusting brightness
+   -- bug (keith) Further fix to s5 import for channel data
+   -- bug (keith) Fix Pixlite sometimes wont upload configuration
+   -- bug (keith) Fix drag model off port on visualiser does not update screen
+   -- bug (keith) Fix node single colour does not work with custom models
+   -- bug (keith) Fix some groups arches single strand effects not rendering correctly
+2021.18 June 2, 2021
+   -- enh (scott) Added F13-F24 Keybindings Support
+   -- enh (scott) Add null pixel support to WLED
+   -- enh (scott) Add Shift selected nodes to custom model editor
+   -- enh (keith) Upgrade vamp links to v1.8.0 on windows
+   -- enh (keith) Allow control over start point for layered arches to be inside or outside
+   -- enh (keith) In sequences/lyrics download sort the items
+   -- enh (keith) Add keybindings for prior and next audio tag
+   -- enh (keith) Add keybindings for audio playback speed
+   -- enh (keith) Remove default timing track when importing a sequence when only default exists, no timing marks exist and the import includes a timing track
+   -- enh (keith) When adding vamp timing tracks default them to unique names
+   -- enh (keith) When dragging effect onto grid highlight the model name we are on ... makes it easier to see what row you are on on super wide screens
+   -- enh (keith) Add Falcon V4 support
+   -- enh (keith) Add ability to support more than 3 smart remotes on a controller - this is enabled for Hinkspix and Falcon V4 at this time
+				  *** If you use *A*->*B*->*C* or a->*B*->*C* smart remote styles then you will not be able to regress from this version unless you re-set up your smart remotes
+   -- enh (keith) Rework the way we handle pixel protocols in the controller connection to try to be a lot smarter about compatible protocols
+   -- bug (keith) Fix shader float and point2d parameters not working
+   -- bug (keith) Fix shader variables can clash with other xlights settings
+   -- bug (scott) Fix visualiser crash if pixel port is over the max pixel port count
+2021.17 May 20, 2021
+   -- bug (dkulp) Fix even more crashes in AudioManager (I hope)
+   -- bug (dkulp) Fix Vendor Model images if the URL's the vendor provide are invalid/404
+   -- bug (scott) Fix FPP upload of e1.31 inputs that are set for xLights only
+   -- enh (scott) Add AppProgess Indicator for rendering
+2021.16 May 17, 2021
+   -- bug (dkulp) FPP Connect - add UDP output ranges to sparse fseq files
+   -- bug (dkulp) Fix display issue in SubModels dialog where the list of ranges would not refresh properly
+   -- bug (dkulp) Fix more crashes in AudioManager
+   -- enh (scott) Added WLED Upload Support, requires WLED v0.12.1 Build 2105110 or newer
+   -- enh (scott) Added the Ability To Join Submodels
+2021.15 May 3, 2021
+   -- enh (scott) Add resize to Media Import Options
+   -- enh (scott) Add Pixie2 to LOR optimized output
+   -- bug (keith) Fix some value curve dialogs not displaying on shader parameters
+   -- bug (dkulp) Fix some crashes in AudioManager
+   -- enh (keith) Add to visualiser concept of a selected model and then when you double click on a model on the models pane it chains to the end of the selected model
+   -- enh (keith) Add "Multiply" blending mode
+   -- enh (Old Salt) Added shader 'RGB to Greyscale_xL' to prepare layer for new 'Brightness' blending
+2021.14 April 28 2021
+   -- bug (keith) Fix new audio sequence hangs after you select the audio file in some circumstances
+   -- bug (keith) Shader choice options containing commas dont display correctly
+2021.13 April 27 2021
+   -- enh (keith) Improve the visibility and playback of filtered waveforms
+   -- enh (several) Bunch of new shaders added for download
+   -- enh (dkulp) Move to wxWidgets 3.1.5 (plus fixes) on all platforms
+   -- enh (scott) Add Pixie2 controller
+   -- enh (keith) Add new F16V2R variants
+   -- enh (keith) Add line numbers to shaders that are logged on compile failure
+   -- enh (kevin) Allow audio shaders to respond to either VU data or intensity
+   -- enh (scott) Load RGBEffects.xml File on XSQ Import for Group Names
+   -- change (dkulp) Deprecate and start removing support for mingw/gcc builds on Windows
+   -- bug (scott) Fix some issues with ctrl key shortcuts on windows
+   -- bug (dkulp) Fix random crashes when add/remove headphones
+   -- bug (keith) Fix broken pixlite upload
+   -- bug (scott) Fix node numbers off by one on Cube Custom Model Export
+   -- bug (keith) Fix problems starting xLights when double clicking on an xsq file.  Fixes #2611
+2021.12 April 12 2021
+   -- enh (dkulp) OSX - Key Binding editor dialog should use the OSX key names and icons
+   -- enh (Old-Salt) Add bunch more shaders, restore some missing shader images
+   -- enh (keith) Add the IMG_SIZE shader function
+   -- bug (scott) Fix superstring model multistring channel count
+   -- bug (scott) Fix key bindings that use CTRL on Windows
+   -- bug (dkulp) Fix several instances of crashes when manipulating models on Layout panel while rendering (aborts rendering)
+   -- bug (dkulp) Fix crash in path editor/Value Curves.  Occurs most often with lots of points. Fixes #2587
+   -- bug (keith) Fix VUMeter does not work correctly with 40fps sequences
+2021.11 April 3 2021
+   -- enh (dkulp) Move to latest wxWidgets patches for Linux
+   -- enh (dkulp) Allow using the Mac "raw control" key for key bindings. Fixes #2576
+   -- enh (scott) Sort Buffer Presets
+   -- bug (dpriem) fix memory/loop issue in effect preview gen
+   -- bug (dkulp) sysctl is only needed on OSX.  Fixes #2563
+   -- bug (dkulp) Fix default values for shaders with integer drop down selections.  Fixes #2569
+   -- bug (dkulp) Reset shader value curves on effect selection.  Fixes #2575
+   -- bug (dkulp) Don't use alpha channel for brightness, is VERY slow on Windows if double buffering used. Fixes #2573
+   -- bug (scott) fix Morph swap button bulk edit
+2021.10 March 31 2021
+   -- enh (dpriem) Add Dark Mode support for Visualiser
+   -- enh (scott)  Added the ability to Export Layout/Model/Wiring as a DXF File and Export Models as a STL/VRML File.
+   -- bug (dkulp)  Fix decoding videos that don't have video frames at the start
+   -- bug (dpriem) Fix drag/drop in import dialog
+2021.09 March 23 2021
+   -- enh          Add some more xLights optimized shaders to shaders.xml
+   -- enh (dkulp)  Adjust some colors in the download dialogs for OSX Dark Mode.
+   -- enh (dpriem) Allow mapping available to multiple selected models/submodels/groups in mapping dialog.
+   -- enh (dkulp)  Change font color for timing tracks if not enough contrast with background.  Easier to read defaults in dark mode.
+   -- bug (dkulp)  Fix rendering of first effect dropped on model group not actually rendering
+   -- bug (scott)  Fix Multi word support in User Lyric Dialog
+2021.08 March 14 2021
+   -- enh (dpriem) Bunches of updates/enhancements for Import dialog
+   -- enh (dpriem) Bunches of updates/enhancements for Effect Presets dialog
+   -- enh (dkulp)  Point to new build of QM plugins on M1 macs
+   -- bug (scott)  Fix custom model crash with super-strings
+   -- bug (dkulp)  Fix crash if ico files are used instead of animated gifs
    -- bug (dkulp)  Fix corner icons for Morph effect assist panel
 2021.07 March 2 2021
    -- bug (dkulp)  Fix potential hang with "Per Model" render styles
    -- bug (scott)  Fix crash in swap transition
 2021.06 March 1 2021
    -- enh (kevin)  Add Circles and Shatter transitions
-   -- bug (scott)  Prevent groups with blank name
    -- enh (scott)  Add multi selection to submodel import in Faces dialog
-   -- bug (scott)  Fix AC toolbar
-   -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
    -- enh (scott)  Add BBB16 controller configuration
-   -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
    -- enh (dkulp)  Add KiNet uploads to FPP output universes
-   -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
    -- enh (kevin)  Allow reverse on star transition
    -- enh (kevin)  Add swap, shatter, and circles transitions
+   -- bug (scott)  Prevent groups with blank name
+   -- bug (scott)  Fix AC toolbar
+   -- bug (scott)  Fix sequence import with spaces at the beginning of folder names
+   -- bug (dkulp)  Fix Shader effect panel sliders/controls not triggering render
+   -- bug (kevin)  Fix pinwheel and star transitions being inactive for some of the duration
    -- bug (dkulp)  Fix issues with effects that need to render on the main thread being rendered WAY too often if "Per Model" used.
 2021.05 February 19 2021
    -- enh (dkulp)  Reduce timer usage which are preventing the CPU from sleeping (more work to go)

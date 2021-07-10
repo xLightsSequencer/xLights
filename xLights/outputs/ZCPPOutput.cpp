@@ -11,7 +11,7 @@
 
 #ifdef LINUX
 #include <arpa/inet.h>
-#endif 
+#endif
 #include <list>
 
 #include <wx/xml/xml.h>
@@ -102,7 +102,7 @@ std::string ZCPPOutput::SerialiseProtocols() {
 ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     _usedChannels = _channels;
     if (_channels == 0) {
         _data = nullptr;
@@ -215,7 +215,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput() {
 }
 
 ZCPPOutput::ZCPPOutput(ZCPPOutput* output) : IPOutput(output) {
-    
+
     _usedChannels = output->_usedChannels;
     if (_channels == 0){
         _data = nullptr;
@@ -284,7 +284,7 @@ wxXmlNode* ZCPPOutput::Save() {
 void ZCPPOutput::SendSync() {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     static ZCPP_packet_t syncdata;
     static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
@@ -520,7 +520,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
             o->SetSupportsSmartRemotes(supportsSmartRemotes);
 
             bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
-            logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
+            logger_base.debug("   Doesn't want to receive configuration %d", dontConfigure);
             o->SetDontConfigure(dontConfigure);
 
             bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
@@ -918,7 +918,7 @@ void ZCPPOutput::ResetFrame() {
 
     if (!_enabled) return;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region Data Setting
 void ZCPPOutput::SetOneChannel(int32_t channel, unsigned char data) {
@@ -950,7 +950,7 @@ void ZCPPOutput::AllOff() {
     memset(_data, 0x00, _channels);
     _changed = true;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI

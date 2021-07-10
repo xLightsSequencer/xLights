@@ -23,12 +23,12 @@
 #include "xLightsXmlFile.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
-#include "osxMacUtils.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
 #include "SpecialOptions.h"
 #include "LayoutGroup.h"
 #include "ControllerModelDialog.h"
+#include "ExternalHooks.h"
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
@@ -256,6 +256,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
+    EnableSleepModes();
     _outputManager.StopOutput();
     _outputManager.DeleteAllControllers();
     CurrentDir = nd;
@@ -803,7 +804,7 @@ bool xLightsFrame::SaveNetworksFile() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        SaveNetworksFile.");
 
-    // if any of the controllers are in auto layout mode ... recalulate them
+    // if any of the controllers are in auto layout mode ... recalculate them
     bool autoLayout = false;
     for (const auto& it : _outputManager.GetControllers()) {
         if (it->IsAutoLayout()) {
@@ -867,7 +868,7 @@ void xLightsFrame::PingController(Controller* e) {
 				DisplayWarning("Serial Port Exists but couldn't be opened: " + name, this);
 				break;
 			case Output::PINGSTATE::PING_UNAVAILABLE:
-				DisplayWarning("Controller Status is Unavailible: " + name, this);
+				DisplayWarning("Controller Status is Unavailable: " + name, this);
 				break;
 			case Output::PINGSTATE::PING_UNKNOWN:
 				DisplayWarning("Controller Status is Unknown: " + name, this);
@@ -1255,8 +1256,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     bool hasChanges = false;
 
     Discovery discovery(this, &_outputManager);
-    ZCPPOutput::PrepareDiscovery(discovery);
     ArtNetOutput::PrepareDiscovery(discovery);
+    ZCPPOutput::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
@@ -1546,7 +1547,7 @@ void xLightsFrame::SetControllersProperties() {
 
         wxPGProperty* p = Controllers_PropertyEditor->Append(new wxBoolProperty("Controller Sync", "ControllerSync", me131Sync));
         p->SetEditor("CheckBox");
-        p->SetHelpString("Sends a sync packet at the end of each frame for controllers to syncronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
+        p->SetHelpString("Sends a sync packet at the end of each frame for controllers to synchronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
 
         // nothing selected or many items selected - display global properties
         if (me131Sync) {
@@ -2389,15 +2390,15 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
 
     wxByte np = 0;
     if (vs != nullptr) {
-        if (vs->_nullPixelsSet) {
-            np = vs->_nullPixels;
+        if (vs->_startNullPixelsSet) {
+            np = vs->_startNullPixels;
         }
     }
     else if (m != nullptr) {
-        np = m->GetNullPixels(0);
+        np = m->GetStartNullPixels(0);
     }
     p->nullPixels = np;
-    logger_zcpp.debug("       Null Pixels %d", (int)np);
+    logger_zcpp.debug("       Start Null Pixels %d", (int)np);
 
     wxByte b = 100;
     if (vs != nullptr) {
