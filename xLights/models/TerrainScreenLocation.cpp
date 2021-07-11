@@ -20,29 +20,6 @@
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
-static glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
-{
-    double x, y, z;
-
-    double m13 = R[0][2];
-    
-    y = -asin(m13 < -1.0 ? -1.0 : m13 > 1 ? 1 : m13);
-
-    if (abs(m13) < 0.9999) {
-
-        x = atan2(R[1][2], R[2][2]);
-        z = atan2(R[0][1], R[0][0]);
-
-    }
-    else {
-
-        x = atan2(R[2][1], R[1][1]);
-        z = 0;
-    }
-
-    return glm::vec3(x, y, z);
-}
-
 TerrianScreenLocation::TerrianScreenLocation()
     : BoxedScreenLocation(NUM_TERRAIN_HANDLES+ 9), num_points_wide(41), num_points_deep(21),
     edit_active(false)

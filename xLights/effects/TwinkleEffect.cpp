@@ -28,7 +28,7 @@
 
 static std::random_device rd;
 static std::default_random_engine eng{ rd() };
-static std::uniform_int_distribution<> dist(0, LONG_MAX);
+static std::uniform_int_distribution<> dist(0, INT_MAX);
 
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
 {

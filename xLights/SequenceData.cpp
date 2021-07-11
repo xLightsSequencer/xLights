@@ -42,7 +42,12 @@ std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CAC
 static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
 static bool firstSeq = true;
 static std::mutex HUGE_BLOCK_LOCK;
-static size_t _hugePageAllocSize = MAX_BLOCK_SIZE;
+#ifdef __WXOSX__
+static const size_t DEFAULT_HUGE_ALLOC_SIZE = 64 * 1024 * 1024;
+#else
+static const size_t DEFAULT_HUGE_ALLOC_SIZE = MAX_BLOCK_SIZE;
+#endif
+static size_t _hugePageAllocSize = DEFAULT_HUGE_ALLOC_SIZE;
 static bool _hugePagesFailed;
 #endif
 
@@ -57,7 +62,7 @@ SequenceData::SequenceData() : _invalidFrame()
             BlockType type = BlockType::NORMAL;
             unsigned char* block = AllocBlock(32 * 1024 * 1024, blockSize, type);
             if (type == BlockType::HUGE_PAGE) {
-                _hugePageAllocSize = MAX_BLOCK_SIZE;
+                _hugePageAllocSize = DEFAULT_HUGE_ALLOC_SIZE;
                 std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
                 HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
                 lock.unlock();
@@ -156,6 +161,8 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
     lock.unlock();
     if (!_hugePagesFailed) {
 #ifdef __WXOSX__
+        wxStopWatch sw;
+        size_t origSize = sz;
         blockType = BlockType::HUGE_PAGE;
         size_t szToAlloc = sz;
         if (szToAlloc > _hugePageAllocSize) {
@@ -168,7 +175,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
         if (data != MAP_FAILED) {
             sz = szToAlloc;
         }
-        while (data == MAP_FAILED && (_hugePageAllocSize >= 16 * 1024 * 1024)) {
+        while (data == MAP_FAILED && (_hugePageAllocSize >= 16 * 1024 * 1024) && (sw.Time() < 1500)) {
             _hugePageAllocSize /= 2;
             data = (unsigned char*)mmap(nullptr, _hugePageAllocSize,
                 PROT_READ | PROT_WRITE,
@@ -182,9 +189,15 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
             data = nullptr;
             _hugePagesFailed = true;
         }
+        if (sw.Time() > 2000) {
+            //if its taking more than 2 seconds to get a huge block, we'll stop as we're obviously having memory constraints
+            _hugePagesFailed = true;
+        }
+        //printf("OK:  %d    Fail:  %d   Size %zu     Requested:  %zu     Time:  %d\n", data != nullptr, _hugePagesFailed, sz, origSize, sw.Time() );
 #else
         data = (unsigned char*)mmap(nullptr, sz,
             PROT_READ | PROT_WRITE,
+
             MAP_ANON | MAP_PRIVATE | MAP_HUGETLB,
             -1, 0);
 #endif

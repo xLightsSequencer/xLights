@@ -781,7 +781,6 @@ int Falcon::V4_EncodeColourOrder(const std::string co)
 #ifndef DISCOVERYONLY
 bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool success = true;
 
     // work out the number of smart remotes on each port
@@ -834,7 +833,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 for (const auto& it : pp->GetVirtualStrings()) {
                     if (it->_smartRemote > smartRemotes[p]) {
                         if ((it->_smartRemote > 0 && smartRemotes[p] == 0) || (it->_smartRemote == 0 && smartRemotes[p] > 0)) {
-                            error == wxString::Format("Port %d has an invalid smart remote configuration.", p + 1);
+                            error = wxString::Format("Port %d has an invalid smart remote configuration.", p + 1);
                             return false;
                         }
                         else {

@@ -3008,6 +3008,8 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         }
     }
     break;
+        case AUDIOSAMPLETYPE::ANY:
+            break;
     }
 
     if (fad && _pcmdata && fad->pcmdata) {

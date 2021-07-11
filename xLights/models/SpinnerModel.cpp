@@ -151,8 +151,6 @@ int SpinnerModel::EncodeStartLocation()
             }
         }
     }
-    wxASSERT(false);
-    return 0;
 }
 
 void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {

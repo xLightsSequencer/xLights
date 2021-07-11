@@ -245,7 +245,7 @@ public:
             LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW));
             buffersValid = false;
             i = 0;
-        } else {
+        } else if (sz > 0) {
             void * tdata = nullptr;
             tdata = glMapBufferRange(GL_ARRAY_BUFFER, bufferInfo[idx].currentPos, sz,
                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
