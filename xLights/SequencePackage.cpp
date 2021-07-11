@@ -135,6 +135,12 @@ void SequencePackage::Extract() {
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
     
+    if (!zis.IsOk()) {
+        logger_base.error("Could not open the zip file '%s'", _pkgFile.GetFullName().ToStdString().c_str());
+        prog.Update(100);
+        return;
+    }
+
     // start extracting each entry
     upZe.reset(zis.GetNextEntry());
         
@@ -222,7 +228,7 @@ void SequencePackage::Extract() {
     } else {
         InitDefaultImportOptions();
     }
-};
+}
 
 void SequencePackage::FindRGBEffectsFile()
 {

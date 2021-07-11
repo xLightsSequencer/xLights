@@ -5368,7 +5368,7 @@ void EffectsGrid::SetRCToolTip()
     if (!mCellRangeSelected ||
         mPartialCellSelected ||
         mRangeStartCol < 0 ||
-        (x == 1 && y == 1) ||
+        (x == 1 && y == 1) || mSequenceElements == nullptr ||
         mSequenceElements->GetSelectedTimingRow() < 0) {
         UnsetToolTip();
     }

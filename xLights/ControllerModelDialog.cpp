@@ -1658,10 +1658,14 @@ ModelCMObject* ControllerModelDialog::GetModelsCMObject(Model* m)
 
 void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* dropped, Model* on, bool rhs)
 {
+    if (dropped == nullptr) return;
+
     auto m = dropped->GetModel();
+    if (m == nullptr) return;
 
     auto port = GetPortContainingModel(on);
     wxASSERT(port != nullptr);
+    if (port == nullptr) return;
 
     m->SetControllerPort(port->GetPort());
     if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
@@ -1692,7 +1696,7 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
     }
 
     // dropped on a model
-    if (_autoLayout) {
+    if (_autoLayout && on != nullptr) {
         m->SetSmartRemote(on->GetSmartRemote());
         if (!rhs) {
             if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {

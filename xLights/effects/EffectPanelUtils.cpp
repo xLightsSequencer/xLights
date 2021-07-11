@@ -146,8 +146,8 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
 
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 {
-    ValueCurveButton * vcb = (ValueCurveButton*)event.GetEventObject();
-    if (vcb != nullptr) {
+    ValueCurveButton* vcb = (ValueCurveButton*)event.GetEventObject();
+    if (vcb != nullptr && vcb->GetParent() != nullptr) {
         wxString name = vcb->GetName();
         wxString slidername = name;
         wxString slidername2 = name;
@@ -168,8 +168,9 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 
         wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
         wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
+        wxASSERT(vcb->GetValue() != nullptr);
 
-        if (vcb->GetValue()->IsActive() || !vcb->IsEnabled()) {
+        if ((vcb->GetValue() != nullptr && vcb->GetValue()->IsActive()) || !vcb->IsEnabled()) {
             if (slider != nullptr) {
                 slider->Disable();
             }
@@ -187,6 +188,9 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
                 }
             }
         }
+    }
+    else {
+        wxASSERT(false);
     }
     wxCommandEvent e(EVT_VALIDATEWINDOW);
     wxPostEvent(vcb->GetParent(), e);

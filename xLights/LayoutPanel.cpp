@@ -2736,9 +2736,12 @@ int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
 
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->HitTest(modelPreview, ray_origin, ray_direction))
+        // This should not be necessary but i see enough crashes to think it is worthwhile
+        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]))
         {
-            found.push_back(i);
+            if (modelPreview->GetModels()[i]->HitTest(modelPreview, ray_origin, ray_direction)) {
+                found.push_back(i);
+            }
         }
     }
     return found.size();

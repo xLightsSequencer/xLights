@@ -225,6 +225,7 @@ Discovery::DatagramData::~DatagramData() {
 Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(frame), _outputManager(outputManager) {
     curlMulti = curl_multi_init();
 }
+
 Discovery::~Discovery() {
     for (size_t x = 0; x < curls.size(); x++) {
         if (curls[x]) {
@@ -477,6 +478,9 @@ void Discovery::HandleAuth(int curlIdx) {
 }
 
 void Discovery::Discover() {
+
+    if (curlMulti == nullptr) return;
+
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = numCurls;
     uint8_t buffer[1500];
