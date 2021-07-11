@@ -391,6 +391,7 @@ public:
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
                     if (response_code >= 400) {
                         //not found or server error or similar
+                        logger_base.error("Error getting file %s -> %s: %d.", (const char*)s.c_str(), (const char*)filename.c_str(), response_code);
                         res = false;
                     }
                 }

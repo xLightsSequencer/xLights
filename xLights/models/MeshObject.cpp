@@ -439,41 +439,51 @@ void MeshObject::uncacheDisplayObjects() {
     }
 }
 
-void MeshObject::loadObject() {
+void MeshObject::loadObject()
+{
     if (wxFileExists(_objFile)) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         logger_base.debug("Loading mesh model '%s' file '%s'.",
-                          (const char *)GetName().c_str(),
-                          (const char *)_objFile.c_str());
+            (const char*)GetName().c_str(),
+            (const char*)_objFile.c_str());
 
         wxFileName fn(_objFile);
-        
+
         wxFileName mtl(_objFile);
         mtl.SetExt("mtl");
         if (mtl.Exists()) {
             checkAccessToFile(mtl.GetFullPath());
         }
-        
+
         std::string base_path = fn.GetPath();
         std::string err;
-        tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char*)_objFile.c_str(), (char*)base_path.c_str());
         logger_base.debug("    Loaded.");
+        if (Contains(err, "ERR")) {
+            logger_base.error(err);
+        }
+        else if (Contains(err, "WARN")) {
+            logger_base.warn(err);
+        }
+        else if (err != "") {
+            logger_base.debug(err);
+        }
 
         // Append `default` material
         materials.push_back(tinyobj::material_t());
 
         bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
         bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
-        
+
         for (auto shape : shapes) {
             // Loop over faces(polygon)
-            
+
             for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
                 tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
                 tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
                 tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
-                
+
                 float v[3][3];
                 for (int k = 0; k < 3; k++) {
                     int f0 = idx0.vertex_index;
@@ -482,7 +492,7 @@ void MeshObject::loadObject() {
                     assert(f0 >= 0);
                     assert(f1 >= 0);
                     assert(f2 >= 0);
-                    
+
                     v[0][k] = attrib.vertices[3 * f0 + k];
                     v[1][k] = attrib.vertices[3 * f1 + k];
                     v[2][k] = attrib.vertices[3 * f2 + k];
@@ -500,7 +510,7 @@ void MeshObject::loadObject() {
         depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
         screenLocation.SetRenderSize(width, height, depth);
         obj_loaded = true;
-        
+
         // Load textures
         for (auto m : materials) {
             if (m.diffuse_texname.length() > 0) {
@@ -515,7 +525,7 @@ void MeshObject::loadObject() {
                         if (!wxFileExists(texture_filename)) {
                             texture_filename = fn.GetPath() + "/" + m.diffuse_texname;
                             if (!wxFileExists(texture_filename)) {
-                                logger_base.warn("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
+                                logger_base.warn("Unable to find materials file: %s", (const char*)m.diffuse_texname.c_str());
                                 continue;
                             }
                         }
