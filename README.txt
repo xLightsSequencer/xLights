@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.21 July 11, 2021
+   -- enh (keith) Log obj file errors when loading
+   -- enh (keith) Collapse model layer sizes by default in model properties
+   -- enh (scott) Add buffer styles to submodels
+   -- bug (scott) Include superstring properties in model exports
+   -- bug (scott) Fix some issues with dmx model export
+   -- bug (scott) Fix models being removed from other views when using make master
+   -- bug (keith) Fix multi artnet discovery packet response handling
 2021.20 June 28, 2021
    -- enh (billc) Added/change a few tool tips to help new users 
    -- enh (scott) Added the Ability to Import Views from RGBEffects File and Sequence Files
