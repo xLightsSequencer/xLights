@@ -292,7 +292,7 @@ public:
 void MModelWiring::DownloadXModel()
 {
     if (!_xmodelFile.Exists()) {
-        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG);
+        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG, "xmodel");
 
         wxXmlDocument d;
         d.Load(_xmodelFile.GetFullPath());
@@ -570,7 +570,7 @@ MVendorCategory::MVendorCategory(wxXmlNode* n, MVendorCategory* parent, MVendor*
                 ParseCategories(e);
             }
             else {
-                logger_base.warn("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)parent->_name.c_str(), (const char*)nn.c_str(), (const char*)GetPath().c_str());
+                logger_base.warn("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : _("").c_str()), (const char*)nn.c_str(), (const char*)GetPath().c_str());
                 wxASSERT(false);
             }
         }
@@ -841,7 +841,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
-    //const std::string vendorlink = "http://threebuttes.com/Extras/dmx_models/xlights_vendors.xml";
+    //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high);

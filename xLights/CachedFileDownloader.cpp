@@ -77,6 +77,8 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog
 std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceType, wxProgressDialog* prog, int low, int high)
 {
     wxString type = url.GetPath().AfterLast('.');
+    if (type.Contains('/')) type = "";
+
     if (forceType != "") type = forceType;
     wxString fn = wxFileName::CreateTempFileName("xl");
     wxRemoveFile(fn);
