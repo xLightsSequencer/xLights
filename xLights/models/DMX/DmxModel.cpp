@@ -38,37 +38,39 @@ DmxModel::~DmxModel()
     //dtor
 }
 
-void DmxModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
-        BufferHi = 1;
-        BufferWi = GetNodeCount();
+void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+{
+    BufferHi = 1;
+    BufferWi = GetNodeCount();
 }
 
-void DmxModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+{
     BufferHi = 1;
     BufferWi = GetNodeCount();
 
-    for (int cur=0; cur < BufferWi; cur++) {
+    for (int cur = 0; cur < BufferWi; cur++) {
         newNodes.push_back(NodeBaseClassPtr(Nodes[cur]->clone()));
-        for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
-            newNodes[cur]->Coords[c].bufX=cur;
-            newNodes[cur]->Coords[c].bufY=0;
+        for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
+            newNodes[cur]->Coords[c].bufX = cur;
+            newNodes[cur]->Coords[c].bufY = 0;
         }
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
+void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
+{
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 }
 
-void DmxModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
+void DmxModel::DisableUnusedProperties(wxPropertyGridInterface* grid)
 {
     // disable string type properties.  Only Single Color White allowed.
-    wxPGProperty *p = grid->GetPropertyByName("ModelStringType");
+    wxPGProperty* p = grid->GetPropertyByName("ModelStringType");
     if (p != nullptr) {
         p->Enable(false);
     }
@@ -91,7 +93,8 @@ void DmxModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
     // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
 }
 
-void DmxModel::UpdateChannelCount(int num_channels, bool do_work) {
+void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
+{
     parm1 = num_channels;
     ModelXml->DeleteAttribute("parm1");
     ModelXml->AddAttribute("parm1", wxString::Format("%d", num_channels));
@@ -106,8 +109,8 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work) {
     }
 }
 
-int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
+int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     if ("DmxChannelCount" == event.GetPropertyName()) {
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
@@ -116,7 +119,8 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void DmxModel::InitModel() {
+void DmxModel::InitModel()
+{
     if (DisplayAs.empty()) {
         DisplayAs = "DMX";
     }
@@ -129,16 +133,18 @@ void DmxModel::InitModel() {
 
     int curNode = 0;
     for (int x = 0; x < numChannels; x++) {
-        Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
-        Nodes[curNode]->StringNum=0;
+        Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
+        Nodes[curNode]->StringNum = 0;
         // the screenx/screeny positions are used to fake it into giving a bigger selection area
-        if( x == 0 ) {
+        if (x == 0) {
             Nodes[curNode]->Coords[0].screenX = -0.5f;
             Nodes[curNode]->Coords[0].screenY = -0.5f;
-        } else if( x == 1 ) {
+        }
+        else if (x == 1) {
             Nodes[curNode]->Coords[0].screenX = 0.5f;
             Nodes[curNode]->Coords[0].screenY = 0.5f;
-        } else {
+        }
+        else {
             Nodes[curNode]->Coords[0].screenX = 0;
             Nodes[curNode]->Coords[0].screenY = 0;
         }
@@ -146,7 +152,7 @@ void DmxModel::InitModel() {
         Nodes[curNode]->Coords[0].bufY = 0;
         curNode++;
     }
-    SetBufferSize(1,parm1);
+    SetBufferSize(1, parm1);
 }
 
 void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -155,10 +161,10 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
     bool success = preview->StartDrawing(pointSize);
 
-    if(success) {
+    if (success) {
         DrawGLUtils::xlAccumulator va(maxVertexCount);
 
-        float sx,sy;
+        float sx, sy;
         xlColor color, proxy;
         int w, h;
 
@@ -168,8 +174,8 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
         preview->GetSize(&w, &h);
 
-        sx=w/2;
-        sy=h/2;
+        sx = w / 2;
+        sy = h / 2;
 
         DrawModelOnWindow(preview, va, nullptr, sx, sy, true);
 
@@ -178,7 +184,6 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         preview->EndDrawing();
 
     }
-
 }
 
 // display model using colors
@@ -248,20 +253,25 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
     int ret_val = 0;
 
     if (bits16) {
-        Nodes[channel]->GetColor(color_angle);
-        msb = color_angle.red;
-        Nodes[channel + 1]->GetColor(color_angle);
-        lsb = color_angle.red;
-        ret_val = ((msb << 8) | lsb);
+        if (Nodes.size() > channel + 1) {
+            Nodes[channel]->GetColor(color_angle);
+            msb = color_angle.red;
+            Nodes[channel + 1]->GetColor(color_angle);
+            lsb = color_angle.red;
+            ret_val = ((msb << 8) | lsb);
+        }
     }
     else {
-        Nodes[channel]->GetColor(color_angle);
-        ret_val = color_angle.red;
+        if (Nodes.size() > channel) {
+            Nodes[channel]->GetColor(color_angle);
+            ret_val = color_angle.red;
+        }
     }
     return ret_val;
 }
 
-void DmxModel::SetNodeNames(const std::string& default_names, bool force) {
+void DmxModel::SetNodeNames(const std::string& default_names, bool force)
+{
     wxString nn = ModelXml->GetAttribute("NodeNames", "");
     bool save_names = false;
     if (nn == "" || force) {

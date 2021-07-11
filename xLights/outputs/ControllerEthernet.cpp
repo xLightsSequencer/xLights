@@ -439,18 +439,22 @@ std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
-    if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
-        res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
-    }
-    else if (o->GetType() == OUTPUT_KINET) {
-        res += wxString::Format("Port: %s\nChannel: %d\n", o->GetUniverseString(), sc);
-    }
-    else if (o->GetType() == OUTPUT_OPC)
-    {
-        res += wxString::Format("Channel: %s\nMessage Offset: %d\n", o->GetUniverseString(), sc);
+    if (o == nullptr) {
+        res += wxString::Format("Channel: INVALID %d\n", ch);
     }
     else {
-        res += wxString::Format("Channel: %d\n", sc);
+        if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
+            res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
+        }
+        else if (o->GetType() == OUTPUT_KINET) {
+            res += wxString::Format("Port: %s\nChannel: %d\n", o->GetUniverseString(), sc);
+        }
+        else if (o->GetType() == OUTPUT_OPC) {
+            res += wxString::Format("Channel: %s\nMessage Offset: %d\n", o->GetUniverseString(), sc);
+        }
+        else {
+            res += wxString::Format("Channel: %d\n", sc);
+        }
     }
 
     if (!IsActive()) {

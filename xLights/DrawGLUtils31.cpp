@@ -234,6 +234,10 @@ public:
     }
 
     int BindBuffer(int idx, GLuint bufId, void *data, int sz) {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        if (idx >= numBuffers) {
+            logger_opengl.error("ShaderProgram::BindBuffer index out of range.");
+        }
         LOG_GL_ERRORV(glEnableVertexAttribArray(idx));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
         int i = bufferInfo[idx].currentPos;
