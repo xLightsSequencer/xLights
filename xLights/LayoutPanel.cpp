@@ -310,6 +310,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     _lastXlightsModel = "";
     appearanceVisible = sizeVisible = dimensionsVisible = stringPropsVisible = false;
     controllerConnectionVisible = true;
+    layersVisible = false;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -1102,6 +1103,11 @@ void LayoutPanel::clearPropGrid() {
     if (p != nullptr) {
         controllerConnectionVisible = propertyEditor->IsPropertyExpanded(p);
     }
+    p = propertyEditor->GetPropertyByName("Layers");
+    if (p != nullptr) {
+        layersVisible = propertyEditor->IsPropertyExpanded(p);
+    }
+
     propertyEditor->Clear();
 }
 
@@ -2338,6 +2344,12 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         }
         if (!controllerConnectionVisible) {
             wxPGProperty *prop = propertyEditor->GetPropertyByName("ModelControllerConnectionProperties");
+            if (prop != nullptr) {
+                propertyEditor->Collapse(prop);
+            }
+        }
+        if (!layersVisible) {
+            wxPGProperty* prop = propertyEditor->GetPropertyByName("Layers");
             if (prop != nullptr) {
                 propertyEditor->Collapse(prop);
             }

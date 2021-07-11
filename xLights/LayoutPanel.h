@@ -416,6 +416,7 @@ class LayoutPanel: public wxPanel
         bool sizeVisible = false;
         bool dimensionsVisible = false;
         bool colSizesSet = false;
+        bool layersVisible = false;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton = nullptr;
         NewModelBitmapButton *obj_button = nullptr;
