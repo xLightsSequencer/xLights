@@ -163,18 +163,28 @@ void EffectLayer::DeleteEffect(int id)
 void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
+    std::vector<Effect*> newEffects;
     for (int x = 0; x < mEffects.size(); x++) {
-        IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
-        if (undo_mgr) {
-            undo_mgr->CaptureEffectToBeDeleted( mParentElement->GetModelName(), mIndex, mEffects[x]->GetEffectName(),
-                                               mEffects[x]->GetSettingsAsString(), mEffects[x]->GetPaletteAsString(),
-                                               mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS(),
-                                               mEffects[x]->GetSelected(), mEffects[x]->GetProtected() );
+        if (!mEffects[x]->IsLocked()) {
+            IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
+            if (undo_mgr) {
+                undo_mgr->CaptureEffectToBeDeleted(mParentElement->GetModelName(), mIndex, mEffects[x]->GetEffectName(),
+                    mEffects[x]->GetSettingsAsString(), mEffects[x]->GetPaletteAsString(),
+                    mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS(),
+                    mEffects[x]->GetSelected(), mEffects[x]->GetProtected());
+            }
+            mEffects[x]->SetTimeToDelete();
+            mEffectsToDelete.push_back(mEffects[x]);
         }
-        mEffects[x]->SetTimeToDelete();
-        mEffectsToDelete.push_back(mEffects[x]);
+        else             {
+            newEffects.push_back(mEffects[x]);
+        }
     }
-    mEffects.clear();
+
+    mEffects = newEffects;
+
+    // renumber the remaining effects
+    NumberEffects();
 }
 
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,

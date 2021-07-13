@@ -956,7 +956,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
-            while (element->GetEffectLayer(i)->GetEffectCount() > 0) {
+            if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
             }
         }
