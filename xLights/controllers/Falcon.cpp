@@ -306,11 +306,11 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
 
 void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel)
 {
-    if (_v4status["A"].AsInt() == 0)         {
+    if (_v4status["A"].AsInt() == 0) {
         universe = 0;
-        startChannel = modelStartChannel;
+        startChannel = modelStartChannel - 1;
     }
-    else         {
+    else {
         universe = modelUniverse;
         startChannel = modelUniverseStartChannel - 1;
     }
