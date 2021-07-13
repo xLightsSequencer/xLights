@@ -224,6 +224,8 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
     SaveWindowPosition("xLightsImportDialogPosition", nullptr);
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
+    SaveWindowPosition("ControllerModelDialogPosition", nullptr);
+    SaveWindowPosition("xLightsTestDialogPosition", nullptr);
 }
 
 void xLightsFrame::InitSequencer()
