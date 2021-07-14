@@ -515,7 +515,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetEditor("SpinCtrl");
 
     int ssl = 0;
-    for (int i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
+    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
         if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
             ssl = i;
             break;

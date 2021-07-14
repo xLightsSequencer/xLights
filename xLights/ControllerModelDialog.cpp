@@ -1706,7 +1706,7 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
                 int nextch = on->GetControllerDMXChannel() - m->GetChanCount();
                 if (nextch < 1) nextch = 1;
                 if (last != nullptr) {
-                    if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                    if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
                         nextch = last->GetControllerDMXChannel() + last->GetChanCount();
                     }
                 }
@@ -1866,7 +1866,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
                             if (nextch < 1) nextch = 1;
                             if (last != nullptr) {
-                                if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                                if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
                                     nextch = last->GetControllerDMXChannel() + last->GetChanCount();
                                 }
                             }
@@ -2108,7 +2108,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                     int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
                                     if (nextch < 1) nextch = 1;
                                     if (last != nullptr) {
-                                        if (last->GetControllerDMXChannel() + last->GetChanCount() > nextch) {
+                                        if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
                                             nextch = last->GetControllerDMXChannel() + last->GetChanCount();
                                         }
                                     }

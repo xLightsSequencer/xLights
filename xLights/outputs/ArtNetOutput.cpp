@@ -174,16 +174,18 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
             uint32_t channels = 512;
 
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
+            logger_base.debug("     From %s.", (const char *)ip.c_str());
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
             ControllerEthernet* existing = nullptr;
             for (const auto& it : discovery.GetResults())                 {
-                if (it->ip == ip && it->controller->GetProtocol() == OUTPUT_ARTNET && it->controller->GetName() == std::string((char*)&buffer[26]))                     {
+                if (it->ip == ip && it->controller != nullptr && it->controller->GetProtocol() == OUTPUT_ARTNET && it->controller->GetName() == std::string((char*)&buffer[26]))                     {
                     existing = it->controller;
                 }
             }
 
             if (existing != nullptr) {
+                logger_base.debug("        Existing.");
                 // a second response from this controller
                 for (uint8_t i = 0; i < 4; i++) {
                     if ((buffer[174 + i] & 0x80) != 0) {
@@ -192,30 +194,38 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                         int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
                         if (u == existing->GetOutputs().back()->GetUniverse() + 1) {
                             existing->AddOutput();
-                            logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                            logger_base.info("        ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                        }
+                        else                             {
+                            logger_base.info("        ArtNet ignoring universe %d as it was not sequential.", u);
                         }
                     }
                 }
             }
             else {
-                logger_base.info("ArtNET Discovery adding controller %s.", (const char*)ip.c_str());
+                logger_base.info("        ArtNET Discovery adding controller %s.", (const char*)ip.c_str());
                 ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
                 c->SetProtocol(OUTPUT_ARTNET);
                 c->SetName(std::string((char*)&buffer[26]));
                 ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
-                o->SetUniverse(GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]));
-                for (uint8_t i = 1; i < 4; i++)                     {
-                    if ((buffer[174+i] & 0x80) != 0)                         {
-                        // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
-                        // where due to network pathing we see controllers more than once.
-                        int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
-                        if (u == c->GetOutputs().back()->GetUniverse() + 1) {
-                            c->AddOutput();
-                            logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                if (o != nullptr) {
+                    o->SetUniverse(GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]));
+                    for (uint8_t i = 1; i < 4; i++) {
+                        if ((buffer[174 + i] & 0x80) != 0) {
+                            // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
+                            // where due to network pathing we see controllers more than once.
+                            int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
+                            if (u == c->GetOutputs().back()->GetUniverse() + 1) {
+                                c->AddOutput();
+                                logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), c->GetOutputCount());
+                            }
+                            else {
+                                logger_base.info("        ArtNet ignoring universe %d as it was not sequential.", u);
+                            }
                         }
                     }
+                    o->SetChannels(channels);
                 }
-                o->SetChannels(channels);
                 c->SetIP(ip.ToStdString());
 
                 discovery.AddController(c);

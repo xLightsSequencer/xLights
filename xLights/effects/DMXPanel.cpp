@@ -885,7 +885,7 @@ std::list<Model*> DMXPanel::GetActiveModels()
 
 void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 {
-	int maxChannels = 0;
+	uint32_t maxChannels = 0;
 
 	auto models = GetActiveModels();
 	std::string stateName;

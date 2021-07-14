@@ -124,19 +124,19 @@ void SequencePackage::Extract() {
     wxFileInputStream fis(_pkgFile.GetFullPath());
     
     if (!fis.IsOk()) {
-        logger_base.error("Could not open the Sequence Package '%s'", _pkgFile.GetFullName().ToStdString().c_str());
+        logger_base.error("Could not open the Sequence Package '%s'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;
     }
 
     _tempDir = wxString::Format("%s%c%s_%lld", wxFileName::GetTempDir(), wxFileName::GetPathSeparator(), _pkgFile.GetName(), wxGetUTCTimeMillis());
-    logger_base.debug("Extracting Sequence Package '%s' to '%s'", _pkgFile.GetFullName().ToStdString().c_str(), _tempDir.GetFullPath().ToStdString().c_str());
+    logger_base.debug("Extracting Sequence Package '%s' to '%s'", (const char*)_pkgFile.GetFullName().c_str(), (const char*)_tempDir.GetFullPath().c_str());
 
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
     
     if (!zis.IsOk()) {
-        logger_base.error("Could not open the zip file '%s'", _pkgFile.GetFullName().ToStdString().c_str());
+        logger_base.error("Could not open the zip file '%s'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;
     }
@@ -156,9 +156,10 @@ void SequencePackage::Extract() {
         fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
 #endif
         wxFileName fnOutput;
-        
         upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
         
+        logger_base.debug("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+
         // Create output dir in temp if needed
         if (!wxDirExists(fnOutput.GetPath())) {
             wxFileName::Mkdir(fnOutput.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
@@ -168,46 +169,51 @@ void SequencePackage::Extract() {
         if (!upZe->IsDir()) {
             
             if (!zis.CanRead()) {
-                logger_base.error("Could not read file from package '%s'", upZe->GetName().ToStdString().c_str());
+                logger_base.error("Could not read file from package '%s'", upZe->GetName().c_str());
             }
-            
-            wxFileOutputStream fos(fnOutput.GetFullPath());
+            else {
+                wxFileOutputStream fos(fnOutput.GetFullPath());
 
-            if (!fos.IsOk()) {
-                logger_base.error("Could not create sequence file at '%s'", fnOutput.GetFullName().ToStdString().c_str());
-            }
+                if (!fos.IsOk()) {
+                    logger_base.error("Could not create sequence file at '%s'", fnOutput.GetFullName().c_str());
+                }
+                else {
+                    zis.Read(fos);
+                    wxString ext = fnOutput.GetExt();
 
-            zis.Read(fos);
-            wxString ext = fnOutput.GetExt();
-            
-            if (ext == "xsq") {
-                _xsqFile = fnOutput;
-                _xsqName = fnOutput.GetName();
-            } else if (ext == "xml") {
-                if (fnOutput.GetName() == "xlights_rgbeffects") {
-                    wxXmlDocument rgbEffects;
-                    if (rgbEffects.Load(fnOutput.GetFullPath())) {
-                        _rgbEffects = rgbEffects;
-                        _pkgRoot = fnOutput.GetPath();
-                        _hasRGBEffects = true;
+                    if (ext == "xsq") {
+                        _xsqFile = fnOutput;
+                        _xsqName = fnOutput.GetName();
                     }
-                } else if (fnOutput.GetName() == "xlights_networks") {
-                    _xlNetworks = fnOutput;
-                } else {
-                    wxXmlDocument doc;
-                    if (doc.Load(fnOutput.GetFullPath())) {
-                        if (doc.GetRoot()->GetName() == "xsequence") {
-                            _xsqFile = fnOutput;
-                            _xsqName = fnOutput.GetName();
+                    else if (ext == "xml") {
+                        if (fnOutput.GetName() == "xlights_rgbeffects") {
+                            wxXmlDocument rgbEffects;
+                            if (rgbEffects.Load(fnOutput.GetFullPath())) {
+                                _rgbEffects = rgbEffects;
+                                _pkgRoot = fnOutput.GetPath();
+                                _hasRGBEffects = true;
+                            }
+                        }
+                        else if (fnOutput.GetName() == "xlights_networks") {
+                            _xlNetworks = fnOutput;
+                        }
+                        else {
+                            wxXmlDocument doc;
+                            if (doc.Load(fnOutput.GetFullPath())) {
+                                if (doc.GetRoot()->GetName() == "xsequence") {
+                                    _xsqFile = fnOutput;
+                                    _xsqName = fnOutput.GetName();
+                                }
+                            }
                         }
                     }
+                    else {
+                        // assume other files are media for effects, images/videos/gediators/shaders/faces/etc
+                        _media[fnOutput.GetFullName()] = fnOutput;
+                    }
                 }
-            } else {
-                // assume other files are media for effects, images/videos/gediators/shaders/faces/etc
-                _media[fnOutput.GetFullName()] = fnOutput;
+                fos.Close();
             }
-            
-            fos.Close();
         }
         
         numEntryProcessed++;
@@ -224,7 +230,7 @@ void SequencePackage::Extract() {
     prog.Update(100);
     
     if (!_xsqFile.IsOk() || !_xsqFile.Exists()) {
-        logger_base.error("No sequence file found in package '%s'", _pkgFile.GetFullName().ToStdString().c_str());
+        logger_base.error("No sequence file found in package '%s'", (const char*)_pkgFile.GetFullName().c_str());
     } else {
         InitDefaultImportOptions();
     }

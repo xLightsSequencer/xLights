@@ -22,7 +22,7 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 	float minX = FLT_MAX;
 	float minY = FLT_MAX;
 	float minZ = FLT_MAX;
-	for (int i = 0; i < model->GetNodeCount(); i++) {
+	for (size_t i = 0; i < model->GetNodeCount(); i++) {
 		std::vector<std::tuple<float, float, float>> pts;
 		model->GetNode3DScreenCoords(i, pts);
 

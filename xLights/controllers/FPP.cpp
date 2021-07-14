@@ -1231,7 +1231,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
         ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
 
         float x, y, z;
-        for (int i = 0; i < model->GetNodeCount(); i++) {
+        for (size_t i = 0; i < model->GetNodeCount(); i++) {
             pts.clear();
             model->GetNodeScreenCoords(i, pts);
             ch = model->NodeStartChannel(i);

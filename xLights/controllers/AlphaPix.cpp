@@ -94,7 +94,7 @@ public:
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("    Name %s Protocol %d InputMode %d",
-            name.ToStdString().c_str(),
+            (const char*)name.c_str(),
             protocol,
             inputMode
         );

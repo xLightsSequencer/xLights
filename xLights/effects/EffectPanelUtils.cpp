@@ -356,7 +356,7 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
                    ) {
             //nothing to do
         } else {
-            //printf("Unknown ID: %s\n", ChildName.ToStdString().c_str());
+            //printf("Unknown ID: %s\n", ChildName.c_str());
         }
     }
 }

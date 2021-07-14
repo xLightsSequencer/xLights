@@ -52,12 +52,12 @@ public:
 
     NodeBaseClass()
     {
-        chanCnt=NODE_RGB_CHAN_CNT;
+        chanCnt = NODE_RGB_CHAN_CNT;
         offsets[0] = 0;
         offsets[1] = 1;
         offsets[2] = 2;
     }
-    NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
+    NodeBaseClass(const NodeBaseClass& c) : sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
         Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model), _maskColor(c._maskColor)
     {
         if (c.name != nullptr) {
@@ -71,29 +71,32 @@ public:
 
     NodeBaseClass(int StringNumber, size_t NodesPerString)
     {
-        StringNum=StringNumber;
+        StringNum = StringNumber;
         Coords.resize(NodesPerString);
-        chanCnt=NODE_RGB_CHAN_CNT;
+        chanCnt = NODE_RGB_CHAN_CNT;
         offsets[0] = 0;
         offsets[1] = 1;
         offsets[2] = 2;
     }
-    NodeBaseClass(int StringNumber, size_t NodesPerString, const std::string &rgbOrder, const std::string &n = EMPTY_STR)
+
+    NodeBaseClass(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, const std::string& n = EMPTY_STR)
     {
-        StringNum=StringNumber;
+        StringNum = StringNumber;
         Coords.resize(NodesPerString);
-        chanCnt=NODE_RGB_CHAN_CNT;
-        offsets[0]=rgbOrder.find('R');
-        offsets[1]=rgbOrder.find('G');
-        offsets[2]=rgbOrder.find('B');
+        chanCnt = NODE_RGB_CHAN_CNT;
+        offsets[0] = rgbOrder.find('R');
+        offsets[1] = rgbOrder.find('G');
+        offsets[2] = rgbOrder.find('B');
         if (n != EMPTY_STR) {
             name = new std::string(n);
-        } else {
+        }
+        else {
             name = nullptr;
         }
     }
 
-    virtual NodeBaseClass *clone() const {
+    virtual NodeBaseClass* clone() const
+    {
         return new NodeBaseClass(*this);
     }
 
@@ -101,20 +104,22 @@ public:
     void AddBufCoord(unsigned short x, unsigned short y)
     {
         CoordStruct c;
-        c.bufX=x;
-        c.bufY=y;
-        c.bufZ=0;
+        c.bufX = x;
+        c.bufY = y;
+        c.bufZ = 0;
         c.screenZ = 0;
         Coords.push_back(c);
     }
 
-    virtual void SetColor(const xlColor& color) {
-        c[0]=color.red;
-        c[1]=color.green;
-        c[2]=color.blue;
+    virtual void SetColor(const xlColor& color)
+    {
+        c[0] = color.red;
+        c[1] = color.green;
+        c[2] = color.blue;
     }
 
-    virtual void SetFromChannels(const unsigned char *buf) {
+    virtual void SetFromChannels(const unsigned char* buf)
+    {
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255) {
                 c[x] = buf[offsets[x]];
@@ -122,23 +127,29 @@ public:
         }
     }
 
-    virtual void GetForChannels(unsigned char *buf) const {
+    virtual void GetForChannels(unsigned char* buf) const
+    {
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255) {
                 buf[offsets[x]] = c[x];
             }
         }
     }
+
     virtual const std::string &GetNodeType() const;
 
-    uint32_t GetChanCount() const {
+    uint32_t GetChanCount() const
+    {
         return chanCnt;
     }
-    bool IsVisible() const {
+
+    bool IsVisible() const
+    {
         return !Coords.empty();
     }
 
-    void SetName(const std::string &n) {
+    void SetName(const std::string& n)
+    {
         if (name != nullptr) {
             delete name;
             name = nullptr;
@@ -147,7 +158,9 @@ public:
             name = new std::string(n);
         }
     }
-    const std::string &GetName() const {
+
+    const std::string& GetName() const
+    {
         if (name == nullptr) {
             return EMPTY_STR;
         }
@@ -161,15 +174,18 @@ public:
         }
     }
 
-    virtual void GetColor(xlColor& color) const {
-        color.Set(c[0],c[1],c[2]);
+    virtual void GetColor(xlColor& color) const
+    {
+        color.Set(c[0], c[1], c[2]);
     }
 
-    void GetMaskColor(xlColor& color) const {
+    void GetMaskColor(xlColor& color) const
+    {
         color = _maskColor;
     }
 
-    void SetMaskColor(const xlColor& c) {
+    void SetMaskColor(const xlColor& c)
+    {
         _maskColor = c;
     }
 
@@ -205,7 +221,7 @@ public:
 class NodeClassRed : public NodeBaseClass
 {
 public:
-    NodeClassRed(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassRed(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -213,13 +229,16 @@ public:
         SetName(n);
         _maskColor = xlRED;
     }
-    virtual void GetColor(xlColor& color) const override {
-        color.Set(c[0],0,0);
+    virtual void GetColor(xlColor& color) const override
+    {
+        color.Set(c[0], 0, 0);
     }
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return RED;
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassRed(*this);
     }
 };
@@ -227,7 +246,7 @@ public:
 class NodeClassGreen : public NodeBaseClass
 {
 public:
-    NodeClassGreen(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassGreen(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[1] = 0;
@@ -235,13 +254,16 @@ public:
         SetName(n);
         _maskColor = xlGREEN;
     }
-    virtual void GetColor(xlColor& color) const override {
-        color.Set(0,c[1],0);
+    virtual void GetColor(xlColor& color) const override
+    {
+        color.Set(0, c[1], 0);
     }
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return GREEN;
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassGreen(*this);
     }
 };
@@ -249,7 +271,7 @@ public:
 class NodeClassBlue : public NodeBaseClass
 {
 public:
-    NodeClassBlue(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassBlue(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[2] = 0;
@@ -257,13 +279,16 @@ public:
         SetName(n);
         _maskColor = xlBLUE;
     }
-    virtual void GetColor(xlColor& color) const override {
-        color.Set(0,0,c[2]);
+    virtual void GetColor(xlColor& color) const override
+    {
+        color.Set(0, 0, c[2]);
     }
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return BLUE;
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassBlue(*this);
     }
 };
@@ -271,7 +296,7 @@ public:
 class NodeClassCustom : public NodeBaseClass
 {
 public:
-    NodeClassCustom(int StringNumber, size_t NodesPerString, const xlColor &c, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassCustom(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -281,7 +306,7 @@ public:
         type = c;
         _maskColor = c;
     }
-    NodeClassCustom(const NodeClassCustom &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
+    NodeClassCustom(const NodeClassCustom& c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
 
     void SetCustomColor(xlColor& c)
     {
@@ -289,31 +314,37 @@ public:
         type = c;
     }
 
-    virtual void GetColor(xlColor& color) const override {
+    virtual void GetColor(xlColor& color) const override
+    {
         HSVValue hsv2 = hsv;
-        hsv2.value=c[0];
+        hsv2.value = c[0];
         hsv2.value /= 255.0;
         color = hsv2;
     }
 
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return type;
     }
 
-    virtual void SetColor(const xlColor& color) override {
+    virtual void SetColor(const xlColor& color) override
+    {
         HSVValue hsv2 = color.asHSV();
 
         if (std::abs((double)(hsv2.hue - hsv.hue)) < 0.01) {
             //in the right hue
-            c[0]=hsv2.value * 255.0;
-        } else if (hsv2.hue < 0.01 && hsv2.saturation < 0.01) {
+            c[0] = hsv2.value * 255.0;
+        }
+        else if (hsv2.hue < 0.01 && hsv2.saturation < 0.01) {
             //white/black
-            c[0]=hsv2.value * 255.0;
-        } else {
+            c[0] = hsv2.value * 255.0;
+        }
+        else {
             c[0] = 0;
         }
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassCustom(*this);
     }
 private:
@@ -324,7 +355,7 @@ private:
 class NodeClassIntensity : public NodeBaseClass
 {
 public:
-    NodeClassIntensity(int StringNumber, size_t NodesPerString, const xlColor &c, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassIntensity(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -334,7 +365,7 @@ public:
         type = c;
         _maskColor = c;
     }
-    NodeClassIntensity(const NodeClassIntensity &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
+    NodeClassIntensity(const NodeClassIntensity& c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
 
     void SetCustomColor(xlColor& c)
     {
@@ -342,22 +373,26 @@ public:
         type = c;
     }
 
-    virtual void GetColor(xlColor& color) const override {
+    virtual void GetColor(xlColor& color) const override
+    {
         HSVValue hsv2 = hsv;
-        hsv2.value=c[0];
+        hsv2.value = c[0];
         hsv2.value /= 255.0;
         color = hsv2;
     }
 
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return type;
     }
 
-    virtual void SetColor(const xlColor& color) override {
+    virtual void SetColor(const xlColor& color) override
+    {
         HSVValue hsv2 = color.asHSV();
-        c[0]=hsv2.value * 255.0;
+        c[0] = hsv2.value * 255.0;
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassIntensity(*this);
     }
 private:
@@ -368,26 +403,31 @@ private:
 class NodeClassWhite : public NodeBaseClass
 {
 public:
-    NodeClassWhite(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassWhite(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         SetName(n);
     }
 
-    virtual void GetColor(xlColor& color) const override {
-        uint8_t cmin =  std::min(c[0], std::min(c[1],c[2]));
-        color.Set(cmin,cmin,cmin);
+    virtual void GetColor(xlColor& color) const override
+    {
+        uint8_t cmin = std::min(c[0], std::min(c[1], c[2]));
+        color.Set(cmin, cmin, cmin);
     }
-    virtual void SetFromChannels(const unsigned char *buf) override {
+    virtual void SetFromChannels(const unsigned char* buf) override
+    {
         c[0] = c[1] = c[2] = buf[0];
     }
-    virtual void GetForChannels(unsigned char *buf) const override {
-        buf[0] = std::min(c[0], std::min(c[1],c[2]));
+    virtual void GetForChannels(unsigned char* buf) const override
+    {
+        buf[0] = std::min(c[0], std::min(c[1], c[2]));
     }
-    virtual const std::string &GetNodeType() const override {
+    virtual const std::string& GetNodeType() const override
+    {
         return WHITE;
     }
-    virtual NodeBaseClass *clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassWhite(*this);
     }
 };
@@ -395,7 +435,7 @@ public:
 class NodeClassRGBW : public NodeBaseClass
 {
 public:
-    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string &rgbOrder, bool whiteLast, int rgbwtype, const std::string &n = EMPTY_STR)
+    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, bool whiteLast, int rgbwtype, const std::string& n = EMPTY_STR)
         : NodeBaseClass(StringNumber, NodesPerString, rgbOrder)
     {
         chanCnt = NODE_RGBW_CHAN_CNT;
@@ -404,14 +444,16 @@ public:
         wIndex = whiteLast ? 3 : 0;
         rgbwHandling = rgbwtype;
     }
-    NodeClassRGBW(const NodeClassRGBW& c) : NodeBaseClass(c), wOffset(c.wOffset), wIndex(c.wIndex), rgbwHandling(c.rgbwHandling) {
+    NodeClassRGBW(const NodeClassRGBW& c) : NodeBaseClass(c), wOffset(c.wOffset), wIndex(c.wIndex), rgbwHandling(c.rgbwHandling)
+    {
     }
 
-    virtual void SetFromChannels(const unsigned char *buf) override;
-    virtual void GetForChannels(unsigned char *buf) const override;
-    virtual const std::string &GetNodeType() const override;
-    
-    virtual NodeBaseClass *clone() const override {
+    virtual void SetFromChannels(const unsigned char* buf) override;
+    virtual void GetForChannels(unsigned char* buf) const override;
+    virtual const std::string& GetNodeType() const override;
+
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassRGBW(*this);
     }
 private:
@@ -430,11 +472,12 @@ public:
         SetName(n);
         _superStringColours = superStringColours;
     }
-    NodeClassSuperString(const NodeClassSuperString& c) : NodeBaseClass(c), _superStringColours(c._superStringColours) { }
+    NodeClassSuperString(const NodeClassSuperString& c) : NodeBaseClass(c), _superStringColours(c._superStringColours) {}
 
     virtual void SetFromChannels(const unsigned char* buf) override;
     virtual void GetForChannels(unsigned char* buf) const override;
-    virtual NodeBaseClass* clone() const override {
+    virtual NodeBaseClass* clone() const override
+    {
         return new NodeClassSuperString(*this);
     }
 private:
@@ -442,4 +485,3 @@ private:
 };
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
-

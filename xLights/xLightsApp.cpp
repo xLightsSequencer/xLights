@@ -589,7 +589,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         return;
     }
     wxString fileName = fileNames[0];
-    logger_base.info("******* MacOpenFiles: %s", fileName.ToStdString().c_str());
+    logger_base.info("******* MacOpenFiles: %s", (const char*)fileName.c_str());
     ObtainAccessToURL(fileName);
 
     wxString showDir = wxPathOnly(fileName);
