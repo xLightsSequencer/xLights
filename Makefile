@@ -14,7 +14,7 @@ ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 
-SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
+SUBDIRS         = xLights xSchedule xCapture xFade xBackup xSchedule/xSMSDaemon
 
 WXWIDGETS_TAG=xlights_2021.13
 
@@ -99,11 +99,13 @@ install:
 	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon.so $(DESTDIR)/${PREFIX}/bin/xSMSDaemon.so
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
+	-$(INSTALL_PROGRAM) -D bin/xBackup $(DESTDIR)/${PREFIX}/bin/xBackup
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	-$(INSTALL_PROGRAM) -D bin/xsmsdaemon.desktop $(DESTDIR)/${PREFIX}/share/applications/xsmsdaemon.desktop
 	-$(INSTALL_PROGRAM) -D bin/xcapture.desktop $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
 	-$(INSTALL_PROGRAM) -D bin/xfade.desktop $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
+	-$(INSTALL_PROGRAM) -D bin/xbackup.desktop $(DESTDIR)/${PREFIX}/share/applications/xbackup.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
@@ -132,6 +134,7 @@ uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xbackup.desktop
 
 #############################################################################
 
@@ -191,6 +194,16 @@ xFade/xFade.cbp.mak: xFade/xFade.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xFade/xFade.cbp.mak
+
+xBackup/xBackup.cbp.mak: xBackup/xBackup.cbp
+	@cbp2make -in xBackup/xBackup.cbp -cfg cbp2make.cfg -out xBackup/xBackup.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xBackup/xBackup.cbp.mak xBackup/xBackup.cbp.mak.orig
+	@cat xBackup/xBackup.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xBackup/xBackup.cbp.mak
 
 #############################################################################
 

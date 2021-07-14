@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=xBackup %f
+Comment=Restore xLights Show Folder from Backup
+Name=xBackup
+Terminal=false
+Icon=xlights
+Categories=AudioVideo;
+MimeType=text/xml;
