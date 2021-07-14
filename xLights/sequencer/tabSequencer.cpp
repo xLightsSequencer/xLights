@@ -684,7 +684,7 @@ void xLightsFrame::CheckForValidModels()
                         for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
                             SubModelElement* sme = el->GetSubModel(x1);
                             if (sme != nullptr && 
-                                dynamic_cast<StrandElement*>(sme) != nullptr &&
+                                dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
                                 std::vector<std::string> AllSMNames;
                                 std::vector<std::string> ModelSMNames;

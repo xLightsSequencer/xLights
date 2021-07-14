@@ -2577,17 +2577,21 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (wxDir::Exists(targetDirName)) return;
+    if (wxDir::Exists(lastCreatedDirectory)) return;
 
     if (targetDirName.Length() > 256)
     {
-        logger_base.warn("Target directory is %d characters long. This may be an issue on your operating system.", targetDirName.Length());
+        logger_base.warn("Target directory %s is %d characters long. This may be an issue on your operating system.", (const char*)targetDirName.c_str(), targetDirName.Length());
     }
 
     wxFileName tgt(targetDirName);
     wxFileName lst(lastCreatedDirectory);
 
     if (!tgt.GetFullPath().StartsWith(lst.GetFullPath())) return;
+
+    logger_base.debug("Create missing directories. Target %s. Last Created %s.", (const char*)tgt.GetFullPath().c_str(), (const char*)lst.GetFullPath().c_str());
 
     wxArrayString tgtd = wxSplit(targetDirName, wxFileName::GetPathSeparator());
     wxArrayString lstd = wxSplit(lastCreatedDirectory, wxFileName::GetPathSeparator());
@@ -4088,13 +4092,15 @@ void xLightsFrame::DoAltBackup(bool prompt)
         DisplayError(errors, this);
     }
 }
-void xLightsFrame::SetMediaFolders(const std::list<std::string> &folders) {
+
+void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
 
     wxString setting;
     mediaDirectories.clear();
-    for (auto &dir: folders) {
+    for (auto& dir : folders) {
         ObtainAccessToURL(dir);
         mediaDirectories.push_back(dir);
         logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
@@ -4108,7 +4114,8 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string> &folders) {
     mediaDirectories.push_back(showDirectory);
 }
 
-void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder) {
+void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
+{
     useShow = (showDirectory == fseqDirectory);
     folder = fseqDirectory;
 }
@@ -4220,12 +4227,10 @@ void xLightsFrame::SetAltBackupFolder(const std::string& folder)
 
     wxConfigBase* config = wxConfigBase::Get();
 
-    if (folder != "" && !wxDir::Exists(folder))
-    {
+    if (folder != "" && !wxDir::Exists(folder)) {
         DisplayError("Alternate backup directory does not exist. Alternate backup folder was not changed to " + folder + ". Alternate backup folder remains : " + mAltBackupDir, this);
     }
-    else
-    {
+    else {
         ObtainAccessToURL(folder);
         config->Write(_("xLightsAltBackupDir"), wxString(folder));
         mAltBackupDir = folder;
@@ -4235,19 +4240,16 @@ void xLightsFrame::SetAltBackupFolder(const std::string& folder)
 
 void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
 {
-    if (mAltBackupDir == "")
-    {
+    if (mAltBackupDir == "") {
         wxDirDialog dir(this, _("Select alternate backup directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
-        if (dir.ShowModal() == wxID_OK)
-        {
+        if (dir.ShowModal() == wxID_OK) {
             mAltBackupDir = dir.GetPath();
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("Alternate backup location set to %s.", (const char *)mAltBackupDir.c_str());
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("Alternate backup location set to %s.", (const char*)mAltBackupDir.c_str());
         }
     }
 
-    if (mAltBackupDir == "")
-    {
+    if (mAltBackupDir == "") {
         return;
     }
     ObtainAccessToURL(mAltBackupDir);
@@ -4260,8 +4262,7 @@ void xLightsFrame::ExportModels(wxString filename)
 {
     wxFile f(filename);
 
-    if (!f.Create(filename, true) || !f.IsOpened())
-    {
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
@@ -4278,21 +4279,16 @@ void xLightsFrame::ExportModels(wxString filename)
     //int cols = wxSplit(modelTitle, ',').size();
     f.Write(modelTitle);
 
-    for (auto m : AllModels)
-    {
+    for (auto m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() == "ModelGroup")
-        {
+        if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup* mg = static_cast<ModelGroup*>(model);
             std::string models;
-            for (const auto& it : mg->ModelNames())
-            {
-                if (models == "")
-                {
+            for (const auto& it : mg->ModelNames()) {
+                if (models == "") {
                     models = it;
                 }
-                else
-                {
+                else {
                     models += ", " + it;
                 }
             }
@@ -4306,8 +4302,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLayoutGroup()
             ));
         }
-        else
-        {
+        else {
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud, protocol, controllername;
@@ -4321,20 +4316,16 @@ void xLightsFrame::ExportModels(wxString filename)
             wxString stype = wxString(model->GetStringType());
 
             int32_t lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
-            if (!stype.Contains("Node"))
-            {
-                if (model->GetNodeCount() == 1)
-                {
+            if (!stype.Contains("Node")) {
+                if (model->GetNodeCount() == 1) {
                     lightcount = model->GetCoordCount(0);
                 }
-                else
-                {
+                else {
                     lightcount = model->NodesPerString() * model->GetLightsPerNode();
                 }
             }
 
-            if (stype.Contains("Node") || stype.Contains("Channel RGB"))
-            {
+            if (stype.Contains("Node") || stype.Contains("Channel RGB")) {
                 current = wxString::Format("%0.2f", (float)lightcount * AMPS_PER_PIXEL).ToStdString();
             }
 
@@ -4378,13 +4369,11 @@ void xLightsFrame::ExportModels(wxString filename)
                 inactive);
 
             f.Write(outRec);
-            if (ch < minchannel)
-            {
+            if (ch < minchannel) {
                 minchannel = ch;
             }
             int32_t lastch = model->GetLastChannel() + 1;
-            if (lastch > maxchannel)
-            {
+            if (lastch > maxchannel) {
                 maxchannel = lastch;
             }
         }
@@ -4392,57 +4381,46 @@ void xLightsFrame::ExportModels(wxString filename)
 
     uint32_t bulbs = 0;
     uint32_t usedchannels = 0;
-    if (minchannel == 99999999)
-    {
+    if (minchannel == 99999999) {
         // No channels so we dont do this
         minchannel = 0;
         maxchannel = 0;
     }
-    else
-    {
+    else {
         int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
         memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-        for (auto m : AllModels)
-        {
+        for (auto m : AllModels) {
             Model* model = m.second;
-            if (model->GetDisplayAs() != "ModelGroup")
-            {
+            if (model->GetDisplayAs() != "ModelGroup") {
                 int ch = model->GetFirstChannel() + 1;
                 int endch = model->GetLastChannel() + 1;
 
                 int uniquechannels = 0;
-                for (int i = ch; i <= endch; i++)
-                {
+                for (int i = ch; i <= endch; i++) {
                     wxASSERT(i - minchannel < maxchannel - minchannel + 1);
-                    if (chused[i - minchannel] == 0)
-                    {
+                    if (chused[i - minchannel] == 0) {
                         uniquechannels++;
                     }
                     chused[i - minchannel]++;
                 }
 
-                if (wxString(model->GetStringType()).StartsWith("Single Color"))
-                {
+                if (wxString(model->GetStringType()).StartsWith("Single Color")) {
                     bulbs += uniquechannels * model->GetCoordCount(0);
                 }
-                else if (wxString(model->GetStringType()).StartsWith("3 Channel"))
-                {
+                else if (wxString(model->GetStringType()).StartsWith("3 Channel")) {
                     bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetCoordCount(0);
                 }
-                else if (wxString(model->GetStringType()).StartsWith("4 Channel"))
-                {
+                else if (wxString(model->GetStringType()).StartsWith("4 Channel")) {
                     bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetCoordCount(0);
                 }
-                else if (wxString(model->GetStringType()).StartsWith("Strobes"))
-                {
+                else if (wxString(model->GetStringType()).StartsWith("Strobes")) {
                     bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
                 }
                 else if (model->GetStringType() == "Node Single Color") {
                     bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
                 }
-                else
-                {
+                else {
                     int den = model->GetChanCountPerNode();
                     if (den == 0) den = 1;
                     bulbs += uniquechannels / den * model->GetLightsPerNode();
@@ -4450,10 +4428,8 @@ void xLightsFrame::ExportModels(wxString filename)
             }
         }
 
-        for (long i = 0; i < (long)(maxchannel - minchannel + 1); i++)
-        {
-            if (chused[i] > 0)
-            {
+        for (long i = 0; i < (long)(maxchannel - minchannel + 1); i++) {
+            if (chused[i] > 0) {
                 usedchannels++;
             }
         }
@@ -4473,11 +4449,9 @@ void xLightsFrame::ExportModels(wxString filename)
     f.Write("\n");
 
     f.Write(_outputManager.GetExportHeader() + "\n");
-    for (const auto& it : _outputManager.GetControllers())
-    {
+    for (const auto& it : _outputManager.GetControllers()) {
         f.Write(it->GetExport() + "\n");
-        for (const auto& it2 : it->GetOutputs())
-        {
+        for (const auto& it2 : it->GetOutputs()) {
             auto s = it2->GetExport();
             if (s != "") f.Write(it2->GetExport() + "\n");
         }
@@ -4499,13 +4473,12 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
     wxString fileName = "xLights_l4cpp.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
-    if (dir.EndsWith("/") || dir.EndsWith("\\"))
-    {
+    if (dir.EndsWith("/") || dir.EndsWith("\\")) {
         dir = dir.Left(dir.Length() - 1);
     }
     wxString filename = dir + "/" + fileName;
@@ -4514,8 +4487,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
-    if (dir.EndsWith("/"))
-    {
+    if (dir.EndsWith("/")) {
         dir = dir.Left(dir.Length() - 1);
     }
     wxString filename = dir + "/Library/Logs/" + fileName;
@@ -4524,33 +4496,28 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString filename = "/tmp/" + fileName;
 #endif
     wxString fn = "";
-    if (wxFile::Exists(filename))
-    {
+    if (wxFile::Exists(filename)) {
         fn = filename;
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         fn = wxFileName(CurrentDir, fileName).GetFullPath();
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
     }
 
-    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-    if (fn != "" && ft)
-    {
+    wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+    if (fn != "" && ft) {
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+        logger_base.debug("Viewing log file %s.", (const char*)fn.c_str());
 
         wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
         delete ft;
     }
-    else
-    {
+    else {
         DisplayError(wxString::Format("Unable to show log file '%s'.", fn).ToStdString(), this);
     }
 }

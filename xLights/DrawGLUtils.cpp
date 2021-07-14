@@ -1780,7 +1780,7 @@ public:
         float w = 0;
         for (int idx = 0; idx < text.size(); idx++) {
             char ch = text[idx];
-            if (ch < ' ' && ch > '~') {
+            if (ch < ' ' || ch > '~') {
                 ch = '?';
             }
             w += widths[ch - ' '];
