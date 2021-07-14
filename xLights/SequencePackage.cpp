@@ -169,13 +169,13 @@ void SequencePackage::Extract() {
         if (!upZe->IsDir()) {
             
             if (!zis.CanRead()) {
-                logger_base.error("Could not read file from package '%s'", upZe->GetName().c_str());
+                logger_base.error("Could not read file from package '%s'", (const char *)upZe->GetName().c_str());
             }
             else {
                 wxFileOutputStream fos(fnOutput.GetFullPath());
 
                 if (!fos.IsOk()) {
-                    logger_base.error("Could not create sequence file at '%s'", fnOutput.GetFullName().c_str());
+                    logger_base.error("Could not create sequence file at '%s'", (const char *)fnOutput.GetFullName().c_str());
                 }
                 else {
                     zis.Read(fos);
