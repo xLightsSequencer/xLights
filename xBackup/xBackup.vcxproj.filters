@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="xBackupApp.cpp" />
+    <ClCompile Include="xBackupMain.cpp" />
+    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\TraceLog.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="xBackupApp.h" />
+    <ClInclude Include="xBackupMain.h" />
+    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\TraceLog.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\globals.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h" />
+    <ClInclude Include="Model.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="xLights">
+      <UniqueIdentifier>{e9e82e91-3b73-475f-a615-dde1bfd25a35}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

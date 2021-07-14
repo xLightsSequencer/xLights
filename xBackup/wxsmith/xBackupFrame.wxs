@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxFrame" name="xBackupFrame">
+		<title>xLights Script</title>
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>2</cols>
+			<growablecols>1</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxListBox" name="ID_LISTBOX_BACKUPS" variable="ListBoxBackups" member="yes">
+					<default>-1</default>
+					<handler function="OnListBoxBackupsSelect" entry="EVT_LISTBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_BACKUP_DATA" variable="TextCtrl_BackupData" member="yes">
+					<style>wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB</style>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>2</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON_RUN" variable="ButtonRun" member="yes">
+					<label>Restore Backup</label>
+					<handler function="OnButtonRunClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_BACKUPFOLDER" variable="StaticTextBackUpFolder" member="yes">
+					<label>BackUpFolder</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_SHOWFOLDER" variable="StaticTextShowFolder" member="yes">
+					<label>ShowFolder</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
+			<fields>1</fields>
+			<widths>-10</widths>
+			<styles>wxSB_NORMAL</styles>
+		</object>
+		<object class="wxMenuBar" variable="MenuBar1" member="yes">
+			<object class="wxMenu" variable="Menu1" member="yes">
+				<label>&amp;File</label>
+				<object class="wxMenuItem" name="ID_MNU_SHOWFOLDER" variable="MenuItem_ShowFolder" member="yes">
+					<label>Select Show &amp;Folder</label>
+					<handler function="OnMenuItem_ShowFolderSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_WIPE_XLIGHTS_SETTINGS" variable="MenuItem_Wipe_xLights_Settings" member="yes">
+					<label>Wipe xLights Settings</label>
+					<handler function="OnMenuItem_Wipe_xLights_SettingsSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_QUIT" variable="MenuItem_Quit" member="yes">
+					<label>Quit</label>
+					<accel>Alt-F4</accel>
+					<help>Quit the application</help>
+					<handler function="OnQuit" entry="EVT_MENU" />
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu2" member="yes">
+				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_ABOUT" variable="MenuItem_About" member="yes">
+					<label>About</label>
+					<accel>F1</accel>
+					<handler function="OnAbout" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_LOG" variable="MenuItem_Log" member="yes">
+					<label>View Log</label>
+					<handler function="OnMenuItem_LogSelected" entry="EVT_MENU" />
+				</object>
+			</object>
+		</object>
+	</object>
+</wxsmith>

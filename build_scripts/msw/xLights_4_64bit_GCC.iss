@@ -72,6 +72,12 @@ Source: "../../bin64/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xScanner64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xBackup
+Source: "../../bin64/xBackup.exe"; DestDir: "{app}"
+Source: "../../bin64/xBackup.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xBackup.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xBackup64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
 ; xFade
 Source: "../../bin64/xFade.exe"; DestDir: "{app}"
 Source: "../../bin64/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"

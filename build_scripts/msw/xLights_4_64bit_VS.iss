@@ -72,6 +72,12 @@ Source: "../../xScanner/x64/Release/xScanner.map"; DestDir: "{app}"; Flags: "ign
 Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xScanner64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xBackup
+Source: "../../xBackup/x64/Release/xBackup.exe"; DestDir: "{app}"
+Source: "../../xBackup/x64/Release/xBackup.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xBackup.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xBackup64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
 ; xFade
 Source: "../../xFade/x64/Release/xFade.exe"; DestDir: "{app}"
 Source: "../../xFade/x64/Release/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"

@@ -1,0 +1,4 @@
+APP_ICON ICON "../include/xbackup.ico"
+MAINICON ICON "../include/xbackup.ico"
+
+#include "wx/msw/wx.rc"

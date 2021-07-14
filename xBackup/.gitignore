@@ -1,0 +1,10 @@
+*.layout
+.vs/
+.objs*/
+bin/
+Debug/
+Release/
+obj/
+x64/
+*.depend
+*.vcxproj.user

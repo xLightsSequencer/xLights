@@ -26,6 +26,11 @@ msbuild.exe /m xScanner.sln /p:Configuration="Release" /p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
+cd xBackup
+msbuild.exe /m xBackup.sln /p:Configuration="Release" /p:Platform="x86"
+if %ERRORLEVEL% NEQ 0 goto error
+cd ..
+
 cd xSchedule
 msbuild.exe /m xSchedule.sln /p:Configuration="Release" /p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
