@@ -93,8 +93,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludePresetsCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludeAudioCheckBoxClick);
 	//*)
-    
-    
+
+
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
 #endif
@@ -153,4 +153,18 @@ void OtherSettingsPanel::OneMailTextControlTextEnter(wxCommandEvent& event)
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
+}
+
+void OtherSettingsPanel::OnChoice_LinkSaveSelect(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
+}
+
+void OtherSettingsPanel::OnChoice_LinkControllerUploadSelect(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }

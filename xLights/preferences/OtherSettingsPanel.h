@@ -65,6 +65,8 @@ class OtherSettingsPanel: public wxPanel
 		void OnExcludePresetsCheckBoxClick(wxCommandEvent& event);
 		void OnHardwareVideoDecodingCheckBoxClick(wxCommandEvent& event);
 		void OneMailTextControlTextEnter(wxCommandEvent& event);
+		void OnChoice_LinkSaveSelect(wxCommandEvent& event);
+		void OnChoice_LinkControllerUploadSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
