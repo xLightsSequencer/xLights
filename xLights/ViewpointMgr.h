@@ -91,10 +91,14 @@ public:
     void Save(wxXmlDocument* doc);
     void Load(wxXmlNode* vp_node);
 
+    void SetDefaultCamera2D(PreviewCamera* current_camera) { _defaultCamera2D = current_camera; }
+    void SetDefaultCamera3D(PreviewCamera* current_camera) { _defaultCamera3D = current_camera; }
     void AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d );
     int GetNum2DCameras() const { return static_cast<int>(previewCameras2d.size()); }
     int GetNum3DCameras() const { return static_cast<int>(previewCameras3d.size()); }
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
+    PreviewCamera* GetDefaultCamera2D() { return _defaultCamera2D; }
+    PreviewCamera* GetDefaultCamera3D() { return _defaultCamera3D; }
     void DeleteCamera2D(int i);
     PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
     void DeleteCamera3D(int i);
@@ -102,12 +106,13 @@ public:
     void Clear();
     bool IsNameUnique(const std::string& name, bool is_3d);
 
-protected:
-
 private:
     wxXmlNode* Save() const;
+    PreviewCamera* CreateCameraFromNode(wxXmlNode* node);
+    wxXmlNode* SaveCameraToXml(PreviewCamera* camera, const std::string& nodename, const std::string& nameOverride) const;
 
     std::vector<PreviewCamera*> previewCameras3d;
     std::vector<PreviewCamera*> previewCameras2d;
-
+    PreviewCamera* _defaultCamera2D = nullptr;
+    PreviewCamera* _defaultCamera3D = nullptr;
 };

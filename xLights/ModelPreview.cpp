@@ -50,6 +50,7 @@ END_EVENT_TABLE()
 
 const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
 const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
+const long ModelPreview::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
@@ -69,6 +70,45 @@ void ModelPreview::SetCamera3D(int i)
     *camera3d = *(xlights->viewpoint_mgr.GetCamera3D(i));
     SetCameraPos(0,0,false,true);
     SetCameraView(0,0,false,true);
+}
+
+void ModelPreview::SaveDefaultCameraPosition()
+{
+    PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
+    if (is_3d) {
+        xlights->viewpoint_mgr.SetDefaultCamera3D(camera3d);
+    }
+    else {
+        xlights->viewpoint_mgr.SetDefaultCamera2D(camera2d);
+    }
+    xlights->MarkEffectsFileDirty();
+}
+
+void ModelPreview::RestoreDefaultCameraPosition()
+{
+    if (is_3d)
+    {
+        auto camera = xlights->viewpoint_mgr.GetDefaultCamera3D();
+        if (camera == nullptr) {
+            Reset();
+        }
+        else
+        {
+            *camera3d = *camera;
+            SetCameraPos(0, 0, false, true);
+            SetCameraView(0, 0, false, true);
+        }
+    }
+    else {
+        auto camera = xlights->viewpoint_mgr.GetDefaultCamera2D();
+        if (camera == nullptr) {
+            Reset();
+        }
+        else {
+            *camera2d = *camera;
+        }
+    }
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelPreview::RestoreDefaultCameraPosition");
 }
 
 void ModelPreview::SaveCurrentCameraPosition()
@@ -660,7 +700,6 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
         if (currentLayoutGroup != "")
         {
             wxMenu mnu;
-            mnu.Append(0x2001, "Reset");
             if (allowPreviewChange) {
                 wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
                 item->Check(is_3d);
@@ -671,6 +710,11 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     mnu.Append(index++, a->GetName());
                 }
                 // ViewPoint menus
+                mnu.AppendSeparator();
+            }
+            mnu.Append(0x2001, "Reset");
+            if (allowPreviewChange) {
+                mnu.Append(ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE, _("Restore Default ViewPoint"));
                 mnu.AppendSeparator();
                 if (is_3d) {
                     if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
@@ -718,7 +762,11 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         //if xlights isn't set, just return as there is nothing we can do (shouldn't ever happen)
         return;
     }
-    if (id == 0x2000) {
+
+    if (id == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE - 1) {
+        RestoreDefaultCameraPosition();
+    }
+    else  if (id == 0x2000) {
         Reset();
     } else if (id == 0x1000) {
         is_3d = !is_3d;

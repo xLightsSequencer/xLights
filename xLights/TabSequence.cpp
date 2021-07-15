@@ -37,6 +37,7 @@
 #include "ValueCurvesPanel.h"
 #include "ColoursPanel.h"
 #include "sequencer/MainSequencer.h"
+#include "HousePreviewPanel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -216,6 +217,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     if (viewpointsNode != nullptr) {
         viewpoint_mgr.Load(viewpointsNode);
+        layoutPanel->GetMainPreview()->RestoreDefaultCameraPosition();
+        _housePreviewPanel->GetModelPreview()->RestoreDefaultCameraPosition();
     }
 
     if (ModelGroupsNode == nullptr) {

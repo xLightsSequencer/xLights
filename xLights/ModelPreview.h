@@ -127,6 +127,8 @@ public:
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
     void SaveCurrentCameraPosition();
+    void SaveDefaultCameraPosition();
+    void RestoreDefaultCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
     void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
@@ -166,45 +168,46 @@ private:
     void OnZoomGesture(wxZoomGestureEvent& event);
 
     void OnPopup(wxCommandEvent& event);
-	void drawGrid(float size, float step);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
     wxString mBackgroundImage;
-    int mBackgroundBrightness=100;
-    int mBackgroundAlpha=100;
+    int mBackgroundBrightness = 100;
+    int mBackgroundAlpha = 100;
     wxDouble mPointSize = 2.0;
-    int virtualWidth, virtualHeight;
+    int virtualWidth = 0;
+    int virtualHeight = 0;
 
-    bool _display2DBox;
-    bool _center2D0;
-    Image* image;
+    bool _display2DBox =  false;
+    bool _center2D0 = false;
+    Image* image = nullptr;
     bool scaleImage = false;
-    xLightsDrawable* sprite;
+    xLightsDrawable* sprite = nullptr;
     bool allowSelected;
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator solidAccumulator;
     DrawGLUtils::xlAccumulator transparentAccumulator;
 
-    xLightsFrame* xlights;
+    xLightsFrame* xlights = nullptr;
     std::string currentModel;
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
-    Model *additionalModel;
+    Model *additionalModel = nullptr;
 
-    int renderOrder;
+    int renderOrder = 0;
 	DrawGLUtils::xl3Accumulator solidViewObjectAccumulator;
     DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
     DrawGLUtils::xl3Accumulator solidAccumulator3d;
     DrawGLUtils::xl3Accumulator transparentAccumulator3d;
     DrawGLUtils::xl3Accumulator linesAccumulator3d;
-    bool is_3d;
+    bool is_3d = false;
     bool _wiring = false;
     bool _highlightFirst = false;
-    bool m_mouse_down;
-    bool m_wheel_down;
-    int m_last_mouse_x, m_last_mouse_y;
+    bool m_mouse_down = false;
+    bool m_wheel_down = false;
+    int m_last_mouse_x = 0;
+    int m_last_mouse_y = 0;
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;
@@ -213,6 +216,7 @@ private:
     PreviewCamera* camera2d;
     static const long ID_VIEWPOINT2D;
     static const long ID_VIEWPOINT3D;
+    static const long ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE;
     double currentPixelScaleFactor = 1.0;
 
 	DECLARE_EVENT_TABLE()

@@ -190,6 +190,8 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
         static const long ID_PREVIEW_PRINT_LAYOUT_IMAGE;
         static const long ID_PREVIEW_SAVE_VIEWPOINT;
+        static const long ID_PREVIEW_VIEWPOINT_DEFAULT;
+        static const long ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE;
         static const long ID_PREVIEW_VIEWPOINT2D;
         static const long ID_PREVIEW_VIEWPOINT3D;
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;

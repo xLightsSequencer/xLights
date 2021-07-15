@@ -913,7 +913,7 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 		n->AddAttribute("CustomColors", "1");
 		n->AddAttribute("Name", stateName);
 		n->AddAttribute("Type", "SingleNode");
-		for (int i = 0; i < 40; i++) 			{
+		for (uint32_t i = 0; i < 40; i++) 			{
 			if (i < maxChannels) 				{
 				auto attr = wxString::Format("s%d-Name", i + 1);
 				n->AddAttribute(attr, stateName);

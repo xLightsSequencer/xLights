@@ -226,51 +226,101 @@ void ViewpointMgr::Save(wxXmlDocument* doc)
     doc->GetRoot()->AddChild(newnode);
 }
 
+wxXmlNode* ViewpointMgr::SaveCameraToXml(PreviewCamera* camera, const std::string& nodename, const std::string& nameOverride = "") const
+{
+    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, nodename);
+    if (nameOverride != "")
+    {
+        cnode->AddAttribute("name", XmlSafe(nameOverride));
+    }
+    else {
+        cnode->AddAttribute("name", XmlSafe(camera->name));
+    }
+    cnode->AddAttribute("posX", wxString::Format("%f", camera->posX));
+    cnode->AddAttribute("posY", wxString::Format("%f", camera->posY));
+    cnode->AddAttribute("posZ", wxString::Format("%f", camera->posZ));
+    cnode->AddAttribute("angleX", wxString::Format("%f", camera->angleX));
+    cnode->AddAttribute("angleY", wxString::Format("%f", camera->angleY));
+    cnode->AddAttribute("distance", wxString::Format("%f", camera->distance));
+    cnode->AddAttribute("zoom", wxString::Format("%f", camera->zoom));
+    cnode->AddAttribute("panx", wxString::Format("%f", camera->panx));
+    cnode->AddAttribute("pany", wxString::Format("%f", camera->pany));
+    cnode->AddAttribute("panz", wxString::Format("%f", camera->panz));
+    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", camera->zoom_corrx));
+    cnode->AddAttribute("zoom_corry", wxString::Format("%f", camera->zoom_corry));
+    cnode->AddAttribute("is_3d", wxString::Format("%d", camera->is_3d));
+
+    return cnode;
+}
+
 wxXmlNode* ViewpointMgr::Save() const
 {
 	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Viewpoints");
 
 	for( size_t i = 0; i < previewCameras2d.size(); ++i )
 	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, "Camera");
-	    cnode->AddAttribute("name", XmlSafe(previewCameras2d[i]->name));
-	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras2d[i]->posX));
-	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras2d[i]->posY));
-	    cnode->AddAttribute("posZ", wxString::Format("%f", previewCameras2d[i]->posZ));
-	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras2d[i]->angleX));
-	    cnode->AddAttribute("angleY", wxString::Format("%f", previewCameras2d[i]->angleY));
-	    cnode->AddAttribute("distance", wxString::Format("%f", previewCameras2d[i]->distance));
-	    cnode->AddAttribute("zoom", wxString::Format("%f", previewCameras2d[i]->zoom));
-	    cnode->AddAttribute("panx", wxString::Format("%f", previewCameras2d[i]->panx));
-	    cnode->AddAttribute("pany", wxString::Format("%f", previewCameras2d[i]->pany));
-	    cnode->AddAttribute("panz", wxString::Format("%f", previewCameras2d[i]->panz));
-	    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", previewCameras2d[i]->zoom_corrx));
-	    cnode->AddAttribute("zoom_corry", wxString::Format("%f", previewCameras2d[i]->zoom_corry));
-	    cnode->AddAttribute("is_3d", wxString::Format("%d", previewCameras2d[i]->is_3d));
+        wxXmlNode* cnode = SaveCameraToXml(previewCameras2d[i], "Camera");
         node->AddChild(cnode);
 	}
 
 	for( size_t i = 0; i < previewCameras3d.size(); ++i )
 	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, "Camera");
-	    cnode->AddAttribute("name", XmlSafe(previewCameras3d[i]->name));
-	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras3d[i]->posX));
-	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras3d[i]->posY));
-	    cnode->AddAttribute("posZ", wxString::Format("%f", previewCameras3d[i]->posZ));
-	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras3d[i]->angleX));
-	    cnode->AddAttribute("angleY", wxString::Format("%f", previewCameras3d[i]->angleY));
-	    cnode->AddAttribute("distance", wxString::Format("%f", previewCameras3d[i]->distance));
-	    cnode->AddAttribute("zoom", wxString::Format("%f", previewCameras3d[i]->zoom));
-	    cnode->AddAttribute("panx", wxString::Format("%f", previewCameras3d[i]->panx));
-	    cnode->AddAttribute("pany", wxString::Format("%f", previewCameras3d[i]->pany));
-	    cnode->AddAttribute("panz", wxString::Format("%f", previewCameras3d[i]->panz));
-	    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", previewCameras3d[i]->zoom_corrx));
-	    cnode->AddAttribute("zoom_corry", wxString::Format("%f", previewCameras3d[i]->zoom_corry));
-	    cnode->AddAttribute("is_3d", wxString::Format("%d", previewCameras3d[i]->is_3d));
+        wxXmlNode* cnode = SaveCameraToXml(previewCameras3d[i], "Camera");
         node->AddChild(cnode);
 	}
 
+    if (_defaultCamera2D != nullptr)         {
+        wxXmlNode* cnode = SaveCameraToXml(_defaultCamera2D, "DefaultCamera2D", "DEFAULT2D");
+        node->AddChild(cnode);
+    }
+
+    if (_defaultCamera3D != nullptr) {
+        wxXmlNode* cnode = SaveCameraToXml(_defaultCamera3D, "DefaultCamera3D", "DEFAULT3D");
+        node->AddChild(cnode);
+    }
+
 	return node;
+}
+
+PreviewCamera* ViewpointMgr::CreateCameraFromNode(wxXmlNode* c)
+{
+    std::string name = UnXmlSafe(c->GetAttribute("name", ""));
+    if (name == "") {
+        // This is so Gils early file still loads correctly
+        name = c->GetName().ToStdString();
+    }
+    wxString is_3d_;
+    c->GetAttribute("is_3d", &is_3d_);
+    bool is_3d = wxAtoi(is_3d_);
+    PreviewCamera* new_camera = new PreviewCamera(is_3d);
+    new_camera->name = name;
+    wxString attr;
+    c->GetAttribute("posX", &attr);
+    new_camera->posX = wxAtof(attr);
+    c->GetAttribute("posY", &attr);
+    new_camera->posY = wxAtof(attr);
+    c->GetAttribute("posZ", &attr);
+    new_camera->posZ = wxAtof(attr);
+    c->GetAttribute("angleX", &attr);
+    new_camera->angleX = wxAtof(attr);
+    c->GetAttribute("angleY", &attr);
+    new_camera->angleY = wxAtof(attr);
+    c->GetAttribute("distance", &attr);
+    new_camera->distance = wxAtof(attr);
+    c->GetAttribute("zoom", &attr);
+    new_camera->zoom = wxAtof(attr);
+    c->GetAttribute("panx", &attr);
+    new_camera->panx = wxAtof(attr);
+    c->GetAttribute("pany", &attr);
+    new_camera->pany = wxAtof(attr);
+    c->GetAttribute("panz", &attr);
+    new_camera->panz = wxAtof(attr);
+    c->GetAttribute("zoom_corrx", &attr);
+    new_camera->zoom_corrx = wxAtof(attr);
+    c->GetAttribute("zoom_corry", &attr);
+    new_camera->zoom_corry = wxAtof(attr);
+
+    return new_camera;
 }
 
 void ViewpointMgr::Load(wxXmlNode* vp_node)
@@ -281,46 +331,20 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
         previewCameras3d.clear();
         for (wxXmlNode* c = vp_node->GetChildren(); c != nullptr; c = c->GetNext())
         {
-            std::string name = UnXmlSafe(c->GetAttribute("name", ""));
-            if (name == "")
-            {
-                // This is so Gils early file still loads correctly
-                name = c->GetName().ToStdString();
+            if (c->GetName() == "Camera") {
+                PreviewCamera* new_camera = CreateCameraFromNode(c);
+                if (new_camera->is_3d) {
+                    previewCameras3d.push_back(new_camera);
+                }
+                else {
+                    previewCameras2d.push_back(new_camera);
+                }
             }
-            wxString is_3d_;
-            c->GetAttribute("is_3d", &is_3d_);
-            bool is_3d = wxAtoi(is_3d_);
-            PreviewCamera* new_camera = new PreviewCamera(is_3d);
-            new_camera->name = name;
-            wxString attr;
-            c->GetAttribute("posX", &attr);
-            new_camera->posX = wxAtof(attr);
-            c->GetAttribute("posY", &attr);
-            new_camera->posY = wxAtof(attr);
-            c->GetAttribute("posZ", &attr);
-            new_camera->posZ = wxAtof(attr);
-            c->GetAttribute("angleX", &attr);
-            new_camera->angleX = wxAtof(attr);
-            c->GetAttribute("angleY", &attr);
-            new_camera->angleY = wxAtof(attr);
-            c->GetAttribute("distance", &attr);
-            new_camera->distance = wxAtof(attr);
-            c->GetAttribute("zoom", &attr);
-            new_camera->zoom = wxAtof(attr);
-            c->GetAttribute("panx", &attr);
-            new_camera->panx = wxAtof(attr);
-            c->GetAttribute("pany", &attr);
-            new_camera->pany = wxAtof(attr);
-            c->GetAttribute("panz", &attr);
-            new_camera->panz = wxAtof(attr);
-            c->GetAttribute("zoom_corrx", &attr);
-            new_camera->zoom_corrx = wxAtof(attr);
-            c->GetAttribute("zoom_corry", &attr);
-            new_camera->zoom_corry = wxAtof(attr);
-            if( is_3d ) {
-                previewCameras3d.push_back(new_camera);
-            } else {
-                previewCameras2d.push_back(new_camera);
+            else if (c->GetName() == "DefaultCamera2D")                 {
+                _defaultCamera2D = CreateCameraFromNode(c);
+            }
+            else if (c->GetName() == "DefaultCamera3D") {
+                _defaultCamera3D = CreateCameraFromNode(c);
             }
         }
 	}

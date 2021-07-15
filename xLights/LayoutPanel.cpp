@@ -179,6 +179,8 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_VIEWPOINT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT_DEFAULT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
@@ -4243,8 +4245,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
     wxMenu mnu;
 
-    mnu.Append(ID_PREVIEW_RESET, "Reset");
-
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
     if (selectedObjectCnt > 1)
@@ -4290,6 +4290,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
 
     // ViewPoint menus
+    mnu.AppendSeparator();
+    mnu.Append(ID_PREVIEW_RESET, "Reset");
+    mnu.Append(ID_PREVIEW_VIEWPOINT_DEFAULT, _("Set Current ViewPoint as Default"));
+    mnu.Append(ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE, _("Restore Default ViewPoint"));
     mnu.AppendSeparator();
     mnu.Append(ID_PREVIEW_SAVE_VIEWPOINT, _("Save Current ViewPoint"));
     if (is_3d) {
@@ -4634,6 +4638,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
+    }
+    else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
+        modelPreview->SaveDefaultCameraPosition();
+    }
+    else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE) {
+        modelPreview->RestoreDefaultCameraPosition();
     }
     else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
     {
