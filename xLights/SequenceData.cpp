@@ -162,7 +162,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
     if (!_hugePagesFailed) {
 #ifdef __WXOSX__
         wxStopWatch sw;
-        size_t origSize = sz;
+        //size_t origSize = sz;
         blockType = BlockType::HUGE_PAGE;
         size_t szToAlloc = sz;
         if (szToAlloc > _hugePageAllocSize) {

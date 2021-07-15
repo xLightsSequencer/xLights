@@ -252,6 +252,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxMenuItem* MenuItem1;
 
     Create(parent, id, _("xLights Capture"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -364,7 +365,16 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     SetStatusBar(StatusBar1);
     UITimer.SetOwner(this, ID_TIMER1);
     UITimer.Start(1000, false);
-    FlexGridSizer1->Fit(this);
+    MainMenuBar = new wxMenuBar();
+    FileMenu = new wxMenu();
+    MenuItem1 = new wxMenuItem(FileMenu, wxID_EXIT, _("Quit\tALT-F4"), wxEmptyString, wxITEM_NORMAL);
+    FileMenu->Append(MenuItem1);
+    MainMenuBar->Append(FileMenu, _("&File"));
+    Menu2 = new wxMenu();
+    MenuItem2 = new wxMenuItem(Menu2, wxID_ABOUT, _("About"), wxEmptyString, wxITEM_NORMAL);
+    Menu2->Append(MenuItem2);
+    MainMenuBar->Append(Menu2, _("Help"));
+    SetMenuBar(MainMenuBar);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHECKBOX_TRIGGERONCHANNEL,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnCheckBox_TriggerOnChannelClick);
@@ -383,6 +393,8 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_SaveClick);
     Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_ClearClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xCaptureFrame::OnUITimerTrigger);
+    Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnQuit);
+    Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnAbout);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xCaptureFrame::OnResize);
     //*)
 
@@ -423,6 +435,9 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Button_StartStop->SetLabel("Start");
 
     ValidateWindow();
+#ifdef __WXOSX__
+    MainMenuBar->Remove(0);
+#endif
 }
 
 void xCaptureFrame::LoadState()

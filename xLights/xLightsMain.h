@@ -507,6 +507,7 @@ public:
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
+    void OnMenuItem_xCaptureSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
     void OnAC_OnClick(wxCommandEvent& event);
@@ -717,6 +718,7 @@ public:
     static const long ID_MNU_PREPAREAUDIO;
     static const long ID_MENU_USER_DICT;
     static const long ID_MNU_XSCHEDULE;
+    static const long ID_MENU_XCAPTURE;
     static const long ID_MNU_XSCANNER;
     static const long ID_MENUITEM5;
     static const long MNU_ID_ACLIGHTS;
@@ -905,6 +907,7 @@ public:
     wxMenuItem* QuitMenuItem;
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mExportModelsMenuItem;
+    wxMenuItem* xCaptureMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* Panel2;
     wxPanel* Panel5;

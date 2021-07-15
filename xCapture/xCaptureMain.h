@@ -28,6 +28,7 @@
 #include <wx/choice.h>
 #include <wx/frame.h>
 #include <wx/listctrl.h>
+#include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
@@ -193,6 +194,10 @@ private:
         wxCheckBox* CheckBox_TriggerOnChannel;
         wxChoice* Choice_Timing;
         wxListView* ListView_Universes;
+        wxMenu* FileMenu;
+        wxMenu* Menu2;
+        wxMenuBar* MainMenuBar;
+        wxMenuItem* MenuItem2;
         wxSpinCtrl* SpinCtrl_Channel;
         wxSpinCtrl* SpinCtrl_ManualTime;
         wxSpinCtrl* SpinCtrl_TriggerStart;

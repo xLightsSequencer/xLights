@@ -351,7 +351,7 @@ int xCaptureApp::OnExit()
 bool xCaptureApp::OnInit()
 {
     wxLog::SetLogLevel(wxLOG_FatalError);
-
+    SetAppName("xCapture");
 #ifdef _MSC_VER
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
     _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
