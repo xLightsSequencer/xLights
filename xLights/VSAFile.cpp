@@ -45,36 +45,42 @@ VSAFile::~VSAFile()
 
 void VSAFile::Load(const std::string& filename)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Close();
 
     _filename = filename;
     _fh = new wxFile(filename);
     uint32_t num_evt_tracks = 0;
 
-    if (_fh->IsOpened())
-    {
+    logger_base.debug("Reading %s.", (const char*)filename.c_str());
+
+    if (_fh->IsOpened()) {
         uint8_t version[12];
         _fh->Read(version, 12);
+        logger_base.debug("    Version %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X.", version[0], version[1], version[2], version[3], version[4], version[5], version[6], version[7], version[8], version[9], version[10], version[11]);
         uint8_t num_bytes;
         // Read license level
         _fh->Read(&num_bytes, 1);
         std::string level;
         level.resize(num_bytes);
         _fh->Read(&level[0], num_bytes);
+        logger_base.debug("    Level %s.", (const char*)level.c_str());
         // Read options
         _fh->Read(&num_bytes, 1);
         std::string options;
         options.resize(num_bytes);
         _fh->Read(&options[0], num_bytes);
+        logger_base.debug("    options %s.", (const char*)options.c_str());
         // Read email
         _fh->Read(&num_bytes, 1);
         std::string email;
         email.resize(num_bytes);
         _fh->Read(&email[0], num_bytes);
+        logger_base.debug("    email %s.", (const char*)email.c_str());
         // Read number of events
         uint32_t num_events;
         _fh->Read(&num_events, 4);
+        logger_base.debug("    events %u.", num_events);
         // Read other data
         uint32_t other_data;
         _fh->Read(&other_data, 4);
@@ -85,22 +91,23 @@ void VSAFile::Load(const std::string& filename)
         std::string event_type;
         event_type.resize(str_bytes);
         _fh->Read(&event_type[0], str_bytes);
+        logger_base.debug("    event type %s.", (const char*)event_type.c_str());
 
         // Store event types
         std::string first_event_type = "";
         std::string second_event_type = "";
 
         // read all the events
-        for( size_t i=0; i < num_events; ++i ) {
+        for (size_t i = 0; i < num_events; ++i) {
             vsaEventRecord evt;
 
             // read track number
             _fh->Read(&evt.track, 2);
 
             // see if we have enough tracks
-            if( evt.track+1 > num_evt_tracks ) {
-                _events.resize(evt.track+1);
-                num_evt_tracks = evt.track+1;
+            if (evt.track + 1 > num_evt_tracks) {
+                _events.resize(evt.track + 1);
+                num_evt_tracks = evt.track + 1;
             }
 
             // read times and positions
@@ -113,7 +120,7 @@ void VSAFile::Load(const std::string& filename)
             _fh->Read(&num_bytes, 1);
             evt.text.resize(num_bytes);
             _fh->Read(&evt.text[0], num_bytes);
-            if( event_type == "CEventBarLinear" ) {
+            if (event_type == "CEventBarLinear") {
                 if (first_event_type == "") {
                     first_event_type = "CEventBarLinear";
                 }
@@ -121,7 +128,8 @@ void VSAFile::Load(const std::string& filename)
                     second_event_type = "CEventBarLinear";
                 }
                 _fh->Read(&evt.data[0], 12);
-            } else if( event_type == "CEventBarPulse" ) {
+            }
+            else if (event_type == "CEventBarPulse") {
                 if (first_event_type == "") {
                     first_event_type = "CEventBarPulse";
                 }
@@ -129,8 +137,9 @@ void VSAFile::Load(const std::string& filename)
                     second_event_type = "CEventBarPulse";
                 }
                 _fh->Read(&evt.data[0], 16);
-            } else {
-                DisplayError("Unsupported event type! Halted.");
+            }
+            else {
+                DisplayError(wxString::Format("Unsupported event type (%s)! Halted.", event_type));
                 break;
             }
 
@@ -138,8 +147,7 @@ void VSAFile::Load(const std::string& filename)
             _events[evt.track].push_back(evt);
 
             // check if on last event
-            if( i+1 == num_events )
-            {
+            if (i + 1 == num_events) {
                 _ok = true;
                 break;
             }
@@ -154,7 +162,7 @@ void VSAFile::Load(const std::string& filename)
                 event_type = second_event_type;
             }
             else {
-                if( next_evt == 0xFFFF ) {
+                if (next_evt == 0xFFFF) {
                     // Read other data
                     uint16_t other_data2;
                     _fh->Read(&other_data2, 2);
@@ -162,8 +170,9 @@ void VSAFile::Load(const std::string& filename)
                     _fh->Read(&str_bytes, 2);
                     event_type.resize(str_bytes);
                     _fh->Read(&event_type[0], str_bytes);
-                } else {
-                    DisplayError("Unsupported event type! Halted.");
+                }
+                else {
+                    DisplayError(wxString::Format("Unsupported event type (0x%04x)! Halted.", next_evt));
                     break;
                 }
             }
@@ -248,9 +257,8 @@ void VSAFile::Load(const std::string& filename)
         _fh->Read(&_timing, 4);
         _fh->Read(&unknown_word4, 4);
     }
-    else
-    {
-        logger_base.error("VSA file %s could not be opened.", (const char *)filename.c_str());
+    else {
+        logger_base.error("VSA file %s could not be opened.", (const char*)filename.c_str());
         Close();
     }
 }
