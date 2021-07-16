@@ -2738,6 +2738,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
             return false;
         }
     }
+    
     if ((res->typeId >= 0xC2) && (res->typeId <= 0xC3)) {
         if (res->ranges == "") {
             auto c = outputManager->GetControllers(res->ip);
@@ -2755,14 +2756,12 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         }
         return res->majorVersion >= 4 && res->mode == "remote";
     }
-    if (res->typeId == 0x85) {
-        // Falcon V4 supported by FPP connect
-        if (res->majorVersion >= 4) {
-            return true;
-        } else {
-            return false;
-        }
+    
+    if (res->typeId == 0x88 || res->typeId == 0x89)         {
+        // F16V4 / F48V4
+        return true;
     }
+
     return false;
 }
 
@@ -2806,7 +2805,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->username = res->username;
                 fpp->password = res->password;
                 fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x85; // these controllers support uncompressed and zlib (including sparse)
+                fpp->iszlib = res->typeId == 0x88 || res->typeId == 0x89; // these controllers support uncompressed and zlib (including sparse)
                 fpp->controllerVendor = res->vendor;
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
@@ -2832,7 +2831,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x85; // these controllers support uncompressed and zlib (including sparse)
+                fpp->iszlib = res->typeId == 0x88 || res->typeId == 0x89; // these controllers support uncompressed and zlib (including sparse)
                 fpp->type = res->typeId;
             }
         } else {

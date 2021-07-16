@@ -921,7 +921,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                             if (inst->iszlib)                                 {
 
                                 // we need to send the FSEQ and maybe the media to the controller
-                                if (inst->type == 0x85)                                     {
+                                if (inst->type == 0x88 || inst->type == 0x89)                                     {
                                     // a falcon
                                     std::string proxy = "";
                                     auto c = _outputManager->GetControllers(inst->ipAddress);
