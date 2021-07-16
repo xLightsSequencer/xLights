@@ -116,6 +116,8 @@ ViewpointMgr::ViewpointMgr()
 
 ViewpointMgr::~ViewpointMgr()
 {
+    if (_defaultCamera2D != nullptr) delete _defaultCamera2D;
+    if (_defaultCamera3D != nullptr) delete _defaultCamera3D;
     Clear();
 }
 

@@ -91,8 +91,14 @@ public:
     void Save(wxXmlDocument* doc);
     void Load(wxXmlNode* vp_node);
 
-    void SetDefaultCamera2D(PreviewCamera* current_camera) { _defaultCamera2D = current_camera; }
-    void SetDefaultCamera3D(PreviewCamera* current_camera) { _defaultCamera3D = current_camera; }
+    void SetDefaultCamera2D(PreviewCamera* current_camera) { 
+        if (_defaultCamera2D != nullptr) delete _defaultCamera2D; 
+        _defaultCamera2D = new PreviewCamera(*current_camera); 
+    }
+    void SetDefaultCamera3D(PreviewCamera* current_camera) { 
+        if (_defaultCamera3D != nullptr) delete _defaultCamera3D;
+        _defaultCamera3D = new PreviewCamera(*current_camera);
+    }
     void AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d );
     int GetNum2DCameras() const { return static_cast<int>(previewCameras2d.size()); }
     int GetNum3DCameras() const { return static_cast<int>(previewCameras3d.size()); }
