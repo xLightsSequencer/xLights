@@ -1417,7 +1417,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
         wxString t;
         config->Read("LastDir", &t);
 
-        if (t != xLightsApp::showDir)         {
+        if (t != xLightsApp::showDir) {
             showDirFromCommandLine = true;
         }
         dir = xLightsApp::showDir;
@@ -2831,7 +2831,7 @@ void xLightsFrame::ShowSequenceSettings()
     bool aborted = AbortRender();
 
     // populate dialog
-    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
@@ -10112,6 +10112,22 @@ void xLightsFrame::CollectUserEmail()
         // if the user cancels assume they want it set to the prior address
         SetUserEMAIL(_userEmail);
     }
+}
+
+void xLightsFrame::SetDefaultSeqView(const wxString& view)
+{
+    //if (_sequenceViewManager.GetViewIndex(view) == -1) {
+    //    return;
+    //}
+    
+    _defaultSeqView = view;
+    SetXmlSetting("defaultSeqView", view);
+    UnsavedRgbEffectsChanges = true;
+}
+
+wxArrayString xLightsFrame::GetSequenceViews()
+{
+    return _sequenceViewManager.GetViewList();
 }
 
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)

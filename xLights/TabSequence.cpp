@@ -211,6 +211,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         _sequenceViewManager.Load(viewsNode, _sequenceElements.GetCurrentView());
     }
 
+    _defaultSeqView = GetXmlSetting("defaultSeqView", "");
+
+    if (_sequenceViewManager.GetViewIndex(_defaultSeqView) == -1) {
+        logger_base.warn("View Not Found ... clearing");
+        _defaultSeqView.clear();
+        SetXmlSetting("defaultSeqView", _defaultSeqView);
+        UnsavedRgbEffectsChanges = true;
+    }
+
     if (colorsNode != nullptr) {
         color_mgr.Load(colorsNode);
     }

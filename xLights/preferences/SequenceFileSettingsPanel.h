@@ -46,10 +46,12 @@ class SequenceFileSettingsPanel: public wxPanel
 		wxChoice* FSEQVersionChoice;
 		wxChoice* ModelBlendDefaultChoice;
 		wxChoice* RenderCacheChoice;
+		wxChoice* VeiwDefaultChoice;
 		wxDirPickerCtrl* DirPickerCtrl_FSEQ;
 		wxDirPickerCtrl* DirPickerCtrl_RenderCache;
 		wxListBox* MediaDirectoryList;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		//*)
         
         virtual bool TransferDataFromWindow() override;
@@ -72,6 +74,8 @@ class SequenceFileSettingsPanel: public wxPanel
 		static const long ID_LISTBOX_MEDIA;
 		static const long ID_BUTTON_ADDMEDIA;
 		static const long ID_BUTTON_REMOVE_MEDIA;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_VIEW_DEFAULT;
 		//*)
 
 	private:
@@ -94,6 +98,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		void OnRemoveMediaButtonClick(wxCommandEvent& event);
 		void OnMediaDirectoryListSelect(wxCommandEvent& event);
 		void OnModelBlendDefaultChoiceSelect(wxCommandEvent& event);
+		void OnVeiwDefaultChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

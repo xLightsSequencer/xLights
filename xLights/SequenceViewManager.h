@@ -77,6 +77,7 @@ public:
 	void DeleteModel(const std::string& model);
 	void Reset();
     int GetViewCount() const { return _views.size(); }
+	wxArrayString GetViewList(bool skipMaster = true);
 
 protected:
     friend class SequenceElements;

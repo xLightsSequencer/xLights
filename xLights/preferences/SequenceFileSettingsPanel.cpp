@@ -41,6 +41,8 @@ const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL2 = wxNewId();
 const long SequenceFileSettingsPanel::ID_LISTBOX_MEDIA = wxNewId();
 const long SequenceFileSettingsPanel::ID_BUTTON_ADDMEDIA = wxNewId();
 const long SequenceFileSettingsPanel::ID_BUTTON_REMOVE_MEDIA = wxNewId();
+const long SequenceFileSettingsPanel::ID_STATICTEXT2 = wxNewId();
+const long SequenceFileSettingsPanel::ID_CHOICE_VIEW_DEFAULT = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SequenceFileSettingsPanel,wxPanel)
@@ -68,7 +70,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	GridBagSizer1->Add(RenderOnSaveCheckBox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FSEQSaveCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Save FSEQ File On Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	FSEQSaveCheckBox->SetValue(false);
-	GridBagSizer1->Add(FSEQSaveCheckBox, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(FSEQSaveCheckBox, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT1, _("Default Model Blending for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	GridBagSizer1->Add(StaticText4, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelBlendDefaultChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
@@ -76,14 +78,14 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	ModelBlendDefaultChoice->Append(_("Disabled"));
 	GridBagSizer1->Add(ModelBlendDefaultChoice, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("Render Cache"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText1, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticText1, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	RenderCacheChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	RenderCacheChoice->Append(_("Enabled"));
 	RenderCacheChoice->SetSelection( RenderCacheChoice->Append(_("Locked Effects Only")) );
 	RenderCacheChoice->Append(_("Disabled"));
-	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Auto Save Interval"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText2, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticText2, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	AutoSaveIntervalChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	AutoSaveIntervalChoice->Append(_("Disabled"));
 	AutoSaveIntervalChoice->Append(_("3 Minutes"));
@@ -91,29 +93,29 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	AutoSaveIntervalChoice->Append(_("10 Minutes"));
 	AutoSaveIntervalChoice->Append(_("15 Minutes"));
 	AutoSaveIntervalChoice->Append(_("30 Minutes"));
-	GridBagSizer1->Add(AutoSaveIntervalChoice, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(AutoSaveIntervalChoice, wxGBPosition(5, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, wxID_ANY, _("FSEQ Version"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText3, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticText3, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FSEQVersionChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FSEQVersionChoice->Append(_("V1"));
 	FSEQVersionChoice->SetSelection( FSEQVersionChoice->Append(_("V2 ZSTD (Default)")) );
 	FSEQVersionChoice->Append(_("V2 Uncompressed"));
 	FSEQVersionChoice->Append(_("V2 ZLIB"));
-	GridBagSizer1->Add(FSEQVersionChoice, wxGBPosition(7, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(FSEQVersionChoice, wxGBPosition(8, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Render Cache Directory"));
 	CheckBox_RenderCache = new wxCheckBox(this, ID_CHECKBOX6, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	CheckBox_RenderCache->SetValue(false);
 	StaticBoxSizer3->Add(CheckBox_RenderCache, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DirPickerCtrl_RenderCache = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL3, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL3"));
 	StaticBoxSizer3->Add(DirPickerCtrl_RenderCache, 1, wxALL|wxEXPAND, 5);
-	GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("FSEQ Directory"));
 	CheckBox_FSEQ = new wxCheckBox(this, ID_CHECKBOX5, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_FSEQ->SetValue(false);
 	StaticBoxSizer2->Add(CheckBox_FSEQ, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DirPickerCtrl_FSEQ = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL2, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL2"));
 	StaticBoxSizer2->Add(DirPickerCtrl_FSEQ, 1, wxALL|wxEXPAND, 5);
-	GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(8, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(9, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Media/Resource Directories"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -127,7 +129,11 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	FlexGridSizer2->Add(RemoveMediaButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
-	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
+	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT2, _("Default View for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	GridBagSizer1->Add(StaticText5, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	VeiwDefaultChoice = new wxChoice(this, ID_CHOICE_VIEW_DEFAULT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_DEFAULT"));
+	GridBagSizer1->Add(VeiwDefaultChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -195,6 +201,8 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
     frame->SetFSEQFolder(CheckBox_FSEQ->GetValue(), DirPickerCtrl_FSEQ->GetPath());
     frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
 
+    frame->SetDefaultSeqView(VeiwDefaultChoice->GetStringSelection());
+
     return true;
 }
 bool SequenceFileSettingsPanel::TransferDataToWindow() {
@@ -248,6 +256,14 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     frame->GetRenderCacheFolder(cb, folder);
     CheckBox_RenderCache->SetValue(cb);
     DirPickerCtrl_RenderCache->SetPath(folder);
+
+    VeiwDefaultChoice->Clear();
+    VeiwDefaultChoice->Append(wxString());
+    VeiwDefaultChoice->Append(frame->GetSequenceViews());
+    auto const& view = VeiwDefaultChoice->FindString(frame->GetDefaultSeqView());
+    if (wxNOT_FOUND != view) {
+        VeiwDefaultChoice->SetSelection(view);
+    }
 
     ValidateWindow();
 
@@ -393,6 +409,13 @@ void SequenceFileSettingsPanel::OnMediaDirectoryListSelect(wxCommandEvent& event
 }
 
 void SequenceFileSettingsPanel::OnModelBlendDefaultChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void SequenceFileSettingsPanel::OnVeiwDefaultChoiceSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

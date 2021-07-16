@@ -387,3 +387,17 @@ void SequenceViewManager::SetSelectedView(int view)
 		_selectedView = view;
 	}
 }
+
+wxArrayString SequenceViewManager::GetViewList(bool skipMaster)
+{
+	wxArrayString strViews;
+	auto views = GetViews();
+	for (auto it = views.begin(); it != views.end(); ++it) {
+		if ((*it)->GetName() == "Master View"  && skipMaster) {
+			continue;
+		}
+		strViews.Add((*it)->GetName());
+	}
+
+	return strViews;
+}

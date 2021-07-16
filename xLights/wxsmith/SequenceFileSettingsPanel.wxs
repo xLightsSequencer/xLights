@@ -22,7 +22,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>6</row>
+				<row>7</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -57,7 +57,7 @@
 					<label>Render Cache</label>
 				</object>
 				<col>0</col>
-				<row>2</row>
+				<row>3</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -73,7 +73,7 @@
 					<handler function="OnRenderCacheChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>2</row>
+				<row>3</row>
 				<flag>wxALL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -83,7 +83,7 @@
 					<label>Auto Save Interval</label>
 				</object>
 				<col>0</col>
-				<row>4</row>
+				<row>5</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -102,7 +102,7 @@
 					<handler function="OnAutoSaveIntervalChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>4</row>
+				<row>5</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -112,7 +112,7 @@
 					<label>FSEQ Version</label>
 				</object>
 				<col>0</col>
-				<row>7</row>
+				<row>8</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -129,7 +129,7 @@
 					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>7</row>
+				<row>8</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -159,7 +159,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>3</row>
+				<row>4</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -189,7 +189,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>8</row>
+				<row>9</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -243,9 +243,27 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>5</row>
+				<row>6</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText5" member="yes">
+					<label>Default View for New Sequences</label>
+				</object>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="VeiwDefaultChoice" member="yes" />
+				<col>1</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>

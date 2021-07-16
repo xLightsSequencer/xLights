@@ -142,7 +142,7 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, bool wizard_active_)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_)
 	: xml_file(file_to_handle_),
 	media_directories(media_dirs),
 	xLightsParent((xLightsFrame*)parent),
@@ -496,6 +496,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     
     RenderModeChoice->SetStringSelection(xml_file->GetRenderMode());
 
+    if (!defaultView.IsEmpty()) {
+        if (xLightsParent->GetViewsManager()->GetViewIndex(defaultView) != -1) {
+            selected_view = defaultView;
+        }
+    }
+
     UpdateDataLayer();
     needs_render = false;
 
@@ -604,6 +610,9 @@ void SeqSettingsDialog::WizardPage3()
         }
     }
 	ModelsChoice->SetSelection(0);
+    if (selected_view != "All Models") {
+        ModelsChoice->SetStringSelection(selected_view);
+    }
 	GridSizerWizButtons->Add(ModelsChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_quick_start = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_quick_start, quick_start, wxDefaultPosition, quick_start.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_quick_start"));
     BitmapButton_quick_start->SetBitmapSelected(quick_start_pressed);

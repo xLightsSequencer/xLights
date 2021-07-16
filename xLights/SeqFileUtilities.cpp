@@ -107,7 +107,7 @@ void xLightsFrame::NewSequence()
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""), true);
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""),_defaultSeqView, true);
     setting_dlg.Fit();
     int ret_code = setting_dlg.ShowModal();
     if (ret_code == wxID_CANCEL) {
@@ -478,7 +478,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 aborted = AbortRender();
             }
 
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT("V3 file was converted. Please check settings!"));
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT("V3 file was converted. Please check settings!"), wxEmptyString);
             setting_dlg.Fit();
             int ret_code = setting_dlg.ShowModal();
 

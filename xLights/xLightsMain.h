@@ -1000,6 +1000,7 @@ public:
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
+    wxString _defaultSeqView;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
@@ -1134,6 +1135,10 @@ public:
 
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
+
+    const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
+    void SetDefaultSeqView(const wxString& view);
+    wxArrayString GetSequenceViews();
 
     bool EnableOutputs(bool ignoreCheck = false);
     bool ToggleOutputs(bool ignoreCheck = false);
