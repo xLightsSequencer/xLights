@@ -279,14 +279,16 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 
 Pinger::~Pinger()
 {
+    _stopping = true;
+
     // Tell them to stop first ... means when we come to delete them we may not need to wait as long
-    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    for (const auto& it : _pingers)
     {
-        (*it)->Stop();
+        it->Stop();
     }
 
     // give the ping threads some CPU time
-    wxMilliSleep(1);
+    wxMilliSleep(100);
 
     for (const auto& it : _pingers)
     {
@@ -327,6 +329,8 @@ void Pinger::RemoveNonOutputIPs()
 
 APinger* Pinger::GetPinger(const std::string& ip) const
 {
+    if (_stopping) return nullptr;
+
     for (const auto& it : _pingers) {
         if (it->GetIP() == ip) return it;
     }
@@ -336,6 +340,8 @@ APinger* Pinger::GetPinger(const std::string& ip) const
 
 APinger* Pinger::GetPingerByIndex(int index) const
 {
+    if (_stopping) return nullptr;
+
     int i = 0;
     for (const auto& it : _pingers)         {
         if (i == index) return it;

@@ -62,11 +62,12 @@ class Pinger
 {
     ListenerManager* _listenerManager = nullptr;
     std::list<APinger*> _pingers;
+    bool _stopping = false;
 	
 	public:
 		Pinger(ListenerManager* listenerManager, OutputManager* outputManager);
 		virtual ~Pinger();
-        std::list<APinger*> GetPingers() const { return _pingers; }
+        std::list<APinger*> GetPingers() const { if (_stopping) return std::list<APinger*>(); return _pingers; }
         void AddIP(const std::string ip, const std::string why);
         void RemoveNonOutputIPs();
         APinger* GetPinger(const std::string& ip) const;
