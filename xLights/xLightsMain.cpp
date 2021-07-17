@@ -112,34 +112,6 @@
 #define MAXBACKUPFILE_MB 30
 
 
-//helper functions
-enum wxbuildinfoformat
-{
-    short_f, long_f
-};
-
-wxString wxbuildinfo(wxbuildinfoformat format)
-{
-    wxString wxbuild(wxVERSION_STRING);
-
-    if (format == long_f )
-    {
-#if defined(__WXMSW__)
-        wxbuild << _T("-Windows");
-#elif defined(__UNIX__)
-        wxbuild << _T("-Linux");
-#endif
-
-#if wxUSE_UNICODE
-        wxbuild << _T("-Unicode build");
-#else
-        wxbuild << _T("-ANSI build");
-#endif // wxUSE_UNICODE
-    }
-
-    return wxbuild;
-}
-
 //(*IdInit(xLightsFrame)
 const long xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
@@ -7645,6 +7617,11 @@ void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 #endif
 }
 
+#ifdef __WXOSX__
+#include "../xCapture/xCaptureMain.h"
+static xCaptureFrame *xCapture = nullptr;
+#endif
+
 void xLightsFrame::OnMenuItem_xCaptureSelected(wxCommandEvent& event)
 {
 #ifdef LINUX
@@ -7654,11 +7631,10 @@ void xLightsFrame::OnMenuItem_xCaptureSelected(wxCommandEvent& event)
     wxString cmdline(appPath+wxT("/xCapture"));
     wxExecute(cmdline, wxEXEC_ASYNC,NULL,NULL);
 #elif defined(__WXOSX__)
-    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-    wxString appPath(f.GetPath());
-    wxString cmdline(appPath + "/xCapture.app");
-
-    wxExecute(cmdline, wxEXEC_ASYNC, nullptr, nullptr);
+    if (xCapture == nullptr) {
+        xCapture = new xCaptureFrame(this);
+    }
+    xCapture->Show();
 #else
     wxExecute("xCapture.exe");
 #endif

@@ -42,31 +42,6 @@
 #include <wx/string.h>
 //*)
 
-//helper functions
-enum wxbuildinfoformat {
-    short_f, long_f };
-
-wxString wxbuildinfo(wxbuildinfoformat format)
-{
-    wxString wxbuild(wxVERSION_STRING);
-
-    if (format == long_f )
-    {
-#if defined(__WXMSW__)
-        wxbuild << _T("-Windows");
-#elif defined(__UNIX__)
-        wxbuild << _T("-Linux");
-#endif
-
-#if wxUSE_UNICODE
-        wxbuild << _T("-Unicode build");
-#else
-        wxbuild << _T("-ANSI build");
-#endif // wxUSE_UNICODE
-    }
-
-    return wxbuild;
-}
 
 //(*IdInit(xCaptureFrame)
 const long xCaptureFrame::ID_CHECKBOX_TRIGGERONCHANNEL = wxNewId();
@@ -252,7 +227,6 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
-    wxMenuItem* MenuItem1;
 
     Create(parent, id, _("xLights Capture"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -367,8 +341,6 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     UITimer.Start(1000, false);
     MainMenuBar = new wxMenuBar();
     FileMenu = new wxMenu();
-    MenuItem1 = new wxMenuItem(FileMenu, wxID_EXIT, _("Quit\tALT-F4"), wxEmptyString, wxITEM_NORMAL);
-    FileMenu->Append(MenuItem1);
     MainMenuBar->Append(FileMenu, _("&File"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, wxID_ABOUT, _("About"), wxEmptyString, wxITEM_NORMAL);
@@ -393,11 +365,19 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_SaveClick);
     Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_ClearClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xCaptureFrame::OnUITimerTrigger);
-    Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnQuit);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnAbout);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xCaptureFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xCaptureFrame::OnResize);
     //*)
 
+
+#ifdef __WXOSX__
+    MainMenuBar->Remove(0);
+#else
+    wxMenuItem *quitMenItem1 = new wxMenuItem(FileMenu, wxID_EXIT, _("Quit\tALT-F4"), wxEmptyString, wxITEM_NORMAL);
+    FileMenu->Append(quitMenItem1);
+    Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnQuit);
+#endif
     Connect(ID_E131SOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xCaptureFrame::OnE131SocketEvent);
     Connect(ID_ARTNETSOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xCaptureFrame::OnArtNETSocketEvent);
 
@@ -435,9 +415,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Button_StartStop->SetLabel("Start");
 
     ValidateWindow();
-#ifdef __WXOSX__
-    MainMenuBar->Remove(0);
-#endif
+
 }
 
 void xCaptureFrame::LoadState()
@@ -606,11 +584,6 @@ void xCaptureFrame::CloseSockets(bool force)
             _artNETSocket = nullptr;
         }
     }
-}
-
-void xCaptureFrame::OnQuit(wxCommandEvent& event)
-{
-    Close();
 }
 
 void xCaptureFrame::OnAbout(wxCommandEvent& event)
@@ -1760,4 +1733,22 @@ void xCaptureFrame::OnChoice_TimingSelect(wxCommandEvent& event)
         SpinCtrl_ManualTime->SetValue(100);
     }
     ValidateWindow();
+}
+
+void xCaptureFrame::OnClose(wxCloseEvent& event)
+{
+#ifdef __WXOSX__
+    event.Veto();
+    Hide();
+#else
+    event.Skip();
+#endif
+}
+void xCaptureFrame::OnQuit(wxCommandEvent& event)
+{
+#ifdef __WXOSX__
+    Hide();
+#else
+    Close();
+#endif
 }

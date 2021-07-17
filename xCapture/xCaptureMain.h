@@ -140,6 +140,7 @@ private:
         void OnButton_AnalyseClick(wxCommandEvent& event);
         void OnButton1Click(wxCommandEvent& event);
         void OnChoice_TimingSelect(wxCommandEvent& event);
+        void OnClose(wxCloseEvent& event);
         //*)
 
         //(*Identifiers(xCaptureFrame)
