@@ -96,7 +96,7 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	ComboBoxBufferPresets = new wxComboBox(this, ID_COMBOBOX_BUFFER_PRESET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_READONLY, wxDefaultValidator, _T("ID_COMBOBOX_BUFFER_PRESET"));
+	ComboBoxBufferPresets = new wxComboBox(this, ID_COMBOBOX_BUFFER_PRESET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY, wxDefaultValidator, _T("ID_COMBOBOX_BUFFER_PRESET"));
 	FlexGridSizer3->Add(ComboBoxBufferPresets, 1, wxALL|wxEXPAND, 5);
 	BitmapButtonSave = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_SAVE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_save_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SAVE"));
 	BitmapButtonSave->SetToolTip(_("Save Buffer Preset"));
@@ -157,12 +157,25 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
         ValueCurve_Left->Enable(false);
         ValueCurve_Right->Enable(false);
     }
+
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsBufferSizeDialogPosition", sz, loc);
+    if (loc.x != -1) {
+        if (sz.GetWidth() < 100) sz.SetWidth(100);
+        if (sz.GetHeight() < 100) sz.SetHeight(100);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
+    EnsureWindowHeaderIsOnScreen(this);
 }
 
 BufferSizeDialog::~BufferSizeDialog()
 {
 	//(*Destroy(BufferSizeDialog)
 	//*)
+    SaveWindowPosition("xLightsBufferSizeDialogPosition", this);
 }
 
 void BufferSizeDialog::SetSizes(double top, double left, double bottom, double right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc)

@@ -141,7 +141,7 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxComboBox" name="ID_COMBOBOX_BUFFER_PRESET" variable="ComboBoxBufferPresets" member="yes">
-							<style>wxCB_READONLY</style>
+							<style>wxCB_SORT|wxCB_READONLY</style>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
