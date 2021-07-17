@@ -25,9 +25,8 @@ protected:
     int _minor = 1;
     std::string _ip;
     bool _started = false;
+    int _method = 2;
     #pragma endregion Member Variables
-
-    std::string GetEventString() const;
 
 public:
 
@@ -44,9 +43,11 @@ public:
     void SetMajor(const int major) { if (_major != major) { _major = major; _changeCount++; } }
     void SetMinor(const int minor) { if (_minor != minor) { _minor = minor; _changeCount++; } }
     void SetIP(const std::string ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
+    void SetMethod(const int method) { if (_method != method) { _method = method; _changeCount++; } }
     int GetMajor() const { return _major; }
     int GetMinor() const { return _minor; }
     std::string GetIP() const { return _ip; }
+    bool GetMethod() const { return _method; }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

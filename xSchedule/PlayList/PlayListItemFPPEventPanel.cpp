@@ -20,6 +20,8 @@
 //(*IdInit(PlayListItemFPPEventPanel)
 const long PlayListItemFPPEventPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemFPPEventPanel::ID_STATICTEXT6 = wxNewId();
+const long PlayListItemFPPEventPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_STATICTEXT5 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_STATICTEXT1 = wxNewId();
@@ -49,9 +51,17 @@ PlayListItemFPPEventPanel::PlayListItemFPPEventPanel(wxWindow* parent, PlayListI
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_FPPEventName = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_FPPEventName, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Method"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxEXPAND, 5);
+	Choice_Method = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_Method->Append(_("Oldest"));
+	Choice_Method->Append(_("Old"));
+	Choice_Method->SetSelection( Choice_Method->Append(_("Current")) );
+	FlexGridSizer1->Add(Choice_Method, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("IP Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_IPAddress = new wxTextCtrl(this, ID_TEXTCTRL1, _("255.255.255.255"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl_IPAddress = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl_IPAddress->SetMaxLength(15);
 	FlexGridSizer1->Add(TextCtrl_IPAddress, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Id - Major:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -72,6 +82,8 @@ PlayListItemFPPEventPanel::PlayListItemFPPEventPanel(wxWindow* parent, PlayListI
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemFPPEventPanel::OnTextCtrl_FPPEventNameText);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemFPPEventPanel::OnChoice_MethodSelect);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemFPPEventPanel::OnTextCtrl_IPAddressText);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemFPPEventPanel::OnTextCtrl_DelayText);
 	//*)
 
@@ -80,6 +92,7 @@ PlayListItemFPPEventPanel::PlayListItemFPPEventPanel(wxWindow* parent, PlayListI
     SpinCtrl_Major->SetValue(fppevent->GetMajor());
     SpinCtrl_Minor->SetValue(fppevent->GetMinor());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)fppevent->GetDelay() / 1000.0));
+	Choice_Method->SetSelection(fppevent->GetMethod()+1);
 }
 
 PlayListItemFPPEventPanel::~PlayListItemFPPEventPanel()
@@ -91,6 +104,7 @@ PlayListItemFPPEventPanel::~PlayListItemFPPEventPanel()
     _fppevent->SetMinor(SpinCtrl_Minor->GetValue());
     _fppevent->SetIP(TextCtrl_IPAddress->GetValue().ToStdString());
     _fppevent->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
+	_fppevent->SetMethod(Choice_Method->GetSelection());
 }
 
 void PlayListItemFPPEventPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
@@ -106,4 +120,20 @@ void PlayListItemFPPEventPanel::OnTextCtrl_FPPEventNameText(wxCommandEvent& even
 
 void PlayListItemFPPEventPanel::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 {
+	ValidateWindow();
+}
+
+void PlayListItemFPPEventPanel::ValidateWindow()
+{
+	if (Choice_Method->GetSelection() == 2) {
+		SpinCtrl_Minor->Enable(false);
+	}
+	else {
+		SpinCtrl_Minor->Enable();
+	}
+}
+
+void PlayListItemFPPEventPanel::OnChoice_MethodSelect(wxCommandEvent& event)
+{
+	ValidateWindow();
 }

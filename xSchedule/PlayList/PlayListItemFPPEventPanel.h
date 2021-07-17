@@ -11,12 +11,13 @@
  **************************************************************/
 
  //(*Headers(PlayListItemFPPEventPanel)
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/choice.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class PlayListItemFPPEvent;
 
@@ -28,8 +29,10 @@ class PlayListItemFPPEventPanel: public wxPanel
 
 		PlayListItemFPPEventPanel(wxWindow* parent, PlayListItemFPPEvent* fppevent, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemFPPEventPanel();
+		void ValidateWindow();
 
 		//(*Declarations(PlayListItemFPPEventPanel)
+		wxChoice* Choice_Method;
 		wxSpinCtrl* SpinCtrl_Major;
 		wxSpinCtrl* SpinCtrl_Minor;
 		wxStaticText* StaticText1;
@@ -37,6 +40,7 @@ class PlayListItemFPPEventPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_FPPEventName;
 		wxTextCtrl* TextCtrl_IPAddress;
@@ -47,6 +51,8 @@ class PlayListItemFPPEventPanel: public wxPanel
 		//(*Identifiers(PlayListItemFPPEventPanel)
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT5;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT1;
@@ -63,6 +69,7 @@ class PlayListItemFPPEventPanel: public wxPanel
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
 		void OnTextCtrl_FPPEventNameText(wxCommandEvent& event);
 		void OnTextCtrl_IPAddressText(wxCommandEvent& event);
+		void OnChoice_MethodSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
