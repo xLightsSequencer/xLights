@@ -379,16 +379,22 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     LoadGrid(rows);
 
     GridNodes->BeginBatch();
+
     wxFont font = GridNodes->GetLabelFont();
-    GridNodes->SetLabelFont(font);
-    font = GridNodes->GetDefaultCellFont();
     int fontsize = LoadInt("xLightsNodeSelectDialogZoom", font.GetPointSize());
     if (fontsize == 0) {
         fontsize = 8;
     }
+
+    font.SetPointSize(fontsize);
+    GridNodes->SetLabelFont(font);
+
+    font = GridNodes->GetDefaultCellFont();
     font.SetPointSize(fontsize);
     GridNodes->SetDefaultCellFont(font);
+
     GridNodes->EndBatch();
+
     SetGridSizeForFont(font);
     UpdateBackground();
 
@@ -682,10 +688,17 @@ void NodeSelectGrid::SetGridSizeForFont(const wxFont& font)
     GridNodes->BeginBatch();
     GridNodes->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
     GridNodes->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-    for (int c = 0; c < GridNodes->GetNumberCols(); ++c)
+    for (int c = 0; c < GridNodes->GetNumberCols(); ++c) {
         GridNodes->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
-    for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
+    }
+    for (int r = 0; r < GridNodes->GetNumberRows(); ++r) {
         GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
+    }
+
+    GridNodes->SetDefaultColSize(2 * font.GetPixelSize().y);
+    GridNodes->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+    GridNodes->SetRowLabelSize(int(2.5 * font.GetPixelSize().y));
+
     GridNodes->EndBatch();
     GridNodes->Thaw();
 }
@@ -694,15 +707,20 @@ void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
 {
     GridNodes->Freeze();
     GridNodes->BeginBatch();
+
     wxFont font = GridNodes->GetLabelFont();
     font.MakeLarger();
     GridNodes->SetLabelFont(font);
+    auto cfs = font.GetPointSize();
     font = GridNodes->GetDefaultCellFont();
-    font.MakeLarger();
+    font.SetPointSize(cfs);
     GridNodes->SetDefaultCellFont(font);
+
     GridNodes->EndBatch();
     GridNodes->Thaw();
+
     SetGridSizeForFont(font);
+
     UpdateBackground();
 }
 
@@ -710,17 +728,23 @@ void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
 {
     GridNodes->Freeze();
     GridNodes->BeginBatch();
-    wxFont font = GridNodes->GetLabelFont();
-    if (font.GetPointSize() > 1) {
-        font.MakeSmaller();
-        GridNodes->SetLabelFont(font);
-        font = GridNodes->GetDefaultCellFont();
-        font.MakeSmaller();
+
+    auto font = GridNodes->GetDefaultCellFont();
+    auto cfs = font.GetPointSize();
+    font.MakeSmaller();
+    if (font.GetPointSize() != cfs) {
+        cfs = font.GetPointSize();
         GridNodes->SetDefaultCellFont(font);
+        font = GridNodes->GetLabelFont();
+        font.SetPointSize(cfs);
+        GridNodes->SetLabelFont(font);
     }
     GridNodes->EndBatch();
     GridNodes->Thaw();
+
+    font = GridNodes->GetDefaultCellFont();
     SetGridSizeForFont(font);
+
     UpdateBackground();
 }
 

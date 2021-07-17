@@ -2512,16 +2512,30 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
     }
 
     wxFont font = Grid_CM_Result->GetDefaultCellFont();
-    Grid_CM_Result->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-    Grid_CM_Result->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
-        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 4/5);
-    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
-        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 4/5);
-    font = Grid_CM_Result->GetLabelFont();
-    Grid_CM_Result->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+    SetGridSizeForFont(font);
     FlexGridSizer19->Layout();
     Layout();
+}
+
+void GenerateCustomModelDialog::SetGridSizeForFont(const wxFont& font)
+{
+    Grid_CM_Result->Freeze();
+    Grid_CM_Result->BeginBatch();
+    Grid_CM_Result->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+    Grid_CM_Result->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c) {
+        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
+    }
+    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r) {
+        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
+    }
+    Grid_CM_Result->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+    Grid_CM_Result->SetDefaultColSize(2 * font.GetPixelSize().y);
+    Grid_CM_Result->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+    Grid_CM_Result->SetRowLabelSize(int(2.5 * font.GetPixelSize().y));
+
+    Grid_CM_Result->EndBatch();
+    Grid_CM_Result->Thaw();
 }
 
 void GenerateCustomModelDialog::OnButton_CM_BackClick(wxCommandEvent& event)
@@ -2625,32 +2639,34 @@ void GenerateCustomModelDialog::OnButton_GrowClick(wxCommandEvent& event)
     wxFont font = Grid_CM_Result->GetLabelFont();
     font.MakeLarger();
     Grid_CM_Result->SetLabelFont(font);
+    auto fs = font.GetPointSize();
     font = Grid_CM_Result->GetDefaultCellFont();
-    font.MakeLarger();
+    font.SetPointSize(fs);
     Grid_CM_Result->SetDefaultCellFont(font);
-    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
-        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 5/4);
-    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
-        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 5/4);
     Grid_CM_Result->EndBatch();
+
+    font = Grid_CM_Result->GetDefaultCellFont();
+    SetGridSizeForFont(font);
 }
 
 void GenerateCustomModelDialog::OnButton_ShrinkClick(wxCommandEvent& event)
 {
     Grid_CM_Result->BeginBatch();
     wxFont font = Grid_CM_Result->GetLabelFont();
+    auto fs = font.GetPointSize();
     font.MakeSmaller();
-    Grid_CM_Result->SetLabelFont(font);
-    font = Grid_CM_Result->GetDefaultCellFont();
-    font.MakeSmaller();
-    Grid_CM_Result->SetDefaultCellFont(font);
-    Grid_CM_Result->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-    Grid_CM_Result->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
-        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 4/5);
-    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
-        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 4/5);
+    if (fs != font.GetPointSize()) {
+        fs = font.GetPointSize();
+        Grid_CM_Result->SetLabelFont(font);
+        font = Grid_CM_Result->GetDefaultCellFont();
+        font.SetPointSize(fs);
+        Grid_CM_Result->SetDefaultCellFont(font);
+    }
+
     Grid_CM_Result->EndBatch();
+
+    font = Grid_CM_Result->GetDefaultCellFont();
+    SetGridSizeForFont(font);
 }
 #pragma endregion Custom Model
 

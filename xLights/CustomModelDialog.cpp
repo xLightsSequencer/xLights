@@ -570,12 +570,9 @@ void CustomModelDialog::Setup(CustomModel* m)
         for (int i = 0; i < m->GetCustomDepth(); i++) {
             AddPage();
             auto grid = GetLayerGrid(i);
+
             wxFont font = grid->GetDefaultCellFont();
-            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
-            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
-            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+            SetGridSizeForFont(font);
         }
     }
     else {
@@ -584,9 +581,6 @@ void CustomModelDialog::Setup(CustomModel* m)
             AddPage();
             //ResizeCustomGrid();
             auto grid = GetLayerGrid(layer);
-            wxFont font = grid->GetDefaultCellFont();
-            grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
-            grid->SetDefaultColSize(2 * font.GetPixelSize().y);
             wxArrayString rows = wxSplit(layers[layer], ';');
             //grid->AppendRows(rows.size() - 1);
 
@@ -603,9 +597,8 @@ void CustomModelDialog::Setup(CustomModel* m)
                 }
             }
 
-            grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-            grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-            grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+            wxFont font = grid->GetDefaultCellFont();
+            SetGridSizeForFont(font);
         }
     }
 
@@ -753,36 +746,60 @@ void CustomModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
         grid->BeginBatch();
         wxFont font = grid->GetLabelFont();
         font.MakeLarger();
+        auto lfs = font.GetPointSize();
         grid->SetLabelFont(font);
         font = grid->GetDefaultCellFont();
-        font.MakeLarger();
+        font.SetPointSize(lfs);
         grid->SetDefaultCellFont(font);
-        for (int c = 0; c < grid->GetNumberCols(); ++c)
-            grid->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
-        for (int r = 0; r < grid->GetNumberRows(); ++r)
-            grid->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
         grid->EndBatch();
+
+        font = grid->GetDefaultCellFont();
+        SetGridSizeForFont(font);
     }
+
     UpdateBackground();
+}
+
+void CustomModelDialog::SetGridSizeForFont(const wxFont& font)
+{
+    for (auto grid : _grids) {
+        grid->Freeze();
+        grid->BeginBatch();
+        grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+        grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+        for (int c = 0; c < grid->GetNumberCols(); ++c) {
+            grid->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
+        }
+        for (int r = 0; r < grid->GetNumberRows(); ++r) {
+            grid->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
+        }
+        grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+
+        grid->SetDefaultColSize(2 * font.GetPixelSize().y);
+        grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+        grid->SetRowLabelSize(int(2.5 * font.GetPixelSize().y));
+
+        grid->EndBatch();
+        grid->Thaw();
+    }
 }
 
 void CustomModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
 {
-    for (auto grid : _grids)
-    {
+    for (auto grid : _grids) {
         grid->BeginBatch();
         wxFont font = grid->GetLabelFont();
+        auto fs = font.GetPointSize();
         font.MakeSmaller();
-        grid->SetLabelFont(font);
+        if (font.GetPointSize() != fs) {
+            fs = font.GetPointSize();
+            grid->SetLabelFont(font);
+            font = grid->GetDefaultCellFont();
+            font.SetPointSize(fs);
+            grid->SetDefaultCellFont(font);
+        }
         font = grid->GetDefaultCellFont();
-        font.MakeSmaller();
-        grid->SetDefaultCellFont(font);
-        grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-        grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-        for (int c = 0; c < grid->GetNumberCols(); ++c)
-            grid->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-        for (int r = 0; r < grid->GetNumberRows(); ++r)
-            grid->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
+        SetGridSizeForFont(font);
         grid->EndBatch();
         UpdateBackground();
     }

@@ -71,6 +71,7 @@ class CustomModelDialog: public wxDialog
 	void CreateMinimalSubmodelFromColumn(int column);
 	void CreateSubmodelFromRow(int row);
 	void CreateMinimalSubmodelFromRow(int row);
+	void SetGridSizeForFont(const wxFont& font);
 
     static const long CUSTOMMODELDLGMNU_CUT;
     static const long CUSTOMMODELDLGMNU_COPY;

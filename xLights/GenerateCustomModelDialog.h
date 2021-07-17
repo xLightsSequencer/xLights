@@ -203,6 +203,7 @@ class GenerateCustomModelDialog: public wxDialog
     void SwapPage(int oldp, int newp);
     int GetEdge(int x, int y);
     void ResizeClip(int x, int y);
+	void SetGridSizeForFont(const wxFont& font);
 
 #pragma region Model Type Tab
     void MTTabEntry();
