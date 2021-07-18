@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.22 July 18, 2021
+   -- enh (keith) Add -cs command line switch to run xlights, open sequence, run check sequence, close sequence
+   -- enh (keith) Sort the saved subbuffers in dropdown
+   -- enh (keith) Add xSchedule ability to trigger FPP v5 command slots
+   -- enh (keith) Add the ability to save a default camera view for the layout panel which is used when xLights opens
+   -- enh (dklup) Add xCapture to OSX xlights
+   -- enh (scott) Added "Default New Sequence View" to Preferences
+   -- bug (keith) Fix visualiser does not detect port too many pixels if all ports are used
+   -- bug (keith) Fix zoom on node grids which can get confused
+   -- bug (keith) Fix linked button preferences not saving on OSX
+   -- bug (keith) Fix invalid characters breaks timing track display
+   -- bug (keith) Reset windows to defaults does not reset test panel and visualiser
+   -- bug (keith) Model/Row delete effects should not delete locked effects
 2021.21 July 11, 2021
    -- enh (keith) Log obj file errors when loading
    -- enh (keith) Collapse model layer sizes by default in model properties
