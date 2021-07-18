@@ -540,11 +540,11 @@ void xLightsFrame::CheckForValidModels()
                     }
                     dialog.Fit();
 
-                    if ((!_renderMode || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
+                    if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
                         cancelled = (dialog.ShowModal() == wxID_CANCEL);
                     }
 
-                    if (cancelled || (!_promptBatchRenderIssues && _renderMode) || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
+                    if (cancelled || (!_promptBatchRenderIssues && (_renderMode || _checkSequenceMode)) || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
                         // Just delete the element from the sequence we are opening
                         logger_base.debug("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
                         _sequenceElements.DeleteElement(name);
@@ -639,7 +639,7 @@ void xLightsFrame::CheckForValidModels()
                     // model still doesnt exist
                     if (m == nullptr) {
                         // If we have effects at any level
-                        if ((!_renderMode || _promptBatchRenderIssues) && HasEffects(el)) {
+                        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && HasEffects(el)) {
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " does not exist in your layout.\n"
                                 + "How should we handle this?",
@@ -673,7 +673,7 @@ void xLightsFrame::CheckForValidModels()
                                 hasStrandEffects = false;
                             }
                         }
-                        if ((!_renderMode || _promptBatchRenderIssues) && (hasNodeEffects || hasStrandEffects)) {
+                        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && (hasNodeEffects || hasStrandEffects)) {
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " is a Model Group but has Node/Strand effects.\n"
                                 + "How should we handle this?",
@@ -692,7 +692,7 @@ void xLightsFrame::CheckForValidModels()
                                     AllSMNames.push_back(m->GetSubModel(z)->GetName());
                                     ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                                 }
-                                if (!_renderMode || _promptBatchRenderIssues) {
+                                if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
                                     HandleChoices(this, AllSMNames, ModelSMNames, sme,
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
@@ -832,7 +832,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     logger_base.debug("Sequence all loaded.");
 
-    if (!_renderMode || _promptBatchRenderIssues) {
+    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
         ValidateEffectAssets();
     }
 

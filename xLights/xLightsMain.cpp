@@ -466,6 +466,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
     _renderMode = false;
+    _checkSequenceMode = false;
     _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
 
@@ -1888,7 +1889,7 @@ void xLightsFrame::DoPostStartupCommands() {
     logger_base.debug("In Post Startup");
 
     // dont check for updates if batch rendering
-    if (!_renderMode) {
+    if (!_renderMode && !_checkSequenceMode) {
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
@@ -2543,7 +2544,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (wxDir::Exists(targetDirName)) return;
-    if (wxDir::Exists(lastCreatedDirectory)) return;
+    if (!wxDir::Exists(lastCreatedDirectory)) return;
 
     if (targetDirName.Length() > 256)
     {
@@ -3868,7 +3869,7 @@ void xLightsFrame::SaveWorking()
     if (CurrentSeqXmlFile == nullptr) return;
 
     // dont save if batch rendering
-    if (_renderMode) return;
+    if (_renderMode || _checkSequenceMode) return;
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -3902,7 +3903,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // dont save if currently playing or in render mode
-    if (playType != PLAY_TYPE_MODEL && !_renderMode && !_suspendAutoSave) {
+    if (playType != PLAY_TYPE_MODEL && !_renderMode && !_checkSequenceMode && !_suspendAutoSave) {
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         if (mSavedChangeCount != _sequenceElements.GetChangeCount())
@@ -4581,7 +4582,9 @@ void xLightsFrame::CheckSequence(bool display)
 
     if (CurrentSeqXmlFile != nullptr)
     {
-        LogAndWrite(f, "Sequence: " + CurrentSeqXmlFile->GetFullPath());
+        wxFileName fn(CurrentSeqXmlFile->GetFullPath());
+        fn.SetExt("xsq");
+        LogAndWrite(f, "Sequence: " + fn.GetFullPath());
     }
     else
     {

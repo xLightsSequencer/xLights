@@ -92,7 +92,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if ((!_renderMode || _promptBatchRenderIssues) && wxFile::Exists(asfile)) {
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFile::Exists(asfile)) {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();
             wxFileName asfn(asfile);
@@ -1047,6 +1047,66 @@ void xLightsFrame::UpdateModelsList()
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
+}
+
+void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (origFilenames.IsEmpty()) {
+        _checkSequenceMode = false;
+        EnableSequenceControls(true);
+        logger_base.debug("Batch check sequence done.");
+        printf("Done All Files\n");
+        if (exitOnDone) {
+            Destroy();
+        }
+        else {
+            CloseSequence();
+        }
+        return;
+    }
+
+    if (wxGetKeyState(WXK_ESCAPE)) {
+        logger_base.debug("Batch render cancelled.");
+        EnableSequenceControls(true);
+        printf("Batch render cancelled.\n");
+        if (exitOnDone) {
+            Destroy();
+        }
+        else {
+            CloseSequence();
+        }
+        return;
+    }
+
+    EnableSequenceControls(false);
+
+    wxArrayString fileNames = origFilenames;
+    wxString seq = fileNames[0];
+    fileNames.RemoveAt(0);
+
+    printf("Processing file %s\n", (const char*)seq.c_str());
+    logger_base.debug("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
+    OpenSequence(seq, nullptr);
+    EnableSequenceControls(false);
+
+    // if the fseq directory is not the show directory then ensure the fseq folder is set right
+    if (fseqDirectory != showDirectory) {
+        if (!ObtainAccessToURL(fseqDirectory)) {
+            wxMessageBox("Could not obtain read/write access to FSEQ directory " + fseqDirectory + ". "
+                + "Try re-selecting the FSEQ directory in Preferences.", "Error",
+                wxOK | wxICON_ERROR);
+        }
+        wxFileName fn(xlightsFilename);
+        fn.SetPath(fseqDirectory);
+        xlightsFilename = fn.GetFullPath();
+    }
+
+    SetStatusText(_("Checking sequence ") + xlightsFilename + _("."));
+
+    CheckSequence(true);
+    CallAfter(&xLightsFrame::OpenAndCheckSequence, fileNames, exitOnDone);
 }
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone) {

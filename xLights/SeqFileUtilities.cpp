@@ -160,7 +160,7 @@ void xLightsFrame::NewSequence()
     memRequired *= max;
     memRequired /= 1024; // ->kb
     memRequired /= 1024; // ->mb
-    if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || !_renderMode)) {
+    if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
         DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.",          (unsigned long)memRequired), this);
     }
 
@@ -241,7 +241,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if ((!_renderMode || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
         {
             wxFileName fn(filename);
             wxFileName xx = fn;
@@ -501,7 +501,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         memRequired *= numChan;
         memRequired /= 1024; // ->kb
         memRequired /= 1024; // ->mb
-        if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || !_renderMode)) {
+        if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
 
@@ -582,7 +582,7 @@ bool xLightsFrame::CloseSequence()
         LogPerspective(machinePerspective);
     }
 
-    if (mSavedChangeCount != _sequenceElements.GetChangeCount() && !_renderMode)
+    if (mSavedChangeCount != _sequenceElements.GetChangeCount() && !_renderMode && !_checkSequenceMode)
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
         if (dlg->ShowModal() == wxID_CANCEL)

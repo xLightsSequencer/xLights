@@ -718,6 +718,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
         { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
+        { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
         { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
@@ -844,7 +845,7 @@ bool xLightsApp::OnInit()
             }
             sequenceFiles.push_back(sequenceFile);
         }
-        if (!parser.Found("r") && !parser.Found("o") && !info.empty())
+        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !info.empty())
         {
             DisplayInfo(info); //give positive feedback*/
         }
@@ -875,6 +876,12 @@ bool xLightsApp::OnInit()
         logger_base.info("-r: Render mode is ON");
         topFrame->_renderMode = true;
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
+    }
+
+    if (parser.Found("cs")) {
+        logger_base.info("-v: Check sequence mode is ON");
+        topFrame->_checkSequenceMode = true;
+        topFrame->CallAfter(&xLightsFrame::OpenAndCheckSequence, sequenceFiles, true);
     }
 
     if (parser.Found("o")) {

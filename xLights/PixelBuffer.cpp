@@ -1041,24 +1041,23 @@ xlColor PixelBufferClass::GetNodeMaskColor(size_t nodenum) const
     layers[0]->buffer.Nodes[nodenum]->GetMaskColor(color);
     return color;
 }
-int PixelBufferClass::NodeStartChannel(size_t nodenum) const
+uint32_t PixelBufferClass::NodeStartChannel(size_t nodenum) const
 {
     return layers[0]->buffer.Nodes.size() && nodenum < layers[0]->buffer.Nodes.size() ? layers[0]->buffer.Nodes[nodenum]->ActChan: 0;
 }
-int PixelBufferClass::GetNodeCount() const
+uint32_t PixelBufferClass::GetNodeCount() const
 {
     return layers[0]->buffer.Nodes.size();
 }
-int PixelBufferClass::GetChanCountPerNode() const
+uint32_t PixelBufferClass::GetChanCountPerNode() const
 {
-    size_t NodeCnt=GetNodeCount();
+    uint32_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0)
     {
         return 0;
     }
     return layers[0]->buffer.Nodes[0]->GetChanCount();
 }
-
 
 bool MixTypeHandlesAlpha(MixTypes mt)
 {
@@ -2549,7 +2548,8 @@ RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)
     }
     return layers[layer]->buffer;
 }
-int PixelBufferClass::BufferCountForLayer(int layer)
+
+uint32_t PixelBufferClass::BufferCountForLayer(int layer)
 {
     if (layers[layer]->usingModelBuffers) {
         return layers[layer]->modelBuffers.size();

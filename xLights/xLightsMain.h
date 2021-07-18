@@ -1239,7 +1239,8 @@ public:
 public:
     bool UnsavedRgbEffectsChanges;
     unsigned int modelsChangeCount;
-    bool _renderMode;
+    bool _renderMode = false;
+    bool _checkSequenceMode = false;
 
     void SuspendAutoSave(bool dosuspend) { _suspendAutoSave = dosuspend; }
     void ClearLastPeriod();
@@ -1351,6 +1352,7 @@ protected:
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
+    void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);

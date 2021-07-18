@@ -273,9 +273,9 @@ public:
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
     xlColor GetNodeMaskColor(size_t nodenum) const;
-    int NodeStartChannel(size_t nodenum) const;
-    int GetNodeCount() const;
-    int GetChanCountPerNode() const;
+    uint32_t NodeStartChannel(size_t nodenum) const;
+    uint32_t GetNodeCount() const;
+    uint32_t GetChanCountPerNode() const;
     MixTypes GetMixType(int layer) const;
     bool IsCanvasMix(int layer) const;
     int GetFrameTimeInMS() const { return frameTimeInMs; }
@@ -286,12 +286,11 @@ public:
     PixelBufferClass(xLightsFrame *f);
     virtual ~PixelBufferClass();
 
-    const std::string &GetModelName() const
-    { return modelName;};
+    const std::string &GetModelName() const { return modelName; }
     const Model* GetModel() const { return model; }
 
     RenderBuffer &BufferForLayer(int i, int idx);
-    int BufferCountForLayer(int i);
+    uint32_t BufferCountForLayer(int i);
     void MergeBuffersForLayer(int i);
 
     int GetLayerCount() const;

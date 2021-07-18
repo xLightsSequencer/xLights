@@ -57,7 +57,7 @@ void xLightsFrame::ConversionError(const wxString& msg)
 }
 
 void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
-    if (_renderMode) {
+    if (_renderMode || _checkSequenceMode) {
         printf("%s\n", (const char *)msg.c_str());
     } else {
         if (filename) {
@@ -72,7 +72,7 @@ void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
 }
 
 void xLightsFrame::SetStatusTextColor(const wxString &msg, const wxColor& color) {
-    if (_renderMode) {
+    if (_renderMode || _checkSequenceMode) {
         printf("%s\n", (const char *)msg.c_str());
     } else {
         StatusText->SetLabel(msg);

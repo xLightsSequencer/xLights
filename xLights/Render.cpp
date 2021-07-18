@@ -685,7 +685,7 @@ public:
                 ss = 0;
             }
             es = es / seqData->FrameTime();
-            if (es > seqData->NumFrames()) {
+            if (es > (int)seqData->NumFrames()) {
                 es = seqData->NumFrames();
             }
             if (ss < startFrame) {
@@ -696,7 +696,7 @@ public:
             }
         }
         if (startFrame < 0) startFrame = 0;
-        if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
+        if (endFrame > (int)seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
 
         EffectLayerInfo mainModelInfo(numLayers);
         std::map<SNPair, Effect*> nodeEffects;
@@ -1310,7 +1310,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
     if (startFrame < 0) {
         startFrame = 0;
     }
-    if (endFrame >= seqData.NumFrames()) {
+    if (endFrame >= (int)seqData.NumFrames()) {
         endFrame = seqData.NumFrames() - 1;
     }
     std::list<NodeRange> ranges;
@@ -1368,10 +1368,10 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                     jobs[row] = job;
                     aggregators[row]->addNext(job);
                     size_t cn = buffer->GetChanCountPerNode();
-                    for (int node = 0; node < buffer->GetNodeCount(); ++node) {
-                        int start = buffer->NodeStartChannel(node);
-                        for (int c = 0; c < cn; ++c) {
-                            int cnum = start + c;
+                    for (size_t node = 0; node < buffer->GetNodeCount(); ++node) {
+                        uint32_t start = buffer->NodeStartChannel(node);
+                        for (size_t c = 0; c < cn; ++c) {
+                            size_t cnum = start + c;
                             if (cnum < seqData.NumChannels()) {
                                 for (const auto i : channelMaps[cnum]) {
                                     int idx = i;
@@ -1557,7 +1557,7 @@ void xLightsFrame::RenderDirtyModels() {
         startframe = 0;
     }
     int endframe = endms / _seqData.FrameTime() + 1;
-    if (endframe >= _seqData.NumFrames()) {
+    if (endframe >= (int)_seqData.NumFrames()) {
         endframe = _seqData.NumFrames() - 1;
     }
     if (endframe < startframe) {
@@ -1689,16 +1689,16 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         endframe = persistentEffectAfter->GetEndTimeMS() / _seqData.FrameTime();
     }
 
-    if (endframe >= _seqData.NumFrames()) {
+    if (endframe >= (int)_seqData.NumFrames()) {
         endframe = _seqData.NumFrames() - 1;
     }
-    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
-        if ((*it)->model->GetName() == model) {
+    for (const auto& it : renderTree.data) {
+        if (it->model->GetName() == model) {
 
-            for (auto it2 = renderProgressInfo.begin(); it2 != renderProgressInfo.end(); ++it2) {
+            for (const auto& it2 : renderProgressInfo) {
                 //we're going to render this model, abort whatever is rendering and accumulate the frames
-                RenderProgressInfo *rpi = (*it2);
-                if (std::find(rpi->restriction.begin(), rpi->restriction.end(), (*it)->model) != rpi->restriction.end()) {
+                RenderProgressInfo *rpi = it2;
+                if (std::find(rpi->restriction.begin(), rpi->restriction.end(), it->model) != rpi->restriction.end()) {
                     if (startframe > rpi->startFrame) {
                         startframe = rpi->startFrame;
                     }
@@ -1713,11 +1713,11 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
                 }
             }
             std::list<Model *> m;
-            m.push_back((*it)->model);
+            m.push_back(it->model);
 
             logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
 
-            Render(_sequenceElements, _seqData, (*it)->renderOrder, m, startframe, endframe, false, true, [] {});
+            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }
 }
@@ -1756,7 +1756,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
         startframe = 0;
     }
     int endframe = endms / _seqData.FrameTime() + 1;
-    if (endframe >= _seqData.NumFrames()) {
+    if (endframe >= (int)_seqData.NumFrames()) {
         endframe = _seqData.NumFrames() - 1;
     }
     if (endframe < startframe) {
@@ -1859,7 +1859,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         } else {
             Model *m2 = GetModel(model);
             for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
-                for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
+                for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
                     //chan in main buffer
                     int ostart = m2->NodeStartChannel(x);
                     int nstart = job->getBuffer()->NodeStartChannel(x);
