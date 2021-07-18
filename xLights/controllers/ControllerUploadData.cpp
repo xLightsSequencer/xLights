@@ -1354,7 +1354,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     if (rules->GetNumberOfBanks() > 1) {
-        if (_pixelPorts.size() < rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
+        if (_pixelPorts.size() <= rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
             int const banksize = rules->GetMaxPixelPort() / rules->GetNumberOfBanks();
             std::vector<int> bankSizes(rules->GetNumberOfBanks(), 0);
             std::vector<int> bankLargestPort(rules->GetNumberOfBanks(), 0);
