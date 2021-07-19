@@ -2012,147 +2012,146 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                             m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                         }
                     }
+                }
+                if (_autoLayout) {
+                    m->SetControllerName(_controller->GetName());
+                }
 
+                auto ob = GetControllerToDropOn();
+                ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
+                BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
+                if (ob != nullptr) hit = ob->HitTest(location);
+
+                if (mob != nullptr && mob->GetModel() == m) {
+                    // dropped onto ourselves ... nothing to do
+                }
+                else if (mob == nullptr || !mob->IsMain()) {
+                    logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
+
+                    // dropped on a port .. or not on the first string of a model
+                    // If no model already there put it at the beginning ... else chain it
                     if (_autoLayout) {
-                        m->SetControllerName(_controller->GetName());
-                    }
+                        UDControllerPort* cudp = port->GetUDPort();
 
-                    auto ob = GetControllerToDropOn();
-                    ModelCMObject* mob = dynamic_cast<ModelCMObject*>(ob);
-                    BaseCMObject::HITLOCATION hit = BaseCMObject::HITLOCATION::NONE;
-                    if (ob != nullptr) hit = ob->HitTest(location);
+                        // Because we are moving a model already in a chain we need to patch that over first
+                        Model* nextfrom = _cud->GetModelAfter(m);
+                        if (nextfrom != nullptr) {
+                            logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                            nextfrom->SetModelChain(m->GetModelChain());
+                        }
 
-                    if (mob != nullptr && mob->GetModel() == m) {
-                        // dropped onto ourselves ... nothing to do
-                    }
-                    else if (mob == nullptr || !mob->IsMain()) {
-                        logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
-
-                        // dropped on a port .. or not on the first string of a model
-                        // If no model already there put it at the beginning ... else chain it
-                        if (_autoLayout) {
-                            UDControllerPort* cudp = port->GetUDPort();
-
-                            // Because we are moving a model already in a chain we need to patch that over first
-                            Model* nextfrom = _cud->GetModelAfter(m);
-                            if (nextfrom != nullptr) {
-                                logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
-                                nextfrom->SetModelChain(m->GetModelChain());
+                        auto fmud = cudp->GetLastModel();
+                        if (fmud == nullptr) {
+                            m->SetModelChain("");
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                m->SetControllerDMXChannel(1);
                             }
-
-                            auto fmud = cudp->GetLastModel();
-                            if (fmud == nullptr) {
+                        }
+                        else {
+                            if (fmud != nullptr && fmud->IsFirstModelString()) {
+                                Model* lm = fmud->GetModel();
+                                if (lm != nullptr) {
+                                    m->SetModelChain(">" + lm->GetName());
+                                }
+                            }
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                                 m->SetModelChain("");
-                                if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
-                                    m->SetControllerDMXChannel(1);
+                                Model* last = port->GetUDPort()->GetLastModel()->GetModel();
+                                if (last == m) {
+                                    last = port->GetUDPort()->GetModelBefore(last);
                                 }
-                            }
-                            else {
-                                if (fmud != nullptr && fmud->IsFirstModelString()) {
-                                    Model* lm = fmud->GetModel();
-                                    if (lm != nullptr) {
-                                        m->SetModelChain(">" + lm->GetName());
-                                    }
+                                if (last == nullptr) {
+                                    // nothing to do
                                 }
-                                if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
-                                    m->SetModelChain("");
-                                    Model* last = port->GetUDPort()->GetLastModel()->GetModel();
-                                    if (last == m) {
-                                        last = port->GetUDPort()->GetModelBefore(last);
-                                    }
-                                    if (last == nullptr) {
-                                        // nothing to do
-                                    }
-                                    else {
-                                        int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
-                                        if (m->GetControllerDMXChannel() < nextch) {
-                                            m->SetControllerDMXChannel(nextch);
-                                        }
+                                else {
+                                    int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    if (m->GetControllerDMXChannel() < nextch) {
+                                        m->SetControllerDMXChannel(nextch);
                                     }
                                 }
                             }
                         }
-                        _lastDropped = m;
                     }
-                    else {
-                        Model* droppedOn = _mm->GetModel(mob->GetName());
-                        logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
+                    _lastDropped = m;
+                }
+                else {
+                    Model* droppedOn = _mm->GetModel(mob->GetName());
+                    logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
 
-                        // dropped on a model
-                        if (_autoLayout) {
-                            m->SetSmartRemote(droppedOn->GetSmartRemote());
-                            // Because we are moving a model already in a chain we need to patch that over first
-                            Model* nextfrom = _cud->GetModelAfter(m);
-                            if (nextfrom != nullptr) {
-                                if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
-                                    (">" + droppedOn->GetName() == m->GetModelChain())) {
-                                    logger_base.debug("    Model did not actually move.");
+                    // dropped on a model
+                    if (_autoLayout) {
+                        m->SetSmartRemote(droppedOn->GetSmartRemote());
+                        // Because we are moving a model already in a chain we need to patch that over first
+                        Model* nextfrom = _cud->GetModelAfter(m);
+                        if (nextfrom != nullptr) {
+                            if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
+                                (">" + droppedOn->GetName() == m->GetModelChain())) {
+                                logger_base.debug("    Model did not actually move.");
+                            }
+                            else {
+                                logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                                nextfrom->SetModelChain(m->GetModelChain());
+                            }
+                        }
+
+                        if (hit == BaseCMObject::HITLOCATION::LEFT) {
+                            logger_base.debug("    On the left hand side.");
+                            logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
+                            if (droppedOn->GetModelChain() != ">" + m->GetName()) {
+                                m->SetModelChain(droppedOn->GetModelChain());
+                                droppedOn->SetModelChain(">" + m->GetName());
+                            }
+                            if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
+                                m->SetModelChain("");
+                                droppedOn->SetModelChain("");
+                                Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
+                                int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
+                                if (nextch < 1) nextch = 1;
+                                if (last != nullptr) {
+                                    if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
+                                        nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    }
                                 }
-                                else {
-                                    logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
-                                    nextfrom->SetModelChain(m->GetModelChain());
+                                if (m->GetControllerDMXChannel() < nextch) {
+                                    m->SetControllerDMXChannel(nextch);
+                                }
+                                else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
+                                    m->SetControllerDMXChannel(nextch);
+                                }
+                                Model* next = droppedOn;
+                                last = m;
+                                while (next != nullptr) {
+                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
+                                    last = next;
+                                    next = port->GetUDPort()->GetModelAfter(last);
                                 }
                             }
-
-                            if (hit == BaseCMObject::HITLOCATION::LEFT) {
-                                logger_base.debug("    On the left hand side.");
-                                logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
-                                if (droppedOn->GetModelChain() != ">" + m->GetName()) {
-                                    m->SetModelChain(droppedOn->GetModelChain());
-                                    droppedOn->SetModelChain(">" + m->GetName());
+                        }
+                        else {
+                            logger_base.debug("    On the right hand side.");
+                            if (m->GetModelChain() != ">" + droppedOn->GetName()) {
+                                Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
+                                if (next != nullptr) {
+                                    logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
+                                    next->SetModelChain(">" + m->GetName());
                                 }
+                                else {
+                                    logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
+                                }
+                                m->SetModelChain(">" + droppedOn->GetName());
                                 if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                                     m->SetModelChain("");
                                     droppedOn->SetModelChain("");
-                                    Model* last = port->GetUDPort()->GetModelBefore(droppedOn);
-                                    int nextch = droppedOn->GetControllerDMXChannel() - m->GetChanCount();
-                                    if (nextch < 1) nextch = 1;
-                                    if (last != nullptr) {
-                                        if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
-                                            nextch = last->GetControllerDMXChannel() + last->GetChanCount();
-                                        }
-                                    }
-                                    if (m->GetControllerDMXChannel() < nextch) {
-                                        m->SetControllerDMXChannel(nextch);
-                                    }
-                                    else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
-                                        m->SetControllerDMXChannel(nextch);
-                                    }
-                                    Model* next = droppedOn;
-                                    last = m;
+                                    if (next != nullptr) next->SetModelChain("");
+                                    int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                                    m->SetControllerDMXChannel(nextch);
+                                    Model* last = m;
                                     while (next != nullptr) {
                                         nextch = last->GetControllerDMXChannel() + last->GetChanCount();
                                         if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
                                         last = next;
                                         next = port->GetUDPort()->GetModelAfter(last);
-                                    }
-                                }
-                            }
-                            else {
-                                logger_base.debug("    On the right hand side.");
-                                if (m->GetModelChain() != ">" + droppedOn->GetName()) {
-                                    Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
-                                    if (next != nullptr) {
-                                        logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
-                                        next->SetModelChain(">" + m->GetName());
-                                    }
-                                    else {
-                                        logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
-                                    }
-                                    m->SetModelChain(">" + droppedOn->GetName());
-                                    if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
-                                        m->SetModelChain("");
-                                        droppedOn->SetModelChain("");
-                                        if (next != nullptr) next->SetModelChain("");
-                                        int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
-                                        m->SetControllerDMXChannel(nextch);
-                                        Model* last = m;
-                                        while (next != nullptr) {
-                                            nextch = last->GetControllerDMXChannel() + last->GetChanCount();
-                                            if (next != m && next->GetControllerDMXChannel() < nextch) next->SetControllerDMXChannel(nextch);
-                                            last = next;
-                                            next = port->GetUDPort()->GetModelAfter(last);
-                                        }
                                     }
                                 }
                             }
