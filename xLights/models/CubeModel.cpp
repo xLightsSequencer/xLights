@@ -722,22 +722,20 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
     }
     else if (type == "Horizontal Per Strand")
     {
-        // FIXME Pretty sure this isnt right
         int sl = BufferHi;
-        for (auto n = 0; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < Nodes.size(); n++)
         {
-            Nodes[n]->Coords[0].bufX = n / sl;
-            Nodes[n]->Coords[0].bufY = n % sl;
+            Nodes[n]->Coords[0].bufX = (n - oldNodes) / sl;
+            Nodes[n]->Coords[0].bufY = (n - oldNodes) % sl;
         }
     }
     else if (type == "Vertical Per Strand")
     {
-        // FIXME Pretty sure this isnt right
         int sl = BufferWi;
-        for (auto n = 0; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < Nodes.size(); n++)
         {
-            Nodes[n]->Coords[0].bufX = n % sl;
-            Nodes[n]->Coords[0].bufY = n / sl;
+            Nodes[n]->Coords[0].bufX = (n - oldNodes) % sl;
+            Nodes[n]->Coords[0].bufY = (n - oldNodes) / sl;
         }
     }
     else if (type == "Stacked X Vertically")
