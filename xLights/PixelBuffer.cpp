@@ -1367,7 +1367,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
 
 void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer)
 {
-    unsigned short &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
+    auto &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     int cnt = 0;
     xlColor c(xlBLACK);
     xlColor color;
