@@ -87,11 +87,10 @@ class Falcon : public BaseController
     bool V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res);
     bool V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot);
     bool V4_SendBoardMode(int boardMode, int controllerMode, unsigned long startChannel, bool& reboot);
-    bool V4_GetStatus(wxJSONValue& res);
     bool V4_SetSerialConfig(int protocol, int universe, int startChannel, int rate);
     bool V4_GetStrings(std::vector<FALCON_V4_STRING>& res);
     bool V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot);
-
+    bool V4_GetStatus(wxJSONValue& res);
     bool V4_SetInputUniverses(ControllerEthernet* controller, wxWindow* parent);
     bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress);
 
@@ -178,6 +177,9 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+    wxJSONValue V4_GetStatus() const { return _v4status; }
+    std::string V4_DecodeBoardConfiguration(int config) const;
+    std::string V4_DecodeMode(int mode) const;
     #ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;

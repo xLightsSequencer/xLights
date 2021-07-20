@@ -1756,9 +1756,13 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto m = _mm->GetModel(name);
-    wxASSERT(m != nullptr);
+    if (m == nullptr)         {
+        logger_base.debug("Model '%s' was dropped from models but it could not be found.", (const char*)name.c_str());
+        _lastDropped = nullptr;
+        return;
+    }
 
-    logger_base.debug("Model %s dropped from models pane.", (const char*)name.c_str());
+    logger_base.debug("Model '%s' dropped from models pane.", (const char*)name.c_str());
 
     // model dragged from models
     if (target == PanelModels) {
@@ -2115,7 +2119,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 if (m->GetControllerDMXChannel() < nextch) {
                                     m->SetControllerDMXChannel(nextch);
                                 }
-                                else if (droppedOn->GetControllerDMXChannel() - m->GetChanCount() < m->GetControllerDMXChannel()) {
+                                else if (droppedOn->GetControllerDMXChannel() - (int)m->GetChanCount() < m->GetControllerDMXChannel()) {
                                     m->SetControllerDMXChannel(nextch);
                                 }
                                 Model* next = droppedOn;

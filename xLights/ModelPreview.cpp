@@ -74,7 +74,6 @@ void ModelPreview::SetCamera3D(int i)
 
 void ModelPreview::SaveDefaultCameraPosition()
 {
-    PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
     if (is_3d) {
         xlights->viewpoint_mgr.SetDefaultCamera3D(camera3d);
     }
@@ -814,7 +813,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
     xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), renderOrder(0), camera2d(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -839,7 +838,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
     xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), renderOrder(0), camera2d(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();

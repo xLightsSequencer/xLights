@@ -36,7 +36,7 @@
 
 std::string Falcon::SendToFalconV4(std::string msg)
 {
-    return PutURL("/api", msg, true, "", "");
+    return PutURL("/api", msg, true, "", "", "application/json");
 }
 
 std::vector<std::string> Falcon::V4_GetMediaFiles()
@@ -390,7 +390,7 @@ void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str)
     }
 }
 
-#define FALCON_V4_SEND_STRING_BATCH_SIZE 2
+#define FALCON_V4_SEND_STRING_BATCH_SIZE 1
 bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot)
 {
     // {"T":"S","M":"SP","B":14,"E":16,"I":14,"P":{"AD":1,"B":0,"ps":0,"A":[{"t":"P","l":13,"p":14,"r":0,"s":0,"v":0,"u":15,"sc":0,"n":100,"z":0,"ns":0,"ne":0,"g":10,"o":0,"b":40,"gp":1,"nm":"Port 15","bl":0}]}}
@@ -478,6 +478,20 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 #define V4_PIXEL_PROTOCOL_WS2811 14
 #define V4_PIXEL_PROTOCOL_WS2811_SLOW 15
 
+std::string Falcon::V4_DecodeMode(int mode) const
+{
+    switch (mode) {
+    case V4_CONTROLLERMODE_E131_ARTNET: return "E1.31/ArtNET";
+    case V4_CONTROLLERMODE_ZCPP: return "ZCPP";
+    case V4_CONTROLLERMODE_DDP: return "DDP";
+    case V4_CONTROLLERMODE_FPPREMOTE: return "Remote";
+    case V4_CONTROLLERMODE_FPPMASTER: return "Master";
+    case V4_CONTROLLERMODE_FPPPLAYER: return "Player";
+    default: break;
+    }
+    return "Unknown";
+}
+
 std::string Falcon::V4_DecodePixelProtocol(int protocol)
 {
     switch (protocol) {
@@ -537,6 +551,27 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
 #define V4_BOARDCONFIG_16_4SR_4SR 9
 #define V4_BOARDCONFIG_4SR_4SR_4SR 10
 #define V4_BOARDCONFIG_4SR_4SR 11
+
+std::string Falcon::V4_DecodeBoardConfiguration(int config) const
+{
+    switch (config) {
+    case V4_BOARDCONFIG_16: return "16 Local Ports";
+    case V4_BOARDCONFIG_16_2SR: return "16 Local Ports + 2 Smart Receiver Chains on Receiver Ports";
+    case V4_BOARDCONFIG_16_16: return "16 + 16 Local Ports";
+    case V4_BOARDCONFIG_16_16_2SR: return "16 + 16 Local Ports + 2 Smart Receiver Chains on Receiver Ports";
+    case V4_BOARDCONFIG_16_4SR: return "16 Local Ports + 4 Smart Receiver Chains";
+    case V4_BOARDCONFIG_16_4SR_2SR: return "16 Local Ports + 4 Smart Receiver Chains + 2 Smart Receiver Chains on Receiver Ports";
+    case V4_BOARDCONFIG_16_16_16: return "16 + 16 + 16 Local Ports (Ports 33-40 mirrored on Receiver Ports)";
+    case V4_BOARDCONFIG_16_16_4SR: return "16 + 16 Local Ports + 4 Smart Receiver Chains";
+    case V4_BOARDCONFIG_16_4SR_16: return "16 Local Ports + 4 Smart Receiver Chains + 16 Local Ports (Ports 33-40 mirrored on Receiver Ports)";
+    case V4_BOARDCONFIG_16_4SR_4SR: return "16 Local Ports + 4 Smart Receiver Chains + 4 Smart Receiver Chains";
+    case V4_BOARDCONFIG_4SR_4SR_4SR: return "12 Smart Receiver Chains";
+    case V4_BOARDCONFIG_4SR_4SR: return "8 Smart Receiver Chains";
+    default:
+        break;
+    }
+    return "Unknown";
+}
 
 bool Falcon::V4_IsPortSmartRemoteEnabled(int boardMode, int port)
 {
@@ -1820,8 +1855,8 @@ int Falcon::GetMaxPixels() const {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
-
+Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _v4status = wxJSONValue(wxJSONTYPE_OBJECT);
@@ -1874,16 +1909,15 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController
             }
             node = node->GetNext();
         }
-        
-        if (_versionnum == 4)             {
+
+        if (_versionnum == 4) {
             // this is going to need special handling
-            if (V4_GetStatus(_v4status))
-            {
+            if (V4_GetStatus(_v4status)) {
                 _modelnum = _v4status["BR"].AsInt();
                 _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
             }
         }
-        else         {
+        else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {
                 std::string version = GetURL("/index.htm");
                 if (version == "") {

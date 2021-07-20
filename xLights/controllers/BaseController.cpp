@@ -123,7 +123,7 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
     return res;
 }
 
-std::string BaseController::PutURL(const std::string& url, const std::string& request, bool logresult, const std::string& username, const std::string& password) {
+std::string BaseController::PutURL(const std::string& url, const std::string& request, bool logresult, const std::string& username, const std::string& password, const std::string& contentType) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -138,9 +138,10 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
 
         struct curl_slist* headers = NULL;
 
-        headers = curl_slist_append(headers, "content-type: application/x-www-form-urlencoded");
+        headers = curl_slist_append(headers, _("content-type: application/" + contentType).c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
 
         if (username != "")
         {

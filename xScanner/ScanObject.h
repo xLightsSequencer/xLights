@@ -2,6 +2,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 
 class Controller;
 class ControllerEthernet;
@@ -25,6 +26,7 @@ public:
 	bool _displayed = false;
 	std::string _viaProxy;
 	std::list<std::string> _otherIPs;
+	std::map<std::string, std::string> _otherData;
 	std::string _type;
 	std::string _version;
 	std::string _mode;
@@ -46,6 +48,7 @@ public:
 		_displayed = old._displayed;
 		_viaProxy = old._viaProxy;
 		_otherIPs = old._otherIPs;
+		_otherData = old._otherData;
 		_type = old._type;
 		_version = old._version;
 		_mode = old._mode;

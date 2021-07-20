@@ -94,14 +94,14 @@ class xlGLCanvas
         virtual bool UsesVertex3TextureAccumulator() { return false; }
         virtual bool UsesAddVertex() {return true;}
 
-        DrawGLUtils::xlGLCacheInfo *cache;
+        DrawGLUtils::xlGLCacheInfo *cache = nullptr;
 
     private:
         int _ver = 0;
         wxString _name;
-        wxGLContext* m_context;
-        bool m_coreProfile;
-        int  m_zDepth;
+        wxGLContext* m_context = nullptr;
+        bool m_coreProfile = false;
+        int  m_zDepth = 0;
     
         static wxGLContext *m_sharedContext;
 };

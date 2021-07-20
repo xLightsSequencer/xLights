@@ -45,6 +45,12 @@ bool IPObject::operator<(const IPObject& ip2)
     i1.Hostname(_ip);
     i2.Hostname(ip2._ip);
 
+    // if we get no address data just do a string compare
+    if (((sockaddr_in*)i1.GetAddressData()) == nullptr ||
+        ((sockaddr_in*)i2.GetAddressData()) == nullptr) {
+        return _ip < ip2._ip;
+    }
+
     return (((sockaddr_in*)i1.GetAddressData())->sin_addr.s_addr <
             ((sockaddr_in*)i2.GetAddressData())->sin_addr.s_addr);
 }

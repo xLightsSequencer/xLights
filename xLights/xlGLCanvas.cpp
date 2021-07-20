@@ -183,22 +183,22 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 }
 
 static int tempZDepth = 0;
-xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
-                       const wxSize &size, long style, const wxString &name,
-                       bool only2d)
-    :   wxGLCanvas(parent, GetAttributes(tempZDepth), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
-        mWindowWidth(0),
-        mWindowHeight(0),
-        mWindowResized(false),
-        mIsInitialized(false),
-        m_context(nullptr),
-        m_coreProfile(true),
-        cache(nullptr),
-        m_zDepth(tempZDepth),
-        _name(name)
+xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
+    const wxSize& size, long style, const wxString& name,
+    bool only2d)
+    : wxGLCanvas(parent, GetAttributes(tempZDepth), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
+    mWindowWidth(0),
+    mWindowHeight(0),
+    mWindowResized(false),
+    mIsInitialized(false),
+    m_context(nullptr),
+    cache(nullptr),
+    m_coreProfile(true),
+    _name(name),
+    m_zDepth(tempZDepth)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                    Creating GL Canvas for %s", (const char*)name.c_str());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
@@ -206,9 +206,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
     int origPixelFormat = GetPixelFormat(m_hDC);
     PIXELFORMATDESCRIPTOR pfdOrig;
     DescribePixelFormat(m_hDC,
-                        origPixelFormat,
-                        sizeof(PIXELFORMATDESCRIPTOR),
-                        &pfdOrig
+        origPixelFormat,
+        sizeof(PIXELFORMATDESCRIPTOR),
+        &pfdOrig
     );
     if ((pfdOrig.dwFlags & PFD_DOUBLEBUFFER) == 0) {
         //For some reason, it didn't honor the DOUBLEBUFFER flag, we'll try and recreate the
@@ -247,34 +247,36 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
 
         DescribePixelFormat(m_hDC,
-                            iPixelFormat,
-                            sizeof(PIXELFORMATDESCRIPTOR),
-                            &pfd
+            iPixelFormat,
+            sizeof(PIXELFORMATDESCRIPTOR),
+            &pfd
         );
         m_zDepth = 0;
         if (!only2d) {
             m_zDepth = 16;
         }
-        int ret = SetPixelFormat(m_hDC, iPixelFormat, &pfd);
+
+        SetPixelFormat(m_hDC, iPixelFormat, &pfd);
     }
 #endif
 }
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent,
-           const wxGLAttributes& dispAttrs,
-           const wxString &name)
+    const wxGLAttributes& dispAttrs,
+    const wxString& name)
     : wxGLCanvas(parent, dispAttrs, -1, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS, name),
     mWindowWidth(0),
     mWindowHeight(0),
     mWindowResized(false),
     mIsInitialized(false),
     m_context(nullptr),
-    m_coreProfile(true),
     cache(nullptr),
-    m_zDepth(0),
-_name(name) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
+    m_coreProfile(true),
+    _name(name),
+    m_zDepth(0)
+{
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                    Creating GL Canvas for %s", (const char*)name.c_str());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
@@ -282,11 +284,11 @@ _name(name) {
     int origPixelFormat = GetPixelFormat(m_hDC);
     PIXELFORMATDESCRIPTOR pfdOrig;
     DescribePixelFormat(m_hDC,
-                        origPixelFormat,
-                        sizeof(PIXELFORMATDESCRIPTOR),
-                        &pfdOrig
+        origPixelFormat,
+        sizeof(PIXELFORMATDESCRIPTOR),
+        &pfdOrig
     );
-    printf("PixelFormatFlags:  %X\n", pfdOrig.dwFlags);
+    printf("PixelFormatFlags:  %08X\n", pfdOrig.dwFlags);
 #endif
 }
 
@@ -338,9 +340,9 @@ static const char *getStringForSeverity(GLenum severity) {
 }
 
 // aux function to translate type to string
-static const char * getStringForType(GLenum type) {
-
-    switch(type) {
+static const char* getStringForType(GLenum type)
+{
+    switch (type) {
     case GL_DEBUG_TYPE_ERROR_ARB:
         return("Error");
     case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
@@ -358,31 +360,34 @@ static const char * getStringForType(GLenum type) {
     }
 }
 
-void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity ,
-                       GLsizei length , const GLchar * message , const GLvoid * userParam)
+void CALLBACK DebugLog(GLenum source, GLenum type, GLuint id, GLenum severity,
+    GLsizei length, const GLchar* message, const GLvoid* userParam)
 {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
 
     logger_opengl.info("Type : %s; Source : %s; ID : %d; Severity : % s\n Message: %s",
-                       getStringForType( type ),
-                       getStringForSource( source ),
-                       id,
-                       getStringForSeverity( severity ),
-                       message);
+        getStringForType(type),
+        getStringForSource(source),
+        id,
+        getStringForSeverity(severity),
+        message);
 }
-void CALLBACK DebugLogAMD(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+
+void CALLBACK DebugLogAMD(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
+{
+    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
 
     logger_opengl.info("%s; ID : %d; Severity : % s\n Message: %s",
-                       getStringForType( category ),
-                       id,
-                       getStringForSeverity( severity ),
-                       message);
+        getStringForType(category),
+        id,
+        getStringForSeverity(severity),
+        message);
 }
 
 
-void AddDebugLog(xlGLCanvas *c) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+void AddDebugLog(xlGLCanvas* c)
+{
+    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallbackARB");
     PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControlARB");
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -415,11 +420,12 @@ void AddDebugLog(xlGLCanvas *c) {
 DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
-void xlGLCanvas::DisplayWarning(const wxString &msg) {
+void xlGLCanvas::DisplayWarning(const wxString& msg)
+{
     ::DisplayWarning("Graphics Driver Problem: " + msg, this);
 }
 
-wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
+wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 {
     if (m_context == nullptr)
         return nullptr;
@@ -430,8 +436,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
     int width = mWindowWidth * GetContentScaleFactor();
     int height = mWindowHeight * GetContentScaleFactor();
     bool canScale = hasOpenGL3FramebufferObjects() && DrawGLUtils::IsCoreProfile();
-    if (canScale && size != wxSize(0, 0))
-    {
+    if (canScale && size != wxSize(0, 0)) {
         width = size.GetWidth();
         height = size.GetHeight();
     }
@@ -440,14 +445,13 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
     // RGB format that wxImage uses; also doing a vertical flip along the way.
     width += width % 4;
 
-    GLubyte *tmpBuf = new GLubyte[width * 4 * height];
+    GLubyte* tmpBuf = new GLubyte[width * 4 * height];
 
     GLint currentUnpackAlignment = 1;
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-    if (canScale)
-    {
+    if (canScale) {
         GLuint fbID = 0, rbID = 0;
 
         glGenRenderbuffers(1, &rbID);
@@ -458,7 +462,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
         glBindFramebuffer(GL_FRAMEBUFFER, fbID);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
 
-        render(wxSize(width,height));
+        render(wxSize(width, height));
 
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
@@ -469,8 +473,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
         glDeleteRenderbuffers(1, &rbID);
     }
-    else
-    {
+    else {
         GLint currentReadBuffer = GL_NONE;
         glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
 
@@ -484,19 +487,19 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 
     // copying to wxImage
     wxSize dstSize = (canScale && size != wxSize(0, 0))
-                         ? wxSize(width, height)
-                         : wxSize(mWindowWidth * GetContentScaleFactor(),
-                                  mWindowHeight * GetContentScaleFactor());
-    unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
-    unsigned char *dst = buf;
-    for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
-    {
-        const unsigned char *src = tmpBuf + 4 * width * y;
-        for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3)
-        {
-            dst[0] = src[0];
-            dst[1] = src[1];
-            dst[2] = src[2];
+        ? wxSize(width, height)
+        : wxSize(mWindowWidth * GetContentScaleFactor(),
+            mWindowHeight * GetContentScaleFactor());
+    unsigned char* buf = (unsigned char*)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
+    if (buf != nullptr) {
+        unsigned char* dst = buf;
+        for (int y = dstSize.GetHeight() - 1; y >= 0; --y) {
+            const unsigned char* src = tmpBuf + 4 * width * y;
+            for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3) {
+                dst[0] = src[0];
+                dst[1] = src[1];
+                dst[2] = src[2];
+            }
         }
     }
 
@@ -505,8 +508,8 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
     return new wxImage(dstSize.GetWidth(), dstSize.GetHeight(), buf, false);
 }
 
-
-void xlGLCanvas::SetCurrentGLContext() {
+void xlGLCanvas::SetCurrentGLContext()
+{
     glGetError();
     if (m_context == nullptr) {
         LOG_GL_ERRORV(CreateGLContext());
@@ -521,15 +524,15 @@ void xlGLCanvas::SetCurrentGLContext() {
         int ver = 99;
         config->Read("ForceOpenGLVer", &ver, 99);
 
-        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
         wxString configs = wxString::Format("%s - glVer:  %s  (%s)(%s)",
-                                            (const char *)GetName().c_str(),
-                                            (const char *)str,
-                                            (const char *)rend,
-                                            (const char *)vend);
+            (const char*)GetName().c_str(),
+            (const char*)str,
+            (const char*)rend,
+            (const char*)vend);
 
         if (wxString(rend) == "GDI Generic"
             || wxString(vend).Contains("Microsoft")) {
@@ -539,8 +542,8 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (!warned) {
                 config->Write("GDI-Warned", true);
                 wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
-                                                "Please install updated video drivers for your video card.",
-                                                vend, rend);
+                    "Please install updated video drivers for your video card.",
+                    vend, rend);
                 CallAfter(&xlGLCanvas::DisplayWarning, msg);
             }
             //need to use 1.x
@@ -548,12 +551,12 @@ void xlGLCanvas::SetCurrentGLContext() {
         }
 
         logger_opengl.info(std::string(configs.c_str()));
-        printf("%s\n", (const char *)configs.c_str());
+        printf("%s\n", (const char*)configs.c_str());
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             if (logger_opengl.isDebugEnabled()) {
                 AddDebugLog(this);
             }
-            logger_opengl.info("Try creating 3.3 Cache for %s", (const char *)_name.c_str());
+            logger_opengl.info("Try creating 3.3 Cache for %s", (const char*)_name.c_str());
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                 UsesVertexColorAccumulator(),
                 UsesVertexAccumulator(),
@@ -564,7 +567,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (cache != nullptr) _ver = 3;
         }
         if (cache == nullptr) {
-            logger_opengl.info("Try creating 1.1 Cache for %s", (const char *)_name.c_str());
+            logger_opengl.info("Try creating 1.1 Cache for %s", (const char*)_name.c_str());
             LOG_GL_ERRORV(cache = Create11Cache());
             if (cache != nullptr) _ver = 1;
         }
@@ -572,6 +575,9 @@ void xlGLCanvas::SetCurrentGLContext() {
             _ver = 0;
             logger_opengl.error("All attempts at cache creation have failed.");
         }
+    }
+    else {
+        _ver = 0;
     }
     LOG_GL_ERRORV(DrawGLUtils::SetCurrentCache(cache));
 }

@@ -382,7 +382,7 @@ void Scanner::Scan(xScannerFrame* frame)
 
 	UnifyDiscovery(_ips, true);
 
-	logger_base.debug("Sorting IPs");
+	logger_base.debug("Sorting %lu IPs", _ips.size());
 	_ips.sort();
 
 	std::map<std::string, std::string> arps;
@@ -662,7 +662,7 @@ void Scanner::IPScan(IPObject& it)
 			logger_base.debug("    Getting Falcon status");
 			auto status = Curl::HTTPSGet("http://" + it._ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
-			if (status != "" && Contains(status, "<response>\r\n")) {
+			if (status != "" && Contains(status, "<response>") && Contains(status, "<fv>")) {
 
 				logger_base.debug("    Falcon found");
 				it._type = "Falcon";
@@ -674,6 +674,7 @@ void Scanner::IPScan(IPObject& it)
 						int k0 = 0;
 						int k1 = 0;
 						int k2 = 0;
+						int p = 0;
 						for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
 							if (n->GetChildren() != nullptr) {
 								if (n->GetName() == "m") {
@@ -689,10 +690,40 @@ void Scanner::IPScan(IPObject& it)
 								else if (n->GetName() == "k2") {
 									k2 = wxAtoi(n->GetChildren()->GetContent());
 								}
+								else if (n->GetName() == "p") {
+									p = wxAtoi(n->GetChildren()->GetContent());
+								}
 							}
+						}
+						if (p == 128) 							{
+							it._type = "FalconV4";
 						}
 						if (k0 != 0 || k1 != 0 || k2 != 0) {
 							it._banks = wxString::Format("%d:%d:%d", k0, k1, k2);
+						}
+					}
+					if (it._type == "FalconV4") 						{
+						Falcon falcon(it._ip, it._viaProxy);
+						if (falcon.IsConnected()) {
+							wxJSONValue status = falcon.V4_GetStatus();
+							it._mode = falcon.V4_DecodeMode(status["O"].AsInt());
+							if (status["WI"].AsString() != "") {
+								it._otherIPs.push_back("WIFI: " + status["WI"].AsString() + " : " + status["WK"].AsString() + " : " + status["WS"].AsString());
+							}
+							if (status["I"].AsString() != "") {
+								it._otherIPs.push_back("Wired: " + status["I"].AsString() + " : " + status["K"].AsString());
+							}
+							it._otherData["Model"] = wxString::Format("F%dv4", status["BR"].AsInt()).ToStdString();
+							if (status["TS"].AsInt() != 0) {
+								it._otherData["Test Mode"] = "Enabled";
+							}
+							it._otherData["Temp1"] = wxString::Format("%.1fC", (float)status["T1"].AsInt() / 10.0).ToStdString();
+							it._otherData["Temp2"] = wxString::Format("%.1fC", (float)status["T2"].AsInt() / 10.0).ToStdString();
+							it._otherData["Processor Temp"] = wxString::Format("%.1fC", (float)status["PT"].AsInt() / 10.0).ToStdString();
+							it._otherData["Fan Speed"] = wxString::Format("%d RPM", status["FN"].AsInt()).ToStdString();
+							it._otherData["V1"] = wxString::Format("%.1fV", (float)status["V1"].AsInt() / 10.0).ToStdString();
+							it._otherData["V2"] = wxString::Format("%.1fV", (float)status["V2"].AsInt() / 10.0).ToStdString();
+							it._otherData["Board Configuration"] = falcon.V4_DecodeBoardConfiguration(status["B"].AsInt());
 						}
 					}
 				}
@@ -703,8 +734,11 @@ void Scanner::IPScan(IPObject& it)
 	// check for xSchedule on some common ports
 	if (it._type == "" || it._type == "xSchedule") {
 		logger_base.debug("    Checking for xSchedule");
-		CheckXSchedule(it, 80);
-		if (it._type == "") {
+		if (it._port80) {
+			CheckXSchedule(it, 80);
+		}
+		// only try other ports if we managed to ping the device ... just trying to speed things up
+		if (it._type == "" && it._pinged) {
 			CheckXSchedule(it, 81);
 			if (it._type == "") {
 				CheckXSchedule(it, 8080);
@@ -715,7 +749,7 @@ void Scanner::IPScan(IPObject& it)
 		}
 	}
 
-	if (it._type == "") {
+	if (it._type == "" && it._port80) {
 
 		logger_base.debug("    Getting the default page");
 
