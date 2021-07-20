@@ -67,7 +67,8 @@ class FPP : public BaseController
     void UpdateChannelRanges();
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
-
+    bool IsMultiSyncEnabled();
+    bool IsDDPInputEnabled();
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();

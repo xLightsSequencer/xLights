@@ -442,6 +442,34 @@ void FPP::LoadPlaylists(std::list<std::string> &playlists) {
         }
     }
 }
+
+bool FPP::IsMultiSyncEnabled(){
+    if (IsVersionAtLeast(5, 0) && !IsDrive()) {
+        wxJSONValue val;
+        if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
+            if (val.HasMember("value")) {
+                auto enabled = val.ItemAt("value").AsString();
+                return wxAtoi(enabled);
+            }
+        }
+    }
+    return false;
+}
+
+bool FPP::IsDDPInputEnabled() {
+    if (IsVersionAtLeast(5, 0) && !IsDrive()) {
+        wxJSONValue origRoot;
+        if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
+            if (origRoot.HasMember("channelInputs") && origRoot.ItemAt("channelInputs").HasMember(0)
+                && origRoot.ItemAt("channelInputs").ItemAt(0).HasMember("enabled") &&
+                origRoot.ItemAt("channelInputs").ItemAt(0).ItemAt("enabled").AsInt() == 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void FPP::probePixelControllerType() {
     std::string file = "co-pixelStrings";
     if (platform.find("Beagle") != std::string::npos) {
@@ -1428,21 +1456,29 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     if (!b) return b;
     UploadPixelOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
-    std::string val;
-    controller->SetRuntimeProperty("FPPMode", curMode);
-    if (restartNeeded || curMode != "bridge") {
-        Restart("bridge");
+
+    if (majorVersion >= 4) {
+        controller->SetRuntimeProperty("FPPMode", curMode);
+        if (restartNeeded || curMode != "bridge") {
+            Restart("bridge");
+        }
+    }
+    else if (restartNeeded) {//fpp 5
+        Restart();
     }
     return b;
 }
 
 bool FPP::ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
-    std::string md = controller->GetRuntimeProperty("FPPMode");
-    if (md != "bridge" && md != "") {
-        bool b = AuthenticateAndUpdateVersions();
-        if (!b) return b;
-        Restart(md);
-        controller->SetRuntimeProperty("FPPMode", "");
+    
+    if (majorVersion >= 4) {
+        std::string md = controller->GetRuntimeProperty("FPPMode");
+        if (md != "bridge" && md != "") {
+            bool b = AuthenticateAndUpdateVersions();
+            if (!b) return b;
+            Restart(md);
+            controller->SetRuntimeProperty("FPPMode", "");
+        }
     }
     return true;
 }
@@ -1451,6 +1487,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
     wxJSONValue root;
     root["type"] = wxString("universes");
     root["enabled"] = 1;
+    root["timeout"] = 1000;
     root["startChannel"] = 1;
     root["channelCount"] = -1;
 
@@ -1511,7 +1548,8 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                     }
                     universes.Append(universe);
                 } else {
-                    //don't need to do anything to configure DDP input
+                    //create empty array DDP input
+                    universes = wxJSONValue(wxJSONTYPE_ARRAY);
                 }
             } else if (it->GetType() == OUTPUT_ARTNET) {
                 universe["type"] = (int)((eth->GetIP() != "MULTICAST") + 2);
@@ -1616,16 +1654,25 @@ void FPP::SetDescription(const std::string &st) {
 bool FPP::SetInputUniversesBridge(Controller* controller) {
     auto c = dynamic_cast<ControllerEthernet*>(controller);
     if (c == nullptr) return false;
+    
+    bool forceUpload = false;
+    if (majorVersion >= 5) {
+        if (!IsDDPInputEnabled()){
+            forceUpload = restartNeeded = true;
+        }
+    }
 
     wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ c }), true);
-    if (!udp["channelInputs"][0]["universes"].IsNull()) {
+    if (!udp["channelInputs"][0]["universes"].Size() == 0 || forceUpload) {
         if (IsDrive()) {
             std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
             WriteJSONToPath(fn, udp);
-        } else if (IsVersionAtLeast(2, 4)) {
+        }
+        else if (IsVersionAtLeast(2, 4)) {
             PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeInputs", udp);
         }
     }
+
     return false;
 }
 

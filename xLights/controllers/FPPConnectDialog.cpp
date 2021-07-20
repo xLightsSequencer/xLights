@@ -336,8 +336,16 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->description, wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-        label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->mode, wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODE_" + rowStr));
+
+        auto mode = inst->mode;
+        if (inst->isFPP && inst->IsVersionAtLeast(5, 0)) {
+            if (inst->IsMultiSyncEnabled()) {
+                mode += " w/multisync";
+            }
+        }
+        label = new wxStaticText(FPPInstanceList, wxID_ANY, mode, wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODE_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+
         label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->fullVersion, wxDefaultPosition, wxDefaultSize, 0, _T("ID_VERSION_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 
