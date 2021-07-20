@@ -345,6 +345,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     SubBufferSizer->Fit(SubBufferPanelHolder);
     SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
+    subBufferPanel->Connect(wxEVT_SIZE, (wxObjectEventFunction)&SubModelsDialog::OnSubbufferSize, nullptr, this);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -362,6 +363,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     NodesGrid->SetCellHighlightPenWidth(3);
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     SetEscapeId(wxID_CANCEL);
+}
+
+void SubModelsDialog::OnSubbufferSize(wxSizeEvent& event)
+{
+    subBufferPanel->Refresh();
 }
 
 SubModelsDialog::~SubModelsDialog()

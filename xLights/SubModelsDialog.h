@@ -292,6 +292,7 @@ private:
     void RemoveNodes();
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
+    void OnSubbufferSize(wxSizeEvent& event);
 
     wxWindow* _parent;
     xLightsFrame* xlights;
