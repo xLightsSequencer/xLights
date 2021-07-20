@@ -1663,7 +1663,7 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     }
 
     wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ c }), true);
-    if (!udp["channelInputs"][0]["universes"].Size() == 0 || forceUpload) {
+    if (udp["channelInputs"][0]["universes"].Size() != 0 || forceUpload) {
         if (IsDrive()) {
             std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
             WriteJSONToPath(fn, udp);
