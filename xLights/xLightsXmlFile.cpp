@@ -3001,15 +3001,28 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFr
         wxXmlNode*  node = AddElement( filename, "timing" );
         layer = AddChildXmlNode(node, "EffectLayer");
     }
+
+    int prev_start = -1;
+    int prev_end = -1;
+
     for (size_t k = 0; k < starts.size(); k++) {
+
+        int start = TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency());
+        int end = TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency());
+        if (start == prev_start && end == prev_end) {
+            continue;//skip duplicates
+        }
+
+        prev_start = start;
+        prev_end = end;
 
         if( sequence_loaded )
         {
-            effectLayer->AddEffect(0,labels[k],"","", TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency()), TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency()),EFFECT_NOT_SELECTED,false);
+            effectLayer->AddEffect(0, labels[k], "", "", start, end, EFFECT_NOT_SELECTED, false);
         }
         else
         {
-            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency())), string_format("%d", TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency())));
+            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", start), string_format("%d", end));
         }
     }
 }
