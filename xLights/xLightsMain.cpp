@@ -9908,7 +9908,7 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
             UDController cud(eth, &_outputManager, &AllModels, check, false);
             wxString const header = eth->GetShortDescription() + "\n";
             f.Write(header);
-            std::vector<std::string> const lines = cud.ExportAsCSV();
+            std::vector<std::string> const lines = cud.ExportAsCSV(false);
             for (const auto& line : lines) {
                 f.Write(line);
             }

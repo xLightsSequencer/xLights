@@ -1199,11 +1199,11 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
     std::list<wxPoint> flat;
     std::list<wxPoint> duplicates;
 
-    for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+    for (const auto& ch : chs)
     {
-        for (auto it = ch->begin(); it != ch->end(); ++it)
+        for (const auto& it : ch)
         {
-            flat.push_back(wxPoint(it->x, it->y));
+            flat.push_back(wxPoint(it.x, it.y));
         }
     }
 
@@ -1224,7 +1224,7 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
         }
     }
 
-    for (auto d = duplicates.begin(); d != duplicates.end(); ++d)
+    for (const auto& d : duplicates)
     {
         bool first = true;
 
@@ -1233,7 +1233,7 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
             auto it = ch->begin();
             while (it != ch->end())
             {
-                if (it->x == d->x && it->y == d->y)
+                if (it->x == d.x && it->y == d.y)
                 {
                     if (first)
                     {
@@ -1261,11 +1261,11 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking for duplicates at scale %f.", divisor);
 
-    for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+    for (const auto& ch : chs)
     {
-        for (auto it = ch->begin(); it != ch->end(); ++it)
+        for (const auto& it : ch)
         {
-            scaled.push_back(wxPoint((float)it->x * divisor, (float)it->y * divisor));
+            scaled.push_back(wxPoint((float)it.x * divisor, (float)it.y * divisor));
         }
     }
 

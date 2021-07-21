@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Enable Inputs on FPP 5.0 when starting output to lights
+   -- enh (scott) Added multisync text to mode column in FPP Connect
+   -- enh (keith) Optionally include model description in visualiser CSV export for those that have hookup instructions
+                  in the model description field
+   -- bug (keith) Fix custom models with > 65535 nodes dont work
+   -- bug (keith) Fix Cube model Horizontal and Vertical Per Strand model group buffer broken.
+   -- bug (keith) Fix visualiser move model between ports not working
+   -- bug (dklup) Fix render progress bar not appearing
 2021.22 July 18, 2021
    -- enh (keith) Add -cs command line switch to run xlights, open sequence, run check sequence, close sequence
    -- enh (keith) Sort the saved subbuffers in dropdown

@@ -90,11 +90,11 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             float maxy = -1;
             for (auto const& idx : nodeIdx) {
                 NodeBaseClass* node = p->Nodes[idx]->clone();
-                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                    if (c->bufX < minx) minx = c->bufX;
-                    if (c->bufY < miny) miny = c->bufY;
-                    if (c->bufX > maxx) maxx = c->bufX;
-                    if (c->bufY > maxy) maxy = c->bufY;
+                for (const auto& c : node->Coords) {
+                    if (c.bufX < minx) minx = c.bufX;
+                    if (c.bufY < miny) miny = c.bufY;
+                    if (c.bufX > maxx) maxx = c.bufX;
+                    if (c.bufY > maxy) maxy = c.bufY;
                 }
                 delete node;
             }
@@ -102,9 +102,9 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 NodeBaseClass* node = p->Nodes[idx]->clone();
                 startChannel = (std::min)(startChannel, node->ActChan);
                 Nodes.push_back(NodeBaseClassPtr(node));
-                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                    c->bufX -= minx;
-                    c->bufY -= miny;
+                for (auto& c : node->Coords) {
+                    c.bufX -= minx;
+                    c.bufY -= miny;
                 }
             }
             if (maxx < minx || maxy < miny || Nodes.size() == 0) {
@@ -143,15 +143,15 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         start--;
                         end--;
                         bool done = false;
-                        int nn = start;
+                        wxInt32 nn = start;
                         while (!done) {
-                            if (nn < p->GetNodeCount()) {
+                            if (nn < (wxInt32)p->GetNodeCount()) {
                                 NodeBaseClass* node = p->Nodes[nn]->clone();
                                 startChannel = (std::min)(startChannel, node->ActChan);
                                 Nodes.push_back(NodeBaseClassPtr(node));
-                                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                                    c->bufX = col;
-                                    c->bufY = row;
+                                for (auto& c : node->Coords) {
+                                    c.bufX = col;
+                                    c.bufY = row;
                                 }
                                 if (vert) {
                                     row++;
@@ -242,12 +242,12 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
         for (int m = 0; m < nn; m++) {
             if (p->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
                 NodeBaseClass* node = p->Nodes[m]->clone();
-                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                for (const auto& c : node->Coords) {
 
-                    if (c->bufX < minx) minx = c->bufX;
-                    if (c->bufY < miny) miny = c->bufY;
-                    if (c->bufX > maxx) maxx = c->bufX;
-                    if (c->bufY > maxy) maxy = c->bufY;
+                    if (c.bufX < minx) minx = c.bufX;
+                    if (c.bufY < miny) miny = c.bufY;
+                    if (c.bufX > maxx) maxx = c.bufX;
+                    if (c.bufY > maxy) maxy = c.bufY;
                 }
                 delete node;
             }
@@ -258,9 +258,9 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 NodeBaseClass* node = p->Nodes[m]->clone();
                 startChannel = (std::min)(startChannel, node->ActChan);
                 Nodes.push_back(NodeBaseClassPtr(node));
-                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                    c->bufX -= minx;
-                    c->bufY -= miny;
+                for (auto& c : node->Coords) {
+                    c.bufX -= minx;
+                    c.bufY -= miny;
                 }
             }
         }

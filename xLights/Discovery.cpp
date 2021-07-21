@@ -481,7 +481,7 @@ void Discovery::Discover() {
 
     if (curlMulti == nullptr) return;
 
-    uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
+    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = numCurls;
     uint8_t buffer[1500];
     

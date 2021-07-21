@@ -26,7 +26,8 @@ IciclesModel::~IciclesModel()
 {
 }
 
-void IciclesModel::InitModel() {
+void IciclesModel::InitModel()
+{
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxArrayString pat = wxSplit(dropPattern, ',');
@@ -35,8 +36,8 @@ void IciclesModel::InitModel() {
 
     SetNodeCount(numStrings, lightsPerString, rgbOrder);
 
-    std::vector<unsigned int> dropSizes;
-    unsigned int maxH = 0;
+    std::vector<size_t> dropSizes;
+    size_t maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
         dropSizes.push_back(wxAtoi(pat[x]));
         maxH = std::max(maxH, dropSizes[x]);
@@ -46,15 +47,15 @@ void IciclesModel::InitModel() {
     }
 
     int width = -1;
-    int curNode = 0;
-    int curCoord = 0;
-    for (int x = 0; x < numStrings; x++) {
+    size_t curNode = 0;
+    size_t curCoord = 0;
+    for (size_t x = 0; x < numStrings; x++) {
         int lights = lightsPerString;
-        int y = 0;
-        int curDrop = 0;
-        int nodesInDrop = dropSizes[curDrop];
+        size_t y = 0;
+        size_t curDrop = 0;
+        size_t nodesInDrop = dropSizes[curDrop];
         width++;
-        while (lights) {
+        while (lights > 0) {
             if (curCoord >= Nodes[curNode]->Coords.size()) {
                 curNode++;
                 curCoord = 0;
@@ -68,17 +69,15 @@ void IciclesModel::InitModel() {
                 }
                 nodesInDrop = dropSizes[curDrop];
             }
-            Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
-            Nodes[curNode]->StringNum=x;
+            Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
+            Nodes[curNode]->StringNum = x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
             if (_alternateNodes) {
-                if (y + 1 <= (nodesInDrop + 1) / 2)
-                {
+                if (y + 1 <= (nodesInDrop + 1) / 2) {
                     Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
                     Nodes[curNode]->Coords[curCoord].screenY = (2 * y);
                 }
-                else
-                {
+                else {
                     Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
                     Nodes[curNode]->Coords[curCoord].screenY = ((nodesInDrop - (y + 1)) * 2 + 1);
                 }
@@ -94,17 +93,17 @@ void IciclesModel::InitModel() {
         }
     }
     if (!IsLtoR) {
-        for(size_t n=0; n < Nodes.size(); n++) {
-            for (auto cd = Nodes[n]->Coords.begin(); cd != Nodes[n]->Coords.end(); cd++) {
-                cd->bufX = width - cd->bufX;
-                cd->screenX = width - cd->screenX;
+        for (size_t n = 0; n < Nodes.size(); n++) {
+            for (auto& cd : Nodes[n]->Coords) {
+                cd.bufX = width - cd.bufX;
+                cd.screenX = width - cd.screenX;
             }
         }
     }
-    SetBufferSize(maxH, width+1);
-    
+    SetBufferSize(maxH, width + 1);
+
     //single icicle move to the center
-    if(width == 0) {
+    if (width == 0) {
         for (auto& n : Nodes) {
             for (auto& c : n->Coords) {
                 c.screenX = 0.5;

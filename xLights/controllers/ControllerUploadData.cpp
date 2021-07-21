@@ -876,7 +876,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
     return success;
 }
 
-std::string UDControllerPort::ExportAsCSV() const
+std::string UDControllerPort::ExportAsCSV(bool withDescription) const
 {
     wxString line = wxString::Format("%s Port %d,",_type ,_port);
     for (const auto& it : GetModels()) {
@@ -887,6 +887,9 @@ std::string UDControllerPort::ExportAsCSV() const
             line += ":";
         }
         line += it->GetName();
+        if (withDescription && it->GetModel()->description != "")             {
+            line += "(" + it->GetModel()->description + ")";
+        }
         line += ",";
     }
 
@@ -1432,7 +1435,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     return success;
 }
 
-std::vector<std::string> UDController::ExportAsCSV()
+std::vector<std::string> UDController::ExportAsCSV(bool withDescription)
 {
     std::vector<std::string> lines;
     int columnSize = 0;
@@ -1440,14 +1443,14 @@ std::vector<std::string> UDController::ExportAsCSV()
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
         if (columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
-        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV());
+        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(withDescription));
 	}
 	lines.push_back("\n");
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
         if (columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
-        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV());
+        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(withDescription));
     }
 
     wxString header = "Output,";

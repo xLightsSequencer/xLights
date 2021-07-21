@@ -60,6 +60,7 @@ const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
+const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV_DESCRIPTION = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
@@ -1474,7 +1475,10 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         PrintScreen();
     }
     else if (id == CONTROLLERModel_SAVE_CSV) {
-        SaveCSV();
+        SaveCSV(false);
+    }
+    else if (id == CONTROLLERModel_SAVE_CSV_DESCRIPTION) {
+        SaveCSV(true);
     }
     else if (id == CONTROLLER_REMOVEALLMODELS) {
 
@@ -1574,7 +1578,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     return bitmap;
 }
 
-void ControllerModelDialog::SaveCSV() {
+void ControllerModelDialog::SaveCSV(bool withDescription) {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _controller->GetShortDescription(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
@@ -1589,7 +1593,7 @@ void ControllerModelDialog::SaveCSV() {
 
     wxString const header = _controller->GetShortDescription() + "\n";
     f.Write(header);
-    std::vector<std::string> const lines = _cud->ExportAsCSV();
+    std::vector<std::string> const lines = _cud->ExportAsCSV(withDescription);
     for (const auto& line : lines) {
         f.Write(line);
     }
@@ -2587,6 +2591,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
+    mnu.Append(CONTROLLERModel_SAVE_CSV_DESCRIPTION, "Save As CSV with Description...");
 
     if (_cud->HasModels()) {
         mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove all models from controller");

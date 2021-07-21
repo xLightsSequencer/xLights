@@ -752,8 +752,8 @@ public:
 
     virtual void prepareRead(uint32_t frame) {}
 
-    V2FSEQFile *m_file;
-    uint64_t   m_seqChanDataOffset;
+    V2FSEQFile *m_file = nullptr;
+    uint64_t   m_seqChanDataOffset = 0;
 };
 
 class V2NoneCompressionHandler : public V2Handler {
@@ -935,14 +935,20 @@ public:
     virtual std::string GetType() const override { return "Compressed ZSTD"; }
 
     virtual FrameData *getFrame(uint32_t frame) override {
+
+        if (m_file == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_file unexpectantly null.\n");
+
         if (m_curBlock >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
             m_curBlock = 0;
+            if (m_file->m_frameOffsets.size() <= 1) LogDebug(VB_SEQUENCE, " getFrame m_frameOffsets size <= 1.\n");
             while (frame >= m_file->m_frameOffsets[m_curBlock + 1].first) {
                 m_curBlock++;
+                if (m_curBlock + 1 >= m_file->m_frameOffsets.size()) LogDebug(VB_SEQUENCE, " getFrame m_curBlock + 1 > m_frameOffsets size.\n");
             }
             if (m_dctx == nullptr) {
                 m_dctx = ZSTD_createDStream();
+                if (m_dctx == nullptr) LogDebug(VB_SEQUENCE, " getFrame ZSTD_createDStream failed.\n");
             }
             ZSTD_initDStream(m_dctx);
             seek(m_file->m_frameOffsets[m_curBlock].second, SEEK_SET);
@@ -957,6 +963,7 @@ public:
                 free((void*)m_inBuffer.src);
             }
             m_inBuffer.src = malloc(len);
+            if (m_inBuffer.src == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_inBuffer.src malloc failed.\n");
             m_inBuffer.pos = 0;
             m_inBuffer.size = len;
             int bread = read((void*)m_inBuffer.src, len);
@@ -967,7 +974,7 @@ public:
             if (m_curBlock < m_file->m_frameOffsets.size() - 2) {
                 //let the kernel know that we'll likely need the next block in the near future
                 uint64_t len2 = m_file->m_frameOffsets[m_curBlock + 2].second;
-                len2 -= m_file->m_frameOffsets[m_curBlock+1].second;
+                len2 -= m_file->m_frameOffsets[m_curBlock + 1].second;
                 preload(tell(), len2);
             }
 
@@ -975,12 +982,14 @@ public:
             m_framesPerBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
             m_outBuffer.size = m_framesPerBlock * m_file->getChannelCount();
             m_outBuffer.dst = malloc(m_outBuffer.size);
+            if (m_outBuffer.dst == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_outBuffer.dst malloc failed.\n");
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
         }
         uint32_t fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
 
         if (fidx >= m_curFrameInBlock) {
+            if ((fidx + 1) * m_file->getChannelCount() > m_outBuffer.size) LogDebug(VB_SEQUENCE, " getFrame  m_outBuffer.size increased but memory not reallocated.\n");
             m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
             ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
             m_curFrameInBlock = fidx + 1;
@@ -1116,8 +1125,8 @@ public:
         V2CompressedHandler::finalize();
     }
 
-    ZSTD_CStream* m_cctx;
-    ZSTD_DStream* m_dctx;
+    ZSTD_CStream* m_cctx = nullptr;
+    ZSTD_DStream* m_dctx = nullptr;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
 };
