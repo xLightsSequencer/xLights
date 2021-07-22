@@ -213,7 +213,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     _defaultSeqView = GetXmlSetting("defaultSeqView", "");
 
-    if (_sequenceViewManager.GetViewIndex(_defaultSeqView) == -1) {
+    if (_sequenceViewManager.GetViewIndex(_defaultSeqView) == -1 && _defaultSeqView != "") {
         logger_base.warn("View Not Found ... clearing");
         _defaultSeqView.clear();
         SetXmlSetting("defaultSeqView", _defaultSeqView);
