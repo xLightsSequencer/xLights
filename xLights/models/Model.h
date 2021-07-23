@@ -447,7 +447,7 @@ public:
         return (DispAs == "Window Frame" || DispAs == "Custom");
     }
     // true for dumb strings and traditional strings
-    bool HasSingleNode(const std::string& StrType)
+    bool HasSingleNode(const std::string& StrType) const
     {
         if (StrType == "Node Single Color") return false;
         if (StrType == "Superstring") return true;
@@ -456,11 +456,11 @@ public:
         return StrType.find(Nodes) == std::string::npos;
     }
     // true for traditional strings
-    /*static */bool HasSingleChannel(const std::string& StrType)
+    /*static */bool HasSingleChannel(const std::string& StrType) const
     {
         return GetNodeChannelCount(StrType) == 1 && StrType != "Node Single Color";
     }
-    /*static */int GetNodeChannelCount(const std::string& nodeType) const;
+    /*static */size_t GetNodeChannelCount(const std::string& nodeType) const;
 
     // Methods to support layer sizes
     int layerSizeMenu = -1; // when a layer size is right clicked on this holds the layer that was clicked on
@@ -507,7 +507,7 @@ public:
             layerSizes.push_back(layers[i]);
         }
     }
-    int GetLayerSizeCount() const { return layerSizes.size(); }
+    size_t GetLayerSizeCount() const { return layerSizes.size(); }
     void SetLayerSize(int layer, int size)
     {
         if (GetLayerSizeCount() > layer && size != 0) {

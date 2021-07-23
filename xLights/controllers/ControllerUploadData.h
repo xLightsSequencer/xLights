@@ -63,11 +63,11 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
-    int GetChannelsPerPixel();
+    int GetChannelsPerPixel() const;
     int32_t Channels() const { return _endChannel - _startChannel + 1; }
     int32_t GetStartChannel() const { return _startChannel; }
     int32_t GetEndChannel() const { return _endChannel; }
-    int GetDMXChannelOffset();
+    int GetDMXChannelOffset() const;
 
     int GetUniverse() const { return _universe; }
     int GetUniverseStartChannel() const { return _universeStartChannel; }
@@ -75,14 +75,15 @@ public:
     int GetSmartRemote() const { return _smartRemote; }
     char GetSmartRemoteLetter() const;
 
-    int GetSmartTs(int currentTs);
-    int GetBrightness(int currentBrightness);
-    int GetStartNullPixels(int currentStartNullPixels);
-    int GetEndNullPixels(int currentEndNullPixels);
-    float GetGamma(int currentGamma);
-    std::string GetColourOrder(const std::string& currentColourOrder);
-    std::string GetDirection(const std::string& currentDirection);
-    int GetGroupCount(int currentGroupCount);
+    float GetAmps(int defaultBrightness) const;
+    int GetSmartTs(int currentTs) const;
+    int GetBrightness(int currentBrightness) const;
+    int GetStartNullPixels(int currentStartNullPixels) const;
+    int GetEndNullPixels(int currentEndNullPixels) const;
+    float GetGamma(int currentGamma) const;
+    std::string GetColourOrder(const std::string& currentColourOrder) const;
+    std::string GetDirection(const std::string& currentDirection) const;
+    int GetGroupCount(int currentGroupCount) const;
     std::string GetProtocol() const { return _protocol; }
     bool IsFirstModelString() const { return _string < 1; }
     int GetString() const { return _string; }

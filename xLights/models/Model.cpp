@@ -3908,7 +3908,7 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
     }
 }
 
-int Model::GetNodeChannelCount(const std::string & nodeType) const {
+size_t Model::GetNodeChannelCount(const std::string & nodeType) const {
     if (nodeType.compare(0, 12, "Single Color") == 0) {
         return 1;
     } else if (nodeType == "Strobes White 3fps") {

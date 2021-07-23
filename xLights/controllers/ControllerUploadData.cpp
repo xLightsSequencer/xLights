@@ -91,35 +91,34 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
 #pragma endregion
 
 #pragma region Getters and Setters
-int UDControllerPortModel::GetChannelsPerPixel() {
-
+int UDControllerPortModel::GetChannelsPerPixel() const
+{
     return _model->GetNodeChannelCount(_model->GetStringType());
 }
 
-int UDControllerPortModel::GetDMXChannelOffset() {
-
+int UDControllerPortModel::GetDMXChannelOffset() const 
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
     return 1;
 }
 
-int UDControllerPortModel::GetBrightness(int currentBrightness) {
-
+int UDControllerPortModel::GetBrightness(int currentBrightness) const 
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
     return currentBrightness;
 }
 
-int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) {
-
+int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) const
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
     return currentStartNullPixels;
 }
 
-int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels)
+int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels) const
 {
-
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("endNullNodes"))  return wxAtoi(node->GetAttribute("endNullNodes"));
     return currentEndNullPixels;
@@ -132,35 +131,41 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
     return char('A' + _smartRemote - 100);
 }
 
-int UDControllerPortModel::GetSmartTs(int currentSmartTs)
+float UDControllerPortModel::GetAmps(int defaultBrightness) const
+{
+    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0f) * GetBrightness(defaultBrightness)) / 100.0f;
+}
+
+int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("ts"))  return wxAtoi(node->GetAttribute("ts"));
     return currentSmartTs;
 }
 
-float UDControllerPortModel::GetGamma(int currentGamma) {
-
+float UDControllerPortModel::GetGamma(int currentGamma)  const
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("gamma"))  return wxAtof(node->GetAttribute("gamma"));
     return currentGamma;
 }
 
-std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) {
-
+std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) const
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("colorOrder"))  return node->GetAttribute("colorOrder");
     return currentColourOrder;
 }
 
-std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) {
-
+std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const 
+{
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
     return currentDirection;
 }
 
-int UDControllerPortModel::GetGroupCount(int currentGroupCount) {
+int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
+{
 
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("groupCount"))  return wxAtoi(node->GetAttribute("groupCount"));
@@ -225,8 +230,8 @@ UDControllerPort::~UDControllerPort() {
 #pragma endregion
 
 #pragma region Model Handling
-UDControllerPortModel* UDControllerPort::GetFirstModel() const {
-
+UDControllerPortModel* UDControllerPort::GetFirstModel() const
+{
     if (_models.size() == 0) return nullptr;
     UDControllerPortModel* first = _models.front();
     for (const auto& it : _models) {
@@ -237,8 +242,8 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const {
     return first;
 }
 
-UDControllerPortModel* UDControllerPort::GetLastModel() const {
-
+UDControllerPortModel* UDControllerPort::GetLastModel() const 
+{
     if (_models.size() == 0) return nullptr;
     UDControllerPortModel* last = _models.front();
     for (const auto& it : _models) {
@@ -761,7 +766,7 @@ float UDControllerPort::GetAmps(int defaultBrightness) const
     if (_type == "Pixel") {
         for (const auto& m : _models) {
             currentBrightness = m->GetBrightness(currentBrightness);
-            amps += ((float)AMPS_PER_PIXEL * (m->Channels() / 3.0f) * currentBrightness) / 100.0f;
+            amps += m->GetAmps(currentBrightness);
         }
     }
     return amps;

@@ -2451,9 +2451,11 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     wxString sr;
     if (m->GetSmartRemote() != 0) {
+        sr = "Smart Remote: ";
        sr += m->GetSmartRemoteLetter();
        sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
        sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
+       sr += "\n";
     }
 
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
@@ -2477,6 +2479,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm != nullptr) {
 
+            stringSettings += wxString::Format("\nEstimated Current Draw: %0.2fA", udm->GetAmps(_controller->GetDefaultBrightnessUnderFullControl()));
             if (udm->GetBrightness(-1) != -1) {
                 stringSettings += wxString::Format("\nBrightness: %d%%", udm->GetBrightness(-1));
             }
@@ -2511,7 +2514,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     auto om = _xLights->GetOutputManager();
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s",
+        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\n%sPort: %d\nProtocol: %s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om),
             m->GetLastChannelInStartChannelFormat(om),
             m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
