@@ -1055,28 +1055,22 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
 
 void SequenceElements::SetTimingVisibility(const std::string& name)
 {
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
-    {
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
         Element* elem = mAllViews[MASTER_VIEW][i];
-        if( elem->GetType() != ElementType::ELEMENT_TYPE_TIMING )
-        {
+        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             break;
         }
-        TimingElement *te = dynamic_cast<TimingElement*>(elem);
-        if( name == "Master View" )
-        {
+        TimingElement* te = dynamic_cast<TimingElement*>(elem);
+        if (name == "Master View") {
             te->SetVisible(te->GetMasterVisible());
             //te->SetVisible(true);
         }
-        else
-        {
+        else {
             te->SetVisible(false);
-            wxArrayString views = wxSplit(te->GetViews(),',');
-            for(size_t v=0;v<views.size();v++)
-            {
+            wxArrayString views = wxSplit(te->GetViews(), ',');
+            for (size_t v = 0; v < views.size(); v++) {
                 std::string viewName = views[v].ToStdString();
-                if( name == viewName )
-                {
+                if (name == viewName) {
                     te->SetVisible(true);
                     break;
                 }
@@ -1746,6 +1740,37 @@ bool SequenceElements::IsValidEffect(Effect* ef) const
     }
 
     return false;
+}
+
+size_t SequenceElements::GetHiddenTimingCount() const
+{
+    size_t count = 0;
+    auto view = _viewsManager->GetSelectedViewIndex();
+    for (size_t i = 0; i < mAllViews[view].size(); i++) {
+        Element* elem = mAllViews[view][i];
+        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            break;
+        }
+        TimingElement* te = dynamic_cast<TimingElement*>(elem);
+        if (te != nullptr && !te->GetVisible()) count++;
+    }
+    return count;
+}
+
+void SequenceElements::HideAllTimingTracks(bool hide)
+{
+    // This only works on timing tracks in master views because of the way we manage timing tracks in non master views
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
+        Element* elem = mAllViews[MASTER_VIEW][i];
+        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            break;
+        }
+        TimingElement* te = dynamic_cast<TimingElement*>(elem);
+        if (te != nullptr) {
+            te->SetVisible(!hide);
+            te->SetMasterVisible(!hide);
+        }
+    }
 }
 
 Effect* SequenceElements::SelectEffectUsingDescription(std::string description)

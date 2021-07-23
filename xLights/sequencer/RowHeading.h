@@ -122,4 +122,6 @@ private:
     static const long ID_ROW_MNU_REMOVE_TIMING_WORDS;
     static const long ID_ROW_MNU_REMOVE_TIMING_PHONEMES;
     static const long ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES;
+    static const long ID_ROW_MNU_SHOWALLTIMING;
+    static const long ID_ROW_MNU_HIDEALLTIMING;
 };

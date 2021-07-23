@@ -91,6 +91,8 @@ const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_PHONEMES = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES = wxNewId();
+const long RowHeading::ID_ROW_MNU_HIDEALLTIMING = wxNewId();
+const long RowHeading::ID_ROW_MNU_SHOWALLTIMING = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -338,6 +340,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.AppendSeparator();
                 }
+                if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
+                    mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
+                }
                 bool canPromote = false;
                 ModelElement* me = dynamic_cast<ModelElement*>(element);
                 if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND || element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
@@ -418,6 +423,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
                     mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
                     mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
+                    if (mSequenceElements->GetCurrentView() == MASTER_VIEW) {
+                        mnuLayer.Append(ID_ROW_MNU_HIDEALLTIMING, "Hide All Timing Tracks");
+                    }
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
@@ -837,6 +845,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (te != nullptr) {
             te->RemoveEffectLayer(2);
         }
+    }
+    else if (id == ID_ROW_MNU_HIDEALLTIMING) {
+        mSequenceElements->HideAllTimingTracks(true);
+    }
+    else if (id == ID_ROW_MNU_SHOWALLTIMING) {
+        mSequenceElements->HideAllTimingTracks(false);
     }
     else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);

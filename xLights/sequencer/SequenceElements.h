@@ -97,6 +97,8 @@ public:
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
     bool IsValidEffect(Effect* e) const;
+    size_t GetHiddenTimingCount() const;
+    void HideAllTimingTracks(bool hide);
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
@@ -229,7 +231,7 @@ private:
 
     std::vector<EffectRange> mSelectedRanges;
     int mSelectedTimingRow;
-    SequenceViewManager* _viewsManager;
+    SequenceViewManager* _viewsManager = nullptr;
     TimeLine* _timeLine;
     wxXmlNode* mModelsNode;
     wxXmlNode* mEffectsNode;
