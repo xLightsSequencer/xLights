@@ -1030,6 +1030,9 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
+    if (IsVersionAtLeast(5, 0)) {
+        outputFile->enableMinorVersionFeatures(1);
+    }
     if (type >= 2 && !newRanges.empty()) {
         for (auto &a : newRanges) {
             ((V2FSEQFile*)outputFile)->m_sparseRanges.push_back(a);
@@ -1133,7 +1136,18 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
         std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-universes.json");
         WriteJSONToPath(fn, udp);
     } else if (IsVersionAtLeast(2, 4)) {
-        PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeOutputs", udp);
+        wxJSONValue orig;
+        wxJSONValue newudp = udp;
+        if (GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=universeOutputs", orig)) {
+            if (orig.HasMember("channelOutputs")) {
+                for (int x = 0; x < orig["channelOutputs"].Size(); x++) {
+                    if (orig["channelOutputs"][x]["type"].AsString() == "universes" && orig["channelOutputs"][x].HasMember("interface")) {
+                        newudp["channelOutputs"][0]["interface"] = orig["channelOutputs"][x]["interface"].AsString();
+                    }
+                }
+            }
+        }
+        PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeOutputs", newudp);
     }
     return false;
 }
