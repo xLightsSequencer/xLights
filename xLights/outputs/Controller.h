@@ -29,6 +29,7 @@ class ModelManager;
 class ControllerCaps;
 class BaseController;
 class OutputModelManager;
+class Model;
 
 #pragma region Controller Constants
 // These are used to identify each output type
@@ -143,11 +144,11 @@ public:
     bool IsOk() const { return _ok; }
 
     const std::string &GetVendor() const { return _vendor; }
-    void SetVendor(const std::string& vendor) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; } }
+    void SetVendor(const std::string& vendor) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; VMVChanged(); } }
     const std::string &GetModel() const { return _model; }
-    void SetModel(const std::string& model) { if (_model != model) { _model = model; _dirty = true; } }
+    void SetModel(const std::string& model) { if (_model != model) { _model = model; _dirty = true; VMVChanged(); } }
     const std::string &GetVariant() const { return _variant; }
-    void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true; } }
+    void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(); } }
     std::string GetVMV() const;
     ControllerCaps* GetControllerCaps() const;
 
@@ -179,6 +180,7 @@ public:
     virtual bool SupportsAutoLayout() const;
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
+    virtual void VMVChanged() {}
 
     virtual bool CanTempDisable() const { return false; }
     void TempDisable(bool disable)
@@ -242,7 +244,7 @@ public:
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
 
-    virtual bool SetChannelSize(int32_t channels);
+    virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {});
     
     #pragma endregion
 

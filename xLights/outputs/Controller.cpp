@@ -291,7 +291,7 @@ bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
     return end >= GetStartChannel() && start < GetEndChannel();
 }
 
-bool Controller::SetChannelSize(int32_t channels) {
+bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models) {
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs())

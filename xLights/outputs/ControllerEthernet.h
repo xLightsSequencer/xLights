@@ -41,6 +41,7 @@ protected:
     bool _managed = true;
     std::string _fppProxy;
     bool _expanded = false;
+    bool _universePerString = false;
     std::future<Output::PINGSTATE> _asyncPing;
 #pragma endregion
 
@@ -68,6 +69,9 @@ public:
     bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
 
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
+
+    bool IsUniversePerString() const { return _universePerString; }
+    void SetUniversePerString(bool ups);
 
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);
@@ -111,6 +115,8 @@ public:
     virtual std::string GetColumn2Label() const override { return _ip; }
     virtual std::string GetColumn3Label() const override;
 
+    virtual void VMVChanged() override;
+
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;
     virtual bool CanPing() const override { return GetIP() != "MULTICAST"; }
@@ -124,11 +130,12 @@ public:
 
     virtual bool SupportsUpload() const override;
 
-    virtual bool SetChannelSize(int32_t channels) override;
+    virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}) override;
 #pragma endregion
 
 #pragma region UI
     #ifndef EXCLUDENETWORKUI
+        bool SupportsUniversePerString() const;
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;

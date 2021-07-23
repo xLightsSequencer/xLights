@@ -40,6 +40,7 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
+            <SupportsUniversePerString/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>

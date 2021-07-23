@@ -335,6 +335,11 @@ bool ControllerCaps::SupportsAutoUpload() const {
     return DoesXmlNodeExist(_config, "SupportsAutoUpload");
 }
 
+bool ControllerCaps::SupportsUniversePerString() const
+{
+    return DoesXmlNodeExist(_config, "SupportsUniversePerString");
+}
+
 bool ControllerCaps::SupportsMultipleSimultaneousOutputProtocols() const {
 
     return DoesXmlNodeExist(_config, "SupportsMultipleSimultaneousOutputProtocols");

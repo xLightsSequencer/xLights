@@ -66,6 +66,7 @@ public:
     bool SupportsRemotes() const;
     bool SupportsAutoLayout() const;
     bool SupportsAutoUpload() const;
+    bool SupportsUniversePerString() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;
