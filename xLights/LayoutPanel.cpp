@@ -655,9 +655,34 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
     wxConfigBase* config = wxConfigBase::Get();
     auto colOrder = config->Read("LayoutModelListCols", "");
 
+    int sortcol = 0;
+    bool sortasc = true;
+
     wxArrayString cols;
     if (colOrder != "") {
         cols = wxSplit(colOrder, ',');
+        int cc = 1;
+        for (int i = 0; i < cols.size(); i++) {
+            if (cols[i] != "") {
+                if (cols[i][0] == 'U') {
+                    sortcol = cc++;
+                    sortasc = true;
+                }
+                else if (cols[i][0] == 'D') {
+                    sortcol = cc++;
+                    sortasc = false;
+                }
+                else if (cols[i][0] == ' ') {
+                    cc++;
+                }
+                cols[i] = cols[i].substr(1);
+            }
+        }
+
+        // If cols are missing ... add them in
+        if (std::find(begin(cols), end(cols), STARTCHANCOLNAME) ==  end(cols)) cols.push_back(STARTCHANCOLNAME);
+        if (std::find(begin(cols), end(cols), ENDCHANCOLNAME) == end(cols)) cols.push_back(ENDCHANCOLNAME);
+        if (std::find(begin(cols), end(cols), CONTCONNCOLNAME) == end(cols)) cols.push_back(CONTCONNCOLNAME);
     }
     else {
         cols.push_back(STARTCHANCOLNAME);
@@ -690,7 +715,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         }
     }
 
-    tree->SetSortColumn(0, true);
+    tree->SetSortColumn(sortcol, sortasc);
     return tree;
 }
 
@@ -783,7 +808,18 @@ void LayoutPanel::SaveModelsListColumns()
         for (size_t j = 0; j < TreeListViewModels->GetColumnCount(); j++) {
             auto col = TreeListViewModels->GetDataView()->GetColumn(j);
             auto p = TreeListViewModels->GetDataView()->GetColumnPosition(col);
-            if (p == i) {
+            if (p == i && col->GetTitle() != MODELCOLNAME) {
+                if (col->IsSortKey()) {
+                    if (col->IsSortOrderAscending()) {
+                        colOrder += "U";
+                    }
+                    else {
+                        colOrder += "D";
+                    }
+                }
+                else {
+                    colOrder += " ";
+                }
                 colOrder += col->GetTitle() + ",";
             }
         }
