@@ -66,6 +66,11 @@
 
 #include <set>
 
+#define MODELCOLNAME "Model/Group"
+#define STARTCHANCOLNAME "Start Chan"
+#define ENDCHANCOLNAME "End Chan"
+#define CONTCONNCOLNAME "Ctrlr Conn"
+
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	wxRect r;
@@ -111,10 +116,6 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 	//*)
     EVT_TREELIST_SELECTION_CHANGED(wxID_ANY, LayoutPanel::OnSelectionChanged)
     EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, LayoutPanel::OnItemContextMenu)
-    //EVT_TREELIST_ITEM_EXPANDING(wxID_ANY, LayoutPanel::OnItemExpanding)
-    //EVT_TREELIST_ITEM_EXPANDED(wxID_ANY, LayoutPanel::OnSelectionChanged)
-    //EVT_TREELIST_ITEM_CHECKED(wxID_ANY, LayoutPanel::OnItemChecked)
-    //EVT_TREELIST_ITEM_ACTIVATED(wxID_ANY, LayoutPanel::OnSelectionChanged)
 END_EVENT_TABLE()
 
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
@@ -252,7 +253,7 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmap &bmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), state(0), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -286,33 +287,9 @@ private:
     wxBitmap bitmap;
 };
 
-LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
-    m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), _newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(nullptr), last_highlight(nullptr),
-    currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
-    selectionLatched(false), over_handle(-1), creating_model(false), mouse_state_set(false), zoom_gesture_active(false), rotate_gesture_active(false)
+LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    m_imageList = nullptr;
-    m_bound_start_x = 0;
-    m_bound_start_y = 0;
-    m_bound_end_x = 0;
-    m_bound_end_y = 0;
-    m_last_mouse_x = 0;
-    m_last_mouse_y = 0;
-    m_previous_mouse_x = 0;
-    m_previous_mouse_y = 0;
-
-    background = nullptr;
-    _firstTreeLoad = true;
-    _lastXlightsModel = "";
-    appearanceVisible = sizeVisible = dimensionsVisible = stringPropsVisible = false;
-    controllerConnectionVisible = true;
-    layersVisible = false;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -660,6 +637,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_WINDOW_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_WREATH_ICON", scaleFactor);
 }
+
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 {
     wxTreeListCtrl* const
@@ -668,22 +646,50 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
                                   style, "ID_TREELISTVIEW_MODELS");
     tree->SetImageList(m_imageList);
 
-    tree->AppendColumn("Model / Group",
+    tree->AppendColumn(MODELCOLNAME,
                        wxCOL_WIDTH_AUTOSIZE,
                        wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    tree->AppendColumn("Start Chan",
-                       tree->WidthFor(CHNUMWIDTH),
-                       wxALIGN_LEFT,
-                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    tree->AppendColumn("End Chan",
-                       tree->WidthFor(CHNUMWIDTH),
-                       wxALIGN_LEFT,
-                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    tree->AppendColumn("Ctrlr Conn",
-                       wxCOL_WIDTH_AUTOSIZE,
-                       wxALIGN_LEFT,
-                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+
+    // Because you cant programmatically reorder the columns we have to add them in the right order
+    wxConfigBase* config = wxConfigBase::Get();
+    auto colOrder = config->Read("LayoutModelListCols", "");
+
+    wxArrayString cols;
+    if (colOrder != "") {
+        cols = wxSplit(colOrder, ',');
+    }
+    else {
+        cols.push_back(STARTCHANCOLNAME);
+        cols.push_back(ENDCHANCOLNAME);
+        cols.push_back(CONTCONNCOLNAME);
+    }
+
+    int i = 1;
+    for (const auto& c : cols) {
+        if (c == STARTCHANCOLNAME) {
+            tree->AppendColumn(STARTCHANCOLNAME,
+                tree->WidthFor(CHNUMWIDTH),
+                wxALIGN_LEFT,
+                wxCOL_RESIZABLE | wxCOL_SORTABLE | wxCOL_REORDERABLE);
+            Col_StartChan = i++;
+        }
+        else if (c == ENDCHANCOLNAME) {
+            tree->AppendColumn(ENDCHANCOLNAME,
+                tree->WidthFor(CHNUMWIDTH),
+                wxALIGN_LEFT,
+                wxCOL_RESIZABLE | wxCOL_SORTABLE | wxCOL_REORDERABLE);
+            Col_EndChan = i++;
+        }
+        else if (c == CONTCONNCOLNAME) {
+            tree->AppendColumn(CONTCONNCOLNAME,
+                wxCOL_WIDTH_AUTOSIZE,
+                wxALIGN_LEFT,
+                wxCOL_RESIZABLE | wxCOL_SORTABLE | wxCOL_REORDERABLE);
+            Col_ControllerConnection = i++;
+        }
+    }
+
     tree->SetSortColumn(0, true);
     return tree;
 }
@@ -760,8 +766,36 @@ NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const
     return button;
 }
 
+int LayoutPanel::GetColumnIndex(const std::string& name) const
+{
+    for (size_t i = 0; i < TreeListViewModels->GetColumnCount(); i++) {
+        auto col = TreeListViewModels->GetDataView()->GetColumn(i);
+        if (col->GetTitle() == name) return i;
+    }
+    wxASSERT(false);
+    return -1;
+}
+
+void LayoutPanel::SaveModelsListColumns()
+{
+    wxString colOrder;
+    for (size_t i = 0; i < TreeListViewModels->GetColumnCount(); i++) {
+        for (size_t j = 0; j < TreeListViewModels->GetColumnCount(); j++) {
+            auto col = TreeListViewModels->GetDataView()->GetColumn(j);
+            auto p = TreeListViewModels->GetDataView()->GetColumnPosition(col);
+            if (p == i) {
+                colOrder += col->GetTitle() + ",";
+            }
+        }
+    }
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("LayoutModelListCols", colOrder);
+}
+
 LayoutPanel::~LayoutPanel()
 {
+    SaveModelsListColumns();
     if (background != nullptr) {
         delete background;
     }
@@ -1163,12 +1197,14 @@ void LayoutPanel::ThawTreeListView(int defWidth) {
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 }
+
 void LayoutPanel::SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt) {
     wxString orig = TreeListViewModels->GetItemText(item, col);
     if (orig != txt) {
         TreeListViewModels->SetItemText(item, col, txt);
     }
 }
+
 void LayoutPanel::refreshModelList() {
 
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
@@ -1447,7 +1483,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // Only set the column sizes the very first time we load it
         if (_firstTreeLoad) {
             _firstTreeLoad = false;
-            width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
+            width = std::max(width, TreeListViewModels->WidthFor(STARTCHANCOLNAME));
             TreeListViewModels->SetColumnWidth(1, width);
             TreeListViewModels->SetColumnWidth(2, width);
             TreeListViewModels->SetColumnWidth(3, width);
@@ -2103,7 +2139,8 @@ public:
                     const wxString& name,
                     const wxString& value,
                     const wxImage *img)
-        : lastFileName(value), wxImageFileProperty(label, name, "") {
+        : wxImageFileProperty(label, name, ""), lastFileName(value)
+    {
 
         SetValueFromString(value);
         if (img != nullptr) {
@@ -2636,7 +2673,9 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
     }
 
-    if (sortColumn == 1) {
+    auto colobj = treelist->GetDataView()->GetColumn(sortColumn);
+
+    if (colobj->GetTitle() == STARTCHANCOLNAME) {
         int ia = data1->startingChannel;
         int ib = data2->startingChannel;
         if (ia > ib)
@@ -2645,7 +2684,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
-    else if (sortColumn == 2) {
+    else if (colobj->GetTitle() == ENDCHANCOLNAME) {
         int ia = data1->endingChannel;
         int ib = data2->endingChannel;
         if (ia > ib)
@@ -2654,7 +2693,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
-    else if (sortColumn == 3)
+    else if (colobj->GetTitle() == CONTCONNCOLNAME)
     {
         int32_t sc;
         // group controllers first
@@ -2951,7 +2990,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         // this is designed to pretend the control and shift keys are down when creating models to
                         // make them scale from the desired handle depending on model type
                         xlights->AbortRender();
-                        auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+                        auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), true, z_scale);
                         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                         m_moving_handle = true;
@@ -3038,7 +3077,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             xlights->AbortRender();
-            auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+            auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), true, z_scale);
             xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
             lastModelName = _newModel->name;
             modelPreview->SetAdditionalModel(_newModel);
@@ -3757,7 +3796,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
                 xlights->AbortRender();
-                auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+                auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), false, z_scale);
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                 //SetupPropGrid(selectedBaseObject);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
@@ -3923,7 +3962,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             xlights->AbortRender();
-            auto pos = obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+            auto pos = obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), false, z_scale);
             xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, obj->GetDimension()));
             //SetupPropGrid(obj);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");

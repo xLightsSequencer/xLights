@@ -113,9 +113,9 @@ class LayoutPanel: public wxPanel
 		wxStaticText* StaticText1;
 		//*)
 
-		wxScrolledWindow* ViewObjectWindow;
-		wxScrolledWindow* ModelGroupWindow;
-		wxTreeListCtrl* TreeListViewModels;
+		wxScrolledWindow* ViewObjectWindow = nullptr;
+		wxScrolledWindow* ModelGroupWindow = nullptr;
+		wxTreeListCtrl* TreeListViewModels = nullptr;
 
 	protected:
 
@@ -312,6 +312,7 @@ class LayoutPanel: public wxPanel
         void ThawTreeListView(int defWidth = 0);
         void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
 
+        void SaveModelsListColumns();
         std::string TreeModelName(const Model* model, bool fullname);
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
@@ -380,33 +381,34 @@ class LayoutPanel: public wxPanel
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type) const;
 
-        bool _firstTreeLoad;
-        bool m_dragging;
-        bool m_creating_bound_rect;
-        int m_bound_start_x;
-        int m_bound_start_y;
-        int m_bound_end_x;
-        int m_bound_end_y;
-        int m_over_handle;
-        bool m_moving_handle;
-        bool m_wheel_down;
-        bool m_polyline_active;
-		int m_previous_mouse_x, m_previous_mouse_y;
-		int mPointSize;
-        int mHitTestNextSelectModelIndex;
-        int mNumGroups;
-        bool mPropGridActive;
+        bool _firstTreeLoad = true;
+        bool m_dragging = false;
+        bool m_creating_bound_rect = false;
+        int m_bound_start_x = 0;
+        int m_bound_start_y = 0;
+        int m_bound_end_x = 0;
+        int m_bound_end_y = 0;
+        int m_over_handle = -1;
+        bool m_moving_handle = false;
+        bool m_wheel_down = false;
+        bool m_polyline_active = false;
+        int m_previous_mouse_x = 0;
+        int m_previous_mouse_y = 0;
+		int mPointSize = 2;
+        int mHitTestNextSelectModelIndex = 0;
+        int mNumGroups = 0;
+        bool mPropGridActive = true;
         wxTreeListItems selectedTreeGroups;
         wxTreeListItems selectedTreeModels;
         wxTreeListItems selectedTreeSubModels;
 
         wxPropertyGrid *propertyEditor = nullptr;
-        bool updatingProperty;
+        bool updatingProperty = false;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
-        bool selectionLatched;
-        int over_handle;
+        bool selectionLatched = false;
+        int over_handle = -1;
         glm::vec3 last_centerpos;
         glm::vec3 last_worldrotate;
         glm::vec3 last_worldscale;
@@ -422,12 +424,12 @@ class LayoutPanel: public wxPanel
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton = nullptr;
         NewModelBitmapButton *obj_button = nullptr;
-        std::string _lastXlightsModel;
+        std::string _lastXlightsModel = "";
         std::string selectedDmxModelType;
         Model *_newModel = nullptr;
         ModelGroupPanel *model_grp_panel = nullptr;
         ViewObjectPanel *objects_panel = nullptr;
-        std::string currentLayoutGroup;
+        std::string currentLayoutGroup = "Default";
         LayoutGroup* pGrp = nullptr;
 
         std::string lastModelName;
@@ -445,7 +447,7 @@ class LayoutPanel: public wxPanel
         std::vector<UndoStep> undoBuffer;
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
     public:
-        xLightsFrame *xlights;
+        xLightsFrame *xlights = nullptr;
         void UpdateModelList(bool full_refresh);
         void UpdateModelList(bool full_refresh, std::vector<Model*> &modelList);
         void RefreshLayout();
@@ -481,33 +483,30 @@ class LayoutPanel: public wxPanel
             Icon_Wreath
         };
 
-        // Tree list columns.
-        enum
-        {
-            Col_Model,
-            Col_StartChan,
-            Col_EndChan,
-            Col_ControllerConnection
-        };
+        int Col_Model = 0;
+        int Col_StartChan = 1;
+        int Col_EndChan = 2;
+        int Col_ControllerConnection = 3;
 
         ModelPreview *modelPreview = nullptr;
         wxImage *background = nullptr;
-        wxString backgroundFile;
+        wxString backgroundFile = "";
         wxString previewBackgroundFile;
-        bool previewBackgroundScaled;
-        int previewBackgroundBrightness;
-        int previewBackgroundAlpha;
+        bool previewBackgroundScaled = false;
+        int previewBackgroundBrightness = 100;
+        int previewBackgroundAlpha = 100;
         wxPanel* main_sequencer = nullptr;
         wxImageList* m_imageList = nullptr;
 
-        bool editing_models;
-        bool is_3d;
-        bool m_mouse_down;
+        bool editing_models = true;
+        bool is_3d = false;
+        bool m_mouse_down = false;
         BaseObject* last_selection = nullptr;
         BaseObject* last_highlight = nullptr;
-        int m_last_mouse_x, m_last_mouse_y;
-        bool creating_model;
-        bool mouse_state_set;
+        int m_last_mouse_x = 0;
+        int m_last_mouse_y = 0;
+        bool creating_model =  false;
+        bool mouse_state_set = false;
 
         void OnSelectionChanged(wxTreeListEvent& event);
         void HandleSelectionChanged();
@@ -546,6 +545,7 @@ class LayoutPanel: public wxPanel
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
         void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
+        int GetColumnIndex(const std::string& name) const;
 
         class ModelListComparator : public wxTreeListItemComparator
         {
@@ -559,7 +559,6 @@ class LayoutPanel: public wxPanel
             xLightsFrame* xlights = nullptr;
         };
         ModelListComparator comparator;
-        bool zoom_gesture_active;
-        bool rotate_gesture_active;
-
+        bool zoom_gesture_active = false;
+        bool rotate_gesture_active = false;
 };
