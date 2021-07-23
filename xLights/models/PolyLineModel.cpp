@@ -33,17 +33,10 @@
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
-    segs_collapsed = true;
-    num_segments = 0;
-    total_length = 0.0f;
-    height = 1.0f;
-    hasIndivSeg = false;
-    numDropPoints = 0;
 }
 
 PolyLineModel::PolyLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    segs_collapsed = true;
     PolyLineModel::SetFromXml(node, zeroBased);
 }
 
@@ -65,9 +58,10 @@ const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
     return POLYLINE_BUFFER_STYLES;
 }
 
-void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,
-                                          const std::string &transform,
-                                          std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::string& camera,
+    const std::string& transform,
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+{
     if (type == "Line Segments" && hasIndivSeg) {
         BufferHi = num_segments;
         BufferWi = 0;
@@ -77,20 +71,20 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
                 BufferWi = w;
             }
         }
-        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        for (const auto& it : Nodes) {
+            newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
         }
 
         int idx = 0;
-        for(size_t m=0; m<num_segments; m++) {
+        for (size_t m = 0; m < num_segments; m++) {
             int seg_idx = 0;
             int end_node = idx + polyLineSizes[m];
             float scale = (float)BufferWi / (float)polyLineSizes[m];
-            for(size_t n=idx; n<end_node; n++) {
-                newNodes[idx]->Coords.resize(SingleNode?parm2:parm3);
-                size_t CoordCount=GetCoordCount(idx);
+            for (size_t n = idx; n < end_node; n++) {
+                newNodes[idx]->Coords.resize(SingleNode ? parm2 : parm3);
+                size_t CoordCount = GetCoordCount(idx);
                 int location = seg_idx * scale + scale / 2.0;
-                for(size_t c=0; c < CoordCount; c++) {
+                for (size_t c = 0; c < CoordCount; c++) {
                     newNodes[idx]->Coords[c].bufX = location;
                     newNodes[idx]->Coords[c].bufY = m;
                     newNodes[idx]->Coords[c].bufZ = 0;
@@ -100,10 +94,12 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
             }
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
-    } else {
+    }
+    else {
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
+
 int PolyLineModel::GetPolyLineSize(int polyLineLayer) const {
     if (polyLineLayer >= polyLineSizes.size()) return 0;
     if (polyLineSegDropSizes[polyLineLayer]) {
@@ -203,7 +199,6 @@ void PolyLineModel::SetSegsCollapsed(bool collapsed)
 
 void PolyLineModel::InitModel()
 {
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
@@ -416,12 +411,21 @@ void PolyLineModel::InitModel()
             z2p = (pPos[i + 1].z - minZ) / deltaz;
         }
 
+        // where the model is just a line and has no curve then we want to draw it closer to its orientation ... the problem is without this
+        // any line not perfectly flat is drawn at 45 degrees
+        float scaley = 1.0f;
+        float scalez = 1.0f;
+        if (num_points == 2 && !pPos[i].has_curve) {
+            scaley = 0.0f;
+            scalez = 0.0f;
+        }
+
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
         glm::vec3 a = pt2 - pt1;
         float scale = glm::length(a);
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scaley, scalez));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
 

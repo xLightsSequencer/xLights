@@ -872,8 +872,8 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
     _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
-    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
-        ModelPreview* preview = *it;
+    for (const auto& it : PreviewWindows) {
+        ModelPreview* preview = it;
         if (preview->GetActive()) {
             preview->Render(&_seqData[frame][0]);
         }
