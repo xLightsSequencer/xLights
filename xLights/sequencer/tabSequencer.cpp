@@ -230,13 +230,11 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 
 void xLightsFrame::InitSequencer()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // check if sequence data is the right size
-    if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded())
-    {
-        if (_seqData.NumChannels() != roundTo4(GetMaxNumChannels()))
-        {
+    if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded()) {
+        if (_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) {
             logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
 
             AbortRender();
@@ -251,29 +249,23 @@ void xLightsFrame::InitSequencer()
         }
     }
 
-    if (EffectsPanel1 == nullptr || timingPanel == nullptr)
-    {
+    if (EffectsPanel1 == nullptr || timingPanel == nullptr) {
         return;
     }
 
-    if (mSequencerInitialize)
-    {
+    if (mSequencerInitialize) {
         return;
     }
 
     // if we have a saved perspective on this machine then make that the current one
-    if (_autoSavePerspecive)
-    {
+    if (_autoSavePerspecive) {
         wxConfigBase* config = wxConfigBase::Get();
         wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
-        if (machinePerspective != "")
-        {
-            if (!m_mgr->LoadPerspective(machinePerspective, true))
-            {
+        if (machinePerspective != "") {
+            if (!m_mgr->LoadPerspective(machinePerspective, true)) {
                 logger_base.debug("Failed to load AutoSave perspective.");
             }
-            else
-            {
+            else {
                 logger_base.debug("Loaded AutoSave perspective.");
                 ShowHideAllSequencerWindows(true);
                 _modelPreviewPanel->Refresh(false);
@@ -282,19 +274,15 @@ void xLightsFrame::InitSequencer()
             }
             LogPerspective(machinePerspective);
         }
-        else
-        {
-            if (mCurrentPerpective != nullptr)
-            {
+        else {
+            if (mCurrentPerpective != nullptr) {
                 DoLoadPerspective(mCurrentPerpective);
             }
         }
     }
-    else if (mCurrentPerpective != nullptr)
-    {
+    else if (mCurrentPerpective != nullptr) {
         DoLoadPerspective(mCurrentPerpective);
     }
-
 
     mSequencerInitialize = true;
     _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha, GetDisplay2DCenter0());
@@ -323,18 +311,16 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxXmlNode* prospectives = PerspectivesNode->GetChildren();
     mCurrentPerpective = nullptr;
-    if (prospectives==nullptr)
-    {
-        if(PerspectivesNode->HasAttribute("current"))
-        {
+    if (prospectives == nullptr) {
+        if (PerspectivesNode->HasAttribute("current")) {
             PerspectivesNode->DeleteAttribute("current");
         }
         PerspectivesNode->AddAttribute("current", "Default Perspective");
-        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
         wxString perspective = m_mgr->SavePerspective();
         p->AddAttribute("settings", perspective);
@@ -344,18 +330,14 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         p->AddAttribute("version", "2.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
-        UnsavedRgbEffectsChanges=true;
+        UnsavedRgbEffectsChanges = true;
     }
-    else
-    {
+    else {
         wxString currentName = PerspectivesNode->GetAttribute("current");
-        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=nullptr; p=p->GetNext())
-        {
-            if (p->GetName() == "perspective")
-            {
-                wxString name=p->GetAttribute("name");
-                if (!name.IsEmpty() && currentName == name)
-                {
+        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
+            if (p->GetName() == "perspective") {
+                wxString name = p->GetAttribute("name");
+                if (!name.IsEmpty() && currentName == name) {
                     mCurrentPerpective = p;
                 }
             }
@@ -498,12 +480,26 @@ void xLightsFrame::CheckForValidModels()
 
     logger_base.debug("CheckForValidModels: Remove models that already exist.");
 
+    size_t missingModelCount = 0;
+
     for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
         if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
             std::string name = _sequenceElements.GetElement(x)->GetModelName();
+            if (AllModels[name] == nullptr) missingModelCount++;
             //remove the current models from the list so we don't end up with the same model represented twice
             Remove(AllNames, name);
             Remove(ModelNames, name);
+        }
+    }
+
+    if (missingModelCount > 7) {
+        if (wxMessageBox("Sequence you are opening contains %lu models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", "Many missing models in this sequence", wxYES_NO) == wxNO)             {
+            cancelled = true;
+            logger_base.debug("CheckForValidModels: User chose to import instead.");
+            _sequenceElements.Clear(); // remove all the crap of the sequence we just opened.
+            AddTimingElement("New Timing");
+            AddAllModelsToSequence();
+            return;
         }
     }
 
@@ -683,7 +679,7 @@ void xLightsFrame::CheckForValidModels()
                     else {
                         for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
                             SubModelElement* sme = el->GetSubModel(x1);
-                            if (sme != nullptr && 
+                            if (sme != nullptr &&
                                 dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
                                 std::vector<std::string> AllSMNames;
@@ -710,8 +706,7 @@ void xLightsFrame::CheckForValidModels()
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
     // abort any in progress render ... as it may be using any already open media
-    if (xml_file.GetMedia() != nullptr)
-    {
+    if (xml_file.GetMedia() != nullptr) {
         AbortRender();
     }
 
