@@ -21,6 +21,7 @@
 						<item>Controllers and Layout Tab</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_LinkSaveSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>3</row>
@@ -118,6 +119,7 @@
 						<item>Inputs and Outputs</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_LinkControllerUploadSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>4</row>
