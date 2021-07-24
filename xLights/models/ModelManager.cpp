@@ -704,7 +704,7 @@ bool ModelManager::ReworkStartChannel() const
 
             // build a list of model names on the port
             std::list<std::string> models;
-            for (const auto& itmm : itcc.second)
+            for (auto& itmm : itcc.second)
             {
                 logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
                 models.push_back(itmm->GetName());
@@ -749,10 +749,11 @@ bool ModelManager::ReworkStartChannel() const
 
         logger_zcpp.debug("    Sorting models:");
         int32_t ch = 1;
-        std::list<Model*> sortedmodels;
+        std::list<Model*> allSortedModels;
         for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
         {
             // order the models
+            std::list<Model*> sortedmodels;
             std::string last = "";
 
             int32_t chstart = ch;
@@ -903,6 +904,8 @@ bool ModelManager::ReworkStartChannel() const
                     (const char*)itm->GetModelChain().c_str(),
                     (const char*)sc.c_str());
             }
+
+            allSortedModels.splice(allSortedModels.end(), sortedmodels);
         }
 
         if (it->IsAutoSize())
@@ -913,7 +916,7 @@ bool ModelManager::ReworkStartChannel() const
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
-                it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), sortedmodels);
+                it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
                 if (it->GetChannels() != oldC) {
                     outputManager->SomethingChanged();
 

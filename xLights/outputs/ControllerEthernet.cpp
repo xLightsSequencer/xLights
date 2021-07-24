@@ -653,6 +653,11 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
             for (const auto& m : models) {
                 for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
                     size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+
+                    if (m->GetNumPhysicalStrings() == 1)                         {
+                        chs = m->GetChanCount();
+                    }
+
                     while (chs > 0) {
                         size_t uch = std::min(chs, (size_t)channels_per_universe);
                         wxASSERT(o != end(_outputs));
