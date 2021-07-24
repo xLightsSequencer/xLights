@@ -1730,10 +1730,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     config->Read("xLightsUserEmail", &_userEmail, "");
 
-    config->Read("xLightsLinkedSave", &_linkedSave, "None");
+    config->Read("xLightsLinkedSave", &_linkedSave, "Controllers and Layout Tab");
     logger_base.debug("Linked save: %s.", (const char*)_linkedSave.c_str());
 
-    config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "None");
+    config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "Inputs and Outputs");
     logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
 
 
