@@ -11,14 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.23 July 24, 2021
    -- enh (scott) Enable Inputs on FPP 5.0 when starting output to lights
    -- enh (scott) Added multisync text to mode column in FPP Connect
    -- enh (keith) Optionally include model description in visualiser CSV export for those that have hookup instructions
                   in the model description field
+   -- enh (keith) Prompt for confirmation before deleting controllers
+   -- enh (keith) All column reordering of the model list on layout tab and persist it
+   -- enh (keith) Detect when user is opening sequence with many mismatched models and give them a quick way to exit and 
+                  try importing instead.
+   -- enh (keith) Add quick show/hide timing tracks in master view (this will not work in other views)
+   -- enh (keith) Show model amps in visualiser
+   -- enh (keith) If using e131/artnet always show model universe/start channel in model tool tip
+   -- bug (scott) Skip duplicate timing marks in vamp imports
    -- bug (keith) Fix custom models with > 65535 nodes dont work
    -- bug (keith) Fix Cube model Horizontal and Vertical Per Strand model group buffer broken.
    -- bug (keith) Fix visualiser move model between ports not working
+   -- bug (keith) Fix the fix for OSX link button preference saving
+   -- bug (keith) Fix polyline 2 point model shows in model preview as diagonal line unless perfectly level/vertical
    -- bug (dklup) Fix render progress bar not appearing
+   -- bug (dkulp) Retain the output interface that FPP is using if the user has set it
 2021.22 July 18, 2021
    -- enh (keith) Add -cs command line switch to run xlights, open sequence, run check sequence, close sequence
    -- enh (keith) Sort the saved subbuffers in dropdown
