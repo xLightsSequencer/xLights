@@ -1891,13 +1891,20 @@ void xLightsFrame::SelectAllControllers() {
 
 void xLightsFrame::DeleteSelectedControllers() {
 
-    for (const auto &it : GetSelectedControllerNames()) {
-        _outputManager.DeleteController(it);
+    auto todel = GetSelectedControllerNames();
+
+    if (todel.size() > 0) {
+        auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
+        if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
+            for (const auto& it : todel) {
+                _outputManager.DeleteController(it);
+            }
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
+            _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
+        }
     }
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
-    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
 }
 
 void xLightsFrame::SelectController(const std::string& controllerName) {
@@ -2079,12 +2086,14 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event) {
 
 void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event) {
 
-    auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    _outputManager.DeleteController(name);
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
-    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
+    if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
+        auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
+        _outputManager.DeleteController(name);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
+    }
 }
 
 void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event) {
