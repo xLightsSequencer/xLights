@@ -517,6 +517,12 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     else {
         if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr) {
             grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
+            if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+                grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
+            }
+            else {
+                grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("");
+            }
         }
         if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
             grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
@@ -658,8 +664,14 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
         p->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
+        if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+            p->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
+        }
+        else {
+            p->SetHelpString("");
+        }
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        sp->Enable(GetControllerName() == "" || _controller == 0);
+        sp->Enable(GetControllerName() == "" && _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
