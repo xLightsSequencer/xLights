@@ -1057,22 +1057,20 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
 {
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
         Element* elem = mAllViews[MASTER_VIEW][i];
-        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            break;
-        }
         TimingElement* te = dynamic_cast<TimingElement*>(elem);
-        if (name == "Master View") {
-            te->SetVisible(te->GetMasterVisible());
-            //te->SetVisible(true);
-        }
-        else {
-            te->SetVisible(false);
-            wxArrayString views = wxSplit(te->GetViews(), ',');
-            for (size_t v = 0; v < views.size(); v++) {
-                std::string viewName = views[v].ToStdString();
-                if (name == viewName) {
-                    te->SetVisible(true);
-                    break;
+        if (te != nullptr) {
+            if (name == "Master View") {
+                te->SetVisible(te->GetMasterVisible());
+            }
+            else {
+                te->SetVisible(false);
+                wxArrayString views = wxSplit(te->GetViews(), ',');
+                for (size_t v = 0; v < views.size(); v++) {
+                    std::string viewName = views[v].ToStdString();
+                    if (name == viewName) {
+                        te->SetVisible(true);
+                        break;
+                    }
                 }
             }
         }
@@ -1748,9 +1746,6 @@ size_t SequenceElements::GetHiddenTimingCount() const
     auto view = _viewsManager->GetSelectedViewIndex();
     for (size_t i = 0; i < mAllViews[view].size(); i++) {
         Element* elem = mAllViews[view][i];
-        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            break;
-        }
         TimingElement* te = dynamic_cast<TimingElement*>(elem);
         if (te != nullptr && !te->GetVisible()) count++;
     }
@@ -1762,9 +1757,6 @@ void SequenceElements::HideAllTimingTracks(bool hide)
     // This only works on timing tracks in master views because of the way we manage timing tracks in non master views
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
         Element* elem = mAllViews[MASTER_VIEW][i];
-        if (elem->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            break;
-        }
         TimingElement* te = dynamic_cast<TimingElement*>(elem);
         if (te != nullptr) {
             te->SetVisible(!hide);
