@@ -95,7 +95,9 @@ const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
+const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
+const long ModelGroupPanel::ID_CHECKBOX4 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
@@ -120,7 +122,7 @@ BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_MGDROP, ModelGroupPanel::OnDrop)
 END_EVENT_TABLE()
 
-ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutPanel* xl,wxWindowID id, const wxPoint& pos, const wxSize& size)
 :   layoutPanel(xl), mModels(Models)
 {
 	//(*Initialize(ModelGroupPanel)
@@ -184,14 +186,18 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	CheckBox_ShowInactiveModels = new wxCheckBox(this, ID_CHECKBOX3, _("Show Inactive Models to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_ShowInactiveModels->SetValue(false);
+	FlexGridSizer6->Add(CheckBox_ShowInactiveModels, 1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowModelGroups = new wxCheckBox(this, ID_CHECKBOX2, _("Show Model Groups to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_ShowModelGroups->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowModelGroups, 1, wxALL|wxEXPAND, 2);
+	CheckBox_ShowOnlyModelsInCurrentView = new wxCheckBox(this, ID_CHECKBOX4, _("Show Only Models In Current View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_ShowOnlyModelsInCurrentView->SetValue(true);
+	FlexGridSizer6->Add(CheckBox_ShowOnlyModelsInCurrentView, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
@@ -247,7 +253,9 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
@@ -288,7 +296,7 @@ ModelGroupPanel::~ModelGroupPanel()
 	//*)
 }
 
-void ModelGroupPanel::AddPreviewChoice(const std::string name)
+void ModelGroupPanel::AddPreviewChoice(const std::string& name)
 {
     ChoicePreviews->Append(name);
 }
@@ -329,7 +337,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
     return true;
 }
 
-void ModelGroupPanel::UpdatePanel(const std::string group)
+void ModelGroupPanel::UpdatePanel(const std::string& group)
 {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -377,27 +385,31 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         }
 
         auto filter = TextCtrl_Filter->GetValue().Lower();
+        auto layoutGroup = layoutPanel->GetCurrentLayoutGroup();
 
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {
-            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
-                (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
-                // dont add this group
-                // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
-            }
-            else {
-                if (filter == "" || Contains(::Lower(it.first), filter)) {
-                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
-                }
-            }
-            if (CheckBox_ShowSubmodels->GetValue())
-            {
-                for (auto& smit : it.second->GetSubModels()) {
-                    Model* sm = smit;
+            if (CheckBox_ShowInactiveModels->GetValue() || it.second->IsActive()) {
+                if (!CheckBox_ShowOnlyModelsInCurrentView->GetValue() || layoutGroup == "All Models" || it.second->GetLayoutGroup() == layoutGroup) {
+                    if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
+                        (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
+                        // dont add this group
+                        // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
+                    }
+                    else {
+                        if (filter == "" || Contains(::Lower(it.first), filter)) {
+                            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
+                        }
+                    }
+                    if (CheckBox_ShowSubmodels->GetValue()) {
+                        for (auto& smit : it.second->GetSubModels()) {
+                            Model* sm = smit;
 
-                    if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                        if (filter == "" || Contains(::Lower(sm->GetFullName()), filter)) {
-                            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                            if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                                if (filter == "" || Contains(::Lower(sm->GetFullName()), filter)) {
+                                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                                }
+                            }
                         }
                     }
                 }
@@ -1239,6 +1251,16 @@ void ModelGroupPanel::OnButtonClearFilterClick(wxCommandEvent& event)
 }
 
 void ModelGroupPanel::OnTextCtrl_FilterText(wxCommandEvent& event)
+{
+    UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick(wxCommandEvent& event)
+{
+    UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event)
 {
     UpdatePanel(mGroup);
 }

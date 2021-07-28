@@ -139,11 +139,6 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_ShowSubmodels" member="yes">
 									<label>Show SubModels to Add</label>
@@ -154,9 +149,13 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_ShowInactiveModels" member="yes">
+									<label>Show Inactive Models to Add</label>
+									<handler function="OnCheckBox_ShowInactiveModelsClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -167,6 +166,16 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_ShowOnlyModelsInCurrentView" member="yes">
+									<label>Show Only Models In Current View</label>
+									<checked>1</checked>
+									<handler function="OnCheckBox_ShowOnlyModelsInCurrentViewClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>
