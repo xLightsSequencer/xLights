@@ -493,7 +493,8 @@ void xLightsFrame::CheckForValidModels()
     }
 
     if (missingModelCount > 7) {
-        if (wxMessageBox("Sequence you are opening contains %lu models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", "Many missing models in this sequence", wxYES_NO) == wxNO)             {
+        auto msg = wxString::Format("Sequence you are opening contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", (int)missingModelCount);
+        if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO)             {
             cancelled = true;
             logger_base.debug("CheckForValidModels: User chose to import instead.");
             _sequenceElements.Clear(); // remove all the crap of the sequence we just opened.
