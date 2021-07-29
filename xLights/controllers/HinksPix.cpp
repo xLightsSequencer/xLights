@@ -623,12 +623,6 @@ wxString HinksPix::GetControllerData(int rowIndex, std::string const& data) cons
     return GetControllerRowData(rowIndex, GetInfoURL(), data);
 }
 
-//E131 data uses a different .cgi endpoint
-wxString HinksPix::GetControllerE131Data(int rowIndex) const
-{
-    return GetControllerRowData(rowIndex, GetE131URL(), std::string());
-}
-
 //all of the Controller data is retrieved/set by "GET"ing different ROW values
 wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const
 {

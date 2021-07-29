@@ -167,14 +167,12 @@ class HinksPix : public BaseController
     void UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const;
     void CalculateSmartRecievers(UDControllerPort* stringData);
     wxString GetControllerData(int rowIndex, std::string const& data = std::string()) const;
-    wxString GetControllerE131Data(int rowIndex) const;
     wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
     std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
     bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data = std::string()) const;
 
     std::map<wxString,wxString> StringToMap(wxString const& text) const;
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
-    static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     static const std::string GetJSONPostURL() { return"/Xlights_PostData.cgi"; };
     static const std::string GetJSONInfoURL() { return"/XLights_BoardInfo.cgi"; };
     static const std::string GetJSONPortURL() { return"/Xlights_Board_Port_Config.cgi"; };
