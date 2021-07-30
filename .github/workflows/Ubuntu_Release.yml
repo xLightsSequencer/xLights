@@ -15,4 +15,4 @@ jobs:
       - run: docker pull debenham/xlights
       - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
-      - run: ls -lh /tmp/*.appimage
+      - run: ls -lh /tmp/AppImage
