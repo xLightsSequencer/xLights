@@ -1,0 +1,19 @@
+name: Ubuntu Release
+
+on:
+  release:
+    types: [published]
+
+    
+  workflow_dispatch:
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+ steps:
+      - uses: actions/checkout@v2
+      - run: docker pull debenham/xlights
+      - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+      - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
+      - run: ls -lh /tmp/*
