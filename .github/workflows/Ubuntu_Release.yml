@@ -19,5 +19,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
+           allowUpdates: true
            artifacts: "/tmp/AppImage/*.AppImage"
            token: ${{ secrets.GITHUB_TOKEN }}
