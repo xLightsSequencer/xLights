@@ -262,6 +262,7 @@ public:
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
+    void AddSuperStringColour(xlColor c, bool saveToXml = true);
     void SetShadowModelFor(const std::string& shadowFor);
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);

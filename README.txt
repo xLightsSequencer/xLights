@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Added experimental Light-o-rama S5 Preview/Model Import
 2021.23 July 24, 2021
    -- enh (scott) Enable Inputs on FPP 5.0 when starting output to lights
    -- enh (scott) Added multisync text to mode column in FPP Connect

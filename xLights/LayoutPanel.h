@@ -197,6 +197,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;
         static const long ID_PREVIEW_DELETEVIEWPOINT3D;
         static const long ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS;
+        static const long ID_PREVIEW_IMPORT_MODELS_FROM_LORS5;
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
         static const long ID_ADD_OBJECT_TERRIAN;
@@ -267,6 +268,7 @@ class LayoutPanel: public wxPanel
         void PreviewSaveImage();
         void PreviewPrintImage();
         void ImportModelsFromRGBEffects();
+        void ImportModelsFromLORS5();
 
     public:
         bool IsNewModel(Model* m) const;

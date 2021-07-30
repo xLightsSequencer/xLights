@@ -555,6 +555,8 @@
 		<Unit filename="LMSImportChannelMapDialog.h" />
 		<Unit filename="LOREdit.cpp" />
 		<Unit filename="LOREdit.h" />
+		<Unit filename="LORPreview.cpp" />
+		<Unit filename="LORPreview.h" />
 		<Unit filename="LayerSelectDialog.cpp" />
 		<Unit filename="LayerSelectDialog.h" />
 		<Unit filename="LayoutGroup.cpp" />

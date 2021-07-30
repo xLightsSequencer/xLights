@@ -1452,8 +1452,8 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) co
             if (mg->ContainsModel(model)) {
                 res.push_back(it.first);
             }
-            else                 {
-                for (const auto& sm : model->GetSubModels())                     {
+            else {
+                for (const auto& sm : model->GetSubModels()) {
                     if (mg->ContainsModel(sm)) {
                         res.push_back(it.first);
                         break;
@@ -1463,6 +1463,29 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) co
         }
     }
     return res;
+}
+
+std::string ModelManager::GenerateNewStartChannel( const std::string& lastModel ) const {
+    std::string startChannel = "1";
+
+    if( !lastModel.empty() && models.count( lastModel ) > 0 ) {
+        startChannel = ">" + lastModel + ":1";
+    } else {
+        unsigned int highestch = 0;
+        Model* highest = nullptr;
+        for( const auto& it : models ) {
+            if( it.second->GetDisplayAs() != "ModelGroup" ) {
+                if( it.second->GetLastChannel() > highestch ) {
+                    highestch = it.second->GetLastChannel();
+                    highest   = it.second;
+                }
+            }
+        }
+        if( highest != nullptr ) {
+            startChannel = ">" + highest->GetName() + ":1";
+        }
+    }
+    return startChannel;
 }
 
 void ModelManager::Delete(const std::string &name) {

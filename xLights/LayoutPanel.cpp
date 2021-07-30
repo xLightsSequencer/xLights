@@ -61,8 +61,10 @@
 #include "ViewsModelsPanel.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
-#include <log4cpp/Category.hh>
 #include "cad/ModelToCAD.h"
+#include "LORPreview.h"
+
+#include <log4cpp/Category.hh>
 
 #include <set>
 
@@ -187,6 +189,7 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_IMPORT_MODELS_FROM_LORS5 = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_TERRIAN = wxNewId();
@@ -4362,6 +4365,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
     mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups"));
+    mnu.Append(ID_PREVIEW_IMPORT_MODELS_FROM_LORS5, _("Import LOR S5 Models/Groups"));
     mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
 
     // ViewPoint menus
@@ -4445,6 +4449,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS)
     {
         ImportModelsFromRGBEffects();
+    }
+    else if (event.GetId() == ID_PREVIEW_IMPORT_MODELS_FROM_LORS5)
+    {
+        ImportModelsFromLORS5();
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
@@ -5795,31 +5803,8 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     {
         t = "Custom";
     }
-    std::string startChannel = "1";
-    if (xlights->AllModels[lastModelName] != nullptr) {
-        startChannel = ">" + lastModelName + ":1";
-    }
-    else
-    {
-        unsigned int highestch = 0;
-        Model* highest = nullptr;
-        for (const auto& it : xlights->AllModels)
-        {
-            if (it.second->GetDisplayAs() != "ModelGroup")
-            {
-                if (it.second->GetLastChannel() > highestch)
-                {
-                    highestch = it.second->GetLastChannel();
-                    highest = it.second;
-                }
-            }
-        }
-
-        if (highest != nullptr)
-        {
-            startChannel = ">" + highest->GetName() + ":1";
-        }
-    }
+    std::string startChannel = xlights->AllModels.GenerateNewStartChannel( lastModelName );
+    
     Model* m = xlights->AllModels.CreateDefaultModel(t, startChannel);
 
     return m;
@@ -7548,6 +7533,19 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::ImportModelsFromRGBEffects");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");
+    }
+}
+
+void LayoutPanel::ImportModelsFromLORS5()
+{
+    wxString lg = ChoiceLayoutGroups->GetStringSelection();
+    if (lg == "All Models") lg = "Default";
+    LORPreview lorPreview(xlights, lg);
+
+    if (lorPreview.LoadPreviewFile())
+    {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromLORS5");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ImportModelsFromLORS5");
     }
 }
 

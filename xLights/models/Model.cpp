@@ -6313,6 +6313,14 @@ void Model::SetSuperStringColour(int index, xlColor c)
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSuperStringColour");
 }
 
+void Model::AddSuperStringColour(xlColor c, bool saveToXml)
+{
+    superStringColours.push_back(c);
+    if (saveToXml) {
+        SaveSuperStringColours();
+    }
+}
+
 void Model::SetShadowModelFor(const std::string& shadowModelFor)
 {
     ModelXml->DeleteAttribute("ShadowModelFor");

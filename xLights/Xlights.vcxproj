@@ -278,6 +278,7 @@
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
+    <ClCompile Include="LORPreview.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="MediaImportOptionsDialog.cpp" />
@@ -705,6 +706,7 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="import\LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="KeyBindingEditDialog.h" />
     <ClInclude Include="LayerSelectDialog.h" />

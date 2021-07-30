@@ -80,6 +80,10 @@ class ModelManager : public ObjectManager
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
         std::vector<std::string> GetGroupsContainingModel(Model* model) const;
+        std::string GenerateNewStartChannel( const std::string& lastModel = "" ) const;
+
+        int GetPreviewWidth() const { return previewWidth; }
+        int GetPreviewHeight() const { return previewHeight; }
 
     private:
 

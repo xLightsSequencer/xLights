@@ -899,6 +899,7 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="Pixels.cpp" />
+    <ClCompile Include="LORPreview.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1808,6 +1809,7 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="Pixels.h" />
+    <ClInclude Include="LORPreview.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
