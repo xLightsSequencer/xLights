@@ -10,8 +10,7 @@ jobs:
   build:
 
     runs-on: ubuntu-18.04
-
- steps:
+    steps:
       - uses: actions/checkout@v2
       - run: docker pull debenham/xlights
       - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
