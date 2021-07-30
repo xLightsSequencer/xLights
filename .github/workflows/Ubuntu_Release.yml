@@ -1,9 +1,9 @@
 name: Ubuntu Release
 
-on:
-  release:
-    types: [published]
-
+on: 
+  push:
+    tags:
+    - '*'
     
   workflow_dispatch:
 jobs:
