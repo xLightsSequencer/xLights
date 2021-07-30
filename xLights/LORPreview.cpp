@@ -364,7 +364,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
     } else if( model.shapeName.StartsWith( "Lines" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Poly Line", startChan );
 
-        int segments   = model.parms.at( 0 );
+        //int segments   = model.parms.at( 0 );
         int totalNodes = model.parms.at( 1 );
         m->SetProperty( "parm2", wxString::Format( "%d", totalNodes ) );
         if( model.shapeName.Contains( "-Connected" ) ) {
@@ -948,19 +948,18 @@ wxString LORPreview::FindLORPreviewFile()
     wxString const filePath = wxStandardPaths::Get().GetDocumentsDir() + wxFileName::GetPathSeparator() + "Light-O-Rama" + wxFileName::GetPathSeparator() + "CommonData" + wxFileName::GetPathSeparator() + "LORPreviews.xml";
     if( wxFile::Exists( filePath ) ) {
         return filePath;
-    } else {
-        wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-#ifdef __WXOSX__
-        wxString const wildcard = "*.xml";
-#else
-        wxString const wildcard = "LORPreviews.xml";
-#endif
-        return wxFileSelector( _( "Choose LOR S5 Preview File to Import" ), wxEmptyString,
-                               XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
-                               "LOR S5 Preview File (LORPreviews.xml)|" + wildcard,
-                               wxFD_FILE_MUST_EXIST | wxFD_OPEN );
     }
-    return wxString();
+
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+#ifdef __WXOSX__
+    wxString const wildcard = "*.xml";
+#else
+    wxString const wildcard = "LORPreviews.xml";
+#endif
+    return wxFileSelector( _( "Choose LOR S5 Preview File to Import" ), wxEmptyString,
+                            XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
+                            "LOR S5 Preview File (LORPreviews.xml)|" + wildcard,
+                            wxFD_FILE_MUST_EXIST | wxFD_OPEN );
 }
 
 wxArrayString LORPreview::GetPreviews( wxXmlNode* root ) const
