@@ -443,6 +443,42 @@ void Scanner::Scan(xScannerFrame* frame)
 	}
 #endif
 
+#ifdef __LINUX__
+	logger_base.debug("Reading ARP table");
+	SendProgress(60, "Reading ARP table");
+    const int size = 256;
+
+    char ip_address[size];
+    int hw_type;
+    int flags;
+    char mac_address[size];
+    char mask[size];
+    char device[size];
+
+    FILE* fp = fopen("/proc/net/arp", "r");
+    if(fp != NULL)
+    {
+        char line[size];
+        fgets(line, size, fp);    // Skip the first line, which consists of column headers.
+        while(fgets(line, size, fp))
+        {
+            sscanf(line, "%s 0x%x 0x%x %s %s %s\n",
+                   ip_address,
+                   &hw_type,
+                   &flags,
+                   mac_address,
+                   mask,
+                   device);
+            std::string iip(ip_address);
+            std::string mac(mac_address);
+            arps[iip] = mac;
+        }
+    } else {
+        logger_base.error("Error Reading ARP table");
+    }
+    fclose(fp);
+#endif
+
 	logger_base.debug("Getting MAC Vendors");
 	SendProgress(65, "Getting MAC Vendors");
 	LookupMac(arps, _ips);
