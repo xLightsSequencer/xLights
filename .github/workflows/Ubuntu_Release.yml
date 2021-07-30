@@ -16,3 +16,8 @@ jobs:
       - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
       - run: ls -lh /tmp/AppImage
+
+      - uses: ncipollo/release-action@v1
+        with:
+           artifacts: "/tmp/AppImage/*.AppImage"
+           token: ${{ secrets.GITHUB_TOKEN }}
