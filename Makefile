@@ -66,7 +66,7 @@ wxwidgets31: FORCE
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --disable-shared --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
