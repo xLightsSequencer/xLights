@@ -27,6 +27,10 @@
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 
+#ifdef LINUX
+    #include <X11/Xlib.h>
+#endif
+
 #ifdef _MSC_VER
     #ifdef _DEBUG
         #pragma comment(lib, "wxbase31ud.lib")
@@ -71,7 +75,7 @@
     #pragma comment(lib, "shell32.lib")
     #pragma comment(lib, "ole32.lib")
     #pragma comment(lib, "oleaut32.lib")
-    #pragma comment(lib, "odbc32.lib") 
+    #pragma comment(lib, "odbc32.lib")
     #pragma comment(lib, "odbccp32.lib")
     #pragma comment(lib, "kernel32.lib")
     #pragma comment(lib, "user32.lib")
@@ -192,10 +196,10 @@ void InitialiseLogging(bool fromMain)
         loggingInitialised = true;
 
 #endif
-#ifdef __LINUX__
-        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xScanner.linux.properties";
+#ifdef LINUX
+        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xscanner.linux.properties";
         if (!wxFile::Exists(initFileName)) {
-            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xScanner.linux.properties";
+            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xscanner.linux.properties";
         }
 #endif
 
@@ -386,6 +390,9 @@ bool xScannerApp::OnInit()
 
     bool parmfound = false;
     bool singleThreaded = false;
+#ifdef LINUX
+    singleThreaded = true;
+#endif
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
     case -1:

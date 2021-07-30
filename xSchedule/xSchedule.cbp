@@ -145,7 +145,6 @@
 				<Option object_output=".objs_ld" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option projectCompilerOptionsRelation="1" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
@@ -185,8 +184,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=c++1z" />
 					<Add option="-Wall" />
+					<Add option="-std=c++1z" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -298,6 +297,8 @@
 		</ResourceCompiler>
 		<Unit filename="../xLights/AudioManager.cpp" />
 		<Unit filename="../xLights/AudioManager.h" />
+		<Unit filename="../xLights/Discovery.cpp" />
+		<Unit filename="../xLights/Discovery.h" />
 		<Unit filename="../xLights/FSEQFile.cpp" />
 		<Unit filename="../xLights/FSEQFile.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
@@ -312,14 +313,12 @@
 		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/VideoReader.cpp" />
 		<Unit filename="../xLights/VideoReader.h" />
-		<Unit filename="../xLights/controllers/ControllerCaps.cpp" />
-		<Unit filename="../xLights/controllers/ControllerCaps.h" />
 		<Unit filename="../xLights/controllers/BaseController.cpp" />
 		<Unit filename="../xLights/controllers/BaseController.h" />
+		<Unit filename="../xLights/controllers/ControllerCaps.cpp" />
+		<Unit filename="../xLights/controllers/ControllerCaps.h" />
 		<Unit filename="../xLights/controllers/Falcon.cpp" />
 		<Unit filename="../xLights/controllers/Falcon.h" />
-		<Unit filename="../xLights/Discovery.cpp" />
-		<Unit filename="../xLights/Discovery.h" />
 		<Unit filename="../xLights/effects/GIFImage.cpp" />
 		<Unit filename="../xLights/effects/GIFImage.h" />
 		<Unit filename="../xLights/kiss_fft/kiss_fft.c">

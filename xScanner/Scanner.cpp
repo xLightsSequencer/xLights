@@ -240,33 +240,52 @@ void Scanner::IPScan(const std::string& ip, const std::string& proxy)
 		for (int i = 1; i < 255; i++) ips.push_back(i);
 
 		std::function<void(int)> f = [this, ip, proxy](int n) {
-			struct in_addr IpAddr;
-			IpAddr.S_un.S_addr = inet_addr(ip.c_str());
-			IpAddr.S_un.S_un_b.s_b4 = n;
 
-			char szDestIp[128];
-			strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
+#ifdef __WXMSW__
+            struct in_addr IpAddr;
+            IpAddr.S_un.S_addr = inet_addr(ip.c_str());
+            IpAddr.S_un.S_un_b.s_b4 = n;
 
-			logger_base.debug("Pinging %s", (const char*)szDestIp);
-			SendProgress(-1, "Pinging " + std::string(szDestIp));
-			if (IPOutput::Ping(std::string(szDestIp), proxy) == IPOutput::PINGSTATE::PING_OK) {
+            char szDestIp[128];
+            strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
+            std::string const subip = std::string(szDestIp);
+#else
+            std::size_t found = ip.find_last_of(".");
+            std::string const subip = ip.substr(0, found) + "." + std::to_string(n);
+#endif
+			//(const char*)_firmwareVersion.c_str()
+			logger_base.debug("Pinging %s", (const char*)subip.c_str());
+			SendProgress(-1, "Pinging " + subip);
+			auto const& result = IPOutput::Ping(subip, proxy);
+			if (result == IPOutput::PINGSTATE::PING_OK ||result == IPOutput::PINGSTATE::PING_WEBOK) {
 				std::unique_lock<std::mutex> lock(_mutex);
-				this->_ips.push_back(IPObject(std::string(szDestIp), proxy, true));
+				this->_ips.push_back(IPObject(subip, proxy, true));
 			}
 		};
 
-		// ping the direct networks on the computer
-		parallel_for(1, 255, std::move(f));
+        if (_singleThreaded) {
+            for (int i = 1; i < 256; ++i) {
+                f(i);
+            }
+        }else{
+            // ping the direct networks on the computer
+            parallel_for(1, 255, std::move(f));
+		}
 	}
 }
 
 bool Scanner::Scanned(const std::string& ip, const std::string& proxy)
 {
+#ifdef __WXMSW__
 	struct in_addr IpAddr;
 	IpAddr.S_un.S_addr = inet_addr(ip.c_str());
 	IpAddr.S_un.S_un_b.s_b4 = 0;
 	char szDestIp[128];
 	strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr));
+#else
+	std::size_t found = ip.find_last_of(".");
+	std::string const szDestIp = ip.substr(0, found) + ".0";
+#endif
 	std::string ipp = std::string(szDestIp) + "|" + proxy;
 	if (std::find(begin(_ipscanned), end(_ipscanned), ipp) == end(_ipscanned)) {
 		_ipscanned.push_back(ipp);
@@ -358,6 +377,7 @@ void Scanner::Scan(xScannerFrame* frame)
 			IPScan(ip, "");
 		}
 	}
+
 
 	logger_base.debug("Processing xLights Controllers");
 	for (const auto& c : _xLights._controllers) {
@@ -669,7 +689,8 @@ void Scanner::IPScan(IPObject& it)
 
 				if (it._mode == "" || it._banks == "") {
 					wxXmlDocument doc;
-					doc.Load(wxStringInputStream(status));
+                    wxStringInputStream docstrm(status);
+					doc.Load(docstrm);
 					if (doc.IsOk() && doc.GetRoot() != nullptr) {
 						int k0 = 0;
 						int k1 = 0;

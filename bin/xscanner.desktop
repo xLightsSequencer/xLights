@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=xScanner %f
+Comment=Scan Network for Controllers
+Name=xScanner
+Terminal=false
+Icon=xlights
+Categories=AudioVideo;
+MimeType=text/xml;

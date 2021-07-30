@@ -5,6 +5,12 @@
 
 #include <log4cpp/Category.hh>
 
+#ifdef __UNIX__
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#endif
+
 void IPObject::CheckPort80()
 {
     _port80 = false;

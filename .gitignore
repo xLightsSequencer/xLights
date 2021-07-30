@@ -2,8 +2,10 @@ build
 bin/xCapture
 bin/xFade
 bin/xLights
+bin/xScanner
 bin/xSchedule
 bin/xSMSDaemon
+bin/RemoteFalcon
 bin/*.dll
 bin/*.exe
 bin/*.map

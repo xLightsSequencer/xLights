@@ -190,7 +190,7 @@ void xScannerFrame::ScanUpdate(wxCommandEvent& event)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (event.GetInt() == 100) {
-        
+
         _progress->Update(100);
         _progress = nullptr;
         _thread = nullptr;
@@ -353,7 +353,7 @@ void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
     for (const auto& it3 : ip._otherIPs)         {
         auto item = _tree->AppendItem(ti, "Network Interface");
         _tree->SetItemText(item, 1, it3);
-        
+
     }
 
     for (const auto& it3 : ip._otherData) {

@@ -121,8 +121,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
+					<Add option="-std=gnu++17" />
 					<Add option="-g" />
-					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
@@ -130,12 +130,14 @@
 					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option='-D__cdecl=&quot;&quot;' />
+					<Add option="-DEXCLUDENETWORKUI" />
+					<Add option="-DDISCOVERYONLY" />
 					<Add directory="include" />
 					<Add directory="../xScanner" />
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -152,7 +154,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -161,12 +163,14 @@
 					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D__cdecl=&apos;&apos;" />
+					<Add option="-DEXCLUDENETWORKUI" />
+					<Add option="-DDISCOVERYONLY" />
 					<Add directory="include" />
 					<Add directory="../xScanner" />
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -236,6 +240,8 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DEXCLUDENETWORKUI" />
+			<Add option="-DDISCOVERYONLY" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />

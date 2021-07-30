@@ -11,10 +11,10 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
-SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
+SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties xcapture.linux.properties  xfade.linux.properties xscanner.linux.properties xscanner.linux.properties xsmsdaemon.linux.properties remotefalcon.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 
-SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
+SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
 WXWIDGETS_TAG=xlights_2021.13
 
@@ -66,7 +66,7 @@ wxwidgets31: FORCE
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --disable-shared --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
@@ -97,13 +97,16 @@ install:
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon.so $(DESTDIR)/${PREFIX}/bin/xSMSDaemon.so
+	-$(INSTALL_PROGRAM) -D bin/RemoteFalcon.so $(DESTDIR)/${PREFIX}/bin/RemoteFalcon.so
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
+	-$(INSTALL_PROGRAM) -D bin/xScanner $(DESTDIR)/${PREFIX}/bin/xScanner
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	-$(INSTALL_PROGRAM) -D bin/xsmsdaemon.desktop $(DESTDIR)/${PREFIX}/share/applications/xsmsdaemon.desktop
 	-$(INSTALL_PROGRAM) -D bin/xcapture.desktop $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
 	-$(INSTALL_PROGRAM) -D bin/xfade.desktop $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
+	-$(INSTALL_PROGRAM) -D bin/xscanner.desktop $(DESTDIR)/${PREFIX}/share/applications/xscanner.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
@@ -132,15 +135,17 @@ uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xscanner.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xsmsdaemon.desktop
 
 #############################################################################
 
 cbp2make:
 	@if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xScanner/xScanner.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xScanner/xScanner.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -172,6 +177,16 @@ xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak: xSchedule/xSMSDaemon/xSMSDaemon.cbp
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak
 
+xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak: xSchedule/RemoteFalcon/RemoteFalcon.cbp
+	@cbp2make -in xSchedule/RemoteFalcon/RemoteFalcon.cbp -cfg cbp2make.cfg -out xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak.orig
+	@cat xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xSchedule/RemoteFalcon/RemoteFalcon.cbp.mak
+
 xCapture/xCapture.cbp.mak: xCapture/xCapture.cbp
 	@cbp2make -in xCapture/xCapture.cbp -cfg cbp2make.cfg -out xCapture/xCapture.cbp.mak \
 			--with-deps --keep-outdir --keep-objdir
@@ -191,6 +206,16 @@ xFade/xFade.cbp.mak: xFade/xFade.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xFade/xFade.cbp.mak
+
+xScanner/xScanner.cbp.mak: xScanner/xScanner.cbp
+	@cbp2make -in xScanner/xScanner.cbp -cfg cbp2make.cfg -out xScanner/xScanner.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xScanner/xScanner.cbp.mak xScanner/xScanner.cbp.mak.orig
+	@cat xScanner/xScanner.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xScanner/xScanner.cbp.mak
 
 #############################################################################
 
