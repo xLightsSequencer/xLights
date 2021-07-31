@@ -173,7 +173,7 @@ const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
-const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
@@ -1062,7 +1062,7 @@ void LayoutPanel::OnPropertyGridRightClick(wxPropertyGridEvent& event)
 
 void LayoutPanel::OnPropertyGridContextMenu(wxCommandEvent& event)
 {
-    if (selectedBaseObject != nullptr)         {
+    if (selectedBaseObject != nullptr) {
         selectedBaseObject->HandlePropertyGridContextMenu(event);
     }
 }
@@ -2096,7 +2096,7 @@ void LayoutPanel::CreateModelGroupFromSelected()
     }
 }
 
-void LayoutPanel::AddSelectedToExistingGroup() {
+void LayoutPanel::AddSelectedToExistingGroups() {
 
     wxArrayString selectedModels;
 
@@ -2137,37 +2137,45 @@ void LayoutPanel::AddSelectedToExistingGroup() {
         return;
     }
 
-    wxSingleChoiceDialog dlg(this, "Select existing group to add selections to", "Existing Group", choices);
-    dlg.SetSelection(0);
+    wxMultiChoiceDialog dlg(this, "Select existing groups to add selections to", "Existing Group", choices);
     OptimiseDialogPosition(&dlg);
 
+    std::string selectgroupName;
+    bool reload = false;
+
     if (dlg.ShowModal() == wxID_OK) {
-        std::string groupName = dlg.GetStringSelection().ToStdString();
+        for (auto const& idx : dlg.GetSelections()) {
+            std::string groupName = choices.at(idx).ToStdString();
 
-        Model* addToGroup = xlights->GetModel(groupName);
+            Model* addToGroup = xlights->GetModel(groupName);
 
-        if (addToGroup != nullptr) {
-            wxXmlNode* node = addToGroup->GetModelXml();
-            wxArrayString groupModels = wxSplit(node->GetAttribute("models", ""), ',');
+            if (addToGroup != nullptr) {
+                wxXmlNode* node = addToGroup->GetModelXml();
+                wxArrayString groupModels = wxSplit(node->GetAttribute("models", ""), ',');
 
-            bool groupChanged = false;
-            for (const auto& selModel : selectedModels) {
-                // only add if model doesn't already exist in group
-                if (groupModels.Index(selModel) == -1) {
-                    groupChanged = true;
-                    groupModels.Add(selModel);
+                bool groupChanged = false;
+                for (const auto& selModel : selectedModels) {
+                    // only add if model doesn't already exist in group
+                    if (groupModels.Index(selModel) == -1) {
+                        groupChanged = true;
+                        groupModels.Add(selModel);
+                    }
+                }
+
+                if (groupChanged) {
+                    wxString xmlModels = wxJoin(groupModels, ',');
+                    node->DeleteAttribute("models");
+                    node->AddAttribute("models", xmlModels);
+                    reload = true;
+                    selectgroupName = groupName;
                 }
             }
+        }
 
-            if (groupChanged) {
-                wxString xmlModels = wxJoin(groupModels, ',');
-                node->DeleteAttribute("models");
-                node->AddAttribute("models", xmlModels);
-
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::AddSelectedToExistingGroup");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::AddSelectedToExistingGroup");
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::AddSelectedToExistingGroup", nullptr, nullptr, groupName);
-            }
+        if (reload) {
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::AddSelectedToExistingGroups");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::AddSelectedToExistingGroups");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::AddSelectedToExistingGroups", nullptr, nullptr, selectgroupName);
         }
     }
 }
@@ -4252,7 +4260,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
 
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
-                menu.Append(ID_MNU_ADD_TO_EXISTING_GROUP, "Add to Existing Group");
+                menu.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add to Existing Groups");
                 break;
             }
         }
@@ -4621,9 +4629,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         CreateModelGroupFromSelected();
     }
-    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUP)
+    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS)
     {
-        AddSelectedToExistingGroup();
+        AddSelectedToExistingGroups();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
     {
@@ -6790,9 +6798,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     {
         CreateModelGroupFromSelected();
     }
-    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUP)
+    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS)
     {
-        AddSelectedToExistingGroup();
+        AddSelectedToExistingGroups();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
     {
@@ -7792,9 +7800,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         // Remove preview 'Create Group' option as it may be confusing with tree list 'Create Group from Selections'
         mnuContext.Remove(ID_PREVIEW_MODEL_CREATEGROUP);
         // Remove preview option 'Add to Existing Group' as it is added with the other group options below
-        wxMenuItem* addToExisting = mnuContext.FindItem(ID_MNU_ADD_TO_EXISTING_GROUP);
+        wxMenuItem* addToExisting = mnuContext.FindItem(ID_MNU_ADD_TO_EXISTING_GROUPS);
         if (addToExisting != nullptr) {
-            mnuContext.Remove(ID_MNU_ADD_TO_EXISTING_GROUP);
+            mnuContext.Remove(ID_MNU_ADD_TO_EXISTING_GROUPS);
         }
         mnuContext.AppendSeparator();
     }
@@ -7830,7 +7838,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         for (const auto& m : xlights->AllModels) {
             if (m.second->GetDisplayAs() == "ModelGroup") {
                 // adjust label for tree
-                mnuContext.Append(ID_MNU_ADD_TO_EXISTING_GROUP, "Add Selections to Existing Group");
+                mnuContext.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add Selections to Existing Groups");
                 break;
             }
         }

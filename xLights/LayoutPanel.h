@@ -319,7 +319,7 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
-        void AddSelectedToExistingGroup();
+        void AddSelectedToExistingGroups();
         void BulkEditControllerName();
         void BulkEditActive(bool active);
         void BulkEditTagColour();
@@ -523,7 +523,7 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_MAKEALLSCVALID;
         static const long ID_MNU_MAKEALLSCNOTOVERLAPPING;
         static const long ID_MNU_ADD_MODEL_GROUP;
-        static const long ID_MNU_ADD_TO_EXISTING_GROUP;
+        static const long ID_MNU_ADD_TO_EXISTING_GROUPS;
         void OnModelsPopup(wxCommandEvent& event);
 		LayoutGroup* GetLayoutGroup(const std::string &name);
 		const wxString& GetBackgroundImageForSelectedPreview();
