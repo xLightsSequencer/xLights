@@ -76,6 +76,8 @@ const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_MODEL_CONVERTTOPERMODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_ROW_CONVERTTOPERMODEL = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -409,6 +411,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
                 rowMenu->Append(ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS, "Create Timing From Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
+
+                if (m != nullptr && m->GetDisplayAs() == "ModelGroup") {
+                    modelMenu->Append(ID_ROW_MNU_MODEL_CONVERTTOPERMODEL, "Convert effects to 'Per Model'");
+                    rowMenu->Append(ID_ROW_MNU_ROW_CONVERTTOPERMODEL, "Convert effects to 'Per Model'");
+                }
+
                 mnuLayer.AppendSubMenu(modelMenu, "Model");
                 mnuLayer.AppendSubMenu(rowMenu, "Row");
                 rowMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
@@ -959,6 +967,33 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 }
             }
         }
+    }
+    else if (id == ID_ROW_MNU_ROW_CONVERTTOPERMODEL) {
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        if (layer_index < element->GetEffectLayerCount()) {
+            if (ri->nodeIndex == -1) {
+                element->GetEffectLayer(layer_index)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
+            }
+            else {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nl = se->GetNodeLayer(ri->nodeIndex, false);
+                if (nl != nullptr) {
+                    nl->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
+                }
+            }
+        }
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+    else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
+        
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+            element->GetEffectLayer(i)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
+        }
+
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
     }
     else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {

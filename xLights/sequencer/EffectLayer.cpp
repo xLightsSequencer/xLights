@@ -674,6 +674,21 @@ void EffectLayer::SelectAllEffects()
     }
 }
 
+void EffectLayer::ConvertEffectsToPerModel(UndoManager& undo_manager)
+{
+    for (auto& it : mEffects) {
+        auto buffer = it->GetSettings()["B_CHOICE_BufferStyle"];
+        if (buffer == "Per Preview" || buffer == "Default" || buffer == "Single Line") {
+            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), it->GetID(), it->GetSettingsAsString(), it->GetPaletteAsString());
+            it->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model " + buffer;
+        }
+        else if (buffer == "")             {
+            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), it->GetID(), it->GetSettingsAsString(), it->GetPaletteAsString());
+            it->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model Default";
+        }
+    }
+}
+
 Element* EffectLayer::GetParentElement() const
 {
     return mParentElement;

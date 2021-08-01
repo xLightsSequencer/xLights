@@ -88,6 +88,7 @@ class EffectLayer
 
         void UnSelectAllEffects();
         void SelectAllEffects();
+        void ConvertEffectsToPerModel(UndoManager& undo_manager);
 
         Element* GetParentElement() const;
         void SetParentElement(Element* parent);
