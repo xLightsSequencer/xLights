@@ -2206,7 +2206,7 @@ bool xLightsFrame::UploadInputToController(ControllerEthernet* controller)
                 delete bc;
             }
             else {
-                logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                logger_base.error("Unable to create base controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                 SetStatusText(vendor + " Input Upload not supported.");
             }
         }

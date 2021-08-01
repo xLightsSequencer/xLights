@@ -42,9 +42,11 @@ BaseController::BaseController(const std::string& ip, const std::string &proxy) 
 
 #ifndef DISCOVERYONLY
 BaseController *BaseController::CreateBaseController(ControllerEthernet *controller, const std::string &ipOrig) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string ip = ipOrig;
     ControllerCaps *caps = controller->GetControllerCaps();
     if (!caps) {
+        logger_base.error("Unable to get controller capabilities.");
         return nullptr;
     }
     std::string vendor = controller->GetVendor();
@@ -53,6 +55,7 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
     if (ipOrig == "") {
         ip = controller->GetResolvedIP();
         if (ip == "MULTICAST") {
+            logger_base.error("Unable to upload to a multicast controller.");
             return nullptr;
         }
     }
@@ -72,12 +75,15 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
         bc = new HinksPix(ip, proxy);
     } else if (vendor == "HolidayCoro") {
         bc = new AlphaPix(ip, proxy);
-    } else if (vendor == "FPP" || vendor == "KulpLights") {
+    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics") {
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
+    } else {
+        logger_base.warn("Vendor not recognised ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
+        bc = new FPP(ip, proxy, caps->GetModel());
     }
     return bc;
 }
