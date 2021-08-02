@@ -33,7 +33,7 @@ class BufferSizeDialog: public wxDialog
 
 		BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferSizeDialog();
-        void SetSizes(double top, double left, double bottom, double right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc);
+        void SetSizes(double top, double left, double bottom, double right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc, double x, double y, const std::string& xvc, const std::string& yvc);
         void OnVCChanged(wxCommandEvent& event); 
 
 		//(*Declarations(BufferSizeDialog)
@@ -41,16 +41,22 @@ class BufferSizeDialog: public wxDialog
 		ValueCurveButton* ValueCurve_Left;
 		ValueCurveButton* ValueCurve_Right;
 		ValueCurveButton* ValueCurve_Top;
+		ValueCurveButton* ValueCurve_XC;
+		ValueCurveButton* ValueCurve_YC;
 		wxComboBox* ComboBoxBufferPresets;
 		wxSpinCtrlDouble* SpinCtrl_Bottom;
 		wxSpinCtrlDouble* SpinCtrl_Left;
 		wxSpinCtrlDouble* SpinCtrl_Right;
 		wxSpinCtrlDouble* SpinCtrl_Top;
+		wxSpinCtrlDouble* SpinCtrl_XC;
+		wxSpinCtrlDouble* SpinCtrl_YC;
 		wxStaticLine* StaticLine1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		xlSizedBitmapButton* BitmapButtonDelete;
 		xlSizedBitmapButton* BitmapButtonSave;
 		//*)
@@ -70,6 +76,12 @@ class BufferSizeDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL4;
 		static const long ID_VALUECURVE_BufferRight;
+		static const long ID_STATICTEXT5;
+		static const long ID_SPINCTRLDOUBLE1;
+		static const long ID_VALUECURVE_BufferXC;
+		static const long ID_STATICTEXT6;
+		static const long ID_SPINCTRLDOUBLE2;
+		static const long ID_VALUECURVE_BufferYC;
 		static const long ID_COMBOBOX_BUFFER_PRESET;
 		static const long ID_BITMAPBUTTON_SAVE;
 		static const long ID_BITMAPBUTTON_DELETE;
@@ -86,10 +98,11 @@ class BufferSizeDialog: public wxDialog
 		void OnValueCurve_Click(wxCommandEvent& event);
 		void OnBitmapButtonSaveClick(wxCommandEvent& event);
 		void OnBitmapButtonDeleteClick(wxCommandEvent& event);
+		void OnSpinCtrl_XCChange(wxSpinDoubleEvent& event);
+		void OnSpinCtrl_YCChange(wxSpinDoubleEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
-
 
 		void LoadBufferPreset(wxString const& name);
 		void SaveBufferPreset(wxString const& name);

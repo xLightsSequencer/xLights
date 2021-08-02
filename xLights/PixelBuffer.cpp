@@ -2134,6 +2134,8 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
         bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
         bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
 
+        // We can ignore x and y centre as this works on the difference and the centre cancels out
+
         // the larger the number the more fine grained the buffer assessment will be ... makes crashes less likely
         #define VCITERATIONS (10.0 * VC_X_POINTS)
 
@@ -2144,8 +2146,8 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
             v[2].Replace("yyz", "Max");
             ValueCurve vcx1(v[0].ToStdString());
             ValueCurve vcx2(v[2].ToStdString());
-            vcx1.SetLimits(-100, 200);
-            vcx2.SetLimits(-100, 200);
+            vcx1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
+            vcx2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
             for (int i = 0; i < VCITERATIONS; ++i)
             {
                 float valx1 = 0.0;
@@ -2173,8 +2175,8 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
             v[3].Replace("yyz", "Max");
             ValueCurve vcy1(v[1].ToStdString());
             ValueCurve vcy2(v[3].ToStdString());
-            vcy1.SetLimits(-100, 200);
-            vcy2.SetLimits(-100, 200);
+            vcy1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
+            vcy2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
             for (int i = 0; i < VCITERATIONS; ++i)
             {
                 float valy1 = 0.0;
@@ -2182,7 +2184,7 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
                 {
                     valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
                 }
-                float valy2 = BufferWi;
+                float valy2 = BufferHt;
                 if (fy2vc)
                 {
                     valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
@@ -2227,74 +2229,86 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
     bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
     bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
+    bool fxvc = v.size() > 4 && v[4].Contains("Active=TRUE"); // X centre
+    bool fyvc = v.size() > 5 && v[5].Contains("Active=TRUE"); // y centre
 
-    float x1;
+    float x = 0.0;
+    if (fxvc) {
+        v[4].Replace("yyz", "Max");
+        ValueCurve vc(v[4].ToStdString());
+        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
+        x = vc.GetOutputValueAt(progress, startMS, endMS);
+    }
+    else if (v.size() > 0) {
+        x = wxAtof(v[4]);
+    }
+
+    float y = 0.0;
+    if (fyvc) {
+        v[5].Replace("yyz", "Max");
+        ValueCurve vc(v[5].ToStdString());
+        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
+        y = vc.GetOutputValueAt(progress, startMS, endMS);
+    }
+    else if (v.size() > 0) {
+        y = wxAtof(v[5]);
+    }
+
+    float x1 = 0.0;
     if (fx1vc)
     {
         v[0].Replace("yyz", "Max");
         ValueCurve vc(v[0].ToStdString());
-        vc.SetLimits(-100, 200);
+        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         x1 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 0)
     {
         x1 = wxAtof(v[0]);
     }
-    else
-    {
-        x1 = 0.0;
-    }
+    x1 += x;
 
-    float y1;
+    float y1 = 0.0;
     if (fy1vc)
     {
         v[1].Replace("yyz", "Max");
         ValueCurve vc(v[1].ToStdString());
-        vc.SetLimits(-100, 200);
+        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         y1 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 1)
     {
         y1 = wxAtof(v[1]);
     }
-    else
-    {
-        y1 = 0.0;
-    }
+    y1 += y;
 
-    float x2;
+    float x2 = 100.0;
     if (fx2vc)
     {
         v[2].Replace("yyz", "Max");
         ValueCurve vc(v[2].ToStdString());
-        vc.SetLimits(-100, 200);
+        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         x2 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 2)
     {
         x2 = wxAtof(v[2]);
     }
-    else
-    {
-        x2 = 100.0;
-    }
+    x2 += x;
 
-    float y2;
+    float y2 = 100.0;
     if (fy2vc)
     {
         v[3].Replace("yyz", "Max");
         ValueCurve vc(v[3].ToStdString());
-        vc.SetLimits(-100, 200);
+        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         y2 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 3)
     {
         y2 = wxAtof(v[3]);
     }
-    else
-    {
-        y2 = 100.0;
-    }
+    y2 += y;
 
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
@@ -2324,6 +2338,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         }
     }
 }
+
 namespace
 {
    ValueCurve valueCurveFromSettingsMap( const SettingsMap &settingsMap, const std::string& name )
