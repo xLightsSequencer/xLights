@@ -576,9 +576,6 @@ void xlGLCanvas::SetCurrentGLContext()
             logger_opengl.error("All attempts at cache creation have failed.");
         }
     }
-    else {
-        _ver = 0;
-    }
     LOG_GL_ERRORV(DrawGLUtils::SetCurrentCache(cache));
 }
 
