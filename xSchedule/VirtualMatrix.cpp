@@ -346,6 +346,9 @@ void VirtualMatrix::Frame(uint8_t*buffer, size_t size)
     if (!_image.IsOk()) return;
     if (_window == nullptr) return;
 
+    // If there is no width or height there is nothing to draw
+    if (_width == 0 || _height == 0) return;
+
     long sc = _outputManager->DecodeStartChannel(_startChannel);
 
     size_t end = _width * _height * 3 < size - (sc - 1) ? _width * _height * 3 : size - (sc - 1);
