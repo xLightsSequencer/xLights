@@ -12,6 +12,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott) Added experimental Light-o-rama S5 Preview/Model Import
+   -- enh (scott) Allow the multiple selection of groups with right click "Add Model to Group" option
+   -- enh (scott) Add MAC address details to xScanner on Linux
+   -- enh (keith) Add ability to move centre of the sub-buffer
+   -- enh (keith) Add active and current view filters to model group panel
+   -- enh (keith) Allow bulk conversion of effects on a model group to equivalent per model render style
+   -- enh (keith) Default optional linked buttons to linked state
+   -- bug (keith) Fix Hanson controller upload fails
+   -- bug (keith) Fix %lu in error message when opening a sequence with lots of missing models
+   -- bug (keith) Fix show/hide all timing tracks does not always get them all
+   -- bug (scott) Fix Linux build issues including adding xScanner
 2021.23 July 24, 2021
    -- enh (scott) Enable Inputs on FPP 5.0 when starting output to lights
    -- enh (scott) Added multisync text to mode column in FPP Connect
