@@ -413,8 +413,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
 
                 if (m != nullptr && m->GetDisplayAs() == "ModelGroup") {
-                    modelMenu->Append(ID_ROW_MNU_MODEL_CONVERTTOPERMODEL, "Convert effects to 'Per Model'");
-                    rowMenu->Append(ID_ROW_MNU_ROW_CONVERTTOPERMODEL, "Convert effects to 'Per Model'");
+                    modelMenu->Append(ID_ROW_MNU_MODEL_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
+                    rowMenu->Append(ID_ROW_MNU_ROW_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
                 }
 
                 mnuLayer.AppendSubMenu(modelMenu, "Model");
