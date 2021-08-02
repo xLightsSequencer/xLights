@@ -692,77 +692,85 @@ Effect* EffectsGrid::FillRandomEffects()
     int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
     if (selected_timing_row >= 0) {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selected_timing_row);
-        int timingIndex1 = mRangeStartCol;
-        int timingIndex2 = mRangeEndCol;
-        if (timingIndex1 > timingIndex2) {
-            std::swap(timingIndex1, timingIndex2);
-        }
-        Effect* lastEffect = nullptr;
-        if (timingIndex1 != -1 && timingIndex2 != -1) {
-            wxProgressDialog prog("Generating random effects", "This may take some time", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-            prog.Show();
-            float progValue = 0;
-            float den = (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
-            float per = 0.01f;
-            if (den != 0) per = 100.0 / den;
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for (int row = row1; row <= row2; row++) {
-                EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
-                for (int i = timingIndex1; i <= timingIndex2; i++) {
-                    Effect* eff = tel->GetEffect(i);
-                    if (effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
-                        Effect* ef = effectLayer->AddEffect(0,
-                            "Random",
-                            "",
-                            "",
-                            eff->GetStartTimeMS(),
-                            eff->GetEndTimeMS(),
-                            EFFECT_SELECTED,
-                            false);
-                        if (res == nullptr) res = ef;
-                        if (ef != nullptr) {
-                            lastEffect = ef;
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
-                            RaiseSelectedEffectChanged(ef, true, false);
-                            mSelectedEffect = ef;
+        if (tel != nullptr) {
+            int timingIndex1 = mRangeStartCol;
+            int timingIndex2 = mRangeEndCol;
+            if (timingIndex1 > timingIndex2) {
+                std::swap(timingIndex1, timingIndex2);
+            }
+            Effect* lastEffect = nullptr;
+            if (timingIndex1 != -1 && timingIndex2 != -1) {
+                wxProgressDialog prog("Generating random effects", "This may take some time", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+                prog.Show();
+                float progValue = 0;
+                float den = (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
+                float per = 0.01f;
+                if (den != 0) per = 100.0 / den;
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                for (int row = row1; row <= row2; row++) {
+                    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
+                    if (effectLayer != nullptr) {
+                        for (int i = timingIndex1; i <= timingIndex2; i++) {
+                            Effect* eff = tel->GetEffect(i);
+                            if (eff != nullptr) {
+                                if (effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
+                                    Effect* ef = effectLayer->AddEffect(0,
+                                        "Random",
+                                        "",
+                                        "",
+                                        eff->GetStartTimeMS(),
+                                        eff->GetEndTimeMS(),
+                                        EFFECT_SELECTED,
+                                        false);
+                                    if (res == nullptr) res = ef;
+                                    if (ef != nullptr) {
+                                        lastEffect = ef;
+                                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
+                                        RaiseSelectedEffectChanged(ef, true, false);
+                                        mSelectedEffect = ef;
+                                    }
+                                }
+                            }
+                            progValue += per;
+                            prog.Update(progValue);
                         }
                     }
-                    progValue += per;
-                    prog.Update(progValue);
                 }
-            }
-            prog.Update(100);
-            if (!xlights->IsACActive()) {
-                mCellRangeSelected = false;
+                prog.Update(100);
+                if (!xlights->IsACActive()) {
+                    mCellRangeSelected = false;
+                }
             }
         }
     }
     else if (mSequenceElements->GetVisibleEffectLayer(mDropRow) != nullptr) {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
-        int end_time = mDropEndTimeMS;
-        if (el->GetRangeIsClearMS(mDropStartTimeMS, end_time)) {
-            Effect* ef = el->AddEffect(0,
-                "Random",
-                "",
-                "",
-                mDropStartTimeMS,
-                mDropEndTimeMS,
-                EFFECT_SELECTED,
-                false);
+        if (el != nullptr) {
+            int end_time = mDropEndTimeMS;
+            if (el->GetRangeIsClearMS(mDropStartTimeMS, end_time)) {
+                Effect* ef = el->AddEffect(0,
+                    "Random",
+                    "",
+                    "",
+                    mDropStartTimeMS,
+                    mDropEndTimeMS,
+                    EFFECT_SELECTED,
+                    false);
 
-            if (res == nullptr) res = ef;
+                if (res == nullptr) res = ef;
 
-            if (ef != nullptr) {
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
-                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                RaiseSelectedEffectChanged(ef, true);
-                mSelectedEffect = ef;
-                if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
-                    sendRenderEvent(el->GetParentElement()->GetModelName(),
-                        mDropStartTimeMS,
-                        mDropEndTimeMS, true);
+                if (ef != nullptr) {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
+                    RaiseSelectedEffectChanged(ef, true);
+                    mSelectedEffect = ef;
+                    if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
+                        sendRenderEvent(el->GetParentElement()->GetModelName(),
+                            mDropStartTimeMS,
+                            mDropEndTimeMS, true);
+                    }
+                    mPartialCellSelected = false;
                 }
-                mPartialCellSelected = false;
             }
         }
     }
@@ -6364,11 +6372,13 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
         for (int row = start_row; row <= end_row; row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer C was NULL ... this is going to crash.");
-            if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
-                el->MoveAllSelectedEffects(delta_step*(row-start_row), mSequenceElements->get_undo_mgr());
-            } else {
-                el->MoveAllSelectedEffects(delta_step*(end_row-row), mSequenceElements->get_undo_mgr());
+            if (el != nullptr) {
+                if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
+                    el->MoveAllSelectedEffects(delta_step * (row - start_row), mSequenceElements->get_undo_mgr());
+                }
+                else {
+                    el->MoveAllSelectedEffects(delta_step * (end_row - row), mSequenceElements->get_undo_mgr());
+                }
             }
         }
     }

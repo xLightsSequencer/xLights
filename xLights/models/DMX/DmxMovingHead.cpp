@@ -277,8 +277,6 @@ void DmxMovingHead::InitModel() {
 void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d)
 {
     static wxStopWatch sw;
-    float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length_displayed;
-    int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
     DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
 
@@ -313,7 +311,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
     if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
 
         xlColor proxy = xlBLACK;
-        if (white_channel > 0)
+        if (white_channel > 0 && white_channel <= NodeCount)
         {
             Nodes[white_channel - 1]->GetColor(proxy);
             beam_color = proxy;
@@ -321,15 +319,21 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
 
         if (proxy == xlBLACK)
         {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
+            if (red_channel <= NodeCount) {
+                Nodes[red_channel - 1]->GetColor(proxy);
+                beam_color.red = proxy.red;
+            }
+            if (green_channel <= NodeCount) {
+                Nodes[green_channel - 1]->GetColor(proxy);
+                beam_color.green = proxy.red;
+            }
+            if (blue_channel <= NodeCount) {
+                Nodes[blue_channel - 1]->GetColor(proxy);
+                beam_color.blue = proxy.red;
+            }
         }
     }
-    else if (white_channel > 0)
+    else if (white_channel > 0 && white_channel <= NodeCount)
     {
         xlColor proxy;
         Nodes[white_channel - 1]->GetColor(proxy);
@@ -363,7 +367,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         old_tilt_angle = std::atof(old_state[2].c_str());
     }
 
-    if (pan_channel > 0 && active) {
+    float pan_angle;
+    if (pan_channel > 0 && pan_channel <= NodeCount && active) {
         Nodes[pan_channel - 1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
     }
@@ -388,8 +393,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         }
     }
 
-    pan_angle_raw = pan_angle;
-    if (tilt_channel > 0 && active) {
+    float pan_angle_raw = pan_angle;
+    float tilt_angle;
+    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
         Nodes[tilt_channel - 1]->GetColor(color_angle);
         tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
     }
@@ -423,6 +429,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         tilt_pos *= -1;
     }
 
+    float angle;
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP || dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
         angle = pan_angle;
     }
@@ -450,23 +457,23 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         tilt_pos /= 2;
     }
 
-    beam_length_displayed = scale * sf * beam_length;
-    angle1 = angle - beam_width / 2.0f;
-    angle2 = angle + beam_width / 2.0f;
+    float beam_length_displayed = scale * sf * beam_length;
+    float angle1 = angle - beam_width / 2.0f;
+    float angle2 = angle + beam_width / 2.0f;
     if (angle1 < 0.0f) {
         angle1 += 360.0f;
     }
     if (angle2 > 360.f) {
         angle2 -= 360.0f;
     }
-    x1 = (int)(RenderBuffer::cos(ToRadians(angle1)) * beam_length_displayed);
-    y1 = (int)(RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
-    x2 = (int)(RenderBuffer::cos(ToRadians(angle2)) * beam_length_displayed);
-    y2 = (int)(RenderBuffer::sin(ToRadians(angle2)) * beam_length_displayed);
+    int x1 = (int)(RenderBuffer::cos(ToRadians(angle1)) * beam_length_displayed);
+    int y1 = (int)(RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
+    int x2 = (int)(RenderBuffer::cos(ToRadians(angle2)) * beam_length_displayed);
+    int y2 = (int)(RenderBuffer::sin(ToRadians(angle2)) * beam_length_displayed);
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && active) {
+    if (shutter_channel > 0 && shutter_channel <= NodeCount && active) {
         xlColor proxy;
         Nodes[shutter_channel - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -618,7 +625,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
                 dmxPoint3 p3(beam_length_displayed, 5, -5, sx, sy, scale, pan_angle_raw, combined_angle);
                 dmxPoint3 p4(beam_length_displayed, 5, 5, sx, sy, scale, pan_angle_raw, combined_angle);
                 dmxPoint3 p0(0, 0, 0, sx, sy, scale, pan_angle_raw, combined_angle);
-
 
                 if (facing_right) {
                     va.AddVertex(p2.x, p2.y, beam_color_end);

@@ -68,7 +68,7 @@ class Mesh
         void uncacheDisplayObjects();
 
     private:
-        wxXmlNode* node_xml;
+        wxXmlNode* node_xml = nullptr;
         std::string _objFile;
         float width = 1.0f;
         float height = 1.0f;

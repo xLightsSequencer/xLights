@@ -1218,8 +1218,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         float scaleh = 1.0;
         float scalew = 1.0;
         if (!scaleImage) {
-            float nscaleh = float(image->height) / float(virtualHeight);
-            float nscalew = float(image->width) / float(virtualWidth);
+            float nscaleh = 1.0;
+            if (virtualHeight != 0) nscaleh = float(image->height) / float(virtualHeight);
+            if (nscaleh == 0) nscaleh = 1.0;
+            float nscalew = 1.0;
+            if (virtualWidth != 0) nscalew = float(image->width) / float(virtualWidth);
+            if (nscalew == 0) nscalew = 1.0;
             if (nscalew < nscaleh) {
                 scaleh = 1.0;
                 scalew = nscalew / nscaleh;
@@ -1236,13 +1240,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         }
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        solidAccumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
-        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        if (image->textureHeight != 0) {
+            solidAccumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
+            solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+            solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
-        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+            solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+            solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+            solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight * scaleh, tx2, image->tex_coord_y);
+        }
 
         float i = mBackgroundBrightness;
         float a = mBackgroundAlpha * 255.0f;

@@ -2635,15 +2635,14 @@ std::string LayoutPanel::GetSelectedModelName() const
 void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 {
     if (CheckBoxOverlap->GetValue() == false) {
-        for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
-              item.IsOk();
-              item = TreeListViewModels->GetNextSibling(item) )
-        {
-            ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-            Model *model = data != nullptr ? data->GetModel() : nullptr;
+        for (wxTreeListItem item = TreeListViewModels->GetFirstItem();
+            item.IsOk();
+            item = TreeListViewModels->GetNextSibling(item)) {
+            ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+            Model* model = data != nullptr ? data->GetModel() : nullptr;
 
-            if( model != nullptr ) {
-                if( model->GetDisplayAs() != "ModelGroup" ) {
+            if (model != nullptr) {
+                if (model->GetDisplayAs() != "ModelGroup") {
                     model->Overlapping = false;
                 }
             }
@@ -2654,15 +2653,14 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 void LayoutPanel::SaveEffects()
 {
     // update xml with offsets and scale
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]) ||
-            IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-            modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    for (const auto& it : modelPreview->GetModels()) {
+        if (xlights->AllModels.IsModelValid(it) ||
+            IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            it->UpdateXmlWithScale();
         }
     }
     for (const auto& it : xlights->AllObjects) {
-        ViewObject *view_object = it.second;
+        ViewObject* view_object = it.second;
         view_object->UpdateXmlWithScale();
     }
     xlights->SaveEffectsFile();
@@ -2673,8 +2671,7 @@ void LayoutPanel::SaveEffects()
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 {
     // if we have auto layout make sure everything is up to date ... and update zcpp files
-    if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
-    {
+    if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0) {
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnButtonSavePreviewClick");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnButtonSavePreviewClick");
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "LayoutPanel::OnButtonSavePreviewClick");
@@ -2686,14 +2683,14 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     }
 }
 
-int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
+int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
 {
     unsigned col;
     bool ascending;
     treelist->GetSortColumn(&col, &ascending);
 
-    ModelTreeData *data1 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item1));
-    ModelTreeData *data2 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item2));
+    ModelTreeData* data1 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item1));
+    ModelTreeData* data2 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item2));
 
     Model* a = data1->GetModel();
     Model* b = data2->GetModel();
@@ -2740,8 +2737,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
-    else if (colobj->GetTitle() == CONTCONNCOLNAME)
-    {
+    else if (colobj->GetTitle() == CONTCONNCOLNAME) {
         int32_t sc;
         // group controllers first
         Output* oa = xlights->GetOutputManager()->GetOutput(data1->startingChannel, sc);
@@ -2751,8 +2747,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         std::string snb = "";
         if (ob != nullptr) snb = ob->GetSortName();
 
-        if (sna == snb)
-        {
+        if (sna == snb) {
             // then protocol
             std::string pra = data1->GetModel()->GetControllerProtocol();
             std::string prb = data2->GetModel()->GetControllerProtocol();
@@ -2777,8 +2772,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
                 return -1;
             return 0;
         }
-        else
-        {
+        else {
             return NumberAwareStringCompare(sna, snb);
         }
     }
@@ -2787,22 +2781,17 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     auto parent1 = treelist->GetItemParent(item1);
     auto parent2 = treelist->GetItemParent(item2);
     auto root = treelist->GetRootItem();
-    if ((parent1 != root || parent2 != root) && parent1 == parent2)
-    {
+    if ((parent1 != root || parent2 != root) && parent1 == parent2) {
         int ia = data1->nativeOrder;
         int ib = data2->nativeOrder;
-        if (ia > ib)
-        {
-            if (ascending)
-            {
+        if (ia > ib) {
+            if (ascending) {
                 return 1;
             }
             return -1;
         }
-        if (ia < ib)
-        {
-            if (ascending)
-            {
+        if (ia < ib) {
+            if (ascending) {
                 return -1;
             }
             return 1;
@@ -2812,7 +2801,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     return NumberAwareStringCompare(a->name, b->name);
 }
 
-int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
+int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl* treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
 {
     return SortElementsFunction(treelist, first, second, column);
 }
@@ -2828,17 +2817,15 @@ void LayoutPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec
     );
 }
 
-int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
+int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int>& found)
 {
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(x, y, ray_origin, ray_direction);
 
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
         // This should not be necessary but i see enough crashes to think it is worthwhile
-        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]))
-        {
+        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i])) {
             if (modelPreview->GetModels()[i]->HitTest(modelPreview, ray_origin, ray_direction)) {
                 found.push_back(i);
             }
@@ -2855,10 +2842,12 @@ Model* LayoutPanel::SelectSingleModel(int x, int y)
 
     if (modelCount == 0) {
         return nullptr;
-    } else if (modelCount == 1) {
+    }
+    else if (modelCount == 1) {
         mHitTestNextSelectModelIndex = 0;
         return modelPreview->GetModels()[found[0]];
-    } else if (modelCount > 1)  {
+    }
+    else if (modelCount > 1) {
         for (int i = 0; i < modelCount; i++) {
             if (mHitTestNextSelectModelIndex == i) {
                 mHitTestNextSelectModelIndex += 1;
@@ -2874,26 +2863,21 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
         int count = 0;
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
-            {
-                SelectModelInTree(modelPreview->GetModels()[i]);
+        for (const auto& it : modelPreview->GetModels()) {
+            if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                SelectModelInTree(it);
                 count++;
             }
         }
-        if (count>1)
-            showBackgroundProperties();
+        if (count > 1) showBackgroundProperties();
     }
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
             {
-                if (view_object->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
-                {
+                if (view_object->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
                     // if we dont have a selected model make the first one we find the selected model so alignment etc works
-                    if (selectedBaseObject == nullptr)
-                    {
+                    if (selectedBaseObject == nullptr) {
                         SelectBaseObject(view_object->GetName(), false);
                     }
                     view_object->GroupSelected = true;
