@@ -2239,7 +2239,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         x = vc.GetOutputValueAt(progress, startMS, endMS);
     }
-    else if (v.size() > 0) {
+    else if (v.size() > 4) {
         x = wxAtof(v[4]);
     }
 
@@ -2250,7 +2250,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         y = vc.GetOutputValueAt(progress, startMS, endMS);
     }
-    else if (v.size() > 0) {
+    else if (v.size() > 5) {
         y = wxAtof(v[5]);
     }
 
