@@ -286,7 +286,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m->SetProperty( "TreeBottomTopRatio", "1.0" );
 
         if( model.shapeName.Contains( "spiral" ) ) {
-            float roation = (float)model.parms.at( 2 ) / 10.0; //120 in xml = 12.0 rotaions
+            float roation = (float)model.parms.at( 2 ) / 10.0f; //120 in xml = 12.0 rotaions
             if( model.startLocation.Contains( "CCW" ) ) {
                 roation *= -1;
             }
@@ -299,7 +299,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         ScaleToPreview( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Fan" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Spinner", startChan );
-        
+
         supportsMultiString = true;
         m->SetProperty( "parm1", wxString::Format( "%d", model.parms.at( 0 ) ) );
         m->SetProperty( "parm2", wxString::Format( "%d", model.parms.at( 1 ) ) );
@@ -322,7 +322,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         ScaleToPreview( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Firestick" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Single Line", startChan );
-        
+
         int segments   = model.parms.at( 0 );
         int nodesper = model.parms.at( 1 );
 
@@ -443,7 +443,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
 
     } else if( model.shapeName.StartsWith( "Matrix" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Matrix", startChan );
-        
+
         supportsMultiString = true;
 
         m->SetProperty( "parm1", wxString::Format( "%d", model.parms.at( 0 ) ) );     //number of strings
@@ -520,12 +520,12 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             m->SetProperty( "parm2", wxString::Format( "%d", model.parms.at( 1 ) ) ); //number of nodes
             m->SetProperty( "parm3", wxString::Format( "%d", model.parms.at( 2 ) ) ); //number of points
 
-            //try to conver LOR ratio to xLights
+            //try to convert LOR ratio to xLights
             float radio = 2.618034 * ( (float)model.parms.at( 3 ) / 10.0 );
             m->SetProperty( "starRatio", wxString::Format( "%lf", radio ) );
         }
 
-        //Convert Start Location and Dir, CW to Ctr-CCW, CCW to Ctr-CW, this is super confussing.....
+        //Convert Start Location and Dir, CW to Ctr-CCW, CCW to Ctr-CW, this is super confusing.....
         wxString startLoc = model.startLocation;
         if( model.startLocation.EndsWith( "-CW" ) ) {
             startLoc.Replace( "-CW", " Ctr-CCW" );
@@ -546,7 +546,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m->SetProperty( "DisplayAs", DecodeTreeType( model.shapeName ) );
 
         if( model.shapeName.Contains( "spiral" ) ) {
-            float roation = (float)model.parms.at( 2 ) / 10.0; //120 in xml = 12.0 rotaions
+            float roation = (float)model.parms.at( 2 ) / 10.0; //120 in xml = 12.0 rotations
             if( model.startLocation.Contains( "CCW" ) ) {
                 roation *= -1;
             }
@@ -658,7 +658,7 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
                 xModel->SetProperty( "StringType", "Single Color Intensity" );
             } else {
                 //Single Color
-                if( model.traditionalColors == "Red" || model.traditionalColors == "Blue" || 
+                if( model.traditionalColors == "Red" || model.traditionalColors == "Blue" ||
                     model.traditionalColors == "Green" ||model.traditionalColors == "White" ) {
                     wxString const color = wxString::Format( "Single Color %s", model.traditionalColors );
                     xModel->SetProperty( "StringType", color );
@@ -759,7 +759,7 @@ void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int p
 }
 
 void LORPreview::ScalePointsToSingleLine( S5Model const& model, Model* m, int pvwW, int pvwH ) const {
-    if( model.points.size() == 0 ) {
+    if( model.points.empty() ) {
         return;
     }
     m->SetProperty( "versionNumber", "5", true );
@@ -833,7 +833,7 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
     }
     /*
      *   LOR Screen Point locations
-     * 
+     *
      *    0              1
      *
      *    3              2
@@ -883,7 +883,7 @@ S5Point LORPreview::ScalePointToXLights( S5Point const& pt, int pvwW, int pvwH )
      *   |         |
      * 0 |_________|
      *   0    5   10
-     * 
+     *
      */
 
     int xLights_x = ( (pvwW / 2) * ( pt.x + 1 ) ) ;
@@ -942,7 +942,7 @@ void LORPreview::CreateGroup( S5Group const& grp, std::vector< S5Model > const& 
 
 wxString LORPreview::FindLORPreviewFile()
 {
-    //Default LOR S5 Prieview File Location On Windows
+    //Default LOR S5 Preview File Location On Windows
     //C:\Users\scoot\Documents\Light-O-Rama\CommonData\LORPreviews.xml
 
     wxString const filePath = wxStandardPaths::Get().GetDocumentsDir() + wxFileName::GetPathSeparator() + "Light-O-Rama" + wxFileName::GetPathSeparator() + "CommonData" + wxFileName::GetPathSeparator() + "LORPreviews.xml";
