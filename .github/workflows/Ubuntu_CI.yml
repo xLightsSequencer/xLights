@@ -3,9 +3,42 @@ name: Ubuntu CI
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'download/**'
+      - 'images/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'songs/**'
+      - 'valuecurves/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
   pull_request:
     branches: [ master ]
-    
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'download/**'
+      - 'images/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'songs/**'
+      - 'valuecurves/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'    
   workflow_dispatch:
 jobs:
   build:
