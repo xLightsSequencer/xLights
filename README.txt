@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.24 August 3, 2021
    -- enh (scott) Added experimental Light-o-rama S5 Preview/Model Import
    -- enh (scott) Allow the multiple selection of groups with right click "Add Model to Group" option
    -- enh (scott) Add MAC address details to xScanner on Linux
@@ -18,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith) Add active and current view filters to model group panel
    -- enh (keith) Allow bulk conversion of effects on a model group to equivalent per model render style
    -- enh (keith) Default optional linked buttons to linked state
+   -- bug (dkulp) Fix OpenGL check sequence reporting version issue incorrectly
    -- bug (keith) Fix Hanson controller upload fails
    -- bug (keith) Fix %lu in error message when opening a sequence with lots of missing models
    -- bug (keith) Fix show/hide all timing tracks does not always get them all
