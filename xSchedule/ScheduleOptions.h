@@ -200,11 +200,12 @@ class ScheduleOptions
     bool _keepScreenOn;
     bool _retryOutputOpen;
     bool _suppressAudioOnRemotes;
-    bool _hardwareAcceleratedVideo;
-    bool _lateStartingScheduleUsesTime;
+    bool _hardwareAcceleratedVideo = false;
+    bool _lateStartingScheduleUsesTime = false;
     bool _disableOutputOnPingFailure = false;
     int _SMPTEMode;
     bool _minimiseUIUpdates = false;
+    bool _useStepMMSSTimecodeFormat = false;
 
     public:
 
@@ -240,6 +241,7 @@ class ScheduleOptions
         void SetKeepScreenOn(bool keepScreenOn) { if (_keepScreenOn != keepScreenOn) { _keepScreenOn = keepScreenOn; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
         void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
+        void SetStepMMSSTimecodeFormat(bool useStepMMSS) { if (_useStepMMSSTimecodeFormat != useStepMMSS) { _useStepMMSSTimecodeFormat = useStepMMSS; _changeCount++; } }
         void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
@@ -249,6 +251,7 @@ class ScheduleOptions
         bool IsKeepScreenOn() const { return _keepScreenOn; }
         bool IsMinimiseUIUpdates() const { return _minimiseUIUpdates; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
+        bool IsUseStepMMSSTimecodeFormat() const { return _useStepMMSSTimecodeFormat; }
         int GetSMPTEMode() const { return _SMPTEMode; }
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }

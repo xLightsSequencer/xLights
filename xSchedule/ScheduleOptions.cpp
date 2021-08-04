@@ -37,7 +37,7 @@
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _oscOptions = nullptr;
     _testOptions = nullptr;
     _changeCount = 0;
@@ -62,6 +62,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _hardwareAcceleratedVideo = node->GetAttribute("HardwareAcceleratedVideo", "TRUE") == "TRUE";
     _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
     _disableOutputOnPingFailure = node->GetAttribute("DisableOutputOnPingFailure", "FALSE") == "TRUE";
+    _useStepMMSSTimecodeFormat = node->GetAttribute("StepMMSSTimecodeFormat", "FALSE") == "TRUE";
 
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -81,92 +82,69 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _city = node->GetAttribute("City", "Sydney");
     if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == "Button")
-        {
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "Button") {
             _buttons.push_back(new UserButton(n, commandManager));
         }
-        else if (n->GetName() == "Matrix")
-        {
+        else if (n->GetName() == "Matrix") {
             _matrices.push_back(new MatrixMapper(outputManager, n));
         }
-        else if (n->GetName() == "VMatrix")
-        {
+        else if (n->GetName() == "VMatrix") {
             _virtualMatrices.push_back(new VirtualMatrix(outputManager, n));
         }
-        else if (n->GetName() == "ExtraIP")
-        {
+        else if (n->GetName() == "ExtraIP") {
             _extraIPs.push_back(new ExtraIP(n));
         }
-        else if (n->GetName() == "Events")
-        {
-            for (auto n2 = n->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
-            {
-                if (n2->GetName() == "EventE131")
-                {
+        else if (n->GetName() == "Events") {
+            for (auto n2 = n->GetChildren(); n2 != nullptr; n2 = n2->GetNext()) {
+                if (n2->GetName() == "EventE131") {
                     _events.push_back(new EventE131(n2));
                 }
-                else if (n2->GetName() == "EventData")
-                {
+                else if (n2->GetName() == "EventData") {
                     _events.push_back(new EventData(n2));
                 }
-                else if (n2->GetName() == "EventOSC")
-                {
+                else if (n2->GetName() == "EventOSC") {
                     _events.push_back(new EventOSC(n2));
                 }
-                else if (n2->GetName() == "EventFPP")
-                {
+                else if (n2->GetName() == "EventFPP") {
                     _events.push_back(new EventFPP(n2));
                 }
-                else if (n2->GetName() == "EventMIDI")
-                {
+                else if (n2->GetName() == "EventMIDI") {
                     _events.push_back(new EventMIDI(n2));
                 }
-                else if (n2->GetName() == "EventMQTT")
-                {
+                else if (n2->GetName() == "EventMQTT") {
                     _events.push_back(new EventMQTT(n2));
                 }
-                else if (n2->GetName() == "EventState")
-                {
+                else if (n2->GetName() == "EventState") {
                     _events.push_back(new EventState(n2));
                 }
-                else if (n2->GetName() == "EventSerial")
-                {
+                else if (n2->GetName() == "EventSerial") {
                     _events.push_back(new EventSerial(n2));
                 }
-                else if (n2->GetName() == "EventLor")
-                {
+                else if (n2->GetName() == "EventLor") {
                     _events.push_back(new EventLor(n2));
                 }
-                else if (n2->GetName() == "EventPing")
-                {
+                else if (n2->GetName() == "EventPing") {
                     _events.push_back(new EventPing(n2));
                 }
-                else if (n2->GetName() == "EventARTNet")
-                {
+                else if (n2->GetName() == "EventARTNet") {
                     _events.push_back(new EventARTNet(n2));
                 }
-                else if (n2->GetName() == "EventARTNetTrigger")
-                {
+                else if (n2->GetName() == "EventARTNetTrigger") {
                     _events.push_back(new EventARTNetTrigger(n2));
                 }
-                else
-                {
-                    logger_base.warn("Unrecognised event type %s.", (const char *)n2->GetName().c_str());
+                else {
+                    logger_base.warn("Unrecognised event type %s.", (const char*)n2->GetName().c_str());
                 }
             }
         }
-        else if (n->GetName() == "FPPRemote")
-        {
+        else if (n->GetName() == "FPPRemote") {
             _fppRemotes.push_back(n->GetAttribute("IP").ToStdString());
         }
-        else if (n->GetName() == "OSC")
-        {
+        else if (n->GetName() == "OSC") {
             _oscOptions = new OSCOptions(n);
         }
-        else if (n->GetName() == "Test")
-        {
+        else if (n->GetName() == "Test") {
             _testOptions = new TestOptions(n);
         }
     }
@@ -206,20 +184,16 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 int ScheduleOptions::EncodeSMPTEMode(const std::string& mode)
 {
-    if (mode == "24 FPS")
-    {
+    if (mode == "24 FPS") {
         return 0;
     }
-    else if (mode == "25 FPS")
-    {
+    else if (mode == "25 FPS") {
         return 1;
     }
-    else if (mode == "29.97 FPS")
-    {
+    else if (mode == "29.97 FPS") {
         return 2;
     }
-    else
-    {
+    else {
         return 3;
     }
 }
@@ -236,8 +210,7 @@ wxArrayString ScheduleOptions::GetSPMTEModes()
 
 std::string ScheduleOptions::DecodeSMPTEMode(int mode)
 {
-    switch (mode)
-    {
+    switch (mode) {
     case 0:
         return "24 FPS";
     case 1:
@@ -282,6 +255,7 @@ ScheduleOptions::ScheduleOptions()
     _keepScreenOn = false;
     _minimiseUIUpdates = false;
     _retryOutputOpen = false;
+    _useStepMMSSTimecodeFormat = false;
     _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
@@ -327,76 +301,64 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     res->AddAttribute("SMPTEMode", wxString::Format("%d", _SMPTEMode));
-    if (IsSync())
-    {
+    if (IsSync()) {
         res->AddAttribute("Sync", "TRUE");
     }
 
-    if (_webAPIOnly)
-    {
+    if (_webAPIOnly) {
         res->AddAttribute("APIOnly", "TRUE");
     }
 
-    if (_advancedMode)
-    {
+    if (_advancedMode) {
         res->AddAttribute("AdvancedMode", "TRUE");
     }
-    if (_lateStartingScheduleUsesTime)
-    {
+    if (_lateStartingScheduleUsesTime) {
         res->AddAttribute("LateStartingScheduleUsesTime", "TRUE");
     }
     if (_disableOutputOnPingFailure) {
         res->AddAttribute("DisableOutputOnPingFailure", "TRUE");
     }
-    if (_hardwareAcceleratedVideo)
-    {
+    if (_useStepMMSSTimecodeFormat) {
+        res->AddAttribute("StepMMSSTimecodeFormat", "TRUE");
+    }
+    if (_hardwareAcceleratedVideo) {
         res->AddAttribute("HardwareAcceleratedVideo", "TRUE");
     }
-    else
-    {
+    else {
         res->AddAttribute("HardwareAcceleratedVideo", "FALSE");
     }
 
-    if (IsSendOffWhenNotRunning())
-    {
+    if (IsSendOffWhenNotRunning()) {
         res->AddAttribute("SendOffWhenNotRunning", "TRUE");
     }
 
-    if (IsSendBackgroundWhenNotRunning())
-    {
+    if (IsSendBackgroundWhenNotRunning()) {
         res->AddAttribute("SendBackgroundWhenNotRunning", "TRUE");
     }
 
-    if (IsParallelTransmission())
-    {
+    if (IsParallelTransmission()) {
         res->AddAttribute("ParallelTransmission", "TRUE");
     }
 
-    if (!IsRemoteAllOff())
-    {
+    if (!IsRemoteAllOff()) {
         res->AddAttribute("RemoteSustain", "TRUE");
     }
 
-    if (IsRetryOpen())
-    {
+    if (IsRetryOpen()) {
         res->AddAttribute("RetryOutputOpen", "TRUE");
     }
 
-    if (IsSuppressAudioOnRemotes())
-    {
+    if (IsSuppressAudioOnRemotes()) {
         res->AddAttribute("SuppressAudioOnRemotes", "TRUE");
     }
-    else
-    {
+    else {
         res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
     }
 
-    if (IsKeepScreenOn())
-    {
+    if (IsKeepScreenOn()) {
         res->AddAttribute("KeepScreenOn", "TRUE");
     }
-    else
-    {
+    else {
         res->AddAttribute("KeepScreenOn", "FALSE");
     }
 
@@ -411,35 +373,29 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
     res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));
 
-    for (auto it : _buttons)
-    {
+    for (auto it : _buttons) {
         res->AddChild(it->Save());
     }
 
-    for (auto it : _matrices)
-    {
+    for (auto it : _matrices) {
         res->AddChild(it->Save());
     }
 
-    for (auto it : _virtualMatrices)
-    {
+    for (auto it : _virtualMatrices) {
         res->AddChild(it->Save());
     }
 
-    for (auto it : _extraIPs)
-    {
+    for (auto it : _extraIPs) {
         res->AddChild(it->Save());
     }
 
     wxXmlNode* en = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Events");
     res->AddChild(en);
-    for (auto it : _events)
-    {
+    for (auto it : _events) {
         en->AddChild(it->Save());
     }
 
-    for (auto it : _fppRemotes)
-    {
+    for (auto it : _fppRemotes) {
         wxXmlNode* n = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "FPPRemote");
         n->AddAttribute("IP", wxString(it));
         res->AddChild(n);
@@ -458,9 +414,8 @@ std::vector<UserButton*> ScheduleOptions::GetButtons() const
 
 void ScheduleOptions::ClearButtons()
 {
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        delete *it;
+    for (const auto& it : _buttons) {
+        delete it;
     }
     _buttons.clear();
     _changeCount++;
@@ -470,15 +425,15 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const 
 {
     bool first = true;
     std::string res = "{\"buttons\":[";
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (const auto& it : _buttons)
     {
-        if (wxString((*it)->GetLabel()).StartsWith("HIDE_"))
+        if (wxString(it->GetLabel()).StartsWith("HIDE_"))
         {
             // dont return these
         }
         else
         {
-            auto cmd = cmdMgr.GetCommand((*it)->GetCommand());
+            auto cmd = cmdMgr.GetCommand(it->GetCommand());
             if (!cmd->IsUIOnly())
             {
                 if (!first)
@@ -487,9 +442,9 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const 
                 }
                 first = false;
                 res += "{\"label\":\"" +
-                    (*it)->GetLabel() + "\",\"color\":\"" +
-                    (*it)->GetColorName() + "\",\"id\":\"" +
-                    wxString::Format("%i", (*it)->GetId()).ToStdString() + "\"}";
+                    it->GetLabel() + "\",\"color\":\"" +
+                    it->GetColorName() + "\",\"id\":\"" +
+                    wxString::Format("%i", it->GetId()).ToStdString() + "\"}";
             }
         }
     }
@@ -502,28 +457,23 @@ bool ScheduleOptions::IsDirty() const
 {
     bool res = _lastSavedChangeCount != _changeCount;
 
-    for (auto it : _buttons)
-    {
+    for (auto it : _buttons) {
         res = res || it->IsDirty();
     }
 
-    for (auto it : _matrices)
-    {
+    for (auto it : _matrices) {
         res = res || it->IsDirty();
     }
 
-    for (auto it : _virtualMatrices)
-    {
+    for (auto it : _virtualMatrices) {
         res = res || it->IsDirty();
     }
 
-    for (auto it : _events)
-    {
+    for (auto it : _events) {
         res = res || it->IsDirty();
     }
 
-    for (auto it : _extraIPs)
-    {
+    for (auto it : _extraIPs) {
         res = res || it->IsDirty();
     }
 
@@ -537,28 +487,23 @@ void ScheduleOptions::ClearDirty()
 {
     _lastSavedChangeCount = _changeCount;
 
-    for (auto it : _buttons)
-    {
+    for (auto it : _buttons) {
         it->ClearDirty();
     }
 
-    for (auto it : _matrices)
-    {
+    for (auto it : _matrices) {
         it->ClearDirty();
     }
 
-    for (auto it : _virtualMatrices)
-    {
+    for (auto it : _virtualMatrices) {
         it->ClearDirty();
     }
 
-    for (auto it : _events)
-    {
+    for (auto it : _events) {
         it->ClearDirty();
     }
 
-    for (auto it : _extraIPs)
-    {
+    for (auto it : _extraIPs) {
         it->ClearDirty();
     }
 
@@ -569,10 +514,8 @@ void ScheduleOptions::ClearDirty()
 UserButton* ScheduleOptions::GetButton(const std::string& label) const
 {
     wxString l = wxString(label).Lower();
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        if ((*it)->GetLabelLower() == l)
-        {
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it) {
+        if ((*it)->GetLabelLower() == l) {
             return *it;
         }
     }
@@ -582,11 +525,9 @@ UserButton* ScheduleOptions::GetButton(const std::string& label) const
 
 UserButton* ScheduleOptions::GetButton(wxUint32 id) const
 {
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        if ((*it)->GetId() == id)
-        {
-            return *it;
+    for (const auto& it : _buttons) {
+        if (it->GetId() == id) {
+            return it;
         }
     }
 
@@ -595,7 +536,7 @@ UserButton* ScheduleOptions::GetButton(wxUint32 id) const
 
 std::string ScheduleOptions::GetOurURL() const
 {
-   return "http://127.0.0.1:" + wxString::Format("%d", GetWebServerPort());
+    return "http://127.0.0.1:" + wxString::Format("%d", GetWebServerPort());
 }
 
 std::string ScheduleOptions::GetDefaultRoot() const
@@ -671,8 +612,7 @@ TESTMODE TestOptions::EncodeMode(std::string mode) const
 
 std::string OSCOptions::DecodeFrame(OSCFRAME frame)
 {
-    switch (frame)
-    {
+    switch (frame) {
     case OSCFRAME::FRAME_DEFAULT:
         return "Default (int)";
     case OSCFRAME::FRAME_24:
@@ -694,8 +634,7 @@ std::string OSCOptions::DecodeFrame(OSCFRAME frame)
 
 std::string TestOptions::DecodeMode(TESTMODE mode)
 {
-    switch (mode)
-    {
+    switch (mode) {
     case TESTMODE::TEST_ALTERNATE:
         return "Alternate";
     case TESTMODE::TEST_A_B_C:
@@ -728,8 +667,7 @@ OSCTIME OSCOptions::EncodeTime(std::string time) const
 
 std::string OSCOptions::DecodeTime(OSCTIME time)
 {
-    switch(time)
-    {
+    switch (time) {
     case OSCTIME::TIME_SECONDS: return "Seconds (float)";
     case OSCTIME::TIME_MILLISECONDS: return "Milliseconds (int)";
     }

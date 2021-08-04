@@ -56,16 +56,27 @@ class SyncBase
 {
     protected:
 
+        bool _supportsStepMMSSFormat = false;
         uint32_t _ms = 0;
         std::string _song = "";
         SYNCMODE _mode = SYNCMODE::STANDALONE;
         REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
+        bool _useStepMMSSFormat = false;
+
+        uint32_t GetHours(uint32_t ms, uint32_t step) const {
+            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+                return step;
+            }
+            return ms / 3600000; 
+        }
+        uint32_t GetMinutes(uint32_t ms) const { return (ms % 3600000) / 60000; }
+        uint32_t GetSeconds(uint32_t ms) const { return (ms % 60000) / 1000; }
 
     public:
 
-        SyncBase(SYNCMODE mode, REMOTEMODE remoteMode) : _mode(mode), _remoteMode(remoteMode) {}
+        SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options);
 		virtual ~SyncBase() {}
-        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const = 0;
+        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const = 0;
         virtual std::string GetType() const = 0;
         virtual void SendStop() const = 0;
         uint32_t GetMS() const { return _ms; }
@@ -96,7 +107,7 @@ class SyncManager
 		void SetRemote(REMOTEMODE rm);
         void ClearRemote();
         void ClearMasters();
-        void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const; // send out to all masters
+        void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const; // send out to all masters
         void Start(int mode, REMOTEMODE remoteMode);
         void Stop();
         bool IsSlave() const { return _remote != nullptr; }

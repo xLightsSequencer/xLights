@@ -34,7 +34,7 @@ class SyncOSC : public SyncBase
         SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager);
         SyncOSC(SyncOSC&& from);
         virtual ~SyncOSC();
-        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const override;
+        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const override;
         virtual std::string GetType() const override { return "OSC"; }
         virtual void SendStop() const override;
 };

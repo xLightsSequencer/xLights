@@ -124,13 +124,13 @@ void SyncManager::ClearMasters()
     }
 }
 
-void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const
+void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
 { 
     for (auto& it : _masters)
     {
         if (it->IsReactive())
         {
-            it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem);
+            it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem, stepno);
         }
     }
 }
@@ -252,4 +252,9 @@ void SyncManager::SendStop() const
     {
         it->SendStop();
     }
+}
+
+SyncBase::SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options) : _mode(mode), _remoteMode(remoteMode)
+{
+    _useStepMMSSFormat = options.IsUseStepMMSSTimecodeFormat();
 }

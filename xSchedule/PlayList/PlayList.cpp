@@ -566,9 +566,9 @@ int PlayList::GetPos(PlayListStep* step)
     int i = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetId() == step->GetId())
+            if (it->GetId() == step->GetId())
             {
                 return i;
             }

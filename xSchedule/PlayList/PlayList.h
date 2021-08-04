@@ -84,6 +84,7 @@ public:
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
     PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
+    uint32_t GetRunningStepIndex() { return GetPos(_currentStep); }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
     int GetStepCount() const { return _steps.size(); }
     std::string GetNextScheduledTime();

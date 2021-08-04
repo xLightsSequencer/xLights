@@ -44,7 +44,7 @@ class SyncMIDI : public SyncBase
         SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
         SyncMIDI(SyncMIDI&& from);
         virtual ~SyncMIDI();
-        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const override;
+        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const override;
         virtual std::string GetType() const override { return "MIDI"; }
         virtual void SendStop() const override;
         double GetInterval();

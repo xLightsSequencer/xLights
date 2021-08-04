@@ -19,7 +19,7 @@
 #include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 
-SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(mode, remoteMode)
+SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(mode, remoteMode, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -95,7 +95,7 @@ SyncOSC::~SyncOSC()
     }
 }
 
-void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName) const
+void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName, uint32_t stepno) const
 {
     if (_mode != SYNCMODE::OSCMASTER || _oscSocket == nullptr) return;
 

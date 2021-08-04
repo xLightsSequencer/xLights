@@ -42,6 +42,7 @@ const long OptionsDialog::ID_CHECKBOX11 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX12 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX15 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX16 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -142,6 +143,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_DisableOutputOnPingFailure = new wxCheckBox(this, ID_CHECKBOX15, _("Disable output on local ping failure"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX15"));
 	CheckBox_DisableOutputOnPingFailure->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_DisableOutputOnPingFailure, 1, wxALL|wxEXPAND, 5);
+	CheckBox_SongMMSSFormat = new wxCheckBox(this, ID_CHECKBOX16, _("Use Song#:MM:SS timecode format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX16"));
+	CheckBox_SongMMSSFormat->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_SongMMSSFormat, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -305,6 +309,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_HWAcceleratedVideo->SetValue(options->IsHardwareAcceleratedVideo());
     CheckBox_LastStartingSequenceUsesTime->SetValue(options->IsLateStartingScheduleUsesTime());
     CheckBox_DisableOutputOnPingFailure->SetValue(options->IsDisableOutputOnPingFailure());
+    CheckBox_SongMMSSFormat->SetValue(options->IsUseStepMMSSTimecodeFormat());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -332,6 +337,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
         Choice1->AppendString(it);
     }
     Choice1->SetStringSelection(IPOutput::GetLocalIP());
+
+    for (auto it : options->GetSPMTEModes())         {
+        Choice_SMPTEFrameRate->AppendString(it);
+    }
+    Choice_SMPTEFrameRate->SetStringSelection(options->DecodeSMPTEMode(options->GetSMPTEMode()));
 
     LoadButtons();
 
@@ -413,6 +423,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
     _options->SetLateStartingScheduleUsesTime(CheckBox_LastStartingSequenceUsesTime->GetValue());
     _options->SetDisableOutputOnPingFailure(CheckBox_DisableOutputOnPingFailure->GetValue());
+    _options->SetSMPTEMode(_options->EncodeSMPTEMode(Choice_SMPTEFrameRate->GetStringSelection()));
+    _options->SetStepMMSSTimecodeFormat(CheckBox_SongMMSSFormat->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

@@ -13,6 +13,7 @@
 #include "events/ListenerManager.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayList.h"
+#include "PlayList/PlayListStep.h"
 #include "ScheduleManager.h"
 
 #include <log4cpp/Category.hh>
@@ -88,7 +89,9 @@ public:
                     {
                         // sent a sync
                         auto ms = pl->GetPosition();
-                        _syncArtNet->SendSync(0, 0, 0, ms, "", "", "", "");
+                        auto stepno = pl->GetRunningStepIndex();
+                        auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
+                        _syncArtNet->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
                         _toSendStop = true;
                     }
                     else
@@ -116,10 +119,11 @@ public:
     }
 };
 
-SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm)
+SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _supportsStepMMSSFormat = true;
     _timeCodeFormat = options.GetARTNetTimeCodeFormat();
 
     _remoteAddr.Hostname("255.255.255.255");
@@ -218,7 +222,7 @@ double SyncArtNet::GetInterval()
     return 1000.0 / 25.0;
 }
 
-void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const
+void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
 {
     if (_artnetSocket == nullptr) return;
 
@@ -237,19 +241,22 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
     buffer[11] = 0x0E;
 
     size_t ms = playlistMS;
+    if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+        ms = stepMS;
+    }
 
     if (ms == 0xFFFFFFFF)
     {
         ms = 0;
     }
 
-    buffer[17] = ms / (3600000);
-    ms = ms % 3600000;
+    // hours
+    buffer[17] = GetHours(ms, stepno);
+    // minutes
+    buffer[16] = GetMinutes(ms);
+    // secs
+    buffer[15] = GetSeconds(ms);
 
-    buffer[16] = ms / 60000;
-    ms = ms % 60000;
-
-    buffer[15] = ms / 1000;
     ms = ms % 1000;
 
     buffer[18] = static_cast<int>(_timeCodeFormat);
@@ -277,5 +284,5 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
 
 void SyncArtNet::SendStop() const
 {
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "");
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
 }

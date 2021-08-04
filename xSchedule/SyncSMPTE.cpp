@@ -15,10 +15,11 @@
 #include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 
-SyncSMPTE::SyncSMPTE(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm)
+SyncSMPTE::SyncSMPTE(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _supportsStepMMSSFormat = true;
     _frameRate = options.GetSMPTEMode();
 
     if (sm == SYNCMODE::SMPTEMASTER)
@@ -41,7 +42,7 @@ SyncSMPTE::~SyncSMPTE()
 {
 }
 
-void SyncSMPTE::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const
+void SyncSMPTE::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
 {
     // Not implemented
 }

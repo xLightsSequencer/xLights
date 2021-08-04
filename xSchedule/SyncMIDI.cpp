@@ -14,6 +14,7 @@
 #include "wxMIDI/src/wxMidi.h"
 #include "ScheduleManager.h"
 #include "PlayList/PlayList.h"
+#include "PlayList/PlayListStep.h"
 
 #include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
@@ -87,7 +88,9 @@ public:
                     {
                         // sent a sync
                         auto ms = pl->GetPosition();
-                        _syncMidi->SendSync(0, 0, 0, ms, "", "", "", "");
+                        auto stepno = pl->GetRunningStepIndex();
+                        auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
+                        _syncMidi->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
                         _toSendStop = true;
                     }
                     else
@@ -171,18 +174,14 @@ public:
         double interval = 1000000.0 / 24.0; // 88 BPM, 24 frames per second
         logger_base.debug("Clock thread interval %gms", interval / 1000);
         _running = true;
-        while (!_stop)
-        {
-            if (!_suspend)
-            {
+        while (!_stop) {
+            if (!_suspend) {
                 long long sleepfor = 0;
 
-                if (wxGetUTCTimeUSec() - last > interval)
-                {
+                if (wxGetUTCTimeUSec() - last > interval) {
                     // get our absolute position
                     PlayList* pl = _scheduleManager->GetRunningPlayList();
-                    if (pl != nullptr)
-                    {
+                    if (pl != nullptr) {
                         // sent a sync
                         auto ms = pl->GetPosition();
                         _syncMidi->SendClock();
@@ -192,8 +191,7 @@ public:
                     last = wxGetUTCTimeUSec().GetValue();
                 }
 
-                if (sleepfor > 0)
-                {
+                if (sleepfor > 0) {
                     wxMicroSleep(sleepfor);
                 }
             }
@@ -205,30 +203,26 @@ public:
 };
 #endif
 
-SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm)
+SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm, options)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _supportsStepMMSSFormat = true;
     _timeCodeDevice = options.GetMIDITimecodeDevice();
     _timeCodeFormat = options.GetMIDITimecodeFormat();
     _timeCodeOffset = options.GetMIDITimecodeOffset();
 
-    if (sm == SYNCMODE::MIDIMASTER)
-    {
-        if (_timeCodeDevice != "")
-        {
+    if (sm == SYNCMODE::MIDIMASTER) {
+        if (_timeCodeDevice != "") {
             _midi = new wxMidiOutDevice(wxAtoi(wxString(_timeCodeDevice).AfterLast(' ')));
-            if (_midi->IsOutputPort())
-            {
+            if (_midi->IsOutputPort()) {
                 wxMidiError err = _midi->Open(0);
-                if (err != wxMIDI_NO_ERROR)
-                {
+                if (err != wxMIDI_NO_ERROR) {
                     delete _midi;
                     _midi = nullptr;
                     logger_base.error("MIDI failed to open as a timecode master: %d", err);
                 }
-                else
-                {
+                else {
                     logger_base.debug("MIDI opened as a timecode master");
                     // Start the sending thread
                     _threadTimecode = new MIDITimecodeThread(this, listenerManager->GetScheduleManager());
@@ -237,8 +231,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
 #endif
                 }
             }
-            else
-            {
+            else {
                 delete _midi;
                 _midi = nullptr;
                 logger_base.debug("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
@@ -247,8 +240,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
         }
     }
 
-    if (rm == REMOTEMODE::MIDISLAVE)
-    {
+    if (rm == REMOTEMODE::MIDISLAVE) {
         listenerManager->SetRemoteMIDI();
     }
 }
@@ -278,8 +270,7 @@ SyncMIDI::SyncMIDI(SyncMIDI&& from) : SyncBase(from)
 SyncMIDI::~SyncMIDI()
 {
     // close the sending thread
-    if (_threadTimecode != nullptr)
-    {
+    if (_threadTimecode != nullptr) {
         //logger_base.debug("MIDI Timecode stopping.");
         _threadTimecode->Stop();
         _threadTimecode->Delete();
@@ -288,8 +279,7 @@ SyncMIDI::~SyncMIDI()
 
 #ifdef USE_CLOCK_THREAD
     // close the sending thread
-    if (_threadClock != nullptr)
-    {
+    if (_threadClock != nullptr) {
         //logger_base.debug("MIDI Clock stopping.");
         _threadClock->Stop();
         _threadClock->Delete();
@@ -309,8 +299,7 @@ SyncMIDI::~SyncMIDI()
 
 double SyncMIDI::GetInterval()
 {
-    switch (_timeCodeFormat)
-    {
+    switch (_timeCodeFormat) {
     default:
     case TIMECODEFORMAT::F24: // 24 fps
         return 1000.0 / 24.0;
@@ -342,7 +331,7 @@ void SyncMIDI::SendClock() const
     }
 }
 
-void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const
+void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static size_t lastmsec = 999999999;
@@ -353,8 +342,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     bool dosend = false;
     if (playlistMS == 0) dosend = true;
 
-    if (!dosend)
-    {
+    if (!dosend) {
         //if (msec - lastmsec > 1000)
         {
             dosend = true;
@@ -364,13 +352,11 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     if (!dosend) return;
 
     bool sendresync = false;
-    if (playlistMS - lastmsec < 0 || playlistMS - lastmsec > 1000)
-    {
+    if (playlistMS - lastmsec < 0 || playlistMS - lastmsec > 1000) {
         sendresync = true;
     }
 
-    if (lastmsec == 999999999)
-    {
+    if (lastmsec == 999999999) {
         wxMidiShortMessage msg(0xFA, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
         logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
@@ -382,8 +368,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
             _midi->Write(&msg);
         }
     }
-    else if (playlistMS == 0xFFFFFFFF)
-    {
+    else if (playlistMS == 0xFFFFFFFF) {
         lastmsec = 999999999;
         wxMidiShortMessage msg(0xFC, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -401,10 +386,12 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
 
     // send the packet
 
-    if (sendresync)
-    {
+    if (sendresync) {
         uint8_t buffer[10];
         size_t ms = playlistMS;
+        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+            ms = stepMS;
+        }
 
         ms += _timeCodeOffset;
 
@@ -414,17 +401,12 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         buffer[3] = 0x01;
         buffer[4] = 0x01;
 
-        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + ms / (3600000); // hour
-        ms = ms % 3600000;
-
-        buffer[6] = ms / 60000; // minute
-        ms = ms % 60000;
-
-        buffer[7] = ms / 1000; // seconds
+        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno); // hour
+        buffer[6] = GetMinutes(ms); // minute
+        buffer[7] = GetSeconds(ms); // seconds
         ms = ms % 1000;
 
-        switch (_timeCodeFormat)
-        {
+        switch (_timeCodeFormat) {
         default:
         case TIMECODEFORMAT::F24: // 24 fps
             buffer[8] = ms * 24 / 1000;
@@ -448,23 +430,20 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         }
         firstquarterframe = true;
     }
-    else
-    {
+    else {
         size_t ms = playlistMS;
+        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+            ms = stepMS;
+        }
         ms += _timeCodeOffset;
 
-        int hours = (static_cast<int>(_timeCodeFormat) << 5) + ms / (3600000);
-        ms = ms % 3600000;
-
-        int mins = ms / 60000;
-        ms = ms % 60000;
-
-        int secs = ms / 1000;
+        int hours = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno);
+        int mins = GetMinutes(ms);
+        int secs = GetSeconds(ms);
         ms = ms % 1000;
 
         int frames;
-        switch (_timeCodeFormat)
-        {
+        switch (_timeCodeFormat) {
         default:
         case TIMECODEFORMAT::F24: // 24 fps
             frames = ms * 24 / 1000;
@@ -483,12 +462,9 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         logger_base.debug("%d:%02d:%02d.%02d", hours, mins, secs, frames);
 
         uint8_t data = 0;
-        if (firstquarterframe)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                switch (i)
-                {
+        if (firstquarterframe) {
+            for (int i = 0; i < 4; i++) {
+                switch (i) {
                 case 0:
                     data = frames & 0x0F;
                     break;
@@ -514,12 +490,9 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
                 }
             }
         }
-        else
-        {
-            for (int i = 4; i < 8; i++)
-            {
-                switch (i)
-                {
+        else {
+            for (int i = 4; i < 8; i++) {
+                switch (i) {
                 case 4:
                     data = mins & 0x0F;
                     break;
@@ -554,8 +527,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
 
 uint8_t SyncMIDI::GetTimeCodeBits() const
 {
-    switch (_timeCodeFormat)
-    {
+    switch (_timeCodeFormat) {
     default:
     case TIMECODEFORMAT::F24: // 24 fps
         return 0;
@@ -572,5 +544,5 @@ uint8_t SyncMIDI::GetTimeCodeBits() const
 
 void SyncMIDI::SendStop() const
 {
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "");
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
 }
