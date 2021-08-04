@@ -59,7 +59,7 @@ void DisplayError(const std::string& err, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.error("DisplayError: " + err);
+    logger_base.error("DisplayError: %s", (const char*)err.c_str());
     wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);
 }
 
@@ -67,7 +67,7 @@ void DisplayWarning(const std::string& warn, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.warn("DisplayWarning: " + warn);
+    logger_base.warn("DisplayWarning: %s", (const char*)warn.c_str());
     wxMessageBox(warn, "Warning", wxICON_WARNING | wxOK, win);
 }
 
@@ -75,7 +75,7 @@ void DisplayInfo(const std::string& info, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.info("DisplayInfo: " + info);
+    logger_base.info("DisplayInfo: %s", (const char*)info.c_str());
     wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK, win);
 }
 
@@ -83,7 +83,7 @@ void DisplayCrit(const std::string& crit, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.crit("DisplayCrit: " + crit);
+    logger_base.crit("DisplayCrit: %s", (const char*)crit.c_str());
     wxMessageBox(crit, "CRITICAL", wxICON_ERROR | wxOK, win);
 }
 

@@ -1117,7 +1117,7 @@ void xLightsFrame::UpdateRenderStatus() {
                 }
             }
         }
-        if (countFrames > 0) {
+        if (countFrames > 0 && countModels > 0) {
             int pct = (countFrames * 80) / (countModels * frames);
             static int lastVal = 0;
             if (lastVal != pct) {
@@ -1154,7 +1154,6 @@ void xLightsFrame::UpdateRenderStatus() {
         }
     }
 }
-
 
 void xLightsFrame::RenderDone()
 {
