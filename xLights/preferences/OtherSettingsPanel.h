@@ -30,6 +30,7 @@ class OtherSettingsPanel: public wxPanel
 
 		//(*Declarations(OtherSettingsPanel)
 		wxCheckBox* CheckBox_BatchRenderPromptIssues;
+		wxCheckBox* CheckBox_WarnGroupIssues;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
@@ -55,6 +56,7 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE2;
 		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX_WARN_GROUP_ISSUES;
 		//*)
 
 	private:
@@ -67,6 +69,7 @@ class OtherSettingsPanel: public wxPanel
 		void OneMailTextControlTextEnter(wxCommandEvent& event);
 		void OnChoice_LinkSaveSelect(wxCommandEvent& event);
 		void OnChoice_LinkControllerUploadSelect(wxCommandEvent& event);
+		void OnCheckBox_WarnGroupIssuesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

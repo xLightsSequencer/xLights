@@ -22,7 +22,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
 
         static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
-        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels, bool warn);
 
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname);

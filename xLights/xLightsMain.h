@@ -980,6 +980,7 @@ public:
     bool _excludePresetsFromPackagedSequences = true;
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;
+    bool _warnGroupIssues = true;
     bool _hwVideoAccleration = false;
     bool _showACLights = false;
     bool _showACRamps = false;
@@ -1094,6 +1095,9 @@ public:
 
     bool GetPromptBatchRenderIssues() const { return _promptBatchRenderIssues; }
     void SetPromptBatchRenderIssues(bool b) { _promptBatchRenderIssues = b; }
+
+	bool GetWarnGroupIssues() const { return _warnGroupIssues; }
+	void SetWarnGroupIssues(bool b) { _warnGroupIssues = b; }
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}

@@ -248,7 +248,8 @@ wxString ModelGroup::SerialiseModelGroup(const std::string& forModel) const
 
     std::string nmns;
     auto mns = wxSplit(new_doc.GetRoot()->GetAttribute("models"), ',');
-    for (auto& it : mns)         {
+    for (auto& it : mns) {
+        if(!it.StartsWith(forModel)) continue;
         if (nmns != "") nmns += ",";
         it.Replace(forModel + "/", "EXPORTEDMODEL/");
         nmns += it;
@@ -300,7 +301,7 @@ bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
     return true;
 }
 
-bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels)
+bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels, bool warn)
 {
     bool changed = false;
 
@@ -338,9 +339,11 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::s
     if (changed && modelsRemoved != "") {
         node->DeleteAttribute("models");
         node->AddAttribute("models", models);
-        DisplayWarning("Could not process model group " + name
-            + " due to models not being found.  The following models will be removed from the group:"
-            + modelsRemoved);
+        if (warn) {
+            DisplayWarning("Could not process model group " + name
+                + " due to models not being found.  The following models will be removed from the group:"
+                + modelsRemoved);
+        }
     }
 
     return changed;
@@ -365,7 +368,7 @@ ModelGroup::ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, con
     // We have to fix the model name before we reset otherwise it will fail
     auto mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     std::string nmns;
-    for (auto& it : mn)         {
+    for (auto& it : mn) {
         if (nmns != "") nmns += ",";
         it.Replace("EXPORTEDMODEL", mname);
         nmns += it;

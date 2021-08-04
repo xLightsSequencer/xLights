@@ -1020,7 +1020,7 @@ void xLightsFrame::UpdateModelsList()
     }
     AllModels.LoadGroups(ModelGroupsNode,
         modelPreview->GetVirtualCanvasWidth(),
-        modelPreview->GetVirtualCanvasHeight());
+        modelPreview->GetVirtualCanvasHeight(), _warnGroupIssues);
 
     wxString msg;
 

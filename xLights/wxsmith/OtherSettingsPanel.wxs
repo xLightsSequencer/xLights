@@ -134,7 +134,18 @@
 				</object>
 				<col>0</col>
 				<row>5</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_WARN_GROUP_ISSUES" variable="CheckBox_WarnGroupIssues" member="yes">
+					<label>Warn for Missing Model in Groups</label>
+					<checked>1</checked>
+				</object>
+				<col>0</col>
+				<row>6</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

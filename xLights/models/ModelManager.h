@@ -59,7 +59,7 @@ class ModelManager : public ObjectManager
         wxString SerialiseModelGroupsForModel(const std::string& name) const;
         void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
-        bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
+        bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH, bool warn);
 
         bool RenameController(const std::string& oldName, const std::string& newName);
 

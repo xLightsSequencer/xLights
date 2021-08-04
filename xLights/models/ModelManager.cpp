@@ -929,7 +929,7 @@ bool ModelManager::ReworkStartChannel() const
     return outputsChanged;
 }
 
-bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
+bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH, bool warn) {
 
     //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("ModelManager loading groups.");
@@ -975,7 +975,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     // this stops some end conditions which cant be resolved
     for (const auto& it : toBeDone)
     {
-        changed |= ModelGroup::RemoveNonExistentModels(it, allModels);
+        changed |= ModelGroup::RemoveNonExistentModels(it, allModels, warn);
     }
 
     // try up to however many models we have left

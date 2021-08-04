@@ -34,6 +34,7 @@ const long OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX_WARN_GROUP_ISSUES = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -82,7 +83,10 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	GridBagSizer1->Add(Choice_LinkControllerUpload, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	CheckBox_BatchRenderPromptIssues = new wxCheckBox(this, ID_CHECKBOX4, _("Prompt issues during batch render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_BatchRenderPromptIssues->SetValue(true);
-	GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_WarnGroupIssues = new wxCheckBox(this, ID_CHECKBOX_WARN_GROUP_ISSUES, _("Warn for Missing Model in Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WARN_GROUP_ISSUES"));
+	CheckBox_WarnGroupIssues->SetValue(true);
+	GridBagSizer1->Add(CheckBox_WarnGroupIssues, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -115,6 +119,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
 	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
+	frame->SetWarnGroupIssues(CheckBox_WarnGroupIssues->GetValue());
     return true;
 }
 
@@ -126,6 +131,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	Choice_LinkSave->SetStringSelection(frame->LinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->LinkedControllerUpload());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
+	CheckBox_WarnGroupIssues->SetValue(frame->GetWarnGroupIssues());
     return true;
 }
 
@@ -165,6 +171,13 @@ void OtherSettingsPanel::OnChoice_LinkSaveSelect(wxCommandEvent& event)
 }
 
 void OtherSettingsPanel::OnChoice_LinkControllerUploadSelect(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
+}
+
+void OtherSettingsPanel::OnCheckBox_WarnGroupIssuesClick(wxCommandEvent& event)
 {
 	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
 		TransferDataFromWindow();
