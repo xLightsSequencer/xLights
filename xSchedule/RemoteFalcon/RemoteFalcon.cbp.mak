@@ -19,7 +19,7 @@ LIB =
 LDFLAGS = 
 
 INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/RemoteFalcon -I../include
-CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=""
+CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
@@ -30,7 +30,7 @@ DEP_LINUX_DEBUG =
 OUT_LINUX_DEBUG = ../../bin/RemoteFalcon.so
 
 INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/RemoteFalcon -I../include
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)

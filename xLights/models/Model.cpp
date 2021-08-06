@@ -4449,9 +4449,9 @@ wxString Model::ExportSuperStringColors() const
         return "";
     }
     wxString colors;
-    for (int i = 0; i < superStringColours.size(); i++)
-    {
-        colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, (wxString)superStringColours[i]);
+    for (int i = 0; i < superStringColours.size(); i++) {
+        wxString c = superStringColours[i];
+        colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, c);
     }
     return colors;
 }
