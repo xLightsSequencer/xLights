@@ -22,6 +22,7 @@ class DmxMovingHead3D : public DmxMovingHead
         virtual ~DmxMovingHead3D();
 
     protected:
+        virtual void SetFromXml(wxXmlNode* ModelNode, bool zb) override;
         virtual void InitModel() override;
 
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;

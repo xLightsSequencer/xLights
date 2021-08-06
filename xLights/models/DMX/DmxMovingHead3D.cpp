@@ -144,7 +144,19 @@ void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
 
     DmxModel::DisableUnusedProperties(grid);
 }
-
+void DmxMovingHead3D::SetFromXml(wxXmlNode* ModelNode, bool zb) {
+    base_node = nullptr;
+    head_node = nullptr;
+    if (base_mesh) {
+        delete base_mesh;
+        base_mesh = nullptr;
+    }
+    if (head_mesh) {
+        delete head_mesh;
+        head_mesh = nullptr;
+    }
+    DmxMovingHead::SetFromXml(ModelNode, zb);
+}
 void DmxMovingHead3D::InitModel() {
     DisplayAs = "DmxMovingHead3D";
     DmxMovingHead::InitModel();
