@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)   Fix Twinkle new render method bug that affected all Twinkles but the first one
 2021.24 August 3, 2021
    -- enh (scott) Added experimental Light-o-rama S5 Preview/Model Import
    -- enh (scott) Allow the multiple selection of groups with right click "Add Model to Group" option

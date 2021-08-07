@@ -272,6 +272,8 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
+        cache->lights_to_renew = lights;
+        cache->curNumStrobe = 0;
         if (new_algorithm) {
             strobe.clear();
             strobe.resize(buffer.BufferHt * buffer.BufferWi);
