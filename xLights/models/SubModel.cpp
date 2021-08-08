@@ -145,7 +145,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         bool done = false;
                         wxInt32 nn = start;
                         while (!done) {
-                            if (nn < (wxInt32)p->GetNodeCount()) {
+                            if ((uint32_t)nn < p->GetNodeCount()) {
                                 NodeBaseClass* node = p->Nodes[nn]->clone();
                                 startChannel = (std::min)(startChannel, node->ActChan);
                                 Nodes.push_back(NodeBaseClassPtr(node));
