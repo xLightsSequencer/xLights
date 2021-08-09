@@ -309,7 +309,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   autonumber(false),
   autoincrement(false),
   next_channel(1)
-{    
+{
 	//(*Initialize(CustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -692,7 +692,7 @@ std::string CustomModelDialog::GetModelData()
             for (int col = 0; col < numCols; col++) {
                 if (col > 0) customChannelData += ",";
                 wxString value = StripIllegalChars(grid->GetCellValue(row, col));
-                if (value == "0" || value.StartsWith("-")) value.clear();
+                if (value == "0" || value.StartsWith("-") || value.size() > 6) value.clear();
                 customChannelData += value;
             }
         }
@@ -1868,7 +1868,7 @@ void CustomModelDialog::Shift()
 
 void CustomModelDialog::ShiftSelected()
 {
-    //I think not "wrapping around" is better when shifting selected nodes. 
+    //I think not "wrapping around" is better when shifting selected nodes.
     //I see this being used when a Node is missed and only half need to be shifted by one.
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -10000, 10000);
     if (dlg.ShowModal() == wxID_OK) {
@@ -2084,7 +2084,7 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER)
     {
-        CreateMinimalSubmodelFromLayer(Notebook1->GetSelection() + 1);        
+        CreateMinimalSubmodelFromLayer(Notebook1->GetSelection() + 1);
     }
     else if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT ||
             id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
@@ -2459,7 +2459,7 @@ void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
 void CustomModelDialog::OnGridPopupLabel(wxCommandEvent& event)
 {
     int id = event.GetId();
-    
+
     if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW)
     {
         CreateSubmodelFromRow(_selRow + 1);
@@ -2665,7 +2665,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
         mnu.AppendSeparator();
         mnu.AppendSubMenu(sub, "Number Selected");
     }
-    
+
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
 }
