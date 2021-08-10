@@ -422,6 +422,10 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
 
     HSVValue hsv;
     buffer.palette.GetHSV(0, hsv);
+    // if colour scheme is rainbow then we have to set colour to non-white
+    if (ColorScheme == 0) {
+        hsv = xlRED.asHSV();
+    }
     float orig_v = hsv.value;
 
     /*
