@@ -989,7 +989,27 @@ public:
         uint32_t fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
 
         if (fidx >= m_curFrameInBlock) {
-            if ((fidx + 1) * m_file->getChannelCount() > m_outBuffer.size) LogDebug(VB_SEQUENCE, " getFrame  m_outBuffer.size increased but memory not reallocated.\n");
+            if (fidx >= m_framesPerBlock) {
+                // should not happen
+                // m_outBuffer.dst is pre-sized to "m_framesPerBlock * m_file->getChannelCount()"
+                //  ( see malloc above )
+                // so as long as the fidx < m_framesPerBlock, we don't need to resize.   We just
+                // need to update the m_outBuffer.size to let the decompressor know there is space there
+                // for the next frame.
+                //
+                // Note: we COULD just set the m_outBuffer.size to the full size of the decompressed block
+                // up front instead of per frame.  That would be very slightly faster to load the
+                // fseq in xLights (which loads all the frames up front), but would cause extra
+                // latencies in FPP and xSchedule which request one frame at a time.  Requesting
+                // the first frame in the block would trigger decompressing all the frames in the
+                // block immediately which, if there are a lot of frames, could take much longer
+                // than we'd have available in a latency critical step.
+                if ((fidx + 1) * m_file->getChannelCount() > m_outBuffer.size) {
+                    LogDebug(VB_SEQUENCE,
+                             " getFrame m_outBuffer.size increased but memory not reallocated.  Block: %u Frame: %u FramesInBlock: %u\n",
+                             m_curBlock, fidx, m_framesPerBlock);
+                }
+            }
             m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
             ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
             m_curFrameInBlock = fidx + 1;
