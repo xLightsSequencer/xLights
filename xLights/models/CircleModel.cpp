@@ -242,7 +242,11 @@ void CircleModel::InitCircle()
     int nodesToMap = NodeCount;
     for (int circle = 0; circle < GetLayerSizeCount(); circle++) {
         int idx = 0;
-        int loop_count = std::min(nodesToMap, GetStrandLength(circle));
+        auto strandLen = GetStrandLength(circle);
+        int loop_count = std::min(nodesToMap, strandLen);
+        // if the number of nodes in this layer is exactly divisible into the maximum loops then we dont fudge ... but if it isnt then we want to fudge things slightly 
+        // so that the largest layer goes to the end but any layer not divisible does not use the last x value
+        double fudge = -1 * maxLights / strandLen + 1;
         for (size_t n = 0; n < loop_count; n++) {
             if (Nodes[node]->StringNum != LastStringNum) {
                 LastStringNum = Nodes[node]->StringNum;
@@ -258,7 +262,7 @@ void CircleModel::InitCircle()
                     Nodes[node]->Coords[c].bufY = insideOut ? GetLayerSizeCount() - circle - 1 : circle;
                 }
                 else {
-                    int x_pos = (GetStrandLength(circle) == maxLights) ? idx : std::round(pct * (double)(maxLights - 1));
+                    int x_pos = (GetStrandLength(circle) == maxLights) ? idx : std::floor(pct * ((double)maxLights - 1.0 + fudge));
                     Nodes[node]->Coords[c].bufX = x_pos;
                     Nodes[node]->Coords[c].bufY = insideOut? GetLayerSizeCount() - circle - 1 : circle;
                     idx++;
@@ -439,7 +443,7 @@ void CircleModel::OnLayerSizesChange(bool countChanged)
     // if string count is 1 then adjust nodes per string to match sum of nodes
     if (parm1 == 1 && GetLayerSizeCount() > 0) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", GetLayerSizesTotalNodes()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnLayerSizesChange");
