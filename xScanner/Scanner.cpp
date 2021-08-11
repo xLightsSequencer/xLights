@@ -11,6 +11,7 @@
 
 #include "Scanner.h"
 #include "xScannerMain.h"
+#include "MAC.h"
 #include "../xLights/Parallel.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/UtilFunctions.h"
@@ -572,11 +573,16 @@ void Scanner::LookupMac(std::map<std::string, std::string>& arps, std::list<IPOb
 		}
 
 		if (it._mac != "") {
-			auto macURL = std::string("https://api.macvendors.com/" + it._mac);
-			logger_base.debug("Looking up MAC: %s", (const char*)macURL.c_str());
-			it._macVendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
-			if (Contains(it._macVendor, "\"Not Found\"")) it._macVendor = "";
-			if (Contains(it._macVendor, "\"Too Many Requests\"")) it._macVendor = "MAC Lookup Unavailable";
+				
+			it._macVendor = LookupMacAddress(it._mac);
+
+			if (it._macVendor == "") {
+				auto macURL = std::string("https://api.macvendors.com/" + it._mac);
+				logger_base.debug("Looking up MAC: %s", (const char*)macURL.c_str());
+				it._macVendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
+				if (Contains(it._macVendor, "\"Not Found\"")) it._macVendor = "";
+				if (Contains(it._macVendor, "\"Too Many Requests\"")) it._macVendor = "MAC Lookup Unavailable";
+			}
 		}
 	}
 }

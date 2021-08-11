@@ -212,6 +212,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="MAC.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="ScanObject.cpp" />
     <ClCompile Include="xScannerApp.cpp" />
@@ -264,6 +265,7 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
+    <ClInclude Include="MAC.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="ScanObject.h" />
     <ClInclude Include="xScannerApp.h" />
@@ -271,6 +273,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="MacLookup.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

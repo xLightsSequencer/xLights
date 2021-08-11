@@ -62,7 +62,8 @@ Source: "../../include\xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xScanner/Release/xScanner.exe"; DestDir: "{app}"
 Source: "../../xScanner/Release/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../include\xScanner.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include/xScanner.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xScanner/MacLookup.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../xFade/Release/xFade.exe"; DestDir: "{app}"

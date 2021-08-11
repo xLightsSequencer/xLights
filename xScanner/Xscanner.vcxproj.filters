@@ -130,6 +130,7 @@
     <ClCompile Include="..\xLights\controllers\BaseController.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="MAC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -270,6 +271,7 @@
     <ClInclude Include="..\xLights\controllers\BaseController.h">
       <Filter>xLights</Filter>
     </ClInclude>
+    <ClInclude Include="MAC.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -278,5 +280,8 @@
     <Filter Include="xLights">
       <UniqueIdentifier>{e9e82e91-3b73-475f-a615-dde1bfd25a35}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="MacLookup.txt" />
   </ItemGroup>
 </Project>
