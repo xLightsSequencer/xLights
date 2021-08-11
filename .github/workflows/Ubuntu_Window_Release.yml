@@ -1,0 +1,81 @@
+name: Create Ubuntu and Window Releases
+
+on: 
+  push:
+    tags:
+    - '*'
+    
+  workflow_dispatch:
+jobs:
+  build-linux:
+
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull debenham/xlights
+      - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+      - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
+      - run: ls -lh /tmp/AppImage
+
+      - uses: ncipollo/release-action@v1
+        with:
+           allowUpdates: true
+           artifacts: "/tmp/AppImage/*.AppImage"
+           token: ${{ secrets.GITHUB_TOKEN }}
+           
+         
+  build-windows:
+   runs-on: windows-latest
+
+   steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Setup msbuild
+      uses: microsoft/setup-msbuild@v1
+      
+    - name: Download wxWidgets
+      run: 
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2021.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+
+    - name: Build wxWidgets
+      working-directory: ..\wxWidgets\
+      run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
+
+    - name: Build xFade
+      working-directory: xFade
+      run: msbuild xFade.sln /m /p:Configuration="Release" /p:Platform="x64"
+     
+    - name: Build xCapture
+      working-directory: xCapture
+      run: msbuild xCapture.sln /m /p:Configuration="Release" /p:Platform="x64"
+     
+    - name: Build xScanner
+      working-directory: xScanner
+      run: msbuild xScanner.sln /m /p:Configuration="Release" /p:Platform="x64"
+      
+    - name: Build xSchedule
+      working-directory: xSchedule
+      run: msbuild xSchedule.sln -maxcpucount:4 /p:Configuration="Release" /p:Platform="x64"
+      
+    - name: Build xSMSDaemon
+      working-directory: xSchedule\xSMSDaemon
+      run: msbuild xSMSDaemon.sln /m /p:Configuration="Release" /p:Platform="x64"
+     
+    - name: Build RemoteFalcon
+      working-directory: xSchedule\RemoteFalcon
+      run: msbuild RemoteFalcon.sln /m /p:Configuration="Release" /p:Platform="x64"
+
+    - name: Build xLights
+      working-directory: xLights
+      run: msbuild xLights.sln -maxcpucount:2 /p:Configuration="Release" /p:Platform="x64"
+      
+    - name: Build Installer
+      working-directory: build_scripts\msw
+      run: ISCC.exe xLights_4_64bit_VS.iss
+      
+    - uses: ncipollo/release-action@v1
+      with:
+           allowUpdates: true
+           artifacts: 'build_scripts\msw\output\*'
+           token: ${{ secrets.GITHUB_TOKEN }}
