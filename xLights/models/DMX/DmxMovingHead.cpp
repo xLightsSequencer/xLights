@@ -361,7 +361,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
     float rot_angle = (float)(((BoxedScreenLocation)screenLocation).GetRotation());
 
     std::vector<std::string> old_state = GetModelState();
-    if (old_state.size() > 0 && active) {
+    if (old_state.size() > 2 && active) {
         old_ms = std::atol(old_state[0].c_str());
         old_pan_angle = std::atof(old_state[1].c_str());
         old_tilt_angle = std::atof(old_state[2].c_str());

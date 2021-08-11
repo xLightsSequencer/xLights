@@ -53,31 +53,24 @@ public:
     {
         wxPoint point = wxGetMousePosition();
 
-        if (_models)
-        {
+        if (_models) {
             if (_window->ListCtrlModels->GetScreenRect().Contains(point) ||
-                _window->ListCtrlNonModels->GetScreenRect().Contains(point))
-            {
+                _window->ListCtrlNonModels->GetScreenRect().Contains(point)) {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
-            else
-            {
+            else {
                 _window->SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
             }
         }
-        else if (_nonModels)
-        {
-            if (_window->ListCtrlModels->GetScreenRect().Contains(point))
-            {
+        else if (_nonModels) {
+            if (_window->ListCtrlModels->GetScreenRect().Contains(point)) {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
-            else
-            {
+            else {
                 _window->SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
             }
         }
-        else
-        {
+        else {
             return false;
         }
 
@@ -941,7 +934,7 @@ void ViewsModelsPanel::UpdateModelsForSelectedView()
         wxString models = "";
         for (int i = 0; i < _sequenceElements->GetElementCount(currentView); i++) {
             Element* elem = _sequenceElements->GetElement(i, currentView);
-            if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 if (models != "") {
                     models += ",";
                 }
@@ -950,7 +943,7 @@ void ViewsModelsPanel::UpdateModelsForSelectedView()
         }
 
         SequenceView* view = _sequenceViewManager->GetView(viewName.ToStdString());
-        view->SetModels(models.ToStdString());
+        if (view != nullptr) view->SetModels(models.ToStdString());
     }
     PopulateModels();
 }

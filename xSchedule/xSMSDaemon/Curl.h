@@ -283,6 +283,12 @@ public:
             curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
+#ifdef __WXMSW__
+            // Temporarily adding this in order to try to catch ongoing curl crashes
+            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
+#endif
+
             struct curl_slist* headerlist = nullptr;
             logger_curl.info("HEADER START ----------");
             for (const auto& it : customHeaders)                 {
@@ -332,6 +338,44 @@ public:
         return res;
     }
 
+    // TODO once I have what i need from this move to logger_curl
+    static int CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, void* userp)
+    {
+        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        switch (type) {
+        case CURLINFO_TEXT:
+            // strip off the cr
+            if (strlen(data) > 0 && data[strlen(data) - 1] == '\n') data[strlen(data) - 1] = 0x00;
+            logger_base.debug("== Info: %s", data);
+            /* FALLTHROUGH */
+        default: /* in case a new one is introduced to shock us */
+            return 0;
+
+        case CURLINFO_HEADER_OUT:
+            logger_base.debug("=> Send header %lu", size);
+            break;
+        case CURLINFO_DATA_OUT:
+            logger_base.debug("=> Send data %lu", size);
+            break;
+        case CURLINFO_SSL_DATA_OUT:
+            logger_base.debug("=> Send SSL data %lu", size);
+            break;
+        case CURLINFO_HEADER_IN:
+            logger_curl.debug("<= Recv header %lu %s", size, data);
+            logger_base.debug("<= Recv header %lu", size);
+            break;
+        case CURLINFO_DATA_IN:
+            logger_base.debug("<= Recv data %lu", size);
+            break;
+        case CURLINFO_SSL_DATA_IN:
+            logger_base.debug("<= Recv SSL data %lu", size);
+            break;
+        }
+
+        return 0;
+    }
+
     static bool HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user = "", const std::string& password = "", int timeout = 10, wxProgressDialog* prog = nullptr)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -352,7 +396,6 @@ public:
                     curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                     curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
                 }
-                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl/7.42.0");
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -362,6 +405,12 @@ public:
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
                 curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
 
+#ifdef __WXMSW__
+                // Temporarily adding this in order to try to catch ongoing curl crashes
+                curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+                curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
                 struct curl_slist* chunk = nullptr;
                 chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20130401 Firefox/21.0");
                 curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -370,6 +419,9 @@ public:
                     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
                     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, prog);
                     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressFunction);
+                }
+                else {
+                    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
                 }
 
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFileFunction);
@@ -421,8 +473,8 @@ public:
     }
 
     struct HTTPFileUploadData {
-        HTTPFileUploadData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
-            postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0)
+        HTTPFileUploadData() : file(nullptr), data(nullptr), progress(nullptr), dataSize(0), curPos(0),
+            postData(nullptr), postDataSize(0), totalWritten(0), lastDone(0), cancelled(false)
         {
         }
 

@@ -633,9 +633,9 @@ bool xLightsFrame::CloseSequence()
     _renderCache.SetSequence(renderCacheDirectory, "");
 
     // clear everything to prepare for new sequence
-    displayElementsPanel->Clear();
-    sEffectAssist->SetPanel(nullptr);
-    sequenceVideoPanel->SetMediaPath("");
+    if (displayElementsPanel != nullptr) displayElementsPanel->Clear();
+    if (sEffectAssist != nullptr) sEffectAssist->SetPanel(nullptr);
+    if (sequenceVideoPanel != nullptr) sequenceVideoPanel->SetMediaPath("");
     xlightsFilename = "";
     mediaFilename = "";
     previewLoaded = false;
@@ -657,14 +657,16 @@ bool xLightsFrame::CloseSequence()
     if (_selectPanel) {
         _selectPanel->ClearData();
     }
-    mainSequencer->PanelEffectGrid->ClearSelection();
-    mainSequencer->PanelWaveForm->CloseMedia();
+    if (mainSequencer != nullptr) {
+        if (mainSequencer->PanelEffectGrid != nullptr) mainSequencer->PanelEffectGrid->ClearSelection();
+        if (mainSequencer->PanelWaveForm != nullptr) mainSequencer->PanelWaveForm->CloseMedia();
+    }
     _seqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);
-    _modelPreviewPanel->Refresh();
-    _housePreviewPanel->Refresh();
+    if (_modelPreviewPanel != nullptr) _modelPreviewPanel->Refresh();
+    if (_housePreviewPanel != nullptr) _housePreviewPanel->Refresh();
 
     SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
 
@@ -696,7 +698,7 @@ void xLightsFrame::ClearSequenceData()
 
 void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame::RenderIseqData bottom_layers %d", bottom_layers);
 
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
@@ -704,55 +706,49 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
     if (bottom_layers && data_layers.GetNumLayers() == 1 &&
         data_layers.GetDataLayer(0)->GetName() == "Nutcracker") {
         DataLayer* nut_layer = data_layers.GetDataLayer(0);
-        if( nut_layer->GetDataSource() == xLightsXmlFile::CANVAS_MODE ) {
+        if (nut_layer->GetDataSource() == xLightsXmlFile::CANVAS_MODE) {
             //Don't clear, v3 workflow of augmenting the existing fseq file
             return;
         }
     }
 
-    if( bottom_layers )
-    {
+    if (bottom_layers) {
         logger_base.debug("xLightsFrame::RenderIseqData clearing sequence data.");
         ClearSequenceData();
         read_mode = ConvertParameters::READ_MODE_NORMAL;
     }
-    else
-    {
+    else {
         read_mode = ConvertParameters::READ_MODE_IGNORE_BLACK;
     }
 
     int layers_rendered = 0;
     bool start_rendering = bottom_layers;
-    for( int i = data_layers.GetNumLayers() - 1; i >= 0; --i )  // build layers bottom up
+    for (int i = data_layers.GetNumLayers() - 1; i >= 0; --i)  // build layers bottom up
     {
         DataLayer* data_layer = data_layers.GetDataLayer(i);
-        if( data_layer->GetName() != "Nutcracker" )
-        {
-            if( start_rendering )
-            {
-                logger_base.debug("xLightsFrame::RenderIseqData rendering %s.", (const char *)data_layer->GetDataSource().c_str());
-                if (plog != nullptr)
-                {
+        if (data_layer->GetName() != "Nutcracker") {
+            if (start_rendering) {
+                logger_base.debug("xLightsFrame::RenderIseqData rendering %s.", (const char*)data_layer->GetDataSource().c_str());
+                if (plog != nullptr) {
                     plog->Show(true);
                 }
                 ConvertParameters read_params(data_layer->GetDataSource(),                // input filename
-                                              _seqData,                                    // sequence data object
-                                              &_outputManager,                               // global network info
-                                              read_mode,                                  // file read mode
-                                              this,                                       // xLights main frame
-                                              nullptr,
-                                              plog,
-                                              nullptr,                                    // filename not needed
-                                              data_layer );                               // provide data layer for channel offsets
+                    _seqData,                                    // sequence data object
+                    &_outputManager,                               // global network info
+                    read_mode,                                  // file read mode
+                    this,                                       // xLights main frame
+                    nullptr,
+                    plog,
+                    nullptr,                                    // filename not needed
+                    data_layer);                               // provide data layer for channel offsets
 
                 FileConverter::ReadFalconFile(read_params);
                 read_mode = ConvertParameters::READ_MODE_IGNORE_BLACK;
                 layers_rendered++;
             }
         }
-        else
-        {
-            if( bottom_layers ) break;  // exit after Nutcracker layer if rendering bottom layers only
+        else {
+            if (bottom_layers) break;  // exit after Nutcracker layer if rendering bottom layers only
             start_rendering = true;
         }
     }
@@ -770,14 +766,13 @@ static bool CalcPercentage(std::string& value, double base, bool reverse, int of
     int val = wxAtoi(value);
     val -= offset;
     val %= (int)base;
-    if( val < 0 ) return false;
-    double half_width = 1.0/base*50.0;
-    double percent = (double)val/base*100.0 + half_width;
-    if( reverse )
-    {
+    if (val < 0) return false;
+    double half_width = 1.0 / base * 50.0;
+    double percent = (double)val / base * 100.0 + half_width;
+    if (reverse) {
         percent = 100.0 - percent;
     }
-    value = wxString::Format(wxT("%i"),(int)percent);
+    value = wxString::Format(wxT("%i"), (int)percent);
     return true;
 }
 
@@ -829,23 +824,20 @@ static xlColor GetColor(const std::string& rgb) {
     return cl;
 }
 
-static EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTimeMS, int endTimeMS, std::vector<bool> &reserved)
+static EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTimeMS, int endTimeMS, std::vector<bool>& reserved)
 {
     int index = layer_index - 1;
 
-    EffectLayer * layer = model->GetEffectLayer(index);
-    if (layer != nullptr && layer->GetRangeIsClearMS(startTimeMS, endTimeMS))
-    {
+    EffectLayer* layer = model->GetEffectLayer(index);
+    if (layer != nullptr && layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
         return layer;
     }
 
     // need to search for open layer
-    for (size_t i = 0; i < model->GetEffectLayerCount(); i++)
-    {
+    for (size_t i = 0; i < model->GetEffectLayerCount(); i++) {
         if (i >= reserved.size() || !reserved[i]) {
             layer = model->GetEffectLayer(i);
-            if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS))
-            {
+            if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
                 return layer;
             }
         }

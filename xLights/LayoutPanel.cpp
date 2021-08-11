@@ -2864,9 +2864,11 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
     if (editing_models || models_and_objects) {
         int count = 0;
         for (const auto& it : modelPreview->GetModels()) {
-            if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
-                SelectModelInTree(it);
-                count++;
+            if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
+                if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                    SelectModelInTree(it);
+                    count++;
+                }
             }
         }
         if (count > 1) showBackgroundProperties();

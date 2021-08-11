@@ -2449,8 +2449,8 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     logger_base.debug("Destroying %d preview windows.", (int)PreviewWindows.size());
     // destroy preview windows
-    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
-        ModelPreview* preview = *it;
+    for (const auto& it : PreviewWindows) {
+        ModelPreview* preview = it;
         delete preview;
     }
 
@@ -2464,7 +2464,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString folderName;
     time_t cur;
     time(&cur);
@@ -2479,66 +2479,56 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     wxString newDirBackup = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
-    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
-    {
+    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup)) {
         DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
 
-    wxString newDir = wxString::Format( "%s%c%s-%s",
-		newDirBackup, wxFileName::GetPathSeparator(),
+    wxString newDir = wxString::Format("%s%c%s-%s",
+        newDirBackup, wxFileName::GetPathSeparator(),
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
-    if (startup)
-    {
+    if (startup) {
         newDir += "_OnStart";
     }
 
     int tries = 0;
-    while (wxDirExists(newDir) && tries < 11)
-    {
-        logger_base.warn("Backup directory '%s' already existed ... trying again", (const char *)newDir.c_str());
+    while (wxDirExists(newDir) && tries < 11) {
+        logger_base.warn("Backup directory '%s' already existed ... trying again", (const char*)newDir.c_str());
 
-        newDir = wxString::Format( "%s%c%s-%s",
-			newDirBackup, wxFileName::GetPathSeparator(),
+        newDir = wxString::Format("%s%c%s-%s",
+            newDirBackup, wxFileName::GetPathSeparator(),
             curTime.FormatISODate(), curTime.Format("%H%M%S")) + "_" + char(65 + tries);
-        if (startup)
-        {
+        if (startup) {
             newDir += "_OnStart";
         }
 
         tries++;
     }
 
-    if (tries == 11)
-    {
+    if (tries == 11) {
         DisplayError("Unable to find a unique name for backup directory! Backup failed.");
         return;
     }
 
-    if (prompt)
-    {
+    if (prompt) {
         if (wxNO == wxMessageBox("All xml & xsq files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
-            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
-        {
+            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO)) {
             return;
         }
     }
 
-    if (!newDirH.Mkdir(newDir))
-    {
+    if (!newDirH.Mkdir(newDir)) {
         DisplayError(wxString::Format("Unable to create directory '%s'! Backup failed.", newDir).ToStdString());
         return;
     }
-    else
-    {
-        logger_base.info("Backup directory '%s' created", (const char *)newDir.c_str());
+    else {
+        logger_base.info("Backup directory '%s' created", (const char*)newDir.c_str());
     }
 
     std::string errors = "";
     BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, errors);
 
-    if (errors != "")
-    {
+    if (errors != "") {
         DisplayError(errors, this);
     }
 }
@@ -2552,13 +2542,12 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (wxDir::Exists(targetDirName)) return;
     if (!wxDir::Exists(lastCreatedDirectory)) return;
 
-    if (targetDirName.Length() > 256)
-    {
+    if (targetDirName.Length() > 256) {
         logger_base.warn("Target directory %s is %d characters long. This may be an issue on your operating system.", (const char*)targetDirName.c_str(), targetDirName.Length());
     }
 
@@ -2574,15 +2563,12 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     wxString newDir = lastCreatedDirectory;
 
     bool cont = true;
-    for (size_t i = lstd.Count(); cont && i < tgtd.Count(); i++)
-    {
+    for (size_t i = lstd.Count(); cont && i < tgtd.Count(); i++) {
         wxDir dir(newDir);
         newDir += wxFileName::GetPathSeparator() + tgtd[i];
-        if (!wxDir::Exists(newDir))
-        {
+        if (!wxDir::Exists(newDir)) {
             logger_base.debug("    Create folder '%s'.", (const char*)newDir.c_str());
-            if (!dir.Make(newDir))
-            {
+            if (!dir.Make(newDir)) {
                 cont = false;
                 errors += wxString::Format("Failed to create folder %s\n", newDir);
                 logger_base.error("        Folder Create failed.");
@@ -2593,7 +2579,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
 
 bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
     wxString fname;
     wxString srcDirName = srcDir.GetNameWithSep();
@@ -2601,9 +2587,8 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     srcFile.SetPath(srcDir.GetNameWithSep());
 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
-    while (cont)
-    {
-        logger_base.debug("Backing up file %s.", (const char *)(srcDirName + fname).c_str());
+    while (cont) {
+        logger_base.debug("Backing up file %s.", (const char*)(srcDirName + fname).c_str());
         res = true;
 
         CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
@@ -2618,12 +2603,11 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
             continue;
         }
 
-        logger_base.debug("    to %s.", (const char *)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
+        logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
         SetStatusText("Copying File \"" + srcFile.GetFullPath());
         bool success = wxCopyFile(srcDirName + fname,
             targetDirName + wxFileName::GetPathSeparator() + fname);
-        if (!success)
-        {
+        if (!success) {
             logger_base.error("    Copy Failed.");
             errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
         }
@@ -2637,8 +2621,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
 {
     wxDir srcDir(sourceDir);
 
-    if(!srcDir.IsOpened())
-    {
+    if (!srcDir.IsOpened()) {
         return;
     }
 
@@ -2646,20 +2629,16 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xmap", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
-        CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) > 0)
-    {
+        CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) > 0) {
         lastCreatedDirectory = targetDirName;
     }
 
     // recurse through all directories but folders named Backup
-    if (_backupSubfolders)
-    {
+    if (_backupSubfolders) {
         wxString dir;
         bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS);
-        while (cont)
-        {
-            if (dir != "Backup")
-            {
+        while (cont) {
+            if (dir != "Backup") {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
                 BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, errors);
             }

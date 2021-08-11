@@ -1332,7 +1332,7 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
     {
         wxArrayString as = wxSplit(s, ',');
 
-        for (size_t i = 0; i < PALETTE_SIZE; i++)
+        for (size_t i = 0; i < std::min(as.size(), buttons.size()); i++)
         {
             if (as[i].Contains("Active"))
             {

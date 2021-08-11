@@ -580,7 +580,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         }
 
         if (controls_size) {
-            if (!node_xml->HasAttribute("Width")) {
+            if (node_xml != nullptr && !node_xml->HasAttribute("Width")) {
                 base->GetBaseObjectScreenLocation().AdjustRenderSize(width * scalex, height * scaley * half_height, depth * scalez, base->GetModelXml());
                 node_xml->AddAttribute("Width", std::to_string(width));
                 node_xml->AddAttribute("Height", std::to_string(height));
