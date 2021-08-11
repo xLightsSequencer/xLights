@@ -69,6 +69,7 @@ class VendorModelDialog: public wxDialog
 		virtual ~VendorModelDialog();
         std::string GetModelFile() const { return _modelFile; }
         bool DlgInit(wxProgressDialog* prog, int low, int high);
+        bool FindModelFile(const std::string &vendor, const std::string &model);
         static CachedFileDownloader& GetCache() { return _cache; }
 
 		//(*Declarations(VendorModelDialog)

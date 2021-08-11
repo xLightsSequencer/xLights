@@ -16,6 +16,7 @@
 #include <wx/sstream.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
+#include <wx/stdpaths.h>
 
 #include "Model.h"
 #include "ModelManager.h"
@@ -47,6 +48,9 @@
 #include "../Pixels.h"
 
 #include <log4cpp/Category.hh>
+
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "CachedFileDownloader.h"
 
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
@@ -5383,6 +5387,8 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxXmlDocument doc;
+    bool docLoaded = false;
     if (last_model == "") {
         if (download) {
             xlights->SuspendAutoSave(true);
@@ -5403,31 +5409,90 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         cancelled = true;
                         return model;
                     }
-                }
-                else {
+                } else {
                     xlights->SuspendAutoSave(false);
                     cancelled = true;
                     return model;
                 }
-            }
-            else {
+            } else {
                 if (prog != nullptr) prog->Hide();
                 xlights->SetCursor(wxCURSOR_DEFAULT);
                 xlights->SuspendAutoSave(false);
                 cancelled = true;
                 return model;
             }
-        }
-        else {
+        } else {
             wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf", wxFD_OPEN);
             if (filename.IsEmpty()) {
                 cancelled = true;
                 return model;
             }
             last_model = filename.ToStdString();
+
+            if (wxString(last_model).Lower().EndsWith(".xmodel")) {
+                doc.Load(last_model);
+                if (doc.IsOk() && doc.GetRoot()->GetAttribute("name", "") != "") {
+                    docLoaded = true;
+                    wxString modelName = doc.GetRoot()->GetAttribute("name", "");
+                    wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
+                    std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
+                    if (json == "") {
+                        json = wxStandardPaths::Get().GetResourcesDir() + "/vendor_model_mapping.json";
+                        if (!wxFileExists(json)) {
+                            json = "";
+                        }
+                        if (json != "") {
+                            wxJSONValue origJson;
+                            wxJSONReader reader;
+                            wxFileInputStream f(json);
+                            int errors = reader.Parse(f, &origJson);
+                            if (!errors) {
+                                VendorModelDialog *dlg = nullptr;
+                                for (auto &name : origJson["mappings"].GetMemberNames()) {
+                                    wxJSONValue v = origJson["mappings"][name];
+                                    bool matches = false;
+                                    wxString newModelName = modelName;
+                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
+                                        wxRegEx regex;
+                                        if (regex.Compile(name)) {
+                                            if (regex.Matches(modelName)) {
+                                                wxString nmodel = v["model"].AsString();
+                                                regex.ReplaceAll(&newModelName, nmodel);
+                                                matches = true;
+                                            }
+                                        }
+                                    } else if (name == modelName) {
+                                        matches = true;
+                                        newModelName = v["model"].AsString();
+                                    }
+                                    if (matches) {
+                                        wxString vendor = v["vendor"].AsString();
+                                        if (dlg == nullptr) {
+                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                            dlg->DlgInit(prog, low, high);
+                                        }
+                                        if (dlg->FindModelFile(vendor, newModelName)) {
+                                            wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                + "Vendor provided models are strongly recommended by xLights due to their quality and ease of use.\n\nWould you prefer to "
+                                                + "use the Vendor profided model instead?";
+                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                last_model =  dlg->GetModelFile();
+                                                docLoaded = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (dlg) {
+                                    delete dlg;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-
     if (wxString(last_model).Lower().EndsWith(".gdtf")) {
         wxFileInputStream fin(last_model);
         wxZipInputStream zin(fin);
@@ -5695,13 +5760,14 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             ent = zin.GetNextEntry();
         }
         return model;
-    }
-    else if (!wxString(last_model).Lower().EndsWith(".xmodel")) {
+    } else if (!wxString(last_model).Lower().EndsWith(".xmodel")) {
         // if it isnt an xmodel then it is custom
         return model;
     }
 
-    wxXmlDocument doc(last_model);
+    if (!docLoaded) {
+        doc.Load(last_model);
+    }
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
 

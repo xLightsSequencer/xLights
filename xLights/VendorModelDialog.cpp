@@ -825,6 +825,21 @@ bool VendorModelDialog::DlgInit(wxProgressDialog* prog, int low, int high)
 
     return false;
 }
+bool VendorModelDialog::FindModelFile(const std::string &vendor, const std::string &model) {
+    for (auto &v : _vendors) {
+        if (v->_name == vendor) {
+            for (auto &m: v->_models) {
+                if (m->_name == model && !m->_wiring.empty()) {
+                    DownloadModel(m->_wiring.front());
+                    if (_modelFile != "") {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
 
 wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
 {
