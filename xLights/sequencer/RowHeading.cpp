@@ -129,14 +129,11 @@ RowHeading::~RowHeading()
 void RowHeading::ProcessTooltip(wxMouseEvent& event)
 {
     int mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow < mSequenceElements->GetVisibleRowInformationSize())
-    {
+    if (mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
-        if (e != nullptr)
-        {
+        if (e != nullptr) {
             wxString layers;
-            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
-            {
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1) {
                 layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
             }
 
@@ -144,27 +141,22 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
             wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
             // Only set tooltip if the text looks too big to display correctly
-            if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE)
-            {
+            if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE) {
                 auto s1 = GetToolTipText().ToStdString();
                 auto s2 = e->GetName();
-                if (GetToolTipText() != e->GetName() + layers)
-                {
+                if (GetToolTipText() != e->GetName() + layers) {
                     SetToolTip(e->GetName() + layers);
                 }
             }
-            else
-            {
+            else {
                 SetToolTip("");
             }
         }
-        else
-        {
+        else {
             SetToolTip("");
         }
     }
-    else
-    {
+    else {
         SetToolTip("");
     }
 }
@@ -183,8 +175,7 @@ void RowHeading::SetWidth(int w)
 {
     auto minSize = GetMinSize();
     if (w < _minRowHeadingWidth) w = _minRowHeadingWidth;
-    if (minSize.GetWidth() != w)
-    {
+    if (minSize.GetWidth() != w) {
         SetMinSize(wxSize(w, -1));
         GetParent()->Layout();
     }
@@ -194,26 +185,22 @@ void RowHeading::mouseMove(wxMouseEvent& event)
 {
     ProcessTooltip(event);
 
-    if (_dragging)
-    {
+    if (_dragging) {
         SetWidth(event.GetX());
     }
 
     auto size = GetSize();
-    if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth()))
-    {
+    if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())) {
         SetCursor(wxCURSOR_SIZEWE);
     }
-    else
-    {
+    else {
         SetCursor(wxCURSOR_ARROW);
     }
 }
 
 void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
-    if (_dragging)
-    {
+    if (_dragging) {
         auto size = GetSize();
         wxConfigBase* config = wxConfigBase::Get();
         config->Write("xLightsRowHeaderWidth", size.GetWidth());
@@ -1106,28 +1093,34 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         xml_file->AddFixedTimingSection(selectedTiming, mSequenceElements->GetXLightsFrame());
         auto te = mSequenceElements->GetTimingElement(selectedTiming);
-        auto tl = te->GetEffectLayer(0);
+        if (te != nullptr) {
+            auto tl = te->GetEffectLayer(0);
 
-        if (layer_index < element->GetEffectLayerCount()) {
-            EffectLayer* el = nullptr;
-            if (ri->nodeIndex == -1) {
-                el = element->GetEffectLayer(layer_index);
-            }
-            else {
-                StrandElement* se = (StrandElement*)element;
-                if (se != nullptr) {
-                    el = se->GetNodeLayer(ri->nodeIndex, false);
+            if (tl != nullptr) {
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                if (layer_index < element->GetEffectLayerCount()) {
+                    EffectLayer* el = nullptr;
+                    if (ri->nodeIndex == -1) {
+                        el = element->GetEffectLayer(layer_index);
+                    }
+                    else {
+                        StrandElement* se = (StrandElement*)element;
+                        if (se != nullptr) {
+                            el = se->GetNodeLayer(ri->nodeIndex, false);
+                        }
+                    }
+
+                    if (el != nullptr) {
+                        for (const auto& ef : el->GetAllEffects()) {
+                            Effect* e = tl->AddEffect(0, "", "", "", ef->GetStartTimeMS(), ef->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(te->GetName(), tl->GetIndex(), e->GetID());
+                        }
+                    }
+
+                    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                    wxPostEvent(GetParent(), eventRowHeaderChanged);
                 }
             }
-
-            if (el != nullptr) {
-                for (const auto& ef : el->GetAllEffects()) {
-                    tl->AddEffect(0, "", "", "", ef->GetStartTimeMS(), ef->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                }
-            }
-
-            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-            wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     }
     else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
@@ -1274,12 +1267,13 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
             element->RemoveEffectLayer(k);
         }
     }
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
     EffectLayer* word_layer = element->AddEffectLayer();
     for( int i = 0; i < layer->GetEffectCount(); i++ )
     {
         Effect* effect = layer->GetEffect(i);
         std::string phrase = effect->GetEffectName();
-        mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
+        mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase, mSequenceElements->get_undo_mgr());
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1287,48 +1281,42 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
 
 void RowHeading::BreakdownTimingWords(TimingElement* element)
 {
-    if( element->GetEffectLayerCount() > 2 )
-    {
+    if (element->GetEffectLayerCount() > 2) {
         EffectLayer* phoneme_layer = element->GetEffectLayer(2);
         bool found_locked = false;
-        for (auto&& e : phoneme_layer->GetAllEffects())
-        {
-            if (e->IsLocked())
-            {
+        for (auto&& e : phoneme_layer->GetAllEffects()) {
+            if (e->IsLocked()) {
                 found_locked = true;
                 break;
             }
         }
-        if (found_locked)
-        {
+        if (found_locked) {
             wxMessageBox("Locked phonemes in the way - Can not break down words", "Error", wxOK);
             return;
         }
 
         element->RemoveEffectLayer(2);
     }
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
     EffectLayer* word_layer = element->GetEffectLayer(1);
     EffectLayer* phoneme_layer = element->AddEffectLayer();
-    for( int i = 0; i < word_layer->GetEffectCount(); i++ )
-    {
+    for (int i = 0; i < word_layer->GetEffectCount(); i++) {
         Effect* effect = word_layer->GetEffect(i);
         std::string word = effect->GetEffectName();
-        mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word);
+        mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word, mSequenceElements->get_undo_mgr());
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
-bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
+bool RowHeading::HitTestCollapseExpand(int row, int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ElementType::ELEMENT_TYPE_TIMING &&
-       x<DEFAULT_ROW_HEADING_MARGIN)
-    {
+    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ElementType::ELEMENT_TYPE_TIMING &&
+        x < DEFAULT_ROW_HEADING_MARGIN) {
         *IsCollapsed = mSequenceElements->GetVisibleRowInformation(row)->Collapsed;
         return true;
     }
-    else
-    {
+    else {
         return false;
     }
 }

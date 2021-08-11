@@ -543,7 +543,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             word_layer->UnSelectAllEffects();
             word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
             word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-            mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
+            mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName(), mSequenceElements->get_undo_mgr());
             element->SetCollapsed(false);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
@@ -621,7 +621,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             phoneme_layer->UnSelectAllEffects();
             phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
             phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-            mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+            mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->get_undo_mgr());
             element->SetCollapsed(false);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
@@ -669,7 +669,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             for (int x = 0; x < layer->GetEffectCount(); x++) {
                 word_effect = layer->GetEffect(x);
                 if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
-                    mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+                    mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->get_undo_mgr());
                 }
             }
             element->SetCollapsed(false);

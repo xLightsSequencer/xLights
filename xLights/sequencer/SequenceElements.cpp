@@ -640,18 +640,17 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
     SortElements();
 }
 
-int SequenceElements::LoadEffects(EffectLayer *effectLayer,
-    const std::string &type,
-    wxXmlNode *effectLayerNode,
-    const std::vector<std::string> & effectStrings,
-    const std::vector<std::string> & colorPalettes) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+int SequenceElements::LoadEffects(EffectLayer* effectLayer,
+    const std::string& type,
+    wxXmlNode* effectLayerNode,
+    const std::vector<std::string>& effectStrings,
+    const std::vector<std::string>& colorPalettes)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int loaded = 0;
-    for (wxXmlNode* effect = effectLayerNode->GetChildren(); effect != nullptr; effect = effect->GetNext())
-    {
-        if (effect->GetName() == STR_EFFECT)
-        {
+    for (wxXmlNode* effect = effectLayerNode->GetChildren(); effect != nullptr; effect = effect->GetNext()) {
+        if (effect->GetName() == STR_EFFECT) {
             std::string effectName;
             std::string settings;
             int id = 0;
@@ -667,21 +666,18 @@ int SequenceElements::LoadEffects(EffectLayer *effectLayer,
             endTime = TimeLine::RoundToMultipleOfPeriod(endTime, mFrequency);
             // Protected
             bool bProtected = effect->GetAttribute(STR_PROTECTED) == '1' ? true : false;
-            if (type != STR_TIMING)
-            {
+            if (type != STR_TIMING) {
                 // Name
                 effectName = effect->GetAttribute(STR_NAME);
                 // ID
                 id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
                 if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
                     int ref = wxAtoi(effect->GetAttribute(STR_REF));
-                    if (ref >= effectStrings.size())
-                    {
-                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char *)effectName.c_str(), (int)startTime, (int)endTime);
+                    if (ref >= effectStrings.size()) {
+                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
                         settings = "";
                     }
-                    else
-                    {
+                    else {
                         settings = effectStrings[ref];
                     }
                 }
@@ -689,12 +685,10 @@ int SequenceElements::LoadEffects(EffectLayer *effectLayer,
                     settings = ToStdString(effect->GetNodeContent());
                 }
 
-                if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos)
-                {
+                if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos) {
                     settings = FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
                 }
-                else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos)
-                {
+                else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
                     settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
                 }
 
@@ -703,21 +697,19 @@ int SequenceElements::LoadEffects(EffectLayer *effectLayer,
                     tmp.ToLong(&palette);
                 }
             }
-            else
-            {
+            else {
                 // store timing labels in name attribute
                 effectName = UnXmlSafe(effect->GetAttribute(STR_LABEL));
             }
             std::string pal = STR_EMPTY;
-            if (palette != -1)
-            {
+            if (palette != -1) {
                 pal = colorPalettes[palette];
             }
             effectLayer->AddEffect(id, effectName, settings, pal,
                 startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
         }
         else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
-            StrandElement *se = (StrandElement*)effectLayer->GetParentElement();
+            StrandElement* se = (StrandElement*)effectLayer->GetParentElement();
             EffectLayer* neffectLayer = se->GetNodeLayer(wxAtoi(effect->GetAttribute(STR_INDEX)), true);
             if (effect->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
                 ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute(STR_NAME).ToStdString());
@@ -2086,6 +2078,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
     if (dlgLyrics->ShowModal() == wxID_OK)
     {
+        get_undo_mgr().CreateUndoStep();
         int total_num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
         int num_phrases = total_num_phrases;
         for (int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++)
@@ -2143,14 +2136,15 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
             {
                 xframe->dictionary.InsertSpacesAfterPunctuation(line);
                 end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
-                phrase_layer->AddEffect(0,line.ToStdString(),"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                Effect* ef = phrase_layer->AddEffect(0,line.ToStdString(),"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
                 start_time = end_time;
             }
         }
     }
 }
 
-void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase)
+void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase, UndoManager& undo_mgr)
 {
     if( phrase != "" )
     {
@@ -2178,7 +2172,8 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             {
                 word_end_time = end_time;
             }
-            word_layer->AddEffect(0,words[i].ToStdString(),"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            Effect* ef = word_layer->AddEffect(0,words[i].ToStdString(),"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            undo_mgr.CaptureAddedEffect(word_layer->GetParentElement()->GetName(), word_layer->GetIndex(), ef->GetID());
             word_start_time = word_end_time;
         }
     }
@@ -2195,7 +2190,7 @@ bool removechar(std::string& word, char remove)
     return false;
 }
 
-void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word)
+void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word, UndoManager& undo_mgr)
 {
     xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
     wxArrayString phonemes;
@@ -2249,7 +2244,8 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             // only create phonemes with duration
             if (phoneme_end_time > phoneme_start_time)
             {
-                phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+                Effect* ef = phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+                undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());
             }
             phoneme_start_time = phoneme_end_time;
         }
