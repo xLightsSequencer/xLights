@@ -2,9 +2,13 @@
 #include <wx/wx.h>
 #include <wx/textfile.h>
 
-static std::map<std::string, std::string> macLookup;
-
+#ifndef __WXMSW__
+#include <wx/stdpaths.h>
+#else
 #define MACLOOKUP "MacLookup.txt"
+#endif
+
+static std::map<std::string, std::string> macLookup;
 
 void ProcessMACLine(const std::string& line)
 {
@@ -16,6 +20,10 @@ void ProcessMACLine(const std::string& line)
 
 void LoadMacLookup()
 {
+	#ifndef __WXMSW__
+    wxString const MACLOOKUP = wxStandardPaths::Get().GetResourcesDir() + "/xScanner/MacLookup.txt";
+	#endif
+
 	if (wxFile::Exists(MACLOOKUP)) {
 		wxTextFile f;
 		if (f.Open(MACLOOKUP))

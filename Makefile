@@ -118,6 +118,8 @@ install:
 	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
+	install -D -m 644 $(DESTDIR)/${PREFIX}/share/xScanner
+	cp -r xScanner/MacLookup.txt $(DESTDIR)/${PREFIX}/share/xScanner
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
 	$(foreach size, $(ICON_SIZES), install -D -m 644 images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
