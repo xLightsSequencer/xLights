@@ -23,6 +23,7 @@ class WLED : public BaseController
 {
     #pragma region Member Variables
     std::vector<WLEDOutput*> _pixelOutputs;
+    int _vid;
 
     #pragma endregion
 

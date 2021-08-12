@@ -75,7 +75,7 @@ struct WLEDOutput {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
+WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy), _vid(0) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -87,16 +87,9 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
         reader.Parse(json, &jsonVal);
         if (jsonVal.HasMember("ver") && jsonVal.HasMember("arch") && jsonVal.HasMember("name")) {
             _version = jsonVal["ver"].AsString();
-            int vid = jsonVal["vid"].AsInt();
+            _vid = jsonVal["vid"].AsInt();
             _model = jsonVal["arch"].AsString();
             _connected = true;
-
-            //2105110 added json config
-            //2105200 added per string null pixel to GUI but older builds have it in the JSON
-            if (vid < 2105110) {
-                logger_base.error("Build 2105110 of WLED Is Required, '%d' is Installed .", vid);
-                _connected = false;
-            }
         } else {
             logger_base.error("Error Determining WLED controller Type.");
             _connected = false;
@@ -410,6 +403,15 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("WLED Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
+    //2105110 added json config
+    //2105200 added per string null pixel to GUI but older builds have it in the JSON
+    if (_vid < 2105110) {
+        logger_base.error("Build 2105110 or newer of WLED Is Required, '%d' is Installed .", _vid);
+        DisplayError("WLED Upload Error:\nWLED 0.13 or newer is required", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
 
     progress.Update(0, "Scanning models");
     logger_base.info("Scanning models.");
