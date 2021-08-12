@@ -870,7 +870,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
-    Menu6->Remove(MenuItem_SMPTE);
+    //Menu6->Remove(MenuItem_SMPTE);
 
     RemoteWarning();
 
