@@ -142,6 +142,7 @@ class UDControllerPort
     std::string _invalidReason;
     std::list<UDVirtualString*> _virtualStrings;
     std::string _type;
+    bool _separateUniverses = false;
     #pragma endregion
 
 	public:
@@ -206,6 +207,8 @@ class UDControllerPort
     std::string GetInvalidReason() const { return _invalidReason; }
     bool AtLeastOneModelIsUsingSmartRemote() const;
     bool AtLeastOneModelIsNotUsingSmartRemote() const;
+
+    void SetSeparateUniverses(bool sep) { _separateUniverses = sep; }
 
     void Dump() const;
     bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
