@@ -11,7 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.25 August 13, 2021
+   -- enh (dkulp) If the model being imported can be mapped to a vendor supplied xmodel, prompt to use the vendor supplied xmodel.
+   -- enh (keith) Reduce calls to lookup supplier from MAC address by using a local lookup file
+   -- enh (keith) Redo the circle model default render buffer to better handle layers with different numbers of nodes
+   -- enh (keith) Add option to emit MIDI and ArtNET timecode where hour = the step playing. This also works for SMPTE receive
+   -- enh (keith) Show the current position (time) when scrubbing
+   -- enh (scott) Add option to turn off group model missing warning
    -- bug (gil)   Fix Twinkle new render method bug that affected all Twinkles but the first one
+   -- bug (keith) Fix VU Meter volume bars does not fill buffer horizontally
+   -- bug (keith) Fix SMTPE timecode support hidden
+   -- bug (keith) Fix breakdown of phrases/words does not undo correctly
+   -- bug (keith) Fix single strand effect rainbow mode does not work if the first paletter colour is white or black
+   -- bug (dkulp) Fix divide by zero crash in Single Strand effect
 2021.24 August 3, 2021
    -- enh (scott) Added experimental Light-o-rama S5 Preview/Model Import
    -- enh (scott) Allow the multiple selection of groups with right click "Add Model to Group" option

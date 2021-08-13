@@ -100,7 +100,9 @@ void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static long lastms = -99999;
 
-    long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
+    long stepoffset = _listenerManager->GetStepMMSSOfset(hours, _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset() / 3600000);
+
+    long ms = ((hours * 60 + mins) * 60 + secs) * 1000 + stepoffset;
     double fps = 0;
 
     switch (mode)

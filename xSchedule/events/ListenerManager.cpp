@@ -29,6 +29,7 @@
 #include "EventMIDI.h"
 #include "EventMQTT.h"
 #include "EventE131.h"
+#include "../PlayList/PlayList.h"
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
@@ -773,6 +774,25 @@ int ListenerManager::Sync(const std::string filename, long ms, const std::string
         _lastFrameMS = 50;
     }
 	return _lastFrameMS;
+}
+
+long ListenerManager::GetStepMMSSOfset(int& hours, long hradj)
+{
+    long res = 0;
+    if (_scheduleManager->GetOptions()->IsUseStepMMSSTimecodeFormat()) {
+
+        // we need to interpret the hours as a step number and get the time up to that step and add it
+        auto pl = _scheduleManager->GetRunningPlayList();
+
+        if (pl != nullptr) {
+            res = pl->GetStepStartTimeMS((long)hours - hradj);
+        }
+
+        // we set hours to zero so it does not impact the time
+        hours = 0;
+    }
+
+    return res;
 }
 
 void ListenerManager::SetFrameMS(int frameMS)

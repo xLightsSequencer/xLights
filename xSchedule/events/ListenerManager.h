@@ -57,4 +57,5 @@ class ListenerManager
         int Sync(const std::string filename, long ms, const std::string& type);
         ScheduleManager* GetScheduleManager() const { return _scheduleManager; }
         void SetFrameMS(int frameMS);
+        long GetStepMMSSOfset(int& hours, long hradj);
 };

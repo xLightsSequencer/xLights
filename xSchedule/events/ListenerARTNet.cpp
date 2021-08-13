@@ -14,6 +14,8 @@
 #include "../../xLights/outputs/ArtNetOutput.h"
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../ScheduleManager.h"
+#include "../ScheduleOptions.h"
 
 bool ListenerARTNet::IsValidHeader(uint8_t* buffer)
 {
@@ -42,14 +44,12 @@ void ListenerARTNet::Start()
 
 void ListenerARTNet::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!_stop)
-    {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (!_stop) {
         logger_base.debug("ARTNet listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
-        if (_thread != nullptr)
-        {
+        if (_thread != nullptr) {
             _stop = true;
             _thread->Stop();
             _thread->Delete();
@@ -61,38 +61,32 @@ void ListenerARTNet::Stop()
 
 void ListenerARTNet::StartProcess()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
+    if (IPOutput::GetLocalIP() == "") {
         localaddr.AnyAddress();
     }
-    else
-    {
+    else {
         localaddr.Hostname(IPOutput::GetLocalIP());
     }
     localaddr.Service(ARTNET_PORT);
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_REUSEADDR);
-    if (_socket == nullptr)
-    {
-        logger_base.error("Error opening datagram for ARTNet reception. %s", (const char *)localaddr.IPAddress().c_str());
+    if (_socket == nullptr) {
+        logger_base.error("Error opening datagram for ARTNet reception. %s", (const char*)localaddr.IPAddress().c_str());
     }
-    else if (!_socket->IsOk())
-    {
-        logger_base.error("Error opening datagram for ARTNet reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+    else if (!_socket->IsOk()) {
+        logger_base.error("Error opening datagram for ARTNet reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
-    else if (_socket->Error())
-    {
-        logger_base.error("Error opening datagram for ARTNet reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+    else if (_socket->Error()) {
+        logger_base.error("Error opening datagram for ARTNet reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
-    else
-    {
+    else {
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("ARTNet reception datagram opened successfully.");
@@ -115,8 +109,7 @@ void ListenerARTNet::Poll()
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_socket != nullptr)
-    {
+    if (_socket != nullptr) {
         unsigned char buffer[2048];
         memset(buffer, 0x00, sizeof(buffer));
 
@@ -126,30 +119,24 @@ void ListenerARTNet::Poll()
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        if (_socket->GetLastIOReadSize() == 0)
-        {
+        if (_socket->GetLastIOReadSize() == 0) {
             _socket->WaitForRead(0, 50);
         }
-        else
-        {
-            if (IsValidHeader(buffer))
-            {
+        else {
+            if (IsValidHeader(buffer)) {
                 int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
                 //logger_base.debug("Processing packet.");
-                if (buffer[9] == 0x50)
-                {
+                if (buffer[9] == 0x50) {
                     // ARTNet data packet
                     int universe = (buffer[13] << 8) + buffer[14];
                     _listenerManager->ProcessPacket(GetType(), universe, &buffer[ARTNET_PACKET_HEADERLEN], size);
                 }
-                else if (buffer[9] == 0x99)
-                {
+                else if (buffer[9] == 0x99) {
                     // Trigger data packet
-                    int oem = (((int)buffer[12])<<8) + buffer[13];
+                    int oem = (((int)buffer[12]) << 8) + buffer[13];
                     _listenerManager->ProcessPacket(GetType() + "Trigger", oem, &buffer[14], 2);
                 }
-                else if (buffer[9] == 0x97)
-                {
+                else if (buffer[9] == 0x97) {
                     // Timecode data packet
                     int frames = buffer[14];
                     int secs = buffer[15];
@@ -157,9 +144,10 @@ void ListenerARTNet::Poll()
                     int hours = buffer[17];
                     int mode = buffer[18];
 
-                    long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
-                    switch (mode)
-                    {
+                    long stepoffset = _listenerManager->GetStepMMSSOfset(hours, _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset() / 3600000);
+
+                    long ms = ((hours * 60 + mins) * 60 + secs) * 1000 + stepoffset;
+                    switch (mode) {
                     case 0:
                         //24 fps
                         ms += frames * 1000 / 24;
@@ -182,13 +170,11 @@ void ListenerARTNet::Poll()
 
                     //logger_base.debug("Timecode packet mode %d %d:%d:%d.%d => %ldms", mode, hours, mins, secs, frames, ms);
 
-                    if (ms == 0)
-                    {
+                    if (ms == 0) {
                         // This is a stop
                         _listenerManager->Sync("", 0xFFFFFFFF, GetType());
                     }
-                    else
-                    {
+                    else {
                         _listenerManager->Sync("", ms, GetType());
                     }
                 }

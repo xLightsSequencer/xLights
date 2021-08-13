@@ -1441,6 +1441,24 @@ std::string PlayList::GetStepStartTime(PlayListStep* step) const
 	return FORMATTIME(ms);
 }
 
+long PlayList::GetStepStartTimeMS(size_t index) const
+{
+    long ms = 0;
+    auto it = begin(_steps);
+    for (int i = 0; i < (int)std::min(index, _steps.size()); i++) {
+        if (!(*it)->GetEveryStep()) {
+            ms += (*it)->GetLengthMS();
+        }
+        else {
+            // undo the advance if every step
+            i = i - 1;
+        }
+        ++it;
+    }
+
+    return ms;
+}
+
 bool PlayList::IsSimple()
 {
     {
