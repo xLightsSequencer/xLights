@@ -1004,37 +1004,27 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int
 {
     if (buffer.GetMedia() == nullptr) return;
 
+    if (usebars == 0) usebars = 1;
+
 	int start = buffer.curPeriod - usebars;
-	int cols = buffer.BufferWi / usebars;
-	int x = 0;
-	for (int i = 0; i < usebars; i++)
-	{
-		if (start + i >= 0)
-		{
-			float f = 0.0;
-			std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
-			if (pf != nullptr)
-			{
-				f = ApplyGain(*pf->cbegin(), gain);
-			}
-			for (int j = 0; j < cols; j++)
-			{
-				int colheight = buffer.BufferHt * f;
-				for (int y = 0; y < colheight; y++)
-				{
-					xlColor color1;
-					//buffer.GetMultiColorBlend((double)y / (double)colheight, false, color1);
-					buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-					buffer.SetPixel(x, y, color1);
-				}
-				x++;
-			}
-		}
-		else
-		{
-			x += cols;
-		}
-	}
+	float cols = (float)buffer.BufferWi / (float)usebars;
+    if (cols == 0.0) cols = 0.0001;
+    for (int x = 0; x < buffer.BufferWi; x++)         {
+        int i = start + (int)((float)x / cols);
+        if (i > 0) {
+            float f = 0.0;
+            std::list<float> const* const pf = buffer.GetMedia()->GetFrameData(i, FRAMEDATA_HIGH, "");
+            if (pf != nullptr) {
+                f = ApplyGain(*pf->cbegin(), gain);
+            }
+            int colheight = buffer.BufferHt * f;
+            for (int y = 0; y < colheight; y++) {
+                xlColor color1;
+                buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
+                buffer.SetPixel(x, y, color1);
+            }
+        }
+    }
 }
 
 void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int yoffset, int gain, bool frameDetail)
