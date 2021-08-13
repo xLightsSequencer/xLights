@@ -896,6 +896,8 @@ void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
 
 void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
+    if (event.GetRow() < 0) return;
+
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
@@ -926,6 +928,8 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 
 void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 {
+    if (event.GetRow() < 0) return;
+
     if (event.GetCol() == COLOR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL);
@@ -1194,6 +1198,8 @@ void ModelFaceDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
 
 void ModelFaceDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 {
+    if (event.GetRow() < 0) return;
+
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
     NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
