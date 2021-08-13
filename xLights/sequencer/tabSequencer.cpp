@@ -857,6 +857,8 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     if (frame >= _seqData.NumFrames()) frame = _seqData.NumFrames();
 
+    mainSequencer->UpdateTimeDisplay(ms, -1.0);
+
     // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
 
