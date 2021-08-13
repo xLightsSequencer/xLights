@@ -527,27 +527,27 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                     int colorIdx;
                     if (colorcnt == 1) {
                         colorIdx = 0;
-                    }
-                    else {
+                    } else {
                         colorIdx = std::ceil(((double)((max_chase_width - i)*colorcnt)) / (double)max_chase_width) - 1;
                     }
                     if (colorIdx >= colorcnt) colorIdx = colorcnt - 1;
 
                     buffer.palette.GetColor(colorIdx, color);
 
-                    if (buffer.palette.IsSpatial(colorIdx))
-                    {
-                        buffer.palette.GetSpatialColor(colorIdx, ((float)(i % (int)((float)max_chase_width / (float)colorcnt))) / ((float)max_chase_width / (float)colorcnt), 0.0, color);
+                    if (buffer.palette.IsSpatial(colorIdx)) {
+                        float x2 = 0;
+                        if (colorcnt < max_chase_width) {
+                            x2 = ((float)(i % (int)((float)max_chase_width / (float)colorcnt)));
+                        }
+                        float x3 = ((float)max_chase_width / (float)colorcnt);
+                        buffer.palette.GetSpatialColor(colorIdx,  x2 / x3, 0.0, color);
                     }
-
-
                 }
 
                 if (Chase_Fade3d1) {
                     if (buffer.allowAlpha) {
                         color.alpha = 255.0 * (i + 1.0) / max_chase_width;
-                    }
-                    else {
+                    } else {
                         HSVValue hsv1 = color.asHSV();
                         hsv1.value = orig_v - ((max_chase_width - (i + 1.0)) / max_chase_width); // fades data down over chase width
                         if (hsv1.value < 0.0) hsv1.value = 0.0;
