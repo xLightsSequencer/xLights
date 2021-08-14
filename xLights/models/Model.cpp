@@ -5513,7 +5513,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                             if (block) {
                                 wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
                                 wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
-                                last_model = false;
+                                last_model = "";
                             }
                             if (dlg) {
                                 delete dlg;
