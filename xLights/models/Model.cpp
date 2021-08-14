@@ -5437,44 +5437,70 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
                     std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
                     if (json == "") {
-                        json = wxStandardPaths::Get().GetResourcesDir() + "/vendor_model_mapping.json";
-                        if (!wxFileExists(json)) {
-                            json = "";
-                        }
-                        if (json != "") {
-                            wxJSONValue origJson;
-                            wxJSONReader reader;
-                            wxFileInputStream f(json);
-                            int errors = reader.Parse(f, &origJson);
-                            if (!errors) {
-                                VendorModelDialog *dlg = nullptr;
-                                for (auto &name : origJson["mappings"].GetMemberNames()) {
-                                    wxJSONValue v = origJson["mappings"][name];
-                                    bool matches = false;
-                                    wxString newModelName = modelName;
-                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
-                                        wxRegEx regex;
-                                        if (regex.Compile(name)) {
-                                            if (regex.Matches(modelName)) {
-                                                wxString nmodel = v["model"].AsString();
-                                                regex.ReplaceAll(&newModelName, nmodel);
-                                                matches = true;
+                        json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
+                    }
+                    if (json != "" && !wxFileExists(json)) {
+                        json = "";
+                    }
+                    if (json != "") {
+                        wxJSONValue origJson;
+                        wxJSONReader reader;
+                        wxFileInputStream f(json);
+                        int errors = reader.Parse(f, &origJson);
+                        if (!errors) {
+                            VendorModelDialog *dlg = nullptr;
+                            bool block = false;
+                            wxString vendorBlock;
+                            for (auto &name : origJson["mappings"].GetMemberNames()) {
+                                wxJSONValue v = origJson["mappings"][name];
+                                bool matches = false;
+                                wxString newModelName = modelName;
+                                bool localBlock = false;
+                                if (v.HasMember("regex") && v["regex"].AsBool()) {
+                                    wxRegEx regex;
+                                    if (regex.Compile(name)) {
+                                        if (regex.Matches(modelName)) {
+                                            wxString nmodel = v["model"].AsString();
+                                            regex.ReplaceAll(&newModelName, nmodel);
+                                            matches = true;
+                                            if (v.HasMember("block")) {
+                                                localBlock = v["block"].AsBool();
                                             }
                                         }
-                                    } else if (name == modelName) {
-                                        matches = true;
-                                        newModelName = v["model"].AsString();
                                     }
-                                    if (matches) {
-                                        wxString vendor = v["vendor"].AsString();
-                                        if (dlg == nullptr) {
-                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                            dlg->DlgInit(prog, low, high);
-                                        }
-                                        if (dlg->FindModelFile(vendor, newModelName)) {
+                                } else if (name == modelName) {
+                                    matches = true;
+                                    newModelName = v["model"].AsString();
+                                    if (v.HasMember("block")) {
+                                        localBlock = v["block"].AsBool();
+                                    }
+                                }
+                                if (matches) {
+                                    wxString vendor = v["vendor"].AsString();
+                                    if (dlg == nullptr) {
+                                        dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                        dlg->DlgInit(prog, low, high);
+                                    }
+                                    if (localBlock) {
+                                        vendorBlock = vendor;
+                                        block = true;
+                                    }
+                                    if (dlg->FindModelFile(vendor, newModelName)) {
+                                        if (localBlock) {
+                                            wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                + "vendor has requested that the model they provide be the model that is used."
+                                                + "Use the Vendor provided model instead?";
+                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                last_model =  dlg->GetModelFile();
+                                            } else {
+                                                last_model = "";
+                                            }
+                                            docLoaded = false;
+                                            break;
+                                        } else {
                                             wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
                                                 + "Vendor provided models are strongly recommended by xLights due to their quality and ease of use.\n\nWould you prefer to "
-                                                + "use the Vendor profided model instead?";
+                                                + "use the Vendor provided model instead?";
                                             if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
                                                 last_model =  dlg->GetModelFile();
                                                 docLoaded = false;
@@ -5483,9 +5509,14 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                         }
                                     }
                                 }
-                                if (dlg) {
-                                    delete dlg;
-                                }
+                            }
+                            if (block) {
+                                wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                last_model = false;
+                            }
+                            if (dlg) {
+                                delete dlg;
                             }
                         }
                     }
