@@ -363,7 +363,8 @@ static void HandleChoices(xLightsFrame *frame,
                           Element *element,
                           const std::string &msg,
                           std::vector<Element*> &toMap,
-                          std::vector<Element*> &ignore)
+                          std::vector<Element*> &ignore,
+                          bool mapall)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -373,17 +374,21 @@ static void HandleChoices(xLightsFrame *frame,
     choices.push_back("Map the effects to different models");
     choices.push_back("Ignore (Handle Later) - Effects will not render");
 
-    bool ok = false;
-    wxSingleChoiceDialog dlg(frame, msg,
-                             "Warning", choices);
-    while (!ok) {
-        ok = true;
-        if (dlg.ShowModal() == wxID_OK) {
-            switch (dlg.GetSelection()) {
+    if (mapall) {
+        toMap.push_back(element);
+    }
+    else {
+        bool ok = false;
+        wxSingleChoiceDialog dlg(frame, msg,
+            "Warning", choices);
+        while (!ok) {
+            ok = true;
+            if (dlg.ShowModal() == wxID_OK) {
+                switch (dlg.GetSelection()) {
                 case 0: {
                     // Rename Model
                     wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
-                                                 "Select Model", ToArrayString(ModelNames));
+                        "Select Model", ToArrayString(ModelNames));
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
 
@@ -391,7 +396,7 @@ static void HandleChoices(xLightsFrame *frame,
 
                         // remove the existing element before we rename
                         if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                            SubModelElement *sme = dynamic_cast<SubModelElement*>(element);
+                            SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
                             sme->GetModelElement()->RemoveSubModel(newName);
                         }
                         else {
@@ -401,18 +406,20 @@ static void HandleChoices(xLightsFrame *frame,
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
-                    } else {
+                    }
+                    else {
                         ok = false;
                     }
                 }
-                    break;
+                      break;
                 case 1:
                     // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                        SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
+                        SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
                         logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)sme->GetFullName().c_str());
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
-                    } else {
+                    }
+                    else {
                         logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)element->GetFullName().c_str());
                         frame->GetSequenceElements().DeleteElement(element->GetName());
                     }
@@ -430,6 +437,7 @@ static void HandleChoices(xLightsFrame *frame,
                     break;
                 default:
                     break;
+                }
             }
         }
     }
@@ -482,25 +490,23 @@ void xLightsFrame::CheckForValidModels()
 
     size_t missingModelCount = 0;
 
-    for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
-        if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
-            std::string name = _sequenceElements.GetElement(x)->GetModelName();
-            if (AllModels[name] == nullptr) missingModelCount++;
-            //remove the current models from the list so we don't end up with the same model represented twice
-            Remove(AllNames, name);
-            Remove(ModelNames, name);
+    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+        for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
+            if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
+                std::string name = _sequenceElements.GetElement(x)->GetModelName();
+                if (AllModels[name] == nullptr) missingModelCount++;
+                //remove the current models from the list so we don't end up with the same model represented twice
+                Remove(AllNames, name);
+                Remove(ModelNames, name);
+            }
         }
     }
 
+    bool mapall = false;
     if (missingModelCount > 7) {
         auto msg = wxString::Format("Sequence you are opening contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", (int)missingModelCount);
         if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO)             {
-            cancelled = true;
-            logger_base.debug("CheckForValidModels: User chose to import instead.");
-            _sequenceElements.Clear(); // remove all the crap of the sequence we just opened.
-            AddTimingElement("New Timing");
-            AddAllModelsToSequence();
-            return;
+            mapall = true;
         }
     }
 
@@ -525,28 +531,30 @@ void xLightsFrame::CheckForValidModels()
                 // If model is not found we need to remap
                 if (m == nullptr) {
 
-                    dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
-                    dialog.ChoiceModels->Set(ToArrayString(AllNames));
-                    if (AllNames.size() > 0) {
-                        dialog.ChoiceModels->SetSelection(0);
-                    }
-                    else {
-                        dialog.ChoiceModels->Hide();
-                        dialog.RadioButtonRename->Hide();
-                        dialog.Layout();
-                    }
-                    dialog.Fit();
+                    if (!mapall) {
+                        dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
+                        dialog.ChoiceModels->Set(ToArrayString(AllNames));
+                        if (AllNames.size() > 0) {
+                            dialog.ChoiceModels->SetSelection(0);
+                        }
+                        else {
+                            dialog.ChoiceModels->Hide();
+                            dialog.RadioButtonRename->Hide();
+                            dialog.Layout();
+                        }
+                        dialog.Fit();
 
-                    if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
-                        cancelled = (dialog.ShowModal() == wxID_CANCEL);
+                        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
+                            cancelled = (dialog.ShowModal() == wxID_CANCEL);
+                        }
                     }
 
-                    if (cancelled || (!_promptBatchRenderIssues && (_renderMode || _checkSequenceMode)) || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
+                    if (cancelled || (!_promptBatchRenderIssues && (_renderMode || _checkSequenceMode)) || !HasEffects(me) || (!mapall && dialog.RadioButtonDelete->GetValue())) {
                         // Just delete the element from the sequence we are opening
                         logger_base.debug("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
                         _sequenceElements.DeleteElement(name);
                     }
-                    else if (dialog.RadioButtonMap->GetValue()) {
+                    else if (mapall || dialog.RadioButtonMap->GetValue()) {
                         // add it to the list of things we will map later
                         logger_base.debug("Sequence Element Mismatch: map later '%s'", (const char*)name.c_str());
                         mapLater.push_back(me);
@@ -640,7 +648,7 @@ void xLightsFrame::CheckForValidModels()
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " does not exist in your layout.\n"
                                 + "How should we handle this?",
-                                toMap, ignore);
+                                toMap, ignore, mapall);
                         }
                         else {
                             // no effects at any level so just remove it
@@ -674,7 +682,7 @@ void xLightsFrame::CheckForValidModels()
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " is a Model Group but has Node/Strand effects.\n"
                                 + "How should we handle this?",
-                                toMap, ignore);
+                                toMap, ignore, mapall);
                         }
                     }
                     else {
@@ -693,7 +701,7 @@ void xLightsFrame::CheckForValidModels()
                                     HandleChoices(this, AllSMNames, ModelSMNames, sme,
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
-                                        toMap, ignore);
+                                        toMap, ignore, mapall);
                                 }
                             }
                         }
