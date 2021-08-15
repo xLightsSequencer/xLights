@@ -35,6 +35,7 @@ const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX_WARN_GROUP_ISSUES = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -87,6 +88,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	CheckBox_WarnGroupIssues = new wxCheckBox(this, ID_CHECKBOX_WARN_GROUP_ISSUES, _("Warn for Missing Model in Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WARN_GROUP_ISSUES"));
 	CheckBox_WarnGroupIssues->SetValue(true);
 	GridBagSizer1->Add(CheckBox_WarnGroupIssues, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+	CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
+	GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -98,6 +102,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludePresetsCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludeAudioCheckBoxClick);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnChoice_LinkControllerUploadSelect);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick);
+	Connect(ID_CHECKBOX_WARN_GROUP_ISSUES,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_WarnGroupIssuesClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick);
 	//*)
 
 
@@ -120,6 +127,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetWarnGroupIssues(CheckBox_WarnGroupIssues->GetValue());
+	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
     return true;
 }
 
@@ -132,6 +140,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	Choice_LinkControllerUpload->SetStringSelection(frame->LinkedControllerUpload());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_WarnGroupIssues->SetValue(frame->GetWarnGroupIssues());
+	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
     return true;
 }
 
@@ -178,6 +187,20 @@ void OtherSettingsPanel::OnChoice_LinkControllerUploadSelect(wxCommandEvent& eve
 }
 
 void OtherSettingsPanel::OnCheckBox_WarnGroupIssuesClick(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
+}
+
+void OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
+}
+
+void OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event)
 {
 	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
 		TransferDataFromWindow();

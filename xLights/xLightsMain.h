@@ -991,6 +991,7 @@ public:
     bool _modelBlendDefaultOff = true;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
+    bool _ignoreVendorModelRecommendations = false;
     int _fseqVersion;
     int _xFadePort;
     bool _wasMaximised = false;
@@ -1098,6 +1099,9 @@ public:
 
 	bool GetWarnGroupIssues() const { return _warnGroupIssues; }
 	void SetWarnGroupIssues(bool b) { _warnGroupIssues = b; }
+
+    bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
+    void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
