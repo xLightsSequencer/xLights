@@ -1686,6 +1686,8 @@ md5.cpp: md5.h
 
 events/EventState.cpp: ScheduleManager.h
 
+events/ListenerARTNet.cpp: ScheduleManager.h ScheduleOptions.h
+
 events/ListenerBase.cpp: ScheduleManager.h
 
 events/ListenerCSVFPP.cpp: Control.h

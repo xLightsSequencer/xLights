@@ -2748,7 +2748,7 @@ PixelBuffer.h: models/Model.h models/SingleLineModel.h RenderBuffer.h ValueCurve
 
 models/SingleLineModel.h: models/Model.h
 
-RenderBuffer.h: image.h ../include/globals.h Color.h ColorCurve.h models/Node.h
+RenderBuffer.h: ../include/globals.h Color.h ColorCurve.h models/Node.h
 
 ColorCurve.h: Color.h
 
@@ -2775,8 +2775,6 @@ sequencer/EffectsGrid.h: xlGLCanvas.h Color.h sequencer/SequenceElements.h seque
 xlGLCanvas.h: DrawGLUtils.h
 
 EffectTreeDialog.h: effects/GIFImage.h
-
-effects/GIFImage.h: image.h
 
 sequencer/RowHeading.h: sequencer/SequenceElements.h Color.h
 
@@ -2878,7 +2876,7 @@ models/MatrixModel.cpp: models/MatrixModel.h models/ModelScreenLocation.h xLight
 
 models/MeshObject.cpp: models/MeshObject.h DrawGLUtils.h UtilFunctions.h ModelPreview.h ExternalHooks.h xLightsMain.h
 
-models/Model.cpp: models/Model.h models/ModelManager.h models/ModelGroup.h xLightsApp.h xLightsMain.h xLightsXmlFile.h Color.h DrawGLUtils.h DimmingCurve.h StrandNodeNamesDialog.h ModelFaceDialog.h ModelStateDialog.h ModelChainDialog.h ModelDimmingCurveDialog.h StartChannelDialog.h SubModelsDialog.h outputs/Output.h outputs/OutputManager.h outputs/IPOutput.h outputs/Controller.h VendorModelDialog.h ModelPreview.h models/ModelScreenLocation.h models/SubModel.h UtilFunctions.h xLightsVersion.h Pixels.h
+models/Model.cpp: models/Model.h models/ModelManager.h models/ModelGroup.h xLightsApp.h xLightsMain.h xLightsXmlFile.h Color.h DrawGLUtils.h DimmingCurve.h StrandNodeNamesDialog.h ModelFaceDialog.h ModelStateDialog.h ModelChainDialog.h ModelDimmingCurveDialog.h StartChannelDialog.h SubModelsDialog.h outputs/Output.h outputs/OutputManager.h outputs/IPOutput.h outputs/Controller.h VendorModelDialog.h ModelPreview.h models/ModelScreenLocation.h models/SubModel.h UtilFunctions.h xLightsVersion.h Pixels.h CachedFileDownloader.h
 
 models/ModelGroup.h: models/Model.h
 
@@ -3020,7 +3018,7 @@ outputs/PixelNetOutput.cpp: outputs/PixelNetOutput.h
 
 outputs/RenardOutput.cpp: outputs/RenardOutput.h
 
-effects/TreePanel.cpp: effects/TreePanel.h effects/EffectPanelUtils.h image.h
+effects/TreePanel.cpp: effects/TreePanel.h effects/EffectPanelUtils.h
 
 effects/TreePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3030,7 +3028,7 @@ ValueCurveButton.h: ValueCurve.h
 
 effects/EffectPanelUtils.h: xlLockButton.h
 
-effects/VUMeterPanel.cpp: image.h effects/VUMeterPanel.h effects/EffectPanelUtils.h effects/VUMeterEffect.h UtilFunctions.h
+effects/VUMeterPanel.cpp: effects/VUMeterPanel.h effects/EffectPanelUtils.h effects/VUMeterEffect.h UtilFunctions.h
 
 effects/VUMeterPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3038,7 +3036,7 @@ effects/VUMeterEffect.h: effects/RenderableEffect.h RenderBuffer.h
 
 effects/VUMeterEffect.cpp: effects/VUMeterEffect.h effects/VUMeterPanel.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h UtilFunctions.h ../include/vumeter-16.xpm ../include/vumeter-24.xpm ../include/vumeter-32.xpm ../include/vumeter-48.xpm ../include/vumeter-64.xpm
 
-effects/TwinklePanel.cpp: effects/TwinklePanel.h effects/EffectPanelUtils.h image.h
+effects/TwinklePanel.cpp: effects/TwinklePanel.h effects/EffectPanelUtils.h
 
 effects/TwinklePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3050,7 +3048,7 @@ effects/TreeEffect.cpp: effects/TreeEffect.h effects/TreePanel.h sequencer/Effec
 
 effects/TreeEffect.h: effects/RenderableEffect.h
 
-effects/TextPanel.cpp: effects/TextPanel.h effects/EffectPanelUtils.h ExternalHooks.h FontManager.h image.h
+effects/TextPanel.cpp: effects/TextPanel.h effects/EffectPanelUtils.h ExternalHooks.h FontManager.h
 
 effects/TextPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3058,7 +3056,7 @@ effects/TextEffect.cpp: effects/TextEffect.h effects/TextPanel.h sequencer/Effec
 
 effects/TextEffect.h: effects/RenderableEffect.h
 
-effects/TendrilPanel.cpp: effects/TendrilPanel.h effects/EffectPanelUtils.h effects/TendrilEffect.h image.h
+effects/TendrilPanel.cpp: effects/TendrilPanel.h effects/EffectPanelUtils.h effects/TendrilEffect.h
 
 effects/TendrilPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3070,7 +3068,7 @@ effects/VideoEffect.h: effects/RenderableEffect.h RenderBuffer.h
 
 effects/VideoPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/VideoPanel.cpp: effects/VideoPanel.h effects/EffectPanelUtils.h UtilFunctions.h ExternalHooks.h image.h
+effects/VideoPanel.cpp: effects/VideoPanel.h effects/EffectPanelUtils.h UtilFunctions.h ExternalHooks.h
 
 effects/WarpEffect.cpp: ../include/warp-64.xpm ../include/warp-48.xpm ../include/warp-32.xpm ../include/warp-24.xpm ../include/warp-16.xpm effects/WarpEffect.h effects/WarpPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h DissolveTransitionPattern.h xLightsApp.h TimingPanel.h UtilFunctions.h Parallel.h
 
@@ -3088,7 +3086,7 @@ effects/WaveEffect.h: effects/RenderableEffect.h
 
 effects/WavePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/WavePanel.cpp: effects/WavePanel.h effects/EffectPanelUtils.h effects/WaveEffect.h image.h
+effects/WavePanel.cpp: effects/WavePanel.h effects/EffectPanelUtils.h effects/WaveEffect.h
 
 effects/assist/AssistPanel.cpp: effects/assist/AssistPanel.h xLightsMain.h models/Model.h sequencer/Element.h
 
@@ -3104,7 +3102,7 @@ xlColorPickerFields.h: xlColorPicker.h Color.h xlColorCanvas.h xlSlider.h
 
 xlColorCanvas.h: xlGLCanvas.h Color.h
 
-effects/SpiralsPanel.cpp: effects/SpiralsPanel.h effects/EffectPanelUtils.h effects/SpiralsEffect.h image.h
+effects/SpiralsPanel.cpp: effects/SpiralsPanel.h effects/EffectPanelUtils.h effects/SpiralsEffect.h
 
 effects/SpiralsPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3116,7 +3114,7 @@ effects/SingleStrandEffect.h: effects/RenderableEffect.h
 
 effects/SingleStrandPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/SingleStrandPanel.cpp: effects/SingleStrandPanel.h effects/EffectPanelUtils.h effects/SingleStrandEffect.h image.h
+effects/SingleStrandPanel.cpp: effects/SingleStrandPanel.h effects/EffectPanelUtils.h effects/SingleStrandEffect.h
 
 effects/SnowflakesEffect.cpp: effects/SnowflakesEffect.h effects/SnowflakesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowflakes-16.xpm ../include/snowflakes-24.xpm ../include/snowflakes-32.xpm ../include/snowflakes-48.xpm ../include/snowflakes-64.xpm
 
@@ -3124,7 +3122,7 @@ effects/SnowflakesEffect.h: effects/RenderableEffect.h
 
 effects/SnowflakesPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/SnowflakesPanel.cpp: effects/SnowflakesPanel.h effects/EffectPanelUtils.h effects/SnowflakesEffect.h image.h
+effects/SnowflakesPanel.cpp: effects/SnowflakesPanel.h effects/EffectPanelUtils.h effects/SnowflakesEffect.h
 
 effects/SnowstormEffect.cpp: effects/SnowstormEffect.h effects/SnowstormPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowstorm-16.xpm ../include/snowstorm-24.xpm ../include/snowstorm-32.xpm ../include/snowstorm-48.xpm ../include/snowstorm-64.xpm
 
@@ -3132,7 +3130,7 @@ effects/SnowstormEffect.h: effects/RenderableEffect.h
 
 effects/SnowstormPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/SnowstormPanel.cpp: effects/SnowstormPanel.h effects/EffectPanelUtils.h image.h
+effects/SnowstormPanel.cpp: effects/SnowstormPanel.h effects/EffectPanelUtils.h
 
 effects/SpiralsEffect.cpp: effects/SpiralsEffect.h effects/SpiralsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/spirals-16.xpm ../include/spirals-24.xpm ../include/spirals-32.xpm ../include/spirals-48.xpm ../include/spirals-64.xpm Parallel.h
 
@@ -3142,7 +3140,7 @@ effects/SpirographEffect.h: effects/RenderableEffect.h
 
 effects/SpirographPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/SpirographPanel.cpp: effects/SpirographPanel.h effects/EffectPanelUtils.h effects/SpirographEffect.h image.h
+effects/SpirographPanel.cpp: effects/SpirographPanel.h effects/EffectPanelUtils.h effects/SpirographEffect.h
 
 effects/StateEffect.cpp: effects/StateEffect.h effects/StatePanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h UtilFunctions.h models/ModelGroup.h ../include/state-16.xpm ../include/state-64.xpm
 
@@ -3158,7 +3156,7 @@ effects/StrobeEffect.h: effects/RenderableEffect.h
 
 effects/StrobePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/StrobePanel.cpp: effects/StrobePanel.h effects/EffectPanelUtils.h image.h
+effects/StrobePanel.cpp: effects/StrobePanel.h effects/EffectPanelUtils.h
 
 effects/TendrilEffect.cpp: effects/TendrilEffect.h effects/TendrilPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h ../include/tendril-16.xpm ../include/tendril-24.xpm ../include/tendril-32.xpm ../include/tendril-48.xpm ../include/tendril-64.xpm
 
@@ -3230,7 +3228,7 @@ xLightsVersion.cpp: xLightsVersion.h
 
 xLightsTimer.cpp: xLightsTimer.h
 
-xLightsMain.cpp: xLightsMain.h SplashDialog.h UpdaterDialog.h xLightsApp.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h PixelTestDialog.h ConvertDialog.h GenerateCustomModelDialog.h PathGenerationDialog.h UtilFunctions.h IPEntryDialog.h HousePreviewPanel.h BatchRenderDialog.h VideoExporter.h JukeboxPanel.h EffectAssist.h EffectsPanel.h MultiControllerUploadDialog.h outputs/IPOutput.h outputs/E131Output.h GenerateLyricsDialog.h VendorModelDialog.h VendorMusicDialog.h sequencer/MainSequencer.h LayoutGroup.h ModelPreview.h TopEffectsPanel.h LyricUserDictDialog.h outputs/ZCPPOutput.h EffectIconPanel.h models/ViewObject.h models/SubModel.h effects/FacesEffect.h effects/StateEffect.h ShaderDownloadDialog.h CheckboxSelectDialog.h EmailDialog.h ValueCurveButton.h ValueCurvesPanel.h ColoursPanel.h SpecialOptions.h outputs/ControllerEthernet.h outputs/ControllerSerial.h KeyBindingEditDialog.h TraceLog.h AboutDialog.h ExternalHooks.h ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm image.h
+xLightsMain.cpp: xLightsMain.h SplashDialog.h UpdaterDialog.h xLightsApp.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h PixelTestDialog.h ConvertDialog.h GenerateCustomModelDialog.h PathGenerationDialog.h UtilFunctions.h IPEntryDialog.h HousePreviewPanel.h BatchRenderDialog.h VideoExporter.h JukeboxPanel.h EffectAssist.h EffectsPanel.h MultiControllerUploadDialog.h outputs/IPOutput.h outputs/E131Output.h GenerateLyricsDialog.h VendorModelDialog.h VendorMusicDialog.h sequencer/MainSequencer.h LayoutGroup.h ModelPreview.h TopEffectsPanel.h LyricUserDictDialog.h outputs/ZCPPOutput.h EffectIconPanel.h models/ViewObject.h models/SubModel.h effects/FacesEffect.h effects/StateEffect.h ShaderDownloadDialog.h CheckboxSelectDialog.h EmailDialog.h ValueCurveButton.h ValueCurvesPanel.h ColoursPanel.h SpecialOptions.h outputs/ControllerEthernet.h outputs/ControllerSerial.h KeyBindingEditDialog.h TraceLog.h AboutDialog.h ExternalHooks.h ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm
 
 SeqSettingsDialog.h: xLightsXmlFile.h tmGridCell.h FlickerFreeBitmapButton.h
 
@@ -3262,7 +3260,7 @@ xLightsImportChannelMapDialog.h: Color.h SequencePackage.h
 
 MediaImportOptionsDialog.h: SequencePackage.h
 
-xLightsApp.cpp: xLightsMain.h image.h xLightsApp.h xLightsVersion.h Parallel.h UtilFunctions.h TraceLog.h ExternalHooks.h MSWStackWalk.h
+xLightsApp.cpp: xLightsMain.h xLightsApp.h xLightsVersion.h Parallel.h UtilFunctions.h TraceLog.h ExternalHooks.h MSWStackWalk.h
 
 xlColorCanvas.cpp: xlColorCanvas.h DrawGLUtils.h
 
@@ -3270,7 +3268,7 @@ xlColorPicker.cpp: xlColorPicker.h
 
 xlColorPickerFields.cpp: xlColorPickerFields.h
 
-xlGLCanvas.cpp: image.h xlGLCanvas.h UtilFunctions.h ExternalHooks.h
+xlGLCanvas.cpp: xlGLCanvas.h UtilFunctions.h ExternalHooks.h
 
 xlGridCanvas.cpp: xlGridCanvas.h DrawGLUtils.h models/Model.h
 
@@ -3310,7 +3308,7 @@ sequencer/TimeLine.cpp: sequencer/TimeLine.h sequencer/Waveform.h xLightsMain.h
 
 sequencer/UndoManager.cpp: sequencer/UndoManager.h sequencer/Element.h sequencer/SequenceElements.h
 
-sequencer/Waveform.cpp: image.h xLightsTimer.h sequencer/Waveform.h sequencer/TimeLine.h RenderCommandEvent.h DrawGLUtils.h ColorManager.h xLightsApp.h xLightsMain.h sequencer/MainSequencer.h NoteRangeDialog.h
+sequencer/Waveform.cpp: xLightsTimer.h sequencer/Waveform.h sequencer/TimeLine.h RenderCommandEvent.h DrawGLUtils.h ColorManager.h xLightsApp.h xLightsMain.h sequencer/MainSequencer.h NoteRangeDialog.h
 
 sequencer/tabSequencer.cpp: xLightsMain.h sequencer/SequenceElements.h TopEffectsPanel.h EffectIconPanel.h ValueCurvesPanel.h ColoursPanel.h sequencer/Element.h sequencer/Effect.h BufferPanel.h SeqSettingsDialog.h ViewsModelsPanel.h effects/RenderableEffect.h xlCustomControl.h NoteImportDialog.h MusicXML.h SeqElementMismatchDialog.h SequenceVideoPanel.h RenderCommandEvent.h xLightsVersion.h HousePreviewPanel.h UtilFunctions.h JukeboxPanel.h EffectsPanel.h EffectAssist.h ColorPanel.h TimingPanel.h ModelPreview.h sequencer/MainSequencer.h PerspectivesPanel.h SelectPanel.h LayoutGroup.h ViewpointMgr.h LayoutPanel.h TraceLog.h effects/EffectPanelUtils.h ExternalHooks.h
 
@@ -3332,7 +3330,7 @@ wxCheckedListCtrl.cpp: wxCheckedListCtrl.h
 
 wxModelGridCellRenderer.cpp: wxModelGridCellRenderer.h
 
-effects/ShockwavePanel.cpp: effects/ShockwavePanel.h effects/EffectPanelUtils.h effects/ShockwaveEffect.h image.h
+effects/ShockwavePanel.cpp: effects/ShockwavePanel.h effects/EffectPanelUtils.h effects/ShockwaveEffect.h
 
 effects/ShockwavePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3350,7 +3348,7 @@ NodeSelectGrid.h: wxModelGridCellRenderer.h UtilClasses.h
 
 ModelPreview.cpp: ModelPreview.h models/Model.h models/ViewObject.h PreviewPane.h DrawGLUtils.h ColorManager.h LayoutGroup.h xLightsMain.h models/ModelGroup.h ExternalHooks.h
 
-ModelGroupPanel.cpp: image.h ModelGroupPanel.h models/ModelManager.h models/ModelGroup.h LayoutPanel.h OutputModelManager.h xLightsMain.h UtilFunctions.h
+ModelGroupPanel.cpp: ModelGroupPanel.h models/ModelManager.h models/ModelGroup.h LayoutPanel.h OutputModelManager.h xLightsMain.h UtilFunctions.h
 
 ModelFaceDialog.cpp: ../include/AI.xpm ../include/E.xpm ../include/ETC.xpm ../include/FV.xpm ../include/L.xpm ../include/MBP.xpm ../include/O.xpm ../include/REST.xpm ../include/U.xpm ../include/WQ.xpm ModelFaceDialog.h xLightsXmlFile.h NodesGridCellEditor.h ModelPreview.h DimmingCurve.h UtilFunctions.h ExternalHooks.h MatrixFaceDownloadDialog.h xLightsMain.h NodeSelectGrid.h models/Model.h xLightsApp.h support/VectorMath.h
 
@@ -3358,7 +3356,7 @@ MatrixFaceDownloadDialog.h: CachedFileDownloader.h
 
 ModelDimmingCurveDialog.cpp: ModelDimmingCurveDialog.h xLightsXmlFile.h UtilFunctions.h ExternalHooks.h
 
-NodeSelectGrid.cpp: image.h NodeSelectGrid.h models/Model.h models/CustomModel.h UtilFunctions.h ExternalHooks.h
+NodeSelectGrid.cpp: NodeSelectGrid.h models/Model.h models/CustomModel.h UtilFunctions.h ExternalHooks.h
 
 NodesGridCellEditor.cpp: NodesGridCellEditor.h
 
@@ -3428,7 +3426,7 @@ ModelChainDialog.cpp: ModelChainDialog.h UtilFunctions.h models/ModelManager.h m
 
 SequenceData.cpp: SequenceData.h UtilFunctions.h
 
-SeqSettingsDialog.cpp: image.h SeqSettingsDialog.h NewTimingDialog.h xLightsXmlFile.h DataLayer.h FileConverter.h LorConvertDialog.h ConvertLogDialog.h VAMPPluginDialog.h CustomTimingDialog.h VendorMusicDialog.h xLightsMain.h UtilFunctions.h ExternalHooks.h
+SeqSettingsDialog.cpp: SeqSettingsDialog.h NewTimingDialog.h xLightsXmlFile.h DataLayer.h FileConverter.h LorConvertDialog.h ConvertLogDialog.h VAMPPluginDialog.h CustomTimingDialog.h VendorMusicDialog.h xLightsMain.h UtilFunctions.h ExternalHooks.h
 
 FileConverter.h: DataLayer.h SequenceData.h Color.h
 
@@ -3454,7 +3452,7 @@ SequenceVideoPreview.cpp: SequenceVideoPreview.h
 
 SequenceViewManager.cpp: SequenceViewManager.h models/ModelManager.h models/Model.h UtilFunctions.h
 
-SevenSegmentDialog.cpp: SevenSegmentDialog.h image.h ../include/sevensegment.xpm
+SevenSegmentDialog.cpp: SevenSegmentDialog.h ../include/sevensegment.xpm
 
 ShaderDownloadDialog.cpp: xLightsMain.h ShaderDownloadDialog.h CachedFileDownloader.h UtilFunctions.h
 
@@ -3490,7 +3488,7 @@ RenderProgressDialog.cpp: RenderProgressDialog.h
 
 ResizeImageDialog.cpp: ResizeImageDialog.h
 
-ColorPanel.cpp: xLightsMain.h ColorPanel.h ColorCurve.h effects/EffectPanelUtils.h UtilFunctions.h xLightsApp.h image.h
+ColorPanel.cpp: xLightsMain.h ColorPanel.h ColorCurve.h effects/EffectPanelUtils.h UtilFunctions.h xLightsApp.h
 
 ColorManager.cpp: ColorManager.h xLightsMain.h
 
@@ -3514,7 +3512,7 @@ ColoursPanel.cpp: ColoursPanel.h UtilFunctions.h ColorCurve.h xLightsMain.h Drag
 
 ControllerConnectionDialog.cpp: ControllerConnectionDialog.h models/Model.h xLightsApp.h xLightsMain.h Pixels.h
 
-ControllerModelDialog.cpp: image.h ControllerModelDialog.h xLightsMain.h UtilFunctions.h outputs/Output.h outputs/ControllerEthernet.h models/ModelManager.h models/Model.h outputs/Controller.h Pixels.h
+ControllerModelDialog.cpp: ControllerModelDialog.h xLightsMain.h UtilFunctions.h outputs/Output.h outputs/ControllerEthernet.h models/ModelManager.h models/Model.h outputs/Controller.h Pixels.h
 
 ConvertDialog.cpp: ConvertDialog.h FileConverter.h xLightsMain.h outputs/Output.h UtilFunctions.h outputs/OutputManager.h outputs/Controller.h
 
@@ -3522,7 +3520,7 @@ ConvertLogDialog.cpp: ConvertLogDialog.h
 
 CopyFormat1.cpp: CopyFormat1.h sequencer/Effect.h sequencer/EffectLayer.h
 
-CustomModelDialog.cpp: CustomModelDialog.h image.h models/CustomModel.h WiringDialog.h wxModelGridCellRenderer.h UtilClasses.h UtilFunctions.h ExternalHooks.h ModelPreview.h
+CustomModelDialog.cpp: CustomModelDialog.h models/CustomModel.h WiringDialog.h wxModelGridCellRenderer.h UtilClasses.h UtilFunctions.h ExternalHooks.h ModelPreview.h
 
 CustomTimingDialog.cpp: CustomTimingDialog.h
 
@@ -3536,13 +3534,13 @@ BatchRenderDialog.cpp: BatchRenderDialog.h ../include/globals.h
 
 BitmapCache.cpp: BitmapCache.h UtilFunctions.h ../include/padlock_open_14.xpm ../include/padlock_open_28.xpm ../include/padlock_close_14.xpm ../include/padlock_close_28.xpm ../include/fforward10-24.xpm ../include/rewind10-24.xpm ../include/Dice-24.xpm ../include/Dice-32.xpm ../include/Dice-48.xpm ../include/Dice-64.xpm ../include/group-open-24.xpm ../include/group-open-64.xpm ../include/group-closed-24.xpm ../include/group-closed-64.xpm ../include/arch-icon-16.xpm ../include/arch-icon-64.xpm ../include/cane-icon-16.xpm ../include/cane-icon-64.xpm ../include/channelblock-icon-16.xpm ../include/channelblock-icon-64.xpm ../include/circle-icon-16.xpm ../include/circle-icon-64.xpm ../include/cube-icon-16.xpm ../include/cube-icon-64.xpm ../include/custom-icon-16.xpm ../include/custom-icon-64.xpm ../include/dmx-icon-16.xpm ../include/dmx-icon-64.xpm ../include/icicle-icon-16.xpm ../include/icicle-icon-64.xpm ../include/line-icon-16.xpm ../include/line-icon-64.xpm ../include/matrix-icon-16.xpm ../include/matrix-icon-64.xpm ../include/poly-icon-16.xpm ../include/poly-icon-64.xpm ../include/sphere-icon-16.xpm ../include/sphere-icon-64.xpm ../include/spinner-icon-16.xpm ../include/spinner-icon-64.xpm ../include/star-icon-16.xpm ../include/star-icon-64.xpm ../include/submarine-16.xpm ../include/submarine-32.xpm ../include/tree-icon-16.xpm ../include/tree-icon-64.xpm ../include/window-icon-16.xpm ../include/window-icon-64.xpm ../include/wreath-icon-16.xpm ../include/wreath-icon-64.xpm ../include/link-48.xpm ../include/unlink-48.xpm ../include/point_1a-64.xpm ../include/point_1b-64.xpm ../include/point_2a-64.xpm ../include/point_2b-64.xpm ../include/point_1ab-64.xpm ../include/point_2ab-64.xpm ../include/papagayo-16.xpm ../include/papagayo-64.xpm ../include/papagayo_x-16.xpm ../include/papagayo_x-64.xpm ../include/model-16.xpm ../include/model-64.xpm ../include/cc_time.xpm ../include/cc_timelocked.xpm ../include/cc_left.xpm ../include/cc_right.xpm ../include/cc_up.xpm ../include/cc_down.xpm ../include/cc_na.xpm ../include/cc_ccw.xpm ../include/cc_cw.xpm ../include/cc_radialin.xpm ../include/cc_radialout.xpm ../include/save.xpm ../include/delete.xpm ../include/switch.xpm ../include/valuecurvenotselected.xpm ../include/valuecurveselected.xpm Images_png.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/splashimage.h
 
-BufferPanel.cpp: BufferPanel.h image.h PixelBuffer.h models/Model.h effects/EffectPanelUtils.h ValueCurveDialog.h SubBufferPanel.h xLightsMain.h xLightsApp.h
+BufferPanel.cpp: BufferPanel.h PixelBuffer.h models/Model.h effects/EffectPanelUtils.h ValueCurveDialog.h SubBufferPanel.h xLightsMain.h xLightsApp.h
 
 ValueCurveDialog.h: xlCustomControl.h ValueCurve.h
 
 SubBufferPanel.h: xlCustomControl.h
 
-BufferSizeDialog.cpp: BufferSizeDialog.h ValueCurveDialog.h UtilFunctions.h xLightsMain.h PixelBuffer.h image.h
+BufferSizeDialog.cpp: BufferSizeDialog.h ValueCurveDialog.h UtilFunctions.h xLightsMain.h PixelBuffer.h
 
 BufferSizeDialog.h: ValueCurveButton.h xlLockButton.h
 
@@ -3576,7 +3574,7 @@ ExportModelSelect.cpp: ExportModelSelect.h
 
 Image.cpp: Image.h Image_Loader.h
 
-Image_Loader.cpp: Image_Loader.h image.h DrawGLUtils.h UtilFunctions.h
+Image_Loader.cpp: Image_Loader.h DrawGLUtils.h UtilFunctions.h
 
 ImportPreviewsModelsDialog.cpp: ImportPreviewsModelsDialog.h LayoutGroup.h UtilFunctions.h
 
@@ -3642,13 +3640,13 @@ effects/LifeEffect.h: effects/RenderableEffect.h
 
 effects/LifePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/GarlandsPanel.cpp: effects/GarlandsPanel.h effects/EffectPanelUtils.h effects/GarlandsEffect.h image.h
+effects/GarlandsPanel.cpp: effects/GarlandsPanel.h effects/EffectPanelUtils.h effects/GarlandsEffect.h
 
 effects/GarlandsPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
 effects/GarlandsEffect.cpp: effects/GarlandsEffect.h effects/GarlandsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/garlands-16.xpm ../include/garlands-24.xpm ../include/garlands-32.xpm ../include/garlands-48.xpm ../include/garlands-64.xpm
 
-effects/GalaxyPanel.cpp: effects/GalaxyPanel.h effects/EffectPanelUtils.h effects/GalaxyEffect.h image.h
+effects/GalaxyPanel.cpp: effects/GalaxyPanel.h effects/EffectPanelUtils.h effects/GalaxyEffect.h
 
 effects/GalaxyPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3656,7 +3654,7 @@ effects/GalaxyEffect.h: effects/RenderableEffect.h
 
 effects/GalaxyEffect.cpp: effects/GalaxyEffect.h effects/GalaxyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/galaxy-16.xpm ../include/galaxy-24.xpm ../include/galaxy-32.xpm ../include/galaxy-48.xpm ../include/galaxy-64.xpm
 
-effects/LifePanel.cpp: effects/LifePanel.h effects/EffectPanelUtils.h image.h
+effects/LifePanel.cpp: effects/LifePanel.h effects/EffectPanelUtils.h
 
 effects/LightningEffect.cpp: effects/LightningEffect.h effects/LightningPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/lightning-16.xpm ../include/lightning-24.xpm ../include/lightning-32.xpm ../include/lightning-48.xpm ../include/lightning-64.xpm
 
@@ -3664,7 +3662,7 @@ effects/LightningEffect.h: effects/RenderableEffect.h
 
 effects/LightningPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/LightningPanel.cpp: effects/LightningPanel.h effects/EffectPanelUtils.h effects/LightningEffect.h image.h
+effects/LightningPanel.cpp: effects/LightningPanel.h effects/EffectPanelUtils.h effects/LightningEffect.h
 
 effects/LinesEffect.cpp: effects/LinesEffect.h effects/LinesPanel.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h UtilFunctions.h ../include/lines-16.xpm ../include/lines-24.xpm ../include/lines-32.xpm ../include/lines-48.xpm ../include/lines-64.xpm
 
@@ -3672,7 +3670,7 @@ effects/LinesEffect.h: effects/RenderableEffect.h RenderBuffer.h
 
 effects/LinesPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/LinesPanel.cpp: image.h effects/LinesPanel.h effects/EffectPanelUtils.h effects/LinesEffect.h UtilFunctions.h
+effects/LinesPanel.cpp: effects/LinesPanel.h effects/EffectPanelUtils.h effects/LinesEffect.h UtilFunctions.h
 
 effects/LiquidEffect.cpp: effects/LiquidEffect.h effects/LiquidPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h UtilFunctions.h models/Model.h ../include/liquid-16.xpm ../include/liquid-24.xpm ../include/liquid-32.xpm ../include/liquid-48.xpm ../include/liquid-64.xpm
 
@@ -3680,9 +3678,9 @@ effects/LiquidEffect.h: effects/RenderableEffect.h RenderBuffer.h
 
 effects/LiquidPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/LiquidPanel.cpp: effects/LiquidPanel.h effects/EffectPanelUtils.h effects/LiquidEffect.h image.h
+effects/LiquidPanel.cpp: effects/LiquidPanel.h effects/EffectPanelUtils.h effects/LiquidEffect.h
 
-effects/CurtainPanel.cpp: effects/CurtainPanel.h effects/EffectPanelUtils.h effects/CurtainEffect.h image.h
+effects/CurtainPanel.cpp: effects/CurtainPanel.h effects/EffectPanelUtils.h effects/CurtainEffect.h
 
 effects/CurtainPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3690,7 +3688,7 @@ effects/DMXEffect.cpp: effects/DMXEffect.h effects/DMXPanel.h sequencer/Effect.h
 
 effects/DMXPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/DMXPanel.cpp: image.h effects/DMXPanel.h effects/DMXEffect.h xLightsMain.h sequencer/MainSequencer.h sequencer/Effect.h sequencer/Element.h models/ModelGroup.h RemapDMXChannelsDialog.h xLightsApp.h effects/EffectPanelUtils.h
+effects/DMXPanel.cpp: effects/DMXPanel.h effects/DMXEffect.h xLightsMain.h sequencer/MainSequencer.h sequencer/Effect.h sequencer/Element.h models/ModelGroup.h RemapDMXChannelsDialog.h xLightsApp.h effects/EffectPanelUtils.h
 
 effects/EffectManager.cpp: effects/EffectManager.h effects/OffEffect.h effects/OnEffect.h effects/BarsEffect.h effects/ButterflyEffect.h effects/CandleEffect.h effects/CirclesEffect.h effects/ColorWashEffect.h effects/CurtainEffect.h effects/DMXEffect.h effects/FacesEffect.h effects/FanEffect.h effects/FillEffect.h effects/FireEffect.h effects/FireworksEffect.h effects/GalaxyEffect.h effects/GarlandsEffect.h effects/GlediatorEffect.h effects/KaleidoscopeEffect.h effects/LifeEffect.h effects/LightningEffect.h effects/LinesEffect.h effects/LiquidEffect.h effects/MarqueeEffect.h effects/MeteorsEffect.h effects/MorphEffect.h effects/MusicEffect.h effects/PianoEffect.h effects/PicturesEffect.h effects/PinwheelEffect.h effects/PlasmaEffect.h effects/RenderableEffect.h effects/RippleEffect.h effects/ServoEffect.h effects/ShaderEffect.h effects/ShapeEffect.h effects/ShimmerEffect.h effects/ShockwaveEffect.h effects/SingleStrandEffect.h effects/SnowflakesEffect.h effects/SnowstormEffect.h effects/SpiralsEffect.h effects/SpirographEffect.h effects/StateEffect.h effects/StrobeEffect.h effects/TendrilEffect.h effects/TextEffect.h effects/TreeEffect.h effects/TwinkleEffect.h effects/VideoEffect.h effects/VUMeterEffect.h effects/WarpEffect.h effects/WaveEffect.h
 
@@ -3744,33 +3742,33 @@ effects/MarqueeEffect.cpp: effects/MarqueeEffect.h effects/MarqueePanel.h sequen
 
 effects/MarqueePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/FanPanel.cpp: effects/FanPanel.h effects/EffectPanelUtils.h effects/FanEffect.h image.h
+effects/FanPanel.cpp: effects/FanPanel.h effects/EffectPanelUtils.h effects/FanEffect.h
 
 effects/FillEffect.cpp: effects/FillEffect.h effects/FillPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h UtilFunctions.h ../include/fill-16.xpm ../include/fill-64.xpm
 
 effects/FillPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/FillPanel.cpp: effects/FillPanel.h effects/FillEffect.h effects/EffectPanelUtils.h image.h
+effects/FillPanel.cpp: effects/FillPanel.h effects/FillEffect.h effects/EffectPanelUtils.h
 
 effects/FireEffect.cpp: effects/FireEffect.h effects/FirePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h UtilFunctions.h ../include/fire-16.xpm ../include/fire-24.xpm ../include/fire-32.xpm ../include/fire-48.xpm ../include/fire-64.xpm
 
 effects/FirePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/FirePanel.cpp: effects/FirePanel.h effects/EffectPanelUtils.h effects/FireEffect.h image.h
+effects/FirePanel.cpp: effects/FirePanel.h effects/EffectPanelUtils.h effects/FireEffect.h
 
 effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h UtilFunctions.h sequencer/SequenceElements.h ../include/fireworks-16.xpm ../include/fireworks-24.xpm ../include/fireworks-32.xpm ../include/fireworks-48.xpm ../include/fireworks-64.xpm
 
 effects/FireworksPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/FireworksPanel.cpp: effects/FireworksPanel.h effects/EffectPanelUtils.h sequencer/Effect.h effects/FireworksEffect.h image.h ValueCurveButton.h
+effects/FireworksPanel.cpp: effects/FireworksPanel.h effects/EffectPanelUtils.h sequencer/Effect.h effects/FireworksEffect.h ValueCurveButton.h
 
 effects/GIFImage.cpp: effects/GIFImage.h
 
-effects/ServoPanel.cpp: effects/ServoPanel.h effects/ServoEffect.h effects/EffectPanelUtils.h image.h
+effects/ServoPanel.cpp: effects/ServoPanel.h effects/ServoEffect.h effects/EffectPanelUtils.h
 
 effects/ServoPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/PinwheelPanel.cpp: effects/PinwheelPanel.h effects/EffectPanelUtils.h image.h
+effects/PinwheelPanel.cpp: effects/PinwheelPanel.h effects/EffectPanelUtils.h
 
 effects/PinwheelPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
@@ -3778,7 +3776,7 @@ effects/PlasmaEffect.cpp: effects/PlasmaEffect.h effects/PlasmaPanel.h sequencer
 
 effects/PlasmaPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/PlasmaPanel.cpp: effects/PlasmaPanel.h effects/EffectPanelUtils.h effects/PlasmaEffect.h image.h
+effects/PlasmaPanel.cpp: effects/PlasmaPanel.h effects/EffectPanelUtils.h effects/PlasmaEffect.h
 
 effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h UtilFunctions.h ExternalHooks.h sequencer/SequenceElements.h ValueCurveButton.h PixelBuffer.h effects/FanEffect.h effects/SpiralsEffect.h effects/PinwheelEffect.h effects/EffectPanelUtils.h xLightsApp.h xLightsMain.h
 
@@ -3786,7 +3784,7 @@ effects/RippleEffect.cpp: effects/RippleEffect.h effects/RipplePanel.h sequencer
 
 effects/RipplePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/RipplePanel.cpp: effects/RipplePanel.h effects/EffectPanelUtils.h effects/RippleEffect.h image.h
+effects/RipplePanel.cpp: effects/RipplePanel.h effects/EffectPanelUtils.h effects/RippleEffect.h
 
 effects/ServoEffect.cpp: ../include/servo-16.xpm ../include/servo-24.xpm ../include/servo-32.xpm ../include/servo-48.xpm ../include/servo-64.xpm effects/ServoEffect.h effects/ServoPanel.h sequencer/Effect.h sequencer/Element.h sequencer/SequenceElements.h RenderBuffer.h UtilClasses.h UtilFunctions.h
 
@@ -3796,19 +3794,19 @@ effects/ShaderEffect.cpp: ../include/shader_64.xpm ../include/shader_48.xpm ../i
 
 effects/ShaderPanel.h: xlGLCanvas.h BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/ShaderPanel.cpp: effects/ShaderPanel.h effects/ShaderEffect.h BulkEditControls.h effects/EffectPanelUtils.h ShaderDownloadDialog.h ExternalHooks.h xLightsMain.h xLightsApp.h TimingPanel.h image.h
+effects/ShaderPanel.cpp: effects/ShaderPanel.h effects/ShaderEffect.h BulkEditControls.h effects/EffectPanelUtils.h ShaderDownloadDialog.h ExternalHooks.h xLightsMain.h xLightsApp.h TimingPanel.h
 
 effects/ShapeEffect.cpp: effects/ShapeEffect.h effects/ShapePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h sequencer/SequenceElements.h UtilFunctions.h AudioManager.h ../include/shape-16.xpm ../include/shape-24.xpm ../include/shape-32.xpm ../include/shape-48.xpm ../include/shape-64.xpm
 
 effects/ShapePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/ShapePanel.cpp: effects/ShapePanel.h effects/EffectPanelUtils.h effects/ShapeEffect.h CharMapDialog.h image.h
+effects/ShapePanel.cpp: effects/ShapePanel.h effects/EffectPanelUtils.h effects/ShapeEffect.h CharMapDialog.h
 
 effects/ShimmerEffect.cpp: effects/ShimmerEffect.h effects/ShimmerPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shimmer.xpm
 
 effects/ShimmerPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/ShimmerPanel.cpp: effects/ShimmerPanel.h effects/EffectPanelUtils.h effects/ShimmerEffect.h image.h
+effects/ShimmerPanel.cpp: effects/ShimmerPanel.h effects/EffectPanelUtils.h effects/ShimmerEffect.h
 
 effects/ShockwaveEffect.cpp: effects/ShockwaveEffect.h effects/ShockwavePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shockwave-16.xpm ../include/shockwave-24.xpm ../include/shockwave-32.xpm ../include/shockwave-48.xpm ../include/shockwave-64.xpm
 
@@ -3816,25 +3814,25 @@ effects/OffEffect.cpp: effects/OffEffect.h effects/OffPanel.h RenderBuffer.h Uti
 
 effects/OffPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/MarqueePanel.cpp: image.h effects/MarqueePanel.h effects/EffectPanelUtils.h effects/MarqueeEffect.h
+effects/MarqueePanel.cpp: effects/MarqueePanel.h effects/EffectPanelUtils.h effects/MarqueeEffect.h
 
 effects/MeteorsEffect.cpp: effects/MeteorsEffect.h effects/MeteorsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h UtilFunctions.h ../include/meteors-16.xpm ../include/meteors-24.xpm ../include/meteors-32.xpm ../include/meteors-48.xpm ../include/meteors-64.xpm Parallel.h
 
 effects/MeteorsPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/MeteorsPanel.cpp: effects/MeteorsPanel.h effects/EffectPanelUtils.h effects/MeteorsEffect.h image.h
+effects/MeteorsPanel.cpp: effects/MeteorsPanel.h effects/EffectPanelUtils.h effects/MeteorsEffect.h
 
 effects/MorphEffect.cpp: effects/MorphEffect.h effects/MorphPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/AssistPanel.h effects/assist/xlGridCanvasMorph.h models/Model.h ../include/morph-16.xpm ../include/morph-64.xpm UtilFunctions.h
 
 effects/MorphPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/MorphPanel.cpp: effects/MorphPanel.h effects/EffectPanelUtils.h effects/MorphEffect.h xLightsApp.h UtilFunctions.h xLightsMain.h sequencer/MainSequencer.h image.h
+effects/MorphPanel.cpp: effects/MorphPanel.h effects/EffectPanelUtils.h effects/MorphEffect.h xLightsApp.h UtilFunctions.h xLightsMain.h sequencer/MainSequencer.h
 
 effects/MusicEffect.cpp: effects/MusicPanel.h effects/MusicEffect.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h UtilFunctions.h ../include/music-16.xpm ../include/music-24.xpm ../include/music-32.xpm ../include/music-48.xpm ../include/music-64.xpm
 
 effects/MusicPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/MusicPanel.cpp: image.h effects/MusicPanel.h effects/EffectPanelUtils.h effects/MusicEffect.h UtilFunctions.h
+effects/MusicPanel.cpp: effects/MusicPanel.h effects/EffectPanelUtils.h effects/MusicEffect.h UtilFunctions.h
 
 effects/OffPanel.cpp: effects/OffPanel.h
 
@@ -3842,19 +3840,19 @@ effects/OnEffect.cpp: ../include/On.xpm effects/OnEffect.h effects/OnPanel.h seq
 
 effects/OnPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/OnPanel.cpp: effects/OnPanel.h effects/OnEffect.h image.h effects/EffectPanelUtils.h
+effects/OnPanel.cpp: effects/OnPanel.h effects/OnEffect.h effects/EffectPanelUtils.h
 
 effects/PianoEffect.cpp: ../include/piano-16.xpm ../include/piano-64.xpm effects/PianoEffect.h effects/PianoPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsXmlFile.h UtilFunctions.h models/Model.h
 
 effects/PianoPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/PianoPanel.cpp: image.h effects/PianoPanel.h effects/EffectPanelUtils.h sequencer/Effect.h effects/PianoEffect.h UtilFunctions.h
+effects/PianoPanel.cpp: effects/PianoPanel.h effects/EffectPanelUtils.h sequencer/Effect.h effects/PianoEffect.h UtilFunctions.h
 
-effects/PicturesEffect.cpp: image.h ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h models/Model.h UtilFunctions.h effects/GIFImage.h xLightsMain.h
+effects/PicturesEffect.cpp: ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h models/Model.h UtilFunctions.h effects/GIFImage.h xLightsMain.h
 
 effects/PicturesPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/PicturesPanel.cpp: image.h effects/PicturesPanel.h effects/EffectPanelUtils.h effects/GIFImage.h ExternalHooks.h
+effects/PicturesPanel.cpp: effects/PicturesPanel.h effects/EffectPanelUtils.h effects/GIFImage.h ExternalHooks.h
 
 VendorMusicHelpers.cpp: VendorMusicHelpers.h CachedFileDownloader.h UtilFunctions.h
 
@@ -3882,13 +3880,13 @@ Vixen3.cpp: Vixen3.h
 
 VsaImportDialog.cpp: VsaImportDialog.h sequencer/SequenceElements.h xLightsMain.h models/Model.h VSAFile.h support/FastComboEditor.h support/GridCellChoiceRenderer.h support/EzGrid.h UtilFunctions.h
 
-WiringDialog.cpp: image.h WiringDialog.h models/Model.h UtilFunctions.h
+WiringDialog.cpp: WiringDialog.h models/Model.h UtilFunctions.h
 
 XlightsDrawable.cpp: XlightsDrawable.h DrawGLUtils.h
 
 cad/CADModel.cpp: models/Model.h Pixels.h
 
-TopEffectsPanel.cpp: TopEffectsPanel.h sequencer/EffectDropTarget.h ../include/Off.xpm image.h
+TopEffectsPanel.cpp: TopEffectsPanel.h sequencer/EffectDropTarget.h ../include/Off.xpm
 
 SubBufferPanel.cpp: SubBufferPanel.h BufferSizeDialog.h xLightsApp.h xLightsMain.h sequencer/MainSequencer.h UtilFunctions.h
 
@@ -3906,7 +3904,7 @@ TabSequence.cpp: xLightsMain.h SeqSettingsDialog.h xLightsXmlFile.h effects/Rend
 
 TabSetup.cpp: xLightsMain.h LayoutPanel.h xLightsXmlFile.h sequencer/MainSequencer.h ViewsModelsPanel.h UtilFunctions.h models/Model.h SpecialOptions.h LayoutGroup.h ControllerModelDialog.h ExternalHooks.h outputs/ControllerEthernet.h outputs/ControllerSerial.h outputs/ControllerNull.h outputs/Output.h outputs/NullOutput.h outputs/E131Output.h outputs/ZCPPOutput.h outputs/ArtNetOutput.h outputs/DDPOutput.h outputs/DMXOutput.h outputs/LOROptimisedOutput.h Discovery.h
 
-TimingPanel.cpp: image.h TimingPanel.h models/Model.h effects/EffectPanelUtils.h LayerSelectDialog.h xLightsMain.h UtilFunctions.h
+TimingPanel.cpp: TimingPanel.h models/Model.h effects/EffectPanelUtils.h LayerSelectDialog.h xLightsMain.h UtilFunctions.h
 
 cad/CADWriter.cpp: UtilFunctions.h
 
@@ -3934,7 +3932,7 @@ effects/BarsEffect.cpp: effects/BarsEffect.h effects/BarsPanel.h sequencer/Effec
 
 effects/BarsPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/BarsPanel.cpp: effects/BarsPanel.h effects/EffectPanelUtils.h effects/BarsEffect.h image.h
+effects/BarsPanel.cpp: effects/BarsPanel.h effects/EffectPanelUtils.h effects/BarsEffect.h
 
 effects/ButterflyEffect.cpp: effects/ButterflyEffect.h effects/ButterflyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/butterfly-16.xpm ../include/butterfly-24.xpm ../include/butterfly_32.xpm ../include/butterfly-48.xpm ../include/butterfly-64.xpm Parallel.h
 
@@ -3942,25 +3940,25 @@ effects/ButterflyPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
 controllers/Minleon.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h outputs/DDPOutput.h models/ModelManager.h outputs/ControllerEthernet.h UtilFunctions.h
 
-effects/ButterflyPanel.cpp: effects/ButterflyPanel.h effects/EffectPanelUtils.h effects/ButterflyEffect.h image.h
+effects/ButterflyPanel.cpp: effects/ButterflyPanel.h effects/EffectPanelUtils.h effects/ButterflyEffect.h
 
 effects/CandleEffect.cpp: effects/CandleEffect.h effects/CandlePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h UtilFunctions.h ../include/candle-16.xpm ../include/candle-24.xpm ../include/candle-32.xpm ../include/candle-48.xpm ../include/candle-64.xpm
 
 effects/CandlePanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/CandlePanel.cpp: effects/CandlePanel.h effects/EffectPanelUtils.h effects/CandleEffect.h image.h
+effects/CandlePanel.cpp: effects/CandlePanel.h effects/EffectPanelUtils.h effects/CandleEffect.h
 
 effects/CirclesEffect.cpp: effects/CirclesEffect.h effects/CirclesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/circles-16.xpm ../include/circles-24.xpm ../include/circles-32.xpm ../include/circles-48.xpm ../include/circles-64.xpm
 
 effects/CirclesPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/CirclesPanel.cpp: effects/CirclesPanel.h effects/EffectPanelUtils.h effects/CirclesEffect.h image.h
+effects/CirclesPanel.cpp: effects/CirclesPanel.h effects/EffectPanelUtils.h effects/CirclesEffect.h
 
 effects/ColorWashEffect.cpp: effects/ColorWashEffect.h effects/ColorWashPanel.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h RenderBuffer.h UtilClasses.h ../include/ColorWash.xpm
 
 effects/ColorWashPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
-effects/ColorWashPanel.cpp: effects/ColorWashPanel.h effects/EffectPanelUtils.h effects/ColorWashEffect.h image.h
+effects/ColorWashPanel.cpp: effects/ColorWashPanel.h effects/EffectPanelUtils.h effects/ColorWashEffect.h
 
 effects/CurtainEffect.cpp: effects/CurtainEffect.h effects/CurtainPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/curtain-16.xpm ../include/curtain-24.xpm ../include/curtain-32.xpm ../include/curtain-48.xpm ../include/curtain-64.xpm
 
@@ -3986,7 +3984,7 @@ controllers/Falcon.cpp: outputs/OutputManager.h outputs/Output.h models/Model.h 
 
 controllers/HinksPix.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h outputs/ControllerEthernet.h models/ModelManager.h UtilFunctions.h
 
-controllers/HinksPixExportDialog.cpp: image.h xLightsMain.h xLightsXmlFile.h outputs/Output.h outputs/OutputManager.h UtilFunctions.h AudioManager.h ExternalHooks.h outputs/ControllerEthernet.h
+controllers/HinksPixExportDialog.cpp: xLightsMain.h xLightsXmlFile.h outputs/Output.h outputs/OutputManager.h UtilFunctions.h AudioManager.h ExternalHooks.h outputs/ControllerEthernet.h
 
 controllers/J1Sys.cpp: UtilFunctions.h outputs/ControllerEthernet.h models/Model.h outputs/OutputManager.h outputs/Output.h models/ModelManager.h
 
