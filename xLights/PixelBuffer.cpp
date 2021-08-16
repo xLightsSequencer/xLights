@@ -2022,8 +2022,8 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
     if (layers[layer]->usingModelBuffers) {
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it)  {
-            (*it)->SetPalette(newcolors, newcc);
+        for (auto& it : layers[layer]->modelBuffers)  {
+            it->SetPalette(newcolors, newcc);
         }
     }
 }

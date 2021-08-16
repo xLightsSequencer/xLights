@@ -3633,7 +3633,7 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
 
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, "xLightsProblem.zip", "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -3654,12 +3654,10 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     long index;
     bool ce = config->GetFirstEntry(key, index);
 
-    while (ce)
-    {
+    while (ce) {
         wxString value = "<UNKNOWN>";
         wxString type = "<UNREAD>";
-        switch(config->GetEntryType(key))
-        {
+        switch (config->GetEntryType(key)) {
         case wxConfigBase::EntryType::Type_String:
             type = "String";
             config->Read(key, &value);
@@ -3700,8 +3698,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     report.AddFile(fn.GetFullPath(), "All Models");
 
     // export the effects to an easy to read file
-    if (CurrentSeqXmlFile != nullptr)
-    {
+    if (CurrentSeqXmlFile != nullptr) {
         wxString filenamee = wxFileName::CreateTempFileName("Effects") + ".csv";
         ExportEffects(filenamee);
         wxFileName fne(filenamee);
@@ -3713,7 +3710,8 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     wxRemoveFile(filename);
 }
 
-static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxDebugReport &report) {
+static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxDebugReport& report)
+{
     wxString dir;
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
@@ -3728,21 +3726,19 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif
-    if (wxFile::Exists(filename))
-    {
+    if (wxFile::Exists(filename)) {
         report.AddFile(filename, fileName);
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         report.AddFile(wxFileName(CurrentDir, fileName).GetFullPath(), fileName);
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
-    {
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
     }
 }
 
-void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
+void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
+{
 
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
@@ -3751,7 +3747,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
     if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (UnsavedRgbEffectsChanges &&  wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+    if (UnsavedRgbEffectsChanges && wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
 
@@ -3763,34 +3759,26 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
         wxFileName fn2(GetSeqXmlFileName());
         if (fn2.Exists() && !fn2.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn2.GetName());
-            if (mSavedChangeCount != _sequenceElements.GetChangeCount())
-            {
+            if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-                if (fnb.Exists())
-                {
+                if (fnb.Exists()) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
         }
-        else
-        {
-            if (mSavedChangeCount != _sequenceElements.GetChangeCount())
-            {
+        else {
+            if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-                if (fnb.Exists())
-                {
+                if (fnb.Exists()) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
         }
     }
-    else
-    {
-        if (mSavedChangeCount != _sequenceElements.GetChangeCount())
-        {
+    else {
+        if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
             wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-            if (fnb.Exists())
-            {
+            if (fnb.Exists()) {
                 report.AddFile(fnb.GetFullPath(), fnb.GetName());
             }
         }
@@ -3829,6 +3817,7 @@ int xLightsFrame::OpenGLRenderOrder() const {
     config->Read("OGLRenderOrder", &orig, 0);
     return orig;
 }
+
 void xLightsFrame::SetOpenGLRenderOrder(int order) {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("OGLRenderOrder", order);
@@ -3840,18 +3829,16 @@ void xLightsFrame::SetOpenGLRenderOrder(int order) {
 void xLightsFrame::SaveWorkingLayout()
 {
     // update xml with offsets and scale
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (AllModels.IsModelValid(modelPreview->GetModels()[i]) || IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-            modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    for (const auto& it: modelPreview->GetModels()) {
+        if (AllModels.IsModelValid(it) || IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models - looks like we are missing a LayoutPanel::UpdateModelList call in some situation
+            it->UpdateXmlWithScale();
         }
-        else
-        {
+        else {
             wxASSERT(false); // why did we get here
         }
     }
-    for (auto it = AllObjects.begin(); it != AllObjects.end(); ++it) {
-        ViewObject *view_object = it->second;
+    for (const auto& it : AllObjects) {
+        ViewObject* view_object = it.second;
         view_object->UpdateXmlWithScale();
     }
     SaveEffectsFile(true);
@@ -3873,12 +3860,10 @@ void xLightsFrame::SaveWorking()
     wxString fn = CurrentSeqXmlFile->GetFullName();
     wxString tmp;
 
-    if (fn == "")
-    {
+    if (fn == "") {
         tmp = p + "/" + "__.xbkp";
     }
-    else
-    {
+    else {
         wxFileName fnp(fn);
         tmp = p + "/" + fnp.GetName() + ".xbkp";
     }
@@ -3895,37 +3880,31 @@ void xLightsFrame::SaveWorking()
 
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // dont save if currently playing or in render mode
     if (playType != PLAY_TYPE_MODEL && !_renderMode && !_checkSequenceMode && !_suspendAutoSave) {
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
-        if (mSavedChangeCount != _sequenceElements.GetChangeCount())
-        {
-            if (_sequenceElements.GetChangeCount() != mLastAutosaveCount)
-            {
+        if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+            if (_sequenceElements.GetChangeCount() != mLastAutosaveCount) {
                 SaveWorking();
                 mLastAutosaveCount = _sequenceElements.GetChangeCount();
             }
-            else
-            {
+            else {
                 logger_base.debug("    Autosave skipped ... no changes detected since last autosave.");
             }
         }
-        else
-        {
+        else {
             logger_base.debug("    Autosave skipped ... no changes detected since last save.");
             mLastAutosaveCount = _sequenceElements.GetChangeCount();
         }
-        if (UnsavedRgbEffectsChanges)
-        {
+        if (UnsavedRgbEffectsChanges) {
             logger_base.debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
         }
         logger_base.debug("    AutoSave took %d ms.", sw.Time());
     }
-    else
-    {
+    else {
         logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
     }
 
@@ -3943,7 +3922,8 @@ void xLightsFrame::SetAutoSaveInterval(int nasi)
     }
     if (mAutoSaveInterval > 0) {
         AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
-    } else {
+    }
+    else {
         AutoSaveTimer.Stop();
     }
 }
@@ -4566,6 +4546,9 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
+    wxProgressDialog prog("Check Sequence", "", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prog.Show();
+
     LogAndWrite(f, "Checking sequence.");
     LogAndWrite(f, "");
 
@@ -4580,6 +4563,9 @@ void xLightsFrame::CheckSequence(bool display)
     else {
         LogAndWrite(f, "Sequence: No sequence open.");
     }
+
+    prog.Update(0, "Checking network");
+    wxYield();
 
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
@@ -4627,6 +4613,9 @@ void xLightsFrame::CheckSequence(bool display)
 
     size_t errcountsave = errcount;
     size_t warncountsave = warncount;
+
+    prog.Update(1, "Checking preferences");
+    wxYield();
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Working in a backup directory");
@@ -4689,6 +4678,9 @@ void xLightsFrame::CheckSequence(bool display)
 
     errcountsave = errcount;
     warncountsave = warncount;
+
+    prog.Update(3, "Checking controllers");
+    wxYield();
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Controllers");
@@ -5052,10 +5044,10 @@ void xLightsFrame::CheckSequence(bool display)
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Models spanning controllers");
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            int32_t start = it->second->GetFirstChannel() + 1;
-            int32_t end = it->second->GetLastChannel() + 1;
+    for (const auto& it : AllModels) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            int32_t start = it.second->GetFirstChannel() + 1;
+            int32_t end = it.second->GetLastChannel() + 1;
 
             int32_t sc;
             Controller* ostart = _outputManager.GetController(start, sc);
@@ -5066,17 +5058,17 @@ void xLightsFrame::CheckSequence(bool display)
             auto ser_oend = dynamic_cast<ControllerSerial*>(oend);
 
             if (ostart != nullptr && oend == nullptr) {
-                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it->first, ostart->GetName(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it.first, ostart->GetName(), end);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
             else if (ostart == nullptr || oend == nullptr) {
-                wxString msg = wxString::Format("    ERR: Model '%s' is not configured for a controller.", it->first);
+                wxString msg = wxString::Format("    ERR: Model '%s' is not configured for a controller.", it.first);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
             else if (ostart->GetType() != oend->GetType()) {
-                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it->first, ostart->GetName(), ostart->GetType(), oend->GetDescription(), oend->GetType());
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it.first, ostart->GetName(), ostart->GetType(), oend->GetDescription(), oend->GetType());
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
             }
@@ -5086,7 +5078,7 @@ void xLightsFrame::CheckSequence(bool display)
             else if (eth_ostart != nullptr && eth_oend != nullptr && eth_ostart->GetIP() + eth_oend->GetIP() != "") {
                 if (eth_ostart->GetIP() != eth_oend->GetIP()) {
                     wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.",
-                        it->first,
+                        it.first,
                         ostart->GetName(),
                         eth_ostart->GetIP(),
                         oend->GetName(),
@@ -5098,7 +5090,7 @@ void xLightsFrame::CheckSequence(bool display)
             else if (ser_ostart != nullptr && ser_oend != nullptr && ser_ostart->GetPort() + ser_oend->GetPort() != "") {
                 if (ser_ostart->GetPort() != ser_oend->GetPort()) {
                     wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.",
-                        it->first,
+                        it.first,
                         ostart->GetName(),
                         ser_ostart->GetPort(),
                         ser_oend->GetName(),
@@ -5116,26 +5108,29 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    prog.Update(50, "Checking models");
+    wxYield();
+
     LogAndWrite(f, "");
     LogAndWrite(f, "Invalid start channels");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            std::string start = it->second->ModelStartChannel;
+    for (const auto& it : AllModels) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
                 size_t colon = start.find(':', 1);
                 std::string reference = start.substr(1, colon - 1);
 
-                if (reference == it->first) {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to itself.", it->first, start);
+                if (reference == it.first) {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to itself.", it.first, start);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
                 else {
                     Model* m = AllModels.GetModel(reference);
                     if (m == nullptr) {
-                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent model '%s'.", it->first, start, reference);
+                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent model '%s'.", it.first, start, reference);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
@@ -5144,13 +5139,13 @@ void xLightsFrame::CheckSequence(bool display)
             else if (start[0] == '!') {
                 auto comp = wxSplit(start.substr(1), ':');
                 if (_outputManager.GetController(comp[0]) == nullptr) {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it->first, start, comp[0]);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it.first, start, comp[0]);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
             }
-            if (it->second->GetLastChannel() == (unsigned int)-1) {
-                wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
+            if (it.second->GetLastChannel() == (unsigned int)-1) {
+                wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it.first, start);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -5521,6 +5516,44 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups containing duplicate nodes");
+
+    for (const auto& it : AllModels) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+        if (mg != nullptr) {
+            std::map<long, Model*> usedch;
+            std::map<std::string, bool> warned;
+            for (const auto& m : mg->Models()) {
+                std::vector<NodeBaseClassPtr> nodes;
+                int bufwi;
+                int bufhi;
+                m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi);
+                for (const auto& n : nodes) {
+                    auto e = usedch.find(n->ActChan);
+                    if (e != end(usedch)) {
+                        std::string warn = mg->Name() + m->Name() + e->second->Name();
+                        if (warned.find(warn) == end(warned)) {
+                            warned[warn] = true;
+                            wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %lu). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
+                    }
+                    else {
+                        usedch[n->ActChan] = m;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave) {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Check for model groups and DMX models and common problems
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups with DMX models likely to cause issues");
@@ -5822,6 +5855,9 @@ void xLightsFrame::CheckSequence(bool display)
             warncountsave = warncount;
         }
 
+        prog.Update(70, "Checking effects");
+        wxYield();
+
         LogAndWrite(f, "");
         LogAndWrite(f, "Effect problems");
 
@@ -5889,6 +5925,9 @@ void xLightsFrame::CheckSequence(bool display)
         errcountsave = errcount;
         warncountsave = warncount;
 
+        prog.Update(90, "Dumping used assets");
+        wxYield();
+
         LogAndWrite(f, "");
         LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
 
@@ -5924,6 +5963,8 @@ void xLightsFrame::CheckSequence(bool display)
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Checking problems with file access times.");
+
+    prog.Update(95, "Checking performance");
 
 #define SLOWDRIVE 1000
     std::list<std::pair<std::string, uint64_t>> slowaccess;
@@ -5989,6 +6030,10 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Check sequence done.");
     LogAndWrite(f, wxString::Format("Errors: %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+
+    prog.Update(100, "Done");
+    wxYield();
+    prog.Hide();
 
     if (f.IsOpened()) {
         f.Close();
