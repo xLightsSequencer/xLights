@@ -89,7 +89,7 @@ END_EVENT_TABLE()
 #pragma endregion
 
 #pragma region Colours
-wxColour __lightBlue(185, 246, 250, wxALPHA_OPAQUE);
+wxColour __lightBlue(135, 206, 255, wxALPHA_OPAQUE);
 wxColour __lightRed(255, 133, 133, wxALPHA_OPAQUE);
 wxColour __lightYellow (255, 255, 133, wxALPHA_OPAQUE);
 wxColour __lightPink(255, 133, 255, wxALPHA_OPAQUE);
@@ -116,6 +116,8 @@ wxBrush __dropTargetBrush;
 wxPen __dropTargetPen;
 wxPen __pixelPortOutlinePen;
 wxPen __serialPortOutlinePen;
+wxPen __vmPortOutlinePen;
+wxPen __lpmPortOutlinePen;
 wxPen __modelOutlinePen;
 wxPen __modelOutlineLastDroppedPen;
 wxBrush __modelSRNoneBrush;
@@ -222,6 +224,9 @@ public:
             __dropTargetBrush.SetColour(*wxBLUE);
             __dropTargetPen.SetColour(*wxBLUE);
             __pixelPortOutlinePen.SetColour(*wxCYAN);
+            __vmPortOutlinePen.SetColour(__lightBlue);
+            __lpmPortOutlinePen.SetColour(__lightBlue);
+
             __modelSRNoneBrush.SetColour(__darkGrey);
             __modelSRABrush.SetColour(__darkGreen);
             __modelSRBBrush.SetColour(__darkPurple);
@@ -244,6 +249,8 @@ public:
             __dropTargetPen.SetColour(__lightBlue);
             __pixelPortOutlinePen.SetColour(*wxRED);
             __modelSRNoneBrush.SetColour(*wxWHITE);
+            __vmPortOutlinePen.SetColour(*wxBLUE);
+            __lpmPortOutlinePen.SetColour(*wxBLUE);
             __modelSRABrush.SetColour(__lightGreen);
             __modelSRBBrush.SetColour(__lightPurple);
             __modelSRCBrush.SetColour(__lightOrange);
@@ -266,7 +273,7 @@ public:
 class PortCMObject : public BaseCMObject
 {
 public:
-    enum class PORTTYPE { PIXEL, SERIAL };
+    enum class PORTTYPE { PIXEL, SERIAL, VIRTUAL_MATRIX, PANEL_MATRIX };
 protected:
     int _port = -1;
     PORTTYPE _type = PORTTYPE::PIXEL;
@@ -281,20 +288,24 @@ public:
     UDControllerPort* GetUDPort() const {
         if (_type == PORTTYPE::PIXEL) {
             return _cud->GetControllerPixelPort(_port);
-        }
-        else {
+        } else if (_type == PORTTYPE::SERIAL) {
             return _cud->GetControllerSerialPort(_port);
+        } else if (_type == PORTTYPE::VIRTUAL_MATRIX) {
+            return _cud->GetControllerVirtualMatrixPort(_port);
+        } else if (_type == PORTTYPE::PANEL_MATRIX) {
+            return _cud->GetControllerLEDPanelMatrixPort(_port);
         }
+        return nullptr;
     }
     int GetMaxPortChannels() const {
         if (_caps == nullptr) return 9999999;
 
         if (_type == PORTTYPE::PIXEL) {
             return _caps->GetMaxPixelPortChannels();
-        }
-        else {
+        } else if (_type == PORTTYPE::SERIAL) {
             return _caps->GetMaxSerialPortChannels();
         }
+        return 9999999;
     }
     virtual bool HitYTest(wxPoint mouse) override {
         int totaly = VERTICAL_SIZE;
@@ -351,15 +362,17 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
     }
     else if (_type == PORTTYPE::PIXEL) {
         dc.SetPen(__pixelPortOutlinePen);
-    }
-    else {
+    } else if (_type == PORTTYPE::VIRTUAL_MATRIX) {
+        dc.SetPen(__vmPortOutlinePen);
+    } else if (_type == PORTTYPE::PANEL_MATRIX) {
+        dc.SetPen(__lpmPortOutlinePen);
+    } else {
         dc.SetPen(__serialPortOutlinePen);
     }
 
     if (_over != HITLOCATION::NONE && !printing) {
         dc.SetBrush(__dropTargetBrush);
-    }
-    else if (_invalid) {
+    } else if (_invalid) {
         dc.SetBrush(__invalidBrush);
     }
 
@@ -369,8 +382,11 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
     wxPoint pt = location + offset + wxSize(2, 2);
     if (_type == PORTTYPE::PIXEL) {
         DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, sz - wxSize(4, 4));
-    }
-    else {
+    } else if (_type == PORTTYPE::VIRTUAL_MATRIX) {
+        DrawTextLimited(dc, wxString::Format("Virtual Matrix %d", _port), pt, sz - wxSize(4, 4));
+    } else if (_type == PORTTYPE::PANEL_MATRIX) {
+        DrawTextLimited(dc, wxString::Format("LED Panel %d", _port), pt, sz - wxSize(4, 4));
+    } else {
         DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
     }
     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
@@ -409,9 +425,13 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
     if (_caps != nullptr) {
         if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
         if (_type == PORTTYPE::SERIAL && _caps->GetSerialProtocols().size() == 0) return;
+        if (_type == PORTTYPE::VIRTUAL_MATRIX && !_caps->SupportsVirtualMatrix()) return;
+        if (_type == PORTTYPE::PANEL_MATRIX && !_caps->SupportsLEDPanelMatrix()) return;
     }
     mnu.AppendSeparator();
-    mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+    if (_type == PORTTYPE::PIXEL || _type == PORTTYPE::SERIAL) {
+        mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+    }
     mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove all models from port");
     if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
         mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move all models to port");
@@ -420,16 +440,17 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
 
     virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
         if (id == ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS) {
+            UDControllerPort *port = nullptr;
             if (_type == PORTTYPE::PIXEL) {
-                auto port = _cud->GetControllerPixelPort(GetPort());
-                for (const auto& it : port->GetModels()) {
-                    it->GetModel()->SetModelChain("");
-                    it->GetModel()->SetControllerName("");
-                    it->GetModel()->SetControllerPort(0);
-                }
+                port = _cud->GetControllerPixelPort(GetPort());
+            } else if (_type == PORTTYPE::VIRTUAL_MATRIX) {
+                port = _cud->GetControllerVirtualMatrixPort(GetPort());
+            } else if (_type == PORTTYPE::PANEL_MATRIX) {
+                port = _cud->GetControllerLEDPanelMatrixPort(GetPort());
+            } else {
+                port = _cud->GetControllerSerialPort(GetPort());
             }
-            else                 {
-                auto port = _cud->GetControllerSerialPort(GetPort());
+            if (port) {
                 for (const auto& it : port->GetModels()) {
                     it->GetModel()->SetModelChain("");
                     it->GetModel()->SetControllerName("");
@@ -437,9 +458,7 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 }
             }
             return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT) {
-
+        } else if (id == ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT) {
             int max = _caps->GetMaxPixelPort();
             if (_type == PORTTYPE::SERIAL) max = _caps->GetMaxSerialPort();
 
@@ -462,8 +481,7 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                             it->GetModel()->SetControllerPort(to->GetPort());
                         }
                     }
-                }
-                else {
+                } else {
                     auto from = _cud->GetControllerPixelPort(GetPort());
                     auto to = _cud->GetControllerPixelPort(dlg.GetValue());
                     if (from->GetPort() != to->GetPort()) {
@@ -483,73 +501,49 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 }
             }
             return true;
-        }
-        else if (id == ControllerModelDialog::CONTROLLER_PROTOCOL)
-        {
+        } else if (id == ControllerModelDialog::CONTROLLER_PROTOCOL) {
             wxArrayString choices;
-            if (_caps != nullptr)
-            {
-                if (_type == PORTTYPE::PIXEL)
-                {
-                    for (const auto& it : GetAllPixelTypes(_caps->GetPixelProtocols(), false, true))
-                    {
+            if (_caps != nullptr) {
+                if (_type == PORTTYPE::PIXEL) {
+                    for (const auto& it : GetAllPixelTypes(_caps->GetPixelProtocols(), false, true, false)) {
+                        choices.push_back(it);
+                    }
+                } else if (_type == PORTTYPE::SERIAL) {
+                    for (const auto& it : GetAllSerialTypes(_caps->GetSerialProtocols())) {
                         choices.push_back(it);
                     }
                 }
-                else
-                {
-                    for (const auto& it : GetAllSerialTypes(_caps->GetSerialProtocols()))
-                    {
+            } else {
+                for (const auto& it : GetAllPixelTypes(true, true)) {
+                    if (_type == PORTTYPE::PIXEL && IsPixelProtocol(it)) {
                         choices.push_back(it);
-                    }
-                }
-            }
-            else
-            {
-                for (const auto& it : GetAllPixelTypes(true, true))
-                {
-                    if (_type == PORTTYPE::PIXEL && IsPixelProtocol(it))
-                    {
-                        choices.push_back(it);
-                    }
-                    else if (_type == PORTTYPE::SERIAL && !IsPixelProtocol(it))
-                    {
+                    } else if (_type == PORTTYPE::SERIAL && !IsPixelProtocol(it)) {
                         choices.push_back(it);
                     }
                 }
             }
 
             wxSingleChoiceDialog dlg(parent, "Port Protocol", "Protocol", choices);
-            if (dlg.ShowModal() == wxID_OK)
-            {
+            if (dlg.ShowModal() == wxID_OK) {
                 if (_caps != nullptr && !_caps->SupportsMultipleSimultaneousOutputProtocols()){
 
                     // We have to apply the protocol to all ports
-                    if (_type == PORTTYPE::PIXEL)
-                    {
-                        for (int i = 1; i <= _cud->GetMaxPixelPort(); i++)
-                        {
-                            for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels())
-                            {
+                    if (_type == PORTTYPE::PIXEL) {
+                        for (int i = 1; i <= _cud->GetMaxPixelPort(); i++) {
+                            for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels()) {
+                                it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
+                            }
+                        }
+                    } else if (_type == PORTTYPE::SERIAL) {
+                        for (int i = 1; i <= _cud->GetMaxSerialPort(); i++) {
+                            for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels()) {
                                 it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
                             }
                         }
                     }
-                    else
-                    {
-                        for (int i = 1; i <= _cud->GetMaxSerialPort(); i++)
-                        {
-                            for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels())
-                            {
-                                it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
-                            }
-                        }
-                    }
-                }
-                else {
+                } else {
                     // We only need to apply the protocol to this port
-                    for (const auto& it : GetUDPort()->GetModels())
-                    {
+                    for (const auto& it : GetUDPort()->GetModels()) {
                         it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
                     }
                 }
@@ -1425,9 +1419,45 @@ void ControllerModelDialog::ReloadModels()
             }
             if (x > maxx) maxx = x;
         }
-
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
+    if (_caps != nullptr) {
+        if (_caps->SupportsVirtualMatrix()) {
+            _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, 1, _cud, _caps,
+                                                    wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                    BaseCMObject::STYLE_CHANNELS, false, _scale));
+            auto sp = _cud->GetControllerVirtualMatrixPort(1);
+            if (sp != nullptr) {
+                int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                for (const auto& it : sp->GetModels()) {
+                    auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                 BaseCMObject::STYLE_CHANNELS, _scale);
+                    _controllers.push_back(cmm);
+                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                }
+                if (x > maxx) maxx = x;
+            }
+            y += VERTICAL_GAP + VERTICAL_SIZE;
+        }
+        if (_caps->SupportsLEDPanelMatrix()) {
+            _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, 1, _cud, _caps,
+                                                    wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                    BaseCMObject::STYLE_CHANNELS, false, _scale));
+            auto sp = _cud->GetControllerLEDPanelMatrixPort(1);
+            if (sp != nullptr) {
+                int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                for (const auto& it : sp->GetModels()) {
+                    auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                 BaseCMObject::STYLE_CHANNELS, _scale);
+                    _controllers.push_back(cmm);
+                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                }
+                if (x > maxx) maxx = x;
+            }
+            y += VERTICAL_GAP + VERTICAL_SIZE;
+        }
+    }
+
 
     y -= VERTICAL_GAP;
     y += TOP_BOTTOM_MARGIN;
@@ -1684,8 +1714,13 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
         if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
             m->SetSmartRemote(0);
         }
-    }
-    else {
+    } else if (port->GetPortType() == PortCMObject::PORTTYPE::VIRTUAL_MATRIX) {
+        m->SetControllerProtocol("Virtual Matrix");
+        m->SetSmartRemote(0);
+    } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
+        m->SetControllerProtocol("LED Panel Matrix");
+        m->SetSmartRemote(0);
+    } else {
         if (port->GetModelCount() == 0) {
             if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
             if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
@@ -1786,39 +1821,39 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0)                     {
                         // try to find a compatible protocol
                         auto np = ChooseBestControllerPixel(_caps->GetPixelProtocols(), m->GetControllerProtocol());
-                        if (np != "")
-                        {
+                        if (np != "") {
                             m->SetControllerProtocol(np);
-                        }
-                        else                         {
+                        } else {
                             m->SetControllerProtocol(_caps->GetPixelProtocols().front());
                         }
                     }
                     if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
-                }
-                else {
+                } else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                 }
                 if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
                     m->SetSmartRemote(0);
                 }
-            }
-            else {
+            } else if (port->GetPortType() == PortCMObject::PORTTYPE::VIRTUAL_MATRIX) {
+                m->SetControllerProtocol("Virtual Matrix");
+                m->SetSmartRemote(0);
+            } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
+                m->SetControllerProtocol("LED Panel Matrix");
+                m->SetSmartRemote(0);
+            } else {
                 if (port->GetModelCount() == 0) {
                     if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0)                     {
                         // try to find a compatible protocol
                         auto np = ChooseBestControllerSerial(_caps->GetSerialProtocols(), m->GetControllerProtocol());
-                        if (np != "")                         {
+                        if (np != "") {
                             m->SetControllerProtocol(np);
-                        }
-                        else {
+                        } else {
                             m->SetControllerProtocol(_caps->GetSerialProtocols().front());
                         }
                     }
                     if (!m->IsSerialProtocol()) m->SetControllerProtocol("dmx");
                     if (m->GetControllerDMXChannel() == 0) m->SetControllerDMXChannel(1);
-                }
-                else {
+                } else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                 }
             }
@@ -1988,18 +2023,21 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                             auto np = ChooseBestControllerPixel(_caps->GetPixelProtocols(), m->GetControllerProtocol());
                             if (np != "") {
                                 m->SetControllerProtocol(np);
-                            }
-                            else {
+                            } else {
                                 m->SetControllerProtocol(_caps->GetPixelProtocols().front());
                             }
                         }
                         if (!m->IsPixelProtocol()) m->SetControllerProtocol("ws2811");
-                    }
-                    else {
+                    } else {
                         m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                     }
-                }
-                else {
+                } else if (port->GetPortType() == PortCMObject::PORTTYPE::VIRTUAL_MATRIX) {
+                    m->SetControllerProtocol("Virtual Matrix");
+                    m->SetSmartRemote(0);
+                } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
+                    m->SetControllerProtocol("LED Panel Matrix");
+                    m->SetSmartRemote(0);
+                } else {
                     if (port->GetModelCount() == 0) {
                         if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) {
                             auto np = ChooseBestControllerSerial(_caps->GetSerialProtocols(), m->GetControllerProtocol());
@@ -2478,8 +2516,9 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string stringSettings;
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
-    }
-    else {
+    } else if (m->IsMatrixProtocol()) {
+        // Any extra matrix properties to display?
+    } else {
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm != nullptr) {
 
@@ -2525,8 +2564,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), usc,
             m->GetLastChannelInStartChannelFormat(om),
             m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
-    }
-    else {
+    } else {
         return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, universe, m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om),
             m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();

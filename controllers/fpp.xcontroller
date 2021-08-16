@@ -27,6 +27,7 @@
             <Protocol>dmx</Protocol>
             <Protocol>pixelnet</Protocol>
         </SerialProtocols>
+        <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -48,6 +49,7 @@
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
         </SerialProtocols>
+        <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
 	<Controller Name="LED Panels">
 		<Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
@@ -99,6 +101,7 @@
                 <Protocol>Renard</Protocol>
 			</SerialProtocols>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 	</Controller>
 	<Controller Name="RGBCape24">

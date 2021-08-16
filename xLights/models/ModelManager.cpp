@@ -788,13 +788,15 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 }
-            }
-            else
-            {
-                // dmx protocols wowk differently ... they can be chained or by specified dmx channel
+            } else if (itcc->second.front()->IsMatrixProtocol()) {
+                while ((*itcc).second.size() > 0) {
+                    sortedmodels.push_back((*itcc).second.front());
+                    (*itcc).second.pop_front();
+                }
+            } else {
+                // dmx protocols work differently ... they can be chained or by specified dmx channel
                 int dmx = 1;
-                while ((*itcc).second.size() > 0 && dmx <= 512)
-                {
+                while ((*itcc).second.size() > 0 && dmx <= 512) {
                     for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
                     {
                         if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx)
@@ -828,11 +830,9 @@ bool ModelManager::ReworkStartChannel() const
                 }
             }
 
-            for (auto itm : sortedmodels)
-            {
+            for (auto itm : sortedmodels) {
                 std::string sc = "";
-                if (itm->IsPixelProtocol())
-                {
+                if (itm->IsPixelProtocol()) {
                     if (itm->GetModelChain() == last ||
                         itm->GetModelChain() == ">" + last ||
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
@@ -861,9 +861,17 @@ bool ModelManager::ReworkStartChannel() const
                             outputsChanged = true;
                         }
                     }
-                }
-                else
-                {
+                } else if (itm->IsMatrixProtocol()) {
+                    auto osc = itm->ModelStartChannel;
+                    sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
+                    itm->SetStartChannel(sc);
+                    itm->ClearIndividualStartChannels();
+                    last = itm->GetName();
+                    ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
+                    if (osc != itm->ModelStartChannel) {
+                        outputsChanged = true;
+                    }
+                } else {
                     // when chained the use next channel
                     if (last != "" && itm->GetControllerDMXChannel() == 0 &&
                         (itm->GetModelChain() == last ||

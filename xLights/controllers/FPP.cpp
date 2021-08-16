@@ -1779,16 +1779,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, check, false);
-    if (rules->SupportsLEDPanelMatrix()) {
+    if (rules->SupportsLEDPanelMatrix() && cud.GetMaxLEDPanelMatrixPort()) {
         //LED panel cape, nothing we can really do except update the start channel
-        int startChannel = -1;
-        if (cud.GetMaxPixelPort()) {
-            //The matrix actually has the controller connection defined, we'll use it
-            startChannel = cud.GetControllerPixelPort(1)->GetStartChannel();
-            startChannel--;
-        } else if (!cud.GetNoConnectionModels().empty()) {
-            startChannel = cud.GetNoConnectionModels().front()->GetStringStartChan(0);
-        }
+        int startChannel = cud.GetControllerLEDPanelMatrixPort(1)->GetStartChannel();
+        startChannel--;
         if (startChannel >= 0) {
             startChannel++;  //one based
             wxJSONValue origJson;
@@ -1800,8 +1794,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             bool changed = true;
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                    if (origJson["channelOutputs"][x].HasMember("startChannel")
-                        && origJson["channelOutputs"][x]["startChannel"].AsLong() == startChannel) {
+                    int origStartChannel = -1;
+                    if (origJson["channelOutputs"][x].HasMember("startChannel")) {
+                        origStartChannel = origJson["channelOutputs"][x]["startChannel"].AsLong();
+                    }
+                    if (origStartChannel == startChannel) {
                         changed = false;
                     } else {
                         origJson["channelOutputs"][x]["startChannel"] = startChannel;
@@ -1809,7 +1806,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
                 }
             }
-
             if (changed) {
                 if (IsDrive()) {
                     WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
@@ -1820,16 +1816,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
         SetNewRanges(rngs);
-        return false;
-    } else if (rules->SupportsVirtualMatrix()) {
-        int startChannel = -1;
-        if (cud.GetMaxPixelPort()) {
-            //The matrix actually has the controller connection defined, we'll use it
-            startChannel = cud.GetControllerPixelPort(1)->GetStartChannel();
-            startChannel--;
-        } else if (!cud.GetNoConnectionModels().empty()) {
-            startChannel = cud.GetNoConnectionModels().front()->GetStringStartChan(0);
-        }
+    }
+    if (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort()) {
+        int startChannel = cud.GetControllerVirtualMatrixPort(1)->GetStartChannel();
+        startChannel--;
         if (startChannel >= 0) {
             startChannel++;  //one based
             wxJSONValue origJson;
@@ -1838,16 +1828,58 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             } else {
                 GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson, false);
             }
-            bool changed = true;
+
+            auto a = cud.GetControllerVirtualMatrixPort(1)->GetFirstModel()->GetModel();
+            MatrixModel *mm = dynamic_cast<MatrixModel*>(a);
+            wxString layout = "";
+            int w = -1;
+            int h = -1;
+            if (mm != nullptr) {
+                if (mm->isVerticalMatrix()) {
+                    w = mm->GetNumStrings();
+                    h = mm->NodesPerString();
+                } else {
+                    w = mm->NodesPerString();
+                    h = mm->GetNumStrings();
+                }
+                if (w != -1 && h != -1) {
+                    layout = wxString::Format("%dx%d", w, h);
+                }
+            }
+
+            bool changed = false;
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                    if (origJson["channelOutputs"][x].HasMember("startChannel")
-                        && origJson["channelOutputs"][x]["startChannel"].AsInt() == startChannel) {
-                        changed = false;
-                    } else {
+                    int origStartChannel = -1;
+                    if (origJson["channelOutputs"][x].HasMember("startChannel")) {
+                        origStartChannel = origJson["channelOutputs"][x]["startChannel"].AsLong();
+                    }
+                    if (origStartChannel != startChannel) {
+                        changed = true;
                         origJson["channelOutputs"][x]["startChannel"] = startChannel;
                     }
-                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
+                    int origChannelCount = -1;
+                    if (origJson["channelOutputs"][x].HasMember("channelCount")) {
+                        origChannelCount = origJson["channelOutputs"][x]["channelCount"].AsLong();
+                    }
+                    if (origChannelCount != a->GetNumChannels()) {
+                        changed = true;
+                        origJson["channelOutputs"][x]["channelCount"] = a->GetNumChannels();
+                        rngs[startChannel - 1] = a->GetNumChannels();
+                    } else {
+                        rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
+                    }
+
+                    if (layout != "" && origJson["layout"].AsString() != layout) {
+                        origJson["channelOutputs"][x]["layout"] = layout;
+                        origJson["channelOutputs"][x]["width"] = w;
+                        origJson["channelOutputs"][x]["height"] = h;
+                        changed = true;
+                    }
+                    if (origJson["channelOutputs"][x].HasMember("description") && origJson["channelOutputs"][x]["description"].AsString() != a->GetName()) {
+                        changed = true;
+                        origJson["channelOutputs"][x]["description"] = a->GetName();
+                    }
                 }
             }
 
@@ -1861,14 +1893,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
         SetNewRanges(rngs);
+    }
+    if (cud.GetMaxPixelPort() == 0 && cud.GetMaxSerialPort() == 0) {
         return false;
     }
-
-    std::string fppFileName = "co-bbbStrings";
-    int minPorts = 1;
-    if (pixelControllerType == PIHAT) {
-        fppFileName = "co-pixelStrings";
-        minPorts = 2;
+    std::string fppFileName = rules->GetCustomPropertyByPath("fppStringFileName");
+    if (fppFileName == "") {
+        fppFileName = "co-bbbStrings";
     }
     cud.Check(rules, check);
     cud.Dump();
@@ -1891,11 +1922,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     if (origJson["channelOutputs"].IsArray()) {
         for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
             wxJSONValue &f = origJson["channelOutputs"][x];
-            if (f["type"].AsString() == "BBB48String") {
+            if (f.HasMember("pinoutVersion")) {
                 pinout = f["pinoutVersion"].AsString();
-                if (pinout == "") {
-                    pinout = "1.x";
-                }
+            }
+            if (pinout == "") {
+                pinout = "1.x";
+            }
+            if (f.HasMember("subType")) {
                 origType = f["subType"].AsString();
             }
             for (int o = 0; o < f["outputs"].Size(); o++) {
@@ -1918,19 +1951,17 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     stringData["channelCount"] = -1;
 
     maxport = cud.GetMaxPixelPort(); // 1 based
-    if (maxport < minPorts) {
-        maxport = minPorts;
-    }
 
-    if (pixelControllerType == PIHAT) {
-        stringData["type"] = wxString("RPIWS281X");
-        stringData["subType"] = wxString("");
-    } else {
+    if (fppFileName == "co-bbbStrings") {
         stringData["type"] = wxString("BBB48String");
         if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
             return true;
         }
 
+        stringData["subType"] = rules->GetID();
+        stringData["pinoutVersion"] = pinout;
+    } else {
+        stringData["type"] = wxString("RPIWS281X");
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }

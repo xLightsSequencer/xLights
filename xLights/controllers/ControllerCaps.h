@@ -88,6 +88,8 @@ public:
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;
     int GetMaxSerialPort() const;
+    int GetMaxVirtualMatrixPort() const;
+    int GetMaxLEDPanelMatrixPort() const;
     int GetMaxPixelPortChannels() const;
     int GetMaxSerialPortChannels() const;
     int GetMaxInputUniverseChannels() const;

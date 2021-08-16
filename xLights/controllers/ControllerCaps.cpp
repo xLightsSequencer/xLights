@@ -454,6 +454,18 @@ int ControllerCaps::GetMaxSerialPort() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPort"));
 }
+int ControllerCaps::GetMaxVirtualMatrixPort() const {
+    //for now, use 1 if supported.  Technially FPP supports unlimitted Virtual Matrices,
+    //on one port, but has two HDMI ports on the Pi4 so some of this may need to
+    //be adjusted at some point
+    return SupportsVirtualMatrix() ? 1 : 0;
+}
+int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
+    //FPP internally can map multiple matrices onto the panel outputs
+    //but none of that is exposed in the FPP UI yet so just use a single
+    //matrix at this point
+    return SupportsLEDPanelMatrix() ? 1 : 0;
+}
 
 int ControllerCaps::GetMaxPixelPortChannels() const {
 
@@ -538,6 +550,12 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
     std::vector<std::string> res = GetPixelProtocols();
     auto serial = GetSerialProtocols();
     res.insert(end(res), begin(serial), end(serial));
+    if (SupportsVirtualMatrix()) {
+        res.push_back("Virtual Matrix");
+    }
+    if (SupportsLEDPanelMatrix()) {
+        res.push_back("LED Panel Matrix");
+    }
     return res;
 }
 

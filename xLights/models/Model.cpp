@@ -866,10 +866,9 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
         for (const auto& it : GetAllPixelTypes(true, false)) {
             cp.push_back(it);
         }
-    }
-    else     {
+    } else {
         auto controllerProtocols = caps->GetAllProtocols();
-        for (const auto& it : GetAllPixelTypes(controllerProtocols, true, true)) {
+        for (const auto& it : GetAllPixelTypes(controllerProtocols, true, true, true)) {
             cp.push_back(it);
         }
     }
@@ -882,8 +881,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
             auto controllerProtocols = caps->GetAllProtocols();
             if (::IsPixelProtocol(protocol)) {
                 np = ChooseBestControllerPixel(controllerProtocols, protocol);
-            }
-            else {
+            } else {
                 np = ChooseBestControllerSerial(controllerProtocols, protocol);
             }
         }
@@ -928,11 +926,13 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     else {
         if (IsSerialProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxSerialPort());
-        }
-        else if (IsPixelProtocol()) {
+        } else if (IsPixelProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxPixelPort());
-        }
-        else {
+        } else if (IsLEDPanelMatrixProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
+        } else if (IsVirtualMatrixProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
+        } else {
             sp->SetAttribute("Max", 48);
         }
     }
@@ -987,8 +987,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
-    }
-    else if (IsPixelProtocol()) {
+    } else if (IsPixelProtocol()) {
 
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
@@ -1109,13 +1108,11 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
         if (GetControllerName() != "" && _controller != 0 && GetControllerPort(1) == 0) {
             if (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0) {
                 // we let this be 0
-            }
-            else {
+            } else {
                 p->SetHelpString("When using controller name instead of start channels then port must be specified if the controller has ports.");
                 p->SetBackgroundColour(*wxRED);
             }
-        }
-        else {
+        } else {
             p->SetHelpString("");
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
@@ -1133,8 +1130,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
         }
     }
 
-    if (grid->GetPropertyByName("ModelChain") != nullptr)
-    {
+    if (grid->GetPropertyByName("ModelChain") != nullptr) {
         ColourClashingChains(grid->GetPropertyByName("ModelChain"));
     }
 
@@ -1375,41 +1371,30 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 0;
     }
     else if (event.GetPropertyName() == "Controller") {
-        if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()])
-        {
+        if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {
             SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
-            if (GetControllerPort() != 0 && IsPixelProtocol())
-            {
+            if (GetControllerPort() != 0 && IsPixelProtocol()) {
                 SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName(), GetControllerProtocol()));
-            }
-            else
-            {
+            } else {
                 SetModelChain("");
             }
         }
-        if (GetControllerName() == "")
-        {
+        if (GetControllerName() == "") {
             SetModelChain("");
             // dont set start channel to one. that way model holds its previously calculated start channel
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
-            {
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->Enable();
-            }
-            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
-            {
+            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable();
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             }
-        }
-        else
-        {
+        } else {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 grid->GetPropertyByName("ModelStartChannel")->Enable(false);
-            }
-            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
+            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
@@ -1428,47 +1413,37 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
 
         bool protocolChanged = false;
-        if (GetControllerPort() != event.GetValue().GetLong())
-        {
+        if (GetControllerPort() != event.GetValue().GetLong()) {
             SetControllerPort(event.GetValue().GetLong());
 
-            if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
-            {
-                if (caps == nullptr)
-                {
+            if (GetControllerPort(1) > 0 && GetControllerProtocol() == "") {
+                if (caps == nullptr) {
                     SetControllerProtocol(GetAllPixelTypes()[1]);
-                }
-                else
-                {
-                    if (caps->GetPixelProtocols().size() > 0)
-                    {
+                } else {
+                    if (caps->GetPixelProtocols().size() > 0) {
                         SetControllerProtocol(caps->GetPixelProtocols().front());
-                    }
-                    else if (caps->GetSerialProtocols().size() > 0)
-                    {
+                    } else if (caps->GetSerialProtocols().size() > 0) {
                         SetControllerProtocol(caps->GetSerialProtocols().front());
+                    } else if (caps->SupportsVirtualMatrix()) {
+                        SetControllerProtocol("Virtual Matrix");
+                    } else if (caps->SupportsLEDPanelMatrix()) {
+                        SetControllerProtocol("LED Panel Matrix");
                     }
                 }
                 protocolChanged = true;
             }
 
-            if (GetControllerName() != "" && _controller != 0)
-            {
-                if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
-                {
+            if (GetControllerName() != "" && _controller != 0) {
+                if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                     grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
-                }
-                else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
-                {
+                } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
                     grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 }
-                if (IsPixelProtocol())
-                {
+                if (IsPixelProtocol()) {
                     // we only do this for pixels as dmx have the channel to base it off
                     // when the port changes we have to assume any existing model chain will break
                     SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
-                }
-                else {
+                } else {
                     SetModelChain("Beginning");
                 }
             }
@@ -1479,8 +1454,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
 
         UpdateControllerProperties(grid);
-        if (protocolChanged)
-        {
+        if (protocolChanged) {
             // need to refresh to add protocol specific options
             AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
         }
@@ -1540,6 +1514,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         if (
+            //FIXME-Matrix
             (::IsSerialProtocol(newProtocol) && ::IsPixelProtocol(oldProtocol)) ||
             (::IsSerialProtocol(oldProtocol) && ::IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
@@ -2799,12 +2774,10 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
-    if (GetControllerPort(1) == 0)
-    {
+    if (GetControllerPort(1) == 0) {
         ret = wxString::Format("%s", GetControllerProtocol()).ToStdString();
     }
-    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
-    {
+    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
         ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
 
@@ -2816,8 +2789,7 @@ std::string Model::GetControllerConnectionRangeString() const
 std::string Model::GetControllerConnectionPortRangeString() const
 {
     std::string ret = wxString::Format("%d", GetControllerPort(1)).ToStdString();
-    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
-    {
+    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
         ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
     return ret;
@@ -2830,8 +2802,7 @@ std::string Model::GetControllerConnectionAttributeString() const
     while (att != nullptr) {
         if (att->GetName() == "SmartRemote") {
             ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
-        }
-        else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort") {
+        } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort") {
             ret += ":" + att->GetName() + "=" + att->GetValue();
         }
         att = att->GetNext();
@@ -5434,94 +5405,89 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 if (doc.IsOk() && doc.GetRoot()->GetAttribute("name", "") != "") {
                     docLoaded = true;
                     wxString modelName = doc.GetRoot()->GetAttribute("name", "");
-                    if (!xlights->GetIgnoreVendorModelRecommendations()) {
-                        wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
-                        std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
-                        if (json == "") {
-                            json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
-                        }
-                        if (json != "" && !wxFileExists(json)) {
-                            json = "";
-                        }
-                        if (json != "") {
-                            wxJSONValue origJson;
-                            wxJSONReader reader;
-                            wxFileInputStream f(json);
-                            int errors = reader.Parse(f, &origJson);
-                            if (!errors) {
-                                VendorModelDialog* dlg = nullptr;
-                                bool block = false;
-                                wxString vendorBlock;
-                                for (auto& name : origJson["mappings"].GetMemberNames()) {
-                                    wxJSONValue v = origJson["mappings"][name];
-                                    bool matches = false;
-                                    wxString newModelName = modelName;
-                                    bool localBlock = false;
-                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
-                                        wxRegEx regex;
-                                        if (regex.Compile(name)) {
-                                            if (regex.Matches(modelName)) {
-                                                wxString nmodel = v["model"].AsString();
-                                                regex.ReplaceAll(&newModelName, nmodel);
-                                                matches = true;
-                                                if (v.HasMember("block")) {
-                                                    localBlock = v["block"].AsBool();
-                                                }
+                    wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
+                    std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
+                    if (json == "") {
+                        json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
+                    }
+                    if (json != "" && !wxFileExists(json)) {
+                        json = "";
+                    }
+                    if (json != "") {
+                        wxJSONValue origJson;
+                        wxJSONReader reader;
+                        wxFileInputStream f(json);
+                        int errors = reader.Parse(f, &origJson);
+                        if (!errors) {
+                            VendorModelDialog* dlg = nullptr;
+                            bool block = false;
+                            wxString vendorBlock;
+                            for (auto& name : origJson["mappings"].GetMemberNames()) {
+                                wxJSONValue v = origJson["mappings"][name];
+                                bool matches = false;
+                                wxString newModelName = modelName;
+                                bool localBlock = false;
+                                if (v.HasMember("regex") && v["regex"].AsBool()) {
+                                    wxRegEx regex;
+                                    if (regex.Compile(name)) {
+                                        if (regex.Matches(modelName)) {
+                                            wxString nmodel = v["model"].AsString();
+                                            regex.ReplaceAll(&newModelName, nmodel);
+                                            matches = true;
+                                            if (v.HasMember("block")) {
+                                                localBlock = v["block"].AsBool();
                                             }
                                         }
                                     }
-                                    else if (name == modelName) {
-                                        matches = true;
-                                        newModelName = v["model"].AsString();
-                                        if (v.HasMember("block")) {
-                                            localBlock = v["block"].AsBool();
-                                        }
+                                } else if (name == modelName) {
+                                    matches = true;
+                                    newModelName = v["model"].AsString();
+                                    if (v.HasMember("block")) {
+                                        localBlock = v["block"].AsBool();
                                     }
-                                    if (matches) {
-                                        wxString vendor = v["vendor"].AsString();
-                                        if (dlg == nullptr) {
-                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                            dlg->DlgInit(prog, low, high);
-                                        }
+                                }
+                                if (matches) {
+                                    wxString vendor = v["vendor"].AsString();
+                                    if (dlg == nullptr) {
+                                        dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                        dlg->DlgInit(prog, low, high);
+                                    }
+                                    if (localBlock) {
+                                        vendorBlock = vendor;
+                                        block = true;
+                                    }
+                                    if (dlg->FindModelFile(vendor, newModelName)) {
                                         if (localBlock) {
-                                            vendorBlock = vendor;
-                                            block = true;
-                                        }
-                                        if (dlg->FindModelFile(vendor, newModelName)) {
-                                            if (localBlock) {
-                                                wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The "
-                                                    + "vendor has requested that the model they provide be the model that is used."
-                                                    + "Use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
-                                                }
-                                                else {
-                                                    last_model = "";
-                                                }
+                                            wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                + "vendor has requested that the model they provide be the model that is used."
+                                                + "Use the Vendor provided model instead?";
+                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                last_model = dlg->GetModelFile();
+                                            } else {
+                                                last_model = "";
+                                            }
+                                            docLoaded = false;
+                                            break;
+                                        } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
+                                            wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                + "Vendor provided models are strongly recommended by xLights due to their quality and ease of use.\n\nWould you prefer to "
+                                                + "use the Vendor provided model instead?";
+                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                last_model = dlg->GetModelFile();
                                                 docLoaded = false;
                                                 break;
                                             }
-                                            else {
-                                                wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
-                                                    + "Vendor provided models are strongly recommended by xLights due to their quality and ease of use.\n\nWould you prefer to "
-                                                    + "use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
-                                                    docLoaded = false;
-                                                    break;
-                                                }
-                                            }
                                         }
                                     }
                                 }
-                                if (block) {
-                                    wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                    wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
-                                    last_model = "";
-                                }
-                                if (dlg) {
-                                    delete dlg;
-                                }
+                            }
+                            if (block) {
+                                wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                last_model = "";
+                            }
+                            if (dlg) {
+                                delete dlg;
                             }
                         }
                     }
@@ -6136,7 +6102,7 @@ std::list<std::string> Model::CheckModelSettings()
 
 bool Model::IsControllerConnectionValid() const
 {
-    return ((IsPixelProtocol() || IsSerialProtocol()) && GetControllerPort(1) > 0);
+    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol()) && GetControllerPort(1) > 0);
 }
 
 void Model::SetTagColour(wxColour colour)
@@ -6271,29 +6237,26 @@ void Model::SetSmartRemote(int sr)
     if (GetSmartRemote() != sr)
     {
         // Find the last model on this smart remote
-        if (GetControllerName() != "")
-        {
+        if (GetControllerName() != "") {
             SetModelChain(modelManager.GetLastModelOnPort(GetControllerName(), GetControllerPort(), GetName(), GetControllerProtocol(), sr));
         }
         GetControllerConnection()->DeleteAttribute("SmartRemote");
-        if (sr != 0)
-        {
+        if (sr != 0) {
             GetControllerConnection()->AddAttribute("SmartRemote", wxString::Format("%d", sr));
-        }
-        else         {
+        } else {
             SetSRMaxCascade(1);
             SetSRCascadeOnPort(false);
         }
-    }
 
-    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSmartRemote");
-    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSmartRemote");
-    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSmartRemote");
-    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSmartRemote");
-    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSmartRemote");
-    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSmartRemote");
-    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSmartRemote");
-    IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSmartRemote");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSmartRemote");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSmartRemote");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSmartRemote");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSmartRemote");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSmartRemote");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSmartRemote");
+        IncrementChangeCount();
+    }
 }
 
 void Model::SetModelChain(const std::string& modelChain)
@@ -6791,12 +6754,18 @@ void Model::RestoreDisplayDimensions()
 }
 
 // This is deliberately ! serial so that it defaults to thinking it is pixel
-bool Model::IsPixelProtocol() const
-{
-    return GetControllerPort(1) != 0 && !::IsSerialProtocol(GetControllerProtocol());
+bool Model::IsPixelProtocol() const {
+    return GetControllerPort(1) != 0 && !::IsSerialProtocol(GetControllerProtocol()) && !::IsMatrixProtocol(GetControllerProtocol());
 }
-
-bool Model::IsSerialProtocol() const
-{
+bool Model::IsSerialProtocol() const {
     return GetControllerPort(1) != 0 && ::IsSerialProtocol(GetControllerProtocol());
+}
+bool Model::IsMatrixProtocol() const {
+    return GetControllerPort(1) != 0 && ::IsMatrixProtocol(GetControllerProtocol());
+}
+bool Model::IsLEDPanelMatrixProtocol() const {
+    return GetControllerPort(1) != 0 && ::IsLEDPanelMatrixProtocol(GetControllerProtocol());
+}
+bool Model::IsVirtualMatrixProtocol() const {
+    return GetControllerPort(1) != 0 && ::IsVirtualMatrixProtocol(GetControllerProtocol());
 }

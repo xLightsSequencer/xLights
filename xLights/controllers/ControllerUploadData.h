@@ -147,7 +147,7 @@ class UDControllerPort
 	public:
 
     #pragma region Constructors and Destructors
-        UDControllerPort(const std::string& type, int port, const std::string& protocol = "") { _type = type; _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
+    UDControllerPort(const std::string& type, int port, const std::string& protocol = "") { _type = type; _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
 	~UDControllerPort();
     #pragma endregion
 
@@ -222,6 +222,8 @@ class UDController
 	//std::list<Output*> _outputs;
 	std::map<int, UDControllerPort*> _pixelPorts;
 	std::map<int, UDControllerPort*> _serialPorts;
+    std::map<int, UDControllerPort*> _virtualMatrixPorts;
+    std::map<int, UDControllerPort*> _ledPanelMatrixPorts;
     std::list<Model*> _noConnectionModels;
     OutputManager* _outputManager = nullptr;
     ModelManager* _modelManager = nullptr;
@@ -230,6 +232,8 @@ class UDController
     #pragma region Private Functions
     bool ModelProcessed(Model* m, int string);
     #pragma endregion
+
+    void ClearPorts();
 	
     public:
 
@@ -242,6 +246,8 @@ class UDController
     #pragma region Port Handling
     UDControllerPort* GetControllerPixelPort(int port);
 	UDControllerPort* GetControllerSerialPort(int port);
+    UDControllerPort* GetControllerVirtualMatrixPort(int port);
+    UDControllerPort* GetControllerLEDPanelMatrixPort(int port);
     UDControllerPort* GetPortContainingModel(Model* model) const;
     UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str) const;
     #pragma endregion
@@ -249,8 +255,12 @@ class UDController
     #pragma region Getters and Setters
     int GetMaxSerialPort() const;
     int GetMaxPixelPort() const;
+    int GetMaxLEDPanelMatrixPort() const;
+    int GetMaxVirtualMatrixPort() const;
     bool HasPixelPort(int port) const;
     bool HasSerialPort(int port) const;
+    bool HasLEDPanelMatrixPort(int port) const;
+    bool HasVirtualMatrixPort(int port) const;
     int GetMaxPixelPortChannels() const;
 
     Model* GetModelAfter(Model* m) const;

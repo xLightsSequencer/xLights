@@ -180,9 +180,9 @@ std::string ChooseBestControllerPixel(const std::vector<std::string>& controller
 	return "";
 }
 
-std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& controllerPixels, bool includeSerial, bool includeArtificial)
+std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& controllerPixels, bool includeSerial, bool includeArtificial, bool includeMatrices)
 {
-	auto superset = GetAllPixelTypes(includeSerial, includeArtificial);
+	auto superset = GetAllPixelTypes(includeSerial, includeArtificial, includeMatrices);
 
 	std::vector<std::string> res;
 
@@ -201,25 +201,29 @@ std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& contro
 	return res;
 }
 
-std::vector<std::string> GetAllPixelTypes(bool includeSerial, bool includeArtificial)
+std::vector<std::string> GetAllPixelTypes(bool includeSerial, bool includeArtificial, bool includeMatrices)
 {
 	std::vector<std::string> res;
 
-	for (const auto& it : __equivalentPixels) 		{
-		for (const auto& it2 : it) 			{
-			if (includeArtificial || !IsArtificialPixelType(it2)) 				{
+	for (const auto& it : __equivalentPixels) {
+		for (const auto& it2 : it) {
+			if (includeArtificial || !IsArtificialPixelType(it2)) {
 				res.push_back(it2);
 			}
 		}
 	}
 
-	if (includeSerial) 		{
+	if (includeSerial) {
 		for (const auto& it : __equivalentSerial) {
 			for (const auto& it2 : it) {
 				res.push_back(it2);
 			}
 		}
 	}
+    if (includeMatrices) {
+        res.push_back("Virtual Matrix");
+        res.push_back("LED Panel Matrix");
+    }
 
 	return res;
 }
@@ -305,4 +309,16 @@ bool IsSerialProtocol(const std::string& p1)
         return std::find(begin(st), end(st), p) != end(st);
     }
     return true;
+}
+bool IsMatrixProtocol(const std::string& p1)
+{
+    return (p1 == "LED Panel Matrix") || (p1 == "Virtual Matrix");
+}
+bool IsLEDPanelMatrixProtocol(const std::string& p1)
+{
+    return p1 == "LED Panel Matrix";
+}
+bool IsVirtualMatrixProtocol(const std::string& p1)
+{
+    return p1 == "Virtual Matrix";
 }

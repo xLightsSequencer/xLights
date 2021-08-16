@@ -141,6 +141,13 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_WarnGroupIssues->SetValue(frame->GetWarnGroupIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
+
+#ifndef IGNORE_VENDORS
+    CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
+    CheckBox_IgnoreVendorModelRecommendations->Hide();
+    CheckBox_WarnGroupIssues->SetValue(true);
+    CheckBox_WarnGroupIssues->Hide();
+#endif
     return true;
 }
 

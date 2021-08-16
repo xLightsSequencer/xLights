@@ -113,6 +113,7 @@
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
+            <SupportsVirtualMatrix/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -127,6 +128,7 @@
                 <Protocol>Renard</Protocol>
 			</SerialProtocols>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 	</Controller>
 	<Controller Name="rPi-MFC">
@@ -137,6 +139,7 @@
 			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsLEDPanelMatrix/>
+            <SupportsVirtualMatrix/>
 			<SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
 			<PixelProtocols>
@@ -152,6 +155,7 @@
                 <Protocol>Renard</Protocol>
 			</SerialProtocols>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 	</Controller>	
 	<Controller Name="HE123">
@@ -176,6 +180,7 @@
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<SupportsLEDPanelMatrix/>
+            <SupportsVirtualMatrix/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>

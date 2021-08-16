@@ -348,8 +348,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
 
 bool UDControllerPort::ContainsModel(Model* m, int string) const {
 
-    for (const auto& it : _models)
-    {
+    for (const auto& it : _models) {
         if (it->GetModel() == m && (string == it->GetString() || (string == 0 && it->GetString() == -1))) {
             return true;
         }
@@ -915,13 +914,21 @@ bool UDController::ModelProcessed(Model* m, int string) {
             return true;
         }
     }
-
     for (const auto& it : _serialPorts) {
         if (it.second->ContainsModel(m, string)) {
             return true;
         }
     }
-
+    for (const auto& it : _virtualMatrixPorts) {
+        if (it.second->ContainsModel(m, string)) {
+            return true;
+        }
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
+        if (it.second->ContainsModel(m, string)) {
+            return true;
+        }
+    }
     return false;
 }
 #pragma endregion
@@ -936,7 +943,9 @@ UDController::UDController(Controller* controller, OutputManager* om, ModelManag
 }
 
 UDController::~UDController() {
-
+    ClearPorts();
+}
+void UDController::ClearPorts() {
     for (const auto& it : _pixelPorts) {
         delete it.second;
     }
@@ -946,19 +955,20 @@ UDController::~UDController() {
         delete it.second;
     }
     _serialPorts.clear();
+
+    for (const auto& it : _virtualMatrixPorts) {
+        delete it.second;
+    }
+    _virtualMatrixPorts.clear();
+
+    for (const auto& it : _ledPanelMatrixPorts) {
+        delete it.second;
+    }
+    _ledPanelMatrixPorts.clear();
 }
 
 void UDController::Rescan(bool eliminateOverlaps) {
-
-    for (const auto& it : _pixelPorts) {
-        delete it.second;
-    }
-    _pixelPorts.clear();
-
-    for (const auto& it : _serialPorts) {
-        delete it.second;
-    }
-    _serialPorts.clear();
+    ClearPorts();
 
     for (const auto& it : *_modelManager) {
         if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != "ModelGroup") {
@@ -974,16 +984,14 @@ void UDController::Rescan(bool eliminateOverlaps) {
                     if (std::find(_noConnectionModels.begin(), _noConnectionModels.end(), it.second) == _noConnectionModels.end()) {
                         _noConnectionModels.push_back(it.second);
                     }
-                }
-                else {
+                } else {
                     // model uses channels in this universe
                     if (it.second->IsPixelProtocol()) {
                         int strings = it.second->GetNumPhysicalStrings();
                         if (strings == 1) {
                             int port = it.second->GetControllerPort(1);
                             GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
-                        }
-                        else {
+                        } else {
                             for (int i = 0; i < strings; i++) {
                                 int port = it.second->GetControllerPort(i+1);
                                 int32_t startChannel = it.second->GetStringStartChan(i) + 1;
@@ -995,8 +1003,13 @@ void UDController::Rescan(bool eliminateOverlaps) {
                                 }
                             }
                         }
-                    }
-                    else {
+                    } else if (it.second->IsVirtualMatrixProtocol()) {
+                        int port = it.second->GetControllerPort(1);
+                        GetControllerVirtualMatrixPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
+                    } else if (it.second->IsLEDPanelMatrixProtocol()) {
+                        int port = it.second->GetControllerPort(1);
+                        GetControllerLEDPanelMatrixPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
+                    } else if (it.second->IsSerialProtocol()) {
                         int port = it.second->GetControllerPort(1);
                         GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                     }
@@ -1009,7 +1022,6 @@ void UDController::Rescan(bool eliminateOverlaps) {
 
 #pragma region Port Handling
 UDControllerPort* UDController::GetControllerPixelPort(int port) {
-
     for (const auto& it : _pixelPorts) {
         if (it.second->GetPort() == port) {
             return it.second;
@@ -1020,11 +1032,22 @@ UDControllerPort* UDController::GetControllerPixelPort(int port) {
 }
 
 UDControllerPort* UDController::GetControllerSerialPort(int port) {
-
     if (!HasSerialPort(port)) {
         _serialPorts[port] = new UDControllerPort("Serial", port);
     }
     return _serialPorts[port];
+}
+UDControllerPort* UDController::GetControllerVirtualMatrixPort(int port) {
+    if (_virtualMatrixPorts.find(port) == _virtualMatrixPorts.end()) {
+        _virtualMatrixPorts[port] = new UDControllerPort("Virtual Matrix", port);
+    }
+    return _virtualMatrixPorts[port];
+}
+UDControllerPort* UDController::GetControllerLEDPanelMatrixPort(int port) {
+    if (_ledPanelMatrixPorts.find(port) == _ledPanelMatrixPorts.end()) {
+        _ledPanelMatrixPorts[port] = new UDControllerPort("LED Panel", port);
+    }
+    return _ledPanelMatrixPorts[port];
 }
 
 UDControllerPort* UDController::GetPortContainingModel(Model* model) const
@@ -1035,18 +1058,30 @@ UDControllerPort* UDController::GetPortContainingModel(Model* model) const
     for (const auto& it : _serialPorts) {
         if (it.second->ContainsModel(model, 0)) return it.second;
     }
+    for (const auto& it : _virtualMatrixPorts) {
+        if (it.second->ContainsModel(model, 0)) return it.second;
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
+        if (it.second->ContainsModel(model, 0)) return it.second;
+    }
     return nullptr;
 }
 
 UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName, int str) const
 {
-    for (const auto& it : _pixelPorts)
-    {
+    for (const auto& it : _pixelPorts) {
         auto m = it.second->GetModel(modelName, str);
         if (m != nullptr) return m;
     }
-    for (const auto& it : _serialPorts)
-    {
+    for (const auto& it : _serialPorts) {
+        auto m = it.second->GetModel(modelName, str);
+        if (m != nullptr) return m;
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        auto m = it.second->GetModel(modelName, str);
+        if (m != nullptr) return m;
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
         auto m = it.second->GetModel(modelName, str);
         if (m != nullptr) return m;
     }
@@ -1076,9 +1111,27 @@ int UDController::GetMaxPixelPort() const {
     }
     return last;
 }
+int UDController::GetMaxLEDPanelMatrixPort() const {
+    int last = 0;
+    for (const auto& it : _ledPanelMatrixPorts) {
+        if (it.second->GetPort() > last) {
+            last = it.second->GetPort();
+        }
+    }
+    return last;
+}
+int UDController::GetMaxVirtualMatrixPort() const {
+    int last = 0;
+    for (const auto& it : _virtualMatrixPorts) {
+        if (it.second->GetPort() > last) {
+            last = it.second->GetPort();
+        }
+    }
+    return last;
+}
+
 
 bool UDController::HasSerialPort(int port) const {
-
     for (const auto& it : _serialPorts) {
         if (it.second->GetPort() == port) {
             return true;
@@ -1086,7 +1139,21 @@ bool UDController::HasSerialPort(int port) const {
     }
     return false;
 }
-
+bool UDController::HasLEDPanelMatrixPort(int port) const {
+    for (const auto& it : _ledPanelMatrixPorts) {
+        if (it.second->GetPort() == port) {
+            return true;
+        }
+    }
+    return false;
+}bool UDController::HasVirtualMatrixPort(int port) const {
+    for (const auto& it : _virtualMatrixPorts) {
+        if (it.second->GetPort() == port) {
+            return true;
+        }
+    }
+    return false;
+}
 int UDController::GetMaxPixelPortChannels() const
 {
     int res = 0;
@@ -1099,13 +1166,19 @@ int UDController::GetMaxPixelPortChannels() const
 
 Model* UDController::GetModelAfter(Model* m) const
 {
-    for (const auto& it : _pixelPorts)
-    {
+    for (const auto& it : _pixelPorts) {
         auto mm = it.second->GetModelAfter(m);
         if (mm != nullptr) return mm;
     }
-    for (const auto& it : _serialPorts)
-    {
+    for (const auto& it : _serialPorts) {
+        auto mm = it.second->GetModelAfter(m);
+        if (mm != nullptr) return mm;
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        auto mm = it.second->GetModelAfter(m);
+        if (mm != nullptr) return mm;
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
         auto mm = it.second->GetModelAfter(m);
         if (mm != nullptr) return mm;
     }
@@ -1115,13 +1188,21 @@ Model* UDController::GetModelAfter(Model* m) const
 bool UDController::HasModels() const
 {
     for (const auto& it : _pixelPorts) {
-        if (it.second->GetFirstModel() != nullptr)
-        {
+        if (it.second->GetFirstModel() != nullptr) {
             return true;
         }
     }
-
     for (const auto& it : _serialPorts) {
+        if (it.second->GetFirstModel() != nullptr) {
+            return true;
+        }
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        if (it.second->GetFirstModel() != nullptr) {
+            return true;
+        }
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
         if (it.second->GetFirstModel() != nullptr) {
             return true;
         }
@@ -1133,16 +1214,22 @@ bool UDController::HasModels() const
 bool UDController::SetAllModelsToControllerName(const std::string& controllerName)
 {
     bool changed = false;
-    for (const auto& it : _pixelPorts)
-    {
+    for (const auto& it : _pixelPorts) {
         changed |= it.second->SetAllModelsToControllerName(controllerName);
         changed |= it.second->EnsureAllModelsAreChained();
     }
 
-    for (const auto& it : _serialPorts)
-    {
+    for (const auto& it : _serialPorts) {
         changed |= it.second->SetAllModelsToControllerName(controllerName);
         // we dont chain serial models
+        //changed |= it.second->EnsureAllModelsAreChained();
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        changed |= it.second->SetAllModelsToControllerName(controllerName);
+        //changed |= it.second->EnsureAllModelsAreChained();
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
+        changed |= it.second->SetAllModelsToControllerName(controllerName);
         //changed |= it.second->EnsureAllModelsAreChained();
     }
 
@@ -1153,21 +1240,34 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
 {
     std::string force;
     bool changed = false;
-    for (const auto& it : _pixelPorts)
-    {
+    for (const auto& it : _pixelPorts) {
         changed |= it.second->SetAllModelsToValidProtocols(pixelProtocols, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr)
-        {
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
 
     force = "";
-    for (const auto& it : _serialPorts)
-    {
+    for (const auto& it : _serialPorts) {
         changed |= it.second->SetAllModelsToValidProtocols(serialProtocols, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr)
-        {
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
+        }
+    }
+
+    force = "";
+    for (const auto& it : _virtualMatrixPorts) {
+        std::vector<std::string> vmProtocol = { "Virtual Matrix" };
+        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
+        }
+    }
+    force = "";
+    for (const auto& it : _ledPanelMatrixPorts) {
+        std::vector<std::string> vmProtocol = { "LED Panel Matrix" };
+        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
@@ -1178,13 +1278,16 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
 bool UDController::ClearSmartRemoteOnAllModels()
 {
     bool changed = false;
-    for (const auto& it : _pixelPorts)
-    {
+    for (const auto& it : _pixelPorts) {
         changed |= it.second->ClearSmartRemoteOnAllModels();
     }
-
-    for (const auto& it : _serialPorts)
-    {
+    for (const auto& it : _serialPorts) {
+        changed |= it.second->ClearSmartRemoteOnAllModels();
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        changed |= it.second->ClearSmartRemoteOnAllModels();
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
         changed |= it.second->ClearSmartRemoteOnAllModels();
     }
     return changed;
@@ -1206,6 +1309,12 @@ bool UDController::IsValid(ControllerCaps* rules) const {
         if (!it.second->IsValid()) return false;
     }
     for (const auto& it : _serialPorts) {
+        if (!it.second->IsValid()) return false;
+    }
+    for (const auto& it : _virtualMatrixPorts) {
+        if (!it.second->IsValid()) return false;
+    }
+    for (const auto& it : _ledPanelMatrixPorts) {
         if (!it.second->IsValid()) return false;
     }
     return true;
@@ -1234,6 +1343,14 @@ void UDController::Dump() const {
     for (const auto& it : _serialPorts) {
         it.second->Dump();
     }
+    logger_base.debug("   Virtual Matrices %d.", (int)_virtualMatrixPorts.size());
+    for (const auto& it : _virtualMatrixPorts) {
+        it.second->Dump();
+    }
+    logger_base.debug("   LED Panel Matrices %d.", (int)_ledPanelMatrixPorts.size());
+    for (const auto& it : _ledPanelMatrixPorts) {
+        it.second->Dump();
+    }
 }
 
 bool UDController::Check(const ControllerCaps* rules, std::string& res) {
@@ -1252,8 +1369,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->GetMaxPixelPort() == 0 && _pixelPorts.size() > 0) {
         res += wxString::Format("ERR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
         success = false;
-    }
-    else {
+    } else {
         for (const auto& it : _pixelPorts) {
             if (rules->SupportsVirtualStrings()) {
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
@@ -1329,8 +1445,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 }
             }
         }
-    }
-    else {
+    } else {
         for (const auto& it : _pixelPorts) {
             int countNoSmart = 0;
             int countSmart = 0;
@@ -1425,8 +1540,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->GetMaxSerialPort() == 0 && _serialPorts.size() > 0) {
         res += wxString::Format("ERR: Attempt to upload serial port %d but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort()).ToStdString();
         success = false;
-    }
-    else {
+    } else {
         for (const auto& it : _serialPorts) {
             success &= it.second->Check(_controller, this, false, rules, res);
 
@@ -1435,6 +1549,14 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 success = false;
             }
         }
+    }
+    if (!rules->SupportsVirtualMatrix() && _virtualMatrixPorts.size() > 0) {
+        res += wxString::Format("ERR: Attempt to upload Virtual Matrix but this controller does not support Virtual Matrices.\n");
+        success = false;
+    }
+    if (!rules->SupportsLEDPanelMatrix() && _ledPanelMatrixPorts.size() > 0) {
+        res += wxString::Format("ERR: Attempt to upload LED Panel Matrix but this controller does not support LED Panel Matrices.\n");
+        success = false;
     }
 
     return success;
@@ -1456,6 +1578,18 @@ std::vector<std::string> UDController::ExportAsCSV(bool withDescription)
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
         lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(withDescription));
+    }
+    lines.push_back("\n");
+    for (auto &vm : _virtualMatrixPorts) {
+        if (columnSize < vm.second->GetModels().size())
+            columnSize = vm.second->GetModels().size();
+        lines.push_back(vm.second->ExportAsCSV(withDescription));
+    }
+    lines.push_back("\n");
+    for (auto &vm : _ledPanelMatrixPorts) {
+        if (columnSize < vm.second->GetModels().size())
+            columnSize = vm.second->GetModels().size();
+        lines.push_back(vm.second->ExportAsCSV(withDescription));
     }
 
     wxString header = "Output,";

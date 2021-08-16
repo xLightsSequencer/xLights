@@ -302,6 +302,10 @@ public:
 
     bool IsPixelProtocol() const;
     bool IsSerialProtocol() const;
+    bool IsMatrixProtocol() const;
+    bool IsLEDPanelMatrixProtocol() const;
+    bool IsVirtualMatrixProtocol() const;
+
     static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 
     unsigned long GetChangeCount() const { return changeCount; }
