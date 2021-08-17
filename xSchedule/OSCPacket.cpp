@@ -108,12 +108,11 @@ OSCPacket::OSCPacket(const std::string& path)
     _timingName = "";
     _ms = 0;
     _progress = -2;
-    if (!IsPathValid(path)) return;
     _buffsize = roundTo4(path.size() + 1);
     _buffer = (uint8_t*)malloc(_buffsize);
     memset(_buffer, 0x00, _buffsize);
     strcpy((char*)_buffer, path.c_str());
-    _isOk = true;
+    _isOk = IsPathValid(path);
 }
 
 OSCPacket::OSCPacket(const std::string& path, int32_t value)
@@ -124,13 +123,12 @@ OSCPacket::OSCPacket(const std::string& path, int32_t value)
     _timingName = "";
     _ms = 0;
     _progress = -2;
-    if (!IsPathValid(path)) return;
     _buffsize = roundTo4(path.size() + 1);
     _buffer = (uint8_t*)malloc(_buffsize);
     memset(_buffer, 0x00, _buffsize);
     strcpy((char*)_buffer, path.c_str());
     AddParameter(OSCTYPE::OSCINT, wxString::Format("%d", value).ToStdString());
-    _isOk = true;
+    _isOk = IsPathValid(path);
 }
 
 OSCPacket::OSCPacket(const std::string& path, float value)
@@ -141,13 +139,12 @@ OSCPacket::OSCPacket(const std::string& path, float value)
     _timingName = "";
     _ms = 0;
     _progress = -2;
-    if (!IsPathValid(path)) return;
     _buffsize = roundTo4(path.size() + 1);
     _buffer = (uint8_t*)malloc(_buffsize);
     memset(_buffer, 0x00, _buffsize);
     strcpy((char*)_buffer, path.c_str());
     AddParameter(OSCTYPE::OSCFLOAT, wxString::Format("%f", value).ToStdString());
-    _isOk = true;
+    _isOk = IsPathValid(path);
     _isSync = false;
 }
 

@@ -68,7 +68,7 @@ void ListenerOSC::StartProcess()
     int port = _listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions()->GetClientPort();
     localaddr.Service(port);
 
-    _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
+    _socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (_socket == nullptr)
     {
         logger_base.error("Error opening datagram for OSC reception on port %d. %s", port, (const char *)localaddr.IPAddress().c_str());

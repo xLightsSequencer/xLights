@@ -185,21 +185,22 @@ void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fram
         logger_base.info("Sending OSC Event to %s:%d %s", (const char *)_ip.c_str(), _port, (const char *)_path.c_str());
 
         OSCPacket packet(path.ToStdString());
-        for (int i = 0; i < MAXOSCPARMS; i++)
-        {
-            if (_types[i] != OSCTYPE::OSCNONE)
-            {
-                packet.AddParameter(_types[i], values[i]);
+        if (packet.IsOk()) {
+            for (int i = 0; i < MAXOSCPARMS; i++) {
+                if (_types[i] != OSCTYPE::OSCNONE) {
+                    packet.AddParameter(_types[i], values[i]);
+                }
+                else {
+                    break;
+                }
             }
-            else
-            {
-                break;
-            }
-        }
 
-        packet.Send(_ip, _port);
-		
-        logger_base.info("OSC Sent.");
+            packet.Send(_ip, _port);
+            logger_base.info("OSC Sent.");
+        }
+        else             {
+            logger_base.error("OSC Packet not sent as it was invalid.");
+        }
     }
 }
 
