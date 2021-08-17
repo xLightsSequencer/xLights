@@ -5405,89 +5405,106 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 if (doc.IsOk() && doc.GetRoot()->GetAttribute("name", "") != "") {
                     docLoaded = true;
                     wxString modelName = doc.GetRoot()->GetAttribute("name", "");
-                    wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
-                    std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
-                    if (json == "") {
-                        json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
-                    }
-                    if (json != "" && !wxFileExists(json)) {
-                        json = "";
-                    }
-                    if (json != "") {
-                        wxJSONValue origJson;
-                        wxJSONReader reader;
-                        wxFileInputStream f(json);
-                        int errors = reader.Parse(f, &origJson);
-                        if (!errors) {
-                            VendorModelDialog* dlg = nullptr;
-                            bool block = false;
-                            wxString vendorBlock;
-                            for (auto& name : origJson["mappings"].GetMemberNames()) {
-                                wxJSONValue v = origJson["mappings"][name];
-                                bool matches = false;
-                                wxString newModelName = modelName;
-                                bool localBlock = false;
-                                if (v.HasMember("regex") && v["regex"].AsBool()) {
-                                    wxRegEx regex;
-                                    if (regex.Compile(name)) {
-                                        if (regex.Matches(modelName)) {
-                                            wxString nmodel = v["model"].AsString();
-                                            regex.ReplaceAll(&newModelName, nmodel);
-                                            matches = true;
-                                            if (v.HasMember("block")) {
-                                                localBlock = v["block"].AsBool();
+#ifdef __WXMSW__
+                    // If a windows user does not want vendor recommendations then dont go looking for them at all
+                    // I have allowed this to be off (ie it does the vendor recommendation check) by default but once 
+                    // the user has decided they dont want it then treat them like an adult
+                    if (!xlights->GetIgnoreVendorModelRecommendations()) {
+#endif
+                        wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
+                        std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
+                        if (json == "") {
+                            json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
+                        }
+                        if (json != "" && !wxFileExists(json)) {
+                            json = "";
+                        }
+                        if (json != "") {
+                            wxJSONValue origJson;
+                            wxJSONReader reader;
+                            wxFileInputStream f(json);
+                            int errors = reader.Parse(f, &origJson);
+                            if (!errors) {
+                                VendorModelDialog* dlg = nullptr;
+                                bool block = false;
+                                wxString vendorBlock;
+                                for (auto& name : origJson["mappings"].GetMemberNames()) {
+                                    wxJSONValue v = origJson["mappings"][name];
+                                    bool matches = false;
+                                    wxString newModelName = modelName;
+                                    bool localBlock = false;
+                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
+                                        wxRegEx regex;
+                                        if (regex.Compile(name)) {
+                                            if (regex.Matches(modelName)) {
+                                                wxString nmodel = v["model"].AsString();
+                                                regex.ReplaceAll(&newModelName, nmodel);
+                                                matches = true;
+                                                if (v.HasMember("block")) {
+                                                    localBlock = v["block"].AsBool();
+                                                }
                                             }
                                         }
                                     }
-                                } else if (name == modelName) {
-                                    matches = true;
-                                    newModelName = v["model"].AsString();
-                                    if (v.HasMember("block")) {
-                                        localBlock = v["block"].AsBool();
+                                    else if (name == modelName) {
+                                        matches = true;
+                                        newModelName = v["model"].AsString();
+                                        if (v.HasMember("block")) {
+                                            localBlock = v["block"].AsBool();
+                                        }
                                     }
-                                }
-                                if (matches) {
-                                    wxString vendor = v["vendor"].AsString();
-                                    if (dlg == nullptr) {
-                                        dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                        dlg->DlgInit(prog, low, high);
-                                    }
-                                    if (localBlock) {
-                                        vendorBlock = vendor;
-                                        block = true;
-                                    }
-                                    if (dlg->FindModelFile(vendor, newModelName)) {
+                                    if (matches) {
+                                        wxString vendor = v["vendor"].AsString();
+                                        if (dlg == nullptr) {
+                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                            dlg->DlgInit(prog, low, high);
+                                        }
                                         if (localBlock) {
-                                            wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The "
-                                                + "vendor has requested that the model they provide be the model that is used."
-                                                + "Use the Vendor provided model instead?";
-                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                last_model = dlg->GetModelFile();
-                                            } else {
-                                                last_model = "";
-                                            }
-                                            docLoaded = false;
-                                            break;
-                                        } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
-                                            wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
-                                                + "Vendor provided models are strongly recommended by xLights due to their quality and ease of use.\n\nWould you prefer to "
-                                                + "use the Vendor provided model instead?";
-                                            if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                last_model = dlg->GetModelFile();
+                                            vendorBlock = vendor;
+                                            block = true;
+                                        }
+                                        if (dlg->FindModelFile(vendor, newModelName)) {
+                                            if (localBlock) {
+                                                wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                    + "vendor has requested that the model they provide be the model that is used."
+                                                    + "Use the Vendor provided model instead?";
+                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                    last_model = dlg->GetModelFile();
+                                                }
+                                                else {
+                                                    last_model = "";
+                                                }
                                                 docLoaded = false;
                                                 break;
                                             }
+                                            else if (!xlights->GetIgnoreVendorModelRecommendations()) {
+                                                // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
+                                                // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
+                                                // my experience is noticably better or worse than any other ... they all have had their poor models.
+                                                // If you want to change the message back then have an OSX specific phrasing.
+                                                wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The "
+                                                    + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to "
+                                                    + "use the Vendor provided model instead?";
+                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                    last_model = dlg->GetModelFile();
+                                                    docLoaded = false;
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            if (block) {
-                                wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
-                                last_model = "";
-                            }
-                            if (dlg) {
-                                delete dlg;
+#ifndef __WXMSW__
+                                // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
+                                if (block) {
+                                    wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                    wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                    last_model = "";
+                                }
+#endif
+                                if (dlg) {
+                                    delete dlg;
+                                }
                             }
                         }
                     }

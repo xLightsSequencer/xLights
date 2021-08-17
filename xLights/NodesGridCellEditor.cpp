@@ -156,7 +156,7 @@ void NodesGridCellEditor::Reset()
 wxString NodesGridCellEditor::GetValue() const
 {
     wxString retval;
-    for (int i = 0; i < ListBox()->GetCount(); ++i) {
+    for (size_t i = 0; i < ListBox()->GetCount(); ++i) {
         if (!ListBox()->IsSelected(i)) continue;
         if (!retval.empty()) retval += wxT(",");
         retval += ListBox()->GetString(i);

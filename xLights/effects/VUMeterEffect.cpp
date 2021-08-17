@@ -1008,7 +1008,7 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int
 
 	int start = buffer.curPeriod - usebars;
 	float cols = (float)buffer.BufferWi / (float)usebars;
-    if (cols == 0.0) cols = 0.0001;
+    if (cols == 0.0) cols = 0.001f;
     for (int x = 0; x < buffer.BufferWi; x++)         {
         int i = start + (int)((float)x / cols);
         if (i > 0) {
