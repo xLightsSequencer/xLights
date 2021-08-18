@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.26
+   -- enh (dkulp) Add support for "Virtual Matrix" and "LED Panel Matrix" protocols for Models
+   -- enh (dkulp) Add Virtual Matrix and LED Panel Matrix ports to Visualizer for controllers that support them
+   -- enh (dkulp) Mark the various Pi based hats as being able to support Virtual Matrices
+   -- enh (dkulp) Add a "Pi4 Virtual Matrix" FPP controller type that enables the second HDMI output port
+   -- enh (dkulp) Update FPP output upload to fully configure virtual matrices
+   -- enh (dkulp) Add "Full xLights Control" ability to FPP based controllers
+   -- bug (dkulp) If FPP hat/cape supports both pixels and panels, upload configs for both (actually all 3 with VirtualMatrix)
+   -- enh (dkulp) Support multiple virtual matrices per FPP output port (colorlight/linsn sender cards)
+   -- bug (keith) Fix a falcon with no models but full xLights control does not actually clear all the outputs
+   -- bug (keith) Fix crash in OSC
+   -- enh (keith) Add check sequence warning for large custom models
+   -- enh (keith) A better way to deal with deciding to map effects due to large numbers of missing models
+   -- enh (keith) Add to check sequence a check for model groups where more than one of the contained models contains the same node
 2021.25 August 13, 2021
    -- enh (dkulp) If the model being imported can be mapped to a vendor supplied xmodel, prompt to use the vendor supplied xmodel.
    -- enh (keith) Reduce calls to lookup supplier from MAC address by using a local lookup file
