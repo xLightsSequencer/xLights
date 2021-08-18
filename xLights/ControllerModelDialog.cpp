@@ -1421,41 +1421,40 @@ void ControllerModelDialog::ReloadModels()
         }
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
-    if (_caps != nullptr) {
-        if (_caps->SupportsVirtualMatrix()) {
-            _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, 1, _cud, _caps,
-                                                    wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
-                                                    BaseCMObject::STYLE_CHANNELS, false, _scale));
-            auto sp = _cud->GetControllerVirtualMatrixPort(1);
-            if (sp != nullptr) {
-                int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
-                for (const auto& it : sp->GetModels()) {
-                    auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
-                                                 BaseCMObject::STYLE_CHANNELS, _scale);
-                    _controllers.push_back(cmm);
-                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
-                }
-                if (x > maxx) maxx = x;
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxVirtualMatrixPort()), _cud->GetMaxVirtualMatrixPort()); i++) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, i + 1, _cud, _caps,
+                                                wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                BaseCMObject::STYLE_CHANNELS, false, _scale));
+        auto sp = _cud->GetControllerVirtualMatrixPort(i + 1);
+        if (sp != nullptr) {
+            int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            for (const auto& it : sp->GetModels()) {
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                             BaseCMObject::STYLE_CHANNELS, _scale);
+                _controllers.push_back(cmm);
+                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
             }
-            y += VERTICAL_GAP + VERTICAL_SIZE;
+            if (x > maxx) maxx = x;
         }
-        if (_caps->SupportsLEDPanelMatrix()) {
-            _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, 1, _cud, _caps,
-                                                    wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
-                                                    BaseCMObject::STYLE_CHANNELS, false, _scale));
-            auto sp = _cud->GetControllerLEDPanelMatrixPort(1);
-            if (sp != nullptr) {
-                int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
-                for (const auto& it : sp->GetModels()) {
-                    auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
-                                                 BaseCMObject::STYLE_CHANNELS, _scale);
-                    _controllers.push_back(cmm);
-                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
-                }
-                if (x > maxx) maxx = x;
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
+
+    if (_caps != nullptr && _caps->SupportsLEDPanelMatrix()) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, 1, _cud, _caps,
+                                                wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                BaseCMObject::STYLE_CHANNELS, false, _scale));
+        auto sp = _cud->GetControllerLEDPanelMatrixPort(1);
+        if (sp != nullptr) {
+            int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            for (const auto& it : sp->GetModels()) {
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                             BaseCMObject::STYLE_CHANNELS, _scale);
+                _controllers.push_back(cmm);
+                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
             }
-            y += VERTICAL_GAP + VERTICAL_SIZE;
+            if (x > maxx) maxx = x;
         }
+        y += VERTICAL_GAP + VERTICAL_SIZE;
     }
 
 

@@ -95,6 +95,12 @@ class FPP : public BaseController
     bool UploadPixelOutputs(ModelManager* allmodels,
                             OutputManager* outputManager,
                             Controller* controller);
+    bool UploadPanelOutputs(ModelManager* allmodels,
+                            OutputManager* outputManager,
+                            Controller* controller);
+    bool UploadVirtualMatrixOutputs(ModelManager* allmodels,
+                                    OutputManager* outputManager,
+                                    Controller* controller);
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
@@ -170,4 +176,6 @@ private:
     
     bool restartNeeded = false;
     std::string curMode = "";
+
+    bool sysInfoLoaded = false;
 };

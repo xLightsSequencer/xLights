@@ -806,6 +806,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
+                        cancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
+                        cancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
                         cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                     }
                 }

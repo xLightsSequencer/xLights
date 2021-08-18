@@ -387,15 +387,19 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 }
 
 bool FPP::AuthenticateAndUpdateVersions() {
-    std::string conf;
-    if (GetURLAsString("/config.php", conf)) {
-        parseConfig(conf);
-        wxJSONValue val;
-        if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
-            return isFPP && parseSysInfo(val);
+    if (!sysInfoLoaded) {
+        std::string conf;
+        if (GetURLAsString("/config.php", conf)) {
+            parseConfig(conf);
+            wxJSONValue val;
+            if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
+                sysInfoLoaded = true;
+                return isFPP && parseSysInfo(val);
+            }
         }
+        return false;
     }
-    return false;
+    return isFPP;
 }
 bool FPP::parseSysInfo(wxJSONValue& val) {
     platform = val["Platform"].AsString();
@@ -1461,13 +1465,19 @@ bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin)
 bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     parent = parent;
-    return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller) && !Restart("");
+    return AuthenticateAndUpdateVersions()
+        && !UploadPanelOutputs(allmodels, outputManager, controller)
+        && !UploadVirtualMatrixOutputs(allmodels, outputManager, controller)
+        && !UploadPixelOutputs(allmodels, outputManager, controller)
+        && !Restart("");
 }
 
 bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
     parent = parent;
     bool b = AuthenticateAndUpdateVersions();
     if (!b) return b;
+    UploadPanelOutputs(allmodels, outputManager, controller);
+    UploadVirtualMatrixOutputs(allmodels, outputManager, controller);
     UploadPixelOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
 
@@ -1476,8 +1486,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
         if (restartNeeded || curMode != "bridge") {
             Restart("bridge");
         }
-    }
-    else if (restartNeeded) {//fpp 5
+    } else if (restartNeeded) {//fpp 5
         Restart();
     }
     return b;
@@ -1756,7 +1765,226 @@ static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const Contro
     return true;
 }
 
+static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, int newValue) {
+    if (!v.HasMember(key)) {
+        v[key] = newValue;
+        return true;
+    }
+    int origValue = v[key].AsLong();
+    if (origValue != newValue) {
+        v[key] = newValue;
+        return true;
+    }
+    return false;
+}
+static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, const std::string &newValue) {
+    if (!v.HasMember(key)) {
+        v[key] = newValue;
+        return true;
+    }
+    std::string origValue = v[key].AsString();
+    if (origValue != newValue) {
+        v[key] = newValue;
+        return true;
+    }
+    return false;
+}
+
 #ifndef DISCOVERYONLY
+bool FPP::UploadPanelOutputs(ModelManager* allmodels,
+                             OutputManager* outputManager,
+                             Controller* controller) {
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+
+    wxJSONValue origJson;
+    bool changed = false;
+    int startChannel = -1;
+
+    if (rules->SupportsLEDPanelMatrix() && cud.GetMaxLEDPanelMatrixPort()) {
+        startChannel = cud.GetControllerLEDPanelMatrixPort(1)->GetStartChannel();
+        startChannel--;
+    }
+    if (startChannel >= 0 || fullcontrol) {
+        if (IsDrive()) {
+            GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
+        } else {
+            GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson, false);
+        }
+    }
+    if (startChannel >= 0) {
+        std::map<int, int> rngs;
+        FillRanges(rngs);
+        //LED panel cape, nothing we can really do except update the start channel, and enable
+        startChannel++;  //one based
+        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+            if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+                if (UpdateJSONValue(origJson["channelOutputs"][x], "startChannel", startChannel)) {
+                    changed = true;
+                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
+                }
+                changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 1);
+            }
+        }
+        SetNewRanges(rngs);
+    } else if (fullcontrol) {
+        //disable
+        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+            if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+                changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+            }
+        }
+    }
+    if (changed) {
+        if (IsDrive()) {
+            WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
+        } else {
+            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+            SetRestartFlag();
+        }
+    }
+    return false;
+}
+
+
+bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
+                                     OutputManager* outputManager,
+                                     Controller* controller) {
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    bool changed = false;
+    wxJSONValue origJson;
+    if (fullcontrol || (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort())) {
+        if (IsDrive()) {
+            GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
+        } else {
+            GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson, false);
+        }
+        if (fullcontrol) {
+            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+                if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+                    origJson["channelOutputs"].Remove(x);
+                    x--;
+                    changed = true;
+                }
+            }
+        }
+    }
+    std::map<int, std::set<std::string>> models;
+    if (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort()) {
+        std::map<int, int> rngs;
+        FillRanges(rngs);
+        for (int port = 0; port < cud.GetMaxVirtualMatrixPort(); port++) {
+            int curOffset = 0;
+            int countModels = cud.GetControllerVirtualMatrixPort(port+1)->GetModels().size();
+            for (auto m : cud.GetControllerVirtualMatrixPort(port+1)->GetModels()) {
+                int startChannel = m->GetStartChannel();
+                std::string name = m->GetName();
+                MatrixModel *mm = dynamic_cast<MatrixModel*>(m->GetModel());
+                wxString layout = "";
+                int w = -1;
+                int h = -1;
+                if (mm != nullptr) {
+                    if (mm->isVerticalMatrix()) {
+                        w = mm->GetNumStrings();
+                        h = mm->NodesPerString();
+                    } else {
+                        w = mm->NodesPerString();
+                        h = mm->GetNumStrings();
+                    }
+                    if (w != -1 && h != -1) {
+                        layout = wxString::Format("%dx%d", w, h);
+                    }
+                }
+
+                models[port].insert(name);
+                bool found = false;
+                for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+                    if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix"
+                        && origJson["channelOutputs"][x]["description"].AsString() == name) {
+                        found = true;
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 1);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "startChannel", startChannel);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "channelCount", m->GetEndChannel() - startChannel + 1);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "width", w > 0 ? w : 64);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "height", h > 0 ? h : 32);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "layout", layout);
+                        changed |= UpdateJSONValue(origJson["channelOutputs"][x], "yoff", curOffset);
+                        curOffset += h > 0 ? h : 0;
+                        if (countModels > 1)  {
+                            changed |= UpdateJSONValue(origJson["channelOutputs"][x], "scaling", "None");
+                        } else {
+                            changed |= UpdateJSONValue(origJson["channelOutputs"][x], "scaling", "Hardware");
+                        }
+                        rngs[m->GetStartChannel()] = m->GetEndChannel() - m->GetStartChannel() + 1;
+                    }
+                }
+                if (!found) {
+                    wxJSONValue v;
+                    v["enabled"] = 1;
+                    v["type"] = wxString("VirtualMatrix");
+                    v["startChannel"] = startChannel;
+                    v["channelCount"] = m->GetEndChannel() - m->GetStartChannel() + 1;
+                    v["width"] = w > 0 ? w : 64;
+                    v["height"] = h > 0 ? h : 32;
+                    v["layout"] = layout;
+                    v["colorOrder"] = wxString("RGB");
+                    v["invert"] = 0;
+                    v["device"] = wxString::Format("fb%d", port);
+                    v["xoff"] = 0;
+                    v["description"] = name;
+                    v["yoff"] = curOffset;
+                    curOffset += h > 0 ? h : 0;
+                    if (countModels > 1)  {
+                        v["scaling"] = wxString("None");
+                    } else {
+                        v["scaling"] = wxString("Hardware");
+                    }
+                    origJson["channelOutputs"].Append(v);
+                    rngs[m->GetStartChannel()] = m->GetEndChannel() - m->GetStartChannel() + 1;
+                    changed = true;
+                }
+                if (changed) {
+                    SetNewRanges(rngs);
+                }
+            }
+        }
+    }
+    if (!fullcontrol && changed) {
+        //we need to disable the virtual matrices that are on the ports of the
+        //models we uploaded or they will conflict and produce errors
+        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+            if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+                std::string dev = origJson["channelOutputs"][x]["device"].AsString();
+                int port = (char)dev[2] - '0';
+                if (models[port].find(origJson["channelOutputs"][x]["description"].AsString()) == models[port].end()) {
+                    UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+                }
+            }
+        }
+    }
+    if (changed) {
+        if (IsDrive()) {
+            WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
+        } else {
+            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=co-other", origJson);
+            SetRestartFlag();
+        }
+    }
+
+    return false;
+}
+
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
@@ -1775,125 +2003,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     FillRanges(rngs);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+    logger_base.debug("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, check, false);
-    if (rules->SupportsLEDPanelMatrix() && cud.GetMaxLEDPanelMatrixPort()) {
-        //LED panel cape, nothing we can really do except update the start channel
-        int startChannel = cud.GetControllerLEDPanelMatrixPort(1)->GetStartChannel();
-        startChannel--;
-        if (startChannel >= 0) {
-            startChannel++;  //one based
-            wxJSONValue origJson;
-            if (IsDrive()) {
-                GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
-            } else {
-                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson, false);
-            }
-            bool changed = true;
-            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-                if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                    int origStartChannel = -1;
-                    if (origJson["channelOutputs"][x].HasMember("startChannel")) {
-                        origStartChannel = origJson["channelOutputs"][x]["startChannel"].AsLong();
-                    }
-                    if (origStartChannel == startChannel) {
-                        changed = false;
-                    } else {
-                        origJson["channelOutputs"][x]["startChannel"] = startChannel;
-                    }
-                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
-                }
-            }
-            if (changed) {
-                if (IsDrive()) {
-                    WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
-                } else {
-                    PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
-                    SetRestartFlag();
-                }
-            }
-        }
-        SetNewRanges(rngs);
-    }
-    if (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort()) {
-        int startChannel = cud.GetControllerVirtualMatrixPort(1)->GetStartChannel();
-        startChannel--;
-        if (startChannel >= 0) {
-            startChannel++;  //one based
-            wxJSONValue origJson;
-            if (IsDrive()) {
-                GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
-            } else {
-                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson, false);
-            }
 
-            auto a = cud.GetControllerVirtualMatrixPort(1)->GetFirstModel()->GetModel();
-            MatrixModel *mm = dynamic_cast<MatrixModel*>(a);
-            wxString layout = "";
-            int w = -1;
-            int h = -1;
-            if (mm != nullptr) {
-                if (mm->isVerticalMatrix()) {
-                    w = mm->GetNumStrings();
-                    h = mm->NodesPerString();
-                } else {
-                    w = mm->NodesPerString();
-                    h = mm->GetNumStrings();
-                }
-                if (w != -1 && h != -1) {
-                    layout = wxString::Format("%dx%d", w, h);
-                }
-            }
-
-            bool changed = false;
-            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-                if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                    int origStartChannel = -1;
-                    if (origJson["channelOutputs"][x].HasMember("startChannel")) {
-                        origStartChannel = origJson["channelOutputs"][x]["startChannel"].AsLong();
-                    }
-                    if (origStartChannel != startChannel) {
-                        changed = true;
-                        origJson["channelOutputs"][x]["startChannel"] = startChannel;
-                    }
-                    int origChannelCount = -1;
-                    if (origJson["channelOutputs"][x].HasMember("channelCount")) {
-                        origChannelCount = origJson["channelOutputs"][x]["channelCount"].AsLong();
-                    }
-                    if (origChannelCount != a->GetNumChannels()) {
-                        changed = true;
-                        origJson["channelOutputs"][x]["channelCount"] = a->GetNumChannels();
-                        rngs[startChannel - 1] = a->GetNumChannels();
-                    } else {
-                        rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
-                    }
-
-                    if (layout != "" && origJson["layout"].AsString() != layout) {
-                        origJson["channelOutputs"][x]["layout"] = layout;
-                        origJson["channelOutputs"][x]["width"] = w;
-                        origJson["channelOutputs"][x]["height"] = h;
-                        changed = true;
-                    }
-                    if (origJson["channelOutputs"][x].HasMember("description") && origJson["channelOutputs"][x]["description"].AsString() != a->GetName()) {
-                        changed = true;
-                        origJson["channelOutputs"][x]["description"] = a->GetName();
-                    }
-                }
-            }
-
-            if (changed) {
-                if (IsDrive()) {
-                    WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
-                } else {
-                    PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=co-other", origJson);
-                    SetRestartFlag();
-                }
-            }
-        }
-        SetNewRanges(rngs);
-    }
     if (cud.GetMaxPixelPort() == 0 && cud.GetMaxSerialPort() == 0) {
         return false;
     }
@@ -1916,6 +2030,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     logger_base.debug("Original JSON");
     DumpJSON(origJson);
 
+    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl() + 2;
+    // round to nearest 5
+    defaultBrightness -= defaultBrightness % 5;
+    if (defaultBrightness == 0) {
+        defaultBrightness = 100;
+    }
+
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
     wxString origType = "";
@@ -1931,12 +2053,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             if (f.HasMember("subType")) {
                 origType = f["subType"].AsString();
             }
-            for (int o = 0; o < f["outputs"].Size(); o++) {
-                if (f["outputs"][o].HasMember("virtualStrings")) {
-                    for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
-                        wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
-                        if (val["description"].AsString() != "") {
-                            origStrings[val["description"].AsString()] = val;
+            if (!fullcontrol) {
+                for (int o = 0; o < f["outputs"].Size(); o++) {
+                    if (f["outputs"][o].HasMember("virtualStrings")) {
+                        for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
+                            wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
+                            if (val["description"].AsString() != "") {
+                                origStrings[val["description"].AsString()] = val;
+                            }
                         }
                     }
                 }
@@ -2013,7 +2137,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["nullNodes"] = 0;
                     vs["endNulls"] = 0;
                     vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
-                    vs["brightness"] = 100;
+                    vs["brightness"] = defaultBrightness;
                     vs["gamma"] = wxString("1.0");
                 }
                 if (pvs->_reverseSet) {
@@ -2079,7 +2203,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["nullNodes"] = 0;
             vs["endNulls"] = 0;
             vs["zigZag"] = 0;
-            vs["brightness"] = 100;
+            vs["brightness"] = defaultBrightness;
             vs["gamma"] = wxString("1.0");
             stringData["outputs"][x]["virtualStrings"].Append(vs);
         }

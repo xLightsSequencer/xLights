@@ -11,6 +11,7 @@
         </InputProtocols>
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsAutoUpload/>
+        <SupportsFullxLightsControl/>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -73,6 +74,21 @@
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
 			<SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
+    <Controller Name="Pi4 Virtual Matrix">
+        <Variant Name="" ID="Pi4 Virtual Matrix" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsVirtualMatrix/>
+            <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
+            <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>

@@ -675,7 +675,7 @@ bool ModelManager::ReworkStartChannel() const
         {
             if (itm.second->GetControllerName() == it->GetName() &&
                 ((itm.second->GetControllerPort() != 0 && itm.second->GetControllerProtocol() != "") ||
-                 (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0))
+                 (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0 && caps->GetMaxLEDPanelMatrixPort() == 0 && caps->GetMaxVirtualMatrixPort() == 0))
                 ) // we dont muck with unassigned models or no protocol models
             {
                 wxString cc;
@@ -757,17 +757,13 @@ bool ModelManager::ReworkStartChannel() const
 
             int32_t chstart = ch;
 
-            if (itcc->second.size() > 0 && itcc->second.front()->IsPixelProtocol())
-            {
-                while ((*itcc).second.size() > 0)
-                {
+            if (itcc->second.size() > 0 && (itcc->second.front()->IsPixelProtocol() || itcc->second.front()->IsVirtualMatrixProtocol())) {
+                while ((*itcc).second.size() > 0) {
                     bool pushed = false;
-                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
-                    {
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms) {
                         if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
                             (*itms)->GetModelChain() == last ||
-                            (*itms)->GetModelChain() == ">" + last)
-                        {
+                            (*itms)->GetModelChain() == ">" + last) {
                             sortedmodels.push_back(*itms);
                             pushed = true;
                             last = (*itms)->GetName();
@@ -776,19 +772,17 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
 
-                    if (!pushed && (*itcc).second.size() > 0)
-                    {
+                    if (!pushed && (*itcc).second.size() > 0) {
                         // chain is broken ... so just put the rest in in the original order
                         // wxASSERT(false);
                         logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
-                        while ((*itcc).second.size() > 0)
-                        {
+                        while ((*itcc).second.size() > 0) {
                             sortedmodels.push_back(itcc->second.front());
                             itcc->second.pop_front();
                         }
                     }
                 }
-            } else if (itcc->second.front()->IsMatrixProtocol()) {
+            } else if (itcc->second.front()->IsLEDPanelMatrixProtocol()) {
                 while ((*itcc).second.size() > 0) {
                     sortedmodels.push_back((*itcc).second.front());
                     (*itcc).second.pop_front();
@@ -797,18 +791,15 @@ bool ModelManager::ReworkStartChannel() const
                 // dmx protocols work differently ... they can be chained or by specified dmx channel
                 int dmx = 1;
                 while ((*itcc).second.size() > 0 && dmx <= 512) {
-                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
-                    {
-                        if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx)
-                        {
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms) {
+                        if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx) {
                             sortedmodels.push_back(*itms);
                             last = (*itms)->GetName();
                             itcc->second.erase(itms);
                             break;
-                        }
-                        else if (last != "" && ((*itms)->GetModelChain() == last ||
-                            (*itms)->GetModelChain() == ">" + last))
-                        {
+                        } else if (last != ""
+                                   && ((*itms)->GetModelChain() == last
+                                       || (*itms)->GetModelChain() == ">" + last)) {
                             sortedmodels.push_back(*itms);
                             last = (*itms)->GetName();
                             itcc->second.erase(itms);
@@ -818,12 +809,10 @@ bool ModelManager::ReworkStartChannel() const
                     dmx++;
                 }
 
-                if ((*itcc).second.size() > 0)
-                {
+                if ((*itcc).second.size() > 0) {
                     // models left over so stuff them on the end
                     logger_zcpp.error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
-                    while ((*itcc).second.size() > 0)
-                    {
+                    while ((*itcc).second.size() > 0) {
                         sortedmodels.push_back(itcc->second.front());
                         itcc->second.pop_front();
                     }
@@ -832,24 +821,20 @@ bool ModelManager::ReworkStartChannel() const
 
             for (auto itm : sortedmodels) {
                 std::string sc = "";
-                if (itm->IsPixelProtocol()) {
+                if (itm->IsPixelProtocol() || itm->IsVirtualMatrixProtocol()) {
                     if (itm->GetModelChain() == last ||
                         itm->GetModelChain() == ">" + last ||
-                        ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
-                    {
+                        ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == "")) {
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
                         ch += itm->GetChanCount();
-                        if (osc != itm->ModelStartChannel)
-                        {
+                        if (osc != itm->ModelStartChannel) {
                             outputsChanged = true;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
@@ -861,7 +846,7 @@ bool ModelManager::ReworkStartChannel() const
                             outputsChanged = true;
                         }
                     }
-                } else if (itm->IsMatrixProtocol()) {
+                } else if (itm->IsLEDPanelMatrixProtocol()) {
                     auto osc = itm->ModelStartChannel;
                     sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                     itm->SetStartChannel(sc);
