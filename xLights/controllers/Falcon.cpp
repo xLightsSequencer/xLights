@@ -2575,7 +2575,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     }
 
-    if (success && cud.GetMaxPixelPort() > 0) {
+    if (success && stringData.size() > 0) {
         if (doProgress) progress->Update(60, "Uploading string ports.");
 
         if (check != "") {
@@ -2596,7 +2596,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness, firstchanneloncontroller);
     }
     else {
-        if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
+        if (stringData.size() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
             DisplayError("Not uploaded due to errors.\n" + check);
             check = "";
         }
