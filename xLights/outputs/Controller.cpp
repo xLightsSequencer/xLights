@@ -361,7 +361,7 @@ bool Controller::CanVisualise() const
 {
     auto caps = GetControllerCaps();
     if (caps != nullptr) {
-        return caps->GetMaxPixelPort() > 0 || caps->GetMaxSerialPort() > 0;
+        return caps->GetMaxPixelPort() > 0 || caps->GetMaxSerialPort() > 0 || caps->SupportsVirtualMatrix() || caps->SupportsLEDPanelMatrix();
     }
     return false;
 }
