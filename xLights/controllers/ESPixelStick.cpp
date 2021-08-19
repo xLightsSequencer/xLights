@@ -104,7 +104,12 @@ std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std:
             if (section != "") {
                 val = origJson[section];
             }
-            val = val[key];
+            if(!val.HasMember(key))
+            { 
+                return "";
+            }
+
+            val = val.ItemAt(key);
             if (val.IsString()) {
                 return val.AsString().ToStdString();
             }
@@ -216,7 +221,7 @@ static std::string MapV4Type(const std::string &p) {
     if (p == "ws2811" || p == "WS2811") {
         return "WS2811";
     }
-    if (p == "gece" || p == "gece") {
+    if (p == "gece" || p == "GECE") {
         return "GECE";
     }
     if (p == "dmx" || p == "DMX") {
@@ -224,6 +229,9 @@ static std::string MapV4Type(const std::string &p) {
     }
     if (p == "renard" || p == "Renard") {
         return "Renard";
+    }
+    if (p == "tm1814" || p == "TM1814") {
+        return "TM1814";
     }
 
     return "Disabled";
@@ -246,6 +254,24 @@ static std::string MapV4ColorOrder(const std::string &p) {
     }
     if (p == "GBR") {
         return "gbr";
+    }
+    if (p == "RGBW") {
+        return "rgbw";
+    }
+    if (p == "RBGW") {
+        return "rbgw";
+    }
+    if (p == "BGRW") {
+        return "bgrw";
+    }
+    if (p == "BRGW") {
+        return "brgw";
+    }
+    if (p == "GRBW") {
+        return "brbw";
+    }
+    if (p == "GBRW") {
+        return "gbrw";
     }
     return p;
 }
@@ -277,6 +303,8 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             std::string gamma = "1";
             std::string colorOrder = "rgb";
             std::string groupCount = "1";
+            std::string startNulls = "0";
+            std::string endNulls = "0";
             auto s = port->GetModels().front();
             if (s) {
                 brightness = s->GetBrightness(100);
@@ -287,6 +315,8 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     gc = 1;
                 }
                 groupCount = std::to_string(gc);
+                startNulls = std::to_string(s->GetStartNullPixels(0));
+                endNulls = std::to_string(s->GetEndNullPixels(0));
             }
             
             std::string outidx = std::to_string(x);
@@ -306,7 +336,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     }
                 }
             }
-            if (proto == "WS2811") {
+            if (proto == "WS2811" || proto == "TM1814") {
                 if (gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
@@ -328,6 +358,14 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 if (groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
+                }
+                if (startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["prependnullcount"] = startNulls;
+                }
+                if (endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["appendnullcount"] = endNulls;
                 }
                 if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
                     changed = true;

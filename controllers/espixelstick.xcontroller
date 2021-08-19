@@ -37,9 +37,11 @@
             <AllInputUniversesMustBeSameSize/>
             <UniversesMustBeSequential/>
             <SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
             </PixelProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
@@ -63,9 +65,11 @@
             <AllInputUniversesMustBeSameSize/>
             <UniversesMustBeSequential/>
             <SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
             </PixelProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
