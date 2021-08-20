@@ -461,6 +461,8 @@ protected:
         void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName);
         void SetImportMediaTooltip();
         void LoadAvailableGroups();
+        void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
+        void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
 
         SequencePackage* _xsqPkg = nullptr;
         std::vector<std::string> _availableGroups;

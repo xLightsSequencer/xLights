@@ -1595,6 +1595,52 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
     MarkUsed();
 }
 
+void xLightsImportChannelMapDialog::BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel)
+{
+    auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
+    wxDataViewItemArray strands;
+    TreeListCtrl_Mapping->GetModel()->GetChildren(toModel, strands);
+    for (auto& it : strands) {
+        wxDataViewItemArray nodes;
+        TreeListCtrl_Mapping->GetModel()->GetChildren(it, nodes);
+        for (auto& it2 : nodes) {
+            auto sn = mm->GetStrand(it);
+            auto nn = mm->GetNode(it2);
+            bool fromExist = false;
+            auto fromname = fromModel + "/" + sn + "/" + nn;
+            for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); j++) {
+                if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
+                    fromExist = true;
+                }
+            }
+            if (fromExist) {
+                Map(it2, fromname);
+            }
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel)
+{
+    // Find the model item in the mapping list
+    auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
+    wxDataViewItemArray strands;
+    TreeListCtrl_Mapping->GetModel()->GetChildren(toModel, strands);
+    for (auto& it : strands) {
+        auto sn = mm->GetStrand(it);
+        bool fromExist = false;
+        auto fromname = fromModel + "/" + sn;
+        for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); j++) {
+            if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
+                fromExist = true;
+            }
+        }
+        if (fromExist) {
+            Map(it, fromname);
+        }
+    }
+}
+
 void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName) {
     
     if (dropTarget.IsOk()) {
@@ -1622,6 +1668,31 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
             lastSelected = dropTarget;
         }
         
+        // if we are mapping a submodel and the shift key is down
+        if (CountChar(availableModelName, '/') == 1 && wxGetKeyState(WXK_SHIFT)) {
+            
+            auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
+            auto ss = mm->GetStrand(lastSelected);
+            auto ms = wxSplit(availableModelName, '/');
+            if (ms[1] == ss)                 {
+                auto m = TreeListCtrl_Mapping->GetModel();
+                auto par = m->GetParent(lastSelected);
+                // strand names match ... so looks like we are ok for a batch mapping of submodels/strands
+                BulkMapSubmodelsStrands(ms[0], par);
+            }
+        }
+        // if we are mapping nodes and the shift key is down
+        else if (CountChar(availableModelName, '/') == 2 && wxGetKeyState(WXK_SHIFT)) {
+            auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
+            auto nn = mm->GetNode(lastSelected);
+            auto ns = wxSplit(availableModelName, '/');
+            if (ns[2] == nn) {
+                auto m = TreeListCtrl_Mapping->GetModel();
+                auto par = m->GetParent(m->GetParent(lastSelected));
+                BulkMapNodes(ns[0], par);
+            }
+        }
+
         TreeListCtrl_Mapping->UnselectAll();
         
         if (lastSelected.IsOk()) {
