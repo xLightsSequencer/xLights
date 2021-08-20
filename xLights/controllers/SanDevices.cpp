@@ -1231,22 +1231,22 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                 static wxRegEx modelregex("(Controller Model )(E\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (modelregex.Matches(wxString(_page))) {
                     _sdmodel = DecodeControllerType(modelregex.GetMatch(wxString(_page), 2).ToStdString());
-                    logger_base.error("Connected to SanDevices controller model %s.", (const char*)GetModel().c_str());
+                    logger_base.info("Connected to SanDevices controller model %s.", (const char*)GetModel().c_str());
                 }
                 static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (versionregex.Matches(wxString(_page))) {
                     _firmware = FirmwareVersion::Four;
                     _version = versionregex.GetMatch(wxString(_page), 2).ToStdString();
-                    logger_base.error("                                 firmware %d.", static_cast<int>(_firmware));
-                    logger_base.error("                                 version %s.", (const char*)_version.c_str());
+                    logger_base.info("                                 firmware %d.", static_cast<int>(_firmware));
+                    logger_base.info("                                 version %s.", (const char*)_version.c_str());
                     break;
                 }
                 static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (version5regex.Matches(wxString(_page))) {
                     _firmware = FirmwareVersion::Five;
                     _version = version5regex.GetMatch(wxString(_page), 2).ToStdString();
-                    logger_base.error("                                 firmware %d.", static_cast<int>(_firmware));
-                    logger_base.error("                                 version %s.", (const char*)_version.c_str());
+                    logger_base.info("                                 firmware %d.", static_cast<int>(_firmware));
+                    logger_base.info("                                 version %s.", (const char*)_version.c_str());
                     break;
                 }
 
