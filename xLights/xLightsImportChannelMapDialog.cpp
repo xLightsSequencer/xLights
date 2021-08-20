@@ -1837,7 +1837,6 @@ wxString AggressiveAutomap(const wxString& name)
     return s;
 }
 
-
 void xLightsImportChannelMapDialog::DoAutoMap(
     std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_model,
     std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_strand,
