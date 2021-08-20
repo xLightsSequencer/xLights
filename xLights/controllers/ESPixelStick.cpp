@@ -250,7 +250,7 @@ static std::string MapV4ColorOrder(const std::string &p) {
         return "brg";
     }
     if (p == "GRB") {
-        return "brb";
+        return "grb";
     }
     if (p == "GBR") {
         return "gbr";
@@ -268,7 +268,7 @@ static std::string MapV4ColorOrder(const std::string &p) {
         return "brgw";
     }
     if (p == "GRBW") {
-        return "brbw";
+        return "grbw";
     }
     if (p == "GBRW") {
         return "gbrw";
