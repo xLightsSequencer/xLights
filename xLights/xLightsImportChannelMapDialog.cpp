@@ -1841,7 +1841,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_model,
     std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_strand,
     std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
-    const std::string& extra1, const std::string& extra2)
+    const std::string& extra1, const std::string& extra2, const std::string& mg)
 {
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
@@ -1851,32 +1851,34 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                     wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
                     if (availName.Contains("/")) {
                         wxArrayString parts = wxSplit(availName, '/');
-                        if (lambda_model(model->_model, parts[0], extra1, extra2)) {
-                            // matched the model name ... need to look at strands and submodels
-                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                auto strand = model->GetNthChild(k);
-                                if (strand != nullptr) {
-                                    if (strand->_mapping == "") {
-                                        if (lambda_strand(strand->_strand, parts[1], extra1, extra2)) {
-                                            // matched to the strand level
-                                            if (parts.size() == 2) {
-                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                                strand->_mappingExists = true;
-                                            }
-                                            else {
-                                                // need to map the node level
-                                                for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                                    auto node = strand->GetNthChild(m);
-                                                    if (node != nullptr) {
-                                                        if (node->_mapping == "") {
-                                                            if (lambda_node(node->_node, parts[2], extra1, extra2)) {
-                                                                // matched to the strand level
-                                                                if (parts.size() == 3) {
-                                                                    node->_mapping = ListCtrl_Available->GetItemText(j);
-                                                                    node->_mappingExists = true;
-                                                                }
-                                                                else {
-                                                                    wxASSERT(false);
+                        if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
+                            if (lambda_model(model->_model, parts[0], extra1, extra2)) {
+                                // matched the model name ... need to look at strands and submodels
+                                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                    auto strand = model->GetNthChild(k);
+                                    if (strand != nullptr) {
+                                        if (strand->_mapping == "") {
+                                            if (lambda_strand(strand->_strand, parts[1], extra1, extra2)) {
+                                                // matched to the strand level
+                                                if (parts.size() == 2) {
+                                                    strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                    strand->_mappingExists = true;
+                                                }
+                                                else {
+                                                    // need to map the node level
+                                                    for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                                        auto node = strand->GetNthChild(m);
+                                                        if (node != nullptr) {
+                                                            if (node->_mapping == "") {
+                                                                if (lambda_node(node->_node, parts[2], extra1, extra2)) {
+                                                                    // matched to the strand level
+                                                                    if (parts.size() == 3) {
+                                                                        node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                        node->_mappingExists = true;
+                                                                    }
+                                                                    else {
+                                                                        wxASSERT(false);
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1890,9 +1892,11 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         }
                     }
                     else {
-                        if (lambda_model(model->_model, availName, extra1, extra2)) {
-                            model->_mapping = ListCtrl_Available->GetItemText(j);
-                            model->_mappingExists = true;
+                        if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
+                            if (lambda_model(model->_model, availName, extra1, extra2)) {
+                                model->_mapping = ListCtrl_Available->GetItemText(j);
+                                model->_mappingExists = true;
+                            }
                         }
                     }
                 }
@@ -1910,18 +1914,25 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     if (_dataModel == nullptr) return;
 
     auto norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
-    DoAutoMap(norm, norm, norm, "", "");
+    DoAutoMap(norm, norm, norm, "", "", "B");
 
     auto aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
-    DoAutoMap(aggressive, aggressive, aggressive, "", "");
+    DoAutoMap(aggressive, aggressive, aggressive, "", "", "B");
 
     auto regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
+
+        static wxRegEx r;
+        static std::string lastRegex;
 
         if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower()) return false;
 
         // create a regex from extra
+        if (pattern != lastRegex)             {
+            r.Compile(pattern, wxRE_ADVANCED | wxRE_ICASE);
+            lastRegex = pattern;
+        }
+
         // run is against s ... return true if it matches
-        wxRegEx r(pattern, wxRE_ADVANCED | wxRE_ICASE);
         if (r.IsValid()) {
             return (r.Matches(s));
         }
@@ -1945,8 +1956,9 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
                     if (n->GetName().Lower() == "map") {
                         auto toRegex = n->GetAttribute("ToRegex");
                         auto fromModel = n->GetAttribute("FromModel");
+                        auto applyTo = n->GetAttribute("ApplyTo", "B");
                         if (toRegex != "" && fromModel != "") {
-                            DoAutoMap(regex, norm, norm, toRegex, fromModel);
+                            DoAutoMap(regex, norm, norm, toRegex, fromModel, applyTo);
                         }
                     }
                 }
