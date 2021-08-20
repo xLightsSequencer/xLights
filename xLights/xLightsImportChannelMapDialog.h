@@ -463,6 +463,10 @@ protected:
         void LoadAvailableGroups();
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
+        void DoAutoMap(std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_model,
+            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_strand,
+            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
+            const std::string& extra1, const std::string& extra2);
 
         SequencePackage* _xsqPkg = nullptr;
         std::vector<std::string> _availableGroups;

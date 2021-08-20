@@ -17,6 +17,7 @@
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
+#include <wx/regex.h>
 
 #include "xLightsImportChannelMapDialog.h"
 #include "sequencer/SequenceElements.h"
@@ -1836,10 +1837,13 @@ wxString AggressiveAutomap(const wxString& name)
     return s;
 }
 
-void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
-{
-    if (_dataModel == nullptr) return;
 
+void xLightsImportChannelMapDialog::DoAutoMap(
+    std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_model,
+    std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_strand,
+    std::function<bool (const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
+    const std::string& extra1, const std::string& extra2)
+{
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model != nullptr) {
@@ -1848,29 +1852,31 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
                     wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
                     if (availName.Contains("/")) {
                         wxArrayString parts = wxSplit(availName, '/');
-                        if (wxString(model->_model).Trim(true).Trim(false).Lower() == parts[0]) {
+                        if (lambda_model(model->_model, parts[0], extra1, extra2)) {
                             // matched the model name ... need to look at strands and submodels
                             for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                                 auto strand = model->GetNthChild(k);
                                 if (strand != nullptr) {
                                     if (strand->_mapping == "") {
-                                        if (wxString(strand->_strand).Trim(true).Trim(false).Lower() == parts[1]) {
+                                        if (lambda_strand(strand->_strand, parts[1], extra1, extra2)) {
                                             // matched to the strand level
                                             if (parts.size() == 2) {
                                                 strand->_mapping = ListCtrl_Available->GetItemText(j);
                                                 strand->_mappingExists = true;
-                                            } else {
+                                            }
+                                            else {
                                                 // need to map the node level
                                                 for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                                     auto node = strand->GetNthChild(m);
                                                     if (node != nullptr) {
                                                         if (node->_mapping == "") {
-                                                            if (wxString(node->_node).Trim(true).Trim(false).Lower() == parts[2]) {
+                                                            if (lambda_node(node->_node, parts[2], extra1, extra2)) {
                                                                 // matched to the strand level
                                                                 if (parts.size() == 3) {
                                                                     node->_mapping = ListCtrl_Available->GetItemText(j);
                                                                     node->_mappingExists = true;
-                                                                } else {
+                                                                }
+                                                                else {
                                                                     wxASSERT(false);
                                                                 }
                                                             }
@@ -1883,79 +1889,70 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
                                 }
                             }
                         }
-                    } else {
-                        if (wxString(model->_model).Trim(true).Trim(false).Lower() == availName) {
+                    }
+                    else {
+                        if (lambda_model(model->_model, availName, extra1, extra2)) {
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
                         }
                     }
                 }
             }
-        } else {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        }
+        else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
+}
 
-    // Try again but this time remove spaces from names to try and find more matches
-    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
-        auto model = _dataModel->GetNthChild(i);
-        if (model != nullptr) {
-            if (model->_mapping == "") {
-                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                    wxString availName = AggressiveAutomap(ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower());
-                    if (availName.Contains("/")) {
-                        wxArrayString parts = wxSplit(availName, '/');
-                        wxString mod = AggressiveAutomap(wxString(model->_model).Trim(true).Trim(false).Lower());
-                        if (mod == parts[0]) {
-                            // matched the model name ... need to look at strands and submodels
-                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                auto strand = model->GetNthChild(k);
-                                if (strand != nullptr) {
-                                    if (strand->_mapping == "") {
-                                        wxString str = AggressiveAutomap(wxString(strand->_strand).Trim(true).Trim(false).Lower());
-                                        if (str == parts[1]) {
-                                            // matched to the strand level
-                                            if (parts.size() == 2) {
-                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                                strand->_mappingExists = true;
-                                            } else {
-                                                // need to map the node level
-                                                for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                                    auto node = strand->GetNthChild(m);
-                                                    if (node != nullptr) {
-                                                        if (node->_mapping == "") {
-                                                            auto nod = AggressiveAutomap(wxString(node->_node).Trim(true).Trim(false).Lower());
-                                                            if (nod == parts[2]) {
-                                                                // matched to the strand level
-                                                                if (parts.size() == 3) {
-                                                                    node->_mapping = ListCtrl_Available->GetItemText(j);
-                                                                    node->_mappingExists = true;
-                                                                } else {
-                                                                    wxASSERT(false);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        wxString mod = AggressiveAutomap(wxString(model->_model).Trim(true).Trim(false).Lower());
-                        if (mod == availName) {
-                            model->_mapping = ListCtrl_Available->GetItemText(j);
-                            model->_mappingExists = true;
+void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
+{
+    if (_dataModel == nullptr) return;
+
+    auto norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
+    DoAutoMap(norm, norm, norm, "", "");
+
+    auto aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
+    DoAutoMap(aggressive, aggressive, aggressive, "", "");
+
+    auto regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
+
+        if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower()) return false;
+
+        // create a regex from extra
+        // run is against s ... return true if it matches
+        wxRegEx r(pattern, wxRE_ADVANCED | wxRE_ICASE);
+        if (r.IsValid()) {
+            return (r.Matches(s));
+        }
+        return false;
+    };
+
+    // <MapHints>
+    //  <Map ToRegex"" FromModel="" />
+    // </MapHints>
+
+    auto maphints = xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints";
+    if (wxDir::Exists(maphints)) {
+        wxDir dir(maphints);
+        wxString filename;
+        bool cont = dir.GetFirst(&filename, "*.xmaphint", wxDIR_FILES);
+        while (cont) {
+            wxXmlDocument doc;
+            doc.Load(xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints" + wxFileName::GetPathSeparator() + filename);
+            if (doc.IsOk()) {
+                for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName().Lower() == "map") {
+                        auto toRegex = n->GetAttribute("ToRegex");
+                        auto fromModel = n->GetAttribute("FromModel");
+                        if (toRegex != "" && fromModel != "") {
+                            DoAutoMap(regex, norm, norm, toRegex, fromModel);
                         }
                     }
                 }
             }
-        } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+            cont = dir.GetNext(&filename);
         }
     }
 
