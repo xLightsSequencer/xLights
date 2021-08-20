@@ -36,6 +36,7 @@ const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX_WARN_GROUP_ISSUES = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX6 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -91,6 +92,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
 	GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	CheckBox_PurgeDownloadCache = new wxCheckBox(this, ID_CHECKBOX6, _("Purge download cache at startup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
+	CheckBox_PurgeDownloadCache->SetValue(false);
+	GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -105,6 +109,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick);
 	Connect(ID_CHECKBOX_WARN_GROUP_ISSUES,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_WarnGroupIssuesClick);
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick);
+	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_PurgeDownloadCacheClick);
 	//*)
 
 
@@ -128,6 +133,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetWarnGroupIssues(CheckBox_WarnGroupIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
+	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
     return true;
 }
 
@@ -141,6 +147,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_WarnGroupIssues->SetValue(frame->GetWarnGroupIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
+	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
 
 #ifndef IGNORE_VENDORS
     CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
@@ -208,6 +215,13 @@ void OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent&
 }
 
 void OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event)
+{
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
+}
+
+void OtherSettingsPanel::OnCheckBox_PurgeDownloadCacheClick(wxCommandEvent& event)
 {
 	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
 		TransferDataFromWindow();

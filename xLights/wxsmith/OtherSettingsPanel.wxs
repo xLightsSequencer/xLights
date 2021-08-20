@@ -162,6 +162,17 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_PurgeDownloadCache" member="yes">
+					<label>Purge download cache at startup</label>
+					<handler function="OnCheckBox_PurgeDownloadCacheClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

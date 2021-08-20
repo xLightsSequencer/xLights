@@ -422,19 +422,20 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
-void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
+void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBar)
+{
 
     int size = ScaleWithSystemDPI(16);
     for (int x = 0; x < manager.size(); x++) {
-        DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size,size),
-                                                    wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-        BitmapButton34->SetMinSize(wxSize(size,size));
-        BitmapButton34->SetMaxSize(wxSize(size,size));
+        DragEffectBitmapButton* BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
+            wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
+        BitmapButton34->SetMinSize(wxSize(size, size));
+        BitmapButton34->SetMaxSize(wxSize(size, size));
 #ifndef LINUX
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
 #endif
         BitmapButton34->SetEffect(manager[x], 16);
-        BitmapButton34->SetBitmapMargins(0,0);
+        BitmapButton34->SetBitmapMargins(0, 0);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
 
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
@@ -447,8 +448,8 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(this), AllModels(&_outputManager, this),
-    layoutPanel(nullptr), AllObjects(this), _xFadeSocket(nullptr), color_mgr(this), jobPool("RenderPool"),
-    mainSequencer(nullptr), _presetSequenceElements(this)
+    AllObjects(this), jobPool("RenderPool"), color_mgr(this),
+    _presetSequenceElements(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1278,8 +1279,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     modelsChangeCount = 0;
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config == nullptr)
-    {
+    if (config == nullptr) {
         logger_base.error("Null config ... this wont end well.");
     }
     logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
@@ -1316,20 +1316,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     wxString randomEffects = "";
     config->Read("xLightsRandomEffects", &randomEffects);
-    if(randomEffects.IsEmpty())
-    {
-        for (int i = 0; i < effectManager.size(); i++)
-        {
-            if (effectManager[i]->CanBeRandom())
-            {
+    if (randomEffects.IsEmpty()) {
+        for (int i = 0; i < effectManager.size(); i++) {
+            if (effectManager[i]->CanBeRandom()) {
                 _randomEffectsToUse.Add(effectManager[i]->Name());
             }
         }
         randomEffects = wxJoin(_randomEffectsToUse, ',');
         config->Write("xLightsRandomEffects", randomEffects);
     }
-    else
-    {
+    else {
         _randomEffectsToUse = wxSplit(randomEffects, ',');
     }
 
@@ -1392,8 +1388,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     dir.clear();
     bool ok = true;
     bool showDirFromCommandLine = false;
-    if (!xLightsApp::showDir.IsNull())
-    {
+    if (!xLightsApp::showDir.IsNull()) {
         wxString t;
         config->Read("LastDir", &t);
 
@@ -1402,8 +1397,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
         }
         dir = xLightsApp::showDir;
     }
-    else
-    {
+    else {
         ok = config->Read("LastDir", &dir);
     }
     logger_base.debug("Show directory %s.", (const char *)dir.c_str());
@@ -1440,6 +1434,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 
     config->Read("xLightsIgnoreVendorModelRecommendations", &_ignoreVendorModelRecommendations, false);
     logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
+
+    config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
+    logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
 
 	config->Read("xLightsWarnGroupIssues", &_warnGroupIssues, true);
 	logger_base.debug("Warn for issues with Model Missing in groups: %s.", toStr(_warnGroupIssues));
@@ -1496,13 +1493,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
 
-    if (wxDir::Exists(mAltBackupDir))
-    {
+    if (_purgeDownloadCacheOnStart) {
+        PurgeDownloadCache();
+    }
+
+    if (wxDir::Exists(mAltBackupDir)) {
         ObtainAccessToURL(mAltBackupDir);
         mAltBackupMenuItem->SetHelp(mAltBackupDir);
     }
-    else
-    {
+    else {
         mAltBackupMenuItem->SetHelp("");
     }
 
@@ -1588,12 +1587,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
     starttime = wxDateTime::UNow();
     ResetEffectsXml();
     EnableSequenceControls(true);
-    if (ok && !dir.IsEmpty())
-    {
+    if (ok && !dir.IsEmpty()) {
         if (!SetDir(dir, !showDirFromCommandLine)) {
             CurrentDir = "";
-            if (!PromptForShowDirectory(true))
-            {
+            if (!PromptForShowDirectory(true)) {
                 CurrentDir = "";
                 splash.Hide();
                 wxMessageBox("Exiting as setting a show folder is not optional.");
@@ -1602,10 +1599,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
             }
         }
     }
-    else
-    {
-        if (!PromptForShowDirectory(true))
-        {
+    else {
+        if (!PromptForShowDirectory(true)) {
             CurrentDir = "";
             splash.Hide();
             wxMessageBox("Exiting as setting a show folder is not optional.");
@@ -1622,15 +1617,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : _sequenceElements(
 #endif
 #else
     // only keep the crash option if the special option is set
-    if (::Lower(SpecialOptions::GetOption("EnableCrash", "false")) == "false")
-    {
+    if (::Lower(SpecialOptions::GetOption("EnableCrash", "false")) == "false") {
         MenuItem_CrashXLights->GetMenu()->Remove(MenuItem_CrashXLights);
         MenuItem_CrashXLights = nullptr;
         MenuItem_LogRenderState->GetMenu()->Remove(MenuItem_LogRenderState);
         MenuItem_LogRenderState = nullptr;
     }
-    else
-    {
+    else {
         logger_base.debug("xLights Crash Menu item not removed.");
     }
 #endif
@@ -1805,6 +1798,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
     config->Write("xLightsIgnoreVendorModelRecommendations", _ignoreVendorModelRecommendations);
+    config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
     config->Write("xLightsWarnGroupIssues", _warnGroupIssues);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
@@ -8620,7 +8614,7 @@ void xLightsFrame::SetSnapToTimingMarks(bool b)
     _snapToTimingMarks = b;
 }
 
-void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
+void xLightsFrame::PurgeDownloadCache()
 {
     VendorModelDialog::GetCache().ClearCache();
     VendorModelDialog::GetCache().Save();
@@ -8628,6 +8622,11 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     VendorMusicDialog::GetCache().Save();
     ShaderDownloadDialog::GetCache().ClearCache();
     ShaderDownloadDialog::GetCache().Save();
+}
+
+void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
+{
+    PurgeDownloadCache();
 }
 
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)

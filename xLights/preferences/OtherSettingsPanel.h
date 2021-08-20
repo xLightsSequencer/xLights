@@ -31,6 +31,7 @@ class OtherSettingsPanel: public wxPanel
 		//(*Declarations(OtherSettingsPanel)
 		wxCheckBox* CheckBox_BatchRenderPromptIssues;
 		wxCheckBox* CheckBox_IgnoreVendorModelRecommendations;
+		wxCheckBox* CheckBox_PurgeDownloadCache;
 		wxCheckBox* CheckBox_WarnGroupIssues;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
@@ -59,6 +60,7 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX_WARN_GROUP_ISSUES;
 		static const long ID_CHECKBOX5;
+		static const long ID_CHECKBOX6;
 		//*)
 
 	private:
@@ -74,6 +76,7 @@ class OtherSettingsPanel: public wxPanel
 		void OnCheckBox_WarnGroupIssuesClick(wxCommandEvent& event);
 		void OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent& event);
 		void OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event);
+		void OnCheckBox_PurgeDownloadCacheClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

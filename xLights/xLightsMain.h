@@ -301,8 +301,10 @@ public:
 
         PLAY_LIST_MAX
     };
-    long SecondsRemaining, EndTimeSec;
-    int TxOverflowCnt, TxOverflowTotal;
+    long SecondsRemaining = 0;
+    long EndTimeSec = 0;
+    int TxOverflowCnt = 0;
+    int TxOverflowTotal = 0;
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
@@ -319,7 +321,7 @@ public:
     bool ApplySetting(wxString name, const wxString &value);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
-        int id;
+        int id = 0;
         wxXmlNode* p = nullptr;
     };
 
@@ -992,6 +994,7 @@ public:
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _ignoreVendorModelRecommendations = false;
+    bool _purgeDownloadCacheOnStart = false;
     int _fseqVersion;
     int _xFadePort;
     bool _wasMaximised = false;
@@ -1006,7 +1009,7 @@ public:
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
-    void TryCreatePresetIcon(const std::string& preset);
+    //void TryCreatePresetIcon(const std::string& preset);
 
     void CollectUserEmail();
     void OnxFadeSocketEvent(wxSocketEvent & event);
@@ -1102,6 +1105,10 @@ public:
 
     bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
+    void PurgeDownloadCache();
+
+    bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
+    void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
