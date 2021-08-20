@@ -105,7 +105,7 @@ MusicPanel::MusicPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Music_Type->SetSelection( Choice_Music_Type->Append(_("Morph")) );
 	Choice_Music_Type->Append(_("Bounce"));
 	Choice_Music_Type->Append(_("Collide"));
-	Choice_Music_Type->Append(_("Seperate"));
+	Choice_Music_Type->Append(_("Separate"));
 	Choice_Music_Type->Append(_("On"));
 	FlexGridSizer31->Add(Choice_Music_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

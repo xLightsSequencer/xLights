@@ -55,30 +55,32 @@ xlEffectPanel *MusicEffect::CreatePanel(wxWindow *parent) {
 
 bool MusicEffect::needToAdjustSettings(const std::string &version)
 {
-    return IsVersionOlder("2016.27", version);
+    return IsVersionOlder("2021.26", version);
 }
 
-void MusicEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
+void MusicEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
+    if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
-    SettingsMap &settings = effect->GetSettings();
-    if (settings.Contains("E_CHECKBOX_Music_ScaleNotes"))
-    {
+    SettingsMap& settings = effect->GetSettings();
+    if (settings.Contains("E_CHECKBOX_Music_ScaleNotes")) {
         bool loop = settings.GetBool("E_CHECKBOX_Music_ScaleNotes", false);
-        if (loop)
-        {
+        if (loop) {
             settings["E_CHOICE_Music_Scaling"] = "Individual Notes";
             settings.erase("E_CHECKBOX_Music_ScaleNotes");
         }
-        else
-        {
+        else {
             settings["E_CHOICE_Music_Scaling"] = "All Notes";
             settings.erase("E_CHECKBOX_Music_ScaleNotes");
+        }
+    }
+
+    if (settings.Contains("E_CHOICE_Music_Type")) {
+        if (settings["E_CHOICE_Music_Type"] == "Seperate") {
+            settings["E_CHOICE_Music_Type"] = "Separate";
         }
     }
 }
