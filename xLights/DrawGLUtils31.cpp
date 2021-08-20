@@ -55,6 +55,7 @@ PFNGLDETACHSHADERPROC glDetachShader;
 PFNGLDELETESHADERPROC glDeleteShader;
 PFNGLLINKPROGRAMPROC glLinkProgram;
 PFNGLDELETEPROGRAMPROC glDeleteProgram;
+PFNGLISPROGRAMPROC glIsProgram;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLUNIFORM4FPROC glUniform4f;
@@ -116,6 +117,7 @@ bool DrawGLUtils::LoadGLFunctions() {
     glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
     glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
     glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
+    glIsProgram = (PFNGLISPROGRAMPROC)wglGetProcAddress("glIsProgram");
     glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
     glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
     glUniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f");

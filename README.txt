@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2021.26
+   -- bug (kevin) Reduce number of shader recompiles to potentially reduce crashing
    -- enh (dkulp) Add support for "Virtual Matrix" and "LED Panel Matrix" protocols for Models
    -- enh (dkulp) Add Virtual Matrix and LED Panel Matrix ports to Visualizer for controllers that support them
    -- enh (dkulp) Mark the various Pi based hats as being able to support Virtual Matrices

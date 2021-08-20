@@ -56,6 +56,7 @@
     extern PFNGLUNIFORM1FPROC glUniform1f;
     extern PFNGLUNIFORM2FPROC glUniform2f;
     extern PFNGLUNIFORM4FPROC glUniform4f;
+    extern PFNGLISPROGRAMPROC glIsProgram;
 #else
     #include "OpenGL/gl3.h"
     #define __gl_h_
@@ -79,6 +80,8 @@
 
 #include <log4cpp/Category.hh>
 #include <fstream>
+#include <map>
+#include <string>
 
 namespace
 {
@@ -624,9 +627,9 @@ public:
                                  unsigned s_rbTex,
                                  unsigned s_audioTex,
                                  unsigned s_programId) {
-        if (s_programId) {
-            LOG_GL_ERRORV(glDeleteProgram(s_programId));
-        }
+        //if (s_programId) {
+        //    LOG_GL_ERRORV(glDeleteProgram(s_programId));
+        //}
         if (s_vertexArrayId) {
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
         }
@@ -865,10 +868,16 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         return;
     }
 
-    ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
-    if (cache == nullptr) {
+    ShaderRenderCache* cache = nullptr;
+    std::map<int, EffectRenderCache *>::iterator iter = buffer.infoCache.find( id );
+    if ( iter == buffer.infoCache.end() )
+    {
         cache = new ShaderRenderCache();
         buffer.infoCache[id] = cache;
+    }
+    else
+    {
+        cache = reinterpret_cast<ShaderRenderCache *>( (*iter).second );
     }
 
     // This object has all the data from the json in the .fs file
@@ -1243,15 +1252,35 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 void ShaderEffect::recompileFromShaderConfig(ShaderConfig* cfg, unsigned& s_programId)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (s_programId != 0) {
-        LOG_GL_ERRORV(glUseProgram(0));
-        LOG_GL_ERRORV(glDeleteProgram(s_programId));
-        s_programId = 0;
+
+    // Skip compilation if fragment shader is unchanged
+    typedef std::map<std::string, unsigned> FragmentShaderMap;
+    static FragmentShaderMap s_fragmentShaderCode;
+    std::string fsSrc( cfg->GetCode() );
+
+    FragmentShaderMap::const_iterator iter = s_fragmentShaderCode.find( fsSrc );
+    if ( iter != s_fragmentShaderCode.cend() )
+    {
+        if ( glIsProgram( (*iter).second) )
+        {
+            s_programId = (*iter).second;
+            logger_base.debug("shader program %s unchanged -- %u; skipping recompile", (const char*)cfg->GetFilename().c_str(), s_programId);
+            return;
+        }
+        s_fragmentShaderCode.erase(iter);
     }
-    s_programId = OpenGLShaders::compile(vsSrc, cfg->GetCode());
-    if (s_programId == 0) {
+
+    //if (s_programId != 0) {
+    //    LOG_GL_ERRORV(glUseProgram(0));
+    //    LOG_GL_ERRORV(glDeleteProgram(s_programId));
+    //    s_programId = 0;
+    //}
+    s_programId = OpenGLShaders::compile( vsSrc, fsSrc );
+
+    if ( s_programId == 0 )
         logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
-    }
+    else
+        s_fragmentShaderCode[fsSrc] = s_programId;
 }
 
 wxString SafeFloat(const wxString& s)
