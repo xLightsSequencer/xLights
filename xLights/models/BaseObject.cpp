@@ -295,5 +295,6 @@ void BaseObject::SetActive(bool active) {
     }
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BaseObject::SetActive");
     AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BaseObject::SetActive");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BaseObject::SetActive"); // because the names are displayed differently
 }
 
