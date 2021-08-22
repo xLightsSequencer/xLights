@@ -18,6 +18,7 @@
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
@@ -34,6 +35,9 @@ const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_SuppressWhenNotSinging = wxNewId();
+const long FacesPanel::ID_STATICTEXT_Faces_Lead_Frames = wxNewId();
+const long FacesPanel::ID_SPINCTRL_Faces_LeadFrames = wxNewId();
+const long FacesPanel::ID_CHECKBOX_Faces_Fade = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::IDD_SLIDER_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::ID_TEXTCTRL_Faces_TransparentBlack = wxNewId();
@@ -47,6 +51,7 @@ END_EVENT_TABLE()
 FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(FacesPanel)
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer47;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer97;
@@ -101,9 +106,21 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	CheckBox_SuppressWhenNotSinging = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_SuppressWhenNotSinging, _("Suppress when not singing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_SuppressWhenNotSinging"));
 	CheckBox_SuppressWhenNotSinging->SetValue(false);
-	FlexGridSizer98->Add(CheckBox_SuppressWhenNotSinging, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(CheckBox_SuppressWhenNotSinging, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Faces_Lead_Frames, _("Lead In/Out Frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Faces_Lead_Frames"));
+	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+	SpinCtrl_LeadFrames = new wxSpinCtrl(this, ID_SPINCTRL_Faces_LeadFrames, _T("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0, _T("ID_SPINCTRL_Faces_LeadFrames"));
+	SpinCtrl_LeadFrames->SetValue(_T("0"));
+	FlexGridSizer1->Add(SpinCtrl_LeadFrames, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Fade = new wxCheckBox(this, ID_CHECKBOX_Faces_Fade, _("Fade during lead in/out"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Fade"));
+	CheckBox_Fade->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Fade, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer98->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
@@ -121,6 +138,8 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
+	Connect(ID_CHECKBOX_Faces_SuppressWhenNotSinging,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_SuppressWhenNotSingingClick);
+	Connect(ID_CHECKBOX_Faces_Fade,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_FadeClick);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FacesPanel::OnVCChanged, 0, this);
@@ -138,20 +157,50 @@ FacesPanel::~FacesPanel()
 }
 
 void FacesPanel::ValidateWindow()
-{	
-	if (RadioButton1->GetValue())
-	{
-        Choice_Faces_Phoneme->Enable();
-        Choice_Faces_TimingTrack->Disable();
+{
+	if (RadioButton1->GetValue()) {
+		Choice_Faces_Phoneme->Enable();
+		Choice_Faces_TimingTrack->Disable();
 	}
-	else
-	{
-        Choice_Faces_Phoneme->Disable();
-        Choice_Faces_TimingTrack->Enable();
+	else {
+		Choice_Faces_Phoneme->Disable();
+		Choice_Faces_TimingTrack->Enable();
+	}
+
+	if (RadioButton1->GetValue()) {
+		CheckBox_SuppressWhenNotSinging->Disable();
+		SpinCtrl_LeadFrames->Disable();
+		CheckBox_Fade->Disable();
+	}
+	else {
+		CheckBox_SuppressWhenNotSinging->Enable();
+		if (CheckBox_SuppressWhenNotSinging->IsChecked()) {
+			CheckBox_Fade->Enable();
+			if (CheckBox_Fade->IsChecked()) {
+				SpinCtrl_LeadFrames->Enable();
+			}
+			else {
+				SpinCtrl_LeadFrames->Disable();
+			}
+		}
+		else {
+			SpinCtrl_LeadFrames->Disable();
+			CheckBox_Fade->Disable();
+		}
 	}
 }
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
+{
+	ValidateWindow();
+}
+
+void FacesPanel::OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void FacesPanel::OnCheckBox_FadeClick(wxCommandEvent& event)
 {
 	ValidateWindow();
 }

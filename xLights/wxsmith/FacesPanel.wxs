@@ -129,8 +129,50 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_SuppressWhenNotSinging" subclass="BulkEditCheckBox" variable="CheckBox_SuppressWhenNotSinging" member="yes">
-							<label>Suppress when not singing</label>
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Faces_SuppressWhenNotSinging" subclass="BulkEditCheckBox" variable="CheckBox_SuppressWhenNotSinging" member="yes">
+									<label>Suppress when not singing</label>
+									<handler function="OnCheckBox_SuppressWhenNotSingingClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="spacer">
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_Faces_Lead_Frames" variable="StaticText1" member="yes">
+									<label>Lead In/Out Frames</label>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL_Faces_LeadFrames" variable="SpinCtrl_LeadFrames" member="yes">
+									<value>0</value>
+									<max>1000</max>
+									<size>100,-1</size>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Fade" variable="CheckBox_Fade" member="yes">
+									<label>Fade during lead in/out</label>
+									<handler function="OnCheckBox_FadeClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

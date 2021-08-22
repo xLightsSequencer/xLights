@@ -83,8 +83,16 @@ wxString FacesEffect::GetEffectString()
         ret << "E_CHECKBOX_Faces_Outline=1,";
     }
 
-    if (p->CheckBox_SuppressWhenNotSinging->GetValue()) {
+    if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
         ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
+        if (p->CheckBox_Fade->GetValue()) {
+            ret << "E_CHECKBOX_Faces_Fade=1,";
+        }
+        if (p->SpinCtrl_LeadFrames->GetValue() > 0) {
+            ret << "E_SPINCTRL_Faces_LeadFrames=";
+            ret << p->SpinCtrl_LeadFrames->GetValue();
+            ret << ",";
+        }
     }
 
     if (p->CheckBox_TransparentBlack->GetValue()) {
@@ -369,6 +377,8 @@ void FacesEffect::SetDefaultParameters() {
 
     SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
     SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
+    SetCheckBoxValue(fp->CheckBox_Fade, false);
+    SetSpinValue(fp->SpinCtrl_LeadFrames, 0);
     SetCheckBoxValue(fp->CheckBox_TransparentBlack, false);
     SetSliderValue(fp->Slider_Faces_TransparentBlack, 0);
 }
@@ -383,7 +393,66 @@ void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     }
 }
 
+uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, bool fade, const std::string& timingTrack, RenderBuffer& buffer)
+{
+    uint8_t res = 0;
+
+    Element* track = elements->GetElement(timingTrack);
+    std::recursive_timed_mutex tmpLock;
+    std::recursive_timed_mutex* lock = &tmpLock;
+    if (track != nullptr) {
+        lock = &track->GetChangeLock();
+    }
+    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
+
+    if (track != nullptr && track->GetEffectLayerCount() == 3) {
+
+        EffectLayer* layer = track->GetEffectLayer(2);
+        std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
+
+        int currentTime = buffer.curPeriod * buffer.frameTimeInMs + 1;
+
+        Effect* currentEffect = layer->GetEffectByTime(currentTime);
+
+        if (currentEffect != nullptr)             {
+            res = 255;
+        }
+        else             {
+            if (!fade || leadFrames == 0) {
+                res = 0;
+            }
+            else                 {
+                int leadMS = leadFrames * buffer.frameTimeInMs;
+                Effect* afterEffect = layer->GetEffectAfterTime(currentTime);
+                uint8_t beforeAlpha = 0;
+                if (afterEffect != nullptr)                     {
+                    if (afterEffect->GetStartTimeMS() - currentTime < leadMS)                         {
+                        beforeAlpha = 255 - ((afterEffect->GetStartTimeMS() - currentTime) * 255) / leadMS;
+                    }
+                }
+                Effect* beforeEffect = layer->GetEffectBeforeTime(currentTime);
+                uint8_t afterAlpha = 0;
+                if (beforeEffect != nullptr)                     {
+                    if (currentTime - beforeEffect->GetEndTimeMS() < leadMS) {
+                        afterAlpha = 255 - ((currentTime - beforeEffect->GetEndTimeMS()) * 255) / leadMS;
+                    }
+                }
+                res = std::max(beforeAlpha, afterAlpha);
+            }
+        }
+    }
+
+    return res;
+}
+
 void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    uint8_t alpha = 255;
+    if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
+        if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
+            alpha = CalculateAlpha(effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap.GetInt("SPINCTRL_Faces_LeadFrames", 0), SettingsMap.GetBool("CHECKBOX_Faces_Fade", false), SettingsMap["CHOICE_Faces_TimingTrack"], buffer);
+        }
+    }
+
     if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
         && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
         //3.x style Faces effect
@@ -391,14 +460,13 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             SettingsMap["CHOICE_Faces_Phoneme"], 
             "Auto", 
             true, 
-            SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", 
-                false));
+            alpha);
     } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
-                               SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false));
+                               alpha);
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -409,13 +477,15 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0), 
-                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)
+                    alpha
             );
     }
 }
 
-void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline, bool suppressIfNotSinging)
+void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline, uint8_t alpha)
 {
+    if (alpha == 0) return; // 0 alpha means there is nothing to do
+
     static const std::map<wxString, int> phonemeMap = {
         {"AI", 0},
         {"E", 1},
@@ -758,9 +828,9 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, bool suppressIfNotSinging)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha)
 {
-    if (suppressIfNotSinging && Phoneme == "") return;
+    if (alpha == 0) return;
 
     //NOTE:
     //PixelBufferClass contains 2 RgbEffects members, which this method is a member of
@@ -774,7 +844,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, suppressIfNotSinging);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha);
         return;
     }
 
@@ -801,10 +871,6 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     {
         std::string info = map[(const char*)Phoneme.c_str()];
         Model::ParseFaceElement(info, first_xy);
-    }
-    else if (suppressIfNotSinging)
-    {
-        return;
     }
 
     if (!eyes.empty())
@@ -841,8 +907,10 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
     SequenceElements *elements, const std::string &faceDefinition,
     const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, bool suppressIfNotSinging)
+    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha)
 {
+    if (alpha == 0) return; // if alpha is zero dont bother.
+
     FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new FacesRenderCache();
@@ -966,11 +1034,6 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
             Effect *ef = layer->GetEffectByTime(time);
             if (ef == nullptr) {
-                if (suppressIfNotSinging)
-                {
-                    return;
-                }
-
                 phoneme = "rest";
             }
             else {
@@ -1042,11 +1105,6 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
 
-    if (phoneme == "" && suppressIfNotSinging)
-    {
-        return;
-    }
-
     int colorOffset = 0;
     xlColor color;
     buffer.palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
@@ -1067,13 +1125,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Mouth-" + p + "-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
     }
     if (buffer.palette.Size() > colorOffset) {
@@ -1085,13 +1146,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
 
         todo.push_back("Eyes-Open2");
@@ -1099,9 +1163,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open2-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
@@ -1109,6 +1175,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
 
         todo.push_back("Eyes-Open3");
@@ -1116,9 +1183,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open3-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
@@ -1126,6 +1195,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 4, color); //use sizth colour
             }
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
     }
     else if (eyes == "Closed") {
@@ -1134,13 +1204,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
 
         todo.push_back("Eyes-Closed2");
@@ -1148,9 +1221,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed2-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
@@ -1158,6 +1233,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
 
         todo.push_back("Eyes-Closed3");
@@ -1165,9 +1241,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed3-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
+                colors.back().alpha = alpha;
             }
             else {
                 colors.push_back(xlColor(cname));
+                colors.back().alpha = alpha;
             }
         }
         else {
@@ -1175,6 +1253,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
+            colors.back().alpha = alpha;
         }
     }
     else if (eyes == "(off)") {
@@ -1189,13 +1268,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["FaceOutline-Color"];
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
+                colors.front().alpha = alpha;
             }
             else {
                 colors.insert(colors.begin(), xlColor(cname));
+                colors.front().alpha = alpha;
             }
         }
         else {
             colors.insert(colors.begin(), color);
+            colors.front().alpha = alpha;
         }
 
         if (buffer.palette.Size() > (2 + colorOffset)) {
@@ -1207,18 +1289,21 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string const cname = model_info->faceInfo[definition]["FaceOutline2-Color"];
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
+                colors.front().alpha = alpha;
             }
             else {
                 colors.insert(colors.begin(), xlColor(cname));
+                colors.front().alpha = alpha;
             }
         }
         else {
             colors.insert(colors.begin(), color);
+            colors.front().alpha = alpha;
         }
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline, suppressIfNotSinging);
+        RenderFaces(buffer, phoneme, eyes, face_outline, alpha);
         return;
     }
     if (type == 3) {
@@ -1266,12 +1351,15 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     int level = c.Red() + c.Green() + c.Blue();
                     if (level > transparentBlackLevel)
                     {
+                        c.alpha = alpha;
                         buffer.SetPixel(x, y, c);
                     }
                 }
                 else
                 {
-                    buffer.SetPixel(x, y, crb->GetPixel(x, y));
+                    auto c = crb->GetPixel(x, y);
+                    c.alpha = alpha;
+                    buffer.SetPixel(x, y, c);
                 }
             }
         }
