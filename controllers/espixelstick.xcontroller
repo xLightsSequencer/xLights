@@ -38,6 +38,7 @@
             <UniversesMustBeSequential/>
             <SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
+            <NeedsDDPInputUpload/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
@@ -66,6 +67,7 @@
             <UniversesMustBeSequential/>
             <SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
+            <NeedsDDPInputUpload/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
