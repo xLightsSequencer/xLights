@@ -580,6 +580,18 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
 
     if (SingleChannel || SingleNode) {
+        // I am not 100% about this change but it makes sense to me
+        // While the custom model may have a height and width if it is single channel then the render buffer really should be 1x1
+        // and all nodes should point to that one cell.
+        // Without this change effects like twinkle do really strange things
+        BufferWi = 1;
+        BufferHi = 1;
+        for (auto& it : Nodes) {
+            for (auto& it2 : it->Coords) {
+                it2.bufX = 0;
+                it2.bufY = 0;
+            }
+        }
         return;
     }
 

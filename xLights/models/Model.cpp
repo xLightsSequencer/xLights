@@ -3447,8 +3447,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
     // Don't add model group nodes if its a 3D preview render buffer
     if ( !((camera != "2D") && GetDisplayAs() == "ModelGroup" && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET)) ) {
         newNodes.reserve(firstNode + Nodes.size());
-        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        for (auto& it : Nodes) {
+            newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
         }
     }
 
