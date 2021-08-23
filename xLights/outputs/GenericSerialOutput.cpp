@@ -57,7 +57,7 @@ void GenericSerialOutput::EndFrame(int suppressFrames)
 
     if (_changed || NeedToOutput(suppressFrames))
     {
-        if (_serial != nullptr)
+        if (_serial != nullptr && _datalen > 0)
         {
             _serial->Write((char *)&_data[0], _datalen);
             FrameOutput();
@@ -82,7 +82,7 @@ void GenericSerialOutput::SetOneChannel(int32_t channel, unsigned char data)
 
 void GenericSerialOutput::AllOff()
 {
-    if (!_enabled) return;
+    if (!_enabled || _datalen == 0) return;
     memset(&_data[_prefix.size()], 0x00, _datalen - _prefix.size() - _postfix.size());
     _changed = true;
 }
