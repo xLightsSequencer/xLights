@@ -1545,6 +1545,13 @@ void xLightsFrame::SetControllersProperties() {
         ButtonControllerDelete->Enable(false);
         LedPing->Disable();
 
+        if (_outputManager.GetGlobalFPPProxy() != "") {
+            Button_OpenProxy->Enable();
+        }
+        else {
+            Button_OpenProxy->Enable(false);
+        }
+
         wxPGProperty* p = Controllers_PropertyEditor->Append(new wxBoolProperty("Controller Sync", "ControllerSync", me131Sync));
         p->SetEditor("CheckBox");
         p->SetHelpString("Sends a sync packet at the end of each frame for controllers to synchronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
@@ -1612,6 +1619,13 @@ void xLightsFrame::SetControllersProperties() {
             }
             else {
                 ButtonOpen->Enable(false);
+            }
+
+            if (eth != nullptr && eth->GetFPPProxy() != "") {
+                Button_OpenProxy->Enable();
+            }
+            else {
+                Button_OpenProxy->Enable(false);
             }
             ButtonControllerDelete->Enable();
 
@@ -1764,6 +1778,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         else if (name == "GlobalFPPProxy") {
             _outputManager.SetGlobalFPPProxy(event.GetValue().GetString());
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::GlobalFPPProxy");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnControllerPropertyGridChange::GlobalFPPProxy", nullptr);
         }
         else if (name == "ForceLocalIP") {
             auto ips = GetLocalIPs();
@@ -2066,8 +2081,8 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
 #pragma endregion
 
 #pragma region Selected Controller Actions
-void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event) {
-
+void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // handle right click on an item
@@ -2084,8 +2099,8 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event) {
     }
 }
 
-void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event) {
-
+void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
+{
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         _outputManager.DeleteController(name);
@@ -2096,8 +2111,8 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event) {
     }
 }
 
-void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event) {
-
+void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event)
+{
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
     if (controller != nullptr) {
@@ -2106,6 +2121,22 @@ void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event) {
         }
         else {
             ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
+        }
+    }
+}
+
+void xLightsFrame::OnButton_OpenProxyClick(wxCommandEvent& event)
+{
+    auto name = Controllers_PropertyEditor->GetProperty("ControllerName") == nullptr ? "" : Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
+    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
+    if (controller != nullptr) {
+        if (controller->GetFPPProxy() != "") {
+            ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy());
+        }
+    }
+    else {
+        if (_outputManager.GetGlobalFPPProxy() != "") {
+            ::wxLaunchDefaultBrowser("http://" + _outputManager.GetGlobalFPPProxy());
         }
     }
 }

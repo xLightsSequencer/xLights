@@ -6273,11 +6273,14 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
+        auto rmn = replaceModel->GetName();
+        auto riw = modelToReplaceItWith->GetName();
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
         replaceModel->Rename("Iamgoingtodeletethismodel");
         xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
         modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
         xlights->AllModels.Delete("Iamgoingtodeletethismodel");
+        xlights->ReplaceModelWithModelFixGroups(rmn, riw);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ReplaceModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel");

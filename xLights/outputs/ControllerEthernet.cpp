@@ -860,6 +860,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
     else if (name == "FPPProxy") {
         SetFPPProxy(event.GetValue().GetString());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::FPPProxy", nullptr);
         return true;
     }
     else if (name == "Managed") {

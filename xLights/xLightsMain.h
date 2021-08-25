@@ -580,6 +580,7 @@ public:
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
+    void OnButton_OpenProxyClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -665,6 +666,7 @@ public:
     static const long ID_BUTTON2;
     static const long ID_BUTTON4;
     static const long ID_BUTTON7;
+    static const long ID_BUTTON12;
     static const long ID_BUTTON8;
     static const long ID_STATICTEXT1;
     static const long ID_PANEL6;
@@ -812,6 +814,7 @@ public:
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
     wxButton* Button_CheckShowFolderTemporarily;
+    wxButton* Button_OpenProxy;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
@@ -1346,6 +1349,7 @@ public:
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
     bool RenameObject(const std::string old_name, const std::string& new_name);
+    void ReplaceModelWithModelFixGroups(const std::string& oldModel, const std::string& newModel);
     bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder);
     void UpdateSequenceLength();
 

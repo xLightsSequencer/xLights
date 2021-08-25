@@ -53,6 +53,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool OnlyContainsModel(const std::string& name) const;
         int GetModelCount() const { return models.size(); }
         wxString SerialiseModelGroup(const std::string& forModel) const;
+        bool RemoveDuplicates();
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;

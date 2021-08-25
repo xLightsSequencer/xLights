@@ -698,6 +698,23 @@ void ModelGroup::ModelRemoved(const std::string &oldName) {
     }
 }
 
+bool ModelGroup::RemoveDuplicates()
+{
+    bool changed = false;
+    for (int i = 0; i < modelNames.size(); i++) {
+        for (int j = i + 1; j < modelNames.size(); j++) {
+            if (modelNames[i] == modelNames[j]) {
+                changed = true;
+                auto it = begin(modelNames);
+                std::advance(it, j);
+                modelNames.erase(it);
+                j--;
+            }
+        }
+    }
+    return changed;
+}
+
 bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     wxString newVal;
@@ -723,9 +740,15 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
         }
         newVal += modelNames[x];
     }
+
+    if (RemoveDuplicates())         {
+        changed = true;
+    }
+
     if (changed) {
         ModelXml->DeleteAttribute("models");
         ModelXml->AddAttribute("models", newVal);
+        ResetModels();
     }
     return changed;
 }
@@ -746,6 +769,7 @@ bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &
     if (changed) {
         ModelXml->DeleteAttribute("models");
         ModelXml->AddAttribute("models", newVal);
+        ResetModels();
     }
     return changed;
 }
