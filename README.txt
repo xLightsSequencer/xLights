@@ -2,7 +2,7 @@ xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE, SS and S5),
-Vixen2, LSP, HLS.
+Vixen2, Vixen 3, LSP, and HLS.
 
 Latest releases are found at www.xlights.org
 Videos tutorials are found at videos.xlights.org
@@ -11,20 +11,33 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2021.26
+2021.26 August 25, 2021
    -- enh (dkulp) Add support for "Virtual Matrix" and "LED Panel Matrix" protocols for Models
    -- enh (dkulp) Add Virtual Matrix and LED Panel Matrix ports to Visualizer for controllers that support them
    -- enh (dkulp) Mark the various Pi based hats as being able to support Virtual Matrices
    -- enh (dkulp) Add a "Pi4 Virtual Matrix" FPP controller type that enables the second HDMI output port
    -- enh (dkulp) Update FPP output upload to fully configure virtual matrices
    -- enh (dkulp) Add "Full xLights Control" ability to FPP based controllers
-   -- bug (dkulp) If FPP hat/cape supports both pixels and panels, upload configs for both (actually all 3 with VirtualMatrix)
    -- enh (dkulp) Support multiple virtual matrices per FPP output port (colorlight/linsn sender cards)
-   -- bug (keith) Fix a falcon with no models but full xLights control does not actually clear all the outputs
-   -- bug (keith) Fix crash in OSC
    -- enh (keith) Add check sequence warning for large custom models
    -- enh (keith) A better way to deal with deciding to map effects due to large numbers of missing models
    -- enh (keith) Add to check sequence a check for model groups where more than one of the contained models contains the same node
+   -- enh (keith) Add open proxy button to controller tab
+   -- enh (keith) When replacing a model with a model merge the group membership of both models
+   -- enh (keith) Import Lyrix audactity like timing files ... xLights will autodetect the lack of tab delimiters and instead use space as a delimiter
+   -- enh (keith) Add lead-in/out to the faces effect when using suppress when not singing.
+   -- enh (keith) Add base support for auto map hints - there is no UI support for this in this release
+   -- enh (keith) When dragging submodel or node effects in the mapping dialog if you hold down the shift key and drop the model onto
+                  a submodel or node with the same node then map all matching submodels/nodes at once
+   -- enh (keith) Add option to purge download cache on xLights startup
+   -- enh (scott) Add start/end nulls to ESPixelStick
+   -- bug (dkulp) If FPP hat/cape supports both pixels and panels, upload configs for both (actually all 3 with VirtualMatrix)
+   -- bug (keith) Fix a falcon with no models but full xLights control does not actually clear all the outputs
+   -- bug (keith) Fix crash in OSC where no path is specified
+   -- bug (keith) Fix crash on startup when using a generic serial output
+   -- bug (keith) Fix inactivating/activating a model does not add/remove <> around model name when applied
+   -- bug (keith) Fix single channel custom model does not render twinkle correctly because the model buffer is not 1x1
+   -- bug (scott) Fix DDP configuring of ESPixelStick V4 
 2021.25 August 13, 2021
    -- enh (dkulp) If the model being imported can be mapped to a vendor supplied xmodel, prompt to use the vendor supplied xmodel.
    -- enh (keith) Reduce calls to lookup supplier from MAC address by using a local lookup file
