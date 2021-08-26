@@ -1366,6 +1366,11 @@ void ControllerModelDialog::ReloadModels()
 
         auto pp = _cud->GetControllerPixelPort(i + 1);
         if (pp != nullptr) {
+
+            if (_caps != nullptr && _caps->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
+                pp->SetSeparateUniverses(((ControllerEthernet *)_controller)->IsUniversePerString());
+            }
+
             if (_caps == nullptr || _caps->SupportsVirtualStrings()) {
                 pp->CreateVirtualStrings(_caps == nullptr ? true : _caps->MergeConsecutiveVirtualStrings());
                 if (pp->GetVirtualStringCount() == 0) {

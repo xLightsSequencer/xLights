@@ -22,9 +22,8 @@
 class HinksPix;
 class wxJSONValue;
 
-class HinksPixOutput
+struct HinksPixOutput
 {
-public:
     HinksPixOutput(int output_) :
         output(output_), universe(1),
         startChannel(1), pixels(50),
@@ -58,9 +57,8 @@ private:
     int controlerEndChannel;
 };
 
-class HinksPixSerial
+struct HinksPixSerial
 {
-public:
     HinksPixSerial() :
         mode(2), e131Universe(1),
         e131StartChannel(1), e131NumOfChan(512),
@@ -83,9 +81,8 @@ public:
     wxString BuildCommand() const;
 };
 
-class HinksSmartOutput
+struct HinksSmartOutput
 {
-public:
     HinksSmartOutput( int id_) :
         id(id_), type(0),
         portStartPixel{ 1, 1, 1, 1 }
@@ -104,12 +101,42 @@ public:
     wxString BuildCommand() const;
 };
 
+struct HinksPixInputUniverse
+{
+    HinksPixInputUniverse(int universe_, int numOfChan_) :
+        index(-1), 
+        universe(universe_),
+        numOfChan(numOfChan_),
+        hinksPixStartChannel(1)
+    { };
+    int index;
+    int universe;
+    int numOfChan;
+    int32_t hinksPixStartChannel;
+
+    bool operator==(const HinksPixInputUniverse& rhs) const
+    {
+        return universe == rhs.universe;
+    }
+
+    void Dump() const;
+    wxString BuildCommand() const;
+};
+
 class HinksPix : public BaseController
 {
+    enum class EXPType {
+        Not_Present,
+        Local_SPI,
+        Long_Range,
+        Local_AC
+    };
+
     #pragma region Member Variables
-    int _outputTypes[3];
-    int _Flex;
+    EXPType _EXP_Outputs[3];
+    std::string _controllerType;
     int _numberOfOutputs;
+    int _numberOfUniverses;
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr <HinksPixSerial> _serialOutput;
@@ -122,30 +149,33 @@ class HinksPix : public BaseController
     int EncodeStringPortProtocol(const std::string& protocol) const;
     int EncodeBrightness(int brightness) const;
     int EncodeGamma(int gamma) const;
+    EXPType DecodeExpansionType(const std::string& type) const;
     #pragma endregion
 
     #pragma region Private Functions
     bool InitControllerOutputData();
     void InitExpansionBoardData(int expansion, int startport, int length);
     std::unique_ptr < HinksPixSerial> InitSerialData();
-    void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, std::map<int, int> const& uniChan) const;
+
+    bool UploadInputUniverses(ControllerEthernet* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int mode) const;
-    void UploadPixelOutputs(bool& worked);
-    void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked);
-    void UploadSmartRecievers(bool& worked);
-    void UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked);
+    void UploadPixelOutputs(bool& worked) const;
+    void UpdateUniverseControlerChannels(UDControllerPort* stringData, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse);
+    void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked) const;
+    void UploadSmartRecievers(bool& worked) const;
+    void UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const;
     void CalculateSmartRecievers(UDControllerPort* stringData);
-    wxString GetControllerData(int rowIndex, std::string const& data = std::string());
-    wxString GetControllerE131Data(int rowIndex);
-    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data);
-    std::string GetJSONControllerData(std::string const& url, std::string const& data);
-    bool GetControllerDatasJSON(const std::string& url, std::string const& data, wxJSONValue& val);
-    int CalcControllerChannel(int universe, int startChan, std::map<int, int> const& uniChan) const;
-    std::map<int, int> MapE131Addresses();
+    wxString GetControllerData(int rowIndex, std::string const& data = std::string()) const;
+    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
+    std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
+    bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data = std::string()) const;
+
     std::map<wxString,wxString> StringToMap(wxString const& text) const;
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
-    static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     static const std::string GetJSONPostURL() { return"/Xlights_PostData.cgi"; };
+    static const std::string GetJSONInfoURL() { return"/XLights_BoardInfo.cgi"; };
+    static const std::string GetJSONPortURL() { return"/Xlights_Board_Port_Config.cgi"; };
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 
@@ -163,10 +193,8 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
-
 };

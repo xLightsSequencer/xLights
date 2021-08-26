@@ -722,7 +722,15 @@ int32_t UDControllerPort::Channels() const {
     if (_virtualStrings.size() == 0) {
         if (_models.size() == 0) return 0;
 
-        return GetEndChannel() - GetStartChannel() + 1;
+        if (_separateUniverses) {
+            int c = 0;
+            for (const auto& it : _models) {
+                c += it->Channels();
+            }
+            return c;
+        } else {
+            return GetEndChannel() - GetStartChannel() + 1;
+        }
     }
     else {
         int c = 0;
@@ -891,7 +899,7 @@ std::string UDControllerPort::ExportAsCSV(bool withDescription) const
             line += ":";
         }
         line += it->GetName();
-        if (withDescription && it->GetModel()->description != "")             {
+        if (withDescription && it->GetModel()->description != "") {
             line += "(" + it->GetModel()->description + ")";
         }
         line += ",";
@@ -1373,6 +1381,10 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : _pixelPorts) {
             if (rules->SupportsVirtualStrings()) {
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
+            }
+
+            if (rules->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
+                it.second->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
             }
 
             success &= it.second->Check(_controller, this, true, rules, res);

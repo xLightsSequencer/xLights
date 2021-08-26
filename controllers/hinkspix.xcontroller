@@ -8,13 +8,11 @@
 			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsRemotes/>
-			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>65</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -40,16 +38,15 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
+            <SupportsUniversePerString/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>144</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>

@@ -93,6 +93,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const
     SetPriority(wxAtoi(node->GetAttribute("Priority", "100")));
     SetVersion(wxAtoi(node->GetAttribute("Version", "1")));
     _expanded = node->GetAttribute("Expanded", "FALSE") == "TRUE";
+    _universePerString = node->GetAttribute("UPS", "FALSE") == "TRUE";
     _dirty = false;
 }
 
@@ -125,6 +126,7 @@ wxXmlNode* ControllerEthernet::Save() {
     um->AddAttribute("Priority", wxString::Format("%d", _priority));
     um->AddAttribute("Version", wxString::Format("%d", _version));
     um->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
+    um->AddAttribute("UPS", _universePerString ? _("TRUE") : _("FALSE"));
 
     return um;
 }
@@ -271,6 +273,14 @@ std::string ControllerEthernet::GetFPPProxy() const {
         return _fppProxy;
     }
     return _outputManager->GetGlobalFPPProxy();
+}
+
+void ControllerEthernet::SetUniversePerString(bool ups)
+{
+    if (_universePerString != ups)         {
+        _universePerString = ups;
+        _dirty = true;
+    }
 }
 
 void ControllerEthernet::SetPriority(int priority) {
@@ -477,6 +487,11 @@ std::string ControllerEthernet::GetColumn3Label() const {
     return wxString::Format("%d", GetId());
 }
 
+void ControllerEthernet::VMVChanged()
+{
+    SetUniversePerString(false);
+}
+
 Output::PINGSTATE ControllerEthernet::Ping() {
 
     if (GetResolvedIP() == "MULTICAST") {
@@ -552,7 +567,7 @@ bool ControllerEthernet::SupportsUpload() const {
     return false;
 }
 
-bool ControllerEthernet::SetChannelSize(int32_t channels) {
+bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models) {
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs()) {
@@ -565,23 +580,33 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
         return true;
     }
     else {
-        int channels_per_universe = 510;
-        if(_outputs.size() != 0)
-            channels_per_universe = _outputs.front()->GetChannels();
 
-        //calculate required universes
-        int universes = (channels + channels_per_universe - 1) / channels_per_universe;
+        int channels_per_universe = 510;
+        int universes = 0;
+        if (IsUniversePerString() && models.size() > 0) {
+            // number of universes should equal sum(((stringsize -1) / 510) + 1)
+            for (const auto& m : models) {
+                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+                    if (chs > 0) {
+                        universes += ((chs - 1) / channels_per_universe) + 1;
+                    }
+                }
+            }
+        }
+        else {
+            if (_outputs.size() != 0) channels_per_universe = _outputs.front()->GetChannels();
+
+            //calculate required universes
+            universes = (channels + channels_per_universe - 1) / channels_per_universe;
+        }
+
         _forceSizes = false;
+
         //require a minimum of one universe
         universes = std::max(1, universes);
 
-        //if required universes equals  num of outputs, there is enough channels, return true
-        if (universes == _outputs.size()) {
-            return true;
-        }
-
         auto const oldIP = _outputs.front()->GetIP();
-        _forceSizes = false;
 
         //if required universes is less than num of outputs, remove unneeded universes
         while (universes < _outputs.size()) {
@@ -621,6 +646,28 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
             _outputs.back()->Enable(IsActive());
         }
+
+        if (IsUniversePerString() && models.size() > 0) {
+            // now we have the right number of outputs ... we just need to set their sizes
+            auto o = begin(_outputs);
+            for (const auto& m : models) {
+                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+
+                    if (m->GetNumPhysicalStrings() == 1)                         {
+                        chs = m->GetChanCount();
+                    }
+
+                    while (chs > 0) {
+                        size_t uch = std::min(chs, (size_t)channels_per_universe);
+                        wxASSERT(o != end(_outputs));
+                        (*o)->SetChannels(uch);
+                        chs -= uch;
+                        ++o;
+                    }
+                }
+            }
+        }
     }
     return true;
 }
@@ -629,6 +676,20 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
+
+bool ControllerEthernet::SupportsUniversePerString() const
+{
+    auto eth = dynamic_cast<const ControllerEthernet*>(this);
+
+    if (eth == nullptr) return false;
+
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->SupportsUniversePerString();
+    }
+    return false;
+}
+
 void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
     Controller::AddProperties(propertyGrid, modelManager, expandProperties);
@@ -734,13 +795,18 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 p->SetEditor("SpinCtrl");
             }
 
+            if (IsAutoSize() && SupportsUniversePerString()) {
+                p = propertyGrid->Append(new wxBoolProperty("Universe Per String", "UniversePerString", IsUniversePerString()));
+                p->SetEditor("CheckBox");
+            }
+
             if (_outputs.size() > 1) {
                 p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
                 p->ChangeFlag(wxPG_PROP_READONLY, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             }
 
-            p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
+            p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes || IsUniversePerString()));
             p->SetEditor("CheckBox");
 
             if (IsAutoSize()) {
@@ -906,6 +972,16 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
+        return true;
+    }
+    else if (name == "UniversePerString") {
+
+        SetUniversePerString(event.GetValue().GetBool());
+
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::UniversePerString");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
         return true;
     }
     else if (name == "IndivSizes") {

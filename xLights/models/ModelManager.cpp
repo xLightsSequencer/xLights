@@ -697,14 +697,14 @@ bool ModelManager::ReworkStartChannel() const
         }
 
         // first of all fix any weirdness ...
-        for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+        for (const auto& itcc : cmodels)
         {
-            logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc->first.c_str());
+            logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc.first.c_str());
             logger_zcpp.debug("    Models at start:");
 
             // build a list of model names on the port
             std::list<std::string> models;
-            for (auto itmm : itcc->second)
+            for (auto& itmm : itcc.second)
             {
                 logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
                 models.push_back(itmm->GetName());
@@ -714,7 +714,7 @@ bool ModelManager::ReworkStartChannel() const
 
             // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
             bool beginningFound = false;
-            for (auto itmm : itcc->second)
+            for (const auto& itmm : itcc.second)
             {
                 auto ch = itmm->GetModelChain();
                 if (ch == "" || ch == "Beginning")
@@ -737,8 +737,8 @@ bool ModelManager::ReworkStartChannel() const
             // If no model is set as beginning ... then just make the first one beginning
             if (!beginningFound)
             {
-                logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
-                itcc->second.front()->SetModelChain("");
+                logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc.second.front()->GetName().c_str());
+                itcc.second.front()->SetModelChain("");
                 outputsChanged = true;
             }
 
@@ -749,6 +749,7 @@ bool ModelManager::ReworkStartChannel() const
 
         logger_zcpp.debug("    Sorting models:");
         int32_t ch = 1;
+        std::list<Model*> allSortedModels;
         for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
         {
             // order the models
@@ -896,6 +897,8 @@ bool ModelManager::ReworkStartChannel() const
                     (const char*)itm->GetModelChain().c_str(),
                     (const char*)sc.c_str());
             }
+
+            allSortedModels.splice(allSortedModels.end(), sortedmodels);
         }
 
         if (it->IsAutoSize())
@@ -906,7 +909,7 @@ bool ModelManager::ReworkStartChannel() const
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
-                it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1));
+                it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
                 if (it->GetChannels() != oldC) {
                     outputManager->SomethingChanged();
 
