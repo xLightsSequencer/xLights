@@ -567,7 +567,13 @@ bool ControllerEthernet::SupportsUpload() const {
     return false;
 }
 
-bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models) {
+#pragma endregion
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+
+bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models)
+{
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs()) {
@@ -654,7 +660,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
                     size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
 
-                    if (m->GetNumPhysicalStrings() == 1)                         {
+                    if (m->GetNumPhysicalStrings() == 1) {
                         chs = m->GetChanCount();
                     }
 
@@ -671,11 +677,6 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     return true;
 }
-
-#pragma endregion
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
 
 bool ControllerEthernet::SupportsUniversePerString() const
 {

@@ -291,19 +291,6 @@ bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
     return end >= GetStartChannel() && start < GetEndChannel();
 }
 
-bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models) {
-    if (_outputs.size() == 0) return false;
-
-    for (auto& it2 : GetOutputs())
-    {
-        it2->AllOff();
-        it2->EndFrame(0);
-    }
-    GetFirstOutput()->SetChannels(channels);
-
-    return true;
-}
-
 bool Controller::IsDirty() const {
 
     if (_dirty) return _dirty;
@@ -469,6 +456,20 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
+
+bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models)
+{
+    if (_outputs.size() == 0) return false;
+
+    for (auto& it2 : GetOutputs()) {
+        it2->AllOff();
+        it2->EndFrame(0);
+    }
+    GetFirstOutput()->SetChannels(channels);
+
+    return true;
+}
+
 void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));

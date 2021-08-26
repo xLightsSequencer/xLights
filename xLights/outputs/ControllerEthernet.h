@@ -130,7 +130,6 @@ public:
 
     virtual bool SupportsUpload() const override;
 
-    virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}) override;
 #pragma endregion
 
 #pragma region UI
@@ -140,7 +139,8 @@ public:
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
-    #endif
+        virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}) override;
+#endif
 
     #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);

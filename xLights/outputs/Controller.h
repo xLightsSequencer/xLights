@@ -243,8 +243,6 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
-
-    virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {});
     
     #pragma endregion
 
@@ -258,6 +256,7 @@ public:
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded);
+        virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {});
     #endif
 
     #ifndef EXCLUDEDISCOVERY
