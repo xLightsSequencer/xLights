@@ -1262,7 +1262,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
     auto caps = GetControllerCaps();
 
-    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + event.GetValue().GetString() + " : " + wxString::Format("%ld", event.GetValue().GetLong()));
+    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? wxString::Format("%ld", event.GetValue().GetLong()) : "N/A"));
 
     if (HandleLayerSizePropertyChange(grid, event))
     {
