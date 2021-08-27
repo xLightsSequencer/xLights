@@ -879,7 +879,10 @@ std::list<std::string> CustomModel::CheckModelSettings()
     }
 
     if (parm1 > PERFORMANCE_IMPACT_SIZE || parm2 > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
-        res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d). This may impact xLights render performance.", GetName(), parm1, parm2, _depth).ToStdString());
+        float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
+        if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
+            res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d : Nodes %u => %0.2f%%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop).ToStdString());
+        }
     }
 
     // check for node gaps
