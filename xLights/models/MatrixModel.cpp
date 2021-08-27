@@ -79,6 +79,13 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 2500);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically how many times the #String ZigZags.");
+    if (parm2 % parm3 != 0) {
+        p->SetBackgroundColour(*wxRED);
+        p->SetHelpString("Strands/String must divide into Nodes/String evenly.");
+    }
+    else {
+        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    }
 
     grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }

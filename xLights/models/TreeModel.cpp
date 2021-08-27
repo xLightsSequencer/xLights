@@ -357,6 +357,7 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
+
     p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", treeType == 0 ? perspective*10 : 2));
     p->SetAttribute("Min", "0");
     p->SetAttribute("Max", "10");
