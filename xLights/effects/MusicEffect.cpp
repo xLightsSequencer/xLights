@@ -231,7 +231,7 @@ int MusicEffect::DecodeType(const std::string& type)
     {
         return 3;
     }
-    else if (type == "Seperate")
+    else if (type == "Separate")
     {
         return 4;
     }
