@@ -814,6 +814,24 @@ int Falcon::V4_EncodeColourOrder(const std::string co)
 }
 
 #ifndef DISCOVERYONLY
+
+// force brightness value to a value the falcon supports
+int Falcon::V4_ValidBrightness(int b)
+{
+    if (b > 95) return 100;
+    if (b > 85) return 90;
+    if (b > 75) return 80;
+    if (b > 65) return 70;
+    if (b > 55) return 60;
+    if (b > 45) return 50;
+    if (b > 35) return 40;
+    if (b > 25) return 30;
+    if (b > 18) return 20;
+    if (b > 12) return 15;
+    if (b > 7) return 10;
+    return 5;
+}
+
 bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error)
 {
     bool success = true;
@@ -948,7 +966,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
                         str.gamma = it->_gammaSet ? it->_gamma * 10 : gamma;
-                        str.brightness = it->_brightnessSet ? it->_brightness : defaultBrightness;
+                        str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : endNulls;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : startNulls;
@@ -1067,7 +1085,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         progress->Show();
     }
 
-    int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+    int defaultBrightness = V4_ValidBrightness(controller->GetDefaultBrightnessUnderFullControl());
 
     if (doProgress) progress->Update(0, "Scanning models");
     logger_base.info("Scanning models.");
@@ -1076,6 +1094,8 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     UDController cud(controller, outputManager, allmodels, check, false);
 
     auto caps = ControllerCaps::GetControllerConfig(controller);
+
+    if (caps == nullptr) return false;
 
     success = cud.Check(caps, check);
 
@@ -1090,10 +1110,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         return false;
     }
 
-    bool fullcontrol = false;
-    if (caps != nullptr) {
-        fullcontrol = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
-    }
+    bool fullcontrol = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
     std::vector<FALCON_V4_STRING> falconStrings;
     if (!fullcontrol)         {

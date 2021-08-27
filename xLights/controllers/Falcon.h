@@ -93,6 +93,7 @@ class Falcon : public BaseController
     bool V4_GetStatus(wxJSONValue& res);
     bool V4_SetInputUniverses(ControllerEthernet* controller, wxWindow* parent);
     bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress);
+    int V4_ValidBrightness(int b);
 
 #pragma endregion
 
