@@ -639,7 +639,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\globals.h" />
-    <ClInclude Include="..\include\models\ModelImages.h" />
+    <ClInclude Include="..\include\models\modelimages.h" />
     <ClInclude Include="..\xFade\wxLED.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
@@ -706,7 +706,7 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="import\LORPreview.h" />
+    <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="KeyBindingEditDialog.h" />
     <ClInclude Include="LayerSelectDialog.h" />

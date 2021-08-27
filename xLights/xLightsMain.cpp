@@ -1458,7 +1458,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
 #else
     bool defVMR = false;
 #endif
-    config->Read("xLightsIgnoreVendorModelRecommendations", &_ignoreVendorModelRecommendations, defVMR);
+    config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
     logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
 
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
@@ -1823,7 +1823,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
-    config->Write("xLightsIgnoreVendorModelRecommendations", _ignoreVendorModelRecommendations);
+    config->Write("xLightsIgnoreVendorModelRecommendations2", _ignoreVendorModelRecommendations);
     config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
     config->Write("xLightsWarnGroupIssues", _warnGroupIssues);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);

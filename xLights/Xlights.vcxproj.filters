@@ -1618,7 +1618,7 @@
     <ClInclude Include="models\DMX\DmxSkulltronix.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\models\ModelImages.h" />
+    <ClInclude Include="..\include\models\modelimages.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -1809,7 +1809,7 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="Pixels.h" />
-    <ClInclude Include="import\LORPreview.h" />
+    <ClInclude Include="LORPreview.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
