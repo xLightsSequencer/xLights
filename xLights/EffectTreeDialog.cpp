@@ -194,7 +194,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     {
         if (ele->GetName() == "effectGroup")
         {
-            name = ele->GetAttribute("name");
+            name = UnXmlSafe(ele->GetAttribute("name"));
             curGroupID = TreeCtrl1->AppendItem(treeRootID, name,-1,-1,new MyTreeItemData (ele, true));
             TreeCtrl1->SetItemHasChildren(curGroupID);
             AddTreeElementsRecursive(ele, curGroupID);
@@ -203,7 +203,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
         {
             if (ele->GetAttribute("settings").Contains("\t"))
             {
-                name = ele->GetAttribute("name");
+                name = UnXmlSafe(ele->GetAttribute("name"));
                 name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + ", " + ParseDuration(name, ele->GetAttribute("settings")) + "ms]";
                 if (!name.IsEmpty())
                 {
@@ -230,7 +230,7 @@ void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeIt
     {
         if (ele->GetName() == "effect")
         {
-            name=ele->GetAttribute("name");
+            name=UnXmlSafe(ele->GetAttribute("name"));
             if (!name.IsEmpty())
             {
                 name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + ", " + ParseDuration(name, ele->GetAttribute("settings")) + "ms]";
@@ -239,7 +239,7 @@ void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeIt
         }
         else if (ele->GetName() == "effectGroup")
         {
-            name=ele->GetAttribute("name");
+            name=UnXmlSafe(ele->GetAttribute("name"));
             if (!name.IsEmpty())
             {
                 nextGroupID = TreeCtrl1->AppendItem(curGroupID, name,-1,-1,new MyTreeItemData (ele, true));
@@ -292,7 +292,7 @@ void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
 wxXmlNode* EffectTreeDialog::CreateEffectGroupNode(wxString& name)
 {
     wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, "effectGroup");
-    NewXml->AddAttribute("name", name);
+    NewXml->AddAttribute("name", XmlSafe(name));
     return NewXml;
 }
 
@@ -603,7 +603,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
 
     wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
     e->DeleteAttribute("name");
-    e->AddAttribute("name",newName);
+    e->AddAttribute("name", XmlSafe(newName));
     if (!itemData->IsGroup())
     {
         newName += " [" + ParseLayers(newName, e->GetAttribute("settings")) + ", " + ParseDuration(newName, e->GetAttribute("settings")) + "ms]";
@@ -716,7 +716,7 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
 void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
     MyTreeItemData *parentData;
-    wxString name = ele->GetAttribute("name");
+    wxString name = UnXmlSafe(ele->GetAttribute("name"));
     wxString settings = ele->GetAttribute("settings");
     wxString version = ele->GetAttribute("version", "0000");
     wxString xlVer = ele->GetAttribute("xLightsVersion", "4.0");
@@ -729,7 +729,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
         }
         wxXmlNode *node = parentData->GetElement();
         wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
-        newNode->AddAttribute("name", name);
+        newNode->AddAttribute("name", XmlSafe(name));
         newNode->AddAttribute("settings", settings);
         newNode->AddAttribute("version", version);
         newNode->AddAttribute("xLightsVersion", xlVer);
@@ -746,7 +746,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
     MyTreeItemData *parentData = (MyTreeItemData*)TreeCtrl1->GetItemData(curGroupID);
-    wxString name = ele->GetAttribute("name");
+    wxString name = UnXmlSafe(ele->GetAttribute("name"));
     
     if (NameCollissionInGroup(curGroupID, name)) {
         DisplayError(wxString::Format("Group '%s' already exists at '%s'", name, GetFullPathOfGroup(curGroupID)), this);
@@ -757,7 +757,7 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
     {
         wxXmlNode *node = parentData->GetElement();
         wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effectGroup");
-        newNode->AddAttribute("name", name);
+        newNode->AddAttribute("name", XmlSafe(name));
         node->AddChild(newNode);
 
         wxTreeItemId nextGroupID = TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode, true));
@@ -879,7 +879,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
 void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 {
-    f.Write("<effect name=\"" + StripLayers(n->GetAttribute("name")) + "\" settings=\""+XmlSafe(n->GetAttribute("settings").ToStdString())
+    f.Write("<effect name=\"" + XmlSafe(StripLayers(n->GetAttribute("name")).ToStdString()) + "\" settings=\""+XmlSafe(n->GetAttribute("settings").ToStdString())
             +"\" version=\""+n->GetAttribute("version")
             +"\" xLightsVersion=\""+n->GetAttribute("xLightsVersion", "4.0")
             +"\" />\n");
@@ -887,7 +887,7 @@ void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 
 void EffectTreeDialog::WriteGroup(wxFile& f, wxXmlNode* n)
 {
-    f.Write("<effectGroup name=\"" + n->GetAttribute("name") + "\" >\n");
+    f.Write("<effectGroup name=\"" + XmlSafe(n->GetAttribute("name")) + "\" >\n");
     for (auto it = n->GetChildren(); it != nullptr; it = it->GetNext())
     {
         if (it->GetName() == "effectGroup")
@@ -1135,7 +1135,7 @@ wxString EffectTreeDialog::generatePresetName(wxTreeItemId itemID)
             wxXmlNode* ele = item->GetElement();
             if (ele->GetName() == "effectGroup")
                 return wxString();
-            presetName = ele->GetAttribute("name");
+            presetName = UnXmlSafe(ele->GetAttribute("name"));
             wxTreeItemId parentID = TreeCtrl1->GetItemParent(itemID);
 
             if (itemID == treeRootID)
@@ -1146,7 +1146,7 @@ wxString EffectTreeDialog::generatePresetName(wxTreeItemId itemID)
                 if (parData != nullptr) {
                     presetName.Prepend("/");
                     wxXmlNode* parElm = parData->GetElement();
-                    presetName.Prepend(parElm->GetAttribute("name"));
+                    presetName.Prepend(UnXmlSafe(parElm->GetAttribute("name")));
                 }
                 parentID = TreeCtrl1->GetItemParent(parentID);
             }
@@ -1306,7 +1306,7 @@ wxTreeItemId EffectTreeDialog::FindGroupItem(wxTreeItemId parent, std::string na
     wxTreeItemIdValue cookie;
     for (wxTreeItemId item = TreeCtrl1->GetFirstChild(parent, cookie); item.IsOk(); item = TreeCtrl1->GetNextChild(parent, cookie)) {
         MyTreeItemData* grpItem = (MyTreeItemData*)TreeCtrl1->GetItemData(item);
-        if (grpItem->GetElement()->GetAttribute("name") == name) {
+        if (UnXmlSafe(grpItem->GetElement()->GetAttribute("name")) == name) {
             return item;
         }
     }
@@ -1347,11 +1347,11 @@ void EffectTreeDialog::FixRgbEffects(wxXmlNode* parent) {
     std::list<std::pair<std::string, int>> children;
 
     for (wxXmlNode* node = parent->GetChildren(); node !=nullptr; node=node->GetNext()) {
-        std::string name = node->GetAttribute("name");
+        std::string name = UnXmlSafe(node->GetAttribute("name"));
         
         if (FixName(name)) {
             node->DeleteAttribute("name");
-            node->AddAttribute("name", name);
+            node->AddAttribute("name", XmlSafe(name));
             EffectsFileDirty();
         }
         
@@ -1365,7 +1365,7 @@ void EffectTreeDialog::FixRgbEffects(wxXmlNode* parent) {
         } else {
             int childUniqueIdx = existingItem->second + 1;
             node->DeleteAttribute("name");
-            node->AddAttribute("name", wxString::Format("%s %d", name, childUniqueIdx));
+            node->AddAttribute("name", XmlSafe(wxString::Format("%s %d", name, childUniqueIdx)));
             existingItem->second = childUniqueIdx;
             _effectsFixed = true;
         }
@@ -1604,7 +1604,7 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
             wxTreeItemId srcParent = _tree->GetItemParent(srcItem);
             
             // if drag target is a different parent than source check for name collision
-            if (srcParent != parent && _owner->NameCollissionInGroup(parent, srcItemData->GetElement()->GetAttribute("name"))) {
+            if (srcParent != parent && _owner->NameCollissionInGroup(parent, UnXmlSafe(srcItemData->GetElement()->GetAttribute("name")))) {
                 return wxDragNone;
             }
 

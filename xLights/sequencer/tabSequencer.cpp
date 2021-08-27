@@ -3786,13 +3786,13 @@ std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
     {
         if (n->GetName() == "effect")
         {
-            auto name = n->GetAttribute("name", "");
+            auto name = UnXmlSafe(n->GetAttribute("name", ""));
             if (path != "") name = path + "\\" + name;
             if (name != "") res.push_back(name);
         }
         else if (n->GetName() == "effectGroup")
         {
-            auto name = n->GetAttribute("name", "");
+            auto name = UnXmlSafe(n->GetAttribute("name", ""));
             auto p = path;
             if (p != "") p = p + "\\";
             p = p + name;
@@ -3816,14 +3816,14 @@ wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int le
     {
         if (n->GetName() == "effect")
         {
-            if (n->GetAttribute("name", "") == path[level])
+            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level])
             {
                 return n;
             }
         }
         else if (n->GetName() == "effectGroup" && level < path.size() - 1)
         {
-            if (n->GetAttribute("name", "") == path[level])
+            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level])
             {
                 return FindPreset(n, path, level + 1);
             }
