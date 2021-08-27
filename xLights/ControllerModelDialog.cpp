@@ -399,7 +399,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
         if (p->Channels() > GetMaxPortChannels()) {
             dc.SetTextForeground(*wxRED);
         }
-        DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, sz - wxSize(pt.x + 2, 4));
+        DrawTextLimited(dc, wxString::Format("%d", (int)std::ceil((float)p->Channels() / 3.0)), pt, sz - wxSize(pt.x + 2, 4));
         dc.SetTextForeground(__textForeground);
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
     }
@@ -743,7 +743,12 @@ public:
             if (udcpm != nullptr) {
                 uint32_t chs = udcpm->Channels();
                 if (_style & STYLE_PIXELS) {
-                    DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, sz - wxSize(4, 4));
+                    if (udcpm->GetModel()->GetDisplayAs() == "Channel Block" || udcpm->GetModel()->SingleChannel || udcpm->GetModel()->SingleNode) {
+                        DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, sz - wxSize(4, 4));
+                    }
+                    else {
+                        DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, sz - wxSize(4, 4));
+                    }
                     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
                 }
                 if (_style & STYLE_CHANNELS) {
@@ -1715,8 +1720,15 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
         else {
             m->SetControllerProtocol(on->GetControllerProtocol());
         }
-        if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
-            m->SetSmartRemote(0);
+        if (_caps != nullptr) {
+            if (!_caps->SupportsSmartRemotes()) {
+                m->SetSmartRemote(0);
+            }
+            else {
+                if (port->GetUDPort()->AtLeastOneModelIsUsingSmartRemote()) {
+                    m->SetSmartRemote(1);
+                }
+            }
         }
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::VIRTUAL_MATRIX) {
         m->SetControllerProtocol("Virtual Matrix");
@@ -1835,8 +1847,15 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 } else {
                     m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
                 }
-                if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
-                    m->SetSmartRemote(0);
+                if (_caps != nullptr) {
+                    if (!_caps->SupportsSmartRemotes()) {
+                        m->SetSmartRemote(0);
+                    }
+                    else {
+                        if (port->GetUDPort()->AtLeastOneModelIsUsingSmartRemote()) {
+                            m->SetSmartRemote(1);
+                        }
+                    }
                 }
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::VIRTUAL_MATRIX) {
                 m->SetControllerProtocol("Virtual Matrix");
@@ -2432,7 +2451,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
 
     if (port->GetVirtualStringCount() <= 1 || virtualString < 0 || (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings())) {
         if (port->GetModelCount() > 0 && port->Channels() > 0) {
-            sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
+            sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d (Pixels %d)",
                 port->GetStartChannel(),
                 port->GetUniverse(),
                 // There is a risk this will be negative ... under auto layout that should not happen often ... but it could
@@ -2441,7 +2460,9 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                 // An example where it could occur. 2 serial ports in use. First one uses say 500 of 512 channels. Second has first model on start channel 20 ... so absolute channel 520
                 // would be in the 2nd universe at sc 8. 8 - 20 + 1 = -11 ... not valid
                 port->GetType() == "PIXEL" ? port->GetUniverseStartChannel() : port->GetUniverseStartChannel() - port->GetFirstModel()->GetDMXChannelOffset() + 1,
-                port->Channels());
+                port->Channels(),
+                (int)std::ceil((float)port->Channels() / 3.0)
+            );
         }
     } else {
         auto pvs = port->GetVirtualString(virtualString);
@@ -2462,11 +2483,13 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                 break;
             }
             if (pvs->Channels() > 0) {
-                sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d",
+                sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d (Pixels %d)",
                     pvs->_startChannel,
                     pvs->_universe,
                     pvs->_universeStartChannel,
-                    pvs->Channels());
+                    pvs->Channels(),
+                    (int)std::ceil((float)pvs->Channels()/3.0)
+                );
             }
         }
     }
