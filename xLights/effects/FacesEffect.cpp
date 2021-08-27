@@ -414,27 +414,37 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
 
         Effect* currentEffect = layer->GetEffectByTime(currentTime);
 
-        if (currentEffect != nullptr)             {
+        if (currentEffect != nullptr) {
             res = 255;
         }
-        else             {
-            if (!fade || leadFrames == 0) {
+        else {
+            if (leadFrames == 0) {
                 res = 0;
             }
-            else                 {
+            else {
                 int leadMS = leadFrames * buffer.frameTimeInMs;
                 Effect* afterEffect = layer->GetEffectAfterTime(currentTime);
                 uint8_t beforeAlpha = 0;
-                if (afterEffect != nullptr)                     {
-                    if (afterEffect->GetStartTimeMS() - currentTime < leadMS)                         {
-                        beforeAlpha = 255 - ((afterEffect->GetStartTimeMS() - currentTime) * 255) / leadMS;
+                if (afterEffect != nullptr) {
+                    if (afterEffect->GetStartTimeMS() - currentTime < leadMS) {
+                        if (fade) {
+                            beforeAlpha = 255 - ((afterEffect->GetStartTimeMS() - currentTime) * 255) / leadMS;
+                        }
+                        else {
+                            beforeAlpha = 255;
+                        }
                     }
                 }
                 Effect* beforeEffect = layer->GetEffectBeforeTime(currentTime);
                 uint8_t afterAlpha = 0;
-                if (beforeEffect != nullptr)                     {
+                if (beforeEffect != nullptr) {
                     if (currentTime - beforeEffect->GetEndTimeMS() < leadMS) {
-                        afterAlpha = 255 - ((currentTime - beforeEffect->GetEndTimeMS()) * 255) / leadMS;
+                        if (fade) {
+                            afterAlpha = 255 - ((currentTime - beforeEffect->GetEndTimeMS()) * 255) / leadMS;
+                        }
+                        else {
+                            afterAlpha = 255;
+                        }
                     }
                 }
                 res = std::max(beforeAlpha, afterAlpha);

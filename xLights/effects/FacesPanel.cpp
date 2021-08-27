@@ -176,12 +176,7 @@ void FacesPanel::ValidateWindow()
 		CheckBox_SuppressWhenNotSinging->Enable();
 		if (CheckBox_SuppressWhenNotSinging->IsChecked()) {
 			CheckBox_Fade->Enable();
-			if (CheckBox_Fade->IsChecked()) {
-				SpinCtrl_LeadFrames->Enable();
-			}
-			else {
-				SpinCtrl_LeadFrames->Disable();
-			}
+			SpinCtrl_LeadFrames->Enable();
 		}
 		else {
 			SpinCtrl_LeadFrames->Disable();
