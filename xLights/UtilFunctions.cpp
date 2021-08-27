@@ -361,12 +361,16 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     wxDir dir(sd);
     if (dir.IsOpened()) {
         wxString foldername;
-        bool cont = dir.GetFirst(&foldername, "*", wxDIR_DIRS);
+        // Should we follow symbolic links ... doing do would allow common folders shared between folders which seems desirable ... but I have seen people put
+        // stupid links there which has then massively slowed down processing
+        bool cont = dir.GetFirst(&foldername, "*", wxDIR_DIRS/* | wxDIR_NO_FOLLOW*/);
         while ( cont ) {
-            auto const folder = sd + wxFileName::GetPathSeparator() + foldername;
-            if (doesFileExist(folder, nameWin, nameUnix, newPath)) {
-                __fileMap[file] = newPath;
-                return newPath;
+            if (foldername.Lower() != "backup") { // dont look in backup folder
+                auto const folder = sd + wxFileName::GetPathSeparator() + foldername;
+                if (doesFileExist(folder, nameWin, nameUnix, newPath)) {
+                    __fileMap[file] = newPath;
+                    return newPath;
+                }
             }
             cont = dir.GetNext(&foldername);
         }

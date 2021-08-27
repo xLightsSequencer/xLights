@@ -2653,7 +2653,8 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
     // recurse through all directories but folders named Backup
     if (_backupSubfolders) {
         wxString dir;
-        bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS);
+        // I dont think backup should follow symbolic links
+        bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont) {
             if (dir != "Backup") {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
@@ -8798,7 +8799,8 @@ void xLightsFrame::DoBackupPurge()
         wxDir dir(backupDir);
         wxString filename;
 
-        bool cont = dir.GetFirst(&filename);
+        // We dont follow symbolic links
+        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont)
         {
             auto fdc = wxSplit(filename, '-');
