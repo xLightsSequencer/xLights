@@ -149,13 +149,16 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
 
+// Remove attempt to sneak functionality into the windows build
+#ifndef __WXMSW__
 #ifndef IGNORE_VENDORS
     CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
     CheckBox_IgnoreVendorModelRecommendations->Hide();
     CheckBox_WarnGroupIssues->SetValue(true);
     CheckBox_WarnGroupIssues->Hide();
 #endif
-    return true;
+#endif
+	return true;
 }
 
 void OtherSettingsPanel::OnExcludeAudioCheckBoxClick(wxCommandEvent& event)

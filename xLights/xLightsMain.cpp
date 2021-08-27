@@ -1451,7 +1451,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     config->Read("xLightsPromptBatchRenderIssues", &_promptBatchRenderIssues, true);
     logger_base.debug("Prompt for issues during batch render: %s.", toStr( _promptBatchRenderIssues ));
 
-    config->Read("xLightsIgnoreVendorModelRecommendations", &_ignoreVendorModelRecommendations, false);
+    // I was willing to default this off ... but after multiple attempts to sneak this in ... this will default off in windows and if it is changed
+    // again it will be totally and permanently disabled in windows.
+#ifdef __WXMSW__
+    bool defVMR = true;
+#else
+    bool defVMR = false;
+#endif
+    config->Read("xLightsIgnoreVendorModelRecommendations", &_ignoreVendorModelRecommendations, defVMR);
     logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
 
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);

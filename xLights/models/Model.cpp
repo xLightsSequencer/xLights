@@ -5507,7 +5507,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                 }
                             }
                         }
-                        #ifdef __WXMSW__
+                    #ifdef __WXMSW__
                     }
                     #endif
                 }
