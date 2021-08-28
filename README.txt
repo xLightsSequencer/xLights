@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.27 August 28, 2021
+   -- enh (scott) Add new hinkspix long range support for visualiser and upload
+   -- enh (keith) Strip out further code undermining users free rights to choose their models on windows
+   -- enh (keith) Remove all model group missing models warnings as there is nothing a user can really do about it and several legitimate
+                  ways to trigger it.
+   -- enh (keith) Suppress model faces lead in/out was not working unless you chose to fade
+   -- enh (keith) Show in model properties strands/string as an error if it does not divide evenly into nodes per string
+   -- enh (keith) Dont let the fix files routine look into the backup folder.
+   -- enh (keith) Dont have the backup process follow symbolic links
+   -- bug (keith) Fix cant export presets with & in the name
+   -- bug (keith) Fix channel block and single channel models not represented in visualiser correctly on pixel ports
+   -- bug (keith) Fix multichannel 'single channel' custom models not rendering correctly (mostly missing face effects on channels)
+   -- bug (keith) Fix music effect separate not working   
+   -- bug (keith) Fix Falcon V4 upload fails for brightness settings the controller does not support
 2021.26 August 25, 2021
    -- enh (dkulp) Add support for "Virtual Matrix" and "LED Panel Matrix" protocols for Models
    -- enh (dkulp) Add Virtual Matrix and LED Panel Matrix ports to Visualizer for controllers that support them
