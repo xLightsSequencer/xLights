@@ -241,7 +241,7 @@ bool ModelGroup::OnlyContainsModel(const std::string& name) const
     return true;
 }
 
-wxString ModelGroup::SerialiseModelGroup(const std::string& forModel) const
+std::string ModelGroup::SerialiseModelGroup(const std::string& forModel) const
 {
     wxXmlDocument new_doc;
     new_doc.SetRoot(new wxXmlNode(*GetModelXml()));
@@ -259,7 +259,7 @@ wxString ModelGroup::SerialiseModelGroup(const std::string& forModel) const
     wxStringOutputStream stream;
     new_doc.Save(stream);
     wxString s = stream.GetString();
-    return s.SubString(s.Find("\n") + 1, s.Length()) + "\n"; // skip over xml format header
+    return (s.SubString(s.Find("\n") + 1, s.Length()) + "\n").ToStdString(); // skip over xml format header
 }
 
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
@@ -301,7 +301,7 @@ bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
     return true;
 }
 
-bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels, bool warn)
+bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels)
 {
     bool changed = false;
 
@@ -339,11 +339,8 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::s
     if (changed && modelsRemoved != "") {
         node->DeleteAttribute("models");
         node->AddAttribute("models", models);
-        if (warn) {
-            DisplayWarning("Could not process model group " + name
-                + " due to models not being found.  The following models will be removed from the group:"
-                + modelsRemoved);
-        }
+
+        // I have removed the warn code ... mainly because there is really not anything a user can or should do so why tell them
     }
 
     return changed;

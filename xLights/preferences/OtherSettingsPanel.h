@@ -32,7 +32,6 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_BatchRenderPromptIssues;
 		wxCheckBox* CheckBox_IgnoreVendorModelRecommendations;
 		wxCheckBox* CheckBox_PurgeDownloadCache;
-		wxCheckBox* CheckBox_WarnGroupIssues;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
@@ -58,7 +57,6 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE2;
 		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX_WARN_GROUP_ISSUES;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
 		//*)
@@ -73,7 +71,6 @@ class OtherSettingsPanel: public wxPanel
 		void OneMailTextControlTextEnter(wxCommandEvent& event);
 		void OnChoice_LinkSaveSelect(wxCommandEvent& event);
 		void OnChoice_LinkControllerUploadSelect(wxCommandEvent& event);
-		void OnCheckBox_WarnGroupIssuesClick(wxCommandEvent& event);
 		void OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent& event);
 		void OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event);
 		void OnCheckBox_PurgeDownloadCacheClick(wxCommandEvent& event);

@@ -22,7 +22,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
 
         static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
-        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels, bool warn);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
 
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname);
@@ -52,7 +52,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
         bool OnlyContainsModel(const std::string& name) const;
         int GetModelCount() const { return models.size(); }
-        wxString SerialiseModelGroup(const std::string& forModel) const;
+        std::string SerialiseModelGroup(const std::string& forModel) const;
         bool RemoveDuplicates();
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;

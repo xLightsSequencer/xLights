@@ -1464,9 +1464,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
     logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
 
-	config->Read("xLightsWarnGroupIssues", &_warnGroupIssues, true);
-	logger_base.debug("Warn for issues with Model Missing in groups: %s.", toStr(_warnGroupIssues));
-
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
     logger_base.debug("Exclude Audio From Packaged Sequences: %s.", toStr( _excludeAudioFromPackagedSequences ));
 
@@ -1825,7 +1822,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
     config->Write("xLightsIgnoreVendorModelRecommendations2", _ignoreVendorModelRecommendations);
     config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
-    config->Write("xLightsWarnGroupIssues", _warnGroupIssues);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);

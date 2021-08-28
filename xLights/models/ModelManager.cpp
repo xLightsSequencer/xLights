@@ -331,7 +331,7 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
+std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
 {
     wxArrayString allGroups;
     wxArrayString onlyGroups;
@@ -344,7 +344,7 @@ wxString ModelManager::SerialiseModelGroupsForModel(const std::string& name) con
         }
     }
 
-    wxString res;
+    std::string res;
     if (allGroups.size() == 0) {
         return res;
     }
@@ -925,7 +925,7 @@ bool ModelManager::ReworkStartChannel() const
     return outputsChanged;
 }
 
-bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH, bool warn) {
+bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
 
     //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("ModelManager loading groups.");
@@ -971,7 +971,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH, 
     // this stops some end conditions which cant be resolved
     for (const auto& it : toBeDone)
     {
-        changed |= ModelGroup::RemoveNonExistentModels(it, allModels, warn);
+        changed |= ModelGroup::RemoveNonExistentModels(it, allModels);
     }
 
     // try up to however many models we have left

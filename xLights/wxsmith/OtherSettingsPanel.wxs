@@ -140,24 +140,12 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_WARN_GROUP_ISSUES" variable="CheckBox_WarnGroupIssues" member="yes">
-					<label>Warn for Missing Model in Groups</label>
-					<checked>1</checked>
-					<handler function="OnCheckBox_WarnGroupIssuesClick" entry="EVT_CHECKBOX" />
-				</object>
-				<col>0</col>
-				<row>6</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_IgnoreVendorModelRecommendations" member="yes">
 					<label>Ignore vendor model recommendations</label>
 					<handler function="OnCheckBox_IgnoreVendorModelRecommendationsClick" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>7</row>
+				<row>6</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -168,7 +156,7 @@
 					<handler function="OnCheckBox_PurgeDownloadCacheClick" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>8</row>
+				<row>7</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
