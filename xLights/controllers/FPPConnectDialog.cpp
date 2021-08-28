@@ -1000,12 +1000,15 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
 void FPPConnectDialog::CreateDriveList()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxArrayString drives;
 #ifdef __WXMSW__
     wxArrayString ud = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     for (const auto &a : ud) {
         if (wxDir::Exists(a + "\\sequences")) {
             drives.push_back(a);
+            logger_base.info("FPP Connect found drive %s with a \\sequences folder.", (const char*)a.c_str());
         }
     }
 #elif defined(__WXOSX__)

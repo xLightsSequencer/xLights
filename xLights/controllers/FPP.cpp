@@ -533,6 +533,7 @@ static std::string trimfront(const std::string &s) {
     }
     return s.substr(x);
 }
+
 void FPP::parseConfig(const std::string& v) {
     std::stringstream ss(v);
     std::string to;
@@ -559,6 +560,7 @@ void FPP::parseConfig(const std::string& v) {
 bool FPP::IsDrive() {
     return ipAddress.find("/") != std::string::npos || ipAddress.find("\\") != std::string::npos;
 }
+
 bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) {
     if (majorVersion < maj) {
         return false;
@@ -1639,8 +1641,11 @@ bool FPP::Restart(const std::string &mode, bool ifNeeded) {
     restartNeeded = false;
     return false;
 }
-void FPP::UpdateChannelRanges() {
-    if (!isFPP) return;
+
+void FPP::UpdateChannelRanges()
+{
+    // This probably should handle drives correctly but as is it doesnt bail for now until we add drive support
+    if (!isFPP || IsDrive()) return;
     wxJSONValue jval;
     int count = 0;
     while (count < 20) {
@@ -1658,11 +1663,17 @@ void FPP::UpdateChannelRanges() {
                     SetNewRanges(rngs);
                     return;
                 }
-            } else {
+            }
+            else {
                 //fppd hasn't restarted yet, wait a tiny bit and try again
                 ++count;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
+        }
+        else {
+            // get call failed
+            ++count;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 }
