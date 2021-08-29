@@ -769,12 +769,18 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             ud = "OPC Channels";
         }
         p = propertyGrid->Append(new wxUIntProperty(u, "Universe", _outputs.front()->GetUniverse()));
-        if (_type == OUTPUT_ARTNET)
+        if (_type == OUTPUT_ARTNET) {
             p->SetAttribute("Min", 0);
-        else
+        }
+        else {
             p->SetAttribute("Min", 1);
+        }
+        
         if (_type == OUTPUT_OPC || _type == OUTPUT_KINET) {
             p->SetAttribute("Max", 255);
+        }
+        else if (_type == OUTPUT_ARTNET) {
+            p->SetAttribute("Max", 32767);
         }
         else {
             p->SetAttribute("Max", 64000);
@@ -1072,6 +1078,35 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             else {
                 p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
+        }
+    }
+
+    p = propGrid->GetPropertyByName("Universe");
+    if (p != nullptr) {
+        long u = p->GetValue().GetLong();
+        bool valid = true;
+
+        if (_type == OUTPUT_ARTNET) {
+            if (u < 0 || u > 32767) {
+                valid = false;
+            }
+        }
+        else if (_type == OUTPUT_E131) {
+            if (u < 1 || u > 64000) {
+                valid = false;
+            }
+        }
+        else if (_type == OUTPUT_OPC || _type == OUTPUT_KINET) {
+            if (u < 1 || u > 255) {
+                valid = false;
+            }
+        }
+
+        if (valid) {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+        else {
+            p->SetBackgroundColour(*wxRED);
         }
     }
 
