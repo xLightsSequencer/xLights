@@ -929,7 +929,8 @@ double GetSystemContentScaleFactor() {
 #endif
 }
 
-double ScaleWithSystemDPI(double val) {
+double ScaleWithSystemDPI(double val)
+{
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
     return val;
@@ -937,7 +938,9 @@ double ScaleWithSystemDPI(double val) {
     return ScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
 #endif
 }
-double UnScaleWithSystemDPI(double val) {
+
+double UnScaleWithSystemDPI(double val)
+{
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
     return val;
@@ -946,7 +949,8 @@ double UnScaleWithSystemDPI(double val) {
 #endif
 }
 
-double ScaleWithSystemDPI(double scalingFactor, double val) {
+inline double ScaleWithSystemDPI(double scalingFactor, double val)
+{
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
     return val;
@@ -955,7 +959,8 @@ double ScaleWithSystemDPI(double scalingFactor, double val) {
 #endif
 }
 
-double UnScaleWithSystemDPI(double scalingFactor, double val) {
+inline double UnScaleWithSystemDPI(double scalingFactor, double val)
+{
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
     return val;
@@ -968,14 +973,11 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
 {
 #if defined(__WXMSW__) && defined(__WIN64__)
     ULONGLONG physical;
-    if (GetPhysicallyInstalledSystemMemory(&physical) != 0)
-    {
+    if (GetPhysicallyInstalledSystemMemory(&physical) != 0) {
         PROCESS_MEMORY_COUNTERS_EX mc;
-        if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0)
-        {
+        if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0) {
             // if we are using more ram than the machine has times the multiplier
-            if (mc.PagefileUsage / 1024 > physicalMultiplier * physical)
-            {
+            if (mc.PagefileUsage / 1024 > physicalMultiplier * physical) {
                 return true;
             }
         }
@@ -997,9 +999,9 @@ std::list<std::string> GetLocalIPs()
     std::list<std::string> res;
 
 #ifdef __WXMSW__
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
-    PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
+    PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
         logger_base.error("Error getting adapter info.");
         return res;
@@ -1007,7 +1009,7 @@ std::list<std::string> GetLocalIPs()
 
     if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
         free(pAdapterInfo);
-        pAdapterInfo = (IP_ADAPTER_INFO *)malloc(ulOutBufLen);
+        pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
         if (pAdapterInfo == nullptr) {
             logger_base.error("Error getting adapter info.");
             return res;
@@ -1022,10 +1024,8 @@ std::list<std::string> GetLocalIPs()
         while (pAdapter) {
 
             auto ip = &pAdapter->IpAddressList;
-            while (ip != nullptr)
-            {
-                if (wxString(ip->IpAddress.String) != "0.0.0.0")
-                {
+            while (ip != nullptr) {
+                if (wxString(ip->IpAddress.String) != "0.0.0.0") {
                     res.push_back(std::string(ip->IpAddress.String));
                 }
                 ip = ip->Next;
@@ -1036,18 +1036,19 @@ std::list<std::string> GetLocalIPs()
     }
     free(pAdapterInfo);
 #else
-    struct ifaddrs *interfaces, *tmp;
+    struct ifaddrs* interfaces, * tmp;
     getifaddrs(&interfaces);
     tmp = interfaces;
     //loop through all the interfaces
     while (tmp) {
         if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
-            struct sockaddr_in * address = (struct sockaddr_in *)tmp->ifa_addr;
+            struct sockaddr_in* address = (struct sockaddr_in*)tmp->ifa_addr;
             std::string ip = inet_ntoa(address->sin_addr);
             if (ip != "0.0.0.0") {
                 res.push_back(ip);
             }
-        } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+        }
+        else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
             //LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
         }
         tmp = tmp->ifa_next;
@@ -1080,68 +1081,79 @@ bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::s
     if (i1.GetAddressData() == nullptr || i2.GetAddressData() == nullptr || m.GetAddressData() == nullptr) return false;
 
     return ((((sockaddr_in*)i1.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr) ==
-            (((sockaddr_in*)i2.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr));
+        (((sockaddr_in*)i2.GetAddressData())->sin_addr.s_addr & ((sockaddr_in*)m.GetAddressData())->sin_addr.s_addr));
 }
 
 bool DeleteDirectory(std::string directory)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (wxDirExists(directory))
-    {
-        wxArrayString files;
-        wxDir::GetAllFiles(directory, &files, wxEmptyString, wxDIR_FILES);
-        for (auto it = files.begin(); it != files.end(); ++it)
-        {
-            if (!wxRemoveFile(*it))
-            {
-                logger_base.debug("    Could not delete file %s.", (const char *)it->c_str());
-                return false;
+    bool res = true;
+    logger_base.debug("  Processing directory: %s.", (const char*)directory.c_str());
+    if (wxDirExists(directory)) {
+        wxDir d;
+        if (d.Open(directory)) {
+            wxString filename;
+            bool found = d.GetFirst(&filename, "", wxDIR_FILES | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
+            if (!found) {
+                logger_base.debug("  No files found.");
+            }
+            while (found && res) {
+                auto ff = directory + wxFileName::GetPathSeparator() + filename;
+                logger_base.debug("  Deleting file: %s.", (const char*)ff.c_str());
+                if (!wxRemoveFile(ff)) {
+                    logger_base.error("    Could not delete file %s.", (const char*)ff.c_str());
+                    res = false;
+                }
+                found = d.GetNext(&filename);
+            }
+
+            found = d.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
+            if (!found) {
+                logger_base.debug("  No subdirectories found.");
+            }
+            while (found && res) {
+                auto dd = directory + wxFileName::GetPathSeparator() + filename;
+                logger_base.debug("  Deleting directory: %s.", (const char*)dd.c_str());
+                res &= DeleteDirectory(dd);
+                found = d.GetNext(&filename);
+            }
+
+            if (!wxRmdir(directory)) {
+                logger_base.error("    Could not delete folder %s.", (const char*)directory.c_str());
+                res = false;
             }
         }
-
-        files.clear();
-        wxDir::GetAllFiles(directory, &files, wxEmptyString, wxDIR_FILES | wxDIR_DIRS);
-        for (auto it = files.begin(); it != files.end(); ++it)
-        {
-            DeleteDirectory(*it);
-        }
-
-        if (!wxRmdir(directory))
-        {
-            logger_base.debug("    Could not delete folder %s.", (const char *)directory.c_str());
+        else {
+            logger_base.error("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
+            res = false;
         }
     }
-    else
-    {
-        return false;
+    else {
+        logger_base.error("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
+        res = false;
     }
 
-    return true;
+    return res;
 }
 
 std::string Ordinal(int i)
 {
     wxString ii = wxString::Format("%d", i);
 
-    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12"))
-    {
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12")) {
         return (ii + "th").ToStdString();
     }
-    else if (ii.EndsWith("1"))
-    {
+    else if (ii.EndsWith("1")) {
         return (ii + "st").ToStdString();
     }
-    else if (ii.EndsWith("2"))
-    {
+    else if (ii.EndsWith("2")) {
         return (ii + "nd").ToStdString();
     }
-    else if (ii.EndsWith("3"))
-    {
+    else if (ii.EndsWith("3")) {
         return (ii + "rd").ToStdString();
     }
-    else
-    {
+    else {
         return (ii + "th").ToStdString();
     }
 }
@@ -1149,35 +1161,29 @@ std::string Ordinal(int i)
 bool IsEmailValid(const std::string& email)
 {
     wxString e = wxString(email).Trim(false).Trim(true);
-    if (e == "")
-    {
+    if (e == "") {
         return false;
     }
-    else
-    {
+    else {
         static wxRegEx regxEmail("^([a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]*@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9\\=\\.]+)$");
 
-        if (regxEmail.Matches(e))
-        {
+        if (regxEmail.Matches(e)) {
             return true;
         }
     }
     return false;
 }
 
-bool IsIPValid(const std::string &ip)
+bool IsIPValid(const std::string& ip)
 {
     wxString ips = wxString(ip).Trim(false).Trim(true);
-    if (ips == "")
-    {
+    if (ips == "") {
         return false;
     }
-    else
-    {
+    else {
         static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
 
-        if (regxIPAddr.Matches(ips))
-        {
+        if (regxIPAddr.Matches(ips)) {
             return true;
         }
     }
@@ -1185,7 +1191,7 @@ bool IsIPValid(const std::string &ip)
     return false;
 }
 
-bool IsIPValidOrHostname(const std::string &ip, bool iponly)
+bool IsIPValidOrHostname(const std::string& ip, bool iponly)
 {
     if (IsIPValid(ip)) {
         return true;
@@ -1306,8 +1312,7 @@ void OptimiseDialogPosition(wxDialog* dlg)
     int d = wxDisplay::GetFromPoint(wxGetMousePosition());
     if (d < 0) d = 0;
     wxDisplay display(d);
-    if (display.IsOk())
-    {
+    if (display.IsOk()) {
         wxRect displayRect = display.GetClientArea();
         if (pos.y < displayRect.GetTop()) pos.y = displayRect.GetTop();
         if (pos.y + sz.GetHeight() > displayRect.GetBottom()) pos.y = displayRect.GetBottom() - sz.GetHeight();
@@ -1321,66 +1326,58 @@ void OptimiseDialogPosition(wxDialog* dlg)
 
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxSocketClient socket;
     wxIPV4address addr;
     addr.Hostname(ipAddress);
     addr.Service(GetxFadePort(xFadePort));
 
-    if (socket.Connect(addr))
-    {
-        logger_base.debug("Sending xLights message %s", (const char *)message.c_str());
+    if (socket.Connect(addr)) {
+        logger_base.debug("Sending xLights message %s", (const char*)message.c_str());
         socket.WriteMsg(message.c_str(), message.size() + 1);
         uint8_t buffer[1534];
         memset(buffer, 0x00, sizeof(buffer));
         int read = 0;
-        while (read == 0)
-        {
+        while (read == 0) {
             socket.ReadMsg(buffer, sizeof(buffer) - 1);
             read = socket.LastReadCount();
             if (read == 0) wxMilliSleep(2);
         }
-        wxString msg((char *)buffer);
-        logger_base.debug("xLights sent response %s", (const char *)msg.c_str());
+        wxString msg((char*)buffer);
+        logger_base.debug("xLights sent response %s", (const char*)msg.c_str());
         return msg;
     }
-    else
-    {
+    else {
         logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
         return "ERROR_UNABLE_TO_CONNECT";
     }
 }
 
-void ViewTempFile(const wxString& content, const wxString& name,  const wxString& type)
+void ViewTempFile(const wxString& content, const wxString& name, const wxString& type)
 {
     wxFile f;
     const wxString filename = wxFileName::CreateTempFileName(name) + "." + type;
 
     f.Open(filename, wxFile::write);
-    if (!f.IsOpened())
-    {
+    if (!f.IsOpened()) {
         DisplayError("Unable to create " + filename + " file. skip.");
         return;
     }
 
-    if (f.IsOpened())
-    {
+    if (f.IsOpened()) {
         f.Write(content);
 
         f.Close();
 
         wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(type);
-        if (ft != nullptr)
-        {
+        if (ft != nullptr) {
             const wxString command = ft->GetOpenCommand(filename);
 
-            if (command.IsEmpty())
-            {
+            if (command.IsEmpty()) {
                 DisplayError(wxString::Format("Unable to show " + name + " file '%s'.", filename).ToStdString());
             }
-            else
-            {
+            else {
                 wxUnsetEnv("LD_PRELOAD");
                 wxExecute(command);
             }
