@@ -903,7 +903,6 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     if (!controller->IsUniversePerString() && o->GetType() != OUTPUT_DDP) {
         //old way
-        auto it = outputs.begin();
         int index = 1;
         int32_t startChan = 1;
         for (auto const& it : outputs) {

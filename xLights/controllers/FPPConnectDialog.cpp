@@ -1000,10 +1000,9 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
 void FPPConnectDialog::CreateDriveList()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxArrayString drives;
 #ifdef __WXMSW__
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString ud = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     for (const auto &a : ud) {
         if (wxDir::Exists(a + "\\sequences")) {
