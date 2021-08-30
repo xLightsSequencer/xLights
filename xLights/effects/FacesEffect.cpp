@@ -915,7 +915,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 }
 
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
-    SequenceElements *elements, const std::string &faceDefinition,
+    SequenceElements *elements, const std::string &faceDef,
     const std::string& Phoneme, const std::string &trackName,
     const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha)
 {
@@ -966,10 +966,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
 
-    std::string definition = faceDefinition;
+    std::string definition = faceDef;
     if (definition == "Default" && !model_info->faceInfo.empty() && model_info->faceInfo.begin()->first != "") {
         definition = model_info->faceInfo.begin()->first;
     }
+
     bool found = true;
     std::map<std::string, std::map<std::string, std::string> >::iterator it = model_info->faceInfo.find(definition);
     if (it == model_info->faceInfo.end()) {
@@ -985,7 +986,21 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             definition = "Coro";
             found = true;
         }
+        else if (definition != "Default") {
+            std::string firstFace = "";
+            for (const auto& it : model_info->faceInfo) {
+                if (it.first != "") {
+                    firstFace = it.first;
+                    break;
+                }
+            }
+            if (firstFace != "") {
+                definition = firstFace;
+                found = true;
+            }
+        }
     }
+
     std::string modelType = found ? model_info->faceInfo[definition]["Type"] : definition;
     if (modelType == "") {
         modelType = definition;
