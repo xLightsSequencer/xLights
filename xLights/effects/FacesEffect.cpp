@@ -1135,16 +1135,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Mouth-" + p + "-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
     }
     if (buffer.palette.Size() > colorOffset) {
@@ -1156,16 +1156,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
 
         todo.push_back("Eyes-Open2");
@@ -1173,11 +1173,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open2-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
@@ -1185,7 +1185,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
 
         todo.push_back("Eyes-Open3");
@@ -1193,11 +1193,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Open3-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
@@ -1205,7 +1205,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 4, color); //use sizth colour
             }
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
     }
     else if (eyes == "Closed") {
@@ -1214,16 +1214,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
 
         todo.push_back("Eyes-Closed2");
@@ -1231,11 +1231,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed2-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
@@ -1243,7 +1243,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
 
         todo.push_back("Eyes-Closed3");
@@ -1251,11 +1251,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed3-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
             else {
                 colors.push_back(xlColor(cname));
-                colors.back().alpha = alpha;
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         }
         else {
@@ -1263,7 +1263,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
-            colors.back().alpha = alpha;
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
     }
     else if (eyes == "(off)") {
@@ -1278,16 +1278,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string cname = model_info->faceInfo[definition]["FaceOutline-Color"];
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
-                colors.front().alpha = alpha;
+                colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
             else {
                 colors.insert(colors.begin(), xlColor(cname));
-                colors.front().alpha = alpha;
+                colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
         }
         else {
             colors.insert(colors.begin(), color);
-            colors.front().alpha = alpha;
+            colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
 
         if (buffer.palette.Size() > (2 + colorOffset)) {
@@ -1299,16 +1299,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             std::string const cname = model_info->faceInfo[definition]["FaceOutline2-Color"];
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
-                colors.front().alpha = alpha;
+                colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
             else {
                 colors.insert(colors.begin(), xlColor(cname));
-                colors.front().alpha = alpha;
+                colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
         }
         else {
             colors.insert(colors.begin(), color);
-            colors.front().alpha = alpha;
+            colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
     }
 
@@ -1361,14 +1361,14 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     int level = c.Red() + c.Green() + c.Blue();
                     if (level > transparentBlackLevel)
                     {
-                        c.alpha = alpha;
+                        c.alpha = ((int)alpha * c.alpha) / 255;
                         buffer.SetPixel(x, y, c);
                     }
                 }
                 else
                 {
                     auto c = crb->GetPixel(x, y);
-                    c.alpha = alpha;
+                    c.alpha = ((int)alpha * c.alpha) / 255;
                     buffer.SetPixel(x, y, c);
                 }
             }
