@@ -1135,17 +1135,44 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     }
     else {
 
+        // validate the inputs look correct
+        std::vector<FALCON_V4_INPUTS> inputs;
+        if (V4_GetInputs(inputs)) {
+            if (controller->GetProtocol() == OUTPUT_ARTNET || controller->GetProtocol() == OUTPUT_E131) {
+                if (inputs.size() != 1) {
+                    logger_base.debug("Board has %lu inputs where it should just have 1.", inputs.size());
+                    DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
+                    if (doProgress) progress->Update(100, "Aborting.");
+                    return false;
+                }
+
+                if (inputs.front().universe != controller->GetOutput(0)->GetUniverse() ||
+                    inputs.front().universeCount != controller->GetOutputCount() ||
+                    inputs.front().channels != controller->GetOutput(0)->GetChannels() ||
+                    (inputs.front().protocol == 1 && controller->GetProtocol() != OUTPUT_ARTNET) ||
+                    (inputs.front().protocol == 0 && controller->GetProtocol() != OUTPUT_E131)) {
+                    logger_base.debug("Board has inputs %d:%d:%d:%s while xlights has %d:%d:%d:%s. These need to match.",
+                        inputs[0].universe, inputs[0].universeCount, inputs[0].channels, inputs[0].protocol == 1 ? OUTPUT_ARTNET : OUTPUT_E131,
+                        controller->GetOutput(0)->GetUniverse(), controller->GetOutputCount(), controller->GetOutput(0)->GetChannels(), (const char*)controller->GetProtocol().c_str()
+                    );
+                    DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
+                    if (doProgress) progress->Update(100, "Aborting.");
+                    return false;
+                }
+            }
+        }
+
         if (doProgress) progress->Update(40, "Ensuring board configuration is correct.");
 
         if (_v4status["B"].AsInt() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0"))) {
             // we need to change the board mode - controller mode and start channel should be already set
             bool reboot = false;
-            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].AsInt(), _v4status["ps"].AsInt(), reboot))                 {
+            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].AsInt(), _v4status["ps"].AsInt(), reboot)) {
                 DisplayError("Falcon Outputs Upload: Failed to set board mode.", parent);
                 if (doProgress) progress->Update(100, "Aborting.");
                 return false;
             }
-            if (reboot)             {
+            if (reboot) {
                 V4_WaitForReboot(controller->GetName(), parent);
             }
 
