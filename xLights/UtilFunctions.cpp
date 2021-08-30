@@ -949,7 +949,7 @@ double UnScaleWithSystemDPI(double val)
 #endif
 }
 
-inline double ScaleWithSystemDPI(double scalingFactor, double val)
+double ScaleWithSystemDPI(double scalingFactor, double val)
 {
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
@@ -959,7 +959,7 @@ inline double ScaleWithSystemDPI(double scalingFactor, double val)
 #endif
 }
 
-inline double UnScaleWithSystemDPI(double scalingFactor, double val)
+double UnScaleWithSystemDPI(double scalingFactor, double val)
 {
 #ifdef __WXOSX__
     //OSX handles all the scaling itself
