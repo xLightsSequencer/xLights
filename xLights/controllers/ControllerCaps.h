@@ -96,6 +96,7 @@ public:
     int GetMaxInputUniverseChannels() const;
     int GetMinInputUniverseChannels() const;
     int GetNumberOfBanks() const;
+    int GetBankSize() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;

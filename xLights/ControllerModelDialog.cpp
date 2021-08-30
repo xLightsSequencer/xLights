@@ -2725,11 +2725,11 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
 
     if (_caps != nullptr && _caps->GetNumberOfBanks() > 1) {
         std::vector<wxColor> colours = { *wxRED, *wxGREEN, *wxBLUE, *wxYELLOW, wxColour(0xFF, 0x00, 0xFF) };
-        int bankSize = _caps->GetMaxPixelPort() / _caps->GetNumberOfBanks();
+        int bankSize = _caps->GetBankSize();
         int barX = (GetPixelPort(1)->GetRect().GetLeft() - 2) / 2;
         for (int i = 0; i < _caps->GetNumberOfBanks(); i++) {
             int topPort = i * bankSize + 1;
-            int bottomPort = (i + 1) * bankSize;
+            int bottomPort = std::min((i + 1) * bankSize, _caps->GetMaxPixelPort());
             auto tp = GetPixelPort(topPort);
             auto bp = GetPixelPort(bottomPort);
             if (tp != nullptr && bp != nullptr) {
@@ -2749,11 +2749,11 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
         int barX2 = GetPixelPort(1)->GetRect().GetLeft() - 2;
         int bankSize = -1;
         if (_caps->GetNumberOfBanks() > 1) {
-            bankSize = _caps->GetMaxPixelPort() / _caps->GetNumberOfBanks();
+            bankSize = _caps->GetBankSize();
         }
         for (int i = 0; i < _caps->GetMaxPixelPort() / PORTS_PER_REMOTE; i++) {
             int topPort = i * PORTS_PER_REMOTE + 1;
-            int bottomPort = (i + 1) * PORTS_PER_REMOTE;
+            int bottomPort = std::min((i + 1) * PORTS_PER_REMOTE, _caps->GetMaxPixelPort());
             auto tp = GetPixelPort(topPort);
             auto bp = GetPixelPort(bottomPort);
             if (tp != nullptr && bp != nullptr) {

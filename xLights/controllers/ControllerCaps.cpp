@@ -496,6 +496,11 @@ int ControllerCaps::GetNumberOfBanks() const
     return wxAtoi(GetXmlNodeContent(_config, "NumberOfBanks", "1"));
 }
 
+int ControllerCaps::GetBankSize() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "BankSize", "16"));
+}
+
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
 
     auto pp = GetPixelProtocols();
