@@ -1218,15 +1218,23 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
     return json;
 }
 
+static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
+                                const std::tuple<float, float, float, int> &r) {
+    return std::get<2>(l) < std::get<2>(r);
+}
+
 std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) {
     std::string ret;
 
-    int ch = 0;
-    std::vector<wxRealPoint> pts;
+    std::vector<std::tuple<float, float, float>> pts;
+
+    std::multiset<std::tuple<float, float, float, int>,
+        bool(*)(const std::tuple<float, float, float, int> &l,
+                const std::tuple<float, float, float, int> &r)> modelPts(Compare3dPointTuple);
     int first = 1;
     std::string stringType;
 
-    int xoffset = 0;
+    float xoffset = 0;
     for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
         Model* model = m->second;
 
@@ -1278,25 +1286,25 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
 
         ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
 
-        float x, y, z;
+        modelPts.clear();
         for (size_t i = 0; i < model->GetNodeCount(); i++) {
             pts.clear();
-            model->GetNodeScreenCoords(i, pts);
-            ch = model->NodeStartChannel(i);
+            model->GetNode3DScreenCoords(i, pts);
+            int ch = model->NodeStartChannel(i);
 
-            for (int i = 0; i < pts.size(); i++) {
-                x = pts[i].x;
-                y = pts[i].y;
-                z = 0;
+            for (auto [x,y,z] : pts) {
                 model->GetModelScreenLocation().TranslatePoint(x, y, z);
                 x += xoffset;
-                ret += wxString::Format("%d,%d,%d,%d,%s\n",
-                    (int)x, (int)y, ch,
-                    model->GetChanCountPerNode(), stringType.c_str());
+                modelPts.insert(std::make_tuple(x, y, z, ch));
             }
         }
-    }
+        for (auto [x,y,z, ch] : modelPts) {
+            ret += wxString::Format("%d,%d,%d,%d,%s\n",
+                (int)std::round(x), (int)std::round(y), ch,
+                model->GetChanCountPerNode(), stringType.c_str());
+        }
 
+    }
     return ret;
 }
 #endif

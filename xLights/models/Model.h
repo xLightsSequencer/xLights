@@ -404,7 +404,6 @@ public:
     std::string GetNodeXY(int nodeinx);
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts);
-    void GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint>& pts);
     void GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts);
 
     bool GetIsLtoR() const { return IsLtoR; }
