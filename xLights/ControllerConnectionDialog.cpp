@@ -53,8 +53,7 @@ BEGIN_EVENT_TABLE(ControllerConnectionDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, controller_connection_bulkedit type, wxWindowID id,const wxPoint& pos,const wxSize& size)
-{
+ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, controller_connection_bulkedit type, wxWindowID id, const wxPoint& pos, const wxSize& size) {
     _type = type;
 
 	//(*Initialize(ControllerConnectionDialog)
@@ -83,12 +82,6 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	SmartRemote = new wxStaticText(this, ID_STATICTEXT3, _("Smart Remote"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(SmartRemote, 1, wxALL|wxEXPAND, 5);
 	Choice_SmartRemote = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-	Choice_SmartRemote->SetSelection( Choice_SmartRemote->Append(_("N/A")) );
-	Choice_SmartRemote->Append(_("*A*->b->c"));
-	Choice_SmartRemote->Append(_("a->*B*->c"));
-	Choice_SmartRemote->Append(_("a->b->*C*"));
-	Choice_SmartRemote->Append(_("*A*->*B*->*C*"));
-	Choice_SmartRemote->Append(_("a->*B*->*C*"));
 	FlexGridSizer2->Add(Choice_SmartRemote, 1, wxALL|wxEXPAND, 5);
 	CheckBox_PixelDirection = new wxCheckBox(this, ID_CHECKBOX1, _("Set Direction"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_PixelDirection->SetValue(false);
@@ -200,6 +193,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
     switch(type)
     {
     case controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION:
+    case controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT:
         PixelDirection->Hide();
         CheckBox_PixelDirection->Hide();
         Brightness->Hide();
@@ -278,6 +272,14 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_StartNullNodes->Hide();
         break;
     case controller_connection_bulkedit::CEBE_SMARTREMOTE:
+
+        Choice_SmartRemote->AppendString("None");
+        //static int smartRemoteCount = 16;
+        for (int i = 0; i < 16; i++) {
+            Choice_SmartRemote->AppendString( wxString(char(65 + i)));
+        }
+        Choice_SmartRemote->SetSelection(0);
+
         StaticText1->Hide();
         StaticText2->Hide();
         Choice_Protocol->Hide();
@@ -377,7 +379,28 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         SmartRemote->Hide();
         Choice_SmartRemote->Hide();
         break;
+    case controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL:
+        StaticText2->Hide();
+        SpinCtrl_Port->Hide();
+        PixelDirection->Hide();
+        CheckBox_PixelDirection->Hide();
+        Brightness->Hide();
+        CheckBox_Brightness->Hide();
+        StartNullNodes->Hide();
+        CheckBox_StartNullNodes->Hide();
+        EndNullNodes->Hide();
+        CheckBox_EndNullNodes->Hide();
+        Gamma->Hide();
+        CheckBox_Gamma->Hide();
+        ColorOrder->Hide();
+        CheckBox_ColorOrder->Hide();
+        GroupCount->Hide();
+        CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
+        break;
     }
+
 
     Layout();
     Fit();
@@ -404,9 +427,15 @@ void ControllerConnectionDialog::Set(wxXmlNode* node) {
     if (node != nullptr) {
 
         _protocol = node->GetAttribute("Protocol", "ws2811");
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION) {
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT ||
+            _type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
             _protocol.UpperCase();
             Choice_Protocol->SetStringSelection(_protocol);
+        }
+
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
             SpinCtrl_Port->SetValue(wxAtoi(node->GetAttribute("Port", "1")));
         }
 
@@ -466,22 +495,37 @@ void ControllerConnectionDialog::Set(wxXmlNode* node) {
                 }
             }
         }
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION) {
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION || 
+            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
             Choice_Protocol->SetFocus();
             Choice_Protocol->SetFocusFromKbd();
             SpinCtrl_Port->SetFocus();
             SpinCtrl_Port->SetFocusFromKbd();
         }
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
+            Choice_Protocol->SetFocus();
+            Choice_Protocol->SetFocusFromKbd();
+        }
     }
 }
 
 void ControllerConnectionDialog::Get(wxXmlNode* node) {
-    if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION) {
+    if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+        _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
         _protocol = Choice_Protocol->GetStringSelection().ToStdString();
         node->DeleteAttribute("Protocol");
         node->AddAttribute("Protocol", _protocol);
         node->DeleteAttribute("Port");
         node->AddAttribute("Port", wxString::Format("%d", SpinCtrl_Port->GetValue()));
+        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
+            SpinCtrl_Port->SetValue(SpinCtrl_Port->GetValue() + 1);
+        }
+    }
+
+    if (_type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
+        _protocol = Choice_Protocol->GetStringSelection().ToStdString();
+        node->DeleteAttribute("Protocol");
+        node->AddAttribute("Protocol", _protocol);
     }
 
     if (IsPixelProtocol(_protocol)) {
