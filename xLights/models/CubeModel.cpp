@@ -103,7 +103,7 @@ static wxPGChoices CUBE_STYLES(wxArrayString(6, CUBE_STYLES_VALUES));
 static const char* STRAND_STYLES_VALUES[] = { 
         "Zig Zag",
         "No Zig Zag",
-        "Aternate Pixel"
+        "Alternate Pixel"
 };
 static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
