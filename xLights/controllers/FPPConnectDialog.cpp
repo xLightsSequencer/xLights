@@ -1368,7 +1368,6 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
     }
 }
 
-
 void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeListItem &item) const
 { 
     if (wxFile::Exists(filePath)) {

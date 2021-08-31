@@ -91,6 +91,8 @@ int Falcon::V4_GetConversionProgress()
 
         int mp3 = outParams["MP3"].AsInt();
 
+        if (mp3 == 100) return 99;
+
         return mp3;
     }
     else {
@@ -2088,11 +2090,12 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
             res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
 
             if (ismp3) {
+                progress->Update(0, "Converting to WAV file.");
                 wxSleep(1);
                 int p = 0;
                 while (p != 100) {
                     p = V4_GetConversionProgress();
-                    progress->Update(p, "Converting to WAV file.");
+                    progress->Update(p * 10, "Converting to WAV file.");
                     if (p != 100) wxSleep(5);
                 }
             }

@@ -676,7 +676,7 @@ public:
             }
             cancelled |= !dlg->Update(1000);
             logger_base.info("HTTP File Upload file %s  - Return: %d - RC: %d - File: %s", url.c_str(), i, response_code, filename.c_str());
-            res = data.cancelled && cancelled;
+            res = !(data.cancelled || cancelled);
         }
 
         return res;
