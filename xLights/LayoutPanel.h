@@ -164,6 +164,8 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
         static const long ID_PREVIEW_ALIGN_TOP;
