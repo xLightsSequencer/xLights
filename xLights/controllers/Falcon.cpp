@@ -76,6 +76,28 @@ std::vector<std::string> Falcon::V4_GetMediaFiles()
     return res;
 }
 
+bool Falcon::V4_IsFileUploading()
+{
+    int batch = 0;
+    bool finalCall;
+    int outBatch;
+    bool reboot;
+    wxJSONValue p(wxJSONTYPE_OBJECT);
+    wxJSONValue outParams;
+
+    bool uploading = true;
+    if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+        int d = outParams["D"].AsInt();
+
+        if (d == 1) uploading = false;
+    }
+    else {
+        uploading = false;
+    }
+
+    return uploading;
+}
+
 int Falcon::V4_GetConversionProgress()
 {
     int batch = 0;
@@ -2066,7 +2088,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
 
-    if (media != "")     {
+    if (media != "") {
         wxFileName fn(media);
         std::string origfile = fn.GetFullName().Lower().ToStdString();
         bool ismp3 = fn.GetExt().Lower() == "mp3";
@@ -2077,26 +2099,33 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
         auto wavs = V4_GetMediaFiles();
         bool found = false;
 
-        for (const auto& it : wavs)             {
-            if (Lower(it) == wavfile)                 {
+        for (const auto& it : wavs) {
+            if (Lower(it) == wavfile) {
                 found = true;
                 break;
             }
         }
 
         // if not then upload it
-        if (!found)             {
+        if (!found) {
 
             res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
 
-            if (ismp3) {
-                progress->Update(0, "Converting to WAV file.");
-                wxSleep(1);
-                int p = 0;
-                while (p != 100) {
-                    p = V4_GetConversionProgress();
-                    progress->Update(p * 10, "Converting to WAV file.");
-                    if (p != 100) wxSleep(5);
+            if (res) {
+                if (ismp3) {
+                    progress->Update(0, "Converting to WAV file.");
+                    wxSleep(1);
+                    int p = 0;
+                    while (p != 100) {
+                        p = V4_GetConversionProgress();
+                        progress->Update(p * 10, "Converting to WAV file.");
+                        if (p != 100) wxSleep(5);
+                    }
+                }
+                else {
+                    while (V4_IsFileUploading()) {
+                        wxSleep(1);
+                    }
                 }
             }
         }
@@ -2106,6 +2135,12 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     {
         wxFileName fn(file);
         res = res && Curl::HTTPUploadFile(url, seq, fn.GetFullName().Lower().ToStdString(), progress);
+
+        if (res) {
+            while (V4_IsFileUploading()) {
+                wxSleep(1);
+            }
+        }
     }
     return res;
 }

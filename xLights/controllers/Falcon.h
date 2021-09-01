@@ -82,6 +82,7 @@ class Falcon : public BaseController
     void V4_WaitForReboot(const std::string& name, wxWindow* parent);
     std::string SendToFalconV4(std::string msg);
     std::vector<std::string> V4_GetMediaFiles();
+    bool V4_IsFileUploading();
     int V4_GetConversionProgress();
     int CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const wxJSONValue& params, bool& finalCall, int& outbatch, bool& reboot, wxJSONValue& result);
     bool V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res);
