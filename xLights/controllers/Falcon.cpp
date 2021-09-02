@@ -650,7 +650,7 @@ int Falcon::V4_GetBoardPorts(int boardMode)
 
 int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
 {
-    if (V4_GetBoardPorts(boardMode >= 32)) {
+    if (V4_GetBoardPorts(boardMode) >= 32) {
         switch (protocol) {
         case V4_PIXEL_PROTOCOL_APA102:
         case V4_PIXEL_PROTOCOL_TM1814:
@@ -1243,9 +1243,13 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         auto sp = cud.GetControllerSerialPort(1);
 
         int rate = 250000;
-        if (sp->GetProtocol() != "DMX") rate = _v4status["sr"].AsInt();
+        if (Lower(sp->GetProtocol()) != "dmx") rate = _v4status["sr"].AsInt();
 
-        if (!V4_SetSerialConfig(sp->GetProtocol() == "DMX" ? 0 : 1, 0, sp->GetStartChannel(), rate))             {
+        int universe = 0;
+        unsigned long startChannel = 0;
+        V4_GetStartChannel(sp->GetUniverse(), sp->GetUniverseStartChannel(), sp->GetStartChannel(), universe, startChannel);
+
+        if (!V4_SetSerialConfig(Lower(sp->GetProtocol()) == "dmx" ? 0 : 1, universe, startChannel, rate))             {
             DisplayError("Falcon Outputs Upload: Problem uploading serial port configuration.", parent);
             if (doProgress) progress->Update(100, "Aborting.");
             return false;
