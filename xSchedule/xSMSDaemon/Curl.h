@@ -640,8 +640,8 @@ public:
             HTTPFileUploadData data;
             wxFile fileobj;
             fileobj.Open(fn);
-            std::string cl = "Content-Length: " + std::to_string(fileobj.Length() + memBuffPre.GetDataLen());
-            logger_base.debug("%s.", (const char*)cl.c_str());
+            std::string cl = "Content-Length: " + std::to_string(fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen());
+            logger_base.debug("File Size: %s. %s.", (const char*)std::to_string(fileobj.Length()).c_str(), (const char*)cl.c_str());
             chunk = curl_slist_append(chunk, cl.c_str());
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 

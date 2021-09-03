@@ -939,7 +939,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                                     Falcon falcon(inst->ipAddress, proxy);
 
                                     if (falcon.IsConnected())                                     {
-                                        cancelled |= falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : media, &prgs);
+                                        cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : media, &prgs);
                                     }
                                     else {
                                         cancelled = true;
