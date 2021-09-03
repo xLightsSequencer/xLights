@@ -5777,6 +5777,22 @@ void xLightsFrame::CheckSequence(bool display)
             warncount++;
         }
 
+        bool dataLayer = false;
+        DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
+        for (int j = 0; j < data_layers.GetNumLayers(); ++j) {
+            DataLayer* dl = data_layers.GetDataLayer(j);
+            if (dl->GetName() != "Nutcracker") {
+                dataLayer = true;
+                break;
+            }
+        }
+
+        if (dataLayer) {
+            wxString msg = wxString::Format("    WARN: Sequence includes a data layer. There is nothing wrong with this but it is uncommon and not always intended.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+
         if (errcount + warncount == errcountsave + warncountsave) {
             LogAndWrite(f, "    No problems found");
         }
