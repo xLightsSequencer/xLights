@@ -46,6 +46,7 @@ class SubBufferPanel;
 class xLightsFrame;
 class LayoutPanel;
 class ModelManager;
+class xlColor;
 
 wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -228,6 +229,8 @@ protected:
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
     void SelectRow(int r);
+    bool SetNodeColor(int row, xlColor const& c);
+    void ClearNodeColor(Model* m);
     wxString ReverseRow(wxString row);
 
     void ImportSubModel(std::string filename);

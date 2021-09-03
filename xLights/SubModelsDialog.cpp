@@ -1240,56 +1240,73 @@ void SubModelsDialog::DisplayRange(const wxString &range)
     model->DisplayEffectOnWindow(modelPreview, 2);
 }
 
-void SubModelsDialog::SelectRow(int r)
+void SubModelsDialog::ClearNodeColor(Model *m) 
 {
-    int nn = model->GetNodeCount();
     xlColor c(xlDARK_GREY);
-    if (model->modelDimmingCurve) {
-        model->modelDimmingCurve->apply(c);
+    int nn = m->GetNodeCount();
+    if (m->modelDimmingCurve) {
+        m->modelDimmingCurve->apply(c);
     }
     for (int node = 0; node < nn; node++) {
-        model->SetNodeColor(node, c);
+        m->SetNodeColor(node, c);
     }
+}
 
-    int start = r;
-    int end = r;
+void SubModelsDialog::SelectRow(int r) {
+    ClearNodeColor(model);
+
+    static wxColor priorc = wxColor(255, 100, 255);
     if (r == -1) {
-        start = 0;
-        end = NodesGrid->GetNumberRows() - 1;
+        for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
+            SetNodeColor(i, xlWHITE);
+        }
+    } else {
+        for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
+            SetNodeColor(i, r == i ? xlWHITE : priorc);
+        }
     }
-    for (int cur = start; cur <= end; cur++) {
-        wxString v = NodesGrid->GetCellValue(cur, 0);
-        wxStringTokenizer wtkz(v, ",");
-        while (wtkz.HasMoreTokens()) {
-            wxString valstr = wtkz.GetNextToken();
+    NodesGrid->Refresh();
+    model->DisplayEffectOnWindow(modelPreview, 2);
+}
 
-            int start2, end2;
-            if (valstr.Contains("-")) {
-                int idx = valstr.Index('-');
-                start2 = wxAtoi(valstr.Left(idx));
-                end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-            } else {
-                start2 = end2 = wxAtoi(valstr);
+bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
+
+    wxString v = NodesGrid->GetCellValue(row, 0);
+    if (v.empty()) {
+        return false;
+    }
+    bool found = false;
+    wxStringTokenizer wtkz(v, ",");
+    while (wtkz.HasMoreTokens()) {
+        wxString const valstr = wtkz.GetNextToken();
+
+        int start2, end2;
+        if (valstr.Contains("-")) {
+            int idx = valstr.Index('-');
+            start2 = wxAtoi(valstr.Left(idx));
+            end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+        } else {
+            start2 = end2 = wxAtoi(valstr);
+        }
+        start2--;
+        end2--;
+        bool done = false;
+        int n = start2;
+        while (!done) {
+            if (n >= 0 && n < (int)model->GetNodeCount()) {
+                model->SetNodeColor(n, c);
+                found = true;
             }
-            start2--;
-            end2--;
-            bool done = false;
-            int n = start2;
-            while (!done) {
-                if (n >= 0 && n < (int)model->GetNodeCount()) {
-                    model->SetNodeColor(n, xlWHITE);
-                }
-                if (start2 > end2) {
-                    n--;
-                    done = n < end2;
-                } else {
-                    n++;
-                    done = n > end2;
-                }
+            if (start2 > end2) {
+                n--;
+                done = n < end2;
+            } else {
+                n++;
+                done = n > end2;
             }
         }
     }
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    return found;
 }
 
 // Value must be 0-1
