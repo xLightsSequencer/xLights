@@ -426,7 +426,18 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             } else {
                 FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
-        } else {
+        }
+        else if (inst->iszlib) {
+            // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
+            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
+            CheckBox1->SetValue(inst->mode != "remote");
+            FPPInstanceSizer->Add(CheckBox1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+
+            FPPInstanceSizer->Add(0, 0, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            FPPInstanceSizer->Add(0, 0, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            FPPInstanceSizer->Add(0, 0, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+        }
+        else {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -939,7 +950,12 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                                     Falcon falcon(inst->ipAddress, proxy);
 
                                     if (falcon.IsConnected())                                     {
-                                        cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : media, &prgs);
+                                        std::string m2 = media;
+                                        std::string rowStr = std::to_string(row);
+                                        if (!GetCheckValue(MEDIA_COL + rowStr)) {
+                                            m2 = "";
+                                        }
+                                        cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, &prgs);
                                     }
                                     else {
                                         cancelled = true;
