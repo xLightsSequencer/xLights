@@ -547,7 +547,7 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     pos += sizeof(_config._staticSubnetMask);
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
-    data[pos++] = _config._simpleConfig;
+    data[pos++] = 0; // We always do complex config : _config._simpleConfig;
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
@@ -596,7 +596,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     pos += sizeof(_config._staticSubnetMask);
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
-    data[pos++] = _config._simpleConfig;
+    data[pos++] = 0; // We always do complex config : _config._simpleConfig;
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
