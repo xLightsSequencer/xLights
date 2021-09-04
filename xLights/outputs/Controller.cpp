@@ -161,7 +161,6 @@ int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& cho
     for (size_t i = 0; i < choices.GetCount(); i++) {
         if (choices[i].GetText().Lower() == c) return i;
     }
-    wxASSERT(false);
     return -1;
 }
 
@@ -406,11 +405,7 @@ bool Controller::SupportsAutoLayout() const
 }
 
 bool Controller::SupportsAutoUpload() const {
-    
-    auto eth = dynamic_cast<const ControllerEthernet*>(this);
-
-    if (eth == nullptr) return false;
-    if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP) return false;
+    if (GetProtocol() == OUTPUT_ZCPP) return false;
 
     auto caps = GetControllerCaps();
     if (caps != nullptr) {

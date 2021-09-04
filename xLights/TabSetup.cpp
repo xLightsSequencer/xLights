@@ -1722,13 +1722,9 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
     if (selections.size() == 1) {
         auto controllername = selections.front();
         auto controller = _outputManager.GetController(controllername);
-        auto eth = dynamic_cast<ControllerEthernet*>(controller);
 
         std::string oldName = controllername;
-        std::string oldIP = "";
-        if (eth != nullptr) {
-            oldIP = eth->GetIP();
-        }
+        std::string oldIP = controller->GetIP();
 
         auto processed = controller->HandlePropertyEvent(event, &_outputModelManager);
 
@@ -1745,16 +1741,13 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
 
                 _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "xLightsFrame::OnControllerPropertyGridChange::ControllerName", nullptr);
             }
-        }
-        else if (name == "IP") {
+        } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
-            if (eth != nullptr && IsIPValid(oldIP) && IsIPValid(eth->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0)
-            {
-                AllModels.ReplaceIPInStartChannels(oldIP, eth->GetIP());
+            if (IsIPValid(oldIP) && IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+                AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
-    }
-    else {
+    } else {
         // we handle general properties only
         if (name == "ControllerSync") {
             me131Sync = event.GetValue().GetBool();
@@ -1859,8 +1852,8 @@ void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event) {
 void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
 {
     auto name = List_Controllers->GetItemText(event.GetItem());
-    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-    if (controller != nullptr) {
+    auto controller = _outputManager.GetController(name);
+    if (controller != nullptr && controller->GetIP() != "") {
         if (controller->GetFPPProxy() != "") {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
         }
@@ -2114,8 +2107,8 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
 void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event)
 {
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-    if (controller != nullptr) {
+    auto controller = _outputManager.GetController(name);
+    if (controller != nullptr && controller->GetIP() != "") {
         if (controller->GetFPPProxy() != "") {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
         }
@@ -2128,13 +2121,12 @@ void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event)
 void xLightsFrame::OnButton_OpenProxyClick(wxCommandEvent& event)
 {
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName") == nullptr ? "" : Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
+    auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
         if (controller->GetFPPProxy() != "") {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy());
         }
-    }
-    else {
+    } else {
         if (_outputManager.GetGlobalFPPProxy() != "") {
             ::wxLaunchDefaultBrowser("http://" + _outputManager.GetGlobalFPPProxy());
         }
@@ -2147,8 +2139,7 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
 
     if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
         SetStatusText("Uploading inputs and outputs.");
-    }
-    else {
+    } else {
         SetStatusText("Uploading inputs.");
     }
 
@@ -2156,8 +2147,7 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
 
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     logger_base.debug("Uploading controller inputs to" + name);
-    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-
+    auto controller = _outputManager.GetController(name);
     if (UploadInputToController(controller)) {
         if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
             UploadOutputToController(controller);
@@ -2175,16 +2165,14 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     logger_base.debug("Uploading controller outputs to" + name);
 
-    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
-
+    auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
         bool ok = true;
         auto caps = GetControllerCaps(controller->GetName());
         if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
             SetStatusText("Uploading inputs and outputs.");
             ok = UploadInputToController(controller);
-        }
-        else {
+        } else {
             SetStatusText("Uploading outputs");
         }
 
@@ -2194,7 +2182,7 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_ARROW);
 }
 
-bool xLightsFrame::UploadInputToController(ControllerEthernet* controller) 
+bool xLightsFrame::UploadInputToController(Controller* controller)
 {
     bool res = false;
 
@@ -2208,7 +2196,7 @@ bool xLightsFrame::UploadInputToController(ControllerEthernet* controller)
             auto vendor = controller->GetVendor();
             auto model = controller->GetModel();
             auto ip = controller->GetResolvedIP();
-            if (ip == "MULTICAST") {
+            if (ip == "MULTICAST" || ip == "") {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
                     SetCursor(wxCURSOR_ARROW);
@@ -2255,7 +2243,7 @@ bool xLightsFrame::UploadInputToController(ControllerEthernet* controller)
     return res;
 }
 
-bool xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
+bool xLightsFrame::UploadOutputToController(Controller* controller) {
 
     bool res = false;
 
@@ -2286,25 +2274,20 @@ bool xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         SetStatusText(vendor + " Output Upload Complete.");
                         res = true;
-                    }
-                    else {
+                    } else {
                         SetStatusText(vendor + " Output Upload Failed.");
                     }
-                }
-                else {
+                } else {
                     SetStatusText(vendor + " Output Upload Failed. Unable to connect");
                 }
                 delete bc;
-            }
-            else {
+            } else {
                 SetStatusText(vendor + " Output Upload Failed.");
             }
-        }
-        else {
+        } else {
             logger_base.error("Controller does not support upload.");
         }
-    }
-    else {
+    } else {
         logger_base.error("Unable to find controller capabilities info.");
         wxASSERT(false);
     }

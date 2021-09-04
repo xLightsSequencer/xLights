@@ -272,7 +272,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 #pragma endregion
 
 #pragma region Private Functions
-bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -372,7 +372,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     return true;
 }
 
-bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -1292,7 +1292,7 @@ SanDevices::~SanDevices() {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool SanDevices::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
+bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     const std::string page = _page;
@@ -1448,7 +1448,7 @@ bool SanDevices::SetInputUniverses(ControllerEthernet* controller, wxWindow* par
     return (SDGetURL(request.ToStdString()) != "");
 }
 
-bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     if (IsFirmware5()) {
         return SetOutputsV5(allmodels, outputManager, controller, parent);

@@ -276,7 +276,12 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
     return false;
 }
 
-bool WLED::SetupInput(ControllerEthernet* controller, wxJSONValue& jsonVal) {
+bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
+    ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
+    if (controller == nullptr) {
+        DisplayError(wxString::Format("%s is not a WLED controller.", c->GetName().c_str()));
+        return false;
+    }
 
     //get previous RGB Mode
     int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
@@ -396,7 +401,7 @@ const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();

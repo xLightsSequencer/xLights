@@ -101,6 +101,9 @@ class FPP : public BaseController
     bool UploadVirtualMatrixOutputs(ModelManager* allmodels,
                                     OutputManager* outputManager,
                                     Controller* controller);
+    bool UploadSerialOutputs(ModelManager* allmodels,
+                             OutputManager* outputManager,
+                             Controller* controller);
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
@@ -116,17 +119,17 @@ class FPP : public BaseController
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
-    static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
+    static wxJSONValue CreateUniverseFile(Controller* controller, bool input);
 #endif
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
 
     virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP

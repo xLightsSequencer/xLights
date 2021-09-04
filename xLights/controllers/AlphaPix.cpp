@@ -582,7 +582,7 @@ std::string AlphaPix::SafeDescription(const std::string description) const {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();

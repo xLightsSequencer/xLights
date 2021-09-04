@@ -44,6 +44,7 @@
 #include "../outputs/DDPOutput.h"
 #include "../outputs/KinetOutput.h"
 #include "../outputs/ControllerEthernet.h"
+#include "../outputs/ControllerSerial.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
@@ -1397,7 +1398,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     return UploadUDPOut(f);
 }
 
-wxJSONValue FPP::CreateUniverseFile(ControllerEthernet* controller, bool input) {
+wxJSONValue FPP::CreateUniverseFile(Controller* controller, bool input) {
     std::list<Controller*> selected;
     selected.push_back(controller);
     return CreateUniverseFile(selected, false);
@@ -1421,7 +1422,7 @@ std::string FPP::GetModel(const std::string& type)
 }
 
 #ifndef DISCOVERYONLY
-bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin) {
+bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
 
     wxConfigBase* config = wxConfigBase::Get();
     wxString fip;
@@ -1472,23 +1473,25 @@ bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin)
     return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
 }
 
-bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
+bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
     parent = parent;
     return AuthenticateAndUpdateVersions()
         && !UploadPanelOutputs(allmodels, outputManager, controller)
         && !UploadVirtualMatrixOutputs(allmodels, outputManager, controller)
         && !UploadPixelOutputs(allmodels, outputManager, controller)
+        && !UploadSerialOutputs(allmodels, outputManager, controller)
         && !Restart("");
 }
 
-bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     parent = parent;
     bool b = AuthenticateAndUpdateVersions();
     if (!b) return b;
     UploadPanelOutputs(allmodels, outputManager, controller);
     UploadVirtualMatrixOutputs(allmodels, outputManager, controller);
     UploadPixelOutputs(allmodels, outputManager, controller);
+    UploadSerialOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
 
     if (majorVersion >= 4) {
@@ -1502,7 +1505,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     return b;
 }
 
-bool FPP::ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool FPP::ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     
     if (majorVersion >= 4) {
         std::string md = controller->GetRuntimeProperty("FPPMode");
@@ -1694,9 +1697,7 @@ void FPP::SetDescription(const std::string &st) {
 }
 
 bool FPP::SetInputUniversesBridge(Controller* controller) {
-    auto c = dynamic_cast<ControllerEthernet*>(controller);
-    if (c == nullptr) return false;
-    
+
     bool forceUpload = false;
     if (majorVersion >= 5) {
         if (!IsDDPInputEnabled()){
@@ -1704,7 +1705,13 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
         }
     }
 
-    wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ c }), true);
+    auto c = dynamic_cast<ControllerEthernet*>(controller);
+    if (c == nullptr && !forceUpload) {
+        //DDP is already enabled and this isn't an ethernet controller so no inputs need to be added
+        return false;
+    }
+
+    wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ controller }), true);
     if (udp["channelInputs"][0]["universes"].Size() != 0 || forceUpload) {
         if (IsDrive()) {
             std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
@@ -1734,12 +1741,12 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
                         otherOrigRoot["channelOutputs"][y]["enabled"] = 1;
                         changed = true;
                     }
-                    if (otherOrigRoot["channelOutputs"][y]["startChannel"].AsInt() != otherDmxData["channelOutputs"][x]["startChannel"].AsInt()) {
-                        otherOrigRoot["channelOutputs"][y]["startChannel"] = otherDmxData["channelOutputs"][x]["startChannel"].AsInt();
+                    if (otherOrigRoot["channelOutputs"][y]["startChannel"].AsLong() != otherDmxData["channelOutputs"][x]["startChannel"].AsLong()) {
+                        otherOrigRoot["channelOutputs"][y]["startChannel"] = otherDmxData["channelOutputs"][x]["startChannel"].AsLong();
                         changed = true;
                     }
-                    if (otherOrigRoot["channelOutputs"][y]["channelCount"].AsInt() != otherDmxData["channelOutputs"][x]["channelCount"].AsInt()) {
-                        otherOrigRoot["channelOutputs"][y]["channelCount"] = otherDmxData["channelOutputs"][x]["channelCount"].AsInt();
+                    if (otherOrigRoot["channelOutputs"][y]["channelCount"].AsLong() != otherDmxData["channelOutputs"][x]["channelCount"].AsLong()) {
+                        otherOrigRoot["channelOutputs"][y]["channelCount"] = otherDmxData["channelOutputs"][x]["channelCount"].AsLong();
                         changed = true;
                     }
                 } else if (otherOrigRoot["channelOutputs"][y]["enabled"].AsInt() != 0) {
@@ -2004,6 +2011,112 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
     return false;
 }
 
+bool FPP::UploadSerialOutputs(ModelManager* allmodels,
+                              OutputManager* outputManager,
+                              Controller* c) {
+
+    ControllerSerial *controller = dynamic_cast<ControllerSerial*>(c);
+    if (controller == nullptr) {
+        //non SerialControllers are handled in the UploadPixelOutputs method at this point
+        return false;
+    }
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+
+    int maxSerial = rules->GetMaxSerialPort();
+    if (maxSerial == 0) {
+        return false;
+    }
+
+    std::map<int, int> rngs;
+    FillRanges(rngs);
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+
+    std::string check;
+    UDController cud(controller, outputManager, allmodels, check, false);
+    if (cud.GetMaxSerialPort() == 0) {
+        return false;
+    }
+    cud.Check(rules, check);
+    cud.Dump();
+
+    wxJSONValue otherData;
+    for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
+        wxJSONValue port;
+        if (cud.HasSerialPort(sp)) {
+            UDControllerPort* vport = cud.GetControllerSerialPort(sp);
+            int sc = vport->GetStartChannel();
+            port["startChannel"] = sc;
+            int mx = vport->GetEndChannel() - sc + 1;
+            std::string dev = controller->GetPort().substr(controller->GetPort().find(":") + 1);
+            port["device"] = dev;
+            port["enabled"] = 1;
+            std::string tp = controller->GetProtocol();
+            if (tp == "DMX" || tp == "dmx" || tp == OUTPUT_DMX) {
+                port["type"] = wxString("DMX-Pro");
+                if (mx < 16) {
+                    //several controllers have issues if the DMX data stream has less than 16 channels
+                    mx = 16;
+                }
+            } else if (tp == OUTPUT_OPENDMX) {
+                port["type"] = wxString("DMX-Open");
+                if (mx < 16) {
+                    //several controllers have issues if the DMX data stream has less than 16 channels
+                    mx = 16;
+                }
+            } else if (tp == OUTPUT_PIXELNET) {
+                port["type"] = wxString("Pixelnet-Lynx");
+                mx = 4096;
+            } else if (tp == OUTPUT_OPENPIXELNET) {
+                port["type"] = wxString("Pixelnet-Open");
+                mx = 4096;
+            } else if (tp == OUTPUT_LOR) {
+                port["type"] = wxString("LOR");
+                port["speed"] = controller->GetSpeed();
+                port["firstControllerId"] = 1;
+            } else if (tp == OUTPUT_RENARD) {
+                port["type"] = wxString("Renard");
+                port["speed"] = controller->GetSpeed();
+            } else if (tp == OUTPUT_GENERICSERIAL) {
+                port["type"] = wxString("GenericSerial");
+                port["speed"] = controller->GetSpeed();
+                port["header"] = controller->GetSaveablePreFix();
+                port["footer"] = controller->GetSaveablePostFix();
+            }
+            port["channelCount"] = mx;
+            otherData["channelOutputs"].Append(port);
+
+            rngs[sc - 1] = mx;
+
+            wxJSONValue otherOrigRoot;
+            bool changed = true;
+            if (IsDrive()) {
+                GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
+                changed = mergeSerialInto(otherData, otherOrigRoot);
+            } else {
+                if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
+                    changed = mergeSerialInto(otherData, otherOrigRoot);
+                }
+            }
+            if (changed) {
+                if (IsDrive()) {
+                    WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
+                } else {
+                    PostJSONToURL("/api/configfile/co-other.json", otherOrigRoot);
+                    SetRestartFlag();
+                }
+                SetNewRanges(rngs);
+            }
+        }
+    }
+
+    return false;
+}
+
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
@@ -2017,6 +2130,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
+    if (maxString == 0) {
+        return false;
+    }
 
     std::map<int, int> rngs;
     FillRanges(rngs);
@@ -2189,9 +2305,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 if (pvs->_groupCountSet) {
                     vs["groupCount"] = pvs->_groupCount;
                 }
-                if (vs["groupCount"].AsInt() > 1) {
+                if (vs["groupCount"].AsLong() > 1) {
                     //if the group count is >1, we need to adjust the number of pixels
-                    vs["pixelCount"] = vs["pixelCount"].AsInt() * vs["groupCount"].AsInt();
+                    vs["pixelCount"] = vs["pixelCount"].AsLong() * vs["groupCount"].AsLong();
                 }
                 std::string vsname = "virtualStrings";
                 if (pvs->_smartRemote == 2) {
@@ -2261,7 +2377,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 int count = expansionPorts.find(x+1)->second;
                 int expansionType = 0;
                 for (int p = 0; p < count; p++) {
-                    if (stringData["outputs"][x+p].HasMember("differentialType") && stringData["outputs"][x+p]["differentialType"].AsInt()) {
+                    if (stringData["outputs"][x+p].HasMember("differentialType") && stringData["outputs"][x+p]["differentialType"].AsLong()) {
                         expansionType = 1;
                     }
                 }

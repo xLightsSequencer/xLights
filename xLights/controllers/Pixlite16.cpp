@@ -955,7 +955,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 

@@ -1188,8 +1188,8 @@ public:
     void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
     ControllerCaps* GetControllerCaps(const std::string& name);
-    bool UploadInputToController(ControllerEthernet* controller);
-    bool UploadOutputToController(ControllerEthernet* controller);
+    bool UploadInputToController(Controller* controller);
+    bool UploadOutputToController(Controller* controller);
     int GetFirstSelectedControllerIndex() const;
     std::list<std::string> GetSelectedControllerNames() const;
     void OnListControllerPopup(wxCommandEvent& event);

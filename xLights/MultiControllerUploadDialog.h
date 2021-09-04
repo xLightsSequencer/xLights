@@ -20,12 +20,12 @@
 //*)
 
 class xLightsFrame;
-class ControllerEthernet;
+class Controller;
 
 class MultiControllerUploadDialog : public wxDialog
 {
 	xLightsFrame* _frame = nullptr;
-	std::vector <ControllerEthernet*> _controllers;
+	std::vector <Controller*> _controllers;
 	void ValidateWindow();
 
 public:

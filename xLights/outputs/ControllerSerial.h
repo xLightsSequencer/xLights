@@ -17,6 +17,7 @@
 
 class wxXmlNode;
 class Output;
+class SerialOutput;
 
 // An serial controller sends data to a unique com port
 class ControllerSerial : public Controller
@@ -39,6 +40,8 @@ protected:
     std::string _saveablePostfix;
     std::vector<uint8_t> _prefix;
     std::vector<uint8_t> _postfix;
+    std::string _fppProxy;
+    SerialOutput* _serialOutput = nullptr;
 #pragma endregion Member Variables
 
 public:
@@ -72,11 +75,14 @@ public:
     void SetChannels(int channels);
     void SetProtocol(const std::string& type);
 
-    std::string GetProtocol() const { return _type; }
+    void SetFPPProxy(const std::string& proxy);
+
 #pragma endregion
 
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
+
+    virtual void VMVChanged() override;
 
     virtual bool IsManaged() const override { return false; }
 
@@ -97,8 +103,24 @@ public:
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
 
-    virtual std::string GetColumn1Label() const override { if (_outputs.size() > 0) return _outputs.front()->GetType(); else return Controller::GetColumn1Label(); }
+    virtual std::string GetColumn1Label() const override {
+        if (_model == "FPP") return _type;
+        if (_outputs.size() > 0) return _outputs.front()->GetType(); else return Controller::GetColumn1Label();
+    }
+    virtual std::string GetResolvedIP() const override {
+        if (_model == "FPP") return GetFirstOutput()->GetResolvedIP();
+        return "";
+    }
+    virtual std::string GetIP() const override {
+        if (_model == "FPP" && _port.find(":") != -1) {
+            return _port.substr(0, _port.find(":"));
+        }
+        return "";
+    }
+    virtual std::string GetFPPProxy() const override;
+
     virtual std::string GetColumn2Label() const override { return wxString::Format("%s:%d", _port, _speed); }
+    virtual std::string GetProtocol() const override { return _type; }
 
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override { _lastPingResult = Ping(); }

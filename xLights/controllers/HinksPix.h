@@ -155,7 +155,7 @@ class HinksPix : public BaseController
     void InitExpansionBoardData(int expansion, int startport, int length);
     std::unique_ptr<HinksPixSerial> InitSerialData();
 
-    bool UploadInputUniverses(ControllerEthernet* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const;
     void UploadPixelOutputs(bool& worked) const;
@@ -189,7 +189,7 @@ public:
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
 #pragma endregion

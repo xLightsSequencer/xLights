@@ -28,7 +28,7 @@ class WLED : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    bool SetupInput(ControllerEthernet* controller, wxJSONValue &jsonVal);
+    bool SetupInput(Controller* controller, wxJSONValue &jsonVal);
     void UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber) const;
 
     WLEDOutput* FindPortData(int port);
@@ -64,7 +64,7 @@ public:
     
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion

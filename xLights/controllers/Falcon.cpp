@@ -738,7 +738,7 @@ void Falcon::V4_WaitForReboot(const std::string& name, wxWindow* parent)
     }
 }
 
-bool Falcon::V4_SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
+bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1119,7 +1119,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
     return success;
 }
 
-bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress)
+bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
@@ -2109,7 +2109,7 @@ std::string Falcon::DecodeMode(int mode)
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     SetInputUniverses(controller, parent);
     SetOutputs(allmodels, outputManager, controller, parent, false);
     return true;
@@ -2179,7 +2179,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     return res;
 }
 
-bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
+bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (_versionnum == 4)         {
         return V4_SetInputUniverses(controller, parent);
@@ -2274,11 +2274,11 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
     }
 }
 
-bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     return SetOutputs(allmodels, outputManager, controller, parent, true);
 }
 
-bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress) {
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress) {
 
     //ResetStringOutputs(); // this shouldnt be used normally
 

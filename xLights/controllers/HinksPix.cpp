@@ -245,7 +245,7 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData() {
     return serial;
 }
 
-bool HinksPix::UploadInputUniverses(ControllerEthernet* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const {
+bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
@@ -840,7 +840,13 @@ HinksPix::~HinksPix() {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
+    ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
+    if (controller == nullptr) {
+        DisplayError(wxString::Format("%s is not a HinksPix controller.", c->GetName().c_str()));
+        return false;
+    }
+
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 

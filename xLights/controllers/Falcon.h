@@ -92,8 +92,8 @@ class Falcon : public BaseController
     bool V4_GetStrings(std::vector<FALCON_V4_STRING>& res);
     bool V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot);
     bool V4_GetStatus(wxJSONValue& res);
-    bool V4_SetInputUniverses(ControllerEthernet* controller, wxWindow* parent);
-    bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress);
+    bool V4_SetInputUniverses(Controller* controller, wxWindow* parent);
+    bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress);
     int V4_ValidBrightness(int b);
 
 #pragma endregion
@@ -164,7 +164,7 @@ class Falcon : public BaseController
     #pragma endregion
 
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool progress);
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool progress);
 #endif
 
 public:
@@ -183,9 +183,9 @@ public:
     std::string V4_DecodeBoardConfiguration(int config) const;
     std::string V4_DecodeMode(int mode) const;
     #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
     bool UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress);
     #endif
     

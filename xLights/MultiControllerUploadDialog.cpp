@@ -78,18 +78,15 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
     auto controllers = _frame->GetOutputManager()->GetControllers();
     for (const auto& it : controllers)
     {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->SupportsUpload() && eth->GetResolvedIP() != "MULTICAST")
-        {
+        auto eth = it;
+        if (eth != nullptr && eth->SupportsUpload() && eth->GetResolvedIP() != "MULTICAST") {
             auto caps = ControllerCaps::GetControllerConfig(eth->GetVendor(), eth->GetModel(), eth->GetVariant());
-            if (caps->SupportsUpload())
-            {
+            if (caps && caps->SupportsUpload()) {
                 _controllers.push_back(eth);
 
                 if (eth->GetFPPProxy() != "") {
                     CheckListBox_Controllers->AppendString(eth->GetIP() + " (via FPP " + eth->GetFPPProxy() + ") " + eth->GetDescription() + " " + eth->GetName());
-                }
-                else {
+                } else {
                     CheckListBox_Controllers->AppendString(eth->GetIP() + " " + eth->GetDescription() + " " + eth->GetName());
                 }
             }

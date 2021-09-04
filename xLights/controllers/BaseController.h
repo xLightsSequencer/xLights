@@ -18,7 +18,7 @@
 
 class ModelManager;
 class OutputManager;
-class ControllerEthernet;
+class Controller;
 
 class BaseController
 {
@@ -55,7 +55,7 @@ public:
     
     
 #ifndef DISCOVERYONLY
-    static BaseController *CreateBaseController(ControllerEthernet *controller, const std::string &ip = "");
+    static BaseController *CreateBaseController(Controller *controller, const std::string &ip = "");
 #endif
 
     #pragma endregion
@@ -68,11 +68,11 @@ public:
     virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
 
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) { return false; }
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) = 0;
+    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) { return false; }
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) = 0;
     
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) { return false; }
-    virtual bool ResetAfterOutput(OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) { return false; }
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
+    virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
 #endif
 
     virtual bool UsesHTTP() const = 0;

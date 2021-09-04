@@ -31,8 +31,8 @@ class ESPixelStick : public BaseController
     std::string GetFromJSON(std::string section, std::string key, std::string json);
     #pragma endregion
 
-    bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
-    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
 
     
     std::string GetWSResponse();
@@ -44,9 +44,9 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     
     virtual bool UsesHTTP() const override { return false; }

@@ -41,7 +41,7 @@ BaseController::BaseController(const std::string& ip, const std::string &proxy) 
 }
 
 #ifndef DISCOVERYONLY
-BaseController *BaseController::CreateBaseController(ControllerEthernet *controller, const std::string &ipOrig) {
+BaseController *BaseController::CreateBaseController(Controller *controller, const std::string &ipOrig) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string ip = ipOrig;
     ControllerCaps *caps = controller->GetControllerCaps();

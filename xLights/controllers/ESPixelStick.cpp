@@ -126,7 +126,7 @@ std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std:
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ESPixelStick::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_version.size() > 0 && _version[0] == '4') {
         //only needed on V4.   V3 will upload inputs with outputs
@@ -205,12 +205,12 @@ bool ESPixelStick::SetInputUniverses(ControllerEthernet* controller, wxWindow* p
     }
     return true;
 }
-bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     SetInputUniverses(controller, parent);
     return SetOutputs(allmodels, outputManager, controller, parent);
 }
 
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     if (_version.size() > 0 && _version[0] == '4') {
         return SetOutputsV4(allmodels, outputManager, controller, parent);
     }
@@ -275,7 +275,7 @@ static std::string MapV4ColorOrder(const std::string &p) {
     }
     return p;
 }
-bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
@@ -434,7 +434,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
     }
     return true;
 }
-bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 

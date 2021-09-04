@@ -1,4 +1,30 @@
 <Vendor Name="FPP">
+    <Controller Name="FPP">
+        <!-- FPP's various serial outputs configured on the "Other" output tab -->
+        <Variant Name="">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>4096</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsAutoLayout/>
+            <SupportsUpload/>
+            <SupportsAutoUpload/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>DMX</Protocol>
+                <Protocol>OpenDMX</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>ddp-input</Protocol>
+            </InputProtocols>
+        </Variant>
+    </Controller>
     <AbstractVariant Name="BaseFPPSettings">
 		<SupportsPixelPortCommonSettings/>
         <SupportsUpload/>

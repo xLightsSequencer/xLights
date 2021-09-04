@@ -830,12 +830,9 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 //if restart flag is now set, restart and recheck range
                 inst->Restart("", true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
-                ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
-                if (ipcontroller) {
-                    BaseController *bc = BaseController::CreateBaseController(ipcontroller, inst->ipAddress);
-                    bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, ipcontroller, this);
-                    delete bc;
-                }
+                BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
+                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), this);
+                delete bc;
             }
         }
         row++;

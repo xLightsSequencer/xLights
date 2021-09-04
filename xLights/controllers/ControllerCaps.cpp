@@ -403,7 +403,7 @@ bool ControllerCaps::SupportsSerialInputProtols() const
     for (const auto& it : GetInputProtocols()) {
         if (it == "dmx" || it == "lor" || it == "renard" || 
             it == "opendmx" || it == "pixelnet" || it == "open pixelnet" || 
-            it == "dlight" || it == "lor optimised" || it == "xxx serial") return true;
+            it == "dlight" || it == "lor optimised" || it == "xxx serial" || it == "ddp-input") return true;
     }
     return false;
 }

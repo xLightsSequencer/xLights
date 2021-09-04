@@ -299,7 +299,7 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
 #pragma endregion
 
 #pragma region Getters and Setters
-bool J1Sys::SetInputUniverses(ControllerEthernet* controller, OutputManager* outputManager) {
+bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManager) {
 
     wxASSERT(_outputs != 0);
 
@@ -357,10 +357,9 @@ bool J1Sys::SetInputUniverses(ControllerEthernet* controller, OutputManager* out
     return false;
 }
 
-bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
+bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
-    if (!SetInputUniverses(controller, outputManager))
-    {
+    if (!SetInputUniverses(controller, outputManager)) {
         return false;
     }
 

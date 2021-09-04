@@ -56,15 +56,15 @@ public:
 
 #pragma region Getters and Setters
     void SetIP(const std::string& ip);
-    std::string GetIP() const { return _ip; }
-    std::string GetResolvedIP() const { return _resolvedIp; }
+    virtual std::string GetIP() const override { return _ip; }
+    virtual std::string GetResolvedIP() const override { return _resolvedIp; }
 
-    std::string GetProtocol() const { return _type; }
+    virtual std::string GetProtocol() const override { return _type; }
     void SetProtocol(const std::string& protocol);
 
     void SetFPPProxy(const std::string& proxy);
     std::string GetControllerFPPProxy() const { return _fppProxy; }
-    std::string GetFPPProxy() const;
+    virtual std::string GetFPPProxy() const override;
 
     bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
 

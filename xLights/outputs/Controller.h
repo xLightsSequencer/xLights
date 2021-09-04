@@ -226,6 +226,11 @@ public:
 
     virtual bool SupportsFullxLightsControl() const { return false; }
 
+    virtual std::string GetIP() const { return GetResolvedIP(); }
+    virtual std::string GetResolvedIP() const { return ""; }
+    virtual std::string GetFPPProxy() const { return ""; }
+    virtual std::string GetProtocol() const { return ""; }
+
     // Used in tooltip on model dialog
     virtual std::string GetChannelMapping(int32_t ch) const = 0;
     virtual std::string GetUniverseString() const = 0;

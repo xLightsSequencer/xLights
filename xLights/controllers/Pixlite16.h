@@ -121,7 +121,7 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return false; }
     static void PrepareDiscovery(Discovery &discovery);

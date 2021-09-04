@@ -558,7 +558,7 @@ Minleon::~Minleon() {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
 
     //ResetStringOutputs(); // this shouldnt be used normally
 
