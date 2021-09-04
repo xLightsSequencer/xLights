@@ -507,72 +507,70 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
     wxPGProperty *p;
 
     ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr) {
-        if (caps->GetModel() == "FPP") {
-            //FPP based serial devices
-            std::string port = _port;
-            std::string ip;
-            if (_port.find(":") != -1) {
-                ip = _port.substr(0, _port.find(":"));
-                port = _port.substr(_port.find(":") + 1);
+    if (caps != nullptr && caps->GetModel() == "FPP") {
+        //FPP based serial devices
+        std::string port = _port;
+        std::string ip;
+        if (_port.find(":") != -1) {
+            ip = _port.substr(0, _port.find(":"));
+            port = _port.substr(_port.find(":") + 1);
+        }
+        p = propertyGrid->Append(new wxStringProperty("IP Address", "IP", ip));
+        p->SetHelpString("FPP IP address or host name.");
+
+        p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", _fppProxy));
+        p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
+
+
+        wxPGChoices ports;
+        //FIXME - query FPP  for list of ports
+        for (int x = 0; x < 6; x++) {
+            ports.Add("ttyS" + std::to_string(x));
+        }
+        for (int x = 0; x < 6; x++) {
+            ports.Add("ttyUSB" + std::to_string(x));
+        }
+        ports.Add("ttyAMA0");
+        /*
+         FIXME - coming soon
+        ports.Add("i2c1");
+        ports.Add("i2c2");
+        ports.Add("spidev0.0");
+        ports.Add("spidev0.1");
+        ports.Add("spidev1.0");
+        ports.Add("spidev1.1");
+
+         */
+
+        auto protocols = GetProtocols();
+        propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
+
+        p = propertyGrid->Append(new wxEnumProperty("Port", "Port", ports, Controller::EncodeChoices(ports, port)));
+        if (StartsWith(port, "tty")) {
+            if (GetProtocol() != OUTPUT_DMX && GetProtocol() != OUTPUT_OPENDMX && GetProtocol() != OUTPUT_PIXELNET && GetProtocol() != OUTPUT_OPENPIXELNET) {
+                wxPGChoices speeds;
+                speeds.Add("9600");
+                speeds.Add("19200");
+                speeds.Add("38400");
+                speeds.Add("57600");
+                speeds.Add("115200");
+                speeds.Add("230400");
+                speeds.Add("460800");
+                speeds.Add("921600");
+                p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", speeds, Controller::EncodeChoices(speeds, wxString::Format("%d", _speed))));
             }
-            p = propertyGrid->Append(new wxStringProperty("IP Address", "IP", ip));
-            p->SetHelpString("FPP IP address or host name.");
-
-            p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", _fppProxy));
-            p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-
-
-            wxPGChoices ports;
-            //FIXME - query FPP  for list of ports
-            for (int x = 0; x < 6; x++) {
-                ports.Add("ttyS" + std::to_string(x));
+        } else if (StartsWith(port, "i2c")) {
+            wxPGChoices i2cDevices;
+            for (int x = 0; x < 128; x++) {
+                char buf[12];
+                sprintf(buf, "0x%02X", x);
+                i2cDevices.Add(buf);
             }
-            for (int x = 0; x < 6; x++) {
-                ports.Add("ttyUSB" + std::to_string(x));
-            }
-            ports.Add("ttyAMA0");
-            /*
-             FIXME - coming soon
-            ports.Add("i2c1");
-            ports.Add("i2c2");
-            ports.Add("spidev0.0");
-            ports.Add("spidev0.1");
-            ports.Add("spidev1.0");
-            ports.Add("spidev1.1");
-
-             */
-
-            auto protocols = GetProtocols();
-            propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
-
-            p = propertyGrid->Append(new wxEnumProperty("Port", "Port", ports, Controller::EncodeChoices(ports, port)));
-            if (StartsWith(port, "tty")) {
-                if (GetProtocol() != OUTPUT_DMX && GetProtocol() != OUTPUT_OPENDMX && GetProtocol() != OUTPUT_PIXELNET && GetProtocol() != OUTPUT_OPENPIXELNET) {
-                    wxPGChoices speeds;
-                    speeds.Add("9600");
-                    speeds.Add("19200");
-                    speeds.Add("38400");
-                    speeds.Add("57600");
-                    speeds.Add("115200");
-                    speeds.Add("230400");
-                    speeds.Add("460800");
-                    speeds.Add("921600");
-                    p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", speeds, Controller::EncodeChoices(speeds, wxString::Format("%d", _speed))));
-                }
-            } else if (StartsWith(port, "i2c")) {
-                wxPGChoices i2cDevices;
-                for (int x = 0; x < 128; x++) {
-                    char buf[12];
-                    sprintf(buf, "0x%02X", x);
-                    i2cDevices.Add(buf);
-                }
-                p = propertyGrid->Append(new wxEnumProperty("I2C Device", "I2CDevice", i2cDevices, Controller::EncodeChoices(i2cDevices, wxString::Format("0x%02X", _speed))));
-            } else if (StartsWith(port, "spidev")) {
-                p = propertyGrid->Append(new wxUIntProperty("Speed (kHz)", "SPISpeed", _speed));
-                p->SetAttribute("Min", 0);
-                p->SetAttribute("Max", 999999);
-            }
+            p = propertyGrid->Append(new wxEnumProperty("I2C Device", "I2CDevice", i2cDevices, Controller::EncodeChoices(i2cDevices, wxString::Format("0x%02X", _speed))));
+        } else if (StartsWith(port, "spidev")) {
+            p = propertyGrid->Append(new wxUIntProperty("Speed (kHz)", "SPISpeed", _speed));
+            p->SetAttribute("Min", 0);
+            p->SetAttribute("Max", 999999);
         }
     } else {
         p = propertyGrid->Append(new wxEnumProperty("Port", "Port", __ports, Controller::EncodeChoices(__ports, _port)));
@@ -711,11 +709,13 @@ void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* pro
 
         // Port must be unique
         auto p = propGrid->GetPropertyByName("Port");
-        if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected") {
-            p->SetBackgroundColour(*wxRED);
-            break;
-        } else{
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        if (p != nullptr) {
+            if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected") {
+                p->SetBackgroundColour(*wxRED);
+                break;
+            } else {
+                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
         }
     }
 

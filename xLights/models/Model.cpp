@@ -38,6 +38,7 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/IPOutput.h"
 #include "../outputs/Controller.h"
+#include "../outputs/ControllerSerial.h"
 #include "../VendorModelDialog.h"
 #include "../ModelPreview.h"
 #include "ModelScreenLocation.h"
@@ -858,7 +859,22 @@ void Model::ClearIndividualStartChannels()
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
 {
     auto caps = GetControllerCaps();
+    Controller *c = GetController();
     wxString protocol = GetControllerProtocol();
+    if (c) {
+        ControllerSerial *cs = dynamic_cast<ControllerSerial*>(c);
+        if (cs) {
+            wxString cprotocol = cs->GetProtocol();
+            if (cprotocol != protocol) {
+                GetControllerConnection()->DeleteAttribute("Protocol");
+                GetControllerConnection()->AddAttribute("Protocol", cprotocol);
+                clearUnusedProtocolProperties(GetControllerConnection());
+            }
+            cp.push_back(cprotocol);
+            idx = 0;
+            return;
+        }
+    }
     wxString protocolLC = protocol;
     protocolLC.LowerCase();
 
@@ -972,7 +988,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     }
 
     if (cp.size() > 0) {
-        grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+        sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+        if (cp.size() == 1 && idx == 0) {
+            grid->DisableProperty(sp);
+        }
     }
 
     wxXmlNode* node = GetControllerConnection();
