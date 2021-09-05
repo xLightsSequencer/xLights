@@ -1725,71 +1725,6 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     return false;
 }
 
-static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoot) {
-    bool changed = false;
-    for (int x = 0; x < otherDmxData["channelOutputs"].Size(); x++) {
-        wxString device = otherDmxData["channelOutputs"][x]["device"].AsString();
-        wxString type = otherDmxData["channelOutputs"][x]["type"].AsString();
-        bool found = false;
-        for (int y = 0; y < otherOrigRoot["channelOutputs"].Size(); y++) {
-            if (otherOrigRoot["channelOutputs"][y]["device"].AsString() == device) {
-                //same device, see if type matches and update or disable
-                if (type == otherOrigRoot["channelOutputs"][y]["type"].AsString()) {
-                    //device and type the same, update values
-                    found = true;
-                    if (otherOrigRoot["channelOutputs"][y]["enabled"].AsInt() != 1) {
-                        otherOrigRoot["channelOutputs"][y]["enabled"] = 1;
-                        changed = true;
-                    }
-                    if (otherOrigRoot["channelOutputs"][y]["startChannel"].AsLong() != otherDmxData["channelOutputs"][x]["startChannel"].AsLong()) {
-                        otherOrigRoot["channelOutputs"][y]["startChannel"] = otherDmxData["channelOutputs"][x]["startChannel"].AsLong();
-                        changed = true;
-                    }
-                    if (otherOrigRoot["channelOutputs"][y]["channelCount"].AsLong() != otherDmxData["channelOutputs"][x]["channelCount"].AsLong()) {
-                        otherOrigRoot["channelOutputs"][y]["channelCount"] = otherDmxData["channelOutputs"][x]["channelCount"].AsLong();
-                        changed = true;
-                    }
-                } else if (otherOrigRoot["channelOutputs"][y]["enabled"].AsInt() != 0) {
-                    otherOrigRoot["channelOutputs"][y]["enabled"] = 0;
-                    changed = true;
-                }
-            }
-        }
-        if (!found) {
-            //add some defaults if needed
-            if (type == "Renard") {
-                otherDmxData["channelOutputs"][x]["renardparm"] = "8N1";
-                otherDmxData["channelOutputs"][x]["renardspeed"] = 57600;
-            } else if (type == "LOR") {
-                otherDmxData["channelOutputs"][x]["firstControllerId"] = 1;
-                otherDmxData["channelOutputs"][x]["speed"] = 19200;
-            } else if (type == "GenericSerial") {
-                otherDmxData["channelOutputs"][x]["header"] = "";
-                otherDmxData["channelOutputs"][x]["footer"] = "";
-                otherDmxData["channelOutputs"][x]["speed"] = 9600;
-            }
-            otherOrigRoot["channelOutputs"].Append(otherDmxData["channelOutputs"][x]);
-            changed = true;
-        }
-    }
-    return changed;
-}
-#endif
-
-static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
-                         std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
-    if (origMod == "") {
-        Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
-    }
-    if (origMod != "" && rules->GetModel() != origMod) {
-        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
-            + origMod + ".   Continue?";
-        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
-            return false;
-        }
-    }
-    return true;
-}
 
 static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, int newValue) {
     if (!v.HasMember(key)) {
@@ -1815,6 +1750,80 @@ static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, const std::s
     }
     return false;
 }
+
+static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoot, bool addDefaults) {
+    bool changed = false;
+    for (int x = 0; x < otherDmxData["channelOutputs"].Size(); x++) {
+        wxString device = otherDmxData["channelOutputs"][x]["device"].AsString();
+        wxString type = otherDmxData["channelOutputs"][x]["type"].AsString();
+        bool found = false;
+        for (int y = 0; y < otherOrigRoot["channelOutputs"].Size(); y++) {
+            if (otherOrigRoot["channelOutputs"][y]["device"].AsString() == device) {
+                //same device, see if type matches and update or disable
+                if (type == otherOrigRoot["channelOutputs"][y]["type"].AsString()) {
+                    //device and type the same, update values
+                    found = true;
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", otherDmxData["channelOutputs"][x]["description"].AsString());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", otherDmxData["channelOutputs"][x]["startChannel"].AsLong());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", otherDmxData["channelOutputs"][x]["channelCount"].AsLong());
+
+                    if (!addDefaults) {
+                        if (type == "Renard") {
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardspeed", otherDmxData["channelOutputs"][x]["renardspeed"].AsLong());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardparm", otherDmxData["channelOutputs"][x]["renardparm"].AsString());
+                        } else if (type == "LOR") {
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "firstControllerId", otherDmxData["channelOutputs"][x]["firstControllerId"].AsLong());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].AsLong());
+                        } else if (type == "GenricSerial") {
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].AsLong());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "header", otherDmxData["channelOutputs"][x]["header"].AsString());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "footer", otherDmxData["channelOutputs"][x]["footer"].AsString());
+                        }
+                    }
+                } else {
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 0);
+                }
+            }
+        }
+        if (!found) {
+            //add some defaults if needed
+            if (addDefaults) {
+                if (type == "Renard") {
+                    otherDmxData["channelOutputs"][x]["renardparm"] = "8N1";
+                    otherDmxData["channelOutputs"][x]["renardspeed"] = 57600;
+                } else if (type == "LOR") {
+                    otherDmxData["channelOutputs"][x]["firstControllerId"] = 1;
+                    otherDmxData["channelOutputs"][x]["speed"] = 19200;
+                } else if (type == "GenericSerial") {
+                    otherDmxData["channelOutputs"][x]["header"] = "";
+                    otherDmxData["channelOutputs"][x]["footer"] = "";
+                    otherDmxData["channelOutputs"][x]["speed"] = 9600;
+                }
+            }
+            otherOrigRoot["channelOutputs"].Append(otherDmxData["channelOutputs"][x]);
+            changed = true;
+        }
+    }
+    return changed;
+}
+#endif
+
+static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
+                         std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
+    if (origMod == "") {
+        Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
+    }
+    if (origMod != "" && rules->GetModel() != origMod) {
+        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
+            + origMod + ".   Continue?";
+        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 #ifndef DISCOVERYONLY
 bool FPP::UploadPanelOutputs(ModelManager* allmodels,
@@ -2087,6 +2096,7 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
                 port["header"] = controller->GetSaveablePreFix();
                 port["footer"] = controller->GetSaveablePostFix();
             }
+            port["description"] = controller->GetDescription() == "" ? controller->GetName() : controller->GetDescription();
             port["channelCount"] = mx;
             otherData["channelOutputs"].Append(port);
 
@@ -2096,10 +2106,10 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
             bool changed = true;
             if (IsDrive()) {
                 GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
-                changed = mergeSerialInto(otherData, otherOrigRoot);
+                changed = mergeSerialInto(otherData, otherOrigRoot, false);
             } else {
                 if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
-                    changed = mergeSerialInto(otherData, otherOrigRoot);
+                    changed = mergeSerialInto(otherData, otherOrigRoot, false);
                 }
             }
             if (changed) {
@@ -2446,6 +2456,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 port["channelCount"] = mx;
                 port["type"] = tp;
+                port["description"] = "";
                 otherDmxData["channelOutputs"].Append(port);
             }
 
@@ -2483,10 +2494,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bool changed = true;
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
-            changed = mergeSerialInto(otherDmxData, otherOrigRoot);
+            changed = mergeSerialInto(otherDmxData, otherOrigRoot, true);
         } else {
             if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
-                changed = mergeSerialInto(otherDmxData, otherOrigRoot);
+                changed = mergeSerialInto(otherDmxData, otherOrigRoot, true);
             }
         }
         if (changed) {

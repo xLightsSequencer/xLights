@@ -212,14 +212,12 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty()) {
         DisplayError(errors.Last());
-    }
-    else if (output.IsEmpty()) {
+    } else if (output.IsEmpty()) {
         res.push_back("(no available ports)");
         DisplayError(_("no devices found"));
-    }
-    else {
+    } else {
         for (int i = 0; i < output.Count(); i++) {
-            if (output[i].StartsWith("cu.")) {
+            if (output[i].StartsWith("cu.") && !output[i].StartsWith("cu.B")) {
                 res.push_back("/dev/" + output[i].ToStdString());
             }
         }

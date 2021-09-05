@@ -199,6 +199,11 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
     _type = OUTPUT_DMX;
     SetPort(_outputManager->GetFirstUnusedCommPort());
     SetSpeed(_serialOutput->GetBaudRate());
+#ifdef __WXOSX__
+    _model = "FPP";
+    _vendor = "FPP";
+    VMVChanged();
+#endif
 }
 
 wxXmlNode* ControllerSerial::Save() {
@@ -736,6 +741,17 @@ void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* pro
             p->SetBackgroundColour(*wxRED);
         } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+
+    if (_model == "FPP") {
+        p = propGrid->GetPropertyByName("IP");
+        if (p != nullptr) {
+            if (_port.find(":") == std::string::npos) {
+                p->SetBackgroundColour(*wxRED);
+            } else {
+                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
         }
     }
 }
