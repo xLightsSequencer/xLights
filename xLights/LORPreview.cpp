@@ -505,10 +505,10 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
                 if( layer != 0 ) {
                     totalCount += layer;
                     totalLayers++;
-                    layers = layers + wxString::Format( "%d", layer ) + ",";
+                    layers = "," + wxString::Format("%d", layer) + layers;
                 }
             }
-            layers.RemoveLast(); //remove last ","
+            layers.Remove(0, 1); //remove first ","
 
             m->SetProperty( "parm1", "1" );                                  //number of strings
             m->SetProperty( "parm2", wxString::Format( "%d", totalCount ) ); //number of nodes
