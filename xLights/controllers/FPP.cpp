@@ -2090,6 +2090,7 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
             } else if (tp == OUTPUT_RENARD) {
                 port["type"] = wxString("Renard");
                 port["speed"] = controller->GetSpeed();
+                port["renardparm"] = "8N1";
             } else if (tp == OUTPUT_GENERICSERIAL) {
                 port["type"] = wxString("GenericSerial");
                 port["speed"] = controller->GetSpeed();
