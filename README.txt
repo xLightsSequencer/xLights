@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.28 September 7, 2021
+   -- enh (keith) Add a check sequence warning about data layers which are uncommonly used
+   -- enh (keith) Have face effect use the first assigned face on a model if the effect is calling for a face that is not on the model
+   -- enh (scott) Highlight nodes used in other rows of submodel
+   -- enh (scott) Move HinksPix upload to the upload API
+   -- enh (scott) Added Layout Bulk Edit Options to set just protocol and Set Controller Port Number and Increment port number with each model.
+   -- enh (dkulp) Allow FPP serial devices to be configured using USB controller
+   -- bug (scott) Fix LOR S5 Start Layers
+   -- bug (keith) Leave Pixlite in advanced mode after upload
+   -- bug (keith) Catch attempts to upload to the wrong version of Falcon controller
+   -- bug (keith) Dont switch falcon away from player modes when uploading
+   -- bug (keith) Fix several issues using FPP connect to upload to Falcon V4
+   -- bug (keith) Fix some Falcon V4 upload issues affecting long strings and serial output
+   -- bug (keith) Fix falcon does not measure banks correctly if the number of ports is not divisible by 16
+   -- bug (keith) Fix face effect image display not respecting image transparency
+   -- bug (keith) Fix when switching between artnet and E131 dont allow universe to be left as 0
+   -- bug (keith) Fix purged backups not consistently deleting files
+   -- bug (keith) When converting from DDP to E131 with 1 channel we end up with universe size 1
 2021.27 August 28, 2021
    -- enh (scott) Add new hinkspix long range support for visualiser and upload
    -- enh (keith) Strip out further code undermining users free rights to choose their models on windows
