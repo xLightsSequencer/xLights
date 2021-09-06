@@ -208,7 +208,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         else {
             #define CONVERT_CHANNELS_PER_UNIVERSE 510
             int universes = (totchannels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
-            int left = totchannels;
+            int left = universes * CONVERT_CHANNELS_PER_UNIVERSE;
 
             int u = 0;
             if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
