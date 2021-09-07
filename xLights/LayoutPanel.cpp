@@ -3463,7 +3463,7 @@ void LayoutPanel::FinalizeModel()
             auto oldam = modelPreview->GetAdditionalModel();
             modelPreview->SetAdditionalModel(nullptr); // just in case we delete the model
 
-            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99);
+            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -5142,19 +5142,19 @@ void LayoutPanel::PreviewModelHDistribute()
     CreateUndoPoint("All", models.front()->name);
 
     float x = -1;
-    for (auto it = models.begin(); it != models.end(); ++it)
+    for (const auto& it : models)
     {
-        if (it == models.begin())
+        if (it == models.front())
         {
-            x = (*it)->GetHcenterPos() + space;
+            x = it->GetHcenterPos() + space;
         }
-        else if (*it == models.back())
+        else if (it == models.back())
         {
             // do nothing
         }
         else
         {
-            (*it)->SetHcenterPos(x);
+            it->SetHcenterPos(x);
             x += space;
         }
     }
@@ -5197,19 +5197,19 @@ void LayoutPanel::PreviewModelVDistribute()
     CreateUndoPoint("All", models.front()->name);
 
     float y = -1;
-    for (auto it = models.begin(); it != models.end(); ++it)
+    for (const auto& it : models)
     {
-        if (it == models.begin())
+        if (it == models.front())
         {
-            y = (*it)->GetVcenterPos() + space;
+            y = it->GetVcenterPos() + space;
         }
-        else if (*it == models.back())
+        else if (it == models.back())
         {
             // do nothing
         }
         else
         {
-            (*it)->SetVcenterPos(y);
+            it->SetVcenterPos(y);
             y += space;
         }
     }

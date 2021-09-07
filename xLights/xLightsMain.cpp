@@ -3981,11 +3981,10 @@ void xLightsFrame::RemovePreviewOption(LayoutGroup* grp)
 void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 {
     wxMenuItem* item = MenuItemPreviews->FindItem(event.GetId());
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
-        if (grp != nullptr) {
-            if( grp->GetMenuItem() == item ) {
-                grp->ShowPreview(item->IsChecked());
+    for (const auto& it : LayoutGroups) {
+        if (it != nullptr) {
+            if( it->GetMenuItem() == item ) {
+                it->ShowPreview(item->IsChecked());
             }
         }
     }
@@ -3994,11 +3993,8 @@ void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
 {
     wxMenuItem* first_item = MenuItemPreviews->GetMenuItems().GetFirst()->GetData();
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
-        if (grp != nullptr) {
-            grp->ShowPreview(first_item->IsChecked());
-        }
+    for (const auto& it : LayoutGroups) {
+        if (it != nullptr) it->ShowPreview(first_item->IsChecked());
     }
 }
 
@@ -4508,9 +4504,9 @@ bool xLightsFrame::CheckStart(wxFile& f, const std::string& startmodel, std::lis
             {
                 wxString msg = wxString::Format("    ERR: Model '%s' start channel results in a reference loop.", startmodel);
                 LogAndWrite(f, msg.ToStdString());
-                for (auto it = seen.begin(); it != seen.end(); ++it)
+                for (const auto& it : seen)
                 {
-                    msg = wxString::Format("       '%s' ->", *it);
+                    msg = wxString::Format("       '%s' ->", it);
                     LogAndWrite(f, msg.ToStdString());
                 }
                 msg = wxString::Format("       '%s'", reference);

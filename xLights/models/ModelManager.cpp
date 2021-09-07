@@ -349,7 +349,7 @@ std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) 
         return res;
     }
 
-    CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export", allGroups, onlyGroups);
+    CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export - cancel to include no groups", allGroups, onlyGroups);
     if (dlg.ShowModal() == wxID_OK) {
         onlyGroups = dlg.GetSelectedItems();
     } else {

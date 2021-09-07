@@ -134,7 +134,7 @@ public:
         std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const;
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
-    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high);
+    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);

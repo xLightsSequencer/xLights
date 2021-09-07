@@ -279,11 +279,11 @@ public:
             }
             f1 = new wxXmlNode(wxXML_ELEMENT_NODE , "dimmingCurve");
             m_model->GetModelXml()->AddChild(f1);
-            for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); ++it) {
-                wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE , it->first);
+            for (const auto& it : dimmingInfo) {
+                wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE , it.first);
                 f1->AddChild(dc);
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                    dc->AddAttribute(it2->first, it2->second);
+                for (const auto& it2 : it.second) {
+                    dc->AddAttribute(it2.first, it2.second);
                 }
             }
             wxVariant v(CLICK_TO_EDIT);
@@ -2567,11 +2567,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         modelDimmingCurve = nullptr;
     }
 
-    for (auto it = subModels.begin(); it != subModels.end(); ++it) {
-        Model* m = *it;
-        delete m;
+    while (subModels.size() > 0)         {
+        delete subModels.back();
+        subModels.pop_back();
     }
-    subModels.clear();
     superStringColours.clear();
 
     wxString channelstr;
@@ -4962,33 +4961,32 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 
     float px = pt.x;
     float py = pt.y;
-    if(flip)
+    if (flip)
         py = h - pt.y;
 
     int i = 1;
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        auto c = it->get()->Coords;
-        for (auto it2 = c.begin(); it2 != c.end(); ++it2)
-        {
-            float sx=it2->screenX;
-            float sy=it2->screenY;
+    for (const auto& it : Nodes) {
+        auto c = it.get()->Coords;
+        for (const auto& it2 : c) {
+            float sx = it2.screenX;
+            float sy = it2.screenY;
 
             if (!GetModelScreenLocation().IsCenterBased()) {
                 sx -= GetModelScreenLocation().RenderWi / 2.0;
                 sy *= GetModelScreenLocation().GetVScaleFactor();
                 if (GetModelScreenLocation().GetVScaleFactor() < 0) {
                     sy += GetModelScreenLocation().RenderHt / 2.0;
-                } else {
+                }
+                else {
                     sy -= GetModelScreenLocation().RenderHt / 2.0;
                 }
             }
-            sy = ((sy*scale)+(h/2));
-            sx = (sx*scale)+(w/2);
+            sy = ((sy * scale) + (h / 2));
+            sx = (sx * scale) + (w / 2);
 
-            if (sx >= (px - pointScale) && sx <= (px + pointScale)  &&
-                sy >= (py - pointScale) && sy <= (py + pointScale))
-            {
-                return wxString::Format(wxT("%i"),i);
+            if (sx >= (px - pointScale) && sx <= (px + pointScale) &&
+                sy >= (py - pointScale) && sy <= (py + pointScale)) {
+                return wxString::Format(wxT("%i"), i);
             }
         }
         i++;
@@ -5035,12 +5033,11 @@ std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint sta
     }
 
     int i = 1;
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        auto c = it->get()->Coords;
-        for (auto it2 = c.begin(); it2 != c.end(); ++it2)
-        {
-            float sx = it2->screenX;
-            float sy = it2->screenY;
+    for (const auto& it : Nodes) {
+        auto c = it.get()->Coords;
+        for (const auto& it2 : c) {
+            float sx = it2.screenX;
+            float sy = it2.screenY;
 
             if (!GetModelScreenLocation().IsCenterBased()) {
                 sx -= GetModelScreenLocation().RenderWi / 2.0;
@@ -5057,7 +5054,7 @@ std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint sta
 
             if (sx >= startpx && sx <= endpx &&
                 sy >= startpy && sy <= endpy) {
-                nodes.push_back( i);
+                nodes.push_back(i);
             }
         }
         i++;
@@ -5368,7 +5365,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
     }
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high)
+Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc;
@@ -5862,8 +5859,11 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
 
             int h1 = 1;
-            model->InitializeLocation(h1, l, b, nullptr);
+            model->InitializeLocation(h1, l, b, modelPreview);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
             model->SetLayoutGroup(lg);
             model->Selected = true;
@@ -6573,19 +6573,19 @@ std::string Model::GetControllerName() const
 bool Model::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
+    for (auto& it : faceInfo)
     {
-        if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
+        if (it.second.find("Type") != it.second.end() && it.second.at("Type") == "Matrix")
         {
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+            for (auto& it2 : it.second)
             {
-                if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "")
                 {
-                    if (wxFile::Exists(it2->second))
+                    if (wxFile::Exists(it2.second))
                     {
-                        if (!frame->IsInShowFolder(it2->second))
+                        if (!frame->IsInShowFolder(it2.second))
                         {
-                            it2->second = frame->MoveToShowFolder(it2->second, wxString(wxFileName::GetPathSeparator()) + "Faces");
+                            it2.second = frame->MoveToShowFolder(it2.second, wxString(wxFileName::GetPathSeparator()) + "Faces");
                             rc = true;
                         }
                     }
@@ -6618,20 +6618,20 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
 {
     std::list<std::string> res;
 
-    for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
+    for (const auto& it : faceInfo)
     {
-        if (all || std::find(begin(facesUsed), end(facesUsed), it->first) != facesUsed.end())
+        if (all || std::find(begin(facesUsed), end(facesUsed), it.first) != facesUsed.end())
         {
-            if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
+            if (it.second.find("Type") != it.second.end() && it.second.at("Type") == "Matrix")
             {
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                for (const auto& it2 : it.second)
                 {
-                    if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                    if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "")
                     {
-                        if (all || wxFile::Exists(it2->second))
+                        if (all || wxFile::Exists(it2.second))
                         {
-                            std::string n = it2->second;
-                            if (includeFaceName) n = it->first + "|" + n;
+                            std::string n = it2.second;
+                            if (includeFaceName) n = it.first + "|" + n;
                             res.push_back(n);
                         }
                     }
