@@ -66,7 +66,8 @@ using namespace TraceLog;
 static const std::string PIHAT("Pi Hat");
 static const std::string LEDPANELS("LED Panels");
 
-FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
+FPP::FPP(const std::string& ad) :
+    BaseController(ad, ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
@@ -78,7 +79,8 @@ FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minor
 }
 
 
-FPP::FPP(const std::string &ip, const std::string &proxy, const std::string &model) : BaseController(ip, proxy), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
+FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& model) :
+    BaseController(ip, proxy), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
     ipAddress = ip;
     pixelControllerType = model;
     wxIPV4address address;
@@ -93,8 +95,7 @@ FPP::FPP(const std::string &ip, const std::string &proxy, const std::string &mod
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
-    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), isFPP(c.isFPP)
-{
+    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), fppType(c.fppType) {
 
 }
 
@@ -220,7 +221,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     char error[1024];
 
     std::string fullUrl = ipAddress + url;
-    if (!isFPP) {
+    if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
@@ -296,7 +297,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = ipAddress + url;
-    if (!isFPP) {
+    if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
@@ -395,12 +396,12 @@ bool FPP::AuthenticateAndUpdateVersions() {
             wxJSONValue val;
             if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
                 sysInfoLoaded = true;
-                return isFPP && parseSysInfo(val);
+                return fppType == FPP_TYPE::FPP && parseSysInfo(val);
             }
         }
         return false;
     }
-    return isFPP;
+    return fppType == FPP_TYPE::FPP;
 }
 bool FPP::parseSysInfo(wxJSONValue& val) {
     platform = val["Platform"].AsString();
@@ -554,7 +555,9 @@ void FPP::parseConfig(const std::string& v) {
     if (curMode == "") {
         curMode = settings["fppMode"];
     }
-    isFPP = settings["Title"].find("Falcon Player") != std::string::npos;
+    if (settings["Title"].find("Falcon Player") != std::string::npos) {
+        fppType = FPP_TYPE::FPP;
+    }
 }
 
 
@@ -700,7 +703,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
 
     std::string fullUrl = ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
-    if (!isFPP) {
+    if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         usingJqUpload = false;
     }
@@ -892,7 +895,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     std::string baseName = fn.GetFullName();
     std::string mediaBaseName = "";
     bool cancelled = false;
-    if (media != "" && isFPP) {
+    if (media != "" && fppType == FPP_TYPE::FPP) {
         wxFileName mfn(media);
         mediaBaseName = mfn.GetFullName();
 
@@ -935,7 +938,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int currentChannelCount = 0;
     std::vector<std::pair<uint32_t, uint32_t>> currentRanges;
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
-    if (!IsDrive() && isFPP) {
+    if (!IsDrive() && fppType == FPP_TYPE::FPP) {
         wxJSONValue currentMeta;
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
@@ -1006,7 +1009,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return false;
     }
 
-    if (isFPP) {
+    if (fppType == FPP_TYPE::FPP) {
         if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
             //these just get uploaded directly
             return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
@@ -1067,7 +1070,7 @@ bool FPP::FinalizeUploadSequence() {
 
         delete outputFile;
         outputFile = nullptr;
-        if (tempFileName != "" && isFPP) {
+        if (tempFileName != "" && (fppType == FPP_TYPE::FPP || fppType == FPP_TYPE::ESPIXELSTICK)) {
             cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
             ::wxRemoveFile(tempFileName);
             tempFileName = "";
@@ -1656,7 +1659,9 @@ bool FPP::Restart(const std::string &mode, bool ifNeeded) {
 void FPP::UpdateChannelRanges()
 {
     // This probably should handle drives correctly but as is it doesnt bail for now until we add drive support
-    if (!isFPP || IsDrive()) return;
+    if (fppType != FPP_TYPE::FPP || IsDrive()) {
+        return;
+    }
     wxJSONValue jval;
     int count = 0;
     while (count < 20) {
@@ -3120,7 +3125,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return res->majorVersion >= 4 && res->mode == "remote";
     }
     
-    if (res->typeId == 0x88 || res->typeId == 0x89)         {
+    if (res->typeId == 0x88 || res->typeId == 0x89) {
         // F16V4 / F48V4
         return true;
     }
@@ -3167,12 +3172,10 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->panelSize = res->panelSize;
                 fpp->username = res->username;
                 fpp->password = res->password;
-                fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x88 || res->typeId == 0x89; // these controllers support uncompressed and zlib (including sparse)
                 fpp->controllerVendor = res->vendor;
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
-                fpp->type = res->typeId;
+                TypeIDtoControllerType(res->typeId, fpp);
 
                 instances.push_back(fpp);
             } else {
@@ -3193,12 +3196,20 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
 
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
-                fpp->isFPP = res->typeId < 0x80;
-                fpp->iszlib = res->typeId == 0x88 || res->typeId == 0x89; // these controllers support uncompressed and zlib (including sparse)
-                fpp->type = res->typeId;
+                TypeIDtoControllerType(res->typeId, fpp);
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
         }
+    }
+}
+
+void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
+    if (typeId < 0x80) {
+        inst->fppType = FPP_TYPE::FPP;
+    } else if (typeId == 0x88 || typeId == 0x89) {
+        inst->fppType = FPP_TYPE::FALCONV4;
+    } else if (typeId == 0xC2 || typeId == 0xC3) {
+        inst->fppType = FPP_TYPE::ESPIXELSTICK;
     }
 }

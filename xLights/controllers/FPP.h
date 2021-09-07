@@ -17,10 +17,15 @@ class wxWindow;
 class wxProgressDialog;
 class Discovery;
 
+enum class FPP_TYPE { FPP,
+                      FALCONV4,
+                      ESPIXELSTICK };
+
 class FPP : public BaseController
 {
     public:
-    FPP() : BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
+    FPP() :
+            BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {}
     FPP(const std::string &ip, const std::string &proxy, const std::string &model);
     FPP(const std::string &address);
     FPP(const FPP &c);
@@ -40,15 +45,13 @@ class FPP : public BaseController
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
-    int type = 0;
-    
+
     std::string proxy;
     std::set<std::string> proxies;
 
     std::string username;
     std::string password;
-    bool isFPP =  false;
-    bool iszlib = false;
+    FPP_TYPE fppType = FPP_TYPE::FPP;
     
     std::string controllerVendor;
     std::string controllerModel;
@@ -114,6 +117,7 @@ class FPP : public BaseController
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     
+    static void TypeIDtoControllerType(int typeId, FPP* inst);
     
 #ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
