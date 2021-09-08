@@ -784,7 +784,9 @@ HinksPix::EXPType HinksPix::DecodeExpansionType(const std::string& type) const {
 HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy),
     _EXP_Outputs{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present },
-    _numberOfOutputs(48) {
+    _numberOfOutputs(48),
+    _numberOfUniverses(0),
+    _MCPU_Version(0) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     //Get Controller Info
@@ -818,6 +820,8 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
                                     data.Get("ECPU", "0").AsString().Mid(3),
                                     data.Get("WEB", "0").AsString().Mid(3));
 
+        _MCPU_Version = wxAtoi(data.Get("MCPU", "0").AsString().Mid(3));
+
         if (_controllerType == "E") {
             _model = "EasyLights Pix16";
         } else if (_controllerType == "H") {
@@ -844,6 +848,16 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
         DisplayError(wxString::Format("%s is not a HinksPix controller.", c->GetName().c_str()));
+        return false;
+    }
+
+    if (_MCPU_Version < 101 && _controllerType == "H") {
+        DisplayError(wxString::Format("HinksPix CPU Firmware is too old (v%d) Update to v101 or Newer.", _MCPU_Version));
+        return false;
+    }
+
+    if (_MCPU_Version < 122 && _controllerType == "E") {
+        DisplayError(wxString::Format("Easylights CPU Firmware is too old (v%d) Update to v122 or Newer.", _MCPU_Version));
         return false;
     }
 

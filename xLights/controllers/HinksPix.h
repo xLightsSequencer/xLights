@@ -135,6 +135,7 @@ class HinksPix : public BaseController
     std::string _controllerType;
     int _numberOfOutputs;
     int _numberOfUniverses;
+    int _MCPU_Version;
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr<HinksPixSerial> _serialOutput;
