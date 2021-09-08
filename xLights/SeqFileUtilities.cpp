@@ -258,7 +258,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 if (xbkptime > xmltime)
                 {
                     // autosave file is newer
-                    if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES)
+                    if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead of your saved sequence file?", "Newer file found", wxYES_NO) == wxYES)
                     {
                         // run a backup ... equivalent of a F10
                         DoBackup(false, false, true);
