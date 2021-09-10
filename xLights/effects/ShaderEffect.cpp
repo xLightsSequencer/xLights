@@ -457,6 +457,7 @@ public:
     xlGLCanvas *_canvas;
 };
 
+#ifdef WINDOWSBACKGROUND
 class GLContextPool {
 public:
 
@@ -520,7 +521,8 @@ private:
     std::mutex lock;
     std::queue<GLContextInfo*> contexts;
 } GL_CONTEXT_POOL;
-#endif
+#endif /* WINDOWSBACKGROUND */
+#endif /* __WXMSW__*/
 
 
 class ShaderRenderCache : public EffectRenderCache {
@@ -542,7 +544,9 @@ public:
             glContextInfo->SetCurrent();
             DestroyResources();
             glContextInfo->UnsetCurrent();
+#ifdef WINDOWSBACKGROUND
             GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
+#endif
         }
 #else
         if (preview) {
@@ -822,7 +826,10 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
 #elif defined(__WXMSW__)
+#ifndef WINDOWSBACKGROUND
     ShaderPanel *p = (ShaderPanel *)panel;
+    p->_preview->SetCurrentGLContext();
+#else
     if (cache->glContextInfo == nullptr) {
         // we grab it here and release it when the cache is deleted
         cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
@@ -844,6 +851,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         // we still need to grab the gl context to this thread
         cache->glContextInfo->SetCurrent();
     }
+#endif
     return true;
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
@@ -852,7 +860,6 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     return true;
 #endif
 }
-
 
 void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
