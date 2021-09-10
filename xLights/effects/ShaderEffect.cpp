@@ -16,8 +16,6 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 
-//#define WINDOWSBACKGROUND
-
 #ifndef __WXOSX__
     #include <GL/gl.h>
     #ifdef _MSC_VER
@@ -82,6 +80,7 @@
 
 #include <fstream>
 #include <map>
+#include <set>
 #include <mutex>
 #include <string>
 
@@ -176,6 +175,8 @@ namespace
         buffer.Fill(colour);
     }
 }
+
+bool ShaderEffect::useBackgroundRender = false;
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
@@ -405,7 +406,10 @@ public:
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
         wglMakeCurrent(win->GetHDC(), nullptr);
 
-        //create a new window and new HDC specifically for this context, we
+        wxGLContext *sharedContext = win->GetSharedContext();
+        HGLRC shared = sharedContext ? sharedContext->GetGLRC() : 0;
+
+        // create a new window and new HDC specifically for this context, we
         // won't display this anywhere, but it's required to get the hardware accelerated
         // contexts and such.
         _canvas = new ShaderGLCanvas(win->GetParent());
@@ -414,12 +418,11 @@ public:
         // we *should* need core profile/3.3... but seems to work withe 3.1 for Windows??
         wxGLContextAttrs cxtAttrs;
         cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
-        _context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs());
-        if ( _context == NULL )
-        {
+        _context = wglCreateContextAttribsARB(_hdc, shared, cxtAttrs.GetGLAttrs());
+        if (_context == NULL) {
            wxGLContextAttrs newAttrs;
            newAttrs.PlatformDefaults().OGLVersion(3, 1).CoreProfile().EndList();
-           _context = wglCreateContextAttribsARB(_hdc, 0, newAttrs.GetGLAttrs());
+           _context = wglCreateContextAttribsARB(_hdc, shared, newAttrs.GetGLAttrs());
         }
         logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
 
@@ -462,7 +465,6 @@ public:
     xlGLCanvas *_canvas;
 };
 
-#ifdef WINDOWSBACKGROUND
 class GLContextPool {
 public:
 
@@ -509,24 +511,23 @@ public:
         std::condition_variable signal;
         std::unique_lock<std::mutex> lck(mtx);
         GLContextInfo *tdc = nullptr;
-#ifdef WINDOWSBACKGROUND
-        canv->CallAfter([&mtx, &signal, &tdc, canv]() {
-            std::unique_lock<std::mutex> lck(mtx);
+        if (ShaderEffect::IsBackgroundRender()) {
+            canv->CallAfter([&mtx, &signal, &tdc, canv]() {
+                std::unique_lock<std::mutex> lck(mtx);
+                tdc = new GLContextInfo(canv);
+                lck.unlock();
+                signal.notify_all();
+            });
+            signal.wait(lck, [&tdc] {return tdc != nullptr;});
+        } else {
             tdc = new GLContextInfo(canv);
-            lck.unlock();
-            signal.notify_all();
-        });
-        signal.wait(lck, [&tdc] {return tdc != nullptr;});
-#else
-        tdc = new GLContextInfo(canv);
-#endif
+        }
         return tdc;
     }
 private:
     std::mutex lock;
     std::queue<GLContextInfo*> contexts;
 } GL_CONTEXT_POOL;
-#endif /* WINDOWSBACKGROUND */
 #endif /* __WXMSW__*/
 
 
@@ -549,9 +550,9 @@ public:
             glContextInfo->SetCurrent();
             DestroyResources();
             glContextInfo->UnsetCurrent();
-#ifdef WINDOWSBACKGROUND
-            GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
-#endif
+            if (ShaderEffect::IsBackgroundRender()) {
+                GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
+            }
         }
 #else
         if (preview) {
@@ -677,8 +678,8 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
     // on windows, we need to create the GL contexts on the main thread, but then can use them
     // on the background thread.  Similar to the Path and text drawing contexts
     return true;
-#elif defined(__WXMSW__) && defined(WINDOWSBACKGROUND)
-    return true;
+#elif defined(__WXMSW__)
+    return useBackgroundRender;
 #else
     return false;
 #endif
@@ -720,7 +721,16 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
                                                 cxtAttrs.GetSize());
         }
         if (pixelFormat) {
-            cache->s_glContext = WXGLCreateContext(pixelFormat, nullptr);
+            static std::mutex sharedContextLock;
+            static WXGLContext sharedContext = 0;
+
+            std::unique_lock<std::mutex> lock(sharedContextLock);
+            if (sharedContext == 0) {
+                sharedContext = WXGLCreateContext(pixelFormat, 0);
+            }
+            lock.unlock();
+            cache->s_glContext = WXGLCreateContext(pixelFormat, sharedContext);
+
             WXGLDestroyPixelFormat(pixelFormat);
             if (!cache->s_glContext) {
                 return false;
@@ -832,11 +842,10 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
 #elif defined(__WXMSW__)
-#ifndef WINDOWSBACKGROUND
     ShaderPanel *p = (ShaderPanel *)panel;
-    p->_preview->SetCurrentGLContext();
-#else
-    if (cache->glContextInfo == nullptr) {
+    if (!ShaderEffect::IsBackgroundRender()) {
+        p->_preview->SetCurrentGLContext();
+    } else if (cache->glContextInfo == nullptr) {
         // we grab it here and release it when the cache is deleted
         cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
 
@@ -851,13 +860,10 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info(configs);
-    }
-    else
-    {
+    } else {
         // we still need to grab the gl context to this thread
         cache->glContextInfo->SetCurrent();
     }
-#endif
     return true;
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
@@ -878,16 +884,10 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         return;
     }
 
-    ShaderRenderCache* cache = nullptr;
-    std::map<int, EffectRenderCache*>::iterator iter = buffer.infoCache.find(id);
-    if (iter == buffer.infoCache.end())
-    {
+    ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
         cache = new ShaderRenderCache();
         buffer.infoCache[id] = cache;
-    }
-    else
-    {
-        cache = reinterpret_cast<ShaderRenderCache*>((*iter).second);
     }
 
     // This object has all the data from the json in the .fs file
@@ -1261,31 +1261,32 @@ namespace
 {
     typedef std::map<std::string, unsigned> FragmentShaderMap;
     FragmentShaderMap shaderMap;
+    std::set<std::string> failedShaders;
     std::mutex shaderMapMutex;
 }
 unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (cfg == nullptr)
-    {
+    if (cfg == nullptr) {
         logger_base.error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
         return 0u;
     }
 
     std::lock_guard<std::mutex> lock(shaderMapMutex);
     std::string fragmentShaderSrc(cfg->GetCode());
+    if (failedShaders.find(fragmentShaderSrc) != failedShaders.end()) {
+        //previously failed to compile, don't try again
+        return 0u;
+    }
+
     FragmentShaderMap::const_iterator iter = shaderMap.find(fragmentShaderSrc);
-    if (iter != shaderMap.cend())
-    {
+    if (iter != shaderMap.cend()) {
         unsigned programId = (*iter).second;
-        if (!glIsProgram(programId))
-        {
+        if (!glIsProgram(programId)) {
             logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
             shaderMap.erase(iter);
-        }
-        else
-        {
+        } else {
             //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
             return programId;
         }
@@ -1294,8 +1295,8 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
     if (programId == 0u) {
         logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
-    }
-    else {
+        failedShaders.emplace(fragmentShaderSrc);
+    } else {
         logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
         shaderMap[fragmentShaderSrc] = programId;
     }

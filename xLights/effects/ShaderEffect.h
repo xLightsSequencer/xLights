@@ -199,14 +199,18 @@ public:
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;
-    static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+
+    static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
+
+    static void SetBackgroundRender(bool b) { useBackgroundRender = b; }
+    static bool IsBackgroundRender() { return useBackgroundRender; }
 
 protected:
     bool SetGLContext(ShaderRenderCache*);
@@ -226,4 +230,6 @@ protected:
         float v[2];
         float t[2];
     };
+
+    static bool useBackgroundRender;
 };

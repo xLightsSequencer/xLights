@@ -35,6 +35,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
+		wxCheckBox* ShaderCheckbox;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
 		wxStaticText* StaticText2;
@@ -53,6 +54,7 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE2;
@@ -65,15 +67,7 @@ class OtherSettingsPanel: public wxPanel
         xLightsFrame *frame;
 
 		//(*Handlers(OtherSettingsPanel)
-		void OnExcludeAudioCheckBoxClick(wxCommandEvent& event);
-		void OnExcludePresetsCheckBoxClick(wxCommandEvent& event);
-		void OnHardwareVideoDecodingCheckBoxClick(wxCommandEvent& event);
-		void OneMailTextControlTextEnter(wxCommandEvent& event);
-		void OnChoice_LinkSaveSelect(wxCommandEvent& event);
-		void OnChoice_LinkControllerUploadSelect(wxCommandEvent& event);
-		void OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent& event);
-		void OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event);
-		void OnCheckBox_PurgeDownloadCacheClick(wxCommandEvent& event);
+		void OnControlChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

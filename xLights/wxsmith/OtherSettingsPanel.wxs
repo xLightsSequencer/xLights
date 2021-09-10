@@ -21,7 +21,7 @@
 						<item>Controllers and Layout Tab</item>
 					</content>
 					<selection>0</selection>
-					<handler function="OnChoice_LinkSaveSelect" entry="EVT_CHOICE" />
+					<handler function="OnControlChanged" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>3</row>
@@ -53,8 +53,8 @@
 				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="eMailTextControl" member="yes">
 					<value>noone@nowhere.xlights.org</value>
 					<size>150,-1d</size>
-					<handler function="OneMailTextControlTextEnter" entry="EVT_TEXT" />
-					<handler function="OneMailTextControlTextEnter" entry="EVT_TEXT_ENTER" />
+					<handler function="OnControlChanged" entry="EVT_TEXT" />
+					<handler function="OnControlChanged" entry="EVT_TEXT_ENTER" />
 				</object>
 				<col>1</col>
 				<row>0</row>
@@ -65,12 +65,22 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
 					<label>Hardware Video Decoding</label>
-					<handler function="OnHardwareVideoDecodingCheckBoxClick" entry="EVT_CHECKBOX" />
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
-				<colspan>2</colspan>
 				<col>0</col>
 				<row>1</row>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="ShaderCheckbox" member="yes">
+					<label>Shaders on Background Threads</label>
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+				</object>
+				<col>1</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -82,7 +92,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX2" variable="ExcludePresetsCheckBox" member="yes">
 									<label>Exclude Presets</label>
-									<handler function="OnExcludePresetsCheckBoxClick" entry="EVT_CHECKBOX" />
+									<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 								</object>
 								<col>0</col>
 								<row>0</row>
@@ -93,7 +103,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX3" variable="ExcludeAudioCheckBox" member="yes">
 									<label>Exclude Audio</label>
-									<handler function="OnExcludeAudioCheckBoxClick" entry="EVT_CHECKBOX" />
+									<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 								</object>
 								<col>0</col>
 								<row>1</row>
@@ -106,7 +116,6 @@
 						<option>1</option>
 					</object>
 				</object>
-				<colspan>2</colspan>
 				<col>0</col>
 				<row>2</row>
 				<flag>wxALL|wxALIGN_LEFT</flag>
@@ -119,7 +128,7 @@
 						<item>Inputs and Outputs</item>
 					</content>
 					<selection>0</selection>
-					<handler function="OnChoice_LinkControllerUploadSelect" entry="EVT_CHOICE" />
+					<handler function="OnControlChanged" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>4</row>
@@ -131,7 +140,7 @@
 				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_BatchRenderPromptIssues" member="yes">
 					<label>Prompt issues during batch render</label>
 					<checked>1</checked>
-					<handler function="OnCheckBox_BatchRenderPromptIssuesClick" entry="EVT_CHECKBOX" />
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
 				<row>5</row>
@@ -142,10 +151,10 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_IgnoreVendorModelRecommendations" member="yes">
 					<label>Ignore vendor model recommendations</label>
-					<handler function="OnCheckBox_IgnoreVendorModelRecommendationsClick" entry="EVT_CHECKBOX" />
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>6</row>
+				<row>7</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -153,10 +162,10 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_PurgeDownloadCache" member="yes">
 					<label>Purge download cache at startup</label>
-					<handler function="OnCheckBox_PurgeDownloadCacheClick" entry="EVT_CHECKBOX" />
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>7</row>
+				<row>6</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>

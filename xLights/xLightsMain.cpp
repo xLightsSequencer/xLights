@@ -77,6 +77,7 @@
 #include "models/SubModel.h"
 #include "effects/FacesEffect.h"
 #include "effects/StateEffect.h"
+#include "effects/ShaderEffect.h"
 #include "ShaderDownloadDialog.h"
 #include "CheckboxSelectDialog.h"
 #include "EmailDialog.h"
@@ -1429,7 +1430,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
         ObtainAccessToURL(md);
         mediaDirectories.push_back(md);
     } else if (config->Read(_("MediaDir"), &md)) {
-        wxArrayString entries = wxSplit(md, '|');
+        wxArrayString entries = wxSplit(md, '|', '\0');
         for (auto & dir : entries) {
             ObtainAccessToURL(dir.ToStdString());
             mediaDirectories.push_back(dir.ToStdString());
@@ -1742,6 +1743,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
 #endif
+
+    bool bgShaders = false;
+    config->Read(_("xLightsShadersOnBackgroundThreads"), &bgShaders, false);
+    ShaderEffect::SetBackgroundRender(bgShaders);
 
     DrawingContext::Initialize(this);
 
@@ -9926,6 +9931,15 @@ void xLightsFrame::SetHardwareVideoAccelerated(bool b)
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
+}
+
+bool xLightsFrame::ShadersOnBackgroundThreads() const {
+    return ShaderEffect::IsBackgroundRender();
+}
+void xLightsFrame::SetShadersOnBackgroundThreads(bool b) {
+    ShaderEffect::SetBackgroundRender(b);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsShadersOnBackgroundThreads", b);
 }
 
 void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)

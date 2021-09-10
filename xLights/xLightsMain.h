@@ -1081,6 +1081,10 @@ public:
     bool HardwareVideoAccelerated() const { return _hwVideoAccleration; }
     void SetHardwareVideoAccelerated(bool b);
 
+    bool ShadersOnBackgroundThreads() const;
+    void SetShadersOnBackgroundThreads(bool b);
+
+
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
 

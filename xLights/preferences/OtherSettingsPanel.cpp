@@ -30,6 +30,7 @@ const long OtherSettingsPanel::ID_CHOICE1 = wxNewId();
 const long OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
 const long OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
@@ -67,7 +68,10 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	GridBagSizer1->Add(eMailTextControl, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	HardwareVideoDecodingCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Hardware Video Decoding"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	HardwareVideoDecodingCheckBox->SetValue(false);
-	GridBagSizer1->Add(HardwareVideoDecodingCheckBox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 5);
+	GridBagSizer1->Add(HardwareVideoDecodingCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	ShaderCheckbox = new wxCheckBox(this, ID_CHECKBOX7, _("Shaders on Background Threads"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	ShaderCheckbox->SetValue(false);
+	GridBagSizer1->Add(ShaderCheckbox, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Packaging Sequences"));
 	GridBagSizer2 = new wxGridBagSizer(0, 0);
 	ExcludePresetsCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Exclude Presets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
@@ -77,7 +81,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	ExcludeAudioCheckBox->SetValue(false);
 	GridBagSizer2->Add(ExcludeAudioCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT, 0);
+	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT, 0);
 	Choice_LinkControllerUpload = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	Choice_LinkControllerUpload->SetSelection( Choice_LinkControllerUpload->Append(_("None")) );
 	Choice_LinkControllerUpload->Append(_("Inputs and Outputs"));
@@ -87,29 +91,33 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 	GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
-	GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	CheckBox_PurgeDownloadCache = new wxCheckBox(this, ID_CHECKBOX6, _("Purge download cache at startup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	CheckBox_PurgeDownloadCache->SetValue(false);
-	GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnChoice_LinkSaveSelect);
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OtherSettingsPanel::OneMailTextControlTextEnter);
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&OtherSettingsPanel::OneMailTextControlTextEnter);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnHardwareVideoDecodingCheckBoxClick);
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludePresetsCheckBoxClick);
-	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnExcludeAudioCheckBoxClick);
-	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnChoice_LinkControllerUploadSelect);
-	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick);
-	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick);
-	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnCheckBox_PurgeDownloadCacheClick);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
 	//*)
 
 
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
+#endif
+#ifndef __WXMSW__
+    ShaderCheckbox->Hide();
 #endif
 }
 
@@ -122,6 +130,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetExcludeAudioFromPackagedSequences(ExcludeAudioCheckBox->IsChecked());
     frame->SetExcludePresetsFromPackagedSequences(ExcludePresetsCheckBox->IsChecked());
     frame->SetHardwareVideoAccelerated(HardwareVideoDecodingCheckBox->IsChecked());
+    frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
     frame->SetUserEMAIL(eMailTextControl->GetValue());
 	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
@@ -135,6 +144,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     ExcludeAudioCheckBox->SetValue(frame->ExcludeAudioFromPackagedSequences());
     ExcludePresetsCheckBox->SetValue(frame->ExcludePresetsFromPackagedSequences());
     HardwareVideoDecodingCheckBox->SetValue(frame->HardwareVideoAccelerated());
+    ShaderCheckbox->SetValue(frame->ShadersOnBackgroundThreads());
     eMailTextControl->SetValue(frame->UserEMAIL());
 	Choice_LinkSave->SetStringSelection(frame->LinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->LinkedControllerUpload());
@@ -152,65 +162,9 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	return true;
 }
 
-void OtherSettingsPanel::OnExcludeAudioCheckBoxClick(wxCommandEvent& event)
+void OtherSettingsPanel::OnControlChanged(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
-}
-
-void OtherSettingsPanel::OnExcludePresetsCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OtherSettingsPanel::OnHardwareVideoDecodingCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OtherSettingsPanel::OneMailTextControlTextEnter(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OtherSettingsPanel::OnChoice_LinkSaveSelect(wxCommandEvent& event)
-{
-	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-		TransferDataFromWindow();
-	}
-}
-
-void OtherSettingsPanel::OnChoice_LinkControllerUploadSelect(wxCommandEvent& event)
-{
-	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-		TransferDataFromWindow();
-	}
-}
-
-void OtherSettingsPanel::OnCheckBox_BatchRenderPromptIssuesClick(wxCommandEvent& event)
-{
-	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-		TransferDataFromWindow();
-	}
-}
-
-void OtherSettingsPanel::OnCheckBox_IgnoreVendorModelRecommendationsClick(wxCommandEvent& event)
-{
-	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-		TransferDataFromWindow();
-	}
-}
-
-void OtherSettingsPanel::OnCheckBox_PurgeDownloadCacheClick(wxCommandEvent& event)
-{
-	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-		TransferDataFromWindow();
-	}
 }

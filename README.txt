@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp) email entry field not being saved on OSX unless some other setting also is changed
+   -- bug (dkulp) UNC style paths for Media/Resouce directories had the first \ stripped off (and thus didn't work)
+   -- enh (dkulp) Add "Shaders on Background Thread" setting (Other panel in preferences) on Windows to enable running shaders on the render thread.  Defaults to off.
    -- bug (kevin) Hopefully reduce some crashing on Windows associated with shader effect
 2021.28 September 7, 2021
    -- enh (keith) Add a check sequence warning about data layers which are uncommonly used
