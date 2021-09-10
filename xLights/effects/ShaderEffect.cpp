@@ -39,6 +39,7 @@
     extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
     extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
     extern PFNGLUSEPROGRAMPROC glUseProgram;
+    extern PFNGLISPROGRAMPROC glIsProgram;
     extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
     extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
     extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
@@ -78,7 +79,11 @@
 #include <wx/regex.h>
 
 #include <log4cpp/Category.hh>
+
 #include <fstream>
+#include <map>
+#include <mutex>
+#include <string>
 
 namespace
 {
@@ -628,9 +633,10 @@ public:
                                  unsigned s_rbTex,
                                  unsigned s_audioTex,
                                  unsigned s_programId) {
-        if (s_programId) {
-            LOG_GL_ERRORV(glDeleteProgram(s_programId));
-        }
+        // temp? - ShaderRenderCache instances can share a common program instance
+        //if (s_programId) {
+        //    LOG_GL_ERRORV(glDeleteProgram(s_programId));
+        //}
         if (s_vertexArrayId) {
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
         }
@@ -872,10 +878,16 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         return;
     }
 
-    ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
-    if (cache == nullptr) {
+    ShaderRenderCache* cache = nullptr;
+    std::map<int, EffectRenderCache*>::iterator iter = buffer.infoCache.find(id);
+    if (iter == buffer.infoCache.end())
+    {
         cache = new ShaderRenderCache();
         buffer.infoCache[id] = cache;
+    }
+    else
+    {
+        cache = reinterpret_cast<ShaderRenderCache*>((*iter).second);
     }
 
     // This object has all the data from the json in the .fs file
@@ -885,7 +897,6 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     unsigned& s_vertexBufferId = cache->s_vertexBufferId;
     unsigned& s_fbId = cache->s_fbId;
     unsigned& s_rbId = cache->s_rbId;
-    unsigned& s_programId = cache->s_programId;
     unsigned& s_rbTex = cache->s_rbTex;
     unsigned& s_audioTex = cache->s_audioTex;
     int& s_rbWidth = cache->s_rbWidth;
@@ -914,17 +925,15 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     else     {
         zoom = 1.0;
     }
+
+    unsigned programId = 0u;
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            if (_shaderConfig != nullptr) {
-                recompileFromShaderConfig(_shaderConfig, s_programId);
-                if (s_programId != 0) {
-                    logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
-                }
-            }
+            programId = cache->s_programId = programIdForShaderCode(_shaderConfig);
         } else {
             logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
@@ -933,6 +942,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
             setRenderBufferAll(buffer, xlYELLOW);
             return;
         }
+        programId = cache->s_programId = programIdForShaderCode(_shaderConfig);
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
@@ -941,7 +951,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         setRenderBufferAll(buffer, xlRED);
         UnsetGLContext(cache);
         return;
-    } else if (s_programId == 0) {
+    } else if (programId == 0u) {
         setRenderBufferAll(buffer, xlYELLOW);
         UnsetGLContext(cache);
         return;
@@ -993,7 +1003,6 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
 
-    GLuint programId = s_programId;
     LOG_GL_ERRORV(glUseProgram(programId));
 
     int colourIndex = 0;
@@ -1247,18 +1256,50 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         s_rbHeight = rb.BufferHt;
     }
 }
-void ShaderEffect::recompileFromShaderConfig(ShaderConfig* cfg, unsigned& s_programId)
+
+namespace
+{
+    typedef std::map<std::string, unsigned> FragmentShaderMap;
+    FragmentShaderMap shaderMap;
+    std::mutex shaderMapMutex;
+}
+unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (s_programId != 0) {
-        LOG_GL_ERRORV(glUseProgram(0));
-        LOG_GL_ERRORV(glDeleteProgram(s_programId));
-        s_programId = 0;
+
+    if (cfg == nullptr)
+    {
+        logger_base.error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
+        return 0u;
     }
-    s_programId = OpenGLShaders::compile(vsSrc, cfg->GetCode());
-    if (s_programId == 0) {
-        logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+
+    std::lock_guard<std::mutex> lock(shaderMapMutex);
+    std::string fragmentShaderSrc(cfg->GetCode());
+    FragmentShaderMap::const_iterator iter = shaderMap.find(fragmentShaderSrc);
+    if (iter != shaderMap.cend())
+    {
+        unsigned programId = (*iter).second;
+        if (!glIsProgram(programId))
+        {
+            logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
+            shaderMap.erase(iter);
+        }
+        else
+        {
+            //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
+            return programId;
+        }
     }
+
+    unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
+    if (programId == 0u) {
+        logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+    }
+    else {
+        logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
+        shaderMap[fragmentShaderSrc] = programId;
+    }
+    return programId;
 }
 
 wxString SafeFloat(const wxString& s)
