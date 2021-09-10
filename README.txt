@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin) Hopefully reduce some crashing on Windows associated with shader effect
 2021.28 September 7, 2021
    -- enh (keith) Add a check sequence warning about data layers which are uncommonly used
    -- enh (keith) Have face effect use the first assigned face on a model if the effect is calling for a face that is not on the model
