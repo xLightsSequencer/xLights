@@ -2067,7 +2067,7 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
     for (size_t i = 0; i < _dataModel->GetChildCount(); i++) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping()) {
-            f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" />\n", m->_model, m->_mapping));
+            f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, m->_mapping));
         }
     }
 
