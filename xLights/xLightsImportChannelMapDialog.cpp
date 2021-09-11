@@ -134,7 +134,6 @@ public:
 
 wxColourData ColorRenderer::_colorData;
 
-
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
 }
@@ -1030,8 +1029,18 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         }
     }
 
-    wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap;*.xmaphint)|*.xmap;*.xmaphint|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
+
+        if (dlg.GetPath().Lower().EndsWith(".xmaphint")) 
+        {
+            loadMapHintsFile(dlg.GetPath());
+            TreeListCtrl_Mapping->Refresh();
+            _dirty = false;
+            MarkUsed();
+            return;
+        }
+
         _mappingFile = dlg.GetPath();
         _dataModel->ClearMapping();
 
@@ -1166,8 +1175,13 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Mapping Files (*.xmap)|*.xmap|xMapHint (*.xmaphint)|*.xmaphint|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.GetPath().Lower().EndsWith(".xmaphint")) {
+            generateMapHintsFile(dlg.GetPath());
+            return;
+        }
+
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString("false\n");
@@ -1809,8 +1823,7 @@ bool xLightsImportChannelMapDialog::AnyStashedMappingExists(wxString modelName, 
     return false;
 }
 
-wxString AggressiveAutomap(const wxString& name)
-{
+wxString xLightsImportChannelMapDialog::AggressiveAutomap(const wxString& name) {
     wxString s = name;
 
     s.Replace(" ", "");
@@ -1913,35 +1926,8 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
 
-    auto norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
     DoAutoMap(norm, norm, norm, "", "", "B");
-
-    auto aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B");
-
-    auto regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
-
-        static wxRegEx r;
-        static std::string lastRegex;
-
-        if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower()) return false;
-
-        // create a regex from extra
-        if (pattern != lastRegex)             {
-            r.Compile(pattern, wxRE_ADVANCED | wxRE_ICASE);
-            lastRegex = pattern;
-        }
-
-        // run is against s ... return true if it matches
-        if (r.IsValid()) {
-            return (r.Matches(s));
-        }
-        return false;
-    };
-
-    // <MapHints>
-    //  <Map ToRegex"" FromModel="" />
-    // </MapHints>
 
     auto maphints = xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints";
     if (wxDir::Exists(maphints)) {
@@ -1949,20 +1935,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
         wxString filename;
         bool cont = dir.GetFirst(&filename, "*.xmaphint", wxDIR_FILES);
         while (cont) {
-            wxXmlDocument doc;
-            doc.Load(xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints" + wxFileName::GetPathSeparator() + filename);
-            if (doc.IsOk()) {
-                for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName().Lower() == "map") {
-                        auto toRegex = n->GetAttribute("ToRegex");
-                        auto fromModel = n->GetAttribute("FromModel");
-                        auto applyTo = n->GetAttribute("ApplyTo", "B");
-                        if (toRegex != "" && fromModel != "") {
-                            DoAutoMap(regex, norm, norm, toRegex, fromModel, applyTo);
-                        }
-                    }
-                }
-            }
+            loadMapHintsFile(xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints" + wxFileName::GetPathSeparator() + filename);
             cont = dir.GetNext(&filename);
         }
     }
@@ -2057,4 +2030,47 @@ void xLightsImportChannelMapDialog::LoadAvailableGroups() {
             }
         }
     }
+}
+
+
+void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
+    // <MapHints>
+    //  <Map ToRegex"" FromModel="" />
+    // </MapHints>
+
+    wxXmlDocument doc;
+    doc.Load(filename);
+    if (doc.IsOk()) {
+        for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+            if (n->GetName().Lower() == "map") {
+                auto toRegex = n->GetAttribute("ToRegex");
+                auto fromModel = n->GetAttribute("FromModel");
+                auto applyTo = n->GetAttribute("ApplyTo", "B");
+                if (toRegex != "" && fromModel != "") {
+                    DoAutoMap(regex, norm, norm, toRegex, fromModel, applyTo);
+                }
+            }
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filename) {
+    //create basic xmaphints file
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    }
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<MapHints>\n");
+
+    for (size_t i = 0; i < _dataModel->GetChildCount(); i++) {
+        xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+        if (m->HasMapping()) {
+            f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" />\n", m->_model, m->_mapping));
+        }
+    }
+
+    f.Write("</MapHints>");
+    f.Close();
 }

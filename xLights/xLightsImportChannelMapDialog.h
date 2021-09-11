@@ -469,8 +469,36 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
             const std::string& extra1, const std::string& extra2, const std::string& extra3);
 
+        void loadMapHintsFile(wxString const& filename);
+        void generateMapHintsFile(wxString const& filename);
+
+        static wxString AggressiveAutomap(const wxString& name);
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
+            static wxRegEx r;
+            static std::string lastRegex;
+
+            if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower())
+                return false;
+
+            // create a regex from extra
+            if (pattern != lastRegex) {
+                r.Compile(pattern, wxRE_ADVANCED | wxRE_ICASE);
+                lastRegex = pattern;
+            }
+
+            // run is against s ... return true if it matches
+            if (r.IsValid()) {
+                return (r.Matches(s));
+            }
+            return false;
+        };
+
         SequencePackage* _xsqPkg = nullptr;
         std::vector<std::string> _availableGroups;
 
 		DECLARE_EVENT_TABLE()
+
+        
 };
