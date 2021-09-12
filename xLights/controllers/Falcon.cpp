@@ -650,7 +650,7 @@ int Falcon::V4_GetBoardPorts(int boardMode)
 
 int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
 {
-    if (V4_GetBoardPorts(boardMode) >= 32) {
+    if (V4_GetBoardPorts(boardMode) > 32) {
         switch (protocol) {
         case V4_PIXEL_PROTOCOL_APA102:
         case V4_PIXEL_PROTOCOL_TM1814:

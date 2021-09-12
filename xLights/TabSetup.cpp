@@ -2163,7 +2163,7 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 
     SetCursor(wxCURSOR_WAIT);
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    logger_base.debug("Uploading controller outputs to" + name);
+    logger_base.debug("Uploading controller outputs to " + name);
 
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
