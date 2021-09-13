@@ -2070,6 +2070,11 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
             f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, m->_mapping));
         }
     }
+    f.Write("<!-- Samples\n");
+    f.Write("    <Map ToRegex=\"^Star(s?)(\\sGroup)?$\" FromModel=\"Star\" ApplyTo=\"B\" />\n");
+    f.Write("    <Map ToRegex=\"(.*Mega|^Pixel)\\sTree$\" FromModel=\"Mega Tree\" ApplyTo=\"M\" />\n");
+    f.Write("    <Map ToRegex=\"(^ALL|^Whole)\\sHouse$\" FromModel=\"ALL House\" ApplyTo=\"G\" />\n");
+    f.Write("-->\n");
 
     f.Write("</MapHints>");
     f.Close();
