@@ -432,7 +432,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     while (success && left > 0) {
 
         // a board mode of 255 means dont change anything
-        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":0,\"A\":[", addressingMode, 255, startChannel).ToStdString();
+        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-1,\"A\":[", addressingMode, 255, startChannel).ToStdString();
 
         for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
             if (batch != 0 || i != 0) params += ",";
@@ -738,7 +738,7 @@ void Falcon::V4_WaitForReboot(const std::string& name, wxWindow* parent)
     }
 }
 
-bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
+bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -785,7 +785,20 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
         }
         return true;
     }
-    else if (protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) {
+
+    return true;
+}
+
+bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!V4_SetInputMode(controller, parent))         {
+        return false;
+    }
+
+    auto protocol = controller->GetProtocol();
+    if (protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) {
 
         auto outputs = controller->GetOutputs();
 
@@ -1153,6 +1166,11 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
         DisplayError("Not uploaded due to errors.\n" + check);
         check = "";
+        if (doProgress) progress->Update(100, "Aborting.");
+        return false;
+    }
+
+    if (!V4_SetInputMode(controller, parent)) {
         if (doProgress) progress->Update(100, "Aborting.");
         return false;
     }

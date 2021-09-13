@@ -161,19 +161,19 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
     if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP) {
         if (_type == OUTPUT_ZCPP) {
             auto zo = new ZCPPOutput();
-            zo->SetId(oldoutputs.front()->GetUniverse());
             _outputs.push_back(zo);
+            zo->SetId(oldoutputs.front()->GetUniverse());
             SetId(zo->GetId());
         }
         else if (_type == OUTPUT_DDP) {
             auto ddpo = new DDPOutput();
+            _outputs.push_back(ddpo);
             if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
                 ddpo->SetId(_outputManager->UniqueId());
             }
             else {
                 ddpo->SetId(oldoutputs.front()->GetUniverse());
             }
-            _outputs.push_back(ddpo);
             SetId(ddpo->GetId());
         }
         _outputs.front()->SetChannels(totchannels);

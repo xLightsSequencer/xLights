@@ -83,9 +83,9 @@ public:
     }
     bool IsChannelOn(long ch) const
     {
-        for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
+        for (const auto& it : _ranges)
         {
-            if (ch >= GetStart(*it) && ch <= GetEnd(*it)) return true;
+            if (ch >= GetStart(it) && ch <= GetEnd(it)) return true;
         }
 
         return false;
@@ -122,10 +122,10 @@ public:
         // Assumes ranges are sorted
         if (_lastReturnedChannel == -1) return -1;
 
-        for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
+        for (const auto& it : _ranges)
         {
-            long s = GetStart(*it);
-            long e = GetEnd(*it);
+            long s = GetStart(it);
+            long e = GetEnd(it);
 
             _lastReturnedChannel++;
 
@@ -144,10 +144,10 @@ public:
 
     long GetChannelAfter(long ch)
     {
-        for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
+        for (const auto& it : _ranges)
         {
-            long s = GetStart(*it);
-            long e = GetEnd(*it);
+            long s = GetStart(it);
+            long e = GetEnd(it);
 
             ch++;
             if (s <= ch && e >= ch) return ch;
