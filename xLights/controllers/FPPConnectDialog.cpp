@@ -944,11 +944,15 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                                     std::string m2 = media;
                                     std::string rowStr = std::to_string(row);
                                     if (!GetCheckValue(MEDIA_COL + rowStr)) {
+                                        if (m2 != "") {
+                                            logger_base.debug("Media file %s not uploaded because media checkbox not selected.", (const char*)m2.c_str());
+                                        }
                                         m2 = "";
                                     }
                                     cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, &prgs);
                                 }
                                 else {
+                                    logger_base.debug("Upload failed as FxxV4 is not connected.");
                                     cancelled = true;
                                 }
                                 inst->ClearTempFile();
