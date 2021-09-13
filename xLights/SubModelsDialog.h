@@ -110,6 +110,8 @@ class SubModelsDialog : public wxDialog
 public:
     std::vector<SubModelInfo*> _subModels;
 
+    bool ReloadLayout = false;
+
     SubModelsDialog(wxWindow* parent);
     virtual ~SubModelsDialog();
 
@@ -190,6 +192,7 @@ protected:
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
     static const long SUBMODEL_DIALOG_EXPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
+    static const long SUBMODEL_DIALOG_EXPORT_TOOTHERS;
     static const long SUBMODEL_DIALOG_GENERATE;
     static const long SUBMODEL_DIALOG_SHIFT;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
@@ -198,6 +201,7 @@ protected:
     static const long SUBMODEL_DIALOG_JOIN;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
 
+    void SaveXML(Model* m);
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
     wxString GetSelectedNames();
@@ -238,6 +242,7 @@ protected:
     wxArrayString getModelList(ModelManager* modelManager);
     void ExportSubModels(wxString const& filename);
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
+    void ExportSubmodelToOtherModels();
 
     void JoinSelectedModels();
     void SortSubModelsByName();

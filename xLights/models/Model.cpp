@@ -311,6 +311,13 @@ public:
             SetValue(v);
             return true;
         }
+        if (dlg.ReloadLayout) {//force grid to reload
+            wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+            wxPostEvent(m_model->GetModelManager().GetXLightsFrame(), eventForceRefresh);
+            m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::SubModelsDialog::SubModels");
+            m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SubModelsDialog::SubModels");
+            m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+        }
         return false;
     }
 protected:
@@ -5417,7 +5424,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     wxString modelName = doc.GetRoot()->GetAttribute("name", "");
 #ifdef __WXMSW__
                     // If a windows user does not want vendor recommendations then dont go looking for them at all
-                    // I have allowed this to be off (ie it does the vendor recommendation check) by default but once 
+                    // I have allowed this to be off (ie it does the vendor recommendation check) by default but once
                     // the user has decided they dont want it then treat them like an adult
                     if (!xlights->GetIgnoreVendorModelRecommendations()) {
 #endif

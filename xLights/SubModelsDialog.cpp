@@ -88,6 +88,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_GENERATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
@@ -478,8 +479,13 @@ int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
 
 void SubModelsDialog::Save()
 {
+    SaveXML(model);
+}
+
+void SubModelsDialog::SaveXML(Model *m)
+{
     xLightsFrame* xlights = xLightsApp::GetFrame();
-    wxXmlNode * root = model->GetModelXml();
+    wxXmlNode * root = m->GetModelXml();
     wxXmlNode * child = root->GetChildren();
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
@@ -502,7 +508,7 @@ void SubModelsDialog::Save()
         // If the submodel name has changed ... we need to rename the model
         if ((*a)->oldName != (*a)->name)
         {
-            xlights->RenameModel(model->GetName() + std::string("/") + (*a)->oldName.ToStdString(), model->GetName() + std::string("/") + (*a)->name.ToStdString());
+            xlights->RenameModel(m->GetName() + std::string("/") + (*a)->oldName.ToStdString(), m->GetName() + std::string("/") + (*a)->name.ToStdString());
         }
 
         if ((*a)->isRanges) {
@@ -521,7 +527,7 @@ void SubModelsDialog::Save()
         submodelOrder.push_back((*it)->name);
     }
 
-    xlights->EnsureSequenceElementsAreOrderedCorrectly(model->GetName(), submodelOrder);
+    xlights->EnsureSequenceElementsAreOrderedCorrectly(m->GetName(), submodelOrder);
 }
 
 #pragma region actions
@@ -679,6 +685,7 @@ void SubModelsDialog::OnButton_ExportClick(wxCommandEvent& event)
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
         mnu.Append(SUBMODEL_DIALOG_EXPORT_XMODEL, "Export SubModel As xModel");
     }
+    mnu.Append(SUBMODEL_DIALOG_EXPORT_TOOTHERS, "Export SubModels To Other Model(s)");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnExportBtnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -752,6 +759,10 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
         if (filename.IsEmpty()) return;
 
         ExportSubModelAsxModel(filename, name);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_EXPORT_TOOTHERS)
+    {
+        ExportSubmodelToOtherModels();
     }
 }
 
@@ -833,10 +844,10 @@ void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
 
 void SubModelsDialog::OnChoiceBufferStyleSelect(wxCommandEvent& event)
 {
-	SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-	if (sm != nullptr) {
-		sm->bufferStyle = ChoiceBufferStyle->GetStringSelection();
-	}
+    SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
+    if (sm != nullptr) {
+        sm->bufferStyle = ChoiceBufferStyle->GetStringSelection();
+    }
 }
 
 void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
@@ -1240,7 +1251,7 @@ void SubModelsDialog::DisplayRange(const wxString &range)
     model->DisplayEffectOnWindow(modelPreview, 2);
 }
 
-void SubModelsDialog::ClearNodeColor(Model *m) 
+void SubModelsDialog::ClearNodeColor(Model *m)
 {
     xlColor c(xlDARK_GREY);
     int nn = m->GetNodeCount();
@@ -2797,10 +2808,34 @@ void SubModelsDialog::JoinSelectedModels()
 
 void SubModelsDialog::SortSubModelsByName()
 {
-	std::sort(std::begin(_subModels), std::end(_subModels), [](SubModelInfo* a, SubModelInfo* b) {
+    std::sort(std::begin(_subModels), std::end(_subModels), [](SubModelInfo* a, SubModelInfo* b) {
         return (wxStringNumberAwareStringCompare((*a).name, (*b).name) == -1);
-	});
+    });
 
-	PopulateList();
-	ValidateWindow();
+    PopulateList();
+    ValidateWindow();
+}
+
+void SubModelsDialog::ExportSubmodelToOtherModels()
+{
+    if (wxMessageBox("Are you sure you want to Export this models SubModels to Other Models\nThis will override all the other Models existing SubModels and There is no way to undo it?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    wxArrayString choices = getModelList(&xlights->AllModels);
+
+    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Export SubModels", choices);
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        for (auto const& idx : dlg.GetSelections()) {
+            Model* m = xlights->GetModel(choices.at(idx));
+            SaveXML(m);
+            for (auto& it : m->GetSubModels()) {
+                it->IncrementChangeCount();
+            }
+            m->IncrementChangeCount();
+            ReloadLayout = true;
+        }
+    }
 }
