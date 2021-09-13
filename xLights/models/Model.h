@@ -21,6 +21,7 @@
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
 #include <wx/gdicmn.h>
+#include <wx/propgrid/props.h>
 
 class wxProgressDialog;
 class DimmingCurve;
@@ -52,6 +53,18 @@ enum {
     GRIDCHANGE_SUPPRESS_HOLDSIZE = 0x00020,
 
     //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+};
+
+// only allows 0-9,- characters
+class wxDropPatternProperty : public wxStringProperty
+{
+public:
+    wxDropPatternProperty(const wxString& label = wxPG_LABEL,
+        const wxString& name = wxPG_LABEL,
+        const wxString& value = wxEmptyString
+    ) : wxStringProperty(label, name, value)
+    { }
+    virtual bool ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const override;
 };
 
 class Model : public BaseObject
