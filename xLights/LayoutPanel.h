@@ -528,9 +528,6 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_ADD_MODEL_GROUP;
         static const long ID_MNU_ADD_TO_EXISTING_GROUPS;
         void OnModelsPopup(wxCommandEvent& event);
-
-
-
         LayoutGroup* GetLayoutGroup(const std::string& name);
 		const wxString& GetBackgroundImageForSelectedPreview();
         void SwitchChoiceToCurrentLayoutGroup();
