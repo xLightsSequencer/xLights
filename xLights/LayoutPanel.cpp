@@ -829,7 +829,7 @@ void LayoutPanel::SaveModelsListColumns()
             }
         }
     }
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutModelListCols", colOrder);
 }
@@ -1803,10 +1803,10 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;
-    } 
+    }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL;
-    } 
+    }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT;
     }
@@ -4485,7 +4485,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE || 
+        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT
         )
@@ -5813,7 +5813,7 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
         t = "Custom";
     }
     std::string startChannel = xlights->AllModels.GenerateNewStartChannel( lastModelName );
-    
+
     Model* m = xlights->AllModels.CreateDefaultModel(t, startChannel);
 
     return m;
@@ -6099,6 +6099,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         break;
 #endif
         case WXK_DELETE:
+        case WXK_BACK:
 #ifndef __WXOSX__
             if (event.ShiftDown()) // Cut
             {
@@ -6108,20 +6109,21 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             }
             else
 #endif
-				if (editing_models)
-					DeleteSelectedModels();
-				else
-					DeleteSelectedObject();
+                if (editing_models)
+                {
+                    if (selectedTreeGroups.size() > 0) {
+                        DeleteSelectedGroups();
+                    }
+                    else {
+                        DeleteSelectedModels();
+                    }
+                }
+                else
+                {
+                    DeleteSelectedObject();
+                }
             event.StopPropagation();
             break;
-        case WXK_BACK:
-			if (editing_models)
-				DeleteSelectedModels();
-			else
-				DeleteSelectedObject();
-            event.StopPropagation();
-            break;
-
         case WXK_UP:
         case WXK_DOWN:
         case WXK_LEFT:
@@ -6232,6 +6234,37 @@ void LayoutPanel::DeleteSelectedModels() {
 void LayoutPanel::DeleteSelectedObject()
 {
     objects_panel->DeleteSelectedObject();
+}
+
+void LayoutPanel::DeleteSelectedGroups()
+{
+	wxArrayString groupsToDelete;
+	wxString groupsToConfirm = "";
+	for (const auto& item : selectedTreeGroups) {
+		if (item.IsOk()) {
+			wxString groupName = TreeListViewModels->GetItemText(item);
+			groupsToDelete.Add(groupName);
+			groupsToConfirm = groupsToConfirm + wxString::Format("%s- %s\n", "    ", groupName);
+		}
+	}
+
+	wxString const namesToDelete = wxJoin(groupsToDelete, ',');
+
+	if (wxMessageBox("Are you sure you want to delete the following group(s)?:\n\n" + groupsToConfirm, "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+
+		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
+
+		xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+		for (const auto& it : groupsToDelete) {
+			xlights->AllModels.Delete(it.ToStdString());
+		}
+		UnSelectAllModels();
+
+		xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+		xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+		xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+		xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_MNU_DELETE_MODEL_GROUP");
+	}
 }
 
 void LayoutPanel::ReplaceModel()
@@ -7053,34 +7086,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     else if (id == ID_MNU_DELETE_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
-
-        wxArrayString groupsToDelete;
-        wxString groupsToConfirm = "";
-        for (const auto& item : selectedTreeGroups) {
-            if (item.IsOk()) {
-                wxString groupName = TreeListViewModels->GetItemText(item);
-                groupsToDelete.Add(groupName);
-                groupsToConfirm = groupsToConfirm + wxString::Format("%s- %s\n", "    ", groupName);
-            }
-        }
-
-        wxString namesToDelete = wxJoin(groupsToDelete, ',');
-
-        if (wxMessageBox("Are you sure you want to delete the following group(s)?:\n\n" + groupsToConfirm, "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-
-            CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
-
-            xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-            for (const auto& it: groupsToDelete) {
-                xlights->AllModels.Delete(it.ToStdString());
-            }
-            UnSelectAllModels();
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_MNU_DELETE_MODEL_GROUP");
-        }
+        DeleteSelectedGroups();
     }
     else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS)
     {
