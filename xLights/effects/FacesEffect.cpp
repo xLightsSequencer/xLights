@@ -1217,7 +1217,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
         else {
             if (buffer.palette.Size() > colorOffset + 4) {
-                buffer.palette.GetColor(colorOffset + 4, color); //use sizth colour
+                buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
