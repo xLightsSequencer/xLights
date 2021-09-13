@@ -2818,7 +2818,7 @@ void SubModelsDialog::SortSubModelsByName()
 
 void SubModelsDialog::ExportSubmodelToOtherModels()
 {
-    if (wxMessageBox("Are you sure you want to Export this models SubModels to Other Models\nThis will override all the other Models existing SubModels and There is no way to undo it?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+    if (wxMessageBox("Are you sure you want to Export this models SubModels to Other Models?\nThis will override all the other Models existing SubModels and There is no way to undo it", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
     xLightsFrame* xlights = xLightsApp::GetFrame();
