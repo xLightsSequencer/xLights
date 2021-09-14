@@ -432,7 +432,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     while (success && left > 0) {
 
         // a board mode of 255 means dont change anything
-        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-1,\"A\":[", addressingMode, 255, startChannel).ToStdString();
+        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-10,\"A\":[", addressingMode, 255, startChannel).ToStdString();
 
         for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
             if (batch != 0 || i != 0) params += ",";
@@ -747,7 +747,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent)
         _v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPREMOTE) {
 
         auto sc = controller->GetStartChannel();
-        if (_v4status["ps"].AsInt() != sc) {
+        if (_v4status["ps"].AsInt() + 1 != sc) {
             bool reboot = false;
             logger_base.debug("Controller in Player/Master/Remote mode. Setting controller start channel: %lu", sc);
             if (Falcon::V4_SendBoardMode(_v4status["B"].AsInt(), _v4status["O"].AsInt(), sc, reboot)) {
@@ -772,7 +772,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent)
         DDPOutput* ddp = dynamic_cast<DDPOutput*>(controller->GetOutput(0));
 
         size_t ddpStart = ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1;
-        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_DDP || _v4status["ps"].AsInt() != ddpStart) {
+        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_DDP || _v4status["ps"].AsInt() + 1 != ddpStart) {
             logger_base.debug("Setting controller to DDP. Start channel: %lu", ddpStart);
             bool reboot = false;
             if (Falcon::V4_SendBoardMode(_v4status["B"].AsInt(), V4_CONTROLLERMODE_DDP, ddpStart, reboot)) {
@@ -808,7 +808,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
         }
 
         auto sc = controller->GetStartChannel();
-        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_E131_ARTNET || _v4status["ps"].AsInt() != sc) {
+        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_E131_ARTNET || _v4status["ps"].AsInt() + 1 != sc) {
 
             logger_base.debug("Setting controller to E131/ArtNET. Start channel: %lu", sc);
             bool reboot = false;
@@ -1239,7 +1239,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         if (_v4status["B"].AsInt() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0"))) {
             // we need to change the board mode - controller mode and start channel should be already set
             bool reboot = false;
-            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].AsInt(), _v4status["ps"].AsInt(), reboot)) {
+            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].AsInt(), _v4status["ps"].AsInt() + 1, reboot)) {
                 DisplayError("Falcon Outputs Upload: Failed to set board mode.", parent);
                 if (doProgress) progress->Update(100, "Aborting.");
                 return false;

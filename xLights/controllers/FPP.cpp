@@ -3148,7 +3148,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
         if (supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s", res->ip.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s : %s", (const char*)res->ip.c_str(), (const char*)res->ranges.c_str());
             FPP *fpp = nullptr;
 
             for (auto f : instances) {
