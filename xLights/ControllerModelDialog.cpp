@@ -2586,15 +2586,25 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         }
     }
 
+    // Not a fan of this code here but I dont have a better place for it right now
+    std::string special;
+    if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
+        if (m->GetSmartRemote() != 0) {
+            int port4 = m->GetControllerPort();
+            int port16 = (m->GetControllerPort() - 1) * 4 + m->GetSmartRemote();
+            special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d\nHinksPix 4 Port Long Range Port : %d", port16, port4).ToStdString();
+        }
+    }
+
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\n%sPort: %d\nProtocol: %s%s%s%s",
+        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), usc,
             m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     } else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s",
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, universe, m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     }
 }
 
