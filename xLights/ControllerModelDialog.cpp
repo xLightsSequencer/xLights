@@ -2591,7 +2591,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
         if (m->GetSmartRemote() != 0) {
             int port4 = m->GetControllerPort();
-            int port16 = (m->GetControllerPort() - 1) * 4 + m->GetSmartRemote();
+            int port16 = (m->GetControllerPort() - 1) * 4 + ((m->GetSmartRemote() - 1) % 4) + 1;
             special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d\nHinksPix 4 Port Long Range Port : %d", port16, port4).ToStdString();
         }
     }
