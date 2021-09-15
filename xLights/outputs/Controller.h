@@ -52,14 +52,13 @@ protected:
     std::string _name;                         // a unique name for the controller
     std::string _description;                  // a description for the controller
     bool _ok = false;                          // controller initiated ok
-    bool _autoSize = false;                    // controller flexes the number of outputs to meet the needs of xLights
-    bool _fullxLightsControl = false;          // when true on upload xLights wipes all other config
+    bool _autoSize = true;                    // controller flexes the number of outputs to meet the needs of xLights
+    bool _fullxLightsControl = true;          // when true on upload xLights wipes all other config
     int _defaultBrightnessUnderFullControl = 100; // brightness to use when controllers dont have anything on a port
-    //bool _autoStartChannels = false;         // models on this controller can be managed by xLights
     std::list<Output*> _outputs;               // the outputs on the controller
     ACTIVESTATE _active = ACTIVESTATE::ACTIVE; // output to controller is active
 
-    bool _autoLayout = false;
+    bool _autoLayout = true;
     bool _autoUpload = false;
     std::string _vendor;                     // the controller vendor
     std::string _model;                      // the model of the controller

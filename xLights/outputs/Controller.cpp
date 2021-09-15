@@ -103,7 +103,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     else {
         SetActive(node->GetAttribute("ActiveState", "Active"));
     }
-    SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
+    SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
     _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
     _defaultBrightnessUnderFullControl = wxAtoi(node->GetAttribute("DefaultBrightnessUnderFullControl", "100"));
     SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
@@ -137,7 +137,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Vendor", GetVendor());
     node->AddAttribute("Model", GetModel());
     node->AddAttribute("Variant", GetVariant());
-    if (_autoSize) node->AddAttribute("AutoSize", "1");
+    node->AddAttribute("AutoSize", _autoSize ? "1" : "0");
     if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
 
