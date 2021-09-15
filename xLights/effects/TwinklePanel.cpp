@@ -116,7 +116,6 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Steps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
-	Connect(ID_CHOICE_Twinkle_Style,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TwinklePanel::OnChoice_Twinkle_StyleSelect);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	//*)
 

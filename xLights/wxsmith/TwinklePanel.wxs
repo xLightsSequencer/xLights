@@ -115,7 +115,6 @@
 						<item>New Render Method</item>
 					</content>
 					<selection>0</selection>
-					<handler function="OnChoice_Twinkle_StyleSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
