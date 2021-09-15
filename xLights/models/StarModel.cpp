@@ -95,6 +95,11 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
         }
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
+    else if (SingleChannel || SingleNode) {
+        BufferWi = GetNumStrands();
+        BufferHi = 1;
+        AdjustForTransform(transform, BufferWi, BufferHi);
+    }
     else {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
     }
@@ -149,6 +154,24 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
             start += numlights;
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+    }
+    else if (SingleChannel || SingleNode) {
+        // I am not 100% about this change but it makes sense to me
+        // While the custom model may have a height and width if it is single channel then the render buffer really should be Nodes x 1
+        // and all nodes should point to one cell.
+        // Without this change effects like twinkle do really strange things
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        BufferWi = Nodes.size();
+        BufferHi = 1;
+        int x = 0;
+        for (auto& it : Nodes) {
+            for (auto& it2 : it->Coords) {
+                it2.bufX = x;
+                it2.bufY = 0;
+            }
+            x++;
+        }
+        return;
     }
     else {
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);

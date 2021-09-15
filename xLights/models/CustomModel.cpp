@@ -507,7 +507,7 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     int depth = _depth;
 
     if (SingleNode || SingleChannel) {
-        BufferWi = 1;
+        BufferWi = GetCustomMaxChannel(ModelXml->GetAttribute("CustomModel"));
         BufferHi = 1;
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
