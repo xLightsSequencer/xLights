@@ -61,7 +61,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
-	StaticText85 = new wxStaticText(this, ID_STATICTEXT_Twinkle_Count, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Twinkle_Count"));
+	StaticText85 = new wxStaticText(this, ID_STATICTEXT_Twinkle_Count, _("Percent of Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Twinkle_Count"));
 	FlexGridSizer4->Add(StaticText85, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Twinkle_Count = new BulkEditSlider(this, ID_SLIDER_Twinkle_Count, 3, 2, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Count"));
 	FlexGridSizer4->Add(Slider_Twinkle_Count, 1, wxALL|wxEXPAND, 5);
@@ -70,7 +70,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl79 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Twinkle_Count, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Twinkle_Count"));
 	TextCtrl79->SetMaxLength(3);
 	FlexGridSizer4->Add(TextCtrl79, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_TwinkleCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Twinkle_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Twinkle_Count"));
+	BitmapButton_TwinkleCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Twinkle_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Twinkle_Count"));
 	BitmapButton_TwinkleCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton_TwinkleCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText104 = new wxStaticText(this, ID_STATICTEXT_Twinkle_Steps, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Twinkle_Steps"));
@@ -82,7 +82,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl80 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Twinkle_Steps, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Twinkle_Steps"));
 	TextCtrl80->SetMaxLength(3);
 	FlexGridSizer4->Add(TextCtrl80, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_TwinkleSteps = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Twinkle_Steps, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Twinkle_Steps"));
+	BitmapButton_TwinkleSteps = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Twinkle_Steps, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Twinkle_Steps"));
 	BitmapButton_TwinkleSteps->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton_TwinkleSteps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -100,7 +100,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->Add(CheckBox_Twinkle_Strobe, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_TwinkleStrobe = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe"));
+	BitmapButton_TwinkleStrobe = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe"));
 	BitmapButton_TwinkleStrobe->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton_TwinkleStrobe, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -109,15 +109,14 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->Add(CheckBox_Twinkle_ReRandom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton24 = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom"));
+	BitmapButton24 = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom"));
 	BitmapButton24->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer4->Add(BitmapButton24, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(this);
-	FlexGridSizer4->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Steps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
+	Connect(ID_CHOICE_Twinkle_Style,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TwinklePanel::OnChoice_Twinkle_StyleSelect);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TwinklePanel::OnLockButtonClick);
 	//*)
 

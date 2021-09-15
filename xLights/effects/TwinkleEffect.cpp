@@ -51,6 +51,7 @@ public:
     int duration; // How frames strobe light stays on. Will be decremented each frame
     int colorindex;
     int strobing;
+    bool isByNode = false;
 };
 
 class TwinkleRenderCache : public EffectRenderCache {
@@ -225,26 +226,38 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
     const std::string& twinkle_style = SettingsMap["CHOICE_Twinkle_Style"];
     bool new_algorithm = false;
+    bool isByNode = false;
     if (twinkle_style == "New Render Method") {
         new_algorithm = true;
     }
+    int strobeCount = (buffer.BufferHt * buffer.BufferWi);
+    if ((buffer.GetNodeCount() * 5) < strobeCount) {
+        // less than 20% of the buffer has lights, twinkling buffer coordinates won't work well
+        // at all so we'll twinkle by node instead
+        isByNode = true;
+        strobeCount = buffer.GetNodeCount();
+    }
 
-    int lights = (buffer.BufferHt*buffer.BufferWi)*(Count / 100.0); // Count is in range of 1-100 from slider bar
-    if (buffer.BufferHt * buffer.BufferWi == 1) lights = 1;
-
+    int lights = std::round(((float)(strobeCount * Count)) / 100.0); // Count is in range of 1-100 from slider bar
+    if (strobeCount == 1) {
+        lights = 1;
+    }
     int step = 1;
     if (lights > 0) {
-        step = buffer.BufferHt*buffer.BufferWi / lights;
+        step = strobeCount / lights;
     }
     int max_modulo = Steps;
-    if (max_modulo<2) 
+    if (max_modulo < 2) {
         max_modulo = 2;  // scm  could we be getting 0 passed in?
+    }
     int max_modulo2 = max_modulo / 2;
-    if (max_modulo2<1) 
+    if (max_modulo2 < 1) {
         max_modulo2 = 1;
+    }
     
-    if (step<1)
-        step=1;
+    if (step < 1) {
+        step = 1;
+    }
     
     TwinkleRenderCache *cache = (TwinkleRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -258,8 +271,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     if (new_algorithm) {
         cache->lights_to_renew += lights - cache->num_lights;
-    }
-    else {
+    } else {
         if (lights != cache->num_lights) {
             buffer.needToInit = true;
         }
@@ -276,42 +288,69 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         cache->curNumStrobe = 0;
         if (new_algorithm) {
             strobe.clear();
-            strobe.resize(buffer.BufferHt * buffer.BufferWi);
-            int s = 0;
-            for (int x = 0; x < buffer.BufferWi; x++) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    strobe[s].x = x;
-                    strobe[s].y = y;
+            strobe.resize(strobeCount);
+            if (isByNode) {
+                for (int s = 0; s < strobeCount; s++) {
+                    strobe[s].x = s;
+                    strobe[s].y = 0;
                     strobe[s].duration = 0;
                     strobe[s].strobing = -1;
-                    s++;
+                    strobe[s].isByNode = true;
+                }
+            } else {
+                int s = 0;
+                for (int x = 0; x < buffer.BufferWi; x++) {
+                    for (int y = 0; y < buffer.BufferHt; y++) {
+                        strobe[s].x = x;
+                        strobe[s].y = y;
+                        strobe[s].duration = 0;
+                        strobe[s].strobing = -1;
+                        strobe[s].isByNode = false;
+                        s++;
+                    }
                 }
             }
             //randomize the locations
             for (int s = 0; s < strobe.size(); ++s) {
-
                 int r = dist(eng) % strobe.size();
                 if (r != s) {
                     std::swap(strobe[r], strobe[s]);
                 }
             }
-        }
-        else {
+        } else {
             strobe.clear();
             cache->curNumStrobe = 0;
-            for (int y = 0; y < buffer.BufferHt; y++) {
-                for (int x = 0; x < buffer.BufferWi; x++) {
-                    i++;
+            if (isByNode) {
+                for (int i = 0; i < strobeCount; i++) {
                     if (i % step == 1 || step == 1) {
                         int s = strobe.size();
                         strobe.resize(s + 1);
                         strobe[s].duration = dist(eng) % max_modulo;
 
-                        strobe[s].x = x;
-                        strobe[s].y = y;
+                        strobe[s].x = i;
+                        strobe[s].y = 0;
+                        strobe[s].isByNode = true;
 
                         strobe[s].colorindex = dist(eng) % colorcnt;
                         cache->curNumStrobe++;
+                    }
+                }
+            } else {
+                for (int y = 0; y < buffer.BufferHt; y++) {
+                    for (int x = 0; x < buffer.BufferWi; x++) {
+                        i++;
+                        if (i % step == 1 || step == 1) {
+                            int s = strobe.size();
+                            strobe.resize(s + 1);
+                            strobe[s].duration = dist(eng) % max_modulo;
+
+                            strobe[s].x = x;
+                            strobe[s].y = y;
+                            strobe[s].isByNode = false;
+
+                            strobe[s].colorindex = dist(eng) % colorcnt;
+                            cache->curNumStrobe++;
+                        }
                     }
                 }
             }
@@ -354,8 +393,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             if (new_algorithm) {
                 cache->lights_to_renew++;
                 strobe[x].strobing = false;
-            }
-            else if (reRandomize) {
+            } else if (reRandomize) {
                 strobe[x].duration -= dist(eng) % max_modulo2;
                 strobe[x].colorindex = dist(eng) % colorcnt;
             }
@@ -381,13 +419,20 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             xlColor color;
             buffer.palette.GetColor(strobe[x].colorindex, color);
             color.alpha = 255.0 * v;
-            buffer.SetPixel(strobe[x].x, strobe[x].y, color); // Turn pixel on
-        }
-        else {
+            if (strobe[x].isByNode) {
+                buffer.SetNodePixel(strobe[x].x, color); // Turn pixel on
+            } else {
+                buffer.SetPixel(strobe[x].x, strobe[x].y, color); // Turn pixel on
+            }
+        } else {
             buffer.palette.GetHSV(strobe[x].colorindex, hsv);
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
             hsv.value = v;
-            buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
+            if (strobe[x].isByNode) {
+                buffer.SetNodePixel(strobe[x].x, hsv); // Turn pixel on
+            } else {
+                buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
+            }
         }
     }, 500);
 }

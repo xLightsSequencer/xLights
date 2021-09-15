@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp) Twinkle effect text should be "Percent of lights" as its a percent, not hard number of lights.
+   -- enh (dkulp) Update Twinkle effect to use different placement alogirithm if buffer is very sparse
    -- enh (dkulp) Keep Star screen coordinates as "floats" to provide smoother sizing/better display
    -- enh (dkulp) Add Inner Layer % field to star model to allow the inner models to be larger/smaller
    -- bug (dkulp) email entry field not being saved on OSX unless some other setting also is changed

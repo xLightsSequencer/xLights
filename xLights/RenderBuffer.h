@@ -421,6 +421,8 @@ public:
     void GetPixel(int x, int y, xlColor &color) const;
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
+
+    int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
     void CopyNodeColorsToPixels(std::vector<bool> &done);
 
