@@ -55,5 +55,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         // The ratio between the inner and outer radius of the star; default is 2.618034.
         float starRatio;
+        // The ratio between the inner start and outer star radius (if more than 1 layer)
+        int innerPercent = -1;
         std::string _starStartLocation = "Bottom Ctr-CW";
 };

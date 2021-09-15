@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp) Keep Star screen coordinates as "floats" to provide smoother sizing/better display
+   -- enh (dkulp) Add Inner Layer % field to star model to allow the inner models to be larger/smaller
    -- bug (dkulp) email entry field not being saved on OSX unless some other setting also is changed
    -- bug (dkulp) UNC style paths for Media/Resouce directories had the first \ stripped off (and thus didn't work)
    -- enh (dkulp) Add "Shaders on Background Thread" setting (Other panel in preferences) on Windows to enable running shaders on the render thread.  Defaults to off.

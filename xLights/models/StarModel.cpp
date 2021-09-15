@@ -241,6 +241,7 @@ void StarModel::InitModel()
 {
     starRatio = wxAtof(ModelXml->GetAttribute("starRatio", "2.618034"));
     _starStartLocation = ModelXml->GetAttribute("StarStartLocation", "Bottom Ctr-CW");
+    innerPercent = wxAtoi(ModelXml->GetAttribute("starCenterPercent", "-1"));
 
     if (parm3 < 2) parm3 = 2; // need at least 2 arms
     SetNodeCount(parm1, parm2, rgbOrder);
@@ -281,24 +282,28 @@ void StarModel::InitModel()
     double outerRadius = (double)BufferWi / 2.0; // stars are 2 circles ... and inner and an outer with lines travelling between them
     if (starRatio < 1) starRatio = 1;
     double innerRadius = outerRadius / starRatio;
-    double layerRadiusDelta = outerRadius / GetLayerSizeCount(); // space between the outer layer radii
+    int layerCount = GetLayerSizeCount();
+    double layerRadiusDelta = 0;
+    if (layerCount > 1) {
+        if (innerPercent == -1) {
+            innerPercent = 100.0f / layerCount;
+        }
+        layerRadiusDelta = (outerRadius * (float)(100.0f-innerPercent)) / (100.0f * ((float)layerCount - 1.0f)); // space between the outer layer radii
+    }
     if (parm3 == 0) parm3 = 1;
     double pointAngleGap = (M_PI * 2.0) / parm3; // angle between star points
     double directionUnit = Contains(_starStartLocation, "-CCW") ? -1.0 : 1.0; // which way the angle should be applied
     double startAngle;
     if (Contains(_starStartLocation, "Top")) { // head
         startAngle = (M_PI * 2.0 * 0.0) / 4.0;
-    }
-    else if (Contains(_starStartLocation, "Bottom Ctr")) { // crotch
+    } else if (Contains(_starStartLocation, "Bottom Ctr")) { // crotch
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
-    }
-    else if (Contains(_starStartLocation, "Left")) { // left leg
+    } else if (Contains(_starStartLocation, "Left")) { // left leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
         if (parm3 % 2 == 1) {
             startAngle += pointAngleGap / 2.0;
         }
-    }
-    else { // Right leg
+    } else { // Right leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
         if (parm3 % 2 == 1) {
             startAngle -= pointAngleGap / 2.0;
@@ -324,6 +329,7 @@ void StarModel::InitModel()
 
     uint32_t chan = 0;
     int currentNode = 0;
+
     if (!SingleNode) {
         for (int l = startLayer; l != endLayer; l+= layerIncr) {
 
@@ -375,6 +381,9 @@ void StarModel::InitModel()
                         Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
                         Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2 - 1;
 
+                        Nodes[currentNode]->Coords[c].screenX = point.x;
+                        Nodes[currentNode]->Coords[c].screenY = point.y;
+
                         curPos += coordGap;
                     }
 
@@ -413,8 +422,7 @@ void StarModel::InitModel()
                 chan += channelsPerNode;
             }
         }
-    }
-    else {
+    } else {
         for (int l = startLayer; l != endLayer; l += layerIncr) {
 
             wxRealPoint lastCoord; // we remember this so any excess coords are placed with the last coord
@@ -458,6 +466,8 @@ void StarModel::InitModel()
 
                     Nodes[currentNode]->Coords[currentCoord].bufX = point.x + BufferWi / 2;
                     Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2 - 1;
+                    Nodes[currentNode]->Coords[currentCoord].screenX = point.x;
+                    Nodes[currentNode]->Coords[currentCoord].screenY = point.y;
                     lastCoord = wxPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
 
                     curPos += coordGap;
@@ -479,6 +489,8 @@ void StarModel::InitModel()
 
                 Nodes[currentNode]->Coords[c].bufX = lastCoord.x;
                 Nodes[currentNode]->Coords[c].bufY = lastCoord.y;
+                Nodes[currentNode]->Coords[c].screenX = lastCoord.x - BufferWi / 2;
+                Nodes[currentNode]->Coords[c].screenY = lastCoord.y - BufferHt / 2;
             }
 
             currentNode++;
@@ -488,8 +500,7 @@ void StarModel::InitModel()
             innerRadius = outerRadius / starRatio;
         }
     }
-
-    CopyBufCoord2ScreenCoord();
+    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
@@ -523,8 +534,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
-    }
-    else {
+    } else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
@@ -552,6 +562,12 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", innerPercent));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+
 }
 
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -568,8 +584,7 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
         return 0;
-    }
-    else if ("StarLightCount" == event.GetPropertyName()) {
+    } else if ("StarLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarLightCount");
@@ -580,8 +595,7 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
         return 0;
-    }
-    else if ("StarStrandCount" == event.GetPropertyName()) {
+    } else if ("StarStrandCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStrandCount");
@@ -592,8 +606,7 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
         return 0;
-    }
-    else if ("StarStart" == event.GetPropertyName()) {
+    } else if ("StarStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StarStartLocation");
         ModelXml->AddAttribute("StarStartLocation", TOP_BOT_LEFT_RIGHT_VALUES[event.GetValue().GetLong()]);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStart");
@@ -601,8 +614,15 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStart");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarStart");
         return 0;
-    }
-    else if ("StarRatio" == event.GetPropertyName()) {
+    } else if ("StarCenterPercent" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("starCenterPercent");
+        ModelXml->AddAttribute("starCenterPercent", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::CircleCenterPercent");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::CircleCenterPercent");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::CircleCenterPercent");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::CircleCenterPercent");
+        return 0;
+    } else if ("StarRatio" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("starRatio");
         ModelXml->AddAttribute("starRatio", wxString::Format("%lf", event.GetValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarRatio");
@@ -651,6 +671,7 @@ void StarModel::ExportXlightsModel()
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ls = ModelXml->GetAttribute("LayerSizes");
     wxString sr = ModelXml->GetAttribute("starRatio", "2.618034");
+    wxString scp = ModelXml->GetAttribute("starCenterPercent", "-1");
     wxString ssl = ModelXml->GetAttribute("StarStartLocation");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
@@ -669,6 +690,9 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("starRatio=\"%s\" ", sr));
+    if (scp != "-1") {
+        f.Write(wxString::Format("starCenterPercent=\"%s\" ", scp));
+    }
     f.Write(wxString::Format("StarStartLocation=\"%s\" ", ssl));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
@@ -718,6 +742,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 ls = root->GetAttribute("LayerSizes");
             }
             wxString sr = root->GetAttribute("starRatio");
+            wxString scp = root->GetAttribute("starCenterPercent", "-1");
             wxString dir = root->GetAttribute("Dir");
             wxString ssl = root->GetAttribute("StarStartLocation");
             wxString sn = root->GetAttribute("StrandNames");
@@ -743,6 +768,9 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("Antialias", a);
             SetProperty("LayerSizes", ls);
             SetProperty("starRatio", sr);
+            if (scp != "-1") {
+                SetProperty("starCenterPercent", scp);
+            }
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
             SetProperty("DisplayAs", da);
@@ -752,8 +780,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
 
             if (ssl != "")                 {
                 SetProperty("StarStartLocation", ssl);
-            }
-            else {
+            } else {
                 SetProperty("StarStartLocation", ConvertFromDirStartSide(dir, sts));
             }
 
@@ -766,12 +793,10 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");
-        }
-        else {
+        } else {
             DisplayError("Failure loading Star model file.");
         }
-    }
-    else {
+    } else {
         DisplayError("Failure loading Star model file.");
     }
 }
