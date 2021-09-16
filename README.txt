@@ -11,14 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (dkulp) Twinkle effect text should be "Percent of lights" as its a percent, not hard number of lights.
+2021.29 September 16, 2021
    -- enh (dkulp) Update Twinkle effect to use different placement alogirithm if buffer is very sparse
    -- enh (dkulp) Keep Star screen coordinates as "floats" to provide smoother sizing/better display
    -- enh (dkulp) Add Inner Layer % field to star model to allow the inner models to be larger/smaller
+   -- enh (dkulp) Add "Shaders on Background Thread" setting (Other panel in preferences) on Windows to enable running shaders 
+                  on the render thread.  Defaults to off.
+   -- enh (scott) Check firmware on the hinkspix is high enough to work with upload 
+   -- enh (scott) Added Opening and Exporting xmaphint files
+   -- enh (scott) Add export of submodels from one model to other models
+   -- enh (keith) Add hinkpix LR port number hints to visualiser tool tips
+   -- enh (keith) Default new controllers to auto size, auto layout and full control as this is more common than manual setup
+   -- enh (keith) Add some validations on FPP proxy usage to catch some errors
+   -- bug (dkulp) Twinkle effect text should be "Percent of lights" as its a percent, not hard number of lights.
    -- bug (dkulp) email entry field not being saved on OSX unless some other setting also is changed
    -- bug (dkulp) UNC style paths for Media/Resouce directories had the first \ stripped off (and thus didn't work)
-   -- enh (dkulp) Add "Shaders on Background Thread" setting (Other panel in preferences) on Windows to enable running shaders on the render thread.  Defaults to off.
    -- bug (kevin) Hopefully reduce some crashing on Windows associated with shader effect
+   -- bug (keith) Fix arch model import throws error and places arch in the wrong place
+   -- bug (keith) Fix several upload configuration issues for the FxxV4 - requires firmware build 5 or higher
+   -- bug (keith) Add drop hint validator to icicles and polyline model
+   -- bug (keith) Update star render buffer for single node stars so it better reflects the actual number of controllable nodes
+   -- bug (scott) Fix FSEQ upload to ESPixelStick
+   -- bug (scott) Fix pressing delete after selecting a group deletes the models in the group
 2021.28 September 7, 2021
    -- enh (keith) Add a check sequence warning about data layers which are uncommonly used
    -- enh (keith) Have face effect use the first assigned face on a model if the effect is calling for a face that is not on the model

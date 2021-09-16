@@ -258,7 +258,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
 void ControllerEthernet::SetFPPProxy(const std::string& proxy) {
 
-    if (_fppProxy != proxy) {
+    if (_fppProxy != proxy && proxy != _ip) {
         _fppProxy = proxy;
         _dirty = true;
         for (auto& it : _outputs) {
@@ -269,10 +269,16 @@ void ControllerEthernet::SetFPPProxy(const std::string& proxy) {
 
 std::string ControllerEthernet::GetFPPProxy() const {
 
-    if (_fppProxy != "") {
+    if (_fppProxy != "" && _fppProxy != _ip) {
         return _fppProxy;
     }
-    return _outputManager->GetGlobalFPPProxy();
+
+    // a controller should not proxy itself
+    if (_ip != _outputManager->GetGlobalFPPProxy()) {
+        return _outputManager->GetGlobalFPPProxy();
+    }
+
+    return "";
 }
 
 void ControllerEthernet::SetUniversePerString(bool ups)
@@ -746,6 +752,12 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     if (IsFPPProxyable()) {
         p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", GetControllerFPPProxy()));
         p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
+        if (GetControllerFPPProxy() == _ip) {
+            p->SetBackgroundColour(*wxRED);
+        }
+        else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
@@ -931,7 +943,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     }
     else if (name == "FPPProxy") {
-        SetFPPProxy(event.GetValue().GetString());
+        SetFPPProxy(event.GetValue().GetString().Trim(true).Trim(false));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::FPPProxy", nullptr);
         return true;

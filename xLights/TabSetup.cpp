@@ -1769,7 +1769,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::MaxSuppressFrames");
         }
         else if (name == "GlobalFPPProxy") {
-            _outputManager.SetGlobalFPPProxy(event.GetValue().GetString());
+            _outputManager.SetGlobalFPPProxy(event.GetValue().GetString().Trim(true).Trim(false));
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::GlobalFPPProxy");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnControllerPropertyGridChange::GlobalFPPProxy", nullptr);
         }
@@ -1854,7 +1854,7 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
     auto name = List_Controllers->GetItemText(event.GetItem());
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr && controller->GetIP() != "") {
-        if (controller->GetFPPProxy() != "") {
+        if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
         }
         else {
@@ -2109,7 +2109,7 @@ void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event)
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr && controller->GetIP() != "") {
-        if (controller->GetFPPProxy() != "") {
+        if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
         }
         else {
@@ -2265,7 +2265,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller) {
                 }
                 ip = dlg.GetValue();
             }
-            auto proxy = controller->GetFPPProxy();
+            //auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
             BaseController* bc = BaseController::CreateBaseController(controller, ip);
