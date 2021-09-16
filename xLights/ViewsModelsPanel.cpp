@@ -2636,7 +2636,7 @@ void ViewsModelsPanel::ImportRGBEffectsView()
         }
 
         if (views) {
-            std::map<std::string, std::string> viewMap;
+            std::map<wxString, wxString> viewMap;
             wxArrayString viewList;
 
             for (wxXmlNode* node = views->GetChildren(); node != nullptr; node = node->GetNext()) {
@@ -2646,13 +2646,18 @@ void ViewsModelsPanel::ImportRGBEffectsView()
                 viewList.emplace_back(view_name);
             }
 
-            wxSingleChoiceDialog dlg(GetParent(), "", "Select View", viewList);
+            wxMultiChoiceDialog dlg(GetParent(), "Select View(s) to Import", "Select View(s)", viewList);
 
             if (dlg.ShowModal() == wxID_OK) {
-                auto const sel_view = dlg.GetStringSelection();
-                auto const sel_models = viewMap.at(sel_view);
-                wxArrayString split_model = wxSplit(sel_models, ',');
-                ImportViewData(sel_view, split_model);
+                std::map<wxString, wxArrayString> viewToAddMap;
+                for (auto const& idx : dlg.GetSelections()) {
+                    auto const sel_view = viewList.at(idx);
+                    auto const sel_models = viewMap.at(sel_view);
+                    wxArrayString split_model = wxSplit(sel_models, ',');
+                    viewToAddMap.insert({ {sel_view, split_model} });
+                }
+
+                ImportViewData(viewToAddMap);
             }
         }
     }
@@ -2700,60 +2705,68 @@ void ViewsModelsPanel::ImportSequenceMasterView()
                     modelList.emplace_back(elem_name);
                 }
             }
-            ImportViewData("Imported Master", modelList, timingList);
+			//std::map <wxString, wxArrayString> x{{ "Imported Master", modelList } };
+
+            ImportViewData({ { "Imported Master", modelList } }, timingList);
         }
     }
 }
 
-void ViewsModelsPanel::ImportViewData(wxString const& name, wxArrayString const& models, wxArrayString timings)
+void ViewsModelsPanel::ImportViewData(std::map <wxString, wxArrayString> const& views, wxArrayString timings)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    auto const sel_view = CreateUniqueName(name);
-    logger_base.debug("Importing View: %s", (const char*)sel_view.c_str());
-    wxArrayString new_models;
-    for (auto const& new_mod : models) {//check if models exists
-        Model* m = _xlFrame->GetModel(new_mod);
-        if (m != nullptr) {
-            new_models.Add(new_mod);
-            logger_base.debug("Model Found: %s", (const char*)new_mod.c_str());
-        }
-        else {
-            logger_base.debug("Model Not Found: %s", (const char*)new_mod.c_str());
-        }
+	std::vector<std::string> newtimings;
+	for (auto const& tim : timings) {
+		Element* elem = _sequenceElements->GetElement(tim);
+		if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+			newtimings.push_back(elem->GetName());
+			logger_base.debug("Timing Found: %s", (const char*)tim.c_str());
+		}
+		else {
+			logger_base.debug("Timing Not Found: %s", (const char*)tim.c_str());
+		}
+	}
+
+    wxString lastView;
+
+    for (auto const&[name, models] : views)
+    {
+        auto const sel_view = CreateUniqueName(name);
+        lastView = sel_view;
+		logger_base.debug("Importing View: %s", (const char*)sel_view.c_str());
+		wxArrayString new_models;
+		for (auto const& new_mod : models) {//check if models exists
+			Model* m = _xlFrame->GetModel(new_mod);
+			if (m != nullptr) {
+				new_models.Add(new_mod);
+				logger_base.debug("Model Found: %s", (const char*)new_mod.c_str());
+			}
+			else {
+				logger_base.debug("Model Not Found: %s", (const char*)new_mod.c_str());
+			}
+		}
+		auto const new_sel_models = wxJoin(new_models, ',');
+
+		logger_base.debug("Models Found: %s", (const char*)new_sel_models.c_str());
+
+		SequenceView* view = _sequenceViewManager->AddView(sel_view);
+
+		view->SetModels(new_sel_models);
+
+		AddViewToList(sel_view, true);
+		_sequenceElements->AddView(sel_view);
+
+		if (!newtimings.empty()) {
+			_sequenceElements->AddViewToTimings(newtimings, view->GetName());
+			_sequenceElements->SetTimingVisibility(view->GetName());
+		}
+		else {
+			logger_base.debug("No Timings Added to View");
+		}
     }
-    auto const new_sel_models = wxJoin(new_models, ',');
 
-    logger_base.debug("Models Found: %s", (const char*)new_sel_models.c_str());
-
-    SequenceView* view = _sequenceViewManager->AddView(sel_view);
-
-    view->SetModels(new_sel_models);
-
-    AddViewToList(sel_view, true);
-    _sequenceElements->AddView(sel_view);
-
-    std::vector<std::string> newtimings;
-    for (auto const& tim : timings) {
-        Element* elem = _sequenceElements->GetElement(tim);
-        if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            newtimings.push_back(elem->GetName());
-            logger_base.debug("Timing Found: %s", (const char*)tim.c_str());
-        }
-        else {
-            logger_base.debug("Timing Not Found: %s", (const char*)tim.c_str());
-        }
-    }
-
-    if (!newtimings.empty()) {
-        _sequenceElements->AddViewToTimings(newtimings, view->GetName());
-        _sequenceElements->SetTimingVisibility(view->GetName());
-    }
-    else {
-        logger_base.debug("No Timings Added to View");
-    }
-
-    SelectView(sel_view);
+    SelectView(lastView);
     MarkViewsChanged();
     PopulateViews();
     ValidateWindow();

@@ -24,6 +24,7 @@
 #include "wxCheckedListCtrl.h"
 #include "SequenceData.h"
 #include <list>
+#include <map>
 
 class wxXmlNode;
 class SequenceElements;
@@ -118,7 +119,7 @@ class ViewsModelsPanel : public wxPanel
     void ImportRGBEffectsView();
     void ImportSequenceMasterView();
 
-    void ImportViewData(wxString const& name, wxArrayString const& models, wxArrayString timings = wxArrayString());
+    void ImportViewData(std::map <wxString, wxArrayString> const& views, wxArrayString timings = wxArrayString());
 
     wxString CreateUniqueName(wxString const& prefix);
 
