@@ -173,11 +173,11 @@ class ShaderConfig
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
-    std::list<ShaderPass> GetPasses() const { return _passes; }
-    std::list<ShaderParm> GetParms() const { return _parms; }
-    std::string GetFilename() const { return _filename; }
-    std::string GetDescription() const { return _description; }
-    std::string GetCode() const { return _code; }
+    const std::list<ShaderPass> &GetPasses() const { return _passes; }
+    const std::list<ShaderParm> &GetParms() const { return _parms; }
+    const std::string &GetFilename() const { return _filename; }
+    const std::string &GetDescription() const { return _description; }
+    const std::string &GetCode() const { return _code; }
     bool IsCanvasShader() const { return _canvasMode; }
     bool IsAudioFFTShader() const { return _audioFFTMode; }
     bool IsAudioIntensityShader() const { return _audioIntensityMode; }

@@ -532,11 +532,23 @@ private:
 
 
 class ShaderRenderCache : public EffectRenderCache {
-
 public:
+    class ShaderInfo {
+    public:
+        std::list<unsigned> programIds;
+    };
+    static std::map<std::string, ShaderInfo*> shaderMap;
+    static std::set<std::string> failedShaders;
+    static std::mutex shaderMapMutex;
+
     ShaderRenderCache() { _shaderConfig = nullptr; }
     virtual ~ShaderRenderCache()
     {
+        if (s_programId != 0 && _shaderConfig != nullptr) {
+            std::unique_lock<std::mutex> lock(shaderMapMutex);
+            shaderMap[s_code]->programIds.push_back(s_programId);
+            s_programId = 0;
+        }
         if (_shaderConfig != nullptr) delete _shaderConfig;
 #if defined(__WXOSX__)
         if (s_glContext) {
@@ -593,6 +605,24 @@ public:
 #endif
     }
 
+    void SetProgramId(unsigned programId) {
+        if (s_programId) {
+            std::unique_lock<std::mutex> lock(shaderMapMutex);
+            // we'll keep 10 of them around.  We can always re-compile if we need more later
+            // but this keeps object retention count a bit bounded
+            if (shaderMap[s_code]->programIds.size() > 10) {
+                glDeleteProgram(s_programId);
+            } else {
+                shaderMap[s_code]->programIds.push_back(s_programId);
+            }
+            s_programId = 0;
+        }
+        if (_shaderConfig) {
+            s_code = _shaderConfig->GetCode();
+            s_programId = programId;
+        }
+    }
+
     ShaderConfig* _shaderConfig = nullptr;
     bool s_shadersInit = false;
     unsigned s_vertexArrayId = 0;
@@ -602,6 +632,7 @@ public:
     unsigned s_rbTex = 0;
     unsigned s_audioTex = 0;
     unsigned s_programId = 0;
+    std::string s_code;
     int s_rbWidth = 0;
     int s_rbHeight = 0;
     long _timeMS = 0;
@@ -666,7 +697,9 @@ public:
     xlGLCanvas *preview;
 #endif
 };
-
+std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderMap;
+std::set<std::string> ShaderRenderCache::failedShaders;
+std::mutex ShaderRenderCache::shaderMapMutex;
 
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
@@ -873,6 +906,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 #endif
 }
 
+
 void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -933,7 +967,8 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            programId = cache->s_programId = programIdForShaderCode(_shaderConfig);
+            programId = programIdForShaderCode(_shaderConfig);
+            cache->SetProgramId(programId);
         } else {
             logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
@@ -942,7 +977,12 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
             setRenderBufferAll(buffer, xlYELLOW);
             return;
         }
-        programId = cache->s_programId = programIdForShaderCode(_shaderConfig);
+        if (_shaderConfig != nullptr) {
+            programId = cache->s_programId;
+        } else if (programId == 0) {
+            programId = programIdForShaderCode(_shaderConfig);
+            cache->SetProgramId(programId);
+        }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
@@ -970,14 +1010,12 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
-    if ( _shaderConfig->IsAudioFFTShader() || _shaderConfig->IsAudioIntensityShader() )
-    {
+    if (_shaderConfig->IsAudioFFTShader() || _shaderConfig->IsAudioIntensityShader()) {
         if (s_audioTex == 0)
             s_audioTex = FFTAudioTexture();
 
         AudioManager* audioManager = buffer.GetMedia();
-        if (audioManager != nullptr)
-        {
+        if (audioManager != nullptr) {
             FRAMEDATATYPE datatype = ( _shaderConfig->IsAudioFFTShader() ) ? FRAMEDATA_VU : FRAMEDATA_HIGH;
             auto fftData = audioManager->GetFrameData(buffer.curPeriod, datatype, "");
 
@@ -992,9 +1030,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
             LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
             LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
         }
-    }
-    else
-    {
+    } else {
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
         LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]));
@@ -1009,8 +1045,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     int loc = glGetUniformLocation(programId, "RENDERSIZE");
     if (loc >= 0) {
         glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
-    }
-    else {
+    } else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
         }
@@ -1151,9 +1186,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
                 logger_base.warn("No binding supported for %s ... we have more work to do.", (const char*)it._name.c_str());
                 break;
             }
-        }
-        else
-        {
+        } else {
             if (buffer.curPeriod == buffer.curEffStartPer)
                 logger_base.warn("Unable to bind to %s", (const char*)it._name.c_str());
         }
@@ -1207,48 +1240,42 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         LOG_GL_ERRORV(glBindVertexArray(0));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLenum err = glGetError();
-        if ( err != GL_NO_ERROR )
-        {
+        if (err != GL_NO_ERROR) {
            logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
         }
 
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
-        if ( ( err = glGetError()) != GL_NO_ERROR )
-        {
+        if ((err = glGetError()) != GL_NO_ERROR) {
            logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
         }
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
-        if ( ( err = glGetError()) != GL_NO_ERROR )
-        {
+        if ((err = glGetError()) != GL_NO_ERROR) {
            logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
         }
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
         s_shadersInit = true;
-    }
-    else if (rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight)
-    {
+    } else if (rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight) {
         LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-        if (s_fbId)
+        if (s_fbId) {
             LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
-        if (s_rbId)
-        {
+        }
+        if (s_rbId) {
             LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, 0));
             LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
         }
-        if (s_rbTex)
+        if (s_rbTex) {
             LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
+        }
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         GLenum err = glGetError();
-        if ( err != GL_NO_ERROR )
-        {
+        if (err != GL_NO_ERROR) {
            logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
         }
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
-        if ( ( err = glGetError()) != GL_NO_ERROR )
-        {
+        if ((err = glGetError()) != GL_NO_ERROR) {
            logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
         }
 
@@ -1257,13 +1284,6 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     }
 }
 
-namespace
-{
-    typedef std::map<std::string, unsigned> FragmentShaderMap;
-    FragmentShaderMap shaderMap;
-    std::set<std::string> failedShaders;
-    std::mutex shaderMapMutex;
-}
 unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1273,32 +1293,46 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
         return 0u;
     }
 
-    std::lock_guard<std::mutex> lock(shaderMapMutex);
+    std::unique_lock<std::mutex> lock(ShaderRenderCache::shaderMapMutex);
     std::string fragmentShaderSrc(cfg->GetCode());
-    if (failedShaders.find(fragmentShaderSrc) != failedShaders.end()) {
+    if (ShaderRenderCache::failedShaders.find(fragmentShaderSrc) != ShaderRenderCache::failedShaders.end()) {
         //previously failed to compile, don't try again
         return 0u;
     }
 
-    FragmentShaderMap::const_iterator iter = shaderMap.find(fragmentShaderSrc);
-    if (iter != shaderMap.cend()) {
-        unsigned programId = (*iter).second;
-        if (!glIsProgram(programId)) {
-            logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
-            shaderMap.erase(iter);
-        } else {
-            //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
-            return programId;
+    ShaderRenderCache::ShaderInfo *shaderInfo = nullptr;
+    auto iter = ShaderRenderCache::shaderMap.find(fragmentShaderSrc);
+    if (iter != ShaderRenderCache::shaderMap.cend()) {
+        shaderInfo = (*iter).second;
+        while (!shaderInfo->programIds.empty()) {
+            unsigned programId = shaderInfo->programIds.front();
+            shaderInfo->programIds.pop_front();
+            if (!glIsProgram(programId)) {
+                logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
+            } else {
+                //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
+                return programId;
+            }
         }
     }
 
+    lock.unlock();
+    static int count = 0;
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
+    printf("Cur count: %d   -    %d\n", ++count, programId);
     if (programId == 0u) {
+        lock.lock();
         logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
-        failedShaders.emplace(fragmentShaderSrc);
+        ShaderRenderCache::failedShaders.emplace(fragmentShaderSrc);
+        lock.unlock();
     } else {
         logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
-        shaderMap[fragmentShaderSrc] = programId;
+        if (shaderInfo == nullptr) {
+            shaderInfo = new ShaderRenderCache::ShaderInfo();
+            lock.lock();
+            ShaderRenderCache::shaderMap[fragmentShaderSrc] = shaderInfo;
+            lock.unlock();
+        }
     }
     return programId;
 }
