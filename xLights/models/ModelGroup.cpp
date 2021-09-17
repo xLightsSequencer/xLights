@@ -165,6 +165,11 @@ bool ModelGroup::DirectlyContainsModel(Model* m) const
     return false;
 }
 
+bool ModelGroup::DirectlyContainsModel(std::string const& m ) const
+{
+    return std::find(modelNames.begin(), modelNames.end(), m) != modelNames.end();
+}
+
 bool ModelGroup::ContainsModel(Model* m) const
 {
     wxASSERT(m->GetDisplayAs() != "ModelGroup");
@@ -235,7 +240,7 @@ bool ModelGroup::OnlyContainsModel(const std::string& name) const
 {
     if (modelNames.size() == 0) return false;
 
-    for (const auto& it : modelNames)         {
+    for (const auto& it : modelNames) {
         if (!StartsWith(it, name)) return false;
     }
     return true;
@@ -738,7 +743,7 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
         newVal += modelNames[x];
     }
 
-    if (RemoveDuplicates())         {
+    if (RemoveDuplicates()) {
         changed = true;
     }
 
@@ -1022,7 +1027,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     else if (type == HORIZ_SCALED) {
         int modelX = 0;
         int numOfModels = modelNames.size();
-        if (numOfModels == 0)             {
+        if (numOfModels == 0) {
             BufferWi = 1;
             BufferHt = 1;
         }
@@ -1052,7 +1057,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         int modelY = 0;
         int numOfModels = modelNames.size();
 
-        if (numOfModels == 0)             {
+        if (numOfModels == 0) {
             BufferWi = 1;
             BufferHt = 1;
         }

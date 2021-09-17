@@ -48,6 +48,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
+        bool DirectlyContainsModel(std::string const& m) const;
         bool ContainsModel(Model* m) const;
         bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
         bool OnlyContainsModel(const std::string& name) const;
