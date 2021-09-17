@@ -31,6 +31,7 @@
     extern PFNGLBINDBUFFERPROC glBindBuffer;
     extern PFNGLBUFFERDATAPROC glBufferData;
     extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
+    extern PFNGLGETACTIVEUNIFORMPROC glGetActiveUniform;
     extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
     extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
     extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
