@@ -533,8 +533,7 @@ private:
 
 class ShaderRenderCache : public EffectRenderCache {
 public:
-    class ShaderInfo {
-    public:
+    struct ShaderInfo {
         std::list<unsigned> programIds;
     };
     static std::map<std::string, ShaderInfo*> shaderMap;
