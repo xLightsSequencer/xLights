@@ -1319,7 +1319,6 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
     lock.unlock();
     static int count = 0;
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
-    printf("Cur count: %d   -    %d\n", ++count, programId);
     if (programId == 0u) {
         lock.lock();
         logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
