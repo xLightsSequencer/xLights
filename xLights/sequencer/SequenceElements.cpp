@@ -862,7 +862,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 if (elementNode->GetName() == STR_ELEMENT)
                 {
                     auto nm = elementNode->GetAttribute(STR_NAME).Trim(true).Trim(false);
-                    if (elementNode->GetAttribute(STR_NAME) != nm)                         {
+                    if (elementNode->GetAttribute(STR_NAME) != nm) {
                         elementNode->DeleteAttribute(STR_NAME);
                         elementNode->AddAttribute(STR_NAME, nm);
                     }

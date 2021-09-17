@@ -74,7 +74,7 @@ typedef enum
 
 class CurtainRenderCache : public EffectRenderCache {
 public:
-    CurtainRenderCache() : LastCurtainDir(0), LastCurtainLimit(0)  {};
+    CurtainRenderCache() : LastCurtainDir(0), LastCurtainLimit(0) {};
     virtual ~CurtainRenderCache() {};
     
     int LastCurtainDir;

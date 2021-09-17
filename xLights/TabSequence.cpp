@@ -700,7 +700,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    if (!backup)  {
+    if (!backup) {
 #ifndef __WXOSX__
         SaveModelsFile();
 #endif

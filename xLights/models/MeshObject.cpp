@@ -53,7 +53,7 @@ MeshObject::~MeshObject()
 
 void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
-    if (_objFile != ModelXml->GetAttribute("ObjFile", ""))     {
+    if (_objFile != ModelXml->GetAttribute("ObjFile", "")) {
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
     }

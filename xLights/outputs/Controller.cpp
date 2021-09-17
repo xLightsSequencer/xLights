@@ -183,7 +183,7 @@ Controller::ACTIVESTATE Controller::EncodeActiveState(const std::string& state)
 
 std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
 {
-    switch (state)         {
+    switch (state) {
     case ACTIVESTATE::ACTIVE:
         return "Active";
     case ACTIVESTATE::ACTIVEINXLIGHTSONLY:
@@ -330,7 +330,7 @@ bool Controller::IsActive() const
     return _active == ACTIVESTATE::ACTIVE || (_active == ACTIVESTATE::ACTIVEINXLIGHTSONLY && IsxLights());
 }
 
-void Controller::SetActive(const std::string& active)  {
+void Controller::SetActive(const std::string& active) {
     auto a = EncodeActiveState(active);
     if (_active != a) { 
         _active = a;  
@@ -376,7 +376,7 @@ void Controller::SetSuppressDuplicateFrames(bool suppress) {
 
 void Controller::SetGlobalFPPProxy(const std::string& globalFPPProxy)
 {
-    for (const auto& it : _outputs)         {
+    for (const auto& it : _outputs) {
         it->SetGlobalFPPProxyIP(globalFPPProxy);
     }
 }
@@ -503,7 +503,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         }
     }
 
-    if (ACTIVETYPENAMES.IsEmpty())         {
+    if (ACTIVETYPENAMES.IsEmpty()) {
         ACTIVETYPENAMES.push_back("Active");
         ACTIVETYPENAMES.push_back("Inactive");
         ACTIVETYPENAMES.push_back("xLights Only");

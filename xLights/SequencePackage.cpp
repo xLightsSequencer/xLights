@@ -141,7 +141,7 @@ void SequencePackage::Extract() {
         return;
     }
 
-    if (zis.GetTotalEntries() == 0)         {
+    if (zis.GetTotalEntries() == 0) {
         logger_base.error("No entries found in zip file '%s'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;

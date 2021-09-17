@@ -1442,7 +1442,7 @@ std::string ReverseCSV(const std::string& csv)
 {
     std::string res;
     auto a = wxSplit(csv, ',');
-    for (auto it = a.rbegin(); it != a.rend(); ++it)         {
+    for (auto it = a.rbegin(); it != a.rend(); ++it) {
         if (res != "") res += ",";
         res += *it;
     }
@@ -1452,14 +1452,14 @@ std::string ReverseCSV(const std::string& csv)
 void DumpBinary(uint8_t* buffer, size_t sz)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    for (size_t i = 0; i < (sz + 15) / 16; i++)         {
+    for (size_t i = 0; i < (sz + 15) / 16; i++) {
         std::string out;
-        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++)             {
+        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
             out += wxString::Format("%02x ", buffer[j]);
         }
         out += "    ";
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
-            if (buffer[j] < 32 || buffer[j] > 127)                 {
+            if (buffer[j] < 32 || buffer[j] > 127) {
                 out += '.';
             }
             else {

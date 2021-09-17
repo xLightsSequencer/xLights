@@ -349,7 +349,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             if (val.HasMember("config") && val["config"].HasMember("ports")) {
                 int channels = 0;
                 auto ports = val["config"]["ports"].AsArray();
-                for (int i = 0; i < ports->Count(); i++)                                 {
+                for (int i = 0; i < ports->Count(); i++) {
                     auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
                     auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
                     channels += ts * l * 3;

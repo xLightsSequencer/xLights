@@ -27,7 +27,7 @@ MidiEvent::MidiEvent(void) : MidiMessage() {
 }
 
 
-MidiEvent::MidiEvent(int command) : MidiMessage(command)  {
+MidiEvent::MidiEvent(int command) : MidiMessage(command) {
    clearVariables();
 }
 

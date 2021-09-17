@@ -172,7 +172,7 @@ bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res)
 
             const wxJSONInternalArray* parr = outParams["A"].AsArray();
 
-            for (size_t i = 0; i < parr->Count(); i++)             {
+            for (size_t i = 0; i < parr->Count(); i++) {
                 FALCON_V4_INPUTS input;
                 input.universe = parr->Item(i)["u"].AsInt();
                 input.channels = parr->Item(i)["c"].AsInt();
@@ -211,7 +211,7 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot)
 
         std::string params = "{\"A\":[";
 
-        for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); i++)             {
+        for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); i++) {
             if (batch != 0) params += ",";
             params += wxString::Format("{\"u\":%d,\"c\":%d,\"uc\":%d,\"p\":\"%c\"}", res[i].universe, res[i].channels, res[i].universeCount, (res[i].protocol == 0 ? 'e' : 'a')).ToStdString();
             left--;
@@ -270,7 +270,7 @@ bool Falcon::V4_GetStatus(wxJSONValue& res)
     // {"R":200,"T":"Q","RB":0,"F":1,"B":1,"M":"ST","P":{"sm":0,"su":0,"ssc":0,"sr":250000,"T1":341,"T2":327,"V1":115,"V2":111,"PT":380,"FN":2550,"UC":16,"C":"02-fe-00-18-00-3b","P":16,"S":0,"A":0,"B":0,"UG":{"s":"00000001","v":"1.1","d":"v11.zip"},"FW":2,"TG":"255.255.255.255","DP":10000,"DM":3,"DL":4,"SY":"N","PR":"N","Z":65535,"BT":6,"ps":0,"NT":"time.nist.gov","TZ":0,"DST":"N","IN":"Y","FS":32,"BS":50,"DT":"2021-04-17","TM":"04:12:48","CC":16777215},"W":" ","L":""}
 
     bool success = true;
-    for (const auto& n : res.GetMemberNames())         {
+    for (const auto& n : res.GetMemberNames()) {
         res.Remove(n);
     }
 
@@ -293,7 +293,7 @@ bool Falcon::V4_GetStatus(wxJSONValue& res)
         }
         else {
             done = true;
-            for (const auto& n : res.GetMemberNames())                 {
+            for (const auto& n : res.GetMemberNames()) {
                 res.Remove(n);
             }
             success = false;
@@ -401,13 +401,13 @@ void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str)
     int lastPort = -1;
     int lastRemote = -1;
 
-    for (const auto& it : str)         {
-        if (it.port != lastPort)             {
+    for (const auto& it : str) {
+        if (it.port != lastPort) {
             logger_base.debug("  Port %d %s", it.port + 1, (const char*)(it.port % 16 == 0 ? V4_DecodePixelProtocol(it.protocol).c_str() : ""));
             lastRemote = 0;
             lastPort = it.port;
         }
-        if (it.smartRemote != lastRemote)             {
+        if (it.smartRemote != lastRemote) {
             logger_base.debug("    Remote %c", char(it.smartRemote + 64));
         }
         logger_base.debug("      String %d '%s' Universe %d StartChannel %d Pixels %d", it.string + 1, (const char *)it.name.c_str(), it.universe, it.startChannel + 1, it.pixels);
@@ -718,7 +718,7 @@ int Falcon::V4_EncodeInputProtocol(const std::string& protocol)
 
 int Falcon::V4_GetRebootSecs()
 {
-    if (_ip == _v4status["I"].AsString())         {
+    if (_ip == _v4status["I"].AsString()) {
         return 5;
     }
     else         {
@@ -793,7 +793,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!V4_SetInputMode(controller, parent))         {
+    if (!V4_SetInputMode(controller, parent)) {
         return false;
     }
 
@@ -816,7 +816,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
                 if (reboot) {
                     V4_WaitForReboot(controller->GetName(), parent);
                 }
-                if (!V4_GetStatus(_v4status))                     {
+                if (!V4_GetStatus(_v4status)) {
                     logger_base.error("Failed to retrieve status after setting board mode.");
                     return false;
                 }
@@ -855,7 +855,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
 int Falcon::V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconStrings, const int p, const int sr)
 {
     int index = 0;
-    for (const auto& it : falconStrings)         {
+    for (const auto& it : falconStrings) {
         if (it.port == p && (sr == -1 || it.smartRemote == sr)) return index;
         index++;
     }
@@ -908,14 +908,14 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
     std::vector<int> protocols;
     protocols.resize(banks);
 
-    for (int b = 0; b < banks; b++)     {
+    for (int b = 0; b < banks; b++) {
         protocols[b] = -1;
     }
 
     // lets start with what we downloaded
-    for (const auto& it : falconStrings)         {
-        if (it.port < caps->GetMaxPixelPort())         {
-            if (it.smartRemote > smartRemotes[it.port])             {
+    for (const auto& it : falconStrings) {
+        if (it.port < caps->GetMaxPixelPort()) {
+            if (it.smartRemote > smartRemotes[it.port]) {
                 if ((it.smartRemote > 0 && smartRemotes[it.port] <= 0) || (it.smartRemote == 0 && smartRemotes[it.port] > 0)) {
                     error = wxString::Format("Port %d has an invalid smart remote configuration.", it.port + 1);
                     return false;
@@ -926,7 +926,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             }
 
             int b = it.port / 16;
-            if (protocols[b] == -1 || protocols[b] == it.protocol)             {
+            if (protocols[b] == -1 || protocols[b] == it.protocol) {
                 protocols[b] = it.protocol;
             }
             else             {
@@ -1076,7 +1076,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
                 if (V4_GetStringFirstIndex(falconStrings, p, sr) != -1) {
                     int i = V4_GetStringFirstIndex(falconStrings, p, sr);
-                    while (i < falconStrings.size() && falconStrings[i].port == p && falconStrings[i].smartRemote == sr)                         {
+                    while (i < falconStrings.size() && falconStrings[i].port == p && falconStrings[i].smartRemote == sr) {
                         uploadStrings.push_back(falconStrings[i]);
                         i++;
                     }
@@ -1105,7 +1105,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             }
         }
         else {
-            for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++)             {
+            for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
                 // create a default string
                 FALCON_V4_STRING str;
                 str.port = p;
@@ -1178,7 +1178,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     bool fullcontrol = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
     std::vector<FALCON_V4_STRING> falconStrings;
-    if (!fullcontrol)         {
+    if (!fullcontrol) {
 
         if (_v4status["B"].AsInt() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "99"))) {
             logger_base.debug("Current board mode: %d. desired board mode: %d", _v4status["B"].AsInt(), wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")));
@@ -1189,7 +1189,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
         if (doProgress) progress->Update(40, "Rerieving strings.");
 
-        if (!Falcon::V4_GetStrings(falconStrings))             {
+        if (!Falcon::V4_GetStrings(falconStrings)) {
             DisplayError("Falcon Outputs Upload: Failed to retrieve current string configuration.", parent);
             if (doProgress) progress->Update(100, "Aborting.");
             return false;
@@ -1264,7 +1264,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     std::vector<FALCON_V4_STRING> uploadStrings;
     std::string error;
-    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error))         {
+    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error)) {
         DisplayError("Falcon Outputs Upload: Problem constructing strings for upload:\n" + error, parent);
         if (doProgress) progress->Update(100, "Aborting.");
         return false;
@@ -1276,7 +1276,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     if (doProgress) progress->Update(70, "Uploading pixel ports.");
 
     bool reboot = false;
-    if (!V4_SendOutputs(uploadStrings, _v4status["A"].AsInt(), cud.GetFirstOutput()->GetStartChannel(), reboot))         {
+    if (!V4_SendOutputs(uploadStrings, _v4status["A"].AsInt(), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
         DisplayError("Falcon Outputs Upload: Problem uploading string configuration.", parent);
         if (doProgress) progress->Update(100, "Aborting.");
         return false;
@@ -1297,7 +1297,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         unsigned long startChannel = 0;
         V4_GetStartChannel(sp->GetUniverse(), sp->GetUniverseStartChannel(), sp->GetStartChannel(), universe, startChannel);
 
-        if (!V4_SetSerialConfig(Lower(sp->GetProtocol()) == "dmx" ? 0 : 1, universe, startChannel, rate))             {
+        if (!V4_SetSerialConfig(Lower(sp->GetProtocol()) == "dmx" ? 0 : 1, universe, startChannel, rate)) {
             DisplayError("Falcon Outputs Upload: Problem uploading serial port configuration.", parent);
             if (doProgress) progress->Update(100, "Aborting.");
             return false;
@@ -1470,7 +1470,7 @@ int Falcon::GetPixelCount(const std::vector<FalconString*>& stringData, int port
         if (!smrB) count++;
         if (!smrA) count++;
     }
-    else if (smrB)         {
+    else if (smrB) {
         if (!smrA) count++;
     }
 
@@ -1727,7 +1727,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
 
     // reindex the string data
     int i = 0;
-    for (auto& it : stringData)         {
+    for (auto& it : stringData) {
         it->index = i++;
     }
 
@@ -2204,7 +2204,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         return false;
     }
 
-    if (_versionnum == 4)         {
+    if (_versionnum == 4) {
         return V4_SetInputUniverses(controller, parent);
     }
 
@@ -2229,7 +2229,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (outputs.size() > 0 && outputs.front()->GetType() == OUTPUT_DDP) {
 
-        if (!IsFirmwareEqualOrGreaterThan(2, 58))             {
+        if (!IsFirmwareEqualOrGreaterThan(2, 58)) {
             DisplayError("Attempt to set controller to DDP mode but firmware installed does not support DDP. Install 2.58 or higher.");
             return false;
         }
@@ -2246,7 +2246,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
             progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", controller->GetName()), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
             progress->Show();
 
-            for (int i = 0; i < 100; i++)                 {
+            for (int i = 0; i < 100; i++) {
                 progress->Update(i);
                 std::this_thread::sleep_for(std::chrono::milliseconds(20000 / 100));
             }
@@ -2372,7 +2372,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int32_t firstchannel = 1;
     if (absoluteonebased) firstchannel = controller->GetFirstOutput()->GetStartChannel();
     int32_t firstchanneloncontroller = 1;
-    if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers())         {
+    if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers()) {
         firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
     }
 
@@ -2662,10 +2662,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
-            if (largestDaughter2Port >= 0)                 {
+            if (largestDaughter2Port >= 0) {
                 check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d, Bank 3 Port %d\n", largestMainPort, largestDaughter1Port, largestDaughter2Port);
             }
-            else if (largestDaughter1Port >= 0)                 {
+            else if (largestDaughter1Port >= 0) {
                 check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d\n", largestMainPort, largestDaughter1Port);
             }
             else                 {

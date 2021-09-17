@@ -271,7 +271,7 @@ wxXmlNode* ViewpointMgr::Save() const
         node->AddChild(cnode);
 	}
 
-    if (_defaultCamera2D != nullptr)         {
+    if (_defaultCamera2D != nullptr) {
         wxXmlNode* cnode = SaveCameraToXml(_defaultCamera2D, "DefaultCamera2D", "DEFAULT2D");
         node->AddChild(cnode);
     }
@@ -342,7 +342,7 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
                     previewCameras2d.push_back(new_camera);
                 }
             }
-            else if (c->GetName() == "DefaultCamera2D")                 {
+            else if (c->GetName() == "DefaultCamera2D") {
                 _defaultCamera2D = CreateCameraFromNode(c);
             }
             else if (c->GetName() == "DefaultCamera3D") {

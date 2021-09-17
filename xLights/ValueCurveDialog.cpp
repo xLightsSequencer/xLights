@@ -302,7 +302,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
         end = eff->GetEndTimeMS();
     }
 
-    for (int i = 0; i < sequenceElements->GetNumberOfTimingElements(); i++)         {
+    for (int i = 0; i < sequenceElements->GetNumberOfTimingElements(); i++) {
         auto te = sequenceElements->GetTimingElement(i);
         Choice_TimingTrack->Append(te->GetName());
     }

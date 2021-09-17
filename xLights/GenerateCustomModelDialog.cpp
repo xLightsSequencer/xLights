@@ -1865,7 +1865,7 @@ void GenerateCustomModelDialog::GuessSingleMissingBulbs()
 {
     auto last = _lights.begin();
     int current = 0;
-    for (auto it = _lights.begin(); it != _lights.end(); ++it)         {
+    for (auto it = _lights.begin(); it != _lights.end(); ++it) {
         if (!it->isSupressed()) {
             if (it->GetNum() == current) {
                 // this is ok ... a second bulb for this node

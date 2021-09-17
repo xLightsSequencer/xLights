@@ -464,7 +464,7 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
 
             wxNumberEntryDialog dlg(parent, "Enter the port to move the models to", "Port", "Port", GetPort(), 1, max);
             if (dlg.ShowModal() == wxID_OK) {
-                if (_type == PORTTYPE::SERIAL)                     {
+                if (_type == PORTTYPE::SERIAL) {
                     auto from = _cud->GetControllerSerialPort(GetPort());
                     auto to = _cud->GetControllerSerialPort(dlg.GetValue());
                     if (from->GetPort() != to->GetPort()) {
@@ -1812,7 +1812,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto m = _mm->GetModel(name);
-    if (m == nullptr)         {
+    if (m == nullptr) {
         logger_base.debug("Model '%s' was dropped from models but it could not be found.", (const char*)name.c_str());
         _lastDropped = nullptr;
         return;
@@ -1834,7 +1834,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0)                     {
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol()) && _caps->GetPixelProtocols().size() > 0) {
                         // try to find a compatible protocol
                         auto np = ChooseBestControllerPixel(_caps->GetPixelProtocols(), m->GetControllerProtocol());
                         if (np != "") {
@@ -1865,7 +1865,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetSmartRemote(0);
             } else {
                 if (port->GetModelCount() == 0) {
-                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0)                     {
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) {
                         // try to find a compatible protocol
                         auto np = ChooseBestControllerSerial(_caps->GetSerialProtocols(), m->GetControllerProtocol());
                         if (np != "") {
@@ -1988,7 +1988,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             _lastDropped = nullptr;
         }
 
-        while (!_xLights->DoAllWork())             {
+        while (!_xLights->DoAllWork()) {
             // dont get into a redraw loop from here
             _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         }
@@ -3048,7 +3048,7 @@ void ControllerModelDialog::OnPanelControllerResize(wxSizeEvent& event) {
 BaseCMObject* ControllerModelDialog::GetControllerToDropOn()
 {
     for (const auto& it : _controllers) {
-        if (it->GetOver() != BaseCMObject::HITLOCATION::NONE)             {
+        if (it->GetOver() != BaseCMObject::HITLOCATION::NONE) {
             return it;
         }
     }

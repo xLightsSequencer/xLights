@@ -3194,13 +3194,13 @@ void xLightsFrame::SetPlaySpeedTo(float speed)
     playSpeed = speed;
 
     AudioManager::SetPlaybackRate(playSpeed);
-    if (CurrentSeqXmlFile != nullptr) 	{
-        if (CurrentSeqXmlFile->GetMedia() == nullptr)         {
+    if (CurrentSeqXmlFile != nullptr) {
+        if (CurrentSeqXmlFile->GetMedia() == nullptr) {
             playAnimation = true;
         }
     }
 
-    if (speed == 1.0)     {
+    if (speed == 1.0) {
         AudioMenu->Check(ID_PLAY_FULL, true);
     }
     else if (speed == 1.5) {
@@ -3813,7 +3813,7 @@ int xLightsFrame::OpenGLVersion() const {
     return orig;
 }
 void xLightsFrame::SetOpenGLVersion(int i) {
-    if (i == 0)  {
+    if (i == 0) {
         //auto detect
         i = 99;
     }

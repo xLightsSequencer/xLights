@@ -283,7 +283,7 @@ std::string ControllerEthernet::GetFPPProxy() const {
 
 void ControllerEthernet::SetUniversePerString(bool ups)
 {
-    if (_universePerString != ups)         {
+    if (_universePerString != ups) {
         _universePerString = ups;
         _dirty = true;
     }
@@ -519,7 +519,7 @@ void ControllerEthernet::AsyncPing() {
 
 void ControllerEthernet::SetExpanded(bool expanded)
 {
-    if (_expanded != expanded)         {
+    if (_expanded != expanded) {
         _expanded = expanded;
         _dirty = true;
     }
@@ -554,7 +554,7 @@ void ControllerEthernet::SetTransientData(int32_t& startChannel, int& nullnumber
         else if (it->GetType() == OUTPUT_ZCPP) {
             dynamic_cast<ZCPPOutput*>(it)->SetPriority(_priority);
         }
-        else if (it->GetType() == OUTPUT_KINET)             {
+        else if (it->GetType() == OUTPUT_KINET) {
             dynamic_cast<KinetOutput*>(it)->SetVersion(_version);
         }
     }

@@ -80,7 +80,7 @@ void DmxImage::SetScaleY(float value, BaseObject* base)
 void DmxImage::Init(BaseObject* base) {
 
     _imageFile = FixFile("", node_xml->GetAttribute("Image", ""));
-    if (_imageFile != node_xml->GetAttribute("Image", ""))     {
+    if (_imageFile != node_xml->GetAttribute("Image", "")) {
         node_xml->DeleteAttribute("Image");
         node_xml->AddAttribute("Image", _imageFile);
     }

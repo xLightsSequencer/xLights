@@ -638,7 +638,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                 // we dont already have the fseq file in the list
 
                 bool found = false;
-                for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item))                     {
+                for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
                     if (fseqName == CheckListBox_Sequences->GetItemText(item)) {
                         found = true;
                     }

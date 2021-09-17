@@ -1033,7 +1033,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                 ll.push_back(rr);
             }
             // This should never happen but i have seen files where it did so lets just pad it and not crash
-            while (ll.size() < parm2)                 {
+            while (ll.size() < parm2) {
                 std::vector<wxString> rr;
                 while (rr.size() < cols) rr.push_back("");
                 ll.push_back(rr);

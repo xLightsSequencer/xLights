@@ -291,7 +291,7 @@ public:
 
             struct curl_slist* headerlist = nullptr;
             logger_curl.info("HEADER START ----------");
-            for (const auto& it : customHeaders)                 {
+            for (const auto& it : customHeaders) {
                 auto s = wxString::Format("%s: %s", it.first, it.second);
                 headerlist = curl_slist_append(headerlist, s.c_str());
                 logger_curl.info("    %s", (const char *)s.c_str());

@@ -178,8 +178,8 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
             ControllerEthernet* existing = nullptr;
-            for (const auto& it : discovery.GetResults())                 {
-                if (it->ip == ip && it->controller != nullptr && it->controller->GetProtocol() == OUTPUT_ARTNET && it->controller->GetName() == std::string((char*)&buffer[26]))                     {
+            for (const auto& it : discovery.GetResults()) {
+                if (it->ip == ip && it->controller != nullptr && it->controller->GetProtocol() == OUTPUT_ARTNET && it->controller->GetName() == std::string((char*)&buffer[26])) {
                     existing = it->controller;
                 }
             }

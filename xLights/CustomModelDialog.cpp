@@ -2752,7 +2752,7 @@ void CustomModelDialog::PushPull(bool forward, bool stayOnLayer)
     CopyPasteGrid* target = nullptr;
     int targetLayer = -1;
 
-    if (forward)         {
+    if (forward) {
         if (layer == 0) return;
         targetLayer = layer - 1;
     }
@@ -2767,7 +2767,7 @@ void CustomModelDialog::PushPull(bool forward, bool stayOnLayer)
     target->SetCellValue(row, col, current->GetCellValue(row, col));
     current->SetCellValue(row, col, "");
 
-    if (!stayOnLayer)         {
+    if (!stayOnLayer) {
         target->SetGridCursor(row, col);
         Notebook1->SetSelection(targetLayer);
     }
@@ -2980,7 +2980,7 @@ void CustomModelDialog::Find()
     long maxNode;
     GetMinMaxNode(minNode, maxNode);
 
-    if (minNode == 0)         {
+    if (minNode == 0) {
         wxMessageBox("No nodes present.");
         return;
     }

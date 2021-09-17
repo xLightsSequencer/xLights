@@ -885,7 +885,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     wxString protocolLC = protocol;
     protocolLC.LowerCase();
 
-    if (caps == nullptr)     {
+    if (caps == nullptr) {
         for (const auto& it : GetAllPixelTypes(true, false)) {
             cp.push_back(it);
         }
@@ -900,7 +900,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     if (std::find(begin(cp), end(cp), protocol) == end(cp) && std::find(begin(cp), end(cp), protocolLC) == end(cp)) {
         // not in the list ... maybe there is a compatible protocol we can choose
         std::string np = "";
-        if (caps != nullptr)         {
+        if (caps != nullptr) {
             auto controllerProtocols = caps->GetAllProtocols();
             if (::IsPixelProtocol(protocol)) {
                 np = ChooseBestControllerPixel(controllerProtocols, protocol);
@@ -1174,7 +1174,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
             }
         }
 
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes") != nullptr)         {
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes") != nullptr) {
             if (!node->HasAttribute("endNullNodes")) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable(false);
@@ -2574,7 +2574,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         modelDimmingCurve = nullptr;
     }
 
-    while (subModels.size() > 0)         {
+    while (subModels.size() > 0) {
         delete subModels.back();
         subModels.pop_back();
     }
@@ -6653,7 +6653,7 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
 bool Model::HasState(const std::string state) const
 {
     auto s = Lower(state);
-    for (const auto& it : stateInfo)         {
+    for (const auto& it : stateInfo) {
         if (it.first == s) return true;
     }
     return false;

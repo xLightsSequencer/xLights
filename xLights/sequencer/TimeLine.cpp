@@ -148,9 +148,9 @@ void TimeLine::GoToNextTag()
 
     int next = end;
 
-    for (const auto& it : _tagPositions)         {
-        if (it != -1)             {
-            if (it > pos && it < next)                 {
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it > pos && it < next) {
                 next = it;
             }
         }

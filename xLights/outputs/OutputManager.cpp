@@ -108,7 +108,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
 
                     // find the first channel offset within this controller of this output
                     int nsc = 0;
-                    for (const auto& it2 : it.second->GetOutputs())                         {
+                    for (const auto& it2 : it.second->GetOutputs()) {
                         if (it2->GetDescription_CONVERT() == on) break;
                         nsc += it2->GetChannels();
                     }
@@ -305,7 +305,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         return false;
     }
 
-    for (const auto& it : _controllers)         {
+    for (const auto& it : _controllers) {
         it->SetGlobalFPPProxy(_globalFPPProxy);
     }
 
@@ -930,7 +930,7 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
 
 bool OutputManager::IsIDUsed(int id)
 {
-    for (const auto& it : GetAllOutputs())         {
+    for (const auto& it : GetAllOutputs()) {
         if (it->GetUniverse() == id) return true;
     }
     return false;

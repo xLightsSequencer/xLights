@@ -158,7 +158,7 @@ inline float ZCPP_GetGamma(uint8_t gamma) {
 inline uint8_t ZCPP_ConvertDiscoveryProtocolToProtocol(uint32_t discoveryProtocol) {
 	uint8_t res = 0x00;
 	discoveryProtocol = discoveryProtocol >> 1;
-	while (discoveryProtocol != 0) 	{
+	while (discoveryProtocol != 0) {
 		res++;
 		discoveryProtocol = discoveryProtocol >> 1;
 	}
@@ -168,7 +168,7 @@ inline uint8_t ZCPP_ConvertDiscoveryProtocolToProtocol(uint32_t discoveryProtoco
 inline uint32_t ZCPP_ConvertProtocolToDiscoveryProtocol(uint8_t protocol)
 {
 	uint32_t res = 0x00000001;
-	while (protocol != 0) 	{
+	while (protocol != 0) {
 		protocol--;
 		res = res << 1;
 	}

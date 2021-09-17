@@ -69,7 +69,7 @@ wxPGChoices ControllerSerial::GetProtocols() const
 
 void ControllerSerial::InitialiseTypes(bool forceXXX) {
 
-    if (__types.GetCount() == 0)  {
+    if (__types.GetCount() == 0) {
         __types.Add(OUTPUT_DMX);
         __types.Add(OUTPUT_LOR);
         __types.Add(OUTPUT_LOR_OPT);
@@ -475,7 +475,7 @@ std::string ControllerSerial::GetChannelMapping(int32_t ch) const
 }
 
 Output::PINGSTATE ControllerSerial::Ping() {
-    if (_model == "FPP")  {
+    if (_model == "FPP") {
         IPOutput *ipOutput = dynamic_cast<IPOutput*>(GetFirstOutput());
         _lastPingResult = ipOutput->Ping(ipOutput->GetResolvedIP(), _fppProxy == "" ? _outputManager->GetGlobalFPPProxy() : _fppProxy);
     } else {

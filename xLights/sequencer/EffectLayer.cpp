@@ -682,7 +682,7 @@ void EffectLayer::ConvertEffectsToPerModel(UndoManager& undo_manager)
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), it->GetID(), it->GetSettingsAsString(), it->GetPaletteAsString());
             it->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model " + buffer;
         }
-        else if (buffer == "")             {
+        else if (buffer == "") {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), it->GetID(), it->GetSettingsAsString(), it->GetPaletteAsString());
             it->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model Default";
         }

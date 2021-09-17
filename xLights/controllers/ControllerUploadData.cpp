@@ -204,7 +204,7 @@ bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
         res += wxString::Format("WARN: Model %s uses channels not being sent to this controller.\n", GetName());
     }
-    if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount())         {
+    if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount()) {
         res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
     }
     return success;
@@ -387,7 +387,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
             if (p == "") {
                 std::string np = "";
                 // this tries to find a protocol the controller can handle that is compatible
-                if (GetType() == "PIXEL")                     {
+                if (GetType() == "PIXEL") {
                     np = ChooseBestControllerPixel(protocols, it->GetModel()->GetControllerProtocol());
                 }
                 else                     {
@@ -400,7 +400,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
                 {
                     changed = true;
                     if (p == "") {
-                        if (np == "")                         {
+                        if (np == "") {
                             it->GetModel()->SetControllerProtocol(protocols.front());
                         }
                         else                             {

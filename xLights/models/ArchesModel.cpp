@@ -101,7 +101,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid)
         p->SetEditor("SpinCtrl");
     }
 
-    if (GetLayerSizeCount() != 0)     {
+    if (GetLayerSizeCount() != 0) {
         grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, IsLtoR ? 0 : 2 + (isBotToTop ? 0 : 1)));
     }
     else         {
@@ -647,7 +647,7 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
 
 std::string ArchesModel::GetDimension() const
 {
-    if (GetLayerSizeCount() == 0 && parm1 != 0)         {
+    if (GetLayerSizeCount() == 0 && parm1 != 0) {
         return GetModelScreenLocation().GetDimension(1.0 / parm1);
     }
     return GetModelScreenLocation().GetDimension(1.0);

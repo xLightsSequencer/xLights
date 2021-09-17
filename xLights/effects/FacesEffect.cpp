@@ -110,7 +110,7 @@ wxString FacesEffect::GetEffectString()
     ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
     ret << ",";
     
-    if (p->RadioButton1->GetValue())         {
+    if (p->RadioButton1->GetValue()) {
         ret << "E_CHOICE_Faces_Phoneme=";
         ret << p->Choice_Faces_Phoneme->GetStringSelection().ToStdString();
         ret << ",";
@@ -313,7 +313,7 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
 {
     std::list<std::string> res;
 
-    if (model != nullptr)         {
+    if (model != nullptr) {
 
         wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
         if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {

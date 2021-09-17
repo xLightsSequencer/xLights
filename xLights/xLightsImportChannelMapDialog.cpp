@@ -1689,7 +1689,7 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
             auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
             auto ss = mm->GetStrand(lastSelected);
             auto ms = wxSplit(availableModelName, '/');
-            if (ms[1] == ss)                 {
+            if (ms[1] == ss) {
                 auto m = TreeListCtrl_Mapping->GetModel();
                 auto par = m->GetParent(lastSelected);
                 // strand names match ... so looks like we are ok for a batch mapping of submodels/strands

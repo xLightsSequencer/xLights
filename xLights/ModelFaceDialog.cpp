@@ -1134,7 +1134,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                     wxFileOutputStream fout(filename);
                     zin.Read(fout);
                 }
-                if (!wxFile::Exists(filename))                     {
+                if (!wxFile::Exists(filename)) {
                     logger_base.error("File extract failed.");
                 }
                 ent = zin.GetNextEntry();

@@ -1415,7 +1415,7 @@ std::string ValueCurve::Serialise()
         }
         res += "Min=" + std::string(wxString::Format("%.2f", _min).c_str()) + "|";
         res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
-        if (_timingTrack != "")             {
+        if (_timingTrack != "") {
             res += "TT=" + _timingTrack + "|";
         }
         if (_parameter1 != 0)
@@ -1749,7 +1749,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                 }
 
                 if (f * 100.0 > GetParameter3()) {
-                    if (time == startMS)                         {
+                    if (time == startMS) {
                         runningy = max;
                         _values.back().y = runningy;
                     }
@@ -1760,7 +1760,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                     }
                 }
                 else {
-                    if (runningy <= min)                         {
+                    if (runningy <= min) {
                         // do nothing
                         runningy = min;
                     }

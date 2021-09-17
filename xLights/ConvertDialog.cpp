@@ -1738,7 +1738,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         network--;
                         network += lorUnitSizes.size();
                         curchannel = _outputManager->GetOutputsAbsoluteChannel(network, chindex) - 1;
-                        if (curchannel < 0)                             {
+                        if (curchannel < 0) {
                             AppendConvertStatus(string_format(wxString("WARNING: invalid LOR network: %d, Only %d defined in xLights.\n"), network + 1, _outputManager->GetOutputCount()));
                             curchannel = -1;
                         }

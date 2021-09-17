@@ -196,7 +196,7 @@ void ImageModel::InitModel()
     parm3 = 1;
 
 	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
-    if (_imageFile != ModelXml->GetAttribute("Image", ""))         {
+    if (_imageFile != ModelXml->GetAttribute("Image", "")) {
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
     }

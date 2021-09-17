@@ -1284,7 +1284,7 @@ void CubeModel::ExportAsCustomXModel() const {
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString groups = SerialiseGroups();
-    if (groups != "")         {
+    if (groups != "") {
         f.Write(groups);
     }
     wxString face = SerialiseFace();

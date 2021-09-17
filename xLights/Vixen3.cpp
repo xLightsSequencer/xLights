@@ -592,7 +592,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         else if (nm == "ColorGradient") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
-                                if (nm2 == "_colors")                                     {
+                                if (nm2 == "_colors") {
                                     std::vector<wxColour> gradCol;
                                     for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         auto nm3 = nnn->GetName().AfterFirst(':');
@@ -620,10 +620,10 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             }
                                         }
                                     }
-                                    if (gradCol.size() == 1)                                         {
+                                    if (gradCol.size() == 1) {
                                         e->colours.push_back(gradCol[0]);
                                     }
-                                    else if (gradCol.size() > 1)                                         {
+                                    else if (gradCol.size() > 1) {
                                         // TODO we dont handle gradients yet so just push back the first colour
 
                                         e->colours.push_back(gradCol[0]);

@@ -555,17 +555,17 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                         for (int i = 0; i < dirs.size(); i++)
                         {
                             auto pth = value + fn.GetPathSeparator();
-                            for (int j = i; j < dirs.size(); j++)                                 {
+                            for (int j = i; j < dirs.size(); j++) {
                                 pth += dirs[j] + fn.GetPathSeparator();
                             }
                             pth += file;
-                            if (wxFile::Exists(pth))                                 {
+                            if (wxFile::Exists(pth)) {
                                 // found it
                                 mSettings[realid] = pth;
                                 break;
                             }
                         }
-                        if (origName == mSettings[realid] && !wxFile::Exists(origName))                             {
+                        if (origName == mSettings[realid] && !wxFile::Exists(origName)) {
                             logger_base.warn("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
                         }
                     }

@@ -1991,7 +1991,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
         if (reff) {
             RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
-            if (b == nullptr)                 {
+            if (b == nullptr) {
                 // this is bad nothing will work
                 logger_base.warn("render on model %s layer %d effect %s from %dms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
             }

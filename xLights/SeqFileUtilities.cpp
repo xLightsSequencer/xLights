@@ -1278,7 +1278,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 
     for (const auto& it : elements) {
         Element* e = it;
-        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)         {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
             for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
@@ -2631,15 +2631,15 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
                 starti = endi = Scale255To100(intensity, doscale);
             }
 
-            if (type == "twinkle")                 {
+            if (type == "twinkle") {
                 std::string efpalette = palette;
                 int steps = std::max((float)(endtime - starttime - 1000) / 100.0, 0.0) + (rand01() * 10.0 - 5.0);
                 steps = std::max(steps, 2);
                 steps = std::min(steps, 200);
                 std::string settings = "E_CHECKBOX_Twinkle_Strobe=1,E_SLIDER_Twinkle_Count=2,E_SLIDER_Twinkle_Steps=" + wxString::Format("%d", steps);
 
-                if (starti == endi)                     {
-                    if (starti != "100")                         {
+                if (starti == endi) {
+                    if (starti != "100") {
                         efpalette += ",C_SLIDER_Brightness=" + starti;
                     }
                 }
@@ -5084,7 +5084,7 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
     wxImage i;
     i.Create(numCols, numRows);
     i.InitAlpha();
-    for (int x = 0; x < numCols; x++)  {
+    for (int x = 0; x < numCols; x++) {
         for (int y = 0; y < numRows; y++) {
             i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
         }
@@ -6228,7 +6228,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             start_pos = 0.0;
         }
-        else if (start_pos > 100.0)             {
+        else if (start_pos > 100.0) {
             if (warn) {
                 DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos > 100%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
                 warn = false;

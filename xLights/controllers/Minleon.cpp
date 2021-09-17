@@ -581,7 +581,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
         success = cud.Check(caps, check);
     }
 
-    if (controller->IsFullxLightsControl())         {
+    if (controller->IsFullxLightsControl()) {
         for (auto& it : _stringPorts) {
             delete it;
         }

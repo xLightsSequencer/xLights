@@ -181,7 +181,7 @@ class ShaderProgram {
     };
 
 public:
-    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false)  {}
+    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false) {}
 
     void Cleanup(GLuint &pid) {
         if (ProgramID != 0) {
@@ -827,7 +827,7 @@ public:
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         UsesVertexColorAccumulator |= UsesAddVertex;
-        if (!Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator))             {
+        if (!Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator)) {
 
             logger_base.error("OpenGL33Cache constructor One or more shaders failed to compile. Turn on opengl logging for more details.");
         }

@@ -1514,7 +1514,7 @@ public:
         wxString faceName = "Gil Sans";
 
         bool useAA = USEAA;
-        if (size <= 12)  {
+        if (size <= 12) {
             useAA = false;
         }
 

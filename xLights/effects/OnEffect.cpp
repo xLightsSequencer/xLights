@@ -222,7 +222,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
     //Every Node set to selected color
     if (spatialcolour || buffer.dmx_buffer) {
         for (int x=0; x<buffer.BufferWi; ++x) {
-            for (int y=0; y<buffer.BufferHt; ++y)  {
+            for (int y=0; y<buffer.BufferHt; ++y) {
                 buffer.palette.GetSpatialColor(cidx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
                 if (start == 100 && end == 100) {
                 } else {

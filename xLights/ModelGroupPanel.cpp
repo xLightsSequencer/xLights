@@ -347,7 +347,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     if (spam < 0) spam = 0;
     if (spig < 0) spig = 0;
 
-    if (_lastFirstSelectedModelIndex >= 0)         {
+    if (_lastFirstSelectedModelIndex >= 0) {
         spam = _lastFirstSelectedModelIndex;
     }
 
@@ -355,7 +355,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         spig = _lastFirstSelectedModelInGroupIndex;
     }
 
-    if (group != mGroup)         {
+    if (group != mGroup) {
         spam = 0;
         spig = 0;
     }
@@ -465,10 +465,10 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         ListBoxModelsInGroup->EnsureVisible(spig);
     }
 
-    if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount())         {
+    if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount()) {
         _lastFirstSelectedModelIndex = ListBoxAddToModelGroup->GetItemCount() - 1;
     }
-    if (_lastFirstSelectedModelIndex >= 0 && _lastFirstSelectedModelIndex < ListBoxAddToModelGroup->GetItemCount())         {
+    if (_lastFirstSelectedModelIndex >= 0 && _lastFirstSelectedModelIndex < ListBoxAddToModelGroup->GetItemCount()) {
         ListBoxAddToModelGroup->SetItemState(_lastFirstSelectedModelIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         ListBoxAddToModelGroup->EnsureVisible(_lastFirstSelectedModelIndex);
     }

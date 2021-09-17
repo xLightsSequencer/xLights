@@ -420,7 +420,7 @@ namespace
    {
        Vec2D uv(s, t);
        Vec2D pos2(uv);
-       if (uv.x > params.xy.x)            {
+       if (uv.x > params.xy.x) {
            pos2.x = 2 * params.xy.x - uv.x;
        }
        if (uv.y > params.xy.y) {

@@ -49,7 +49,7 @@ void Mesh::SetRenderScaling(float s) {
 
 void Mesh::Init(BaseObject* base, bool set_size) {
 	_objFile = FixFile("", node_xml->GetAttribute("ObjFile", ""));
-    if (_objFile != node_xml->GetAttribute("ObjFile", ""))     {
+    if (_objFile != node_xml->GetAttribute("ObjFile", "")) {
         node_xml->DeleteAttribute("ObjFile");
         node_xml->AddAttribute("ObjFile", _objFile);
     }

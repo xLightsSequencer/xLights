@@ -2022,7 +2022,7 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
     if (layers[layer]->usingModelBuffers) {
-        for (auto& it : layers[layer]->modelBuffers)  {
+        for (auto& it : layers[layer]->modelBuffers) {
             it->SetPalette(newcolors, newcc);
         }
     }
@@ -2618,7 +2618,7 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
     if (layers[layer]->usingModelBuffers) {
         int cnt = 0;
         const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++)  {
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++) {
             if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
             } else {
@@ -2632,7 +2632,7 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
     if (layers[layer]->usingModelBuffers) {
-        for (const auto& it : layers[layer]->modelBuffers)  {
+        for (const auto& it : layers[layer]->modelBuffers) {
             it->SetEffectDuration(startTime, endTime);
         }
     }
@@ -3710,7 +3710,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, inMaskFactor, adjust, inTransitionReverse );
-            } else if ( inTransitionType == STR_SWAP )  {
+            } else if ( inTransitionType == STR_SWAP ) {
                swapTransition( buffer, cb, prevRB, inMaskFactor );
             } else if ( inTransitionType == STR_SHATTER ) {
                shatterTransition( buffer, cb, prevRB, 1.f-inMaskFactor );
@@ -3761,7 +3761,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                starTransition( buffer, cb, prevRB, outMaskFactor, adjust, outTransitionReverse );
-            } else if ( outTransitionType == STR_SWAP )  {
+            } else if ( outTransitionType == STR_SWAP ) {
                swapTransition( buffer, cb, prevRB, outMaskFactor );
             } else if ( outTransitionType == STR_SHATTER ) {
                shatterTransition( buffer, cb, prevRB, 1.f-outMaskFactor );

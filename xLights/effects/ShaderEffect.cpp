@@ -321,15 +321,15 @@ bool ShaderEffect::needToAdjustSettings(const std::string& version)
 void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))     {
+    if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap& settings = effect->GetSettings();
 
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (file != "")     {
-        if (!wxFile::Exists(file))         {
+    if (file != "") {
+        if (!wxFile::Exists(file)) {
             settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
         }
     }
@@ -347,7 +347,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
             it.first != "E_TEXTCTRL_Shader_Offset_Y" &&
             it.first != "E_TEXTCTRL_Shader_Zoom" &&
             it.first != "E_ID_VALUECURVE_Shader_Offset_X"
-           )         {
+           ) {
             if (StartsWith(it.first, "E_") && !Contains(it.first, "SHADERXYZZY")) {
                 std::string undecorated = AfterFirst(it.first, '_');
                 std::string name = AfterFirst(undecorated, '_');
@@ -356,7 +356,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
             }
         }
     }
-    for (const auto& it : renames)     {
+    for (const auto& it : renames) {
         settings[it.second] = settings[it.first];
         settings.erase(it.first);
     }
@@ -1017,10 +1017,10 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     offsetY /= 200.0;
     offsetY += 0.5;
     double zoom = GetValueCurveInt("Shader_Zoom", 0, SettingsMap, oset, SHADER_ZOOM_MIN, SHADER_ZOOM_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
-    if (zoom < 0)     {
+    if (zoom < 0) {
         zoom = 1.0 - abs(zoom) / 100.0;
     }
-    else if (zoom > 0)     {
+    else if (zoom > 0) {
         zoom = 1.0 + (zoom * 9.0) / 100.0;
     }
     else     {
@@ -1597,10 +1597,10 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "#define XL_SHADER\n\n"
     );
 
-    for (const auto& p : _parms)     {
+    for (const auto& p : _parms) {
         wxString name(p._name);
         wxString str;
-        switch (p._type)         {
+        switch (p._type) {
         case ShaderParmType::SHADER_PARM_FLOAT:
         {
             str = wxString::Format("uniform float %s;\n", name);

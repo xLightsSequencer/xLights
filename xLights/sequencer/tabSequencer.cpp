@@ -296,7 +296,7 @@ Model *xLightsFrame::GetModel(const std::string& name) const
 
 bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
 
-    if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr)         {
+    if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr) {
         buffer.InitBuffer(*_presetModel, layerCount, 50, zeroBased);
     }
     else {
@@ -505,7 +505,7 @@ void xLightsFrame::CheckForValidModels()
     bool mapall = false;
     if (missingModelCount > 7) {
         auto msg = wxString::Format("Sequence you are opening contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", (int)missingModelCount);
-        if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO)             {
+        if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO) {
             mapall = true;
         }
     }
@@ -2001,7 +2001,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         int endms = -1;
 
         for(int j=0;j< el->GetEffectCount();j++) {
-            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 Effect *ef = el->GetEffect(j);
                 _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
@@ -2040,7 +2040,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
         int endms = -1;
 
         for(int j=0;j< el->GetEffectCount();j++) {
-            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 std::string effectName = el->GetEffect(j)->GetEffectName();
                 int effectIndex = el->GetEffect(j)->GetEffectIndex();
 

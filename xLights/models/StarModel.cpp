@@ -361,7 +361,7 @@ void StarModel::InitModel()
                 end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
                 segStartLen = segEndLen;
                 segEndLen = segStartLen + segmentLength;
-                if (s == starSegments - 1)                     {
+                if (s == starSegments - 1) {
                     // last segment so beware rounding issues ... so bump it slightly
                     segEndLen += 0.001;
                 }
@@ -778,7 +778,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
 
-            if (ssl != "")                 {
+            if (ssl != "") {
                 SetProperty("StarStartLocation", ssl);
             } else {
                 SetProperty("StarStartLocation", ConvertFromDirStartSide(dir, sts));

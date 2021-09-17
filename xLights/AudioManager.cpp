@@ -2736,14 +2736,14 @@ float AudioManager::GetFilteredLeftData(long offset)
 float AudioManager::GetRawLeftData(long offset)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    while (!IsDataLoaded(offset))     {
+    while (!IsDataLoaded(offset)) {
         logger_base.debug("GetLeftData waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
     FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
 
-    if (fad != nullptr && fad->data0 != nullptr && offset <= _trackSize)     {
+    if (fad != nullptr && fad->data0 != nullptr && offset <= _trackSize) {
         return fad->data0[offset];
     }
     return 0;
@@ -2771,7 +2771,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
     int16_t* pcm = fad->pcmdata;
     int min = 32000;
     int max = -32000;
-    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++)     {
+    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++) {
         if (*pcm > max) max = *pcm;
         if (*pcm < min) min = *pcm;
         pcm++;
@@ -2780,12 +2780,12 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
     double scale = 1.0;
     double mm = (double)std::max(max, abs(min));
     wxASSERT(mm <= 32768.0);
-    if (mm > 0)     {
+    if (mm > 0) {
         scale = 32768.0 / mm;
     }
 
     // extra scaling based on the amount of frequency chosen
-    if (fad->highNote - fad->lowNote != 0)     {
+    if (fad->highNote - fad->lowNote != 0) {
         scale *= 128 / (fad->highNote - fad->lowNote);
     }
     // but dont let the scaling get out of hand
@@ -2831,7 +2831,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad)
     data1 = fad->data1;
     for (int i = 0; i < _trackSize; i++) {
         *data0 = *data0 * fscale;
-        if (data1 != nullptr)         {
+        if (data1 != nullptr) {
             *data1 = *data1 * fscale;
             data1++;
         }
@@ -2874,7 +2874,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         long datasize = sizeof(float) * (_trackSize + _extra);
         fad->data0 = (float*)malloc(datasize);
         memcpy(fad->data0, _data[0], datasize);
-        if (_data[1] != nullptr)         {
+        if (_data[1] != nullptr) {
             fad->data1 = (float*)malloc(datasize);
             memcpy(fad->data1, _data[1], datasize);
         }
@@ -2893,7 +2893,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             // This assumes the vocals are in one track
             // grab it from my cache if i have it
             fad = GetFilteredAudioData(type, -1, -1);
-            if (fad == nullptr)  {
+            if (fad == nullptr) {
                 fad = new FilteredAudioData();
                 long datasize = sizeof(float) * (_trackSize + _extra);
                 fad->data0 = (float*)malloc(datasize);
@@ -2940,7 +2940,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         fad = GetFilteredAudioData(AUDIOSAMPLETYPE::ANY, lowNote, highNote);
 
         // if we didnt find it ... create it
-        if (fad == nullptr)  {
+        if (fad == nullptr) {
             double lowHz = MidiToFrequency(lowNote);
             double highHz = MidiToFrequency(highNote);
 
@@ -2948,7 +2948,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
 
             long datasize = sizeof(float) * (_trackSize + _extra);
             fad->data0 = (float*)malloc(datasize);
-            if (_data[1] != nullptr)             {
+            if (_data[1] != nullptr) {
                 fad->data1 = (float*)malloc(datasize);
             }
             fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
@@ -3035,7 +3035,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
 
 FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
-    while (_filtered.size() == 0)         {
+    while (_filtered.size() == 0) {
         wxMilliSleep(100);
     }
 
@@ -3124,7 +3124,7 @@ float* AudioManager::GetFilteredLeftDataPtr(long offset)
 float* AudioManager::GetRawLeftDataPtr(long offset)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    while (!IsDataLoaded(offset))     {
+    while (!IsDataLoaded(offset)) {
         logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
         wxMilliSleep(100);
     }

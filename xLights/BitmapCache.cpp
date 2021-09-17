@@ -268,7 +268,7 @@ public:
                 }
                 bmp = wxBitmap(image, -1, 2.0);
 #else
-                if (dataDouble != nullptr && dataDouble != data)  {
+                if (dataDouble != nullptr && dataDouble != data) {
                     wxImage image = bmp.ConvertToImage();
                     bmp = wxBitmap(image, -1, 2.0);
                 }

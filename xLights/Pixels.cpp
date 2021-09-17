@@ -146,7 +146,7 @@ const static std::vector<std::string> __artificalTypes =
 
 bool IsArtificialPixelType(const std::string& p)
 {
-	for (const auto& it : __artificalTypes) 		{
+	for (const auto& it : __artificalTypes) {
 		if (p == it) return true;
 	}
 	return false;

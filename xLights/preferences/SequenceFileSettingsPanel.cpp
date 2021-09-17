@@ -395,7 +395,7 @@ void SequenceFileSettingsPanel::OnAddMediaButtonClick(wxCommandEvent& event)
 void SequenceFileSettingsPanel::OnRemoveMediaButtonClick(wxCommandEvent& event)
 {
     int i = MediaDirectoryList->GetSelection();
-    if (i != wxNOT_FOUND)  {
+    if (i != wxNOT_FOUND) {
         MediaDirectoryList->Delete(i);
     }
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {

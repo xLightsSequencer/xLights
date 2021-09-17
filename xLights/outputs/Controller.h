@@ -184,9 +184,9 @@ public:
     virtual bool CanTempDisable() const { return false; }
     void TempDisable(bool disable)
     {
-        if (CanTempDisable())             {
+        if (CanTempDisable()) {
             _tempDisable = disable;
-            for (const auto& it : _outputs)                 {
+            for (const auto& it : _outputs) {
                 it->TempDisable(disable);
             }
         }

@@ -1182,7 +1182,7 @@ void EffectTreeDialog::LoadGifImage(wxString const& path)
     if(wxFile::Exists(path) && GIFImage::IsGIF(path)) {
         gifImage = std::make_unique<GIFImage>(path);
 
-        if (!gifImage->IsOk())             {
+        if (!gifImage->IsOk()) {
             gifImage = nullptr;
             StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
         }

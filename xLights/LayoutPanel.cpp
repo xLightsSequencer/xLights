@@ -6680,15 +6680,15 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     size_t idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
-    if (idx > 0 )  {
+    if (idx > 0 ) {
         if ((type == "SingleModel" || type == "ModelProperty" || type == "Background")
-            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
+            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key) {
             //SingleModel - multi mouse movement, just record the original
             //Background/ModelProperty - multiple changes of the same property (like spinning spin button)
             return;
         }
         else if ((type == "SingleObject" || type == "ObjectProperty")
-            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
+            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key) {
             return;
         }
     }

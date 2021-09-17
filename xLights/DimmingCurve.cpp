@@ -19,7 +19,7 @@
 
 class BaseDimmingCurve : public DimmingCurve {
 public:
-    BaseDimmingCurve(int ch) : DimmingCurve(), channel(ch)  {
+    BaseDimmingCurve(int ch) : DimmingCurve(), channel(ch) {
         for (int x = 0; x < 256; x++) {
             data[x] = x;
             reverseData[x] = 0;
@@ -117,7 +117,7 @@ public:
 
 class BasicDimmingCurve : public BaseDimmingCurve {
 public:
-    BasicDimmingCurve(int ch) : BaseDimmingCurve(ch)  {
+    BasicDimmingCurve(int ch) : BaseDimmingCurve(ch) {
     }
     BasicDimmingCurve(int brightness, float gamma, int ch) : BaseDimmingCurve(ch) {
         if (gamma > 50.0) gamma = 50.0;

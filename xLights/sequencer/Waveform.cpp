@@ -239,7 +239,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         if (_lowNote == -1) _lowNote = 0;
         if (_highNote == -1) _highNote = 127;
         NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
-        if (dlg.ShowModal() == wxID_CANCEL)         {
+        if (dlg.ShowModal() == wxID_CANCEL) {
             _lowNote = origLow;
             _highNote = origHigh;
             return;

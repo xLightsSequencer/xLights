@@ -820,7 +820,7 @@ void DMXPanel::ValidateWindow()
     bool vc = false;
 
 	auto models = GetActiveModels();
-	if (models.size() == 0) 		{
+	if (models.size() == 0) {
 		vc = true;
 	}
 
@@ -853,7 +853,7 @@ std::list<Model*> DMXPanel::GetActiveModels()
 	if (effect != nullptr) {
 		if (effect->GetParentEffectLayer() != nullptr) {
 			Element* element = effect->GetParentEffectLayer()->GetParentElement();
-			if (element != nullptr) 				{
+			if (element != nullptr) {
 				ModelElement* me = dynamic_cast<ModelElement*>(element);
 				if (me != nullptr) {
 					auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
@@ -889,11 +889,11 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 
 	auto models = GetActiveModels();
 	std::string stateName;
-	while (stateName == "") 		{
+	while (stateName == "") {
 		wxTextEntryDialog dlg(this, "Enter name for the state", "State Name");
-		if (dlg.ShowModal() == wxID_OK) 			{
+		if (dlg.ShowModal() == wxID_OK) {
 			stateName = dlg.GetValue();
-			for (const auto& it : models) 				{
+			for (const auto& it : models) {
 				if (it->GetChanCount() > maxChannels) maxChannels = it->GetChanCount();
 				if (it->HasState(dlg.GetValue()))
 				{
@@ -913,8 +913,8 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 		n->AddAttribute("CustomColors", "1");
 		n->AddAttribute("Name", stateName);
 		n->AddAttribute("Type", "SingleNode");
-		for (uint32_t i = 0; i < 40; i++) 			{
-			if (i < maxChannels) 				{
+		for (uint32_t i = 0; i < 40; i++) {
+			if (i < maxChannels) {
 				auto attr = wxString::Format("s%d-Name", i + 1);
 				n->AddAttribute(attr, stateName);
 				attr = wxString::Format("s%d", i + 1);

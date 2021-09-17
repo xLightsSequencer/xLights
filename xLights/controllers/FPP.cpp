@@ -1961,7 +1961,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "layout", layout);
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "yoff", curOffset);
                         curOffset += h > 0 ? h : 0;
-                        if (countModels > 1)  {
+                        if (countModels > 1) {
                             changed |= UpdateJSONValue(origJson["channelOutputs"][x], "scaling", "None");
                         } else {
                             changed |= UpdateJSONValue(origJson["channelOutputs"][x], "scaling", "Hardware");
@@ -1985,7 +1985,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["description"] = name;
                     v["yoff"] = curOffset;
                     curOffset += h > 0 ? h : 0;
-                    if (countModels > 1)  {
+                    if (countModels > 1) {
                         v["scaling"] = wxString("None");
                     } else {
                         v["scaling"] = wxString("Hardware");
