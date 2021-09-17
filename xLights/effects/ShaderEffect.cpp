@@ -30,6 +30,7 @@
     extern PFNGLGENBUFFERSPROC glGenBuffers;
     extern PFNGLBINDBUFFERPROC glBindBuffer;
     extern PFNGLBUFFERDATAPROC glBufferData;
+    extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
     extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
     extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
     extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
@@ -533,9 +534,81 @@ private:
 
 class ShaderRenderCache : public EffectRenderCache {
 public:
-    struct ShaderInfo {
+    class ShaderInfo {
+        std::map<std::string, GLint> uniforms;
+
+    public:
         std::list<unsigned> programIds;
+
+        ShaderInfo(GLint pid) {
+            LoadUniforms(pid);
+        }
+
+        inline bool SetUniformInt(const std::string &name, int v) const {
+            GLint loc = FindUniformLocation(name);
+            if (loc != -1) {
+                glUniform1i(loc, v);
+                return true;
+            }
+            return false;
+        }
+        inline bool SetUniform1f(const std::string &name, float v) const {
+            GLint loc = FindUniformLocation(name);
+            if (loc != -1) {
+                glUniform1f(loc, v);
+                return true;
+            }
+            return false;
+        }
+        inline bool SetUniform2f(const std::string &name, float v1, float v2) const {
+            GLint loc = FindUniformLocation(name);
+            if (loc != -1) {
+                glUniform2f(loc, v1, v2);
+                return true;
+            }
+            return false;
+        }
+        inline bool SetUniform4f(const std::string &name, float v1, float v2, float v3, float v4) const {
+            GLint loc = FindUniformLocation(name);
+            if (loc != -1) {
+                glUniform4f(loc, v1, v2, v3, v4);
+                return true;
+            }
+            return false;
+        }
+        inline bool HasUniform(const std::string &name) {
+            GLint loc = FindUniformLocation(name);
+            if (loc != -1) {
+                return true;
+            }
+            return false;
+        }
+    private:
+        GLint FindUniformLocation(const std::string &name) const {
+            const auto &a = uniforms.find(name);
+            if (a != uniforms.end()) {
+                return a->second;
+            }
+            return -1;
+        }
+
+        void LoadUniforms(GLint program) {
+            int uniformCount = 0;
+            glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &uniformCount);
+            char buf[256];
+            for (int i = 0; i < uniformCount; i++) {
+                int len = 0;
+                GLint size;
+                GLenum type;
+                glGetActiveUniform(program, i, sizeof(buf), &len, &size, &type, buf);
+
+                int location = glGetUniformLocation(program, buf);
+                uniforms[buf] = location;
+            }
+        }
+
     };
+
     static std::map<std::string, ShaderInfo*> shaderMap;
     static std::set<std::string> failedShaders;
     static std::mutex shaderMapMutex;
@@ -573,7 +646,6 @@ public:
             unsigned rbId = s_rbId;
             unsigned rbTex = s_rbTex;
             unsigned audioTex = s_audioTex;
-            unsigned programId = s_programId;
             xlGLCanvas *preview = this->preview;
 
             preview->CallAfter([preview,
@@ -582,16 +654,14 @@ public:
                                 fbId,
                                 rbId,
                                 rbTex,
-                                audioTex,
-                                programId] {
+                                audioTex] {
                 preview->SetCurrentGLContext();
                 DestroyResources(vertexArrayId,
                                  vertexBufferId,
                                  fbId,
                                  rbId,
                                  rbTex,
-                                 audioTex,
-                                 programId);
+                                 audioTex);
             });
 
             s_programId = 0;
@@ -604,21 +674,22 @@ public:
 #endif
     }
 
-    void SetProgramId(unsigned programId) {
-        if (s_programId) {
+    void SetProgramId(unsigned programId, ShaderInfo *si) {
+        if (s_programId && s_shaderInfo) {
             std::unique_lock<std::mutex> lock(shaderMapMutex);
             // we'll keep 10 of them around.  We can always re-compile if we need more later
             // but this keeps object retention count a bit bounded
-            if (shaderMap[s_code]->programIds.size() > 10) {
+            if (s_shaderInfo->programIds.size() > 10) {
                 glDeleteProgram(s_programId);
             } else {
-                shaderMap[s_code]->programIds.push_back(s_programId);
+                s_shaderInfo->programIds.push_back(s_programId);
             }
             s_programId = 0;
         }
+        s_programId = programId;
+        s_shaderInfo = si;
         if (_shaderConfig) {
             s_code = _shaderConfig->GetCode();
-            s_programId = programId;
         }
     }
 
@@ -631,6 +702,7 @@ public:
     unsigned s_rbTex = 0;
     unsigned s_audioTex = 0;
     unsigned s_programId = 0;
+    ShaderInfo *s_shaderInfo = nullptr;
     std::string s_code;
     int s_rbWidth = 0;
     int s_rbHeight = 0;
@@ -639,6 +711,7 @@ public:
     void InitialiseShaderConfig(const wxString& filename, SequenceElements* sequenceElements) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
+        s_shaderInfo = nullptr;
     }
 
     void DestroyResources() {
@@ -647,8 +720,7 @@ public:
                          s_fbId,
                          s_rbId,
                          s_rbTex,
-                         s_audioTex,
-                         s_programId);
+                         s_audioTex);
         s_programId = 0;
         s_vertexArrayId = 0;
         s_vertexBufferId = 0;
@@ -662,12 +734,7 @@ public:
                                  unsigned s_fbId,
                                  unsigned s_rbId,
                                  unsigned s_rbTex,
-                                 unsigned s_audioTex,
-                                 unsigned s_programId) {
-        // temp? - ShaderRenderCache instances can share a common program instance
-        //if (s_programId) {
-        //    LOG_GL_ERRORV(glDeleteProgram(s_programId));
-        //}
+                                 unsigned s_audioTex) {
         if (s_vertexArrayId) {
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
         }
@@ -966,8 +1033,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            programId = programIdForShaderCode(_shaderConfig);
-            cache->SetProgramId(programId);
+            programId = programIdForShaderCode(_shaderConfig, cache);
         } else {
             logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
@@ -979,8 +1045,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         if (_shaderConfig != nullptr) {
             programId = cache->s_programId;
         } else if (programId == 0) {
-            programId = programIdForShaderCode(_shaderConfig);
-            cache->SetProgramId(programId);
+            programId = programIdForShaderCode(_shaderConfig, cache);
         }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
@@ -1038,104 +1103,65 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
 
-    LOG_GL_ERRORV(glUseProgram(programId));
+
+    GLint current = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+    if (current != programId) {
+        LOG_GL_ERRORV(glUseProgram(programId));
+    }
 
     int colourIndex = 0;
-    int loc = glGetUniformLocation(programId, "RENDERSIZE");
-    if (loc >= 0) {
-        glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
-    } else {
+    ShaderRenderCache::ShaderInfo *si = cache->s_shaderInfo;
+    if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
-
-    loc = glGetUniformLocation(programId, "XL_OFFSET");
-    if (loc >= 0) {
-        glUniform2f(loc, offsetX, offsetY);
-    }
-    else {
+    if (!si->SetUniform2f("XL_OFFSET", offsetX, offsetY)) {
         logger_base.warn("Unable to bind to XL_OFFSET");
     }
-
-    loc = glGetUniformLocation(programId, "XL_ZOOM");
-    if (loc >= 0) {
-        glUniform1f(loc, (GLfloat)(zoom));
-    }
-    else {
+    if (!si->SetUniform1f("XL_ZOOM", zoom)) {
         logger_base.warn("Unable to bind to XL_ZOOM");
     }
-
-    loc = glGetUniformLocation(programId, "TIME");
-    if (loc >= 0) {
-        glUniform1f(loc, (GLfloat)(_timeMS) / 1000.0);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
+    if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
+        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
+        }
     }
+    si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
 
-    loc = glGetUniformLocation(programId, "TIMEDELTA");
-    if (loc >= 0) {
-        float delta = buffer.frameTimeInMs /1000.f;
-        glUniform1f(loc, delta);
-    }
-
-    loc = glGetUniformLocation(programId, "DATE");
-    if (loc >= 0) {
+    if (si->HasUniform("DATE")) {
         wxDateTime dt = wxDateTime::Now();
-        glUniform4f(loc, dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
+        si->SetUniform4f("DATE", dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
     }
-
-    loc = glGetUniformLocation(programId, "PASSINDEX");
-    if (loc >= 0) {
-        glUniform1i(loc, 0);
-    }
-
-    loc = glGetUniformLocation(programId, "FRAMEINDEX");
-    if (loc >= 0) {
-        glUniform1i(loc, _timeMS / buffer.frameTimeInMs);
-    }
-
-    loc = glGetUniformLocation(programId, "clearBuffer");
-    if (loc >= 0) {
-        glUniform1f(loc, SettingsMap.GetBool("CHECKBOX_OverlayBkg", false) ? 1.0 : 0.0);
-    }
-
-    loc = glGetUniformLocation(programId, "resetNow");
-    if (loc >= 0) {
-        glUniform1f(loc, (buffer.curPeriod == buffer.curEffStartPer) ? 1.0 : 0.0);
-    }
-
-    loc = glGetUniformLocation(programId, "texSampler");
-    if (loc >= 0) {
-        glUniform1i(loc, 0);
-    }
+    si->SetUniformInt("PASSINDEX", 0);
+    si->SetUniformInt("FRAMEINDEX", _timeMS / buffer.frameTimeInMs);
+    si->SetUniform1f("clearBuffer", SettingsMap.GetBool("CHECKBOX_OverlayBkg", false) ? 1.0 : 0.0);
+    si->SetUniform1f("resetNow", (buffer.curPeriod == buffer.curEffStartPer) ? 1.0 : 0.0);
+    si->SetUniformInt("texSampler", 0);
 
     for (const auto& it : _shaderConfig->GetParms())
     {
-        loc = glGetUniformLocation(programId, it._name.c_str());
-        if (loc >= 0)
-        {
+        if (si->HasUniform(it._name)) {
             switch (it._type)
             {
             case ShaderParmType::SHADER_PARM_FLOAT:
             {
                 double f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100.0, SettingsMap, oset, it._min * 100.0, it._max * 100.0, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
-                glUniform1f(loc, f);
+                si->SetUniform1f(it._name, f);
                 break;
             }
             case ShaderParmType::SHADER_PARM_POINT2D:
             {
                 double x = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X", it._defaultPt.x * 100, SettingsMap, oset, it._minPt.x * 100, it._maxPt.x * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
                 double y = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y", it._defaultPt.y * 100, SettingsMap, oset, it._minPt.y * 100, it._maxPt.y * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
-                glUniform2f(loc, x, y);
+                si->SetUniform2f(it._name, x, y);
                 break;
             }
             case ShaderParmType::SHADER_PARM_BOOL:
             {
                 bool b = SettingsMap.GetBool(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
-                glUniform1f(loc, b);
+                si->SetUniform1f(it._name, b);
                 break;
             }
             case ShaderParmType::SHADER_PARM_EVENT:
@@ -1157,20 +1183,20 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
                     }
                 }
 
-                glUniform1f(loc, b);
+                si->SetUniform1f(it._name, b);
                 break;
             }
             case ShaderParmType::SHADER_PARM_LONGCHOICE:
             {
                 long l = it.EncodeChoice(SettingsMap[it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHOICE)]);
-                glUniform1i(loc, l);
+                si->SetUniformInt(it._name, l);
                 break;
             }
             case ShaderParmType::SHADER_PARM_LONG:
             {
                 long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max,
                     buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
-                glUniform1i(loc, l);
+                si->SetUniformInt(it._name, l);
                 break;
             }
             case ShaderParmType::SHADER_PARM_COLOUR:
@@ -1178,7 +1204,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
                 xlColor c = buffer.palette.GetColor(colourIndex);
                 colourIndex++;
                 if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
-                glUniform4f(loc, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
+                si->SetUniform4f(it._name, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
                 break;
             }
             default:
@@ -1209,7 +1235,9 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
 
     xlColorVector& cv(buffer.pixels);
     LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
-    LOG_GL_ERRORV(glUseProgram(0));
+    if (!CanRenderOnBackgroundThread(eff, SettingsMap, buffer)) {
+        LOG_GL_ERRORV(glUseProgram(0));
+    }
 
     UnsetGLContext(cache);
 }
@@ -1283,7 +1311,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     }
 }
 
-unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
+unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1310,13 +1338,13 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
                 logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
             } else {
                 //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
+                cache->SetProgramId(programId, shaderInfo);
                 return programId;
             }
         }
     }
 
     lock.unlock();
-    static int count = 0;
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
     if (programId == 0u) {
         lock.lock();
@@ -1326,11 +1354,15 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg)
     } else {
         logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
         if (shaderInfo == nullptr) {
-            shaderInfo = new ShaderRenderCache::ShaderInfo();
             lock.lock();
-            ShaderRenderCache::shaderMap[fragmentShaderSrc] = shaderInfo;
+            shaderInfo = ShaderRenderCache::shaderMap[fragmentShaderSrc];
+            if (shaderInfo  == nullptr) {
+                shaderInfo = new ShaderRenderCache::ShaderInfo(programId);
+                ShaderRenderCache::shaderMap[fragmentShaderSrc] = shaderInfo;
+            }
             lock.unlock();
         }
+        cache->SetProgramId(programId, shaderInfo);
     }
     return programId;
 }
