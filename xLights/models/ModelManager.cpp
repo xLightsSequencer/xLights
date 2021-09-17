@@ -425,7 +425,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                             auto mgmn = wxString(it);
                             mgmn.Replace("EXPORTEDMODEL", mname);
                             if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
-                                !mmg->DirectlyContainsModel(mname)) {
+                                !mmg->DirectlyContainsModel(mgmn)) {
                                 mmg->AddModel(mgmn);
                             }
                         }
