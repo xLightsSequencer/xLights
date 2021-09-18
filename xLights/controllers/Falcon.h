@@ -96,6 +96,7 @@ class Falcon : public BaseController
     bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress);
     int V4_ValidBrightness(int b);
     bool V4_SetInputMode(Controller* controller, wxWindow* parent);
+    bool V4_ValidateWAV(const std::string& media);
 
 #pragma endregion
 

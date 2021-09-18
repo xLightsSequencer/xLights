@@ -761,6 +761,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent)
                 return false;
             }
         }
+        return true;
     }
 
     // Get universes based on IP
@@ -783,30 +784,8 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent)
             }
             return false;
         }
-        return true;
     }
-
-    return true;
-}
-
-bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (!V4_SetInputMode(controller, parent)) {
-        return false;
-    }
-
-    auto protocol = controller->GetProtocol();
-    if (protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) {
-
-        auto outputs = controller->GetOutputs();
-
-        if (outputs.size() > 192) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to falcon v4 controller but only 192 are supported.", outputs.size()).ToStdString());
-            return false;
-        }
-
+    else if (protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) {
         auto sc = controller->GetStartChannel();
         if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_E131_ARTNET || _v4status["ps"].AsInt() + 1 != sc) {
 
@@ -825,6 +804,31 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
                 logger_base.error("Failed to set board mode.");
                 return false;
             }
+        }
+    }
+
+    return true;
+}
+
+bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!V4_SetInputMode(controller, parent)) {
+        return false;
+    }
+
+    auto protocol = controller->GetProtocol();
+    if ((protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) && 
+        (_v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPMASTER &&
+        _v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPPLAYER &&
+        _v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPREMOTE))
+    {
+        auto outputs = controller->GetOutputs();
+
+        if (outputs.size() > 192) {
+            DisplayError(wxString::Format("Attempt to upload %d universes to falcon v4 controller but only 192 are supported.", outputs.size()).ToStdString());
+            return false;
         }
 
         if (outputs.size() > 0) {
@@ -2133,6 +2137,57 @@ bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* ou
     return true;
 }
 
+bool Falcon::V4_ValidateWAV(const std::string& media)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxFile f;
+    if (f.Open(media))         {
+        
+        uint8_t buffer[34];
+        if (f.Read(&buffer, sizeof(buffer)) == sizeof(buffer))             {
+
+            // is it a WAV file
+            if (buffer[0] != 82 || buffer[1] != 73 || buffer[2] != 70 || buffer[3] != 70) {
+                logger_base.error("WAV file token missing.");
+                return false;
+            }
+
+            // is it PCM
+            if (buffer[20] != 1 || buffer[21] != 0) {
+                logger_base.error("Not a PCM audio format.");
+                return false;
+            }
+
+            // is sample rate 44100
+            if (buffer[24] != 0x44 || buffer[25] != 0xAC) {
+                logger_base.error("Not 44,100 bits per second.");
+                return false;
+            }
+
+            // 2 channels
+            if (buffer[22] != 2 || buffer[23] != 0) {
+                logger_base.error("Not a stereo file.");
+                return false;
+            }
+
+            // is it block align 4
+            if (buffer[30] != 4 || buffer[31] != 0) {
+                logger_base.error("WAV file block alignment is not 4.");
+                return false;
+            }
+
+            // is it 16 bit
+            if (buffer[32] != 4 || buffer[33] != 0) {
+                logger_base.error("Not 16 bits per sample.");
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress)
 {
     bool res = true;
@@ -2161,22 +2216,33 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
         // if not then upload it
         if (!found) {
 
-            res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
+            bool skip = false;
 
-            if (res) {
-                if (ismp3) {
-                    progress->Update(0, "Converting to WAV file.");
-                    wxSleep(1);
-                    int p = 0;
-                    while (p != 100) {
-                        p = V4_GetConversionProgress();
-                        progress->Update(p * 10, "Converting to WAV file.");
-                        if (p != 100) wxSleep(5);
-                    }
+            if (!ismp3) {
+                if (!V4_ValidateWAV(media)) {
+                    skip = true;
+                    wxMessageBox("WAV file not valid: " + media + " : Skipping.");
                 }
-                else {
-                    while (V4_IsFileUploading()) {
+            }
+
+            if (!skip && res) {
+                res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
+
+                if (res) {
+                    if (ismp3) {
+                        progress->Update(0, "Converting to WAV file.");
                         wxSleep(1);
+                        int p = 0;
+                        while (p != 100) {
+                            p = V4_GetConversionProgress();
+                            progress->Update(p * 10, "Converting to WAV file.");
+                            if (p != 100) wxSleep(5);
+                        }
+                    }
+                    else {
+                        while (V4_IsFileUploading()) {
+                            wxSleep(1);
+                        }
                     }
                 }
             }
