@@ -472,7 +472,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
         newJson["e131"]["universe"] = port->GetUniverse();
         newJson["e131"]["universe_limit"] = cud.GetFirstOutput()->GetChannels();
-        newJson["e131"]["channel_start"] = port->GetStartChannel();
+        newJson["e131"]["channel_start"] = port->GetUniverseStartChannel();
         newJson["e131"]["channel_count"] = port->Channels();
         newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
 
