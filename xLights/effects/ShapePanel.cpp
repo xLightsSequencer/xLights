@@ -33,6 +33,7 @@
 
 #include <wx/fontenum.h>
 
+
 class Emoji
 {
     std::string _name;
@@ -70,10 +71,10 @@ public:
 //(*IdInit(ShapePanel)
 const long ShapePanel::ID_STATICTEXT_Shape_ObjectToDraw = wxNewId();
 const long ShapePanel::ID_CHOICE_Shape_ObjectToDraw = wxNewId();
-const long ShapePanel::ID_STATICTEXT1 = wxNewId();
 const long ShapePanel::ID_FONTPICKER_Shape_Font = wxNewId();
 const long ShapePanel::ID_SPINCTRL_Shape_Char = wxNewId();
 const long ShapePanel::ID_STATICTEXT2 = wxNewId();
+const long ShapePanel::ID_CHOICE_Shape_SkinTone = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_SLIDER_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_Thickness = wxNewId();
@@ -156,6 +157,8 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer9;
+    wxStaticText* StaticText14;
+    wxStaticText* StaticText9;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -181,7 +184,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     Choice_Shape_ObjectToDraw->Append(_("Emoji"));
     FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText9 = new wxStaticText(this, ID_STATICTEXT1, _("Character"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    StaticText9 = new wxStaticText(this, wxID_ANY, _("Character"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer57->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(1);
@@ -195,15 +198,26 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     SpinCtrl_CharCode->SetValue(_T("127876"));
     FlexGridSizer8->Add(SpinCtrl_CharCode, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
-    StaticText10 = new ClickableStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer57->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    EmojiDisplay = new ClickableStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE, _T("ID_STATICTEXT2"));
+    FlexGridSizer57->Add(EmojiDisplay, 1, wxALL|wxEXPAND, 2);
+    StaticText14 = new wxStaticText(this, wxID_ANY, _("Tone"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer57->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    SkinToneChoice = new wxChoice(this, ID_CHOICE_Shape_SkinTone, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Shape_SkinTone"));
+    SkinToneChoice->SetSelection( SkinToneChoice->Append(_("Default")) );
+    SkinToneChoice->Append(_("Light"));
+    SkinToneChoice->Append(_("Medium Light"));
+    SkinToneChoice->Append(_("Medium"));
+    SkinToneChoice->Append(_("Medium Dark"));
+    SkinToneChoice->Append(_("Dark"));
+    FlexGridSizer57->Add(SkinToneChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     Slider_Shape_Thickness = new BulkEditSlider(this, ID_SLIDER_Shape_Thickness, 3, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Thickness"));
     FlexGridSizer1->Add(Slider_Shape_Thickness, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_ThicknessVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Thickness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Thickness"));
+    BitmapButton_Shape_ThicknessVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Thickness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Thickness"));
     FlexGridSizer1->Add(BitmapButton_Shape_ThicknessVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Thickness = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Thickness"));
@@ -215,7 +229,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer2->AddGrowableCol(0);
     Slider_Shape_Count = new BulkEditSlider(this, IDD_SLIDER_Shape_Count, 5, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shape_Count"));
     FlexGridSizer2->Add(Slider_Shape_Count, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_CountVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Count"));
+    BitmapButton_Shape_CountVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Count"));
     FlexGridSizer2->Add(BitmapButton_Shape_CountVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     TextCtrl34 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shape_Count, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shape_Count"));
@@ -227,7 +241,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer7->AddGrowableCol(0);
     Slider_Shape_StartSize = new BulkEditSlider(this, ID_SLIDER_Shape_StartSize, 5, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_StartSize"));
     FlexGridSizer7->Add(Slider_Shape_StartSize, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_StartSizeVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_StartSize, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_StartSize"));
+    BitmapButton_Shape_StartSizeVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_StartSize, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_StartSize"));
     FlexGridSizer7->Add(BitmapButton_Shape_StartSizeVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_StartSize = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_StartSize, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_StartSize"));
@@ -244,7 +258,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer10->AddGrowableCol(0);
     Slider_Shapes_Velocity = new BulkEditSlider(this, ID_SLIDER_Shapes_Velocity, 0, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shapes_Velocity"));
     FlexGridSizer10->Add(Slider_Shapes_Velocity, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shapes_Velocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Velocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Velocity"));
+    BitmapButton_Shapes_Velocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Velocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Velocity"));
     FlexGridSizer10->Add(BitmapButton_Shapes_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shapes_Velocity = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Velocity, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Velocity"));
@@ -256,7 +270,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer11->AddGrowableCol(0);
     Slider_Shapes_Direction = new BulkEditSlider(this, ID_SLIDER_Shapes_Direction, 90, 0, 359, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shapes_Direction"));
     FlexGridSizer11->Add(Slider_Shapes_Direction, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shapes_Direction = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Direction, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Direction"));
+    BitmapButton_Shapes_Direction = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Direction, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Direction"));
     FlexGridSizer11->Add(BitmapButton_Shapes_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shapes_Direction = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Direction, _("90"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Direction"));
@@ -268,7 +282,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer3->AddGrowableCol(0);
     Slider_Shape_Lifetime = new BulkEditSlider(this, ID_SLIDER_Shape_Lifetime, 5, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Lifetime"));
     FlexGridSizer3->Add(Slider_Shape_Lifetime, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_LifetimeVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Lifetime, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Lifetime"));
+    BitmapButton_Shape_LifetimeVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Lifetime, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Lifetime"));
     FlexGridSizer3->Add(BitmapButton_Shape_LifetimeVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
     TextCtrl1 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Lifetime, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Lifetime"));
@@ -280,7 +294,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer4->AddGrowableCol(0);
     Slider_Shape_Growth = new BulkEditSlider(this, ID_SLIDER_Shape_Growth, 10, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Growth"));
     FlexGridSizer4->Add(Slider_Shape_Growth, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_GrowthVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Growth, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Growth"));
+    BitmapButton_Shape_GrowthVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Growth, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Growth"));
     FlexGridSizer4->Add(BitmapButton_Shape_GrowthVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Growth = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Growth, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Growth"));
@@ -292,7 +306,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer5->AddGrowableCol(0);
     Slider_Shape_CentreX = new BulkEditSlider(this, ID_SLIDER_Shape_CentreX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_CentreX"));
     FlexGridSizer5->Add(Slider_Shape_CentreX, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_CentreXVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_CentreX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_CentreX"));
+    BitmapButton_Shape_CentreXVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_CentreX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_CentreX"));
     FlexGridSizer5->Add(BitmapButton_Shape_CentreXVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_CentreX = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_CentreX, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_CentreX"));
@@ -304,7 +318,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer6->AddGrowableCol(0);
     Slider_Shape_CentreY = new BulkEditSlider(this, ID_SLIDER_Shape_CentreY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_CentreY"));
     FlexGridSizer6->Add(Slider_Shape_CentreY, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shape_CentreYVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_CentreY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_CentreY"));
+    BitmapButton_Shape_CentreYVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_CentreY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_CentreY"));
     FlexGridSizer6->Add(BitmapButton_Shape_CentreYVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_CentreY = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_CentreY, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_CentreY"));
@@ -323,7 +337,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer9->AddGrowableCol(0);
     Slider_Shape_Rotation = new BulkEditSlider(this, ID_SLIDER_Shape_Rotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Rotation"));
     FlexGridSizer9->Add(Slider_Shape_Rotation, 1, wxALL|wxEXPAND, 5);
-    BitmapButton_Shape_RotationVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Rotation"));
+    BitmapButton_Shape_RotationVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Rotation"));
     FlexGridSizer9->Add(BitmapButton_Shape_RotationVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer57->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Rotation"));
@@ -378,6 +392,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_CHOICE_Shape_ObjectToDraw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnChoice_Shape_ObjectToDrawSelect);
     Connect(ID_FONTPICKER_Shape_Font,wxEVT_COMMAND_FONTPICKER_CHANGED,(wxObjectEventFunction)&ShapePanel::OnFontPickerCtrl_FontFontChanged);
     Connect(ID_SPINCTRL_Shape_Char,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ShapePanel::OnSpinCtrl_CharCodeChange);
+    Connect(ID_CHOICE_Shape_SkinTone,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnSkinToneChoiceSelect);
     Connect(ID_VALUECURVE_Shape_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_StartSize,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
@@ -396,6 +411,9 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     //*)
     SetName("ID_PANEL_SHAPE");
 
+    wxFont font(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, NATIVE_EMOJI_FONT, wxFONTENCODING_DEFAULT);
+    FontPickerCtrl_Font->SetSelectedFont(font);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShapePanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShapePanel::OnValidateWindow, 0, this);
 
@@ -413,15 +431,14 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFont f = FontPickerCtrl_Font->GetSelectedFont();
     f.SetPixelSize(wxSize(20, 20));
 
-    StaticText10->SetFont(f);
-    StaticText10->SetLabel(wxString(wxUniChar(SpinCtrl_CharCode->GetValue())));
+    EmojiDisplay->SetFont(f);
+    EmojiDisplay->SetLabel(wxString(wxUniChar(SpinCtrl_CharCode->GetValue())));
 
     // get all the fonts
     MyFontEnumerator fontEnumerator;
     fontEnumerator.EnumerateFacenames();
 
-    if (fontEnumerator.Exists("Webdings"))
-    {
+    if (fontEnumerator.Exists("Webdings")) {
         _emojis.push_back(new Emoji("Spider", "Webdings", 33));
         _emojis.push_back(new Emoji("Web", "Webdings", 34));
         _emojis.push_back(new Emoji("Explosion", "Webdings", 42));
@@ -435,8 +452,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
         _emojis.push_back(new Emoji("Musical Note", "Webdings", 175));
     }
 
-    if (fontEnumerator.Exists("Wingdings"))
-    {
+    if (fontEnumerator.Exists("Wingdings")) {
         _emojis.push_back(new Emoji("Bell", "Wingdings", 37));
         _emojis.push_back(new Emoji("Candle", "Wingdings", 39));
         _emojis.push_back(new Emoji("Smiley", "Wingdings", 74));
@@ -448,17 +464,20 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
         _emojis.push_back(new Emoji("Star", "Wingdings", 171));
     }
 
-    if (fontEnumerator.Exists("Segoe UI Emoji"))
-    {
-        _emojis.push_back(new Emoji("Snowman 1", "Segoe UI Emoji", 9924));
-        _emojis.push_back(new Emoji("Snowman 2", "Segoe UI Emoji", 9927));
-        _emojis.push_back(new Emoji("Snowflake 2", "Segoe UI Emoji", 10052));
-        _emojis.push_back(new Emoji("Snowflake 3", "Segoe UI Emoji", 10053));
-        _emojis.push_back(new Emoji("Snowflake 4", "Segoe UI Emoji", 10054));
+    if (fontEnumerator.Exists(NATIVE_EMOJI_FONT)) {
+        _emojis.push_back(new Emoji("Snowman 1", NATIVE_EMOJI_FONT, 9924));
+        _emojis.push_back(new Emoji("Snowman 2", NATIVE_EMOJI_FONT, 9927));
+        _emojis.push_back(new Emoji("Snowflake 2", NATIVE_EMOJI_FONT, 10052));
+        _emojis.push_back(new Emoji("Snowflake 3", NATIVE_EMOJI_FONT, 10053));
+        _emojis.push_back(new Emoji("Snowflake 4", NATIVE_EMOJI_FONT, 10054));
+
+        _emojis.push_back(new Emoji("Christmas Tree", NATIVE_EMOJI_FONT, 0x1F384));
+        _emojis.push_back(new Emoji("Gift", NATIVE_EMOJI_FONT, 0x1F381));
+        _emojis.push_back(new Emoji("Mr. Claus", NATIVE_EMOJI_FONT, 0x1F385));
+        _emojis.push_back(new Emoji("Mrs. Claus", NATIVE_EMOJI_FONT, 0x1F936));
     }
 
-    if (fontEnumerator.Exists("XmasDings"))
-    {
+    if (fontEnumerator.Exists("XmasDings")) {
         _emojis.push_back(new Emoji("Presents ->", "XmasDings", 49));
         _emojis.push_back(new Emoji("Baubles ->", "XmasDings", 66));
         _emojis.push_back(new Emoji("Bells ->", "XmasDings", 80));
@@ -473,8 +492,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
         _emojis.push_back(new Emoji("Candy Canes ->", "XmasDings", 120));
     }
 
-    if (fontEnumerator.Exists("broken"))
-    {
+    if (fontEnumerator.Exists("broken")) {
         // This should never happen ... this font is not meant to exist
         wxASSERT(false);
     }
@@ -502,8 +520,7 @@ ShapePanel::~ShapePanel()
 	//(*Destroy(ShapePanel)
 	//*)
 
-    while (_emojis.size() > 0)
-    {
+    while (_emojis.size() > 0) {
         delete _emojis.front();
         _emojis.pop_front();
     }
@@ -512,50 +529,52 @@ ShapePanel::~ShapePanel()
 void ShapePanel::ValidateWindow()
 {
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
-		Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
-    {
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse") {
         Slider_Shape_Points->Enable();
         TextCtrl_Shape_Points->Enable();
-    }
-    else
-    {
+    } else {
         Slider_Shape_Points->Disable();
         TextCtrl_Shape_Points->Disable();
     }
-	if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
-	{
+	if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse") {
 		StaticText1->SetLabel("Ratio");
-	}
-	else
-	{
+    } else {
 		StaticText1->SetLabel("Points");
 	}
 
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
-    {
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji") {
         FontPickerCtrl_Font->Enable();
         SpinCtrl_CharCode->Enable();
+        SkinToneChoice->Enable();
         wxFont f = FontPickerCtrl_Font->GetSelectedFont();
+
+        wxString face = f.GetFaceName();
+        if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
+            f.SetFaceName(NATIVE_EMOJI_FONT);
+        }
         f.SetPixelSize(wxSize(20, 20));
 
-        StaticText10->SetFont(f);
-        StaticText10->SetLabel(wxString(wxUniChar(SpinCtrl_CharCode->GetValue())));
-    }
-    else
-    {
-        StaticText10->SetLabel(" ");
+        EmojiDisplay->SetFont(f);
+
+        wxString label = wxString(wxUniChar(SpinCtrl_CharCode->GetValue()));
+        if (SkinToneChoice->GetSelection() > 0) {
+            int i = SkinToneChoice->GetSelection() + 0x1F3FA;
+            label.Append(wxString(wxUniChar(i)));
+        }
+        EmojiDisplay->SetLabel(label);
+    } else {
+        EmojiDisplay->SetLabel(" ");
+        SkinToneChoice->SetSelection(0);
         FontPickerCtrl_Font->Enable(false);
         SpinCtrl_CharCode->Enable(false);
+        SkinToneChoice->Enable(false);
     }
 
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
-    {
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji") {
         Slider_Shape_Thickness->Disable();
         TextCtrl_Shape_Thickness->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Shape_Thickness->Enable();
         TextCtrl_Shape_Thickness->Enable();
     }
@@ -563,30 +582,24 @@ void ShapePanel::ValidateWindow()
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji" ||
 		Choice_Shape_ObjectToDraw->GetStringSelection() == "Candy Cane" ||
 		Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" )
-    {
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" ) {
 		Slider_Shape_Rotation->Disable();
 		TextCtrl_Shape_Rotation->Disable();
 		BitmapButton_Shape_RotationVC->Disable();
-    }
-    else
-    {
+    } else {
 		Slider_Shape_Rotation->Enable();
 		TextCtrl_Shape_Rotation->Enable();
 		BitmapButton_Shape_RotationVC->Enable();
     }
 
-    if (CheckBox_Shapes_RandomMovement->IsChecked())
-    {
+    if (CheckBox_Shapes_RandomMovement->IsChecked()) {
         Slider_Shapes_Direction->Disable();
         Slider_Shapes_Velocity->Disable();
         TextCtrl_Shapes_Direction->Disable();
         TextCtrl_Shapes_Velocity->Disable();
         BitmapButton_Shapes_Direction->Disable();
         BitmapButton_Shapes_Velocity->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Shapes_Direction->Enable();
         Slider_Shapes_Velocity->Enable();
         TextCtrl_Shapes_Direction->Enable();
@@ -595,17 +608,14 @@ void ShapePanel::ValidateWindow()
         BitmapButton_Shapes_Velocity->Enable();
     }
 
-    if (CheckBox_Shape_RandomLocation->IsChecked())
-    {
+    if (CheckBox_Shape_RandomLocation->IsChecked()) {
         Slider_Shape_CentreX->Disable();
         Slider_Shape_CentreY->Disable();
         TextCtrl_Shape_CentreX->Disable();
         TextCtrl_Shape_CentreY->Disable();
         BitmapButton_Shape_CentreXVC->Disable();
         BitmapButton_Shape_CentreYVC->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Shape_CentreX->Enable();
         Slider_Shape_CentreY->Enable();
         TextCtrl_Shape_CentreX->Enable();
@@ -614,23 +624,17 @@ void ShapePanel::ValidateWindow()
         BitmapButton_Shape_CentreYVC->Enable();
     }
 
-    if (CheckBox_Shape_UseMusic->IsChecked())
-    {
+    if (CheckBox_Shape_UseMusic->IsChecked()) {
         Slider_Shape_Sensitivity->Enable();
         TextCtrl_Shape_Sensitivity->Enable();
-    }
-    else
-    {
+    } else {
         Slider_Shape_Sensitivity->Disable();
         TextCtrl_Shape_Sensitivity->Disable();
     }
 
-    if (CheckBox_Shape_FireTiming->IsChecked())
-    {
+    if (CheckBox_Shape_FireTiming->IsChecked()) {
         Choice_Shape_TimingTrack->Enable();
-    }
-    else
-    {
+    } else {
         Choice_Shape_TimingTrack->Disable();
     }
 }
@@ -668,19 +672,15 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 
     // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
     bool removed = false;
-    for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
-    {
+    for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++) {
         bool found = false;
-        for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
-        {
-            if (*it == Choice_Shape_TimingTrack->GetString(i))
-            {
+        for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it) {
+            if (*it == Choice_Shape_TimingTrack->GetString(i)) {
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             Choice_Shape_TimingTrack->Clear();
             removed = true;
             break;
@@ -688,38 +688,30 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (const auto& it : timingtracks)
-    {
+    for (const auto& it : timingtracks) {
         bool found = false;
-        for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
-        {
-            if (it == Choice_Shape_TimingTrack->GetString(i))
-            {
+        for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++) {
+            if (it == Choice_Shape_TimingTrack->GetString(i)) {
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             Choice_Shape_TimingTrack->Append(it);
         }
     }
 
-    if (removed && Choice_Shape_TimingTrack->GetCount() > 0)
-    {
+    if (removed && Choice_Shape_TimingTrack->GetCount() > 0) {
         // go through the list and see if our selected item is there
         bool found = false;
-        for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
-        {
-            if (selection == Choice_Shape_TimingTrack->GetString(i))
-            {
+        for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++) {
+            if (selection == Choice_Shape_TimingTrack->GetString(i)) {
                 found = true;
                 Choice_Shape_TimingTrack->SetSelection(i);
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             Choice_Shape_TimingTrack->SetSelection(0);
         }
     }
@@ -729,8 +721,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 void ShapePanel::EmojiMenu(wxContextMenuEvent& event)
 {
     wxMenu mnuEmoji;
-    for (const auto& it : _emojis)
-    {
+    for (const auto& it : _emojis) {
         mnuEmoji.Append(wxNewId(), it->GetName());
     }
     mnuEmoji.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ShapePanel::OnPopupEmoji, nullptr, this);
@@ -742,16 +733,17 @@ void ShapePanel::OnPopupEmoji(wxCommandEvent& event)
     wxMenu* eo = (wxMenu*)event.GetEventObject();
     auto item = eo->GetLabelText(event.GetId());
 
-    for (const auto& it : _emojis)
-    {
-        if (it->GetName() == item)
-        {
+    for (const auto& it : _emojis) {
+        if (it->GetName() == item) {
             wxFont f;
             f.Create(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, it->GetFont(), wxFONTENCODING_DEFAULT);
-            if (f.IsOk())
-            {
+            if (f.IsOk()) {
                 FontPickerCtrl_Font->SetSelectedFont(f);
+                wxFontPickerEvent fpe;
+                HandleFontChange(fpe);
                 SpinCtrl_CharCode->SetValue(it->GetChar());
+                wxSpinEvent sce;
+                HandleSpinChange(sce);
                 ValidateWindow();
                 break;
             }
@@ -763,17 +755,23 @@ void ShapePanel::OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event)
 {
     //wxFont f = event.GetFont();
     //f.SetPixelSize(wxSize(20, 20));
-    //StaticText10->SetFont(f);
+    //EmojiDisplay->SetFont(f);
     ValidateWindow();
 }
 
 void ShapePanel::OnSpinCtrl_CharCodeChange(wxSpinEvent& event)
 {
-    //StaticText10->SetLabel(wxString(wxUniChar(event.GetValue())));
+    //EmojiDisplay->SetLabel(wxString(wxUniChar(event.GetValue())));
     ValidateWindow();
 }
 
 void ShapePanel::OnCheckBox_Shapes_RandomMovementClick(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void ShapePanel::OnSkinToneChoiceSelect(wxCommandEvent& event)
+{
+    FireChangeEvent();
     ValidateWindow();
 }

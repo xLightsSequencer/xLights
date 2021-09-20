@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp) Use the native emoji fonts on Linux/OSX and don't try to use the Windows specific font
+   -- enh (dkulp) Add Mr/Mrs Claus, Christmas Tree, Gift emoji to popup list
+   -- enh (dkulp) Add skin tone for Emoji's (ShapeEffect)
 2021.29 September 16, 2021
    -- enh (dkulp) Update Twinkle effect to use different placement alogirithm if buffer is very sparse
    -- enh (dkulp) Keep Star screen coordinates as "floats" to provide smoother sizing/better display

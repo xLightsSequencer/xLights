@@ -88,7 +88,8 @@ class ShapePanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Direction;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Velocity;
-		ClickableStaticText* StaticText10;
+		ClickableStaticText* EmojiDisplay;
+		wxChoice* SkinToneChoice;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
@@ -103,7 +104,6 @@ class ShapePanel: public xlEffectPanel
 		wxStaticText* StaticText72;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
-		wxStaticText* StaticText9;
 		//*)
 
 	protected:
@@ -111,10 +111,10 @@ class ShapePanel: public xlEffectPanel
 		//(*Identifiers(ShapePanel)
 		static const long ID_STATICTEXT_Shape_ObjectToDraw;
 		static const long ID_CHOICE_Shape_ObjectToDraw;
-		static const long ID_STATICTEXT1;
 		static const long ID_FONTPICKER_Shape_Font;
 		static const long ID_SPINCTRL_Shape_Char;
 		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_Shape_SkinTone;
 		static const long ID_STATICTEXT_Shape_Thickness;
 		static const long ID_SLIDER_Shape_Thickness;
 		static const long ID_VALUECURVE_Shape_Thickness;
@@ -183,6 +183,7 @@ class ShapePanel: public xlEffectPanel
 		void OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event);
 		void OnSpinCtrl_CharCodeChange(wxSpinEvent& event);
 		void OnCheckBox_Shapes_RandomMovementClick(wxCommandEvent& event);
+		void OnSkinToneChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

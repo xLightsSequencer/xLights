@@ -124,6 +124,7 @@ public:
     void GetTextExtent(const wxString &msg, double *width, double *height);
     void GetTextExtents(const wxString &msg, wxArrayDouble &extents);
 
+    void SetOverlayMode(bool b = true);
 private:
     wxString fontName;
     int fontStyle;

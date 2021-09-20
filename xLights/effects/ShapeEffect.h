@@ -44,6 +44,20 @@
 #define SHAPE_DIRECTION_MIN 0
 #define SHAPE_DIRECTION_MAX 359
 
+
+constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+
+
+#ifdef __WXMSW__
+constexpr char NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+#elif defined(__WXOSX__)
+constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+#else
+constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+#endif
+
 class ShapeEffect : public RenderableEffect
 {
     public:
@@ -74,6 +88,6 @@ protected:
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
-        void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const;
+        void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const;
 		void Drawellipse(RenderBuffer &buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
 };

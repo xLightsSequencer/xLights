@@ -430,7 +430,12 @@ void TextDrawingContext::Clear() {
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
-    //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
+#endif
+}
+
+void TextDrawingContext::SetOverlayMode(bool b) {
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    gc->SetCompositionMode(b ? wxCompositionMode::wxCOMPOSITION_OVER : wxCompositionMode::wxCOMPOSITION_SOURCE);
 #endif
 }
 
