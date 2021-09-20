@@ -1119,19 +1119,20 @@ double ColourDistance(xlColor e1, xlColor e2)
     return sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8));
 }
 
-void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer)
+void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layerNum)
 {
     static const int n = 0;  //increase to change the curve of the crossfade
 
-    if (!layers[layer]->buffer.allowAlpha && layers[layer]->fadeFactor != 1.0) {
+    LayerInfo *layer = layers[layerNum];
+    if (!layer->buffer.allowAlpha && layer->fadeFactor != 1.0) {
         //need to fade the first here as we're not mixing anything
         HSVValue hsv0 = fg.asHSV();
-        hsv0.value *= layers[layer]->fadeFactor;
+        hsv0.value *= layer->fadeFactor;
         fg = hsv0;
     }
 
     // Apply ChromaKey if it is enabled
-    if (layers[layer]->isChromaKey) {
+    if (layer->isChromaKey) {
         xlColor c(fg);
         if (c.alpha < 255) {
             c.red = (int)(c.red * c.alpha) / 255;
@@ -1139,23 +1140,23 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             c.blue = (int)(c.blue * c.alpha) / 255;
             c.alpha = 255;
         }
-        if (ColourDistance(c, layers[layer]->chromaKeyColour) < layers[layer]->chromaSensitivity * 402 / 255) {
+        if (ColourDistance(c, layer->chromaKeyColour) < layer->chromaSensitivity * 402 / 255) {
             return;
         }
     }
 
-    float effectMixThreshold = layers[layer]->outputEffectMixThreshold;
-    switch (layers[layer]->mixType)
+    float effectMixThreshold = layer->outputEffectMixThreshold;
+    switch (layer->mixType)
     {
     case Mix_Normal:
-        fg.alpha = fg.alpha * layers[layer]->fadeFactor * (1.0 - effectMixThreshold);
+        fg.alpha = fg.alpha * layer->fadeFactor * (1.0 - effectMixThreshold);
         bg.AlphaBlendForgroundOnto(fg);
         break;
     case Mix_Effect1:
     case Mix_Effect2:
     {
         double emt, emtNot;
-        if (!layers[layer]->effectMixVaries) {
+        if (!layer->effectMixVaries) {
             emt = effectMixThreshold;
             if ((emt > 0.000001) && (emt < 0.99999)) {
                 emtNot = 1 - effectMixThreshold;
@@ -1171,7 +1172,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             emtNot = 1 - effectMixThreshold;
         }
 
-        if (layers[layer]->mixType == Mix_Effect2) {
+        if (layer->mixType == Mix_Effect2) {
             fg.Set(fg.Red()*(emtNot),fg.Green()*(emtNot), fg.Blue()*(emtNot));
             bg.Set(bg.Red()*(emt),bg.Green()*(emt), bg.Blue()*(emt));
         } else {
@@ -1205,8 +1206,8 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
-        HSVValue hsv1 = bg.asHSV();
         if (hsv0.value > effectMixThreshold) {
+            HSVValue hsv1 = bg.asHSV();
             hsv1.value = hsv0.value;
             bg = hsv1;
         } else {
@@ -1218,10 +1219,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
-        HSVValue hsv1 = bg.asHSV();
-        if (hsv0.value > effectMixThreshold) {
-            bg = hsv1;
-        } else {
+        if (hsv0.value <= effectMixThreshold) {
             bg.Set(0, 0, 0);
         }
         break;
@@ -1229,9 +1227,9 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     case Mix_Unmask2:
     {
         // second unmasks first
-        HSVValue hsv0 = fg.asHSV();
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value > effectMixThreshold) {
+            HSVValue hsv0 = fg.asHSV();
             // if effect 2 is non black
             hsv0.value = hsv1.value;
             bg = hsv0;
@@ -1243,11 +1241,10 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     case Mix_TrueUnmask2:
     {
         // second unmasks first
-        HSVValue hsv0 = fg.asHSV();
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value > effectMixThreshold) {
             // if effect 2 is non black
-            bg = hsv0;
+            bg = fg;
         } else {
             bg.Set(0, 0, 0);
         }
@@ -1298,10 +1295,10 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     case Mix_BottomTop:
-        bg = y < layers[layer]->BufferHt/2 ? fg : bg;
+        bg = y < layer->BufferHt/2 ? fg : bg;
         break;
     case Mix_LeftRight:
-        bg = x < layers[layer]->BufferWi/2 ? fg : bg;
+        bg = x < layer->BufferWi/2 ? fg : bg;
         break;
     case Mix_1_reveals_2:
     {
