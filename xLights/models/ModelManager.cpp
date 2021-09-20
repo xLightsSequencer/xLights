@@ -393,6 +393,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
 
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
                 bool found = false;
+                std::vector<wxString> prevousNames;
                 for (const auto& it : mmg->ModelNames()) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/"))
@@ -400,16 +401,20 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end()
-                            && !mmg->DirectlyContainsModel(mgmn)) {
+                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                            std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                            !mmg->DirectlyContainsModel(mgmn)) {
                             mmg->AddModel(mgmn);
+                            prevousNames.push_back(mgmn);
                             found = true;
                         }
                     }
                     else {
                         if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
+                            std::find(prevousNames.begin(), prevousNames.end(), mname) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mname)) {
                             mmg->AddModel(mname);
+                            prevousNames.push_back(mname);
                             found = true;
                         }
                     }
@@ -425,15 +430,16 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                             auto mgmn = wxString(it);
                             mgmn.Replace("EXPORTEDMODEL", mname);
                             if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                                 !mmg->DirectlyContainsModel(mgmn)) {
+                                prevousNames.push_back(mgmn);
                                 mmg->AddModel(mgmn);
                             }
                         }
                     }
                 }
-
-                return;
             }
+            return;
         }
     }
 
