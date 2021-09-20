@@ -95,6 +95,7 @@ class Falcon : public BaseController
     bool V4_SetInputUniverses(Controller* controller, wxWindow* parent);
     bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress);
     int V4_ValidBrightness(int b);
+    int V4_ValidGamma(int g);
     bool V4_SetInputMode(Controller* controller, wxWindow* parent);
     bool V4_ValidateWAV(const std::string& media);
 

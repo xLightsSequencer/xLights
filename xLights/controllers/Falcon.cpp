@@ -896,6 +896,16 @@ int Falcon::V4_ValidBrightness(int b)
     return 5;
 }
 
+int Falcon::V4_ValidGamma(int g)
+{
+    if (g < 15) return 10;
+    if (g < 22) return 20;
+    if (g < 25) return 23;
+    if (g < 27) return 25;
+    if (g < 30) return 28;
+    return 30;
+}
+
 bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error)
 {
     bool success = true;
@@ -1029,7 +1039,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         }
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
-                        str.gamma = it->_gammaSet ? it->_gamma * 10 : gamma;
+                        str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : gamma);
                         str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : endNulls;
