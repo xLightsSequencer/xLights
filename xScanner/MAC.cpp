@@ -8,7 +8,10 @@
 #define MACLOOKUP "MacLookup.txt"
 #endif
 
+#include <mutex>
+
 static std::map<std::string, std::string> macLookup;
+static std::mutex _macMutex;
 
 void ProcessMACLine(const std::string& line)
 {
@@ -45,6 +48,8 @@ void LoadMacLookup()
 
 std::string LookupMacAddress(const std::string mac)
 {
+	std::unique_lock<std::mutex> lock(_macMutex);
+
 	if (macLookup.size() == 0) {
 		LoadMacLookup();
 	}

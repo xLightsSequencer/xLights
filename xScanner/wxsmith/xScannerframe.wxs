@@ -19,5 +19,9 @@
 				<handler function="OnMenuItemScanSelected" entry="EVT_MENU" />
 			</object>
 		</object>
+		<object class="wxTimer" name="ID_TIMER1" variable="Timer1" member="yes">
+			<interval>1000</interval>
+			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
+		</object>
 	</object>
 </wxsmith>

@@ -24,7 +24,6 @@
 #include <wx/dataview.h>
 
 #include "xScannerMain.h"
-#include "Scanner.h"
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/UtilFunctions.h"
@@ -77,21 +76,16 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 //(*IdInit(xScannerFrame)
 const long xScannerFrame::ID_STATUSBAR1 = wxNewId();
 const long xScannerFrame::Network = wxNewId();
+const long xScannerFrame::ID_TIMER1 = wxNewId();
 //*)
 
 const long xScannerFrame::ID_MNU_EXPORT = wxNewId();
-
-wxDEFINE_EVENT(EVT_SCANPROGRESS, wxCommandEvent);
+const long xScannerFrame::ID_MNU_RESCAN = wxNewId();
 
 BEGIN_EVENT_TABLE(xScannerFrame,wxFrame)
     //(*EventTable(xScannerFrame)
     //*)
-    EVT_COMMAND(wxID_ANY, EVT_SCANPROGRESS, xScannerFrame::ScanUpdate)
 END_EVENT_TABLE()
-
-void xScannerFrame::PurgeCollectedData()
-{
-}
 
 xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID id)
 {
@@ -113,10 +107,13 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     SetStatusBar(StatusBar1);
     MenuItemScan = new wxMenuItem((&Menu1), Network, _("Scan"), wxEmptyString, wxITEM_NORMAL);
     Menu1.Append(MenuItemScan);
+    Timer1.SetOwner(this, ID_TIMER1);
+    Timer1.Start(1000, false);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(Network,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScannerFrame::OnMenuItemScanSelected);
+    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScannerFrame::OnTimer1Trigger);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScannerFrame::OnResize);
     //*)
 
@@ -127,9 +124,7 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     _tree->Connect(wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xScannerFrame::OnTreeRClick, nullptr, this);
 
     _tree->AppendColumn("", 200);
-    _tree->AppendColumn("", 200);
-    _tree->AppendColumn("", 200);
-    _tree->AppendColumn("", 200);
+    _tree->AppendColumn("", 400);
     _tree->AppendColumn("", 200);
 
     SetTitle("xLights Scanner " + GetDisplayVersionString());
@@ -142,8 +137,6 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     icons.AddIcon(wxIcon(xlights_xpm));
     SetIcons(icons);
 
-    _scanner.SetSingleThreaded(singleThreaded);
-
     Scan();
 
     SetMinSize(wxSize(400, 300));
@@ -152,238 +145,512 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     ValidateWindow();
 }
 
-wxThread::ExitCode ScanThread::Entry()
-{
-    ((xScannerFrame*)_frame)->DoScan();
-
-    return 0;
-}
-
-void xScannerFrame::DoScan()
-{
-    _scanner.Scan(this);
-}
-
 void xScannerFrame::Scan()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    _tree->Disable();
-
-    logger_base.debug("Launching scan ...");
-    _progress = new wxProgressDialog("Scanning ...", "Commencing scan", 100, this);
-    _progress->Show();
-
-    // do the single threaded part of the scan
-    _scanner.PreScan(this);
-
-    _thread = new ScanThread(this);
-    if (_thread->Run() != wxTHREAD_NO_ERROR) {
-        logger_base.error("Can't create the thread!");
-        delete _thread;
-        _thread = nullptr;
-    }
-}
-
-void xScannerFrame::ScanUpdate(wxCommandEvent& event)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (event.GetInt() == 100) {
-
-        _progress->Update(100);
-        _progress = nullptr;
-        _thread = nullptr;
-
-        logger_base.debug("Scan done.");
-        // we are done
-        LoadScanResults();
-
-        _tree->Enable();
-    }
-    else {
-        if (_progress != nullptr) {
-            _progress->Update(event.GetInt(), event.GetString());
-        }
-    }
-}
-
-void xScannerFrame::LoadScanResults()
-{
     _tree->DeleteAllItems();
 
-    auto comp = _tree->AppendItem(_tree->GetRootItem(), "Computer");
-    _tree->SetItemText(comp, 1, _scanner._computer._name);
+    logger_base.debug("Launching scan ...");
 
-    if (_scanner._computer._xLightsFolder != "") {
-        auto xs = _tree->AppendItem(comp, "xLights Show Folder");
-        _tree->SetItemText(xs, 1, _scanner._computer._xLightsFolder);
-        if (_scanner._showDir == _scanner._computer._xLightsFolder) {
-            _tree->SetItemText(xs, 2, "SCANNED");
-        }
+    _workManager.Start();
+    _workManager.AddComputer();
+}
+
+std::string xScannerFrame::GetItem(std::list<std::pair<std::string, std::string>>& res, const std::string& label)
+{
+    for (auto& it : res) {
+        if (it.first == label) return it.second;
     }
 
-    if (_scanner._computer._xScheduleFolder != "") {
-        auto xs = _tree->AppendItem(comp, "xSchedule Show Folder");
-        if (_scanner._computer._xScheduleFolder == _scanner._computer._xLightsFolder) {
-            _tree->SetItemText(xs, 1, "Same as xLights");
+    return "";
+}
+
+std::string xScannerFrame::GetIPSubnet(const std::string& ip)
+{
+    auto comp = wxSplit(ip, '.');
+    if (comp.size() == 4)         {
+        return comp[0] + "." + comp[1] + "." + comp[2] + ".*";
+    }
+    return "";
+}
+
+wxTreeListItem xScannerFrame::GetSubnetItem(const std::string& subnet)
+{
+    for (auto a = _tree->GetFirstItem(); a.IsOk(); a = _tree->GetNextSibling(a))         {
+        if (_tree->GetItemText(a, 0) == subnet) return a;
+    }
+    auto item = _tree->AppendItem(_tree->GetRootItem(), subnet);
+    return item;
+}
+
+wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
+{
+    auto subnet = GetSubnetItem(GetIPSubnet(ip));
+
+    auto ips = wxSplit(ip, '.');
+    if (ips.size() < 4) return {};
+    std::vector<int> ipsi;
+    for (const auto& it : ips)         {
+        ipsi.push_back(atoi(it.c_str()));
+    }
+
+    int count = 0;
+    wxTreeListItem previous = wxTLI_FIRST;
+    for (auto a = _tree->GetFirstChild(subnet); a.IsOk(); a = _tree->GetNextSibling(a)) {
+        count++;
+        if (_tree->GetItemText(a, 0) == ip) return a;
+        auto i = _tree->GetItemText(a, 0);
+        auto tips = wxSplit(i, '.');
+        std::vector<int> tipsi;
+        for (const auto& it : tips) {
+            tipsi.push_back(atoi(it.c_str()));
         }
-        else {
-            _tree->SetItemText(xs, 1, _scanner._computer._xScheduleFolder);
-            if (_scanner._showDir == _scanner._computer._xScheduleFolder) {
-                _tree->SetItemText(xs, 2, "SCANNED");
+        bool greater = false;
+        for (int ii = 0; ii < 4; ii++) {
+            if (tipsi[ii] == ipsi[ii]) {
+            }
+            else if (ipsi[ii] > tipsi[ii]) {
+                previous = a;
+                break;
+            }
+            else                 {
+                break;
             }
         }
     }
 
-    for (const auto& it : _scanner._computer._ips) {
-        auto ip = _tree->AppendItem(comp, "Local: " + it);
+    if (create) {
 
-        if (_scanner._xLights._forceIP == it) {
-            _tree->SetItemText(ip, 1, "Output forced out this address");
+        wxTreeListItem ti;
+        if (previous.IsOk())             {
+            ti = _tree->InsertItem(subnet, previous, ip);
         }
-
-        for (auto& it : _scanner.GetIPsInSameSubnet(it)) {
-            auto ipc = _tree->AppendItem(ip, it.GetDisplayIP());
-            AddIP(ipc, it);
-            _scanner.SetDisplayed(it);
+        else             {
+            ti = _tree->AppendItem(subnet, ip);
         }
+        if (count == 0) {
+            _tree->Expand(subnet);
+        }
+        return ti;
     }
 
-    _tree->Expand(comp);
-
-    for (const auto& it : _scanner._computer._routes) {
-        auto ip = _tree->AppendItem(comp, "Route: " + it);
-        for (auto& it : _scanner.GetIPsInSameSubnet(it)) {
-            auto ipc = _tree->AppendItem(ip, it.GetDisplayIP());
-            AddIP(ipc, it);
-            _scanner.SetDisplayed(it);
-        }
-    }
-
-    auto ur = _tree->AppendItem(comp, "Remote Network");
-    for (auto& it : _scanner.GetUndisplayedIPs()) {
-        auto ipc = _tree->AppendItem(ur, it.GetDisplayIP());
-        AddIP(ipc, it);
-        _scanner.SetDisplayed(it);
-    }
+    return wxTreeListItem();
 }
 
-void xScannerFrame::AddIP(wxTreeListItem ti, const IPObject& ip)
+wxTreeListItem xScannerFrame::AddItemUnderParent(wxTreeListItem& parent, const std::string& label, const std::string& value)
 {
-    wxTreeListItem tt;
-    if (ip._pinged) {
-        tt = _tree->AppendItem(ti, "Ping OK");
+    // only add if there isnt something here already
+    for (auto a = _tree->GetFirstChild(parent); a.IsOk(); a = _tree->GetNextSibling(a)) {
+        if (_tree->GetItemText(a, 0) == label) return a;
     }
-    else {
-        tt = _tree->AppendItem(ti, "Ping FAILED!");
-    }
-    if (ip._viaProxy != "") {
-        _tree->SetItemText(tt, 1, "Via proxy " + ip._viaProxy);
-    }
-    if (ip._port80) {
-        _tree->AppendItem(ti, "Web Interface Available");
-    }
+    auto ti = _tree->AppendItem(parent, label);
+    _tree->SetItemText(ti, 1, value);
+    return ti;
+}
 
-    if (ip._type != "")         {
-        auto t = ip._type;
-        if (ip._mode != "") t += " (" + ip._mode + ")";
-        _tree->SetItemText(ti, 3, t);
-    }
+void xScannerFrame::ProcessComputerResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // Type
+    // Computer Name
+    // Force Local IP
+    // xLights Show Folder
+    // xLights Global FPP Proxy
+    // xSchedule Show Folder
+    // xSchedule Global FPP Proxy
+    // Local IP %d
+    // Static Route %d
+    for (const auto& it : GetStartsWith(res, "Local IP ")) {
 
-    if (ip._xLightsController != nullptr) {
-        _tree->SetItemText(ti, 2, "xLights Controller Tab");
-        auto item = _tree->AppendItem(ti, "Name");
-        if (ip._xLightsController->GetName() != "") {
-            _tree->SetItemText(item, 1, ip._xLightsController->GetName());
+        auto item = GetIPItem(it);
+
+        if (item.IsOk()) {
+            if (GetItem(res, "Computer Name") != "") {
+                _tree->SetItemText(item, 1, GetItem(res, "Computer Name"));
+            }
+            AddItemUnderParentIfNotBlank(item, "xLights Show Folder", GetItem(res, "xLights Show Folder"));
+            AddItemUnderParentIfNotBlank(item, "xLights FPP Global Proxy", GetItem(res, "xLights Global FPP Proxy"));
+            AddItemUnderParentIfNotBlank(item, "xSchedule Show Folder", GetItem(res, "xSchedule Show Folder"));
+            AddItemUnderParentIfNotBlank(item, "xSchedule FPP Global Proxy", GetItem(res, "xSchedule Global FPP Proxy"));
+            for (const auto& it2 : GetStartsWith(res, "Local IP ")) {
+                AddItemUnderParentIfNotBlank(item, "IP", it2);
+            }
+            for (const auto& it2 : GetStartsWith(res, "Static Route ")) {
+                AddItemUnderParentIfNotBlank(item, "Static Route", it2);
+            }
         }
-        else if (ip._name != "") {
-            _tree->SetItemText(item, 1, ip._name);
-        }
-        item = _tree->AppendItem(ti, "Protocol");
-        _tree->SetItemText(item, 1, ip._xLightsController->GetColumn1Label());
-        item = _tree->AppendItem(ti, "Universes/Id");
-        _tree->SetItemText(item, 1, ip._xLightsController->GetColumn3Label());
-        item = _tree->AppendItem(ti, "Channels");
-        _tree->SetItemText(item, 1, ip._xLightsController->GetColumn4Label());
-        item = _tree->AppendItem(ti, "Vendor/Model/Variant");
-        if (ip._xLightsController->GetVMV() != "") {
-            _tree->SetItemText(item, 1, ip._xLightsController->GetVMV());
-        }
-        else if (ip._discovered != nullptr) {
-            _tree->SetItemText(item, 1, ip._discovered->GetVMV());
-        }
-    }
-    else if (ip._discovered != nullptr) {
-        _tree->SetItemText(ti, 2, "Discovered");
-        auto item = _tree->AppendItem(ti, "Name");
-        _tree->SetItemText(item, 1, ip._discovered->GetName());
-
-        if (ip._discovered->GetVMV() != "") {
-            item = _tree->AppendItem(ti, "Vendor/Model/Variant");
-            _tree->SetItemText(item, 1, ip._discovered->GetVMV());
-        }
-    }
-
-    if (ip._mode != "")         {
-        auto item = _tree->AppendItem(ti, "FPP Mode");
-        _tree->SetItemText(item, 1, ip._mode);
-    }
-
-    if (ip._version != "") {
-        auto item = _tree->AppendItem(ti, "Version");
-        _tree->SetItemText(item, 1, ip._version);
-    }
-
-    if (ip._xSchedulePort != 0) {
-        auto item = _tree->AppendItem(ti, "Web Port");
-        _tree->SetItemText(item, 1, wxString::Format("%d", ip._xSchedulePort));
-    }
-
-    if (ip._banks != "") {
-        auto item = _tree->AppendItem(ti, "Bank Sizes");
-        _tree->SetItemText(item, 1, ip._banks);
-    }
-
-    if (ip._emittingData != "") {
-        auto item = _tree->AppendItem(ti, "Sending data to");
-        _tree->SetItemText(item, 1, ip._emittingData);
-    }
-
-    for (const auto& it3 : ip._otherIPs)         {
-        auto item = _tree->AppendItem(ti, "Network Interface");
-        _tree->SetItemText(item, 1, it3);
-
-    }
-
-    for (const auto& it3 : ip._otherData) {
-        auto item = _tree->AppendItem(ti, it3.first);
-        _tree->SetItemText(item, 1, it3.second);
-    }
-
-    if (ip._mac != "") {
-        auto item = _tree->AppendItem(ti, "MAC");
-        _tree->SetItemText(item, 1, ip._mac);
-        _tree->SetItemText(item, 2, ip._macVendor);
-    }
-
-    for (auto& it : _scanner.GetProxiedBy(ip._ip)) {
-        auto ipc = _tree->AppendItem(ti, it._ip);
-        AddIP(ipc, it);
-        it.Displayed();
     }
 }
 
+void xScannerFrame::ProcessPingResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // PING
+    // IP
+    // Type
+    // Why
+    // Network
+    // Network Type
+
+    auto ip = GetItem(res, "IP");
+    auto subnet = GetSubnetItem(GetIPSubnet(ip));
+    _tree->SetItemText(subnet, 1, GetItem(res, "Network Type"));
+
+    auto ping = GetItem(res, "PING");
+    auto item = GetIPItem(ip, ping == "OK");
+
+    if (item.IsOk()) {
+        if (ping == "FAILED")             {
+            _tree->SetItemText(item, 2, "OFFLINE");
+        }
+        AddItemUnderParentIfNotBlank(item, "Scanned because", GetItem(res, "Why"));
+    }
+}
+
+void xScannerFrame::ProcessControllerResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // Type
+    // IP
+    // Why
+    // Vendor
+    // Model
+    // Variant
+    // Active
+    // Name
+    // Description
+    // Protocol
+    // Universes/Id
+    // Channels
+
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip);
+
+    if (item.IsOk()) {
+        auto vmv = GetItem(res, "Vendor") + ":" + GetItem(res, "Model") + ":" + GetItem(res, "Variant");
+        if (vmv != "::") {
+            _tree->SetItemText(item, 1, vmv);
+            AddItemUnderParent(item, "Vendor/Model/Variant", vmv);
+        }
+        AddItemUnderParent(item, "Active", GetItem(res, "Active"));
+        if (GetItem(res, "Name") != "") {
+            _tree->SetItemText(item, 1, GetItem(res, "Name"));
+        }
+        AddItemUnderParentIfNotBlank(item, "Description", GetItem(res, "Description"));
+        AddItemUnderParentIfNotBlank(item, "Protocol", GetItem(res, "Protocol"));
+        AddItemUnderParentIfNotBlank(item, "Universes/Id", GetItem(res, "Universes/Id"));
+        AddItemUnderParentIfNotBlank(item, "Channels", GetItem(res, "Channels"));
+    }
+}
+
+void xScannerFrame::AddItemUnderParentIfNotBlank(wxTreeListItem & item, const std::string & label, const std::string & value)
+{
+    if (value != "") {
+        AddItemUnderParent(item, label,value);
+    }
+}
+
+void xScannerFrame::ProcessHTTPResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // IP
+    // Type
+    // Port
+    // Web
+
+    auto web = GetItem(res, "Web");
+
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip, web == "OK");
+
+    if (item.IsOk()) {
+        AddItemUnderParent(item, "Web Interface on port", GetItem(res, "Port"));
+        auto title = GetItem(res, "Title");
+        if (_tree->GetItemText(item, 1) == "") {
+            _tree->SetItemText(item, 1, title);
+        }
+        AddItemUnderParentIfNotBlank(item, "Web title", title);
+    }
+}
+
+std::list<std::string> xScannerFrame::GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix) 
+{
+    std::list<std::string> result;
+
+    for (const auto& it : res) {
+        if (StartsWith(it.first, prefix)) {
+            result.push_back(it.second);
+        }
+    }
+
+    return result;
+}
+
+void xScannerFrame::ProcessFPPResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    for (const auto& it : GetStartsWith(res, "IP ")) {
+
+        wxString ip = it;
+        ip = ip.AfterFirst(':');
+        ip = ip.AfterFirst(' ');
+        ip = ip.BeforeFirst(' ');
+        auto item = GetIPItem(ip);
+
+        if (item.IsOk()) {
+            if (_tree->GetItemText(item, 1) == "")                 {
+                _tree->SetItemText(item, 1, "FPP");
+            }
+            AddItemUnderParentIfNotBlank(item, "Version", GetItem(res, "Version"));
+            AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
+            AddItemUnderParentIfNotBlank(item, "Sending Data", GetItem(res, "Sending Data"));
+            for (const auto& it2 : GetStartsWith(res, "IP ")) {
+                AddItemUnderParentIfNotBlank(item, "IP", it2);
+            }
+            for (const auto& it2 : GetStartsWith(res, "Proxying ")) {
+                AddItemUnderParentIfNotBlank(item, "Proxying", it2);
+            }
+        }
+    }
+}
+
+void xScannerFrame::ProcessFalconResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // IP
+    // Type
+    // Banks
+    // Mode
+    // WIFI IP
+    // ETH IP
+    // Model
+    // Test Mode
+    // Temp1
+    // Temp2
+    // Processor Temp
+    // Fan Speed
+    // V1
+    // V2
+    // Board Configuration
+
+    std::vector<std::string> iplabels = { "WIFI IP", "ETH IP"};
+
+    int count = 0;
+    for (const auto& it : iplabels) {
+        wxString ip = GetItem(res, it);
+        ip = ip.AfterFirst(':');
+        ip = ip.AfterFirst(' ');
+        ip = ip.BeforeFirst(' ');
+        if (ip != "") {
+            count++;
+            auto item = GetIPItem(ip);
+
+            if (item.IsOk()) {
+
+                auto name = GetItem(res, "Name");
+                if (name == "") {
+                    name = "Falcon";
+                }
+                else                     {
+                    name = "Falcon " + name;
+                }
+                _tree->SetItemText(item, 1, name);
+
+                AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
+                AddItemUnderParentIfNotBlank(item, "Model", GetItem(res, "Model"));
+                AddItemUnderParentIfNotBlank(item, "Firmware Version", GetItem(res, "Firmware Version"));
+                AddItemUnderParentIfNotBlank(item, "Banks", GetItem(res, "Banks"));
+                AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
+                AddItemUnderParentIfNotBlank(item, "WiFi IP", GetItem(res, "WIFI IP"));
+                AddItemUnderParentIfNotBlank(item, "Eth IP", GetItem(res, "ETH IP"));
+                AddItemUnderParentIfNotBlank(item, "Test Mode", GetItem(res, "Test Mode"));
+                AddItemUnderParentIfNotBlank(item, "Temp 1", GetItem(res, "Temp1"));
+                AddItemUnderParentIfNotBlank(item, "Temp 2", GetItem(res, "Temp2"));
+                AddItemUnderParentIfNotBlank(item, "Processor Temp", GetItem(res, "Processor Temp"));
+                AddItemUnderParentIfNotBlank(item, "Fan Speed", GetItem(res, "Fan Speed"));
+                AddItemUnderParentIfNotBlank(item, "Voltage 1", GetItem(res, "V1"));
+                AddItemUnderParentIfNotBlank(item, "Voltage 2", GetItem(res, "V2"));
+                AddItemUnderParentIfNotBlank(item, "Board Configuration", GetItem(res, "Board Configuration"));
+            }
+        }
+    }
+
+    if (count == 0)         {
+        auto ip = GetItem(res, "IP");
+        if (ip != "") {
+            auto item = GetIPItem(ip);
+
+            if (item.IsOk()) {
+
+                auto name = GetItem(res, "Name");
+                if (name == "") {
+                    name = "Falcon";
+                }
+                else {
+                    name = "Falcon " + name;
+                }
+                _tree->SetItemText(item, 1, name);
+
+                AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
+                AddItemUnderParentIfNotBlank(item, "Model", GetItem(res, "Model"));
+                AddItemUnderParentIfNotBlank(item, "Firmware Version", GetItem(res, "Firmware Version"));
+                AddItemUnderParentIfNotBlank(item, "Banks", GetItem(res, "Banks"));
+                AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
+                AddItemUnderParentIfNotBlank(item, "WiFi IP", GetItem(res, "WIFI IP"));
+                AddItemUnderParentIfNotBlank(item, "Eth IP", GetItem(res, "ETH IP"));
+                AddItemUnderParentIfNotBlank(item, "Test Mode", GetItem(res, "Test Mode"));
+                AddItemUnderParentIfNotBlank(item, "Temp 1", GetItem(res, "Temp1"));
+                AddItemUnderParentIfNotBlank(item, "Temp 2", GetItem(res, "Temp2"));
+                AddItemUnderParentIfNotBlank(item, "Processor Temp", GetItem(res, "Processor Temp"));
+                AddItemUnderParentIfNotBlank(item, "Fan Speed", GetItem(res, "Fan Speed"));
+                AddItemUnderParentIfNotBlank(item, "Voltage 1", GetItem(res, "V1"));
+                AddItemUnderParentIfNotBlank(item, "Voltage 2", GetItem(res, "V2"));
+                AddItemUnderParentIfNotBlank(item, "Board Configuration", GetItem(res, "Board Configuration"));
+            }
+        }
+    }
+}
+
+void xScannerFrame::ProcessMACResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // Type
+    // IP
+    // MAC
+    // MAC Vendor
+
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip);
+
+    if (item.IsOk())
+    {
+        auto vendor = GetItem(res, "MAC Vendor");
+        if (vendor != "" && vendor != "MAC Lookup Unavailable") {
+            if (_tree->GetItemText(item, 1) == "")                 {
+                _tree->SetItemText(item, 1, vendor);
+            }
+        }
+        AddItemUnderParentIfNotBlank(item, "MAC", GetItem(res, "MAC"));
+        AddItemUnderParentIfNotBlank(item, "MAC Vendor", vendor);
+    }
+}
+
+void xScannerFrame::ProcessDiscoverResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // Type
+    // IP
+    // Discovered
+    // Vendor
+    // Model
+
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip);
+
+    if (item.IsOk()) {
+        auto name = GetItem(res, "Name");
+        if (name == "") {
+            name = GetItem(res, "Vendor") + ":" + GetItem(res, "Model");
+        }
+        if (name != ":") {
+            _tree->SetItemText(item, 1, name);
+        }
+        AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
+        AddItemUnderParentIfNotBlank(item, "Vendor", GetItem(res, "Vendor"));
+        AddItemUnderParentIfNotBlank(item, "Model", GetItem(res, "Model"));
+        AddItemUnderParentIfNotBlank(item, "Discovered", GetItem(res, "Discovered"));
+        AddItemUnderParentIfNotBlank(item, "Platform", GetItem(res, "Platform"));
+        AddItemUnderParentIfNotBlank(item, "Platform Model", GetItem(res, "Platform Model"));
+        AddItemUnderParentIfNotBlank(item, "Version", GetItem(res, "Version"));
+        AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
+    }
+}
+
+void xScannerFrame::ProcessxScheduleResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // IP
+    // Type
+    // Port
+    // Version
+       
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip);
+
+    if (item.IsOk()) {
+
+        if (_tree->GetItemText(item, 1) == "") {
+            _tree->SetItemText(item, 1, "xSchedule");
+        }
+
+        AddItemUnderParentIfNotBlank(item, "xSchedule Port", GetItem(res, "Port"));
+        AddItemUnderParentIfNotBlank(item, "xSchedule Version", GetItem(res, "Version"));
+    }
+}
+
+void xScannerFrame::ProcessProxiedResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    // IP
+    // Type
+    // Proxied By
+
+    auto ip = GetItem(res, "IP");
+    auto item = GetIPItem(ip);
+
+    if (item.IsOk()) {
+        AddItemUnderParentIfNotBlank(item, "Proxied By", GetItem(res, "Proxied By"));
+    }
+}
+
+void xScannerFrame::ProcessScanResult(std::list<std::pair<std::string, std::string>>& res)
+{
+    auto type = GetItem(res, "Type");
+    if (type == "Computer")         {
+        ProcessComputerResult(res);
+    }
+    else if (type == "Ping") {
+        ProcessPingResult(res);
+    }
+    else if (type == "HTTP") {
+        ProcessHTTPResult(res);
+    }
+    else if (type == "FPP") {
+        ProcessFPPResult(res);
+    }
+    else if (type == "Falcon") {
+        ProcessFalconResult(res);
+    }
+    else if (type == "MAC") {
+        ProcessMACResult(res);
+    }
+    else if (type == "Discover") {
+        ProcessDiscoverResult(res);
+    }
+    else if (type == "xSchedule") {
+        ProcessxScheduleResult(res);
+    }
+    else if (type == "Controller") {
+        ProcessControllerResult(res);
+    }
+    else if (type == "Proxied") {
+        ProcessProxiedResult(res);
+    }
+    else         {
+        // unexpected type
+        wxASSERT(false);
+    }
+}
+
+void xScannerFrame::ProcessScanResults()
+{
+    while (true)         {
+        auto res = _workManager.GetNextResult();
+        if (res.size() == 0) break;
+
+        ProcessScanResult(res);
+    }
+}
 xScannerFrame::~xScannerFrame()
 {
-    PurgeCollectedData();
-
     //(*Destroy(xScannerFrame)
     //*)
 }
 
 void xScannerFrame::OnQuit(wxCommandEvent& event)
 {
+    _workManager.Stop();
     Close();
 }
 
@@ -477,6 +744,7 @@ void xScannerFrame::OnTreeItemActivated(wxTreeListEvent& event)
 void xScannerFrame::OnTreeRClick(wxTreeListEvent& event)
 {
     wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_RESCAN, "Rescan");
     mnuLayer.Append(ID_MNU_EXPORT, "Export to CSV");
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScannerFrame::OnPopup, nullptr, this);
     PopupMenu(&mnuLayer);
@@ -526,4 +794,17 @@ void xScannerFrame::OnPopup(wxCommandEvent& event)
         auto item = _tree->GetRootItem();
         ExportItem(0, item, f);
     }
+    else if (event.GetId() == ID_MNU_RESCAN)         {
+        
+        // reset the work manager ... this cleans most current activities out
+        _workManager.Restart();
+
+        Scan();
+    }
+}
+
+void xScannerFrame::OnTimer1Trigger(wxTimerEvent& event)
+{
+    StatusBar1->SetLabelText(_workManager.GetPendingWork());
+    ProcessScanResults();
 }

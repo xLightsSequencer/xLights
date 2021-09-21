@@ -5,8 +5,6 @@
     <ClCompile Include="xScannerApp.cpp" />
     <ClCompile Include="xScannerMain.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
-    <ClCompile Include="ScanObject.cpp" />
-    <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
@@ -131,14 +129,13 @@
       <Filter>xLights</Filter>
     </ClCompile>
     <ClCompile Include="MAC.cpp" />
+    <ClCompile Include="ScanWork.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="xScannerApp.h" />
     <ClInclude Include="xScannerMain.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
-    <ClInclude Include="ScanObject.h" />
-    <ClInclude Include="Scanner.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h">
       <Filter>xLights</Filter>
     </ClInclude>
@@ -272,6 +269,7 @@
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="MAC.h" />
+    <ClInclude Include="ScanWork.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

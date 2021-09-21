@@ -26,13 +26,15 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/statusbr.h>
+#include <wx/timer.h>
 //*)
 
 #include <list>
 #include <wx/socket.h>
 #include <wx/treelist.h>
+#include <wx/file.h>
 
-#include "Scanner.h"
+#include "ScanWork.h"
 
 class wxDebugReportCompress;
 class wxTreeListCtrl;
@@ -40,31 +42,22 @@ class wxProgressDialog;
 
 wxDECLARE_EVENT(EVT_SCANPROGRESS, wxCommandEvent);
 
-class ScanThread : public wxThread
-{
-    virtual ExitCode Entry();
-    wxWindow* _frame;
-public:
-    ScanThread(wxWindow* frame)
-        : wxThread(wxTHREAD_DETACHED)
-    {
-        _frame = frame;
-    }
-    ~ScanThread() {}
-};
-
 class xScannerFrame : public wxFrame
 {
-    wxProgressDialog* _progress = nullptr;
-    Scanner _scanner;
+    std::pair<std::string, std::string> nullPair = { "","" };
     wxTreeListCtrl* _tree = nullptr;
-    ScanThread* _thread = nullptr;
+    WorkManager _workManager;
+    void Scan();
+    std::string GetItem(std::list<std::pair<std::string, std::string>>& res, const std::string& label);
+    std::string GetIPSubnet(const std::string& ip);
+    wxTreeListItem GetSubnetItem(const std::string& subnet);
+    wxTreeListItem GetIPItem(const std::string& ip, bool create = true);
+    wxTreeListItem AddItemUnderParent(wxTreeListItem& parent, const std::string& label, const std::string& value);
+    void AddItemUnderParentIfNotBlank(wxTreeListItem& item, const std::string& label, const std::string& value);
+    std::list<std::string> GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix);
 
     void ValidateWindow();
-    void PurgeCollectedData();
-    void Scan();
-    void AddIP(wxTreeListItem ti, const IPObject& ip);
-    void LoadScanResults();
+    //void AddIP(wxTreeListItem ti, const IPObject& ip);
 
 public:
 
@@ -73,8 +66,18 @@ public:
         void CreateDebugReport(wxDebugReportCompress *report);
         void SendReport(const wxString &loc, wxDebugReportCompress &report);
         void ExportItem(int skip, wxTreeListItem& item, wxFile& f);
-        void ScanUpdate(wxCommandEvent& event);
-        void DoScan();
+        void ProcessScanResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessScanResults();
+        void ProcessComputerResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessPingResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessHTTPResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessFPPResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessFalconResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessMACResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessDiscoverResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessxScheduleResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessControllerResult(std::list<std::pair<std::string, std::string>>& res);
+        void ProcessProxiedResult(std::list<std::pair<std::string, std::string>>& res);
 
         static const long ID_E131SOCKET;
         static const long ID_ARTNETSOCKET;
@@ -87,6 +90,7 @@ private:
         void OnResize(wxSizeEvent& event);
         void OnKeyDown(wxKeyEvent& event);
         void OnMenuItemScanSelected(wxCommandEvent& event);
+        void OnTimer1Trigger(wxTimerEvent& event);
         //*)
 
         void OnTreeItemActivated(wxTreeListEvent& event);
@@ -96,14 +100,17 @@ private:
         //(*Identifiers(xScannerFrame)
         static const long ID_STATUSBAR1;
         static const long Network;
+        static const long ID_TIMER1;
         //*)
 
         static const long ID_MNU_EXPORT;
+        static const long ID_MNU_RESCAN;
 
         //(*Declarations(xScannerFrame)
         wxMenu Menu1;
         wxMenuItem* MenuItemScan;
         wxStatusBar* StatusBar1;
+        wxTimer Timer1;
         //*)
 
         DECLARE_EVENT_TABLE()

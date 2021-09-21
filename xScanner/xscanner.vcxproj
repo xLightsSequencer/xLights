@@ -104,6 +104,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -121,6 +123,8 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,6 +141,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS;DISCOVERYONLY;EXCLUDENETWORKUI</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -159,6 +165,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -216,8 +224,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="MAC.cpp" />
-    <ClCompile Include="Scanner.cpp" />
-    <ClCompile Include="ScanObject.cpp" />
+    <ClCompile Include="ScanWork.cpp" />
     <ClCompile Include="xScannerApp.cpp" />
     <ClCompile Include="xScannerMain.cpp" />
   </ItemGroup>
@@ -269,8 +276,7 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="MAC.h" />
-    <ClInclude Include="Scanner.h" />
-    <ClInclude Include="ScanObject.h" />
+    <ClInclude Include="ScanWork.h" />
     <ClInclude Include="xScannerApp.h" />
     <ClInclude Include="xScannerMain.h" />
   </ItemGroup>

@@ -339,10 +339,8 @@
 		<Unit filename="MAC.cpp" />
 		<Unit filename="MAC.h" />
 		<Unit filename="ResultDialog.h" />
-		<Unit filename="ScanObject.cpp" />
-		<Unit filename="ScanObject.h" />
-		<Unit filename="Scanner.cpp" />
-		<Unit filename="Scanner.h" />
+		<Unit filename="ScanWork.cpp" />
+		<Unit filename="ScanWork.h" />
 		<Unit filename="UniverseEntryDialog.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
