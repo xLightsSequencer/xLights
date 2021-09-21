@@ -27,7 +27,7 @@
     </AbstractVariant>
     <Controller Name="WLED">
         <Variant Name="Generic ESP8266" Base="WLED:BaseWLEDSettings">
-            <MaxPixelPort>2</MaxPixelPort>
+            <MaxPixelPort>3</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>2</Port1>
             <Port2>1</Port2>
