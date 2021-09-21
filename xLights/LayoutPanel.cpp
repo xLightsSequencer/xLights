@@ -1220,15 +1220,12 @@ void LayoutPanel::FreezeTreeListView() {
 #define ADDTIONAL_COLUMN_WIDTH 0
 #endif
 
-void LayoutPanel::ThawTreeListView(int defWidth) {
+void LayoutPanel::ThawTreeListView() {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
     int i = TreeListViewModels->GetColumnWidth(0);
     if (i <= 20) {
         i = TreeListViewModels->GetSize().GetWidth() / 3;
-    }
-    if (i <= 20 && defWidth) {
-        i = defWidth;
     }
     if (i <= 20) {
         i = 100;
@@ -1365,7 +1362,6 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    int width = 0;
 
     if (model == nullptr) {
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
@@ -1393,8 +1389,6 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
 
         std::string cc = model->GetControllerConnectionRangeString();
         SetTreeListViewItemText(item, Col_ControllerConnection, cc);
-
-        width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
 
     for (int x = 0; x < model->GetNumSubModels(); x++) {
@@ -1425,7 +1419,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
 
     if (expanded) TreeListViewModels->Expand(item);
 
-    return width;
+    return 0;
 }
 
 void LayoutPanel::ReloadModelList() {
@@ -1467,7 +1461,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     //logger_base.debug("Layout tab preview models updated.");
     xlights->PreviewModels = models;
 
-    int width = 0;
     if (full_refresh) {
         UnSelectAllModels();
 
@@ -1507,7 +1500,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                    width = std::max(width, AddModelToTree(model, &root, expand, 0));
+                    AddModelToTree(model, &root, expand, 0);
                 }
             }
         }
@@ -1517,17 +1510,27 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             Model *model = it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                width = std::max(width, AddModelToTree(model, &root, expand, 0));
+                AddModelToTree(model, &root, expand, 0);
             }
         }
 
         // Only set the column sizes the very first time we load it
         if (_firstTreeLoad) {
             _firstTreeLoad = false;
-            width = std::max(width, TreeListViewModels->WidthFor(STARTCHANCOLNAME));
+
+            TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+            int width = TreeListViewModels->GetColumnWidth(1);
+            if (width < 20) {
+                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+            }
             TreeListViewModels->SetColumnWidth(1, width);
+
+            TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
+            width = TreeListViewModels->GetColumnWidth(2);
+            if (width < 20) {
+                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+            }
             TreeListViewModels->SetColumnWidth(2, width);
-            TreeListViewModels->SetColumnWidth(3, width);
         }
 
         //turn the sorting back on
@@ -1539,7 +1542,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    ThawTreeListView(width);
+    ThawTreeListView();
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)

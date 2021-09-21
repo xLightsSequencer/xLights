@@ -314,7 +314,7 @@ class LayoutPanel: public wxPanel
 
     protected:
         void FreezeTreeListView();
-        void ThawTreeListView(int defWidth = 0);
+        void ThawTreeListView();
         void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
 
         void SaveModelsListColumns();
