@@ -74,7 +74,6 @@ class Falcon : public BaseController
     void V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel);
     int V4_EncodeColourOrder(const std::string co) const;
     int V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconStrings, const int p, const int sr);
-    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error);
     std::string V4_DecodePixelProtocol(int protocol);
     int V4_EncodePixelProtocol(const std::string& protocol);
     void V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str);
@@ -90,8 +89,7 @@ class Falcon : public BaseController
     bool V4_SendBoardMode(int boardMode, int controllerMode, unsigned long startChannel, bool& reboot);
     bool V4_SetSerialConfig(int protocol, int universe, int startChannel, int rate);
     bool V4_GetStrings(std::vector<FALCON_V4_STRING>& res);
-    void V4_MakeStringsValid(Controller* controlle, UDController& cud, std::vector<FALCON_V4_STRING>& falconStrings, int addressingMode);
-    bool V4_IsValidStartChannel(Controller* controller, UDController& cud, int universe, long startChannel);
+    bool V4_IsValidStartChannel(Controller* controller, int universe, long startChannel);
     bool V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot);
     bool V4_GetStatus(wxJSONValue& res);
     bool V4_SetInputUniverses(Controller* controller, wxWindow* parent);
@@ -100,6 +98,11 @@ class Falcon : public BaseController
     int V4_ValidGamma(int g) const;
     bool V4_SetInputMode(Controller* controller, wxWindow* parent);
     bool V4_ValidateWAV(const std::string& media);
+
+#ifndef DISCOVERYONLY
+    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error);
+    void V4_MakeStringsValid(Controller* controlle, UDController& cud, std::vector<FALCON_V4_STRING>& falconStrings, int addressingMode);
+#endif
 
 #pragma endregion
 

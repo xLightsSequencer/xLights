@@ -340,7 +340,7 @@ void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel
     }
 }
 
-bool Falcon::V4_IsValidStartChannel(Controller* controller, UDController& cud, int universe, long startChannel)
+bool Falcon::V4_IsValidStartChannel(Controller* controller, int universe, long startChannel)
 {
     if (_v4status["A"].AsInt() == 0) {
         if (universe != 0) return false;
@@ -409,15 +409,6 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res)
     return success;
 }
 
-void Falcon::V4_MakeStringsValid(Controller* controller, UDController& cud, std::vector<FALCON_V4_STRING>& str, int addressingMode)
-{
-    for (auto& it : str) {
-
-        if (!V4_IsValidStartChannel(controller, cud, it.universe, it.startChannel))                 {
-            V4_GetStartChannel(cud.GetFirstOutput()->GetUniverse(), 1, cud.GetFirstOutput()->GetStartChannel(), it.universe, it.startChannel);
-        }
-    }
-}
 
 void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str)
 {
@@ -929,6 +920,16 @@ int Falcon::V4_ValidGamma(int g) const
     if (g < 27) return 25;
     if (g < 30) return 28;
     return 30;
+}
+
+void Falcon::V4_MakeStringsValid(Controller* controller, UDController& cud, std::vector<FALCON_V4_STRING>& str, int addressingMode)
+{
+    for (auto& it : str) {
+
+        if (!V4_IsValidStartChannel(controller, it.universe, it.startChannel)) {
+            V4_GetStartChannel(cud.GetFirstOutput()->GetUniverse(), 1, cud.GetFirstOutput()->GetStartChannel(), it.universe, it.startChannel);
+        }
+    }
 }
 
 bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error)
