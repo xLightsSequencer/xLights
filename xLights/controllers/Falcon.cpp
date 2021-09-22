@@ -340,6 +340,21 @@ void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel
     }
 }
 
+bool Falcon::V4_IsValidStartChannel(Controller* controller, UDController& cud, int universe, long startChannel)
+{
+    if (_v4status["A"].AsInt() == 0) {
+        if (universe != 0) return false;
+        if (startChannel < 0 || startChannel >= controller->GetChannels()) return false;
+    }
+    else {
+        int firstUniverse = controller->GetFirstOutput()->GetUniverse();
+        int lastUniverse = firstUniverse + controller->GetOutputCount() - 1;
+        if (universe < firstUniverse || universe > lastUniverse) return false;
+        if (startChannel < 0 || startChannel >= controller->GetFirstOutput()->GetChannels()) return false;
+    }
+    return true;
+}
+
 bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res)
 {
     // {"T":"Q","M":"SP","B":4,"E":0,"I":0,"P":{}}
@@ -392,6 +407,16 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res)
     }
 
     return success;
+}
+
+void Falcon::V4_MakeStringsValid(Controller* controller, UDController& cud, std::vector<FALCON_V4_STRING>& str, int addressingMode)
+{
+    for (auto& it : str) {
+
+        if (!V4_IsValidStartChannel(controller, cud, it.universe, it.startChannel))                 {
+            V4_GetStartChannel(cud.GetFirstOutput()->GetUniverse(), 1, cud.GetFirstOutput()->GetStartChannel(), it.universe, it.startChannel);
+        }
+    }
 }
 
 void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str)
@@ -866,7 +891,7 @@ int Falcon::V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconSt
     return -1;
 }
 
-int Falcon::V4_EncodeColourOrder(const std::string co)
+int Falcon::V4_EncodeColourOrder(const std::string co) const
 {
     if (co == "RGB") return 0;
     if (co == "RBG") return 1;
@@ -880,7 +905,7 @@ int Falcon::V4_EncodeColourOrder(const std::string co)
 #ifndef DISCOVERYONLY
 
 // force brightness value to a value the falcon supports
-int Falcon::V4_ValidBrightness(int b)
+int Falcon::V4_ValidBrightness(int b) const
 {
     if (b > 95) return 100;
     if (b > 85) return 90;
@@ -896,7 +921,7 @@ int Falcon::V4_ValidBrightness(int b)
     return 5;
 }
 
-int Falcon::V4_ValidGamma(int g)
+int Falcon::V4_ValidGamma(int g) const
 {
     if (g < 15) return 10;
     if (g < 22) return 20;
@@ -1203,11 +1228,14 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
         if (doProgress) progress->Update(40, "Rerieving strings.");
 
-        if (!Falcon::V4_GetStrings(falconStrings)) {
+        if (!V4_GetStrings(falconStrings)) {
             DisplayError("Falcon Outputs Upload: Failed to retrieve current string configuration.", parent);
             if (doProgress) progress->Update(100, "Aborting.");
             return false;
         }
+
+        // we need to make sure all the returned strings are valid against the input channels
+        V4_MakeStringsValid(controller, cud, falconStrings, _v4status["A"].AsInt());
 
         logger_base.info("Retrieved falcon string configuration.");
         V4_DumpStrings(falconStrings);
