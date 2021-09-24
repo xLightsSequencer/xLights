@@ -480,7 +480,7 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
         mn = "PixLite" + _config._modelName.substr(6);
     }
 
-    WriteString(data, pos, _config._modelNameLen, mn);f
+    WriteString(data, pos, _config._modelNameLen, mn);
     data[pos++] = _config._dhcp;
     WriteString(data, pos, _config._nicknameLen, _config._nickname);
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
