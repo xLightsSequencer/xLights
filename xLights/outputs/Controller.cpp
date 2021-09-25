@@ -451,20 +451,6 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-
-bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
-{
-    if (_outputs.size() == 0) return false;
-
-    for (auto& it2 : GetOutputs()) {
-        it2->AllOff();
-        it2->EndFrame(0);
-    }
-    GetFirstOutput()->SetChannels(channels);
-
-    return true;
-}
-
 void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
@@ -729,5 +715,18 @@ void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
             }
         }
     }
+}
+
+bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
+{
+    if (_outputs.size() == 0) return false;
+
+    for (auto& it2 : GetOutputs()) {
+        it2->AllOff();
+        it2->EndFrame(0);
+    }
+    GetFirstOutput()->SetChannels(channels);
+
+    return true;
 }
 #endif
