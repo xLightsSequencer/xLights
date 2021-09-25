@@ -340,6 +340,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
 void ModelGroupPanel::UpdatePanel(const std::string& group)
 {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static wxColour BLUE_ON_DARK(100, 100, 255);
 
     int spam = ListBoxAddToModelGroup->GetTopItem();
     int spig = ListBoxModelsInGroup->GetTopItem();
@@ -383,7 +384,9 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             long item = ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
             if (mModels[it] != nullptr) {
                 if (mModels[it]->GetDisplayAs() == "ModelGroup") {
-                    ListBoxModelsInGroup->SetItemTextColour(item, *wxBLUE);
+                    ListBoxModelsInGroup->SetItemTextColour(item,
+                                                            wxSystemSettings::GetAppearance().IsDark()
+                                                                ? BLUE_ON_DARK : *wxBLUE);
                 }
                 else if (Contains(it, "/")) {
                     ListBoxModelsInGroup->SetItemTextColour(item, xlORANGE.asWxColor());
@@ -408,7 +411,10 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                         if (filter == "" || Contains(::Lower(it.first), filter)) {
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
                             if (it.second->GetDisplayAs() == "ModelGroup") {
-                                ListBoxAddToModelGroup->SetItemTextColour(item, *wxBLUE);
+                                ListBoxAddToModelGroup->SetItemTextColour(item,
+                                                                          wxSystemSettings::GetAppearance().IsDark()
+                                                                              ? BLUE_ON_DARK
+                                                                              : *wxBLUE);
                             }
                         }
                     }
