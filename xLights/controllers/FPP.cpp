@@ -2570,8 +2570,12 @@ static void setRangesToChannelCount(DiscoveredData *inst) {
     if (count < 512) {
         count = 512;
     }
-    inst->controller->GetOutputs().front()->SetChannels(count);
+
+    // This will create universes if E131 or just set DDP
+    std::list<Model*> models;
+    inst->controller->SetChannelSize(count, models, 512);
 }
+
 static void SetControllerType(DiscoveredData *inst) {
     if (inst->pixelControllerType != "") {
         std::string v, m, var;

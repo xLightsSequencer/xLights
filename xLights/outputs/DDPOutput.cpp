@@ -261,6 +261,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
 
 void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     discovery.AddBroadcast(DDP_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *response, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -364,6 +365,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
         }
     });
 
+    logger_base.info("Sending DDP Discovery.");
     uint8_t packet[DDP_DISCOVERPACKET_LEN];
     memset(&packet, 0x00, sizeof(packet));
     packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;

@@ -452,7 +452,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 
-bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models)
+bool Controller::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
     if (_outputs.size() == 0) return false;
 

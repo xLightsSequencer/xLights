@@ -260,7 +260,7 @@ public:
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded);
-        virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {});
+        virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {}, uint32_t universeSize = 510);
     #endif
 
     #ifndef EXCLUDEDISCOVERY

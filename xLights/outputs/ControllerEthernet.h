@@ -139,7 +139,7 @@ public:
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
         virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
-        virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}) override;
+        virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
 #endif
 
     #ifndef EXCLUDEDISCOVERY

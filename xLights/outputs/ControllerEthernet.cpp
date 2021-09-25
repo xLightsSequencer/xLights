@@ -578,7 +578,7 @@ bool ControllerEthernet::SupportsUpload() const {
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 
-bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models)
+bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
     if (_outputs.size() == 0) return false;
 
@@ -593,7 +593,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     else {
 
-        int channels_per_universe = 510;
+        int channels_per_universe = universeSize;
         int universes = 0;
         if (IsUniversePerString() && models.size() > 0) {
             // number of universes should equal sum(((stringsize -1) / 510) + 1)
