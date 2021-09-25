@@ -230,6 +230,7 @@ void JobPoolWorker::Entry()
     // cancelled, otherwise the thread library would simply terminate the
     // program, see http://udrepper.livejournal.com/21541.html
     }  catch ( abi::__forced_unwind& ) {
+        currentJob = nullptr;
         logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
         pool->numThreads--;
         status = STOPPED;
@@ -237,6 +238,7 @@ void JobPoolWorker::Entry()
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
+        currentJob = nullptr;
         logger_base.error("JobPoolWorker::Entry exiting due to unknown exception. 0x%x", tid);
         --pool->numThreads;
         status = STOPPED;
@@ -245,6 +247,7 @@ void JobPoolWorker::Entry()
         logger_base.debug("JobPoolWorker done 0x%x", tid);
         return;
     }
+    currentJob = nullptr;
     logger_jobpool.debug("JobPoolWorker exiting 0x%x", tid);
     --pool->numThreads;
     status = STOPPED;
