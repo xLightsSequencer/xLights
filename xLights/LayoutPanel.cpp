@@ -402,7 +402,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ScrollBarLayoutVert->Hide();
 
     logger_base.debug("LayoutPanel basic setup complete");
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true, 0, false, true);
     LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);

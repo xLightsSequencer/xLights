@@ -4802,6 +4802,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     for (const auto& it : Nodes) {
         vcount += it.get()->Coords.size();
     }
+
     if (pixelStyle > 1) {
         int f = pixelSize;
         if (pixelSize < 16) {
@@ -4888,7 +4889,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 if (n + 1 == highlightpixel) {
                     c3 = xlMAGENTA;
                 } else  if (firstNode && highlightFirst) {
-                    c3 = xlYELLOW;
+                    c3 = xlCYAN;
                 }
 
                 ApplyTransparency(c3, transparency, blackTransparency);
@@ -4902,8 +4903,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                     ecolor = xlMAGENTA;
                 }
                 else if (firstNode && highlightFirst) {
-                    ccolor = xlYELLOW;
-                    ecolor = xlYELLOW;
+                    ccolor = xlCYAN;
+                    ecolor = xlCYAN;
                 }
 
                 ApplyTransparency(ccolor, transparency, blackTransparency);

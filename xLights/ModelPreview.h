@@ -43,6 +43,7 @@ class ModelPreview : public xlGLCanvas
     int _cameraPos_last_offsety = 0;
     int _cameraPos_latched_x = 0;
     int _cameraPos_latched_y = 0;
+    bool _showFirstPixel = false;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -50,7 +51,8 @@ public:
                  xLightsFrame* xlights,
                  bool allowSelected,
                  int style = 0,
-                 bool allowPreviewChange = false);
+                 bool allowPreviewChange = false,
+                 bool showFirstPixel = false);
 	virtual ~ModelPreview();
 
     // Public Methods
@@ -91,7 +93,7 @@ public:
     void DrawGroupCentre(float x, float y);
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
-    void RenderModels(const std::vector<Model*>& models, bool selected);
+    void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
     double calcPixelSize(double i);
