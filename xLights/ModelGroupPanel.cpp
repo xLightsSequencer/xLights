@@ -380,7 +380,15 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         std::list<std::string> modelsInGroup;
         modelsInGroup.push_back(g->GetName());
         for (const auto& it : g->ModelNames()) {
-            ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
+            long item = ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
+            if (mModels[it] != nullptr) {
+                if (mModels[it]->GetDisplayAs() == "ModelGroup") {
+                    ListBoxModelsInGroup->SetItemTextColour(item, *wxBLUE);
+                }
+                else if (Contains(it, "/")) {
+                    ListBoxModelsInGroup->SetItemTextColour(item, xlORANGE.asWxColor());
+                }
+            }
             modelsInGroup.push_back(it);
         }
 
@@ -398,7 +406,10 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                     }
                     else {
                         if (filter == "" || Contains(::Lower(it.first), filter)) {
-                            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
+                            long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
+                            if (it.second->GetDisplayAs() == "ModelGroup") {
+                                ListBoxAddToModelGroup->SetItemTextColour(item, *wxBLUE);
+                            }
                         }
                     }
                     if (CheckBox_ShowSubmodels->GetValue()) {
@@ -407,7 +418,8 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
                             if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
                                 if (filter == "" || Contains(::Lower(sm->GetFullName()), filter)) {
-                                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                                    long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                                    ListBoxAddToModelGroup->SetItemTextColour(item, xlORANGE.asWxColor());
                                 }
                             }
                         }
