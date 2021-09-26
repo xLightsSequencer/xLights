@@ -2148,9 +2148,18 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     logger_base.debug("Uploading controller inputs to" + name);
     auto controller = _outputManager.GetController(name);
-    if (UploadInputToController(controller)) {
-        if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
-            UploadOutputToController(controller);
+
+    if (controller != nullptr) {
+        if (controller->GetFPPProxy() != "") {
+            if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
+                wxMessageBox("PI " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
+            }
+        }
+
+        if (UploadInputToController(controller)) {
+            if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
+                UploadOutputToController(controller);
+            }
         }
     }
 
@@ -2167,6 +2176,12 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
+        if (controller->GetFPPProxy() != "") {
+            if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
+                wxMessageBox("FPP proxy " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table. This upload may fail until this is corrected.");
+            }
+        }
+
         bool ok = true;
         auto caps = GetControllerCaps(controller->GetName());
         if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {

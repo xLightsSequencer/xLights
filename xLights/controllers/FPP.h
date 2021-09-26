@@ -112,11 +112,13 @@ class FPP : public BaseController
     bool SetRestartFlag();
     bool Restart(const std::string &mode = "", bool ifNeeded = false);
     void SetDescription(const std::string &st);    
-    
+    std::vector<std::string> GetProxies();
+
     static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
-    
+    static bool ValidateProxy(const std::string& to, const std::string& via);
+
     static void TypeIDtoControllerType(int typeId, FPP* inst);
     
 #ifndef DISCOVERYONLY
