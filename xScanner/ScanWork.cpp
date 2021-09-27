@@ -260,7 +260,7 @@ std::string HTTPWork::GetTitle()
 		return "";
 	}
 
-	wxRegEx title = "<title>([^<]*)<";
+	wxRegEx title("<title>([^<]*)<");
 	if (title.Matches(page)) {
 		wxString t = title.GetMatch(page, 1);
 
@@ -637,7 +637,7 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		if (discovered->platformModel != "") {
 			results.push_back({ "Platform Model", discovered->platformModel });
 		}
-		if (discovered->hostname != "" & (discovered->hostname[0] < '0' || discovered->hostname[0] > '9')) {
+		if (discovered->hostname != "" && (discovered->hostname[0] < '0' || discovered->hostname[0] > '9')) {
 			results.push_back({ "Name", discovered->hostname });
 		}
 		if (discovered->version != "") {
@@ -699,7 +699,6 @@ void ComputerWork::ScanARP(WorkManager& workManager)
 
 #ifdef __LINUX__
 	logger_base.debug("Reading ARP table");
-	SendProgress(60, "Reading ARP table");
 	const int size = 256;
 
 	char ip_address[size];
