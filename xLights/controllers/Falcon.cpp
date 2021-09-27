@@ -1073,7 +1073,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
                         str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
-                        str.pixels = it->Channels() / it->_channelsPerPixel;
+                        str.pixels = it->Channels() / it->_channelsPerPixel * str.group;
                         str.protocol = protocols[p / 16];
                         V4_GetStartChannel(it->_universe, it->_universeStartChannel, it->_startChannel, str.universe, str.startChannel);
 
