@@ -11,9 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (dkulp) Use the native emoji fonts on Linux/OSX and don't try to use the Windows specific font
+2021.30 September 28, 2021
    -- enh (dkulp) Add Mr/Mrs Claus, Christmas Tree, Gift emoji to popup list
    -- enh (dkulp) Add skin tone for Emoji's (ShapeEffect)
+   -- enh (keith) Restructure xScanner to run without locking up the UI during the scan so you can access information while the scan runs
+   -- enh (keith) When uploading to a controller with a FPP proxy check the FPP has that IP address proxied. Warn if it doesnt.
+   -- enh (keith) In layout show the first pixel of every model in cyan when in 3D.
+   -- enh (keith) Show groups and submodels in different colours in the model lists on the model groups panel
+   -- enh (scott) Increase WLED maximum port number
+   -- enh (scott) Add multiselect to view import
+   -- bug (dkulp) Use the native emoji fonts on Linux/OSX and don't try to use the Windows specific font
+   -- bug (keith) Fix grouped pixels uploading to Falcon V4
+   -- bug (keith) When discovering E131 controllers dont set universe sizes to > 512 ... but add multiple universes
+   -- bug (keith) Centre the close button on the keybindings dialog
+   -- bug (keith) Fix hinkspix port number display in visualiser for ports > 4
+   -- bug (keith) Force valid start channels when not using full xLights control on the Falcon V4
+   -- bug (keith) Force gamma to valid value when uploading to Falcon V4
+   -- bug (keith) Validate WAV files uploaded to Falcon V4
+   -- bug (keith) Dont switch Falcon V4 from Player modes when uploading
+   -- bug (scott) Fix duplicate models added to group on import/download
+   -- bug (scott) Fix ESPixelStick v3 start channel upload
 2021.29 September 16, 2021
    -- enh (dkulp) Update Twinkle effect to use different placement alogirithm if buffer is very sparse
    -- enh (dkulp) Keep Star screen coordinates as "floats" to provide smoother sizing/better display

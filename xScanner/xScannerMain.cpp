@@ -137,6 +137,8 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     icons.AddIcon(wxIcon(xlights_xpm));
     SetIcons(icons);
 
+    _workManager.SetSingleThreaded(singleThreaded);
+
     Scan();
 
     SetMinSize(wxSize(400, 300));
@@ -187,6 +189,7 @@ wxTreeListItem xScannerFrame::GetSubnetItem(const std::string& subnet)
 wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
 {
     auto subnet = GetSubnetItem(GetIPSubnet(ip));
+    if (!subnet.IsOk()) return {};
 
     auto ips = wxSplit(ip, '.');
     if (ips.size() < 4) return {};
@@ -202,20 +205,22 @@ wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
         if (_tree->GetItemText(a, 0) == ip) return a;
         auto i = _tree->GetItemText(a, 0);
         auto tips = wxSplit(i, '.');
-        std::vector<int> tipsi;
-        for (const auto& it : tips) {
-            tipsi.push_back(atoi(it.c_str()));
-        }
-        bool greater = false;
-        for (int ii = 0; ii < 4; ii++) {
-            if (tipsi[ii] == ipsi[ii]) {
+        if (tips.size() == 4) {
+            std::vector<int> tipsi;
+            for (const auto& it : tips) {
+                tipsi.push_back(atoi(it.c_str()));
             }
-            else if (ipsi[ii] > tipsi[ii]) {
-                previous = a;
-                break;
-            }
-            else                 {
-                break;
+            bool greater = false;
+            for (int ii = 0; ii < 4; ii++) {
+                if (tipsi[ii] == ipsi[ii]) {
+                }
+                else if (ipsi[ii] > tipsi[ii]) {
+                    previous = a;
+                    break;
+                }
+                else {
+                    break;
+                }
             }
         }
     }
@@ -367,6 +372,7 @@ void xScannerFrame::ProcessHTTPResult(std::list<std::pair<std::string, std::stri
             _tree->SetItemText(item, 1, title);
         }
         AddItemUnderParentIfNotBlank(item, "Web title", title);
+        _tree->SetItemText(item, 2, ""); // it must be online so remove OFFLINE if it is there
     }
 }
 

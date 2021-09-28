@@ -164,11 +164,16 @@ protected:
     std::list<ScanThread*> _threadsMain;
     std::list<std::string> _found;
     bool _started = false;
+    bool _singleThreaded = false;
 
 public:
     WorkManager();
     virtual ~WorkManager();
 
+    void SetSingleThreaded(bool st)
+    {
+        _singleThreaded = st;
+    }
     void Restart()
     {
         while (_queuePing.size() > 0)             {
