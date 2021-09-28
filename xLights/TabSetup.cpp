@@ -2152,7 +2152,7 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
     if (controller != nullptr) {
         if (controller->GetFPPProxy() != "") {
             if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
-                wxMessageBox("PI " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
+                wxMessageBox("FPP " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
             }
         }
 
