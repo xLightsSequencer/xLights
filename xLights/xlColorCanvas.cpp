@@ -28,9 +28,6 @@ END_EVENT_TABLE()
 
 xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
     : xlGLCanvas(parent, id, pos, size, style, name),
-      mDisplayType(TYPE_PALETTE),
-      mDisplayMode(MODE_SATURATION),
-      mDragging(false),
       mHSV(0.0,1.0,1.0),
       mRGB(255,0,0)
 {
@@ -39,7 +36,8 @@ xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos
 xlColorCanvas::~xlColorCanvas()
 {
 }
-HSVValue &xlColorCanvas::GetHSV()
+
+const HSVValue &xlColorCanvas::GetHSV() const
 {
     return mHSV;
 }
@@ -47,7 +45,9 @@ HSVValue &xlColorCanvas::GetHSV()
 void xlColorCanvas::OnCanvasResize(wxSizeEvent& evt)
 {
     iXrange = evt.GetSize().GetWidth()-1;
+    if (iXrange < 1) iXrange = 1;
     iYrange = evt.GetSize().GetHeight()-1;
+    if (iYrange < 1) iYrange = 1;
     dXrange = (double)iXrange;
     dYrange = (double)iYrange;
     evt.Skip();
@@ -77,14 +77,14 @@ void xlColorCanvas::SetRGB( xlColor rgb)
 void xlColorCanvas::mouseDown(wxMouseEvent& event)
 {
     mDragging = true;
-    if( mDisplayType == TYPE_SLIDER )
+    if( mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER )
     {
         ProcessSliderClick(event.GetY());
         wxCommandEvent eventColor(EVT_CP_SLIDER_CHANGED);
         eventColor.SetClientData(&mHSV);
         wxPostEvent(GetParent(), eventColor);
     }
-    else if( mDisplayType == TYPE_PALETTE )
+    else if( mDisplayType == xlColorCanvas::DisplayType::TYPE_PALETTE )
     {
         ProcessPaletteClick(event.GetY(), event.GetX());
         wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
@@ -99,14 +99,14 @@ void xlColorCanvas::mouseMoved(wxMouseEvent& event)
 {
     if( mDragging )
     {
-        if( mDisplayType == TYPE_SLIDER )
+        if( mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER )
         {
             ProcessSliderClick(event.GetY());
             wxCommandEvent eventColor(EVT_CP_SLIDER_CHANGED);
             eventColor.SetClientData(&mHSV);
             wxPostEvent(GetParent(), eventColor);
         }
-        else if( mDisplayType == TYPE_PALETTE )
+        else if( mDisplayType == xlColorCanvas::DisplayType::TYPE_PALETTE )
         {
             ProcessPaletteClick(event.GetY(), event.GetX());
             wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
@@ -229,7 +229,7 @@ void xlColorCanvas::render( wxPaintEvent& event )
 
     InitializeGLContext();
     
-    if( mDisplayType == TYPE_SLIDER ) {
+    if( mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER ) {
         DrawSlider();
     } else {
         DrawPalette();

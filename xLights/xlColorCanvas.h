@@ -24,17 +24,17 @@ class xlColorCanvas : public xlGLCanvas
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
         virtual ~xlColorCanvas();
 
-        enum DisplayType
+        enum class DisplayType
         {
             TYPE_PALETTE,
             TYPE_SLIDER
         };
 
-        void SetType( DisplayType type) { mDisplayType = type; }
+        void SetType(xlColorCanvas::DisplayType type) { mDisplayType = type; }
         void SetMode( ColorDisplayMode mode );
-        HSVValue &GetHSV();
+        const HSVValue &GetHSV() const;
         void SetHSV( const HSVValue &hsv);
-        wxColor GetRGB() { return mRGB.asWxColor(); }
+        wxColor GetRGB() const { return mRGB.asWxColor(); }
         void SetRGB( xlColor rgb);
 
     
@@ -58,15 +58,15 @@ class xlColorCanvas : public xlGLCanvas
         void ProcessPaletteClick(int row, int column);
         int GetRGBColorFromRangeValue( int position, int range, int max_value, bool invert );
 
-        DisplayType mDisplayType;
-        ColorDisplayMode mDisplayMode;
-        bool mDragging;
+        DisplayType mDisplayType = xlColorCanvas::DisplayType::TYPE_PALETTE;
+        ColorDisplayMode mDisplayMode = MODE_SATURATION;
+        bool mDragging = false;
         HSVValue mHSV;
         xlColor mRGB;
-        int iXrange;
-        int iYrange;
-        double dXrange;
-        double dYrange;
+        int iXrange = 1;
+        int iYrange = 1;
+        double dXrange = 1.0;
+        double dYrange = 1.0;
 
         DECLARE_EVENT_TABLE()
 };

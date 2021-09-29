@@ -187,7 +187,7 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float&maxy, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float&maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst) {
 
     if (!IsActive()) return;
 

@@ -4661,12 +4661,14 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst) {
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
+    xlColor saveColor;
     if (c != nullptr) {
         color = *c;
+        saveColor = *c;
     }
 
     int w, h;
@@ -4706,6 +4708,16 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     bool left = true;
 
     while (first < last) {
+
+        if (highlightFirst && Nodes.size() > 1) {
+            if (first == 0) {
+                color = xlCYAN;
+            }
+            else {
+                color = saveColor;
+            }
+        }
+
         int n;
         if (left) {
             n = first;
@@ -4728,6 +4740,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 left = true;
             }
         }
+
         if (c == nullptr) {
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
@@ -4740,6 +4753,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 }
             }
         }
+
         size_t CoordCount=GetCoordCount(n);
         for(size_t c2=0; c2 < CoordCount; c2++) {
             // draw node on screen

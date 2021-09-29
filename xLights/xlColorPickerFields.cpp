@@ -197,7 +197,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Connect(ID_BITMAPBUTTON_Swatch8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xlColorPickerFields::OnBitmapButton_SwatchClick);
 	//*)
 
-	Panel_Slider->SetType(xlColorCanvas::TYPE_SLIDER);
+	Panel_Slider->SetType(xlColorCanvas::DisplayType::TYPE_SLIDER);
 	SliderLeft->SetValue(0);
 	SliderRight->SetValue(0);
     Panel_Palette->SetHSV(Panel_Slider->GetHSV());

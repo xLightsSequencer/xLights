@@ -257,7 +257,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected)
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 

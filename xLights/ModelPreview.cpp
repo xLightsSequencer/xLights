@@ -536,7 +536,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     float max = -999999;
                     float miy = 999999;
                     float may = -999999;
-                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected, highlightFirst);
                     if (color == selColor)
                     {
                         if (mix < minx) minx = mix;
@@ -569,7 +569,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                                 sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected, false, highlightFirst);
                             }
                             else {
-                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected, highlightFirst);
                             }
                             if (color == selColor)
                             {
@@ -629,7 +629,7 @@ void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int h
             m->SetPixelSize(oldpixelSize);
         }
         else {
-            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, defColor, false);
+            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, defColor, false, highlightFirst);
         }
         EndDrawing();
     }
