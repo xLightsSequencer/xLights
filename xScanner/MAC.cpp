@@ -62,7 +62,7 @@ std::string LookupMacAddress(const std::string mac)
 
 	std::string res;
 
-	if (macLookup.size() > 1) {
+	if (mac != "" && macLookup.size() > 1) {
 		auto macs = wxSplit(mac, '-');
 
 		if (macs.size() > 2) {

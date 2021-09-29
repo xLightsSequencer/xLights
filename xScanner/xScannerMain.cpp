@@ -124,7 +124,7 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
     _tree->Connect(wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xScannerFrame::OnTreeRClick, nullptr, this);
 
     _tree->AppendColumn("", 200);
-    _tree->AppendColumn("", 400);
+    _tree->AppendColumn("", 450);
     _tree->AppendColumn("", 200);
 
     SetTitle("xLights Scanner " + GetDisplayVersionString());
@@ -141,7 +141,7 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
 
     Scan();
 
-    SetMinSize(wxSize(400, 300));
+    SetMinSize(wxSize(600, 300));
     SetSize(800, 600);
 
     ValidateWindow();
@@ -277,11 +277,13 @@ void xScannerFrame::ProcessComputerResult(std::list<std::pair<std::string, std::
             AddItemUnderParentIfNotBlank(item, "xLights FPP Global Proxy", GetItem(res, "xLights Global FPP Proxy"));
             AddItemUnderParentIfNotBlank(item, "xSchedule Show Folder", GetItem(res, "xSchedule Show Folder"));
             AddItemUnderParentIfNotBlank(item, "xSchedule FPP Global Proxy", GetItem(res, "xSchedule Global FPP Proxy"));
+            int i = 1;
             for (const auto& it2 : GetStartsWith(res, "Local IP ")) {
-                AddItemUnderParentIfNotBlank(item, "IP", it2);
+                AddItemUnderParentIfNotBlank(item, wxString::Format("IP %d", i++), it2);
             }
+            i = 1;
             for (const auto& it2 : GetStartsWith(res, "Static Route ")) {
-                AddItemUnderParentIfNotBlank(item, "Static Route", it2);
+                AddItemUnderParentIfNotBlank(item, wxString::Format("Static Route %d", i++), it2);
             }
         }
     }
@@ -366,11 +368,16 @@ void xScannerFrame::ProcessHTTPResult(std::list<std::pair<std::string, std::stri
     auto item = GetIPItem(ip, web == "OK");
 
     if (item.IsOk()) {
-        AddItemUnderParent(item, "Web Interface on port", GetItem(res, "Port"));
+        AddItemUnderParentIfNotBlank(item, "Web", GetItem(res, "Web"));
+        auto controller = GetItem(res, "Controller");
+        if (controller != "" && _tree->GetItemText(item, 1) == "") {
+            _tree->SetItemText(item, 1, controller);
+        }
         auto title = GetItem(res, "Title");
-        if (_tree->GetItemText(item, 1) == "") {
+        if (title != "" && _tree->GetItemText(item, 1) == "") {
             _tree->SetItemText(item, 1, title);
         }
+        AddItemUnderParentIfNotBlank(item, "Controller", controller);
         AddItemUnderParentIfNotBlank(item, "Web title", title);
         _tree->SetItemText(item, 2, ""); // it must be online so remove OFFLINE if it is there
     }
@@ -406,11 +413,16 @@ void xScannerFrame::ProcessFPPResult(std::list<std::pair<std::string, std::strin
             AddItemUnderParentIfNotBlank(item, "Version", GetItem(res, "Version"));
             AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
             AddItemUnderParentIfNotBlank(item, "Sending Data", GetItem(res, "Sending Data"));
-            for (const auto& it2 : GetStartsWith(res, "IP ")) {
-                AddItemUnderParentIfNotBlank(item, "IP", it2);
+            int i = 1;
+            for (const auto& it2 : GetStartsWith(res, "Net ")) {
+                AddItemUnderParentIfNotBlank(item, wxString::Format("Network %d", i++), it2);
             }
+            //for (const auto& it2 : GetStartsWith(res, "IP ")) {
+            //    AddItemUnderParentIfNotBlank(item, "IP", it2);
+            //}
+            i = 1;
             for (const auto& it2 : GetStartsWith(res, "Proxying ")) {
-                AddItemUnderParentIfNotBlank(item, "Proxying", it2);
+                AddItemUnderParentIfNotBlank(item, wxString::Format("Proxying %d", i++), it2);
             }
         }
     }
@@ -462,8 +474,14 @@ void xScannerFrame::ProcessFalconResult(std::list<std::pair<std::string, std::st
                 AddItemUnderParentIfNotBlank(item, "Firmware Version", GetItem(res, "Firmware Version"));
                 AddItemUnderParentIfNotBlank(item, "Banks", GetItem(res, "Banks"));
                 AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
-                AddItemUnderParentIfNotBlank(item, "WiFi IP", GetItem(res, "WIFI IP"));
-                AddItemUnderParentIfNotBlank(item, "Eth IP", GetItem(res, "ETH IP"));
+                if (GetItem(res, "WIFI IP") != "") {
+                    auto w = wxString::Format("%s IP: %s Gateway:%s DNS: %s", GetItem(res, "WDHCP"), GetItem(res, "WIFI IP"), GetItem(res, "WiFi Gateway"), GetItem(res, "WiFi DNS"));
+                    AddItemUnderParentIfNotBlank(item, "WiFi", w);
+                }
+                if (GetItem(res, "ETH IP") != "") {
+                    auto e = wxString::Format("%s IP: %s Gateway:%s DNS: %s", GetItem(res, "DHCP"), GetItem(res, "ETH IP"), GetItem(res, "Gateway"), GetItem(res, "DNS"));
+                    AddItemUnderParentIfNotBlank(item, "Ethernet", e);
+                }
                 AddItemUnderParentIfNotBlank(item, "Test Mode", GetItem(res, "Test Mode"));
                 AddItemUnderParentIfNotBlank(item, "Temp 1", GetItem(res, "Temp1"));
                 AddItemUnderParentIfNotBlank(item, "Temp 2", GetItem(res, "Temp2"));

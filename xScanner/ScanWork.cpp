@@ -30,7 +30,11 @@
 
 #define FAST_TIMEOUT 2
 #define SLOW_TIMEOUT 5
-#define WORKER_THREADS 15
+#define PING_THREADS 15
+#define OTHER_THREADS 5
+#define HTTP_THREADS 25
+
+#pragma region WorkManager
 
 WorkManager::WorkManager()
 {
@@ -46,13 +50,17 @@ void WorkManager::Start()
 			_threadsPing.push_back(new ScanThread(*this, ThreadType::TTPING));
 			_threadsOther.push_back(new ScanThread(*this, ThreadType::TTOTHER));
 			_threadsOther.push_back(new ScanThread(*this, ThreadType::TTOTHER));
-			_threadsMain.push_back(new ScanThread(*this, ThreadType::TTMAIN, new wxSocketClient(wxSOCKET_WAITALL | wxSOCKET_BLOCK)));
+			_threadsHTTP.push_back(new ScanThread(*this, ThreadType::TTMAIN, new wxSocketClient(wxSOCKET_WAITALL | wxSOCKET_BLOCK)));
 		}
 		else {
-			for (size_t i = 0; i < WORKER_THREADS; i++) {
+			for (size_t i = 0; i < PING_THREADS; i++) {
 				_threadsPing.push_back(new ScanThread(*this, ThreadType::TTPING));
+			}
+			for (size_t i = 0; i < OTHER_THREADS; i++) {
 				_threadsOther.push_back(new ScanThread(*this, ThreadType::TTOTHER));
-				_threadsMain.push_back(new ScanThread(*this, ThreadType::TTMAIN, new wxSocketClient(wxSOCKET_WAITALL | wxSOCKET_BLOCK)));
+			}
+			for (size_t i = 0; i < HTTP_THREADS; i++) {
+				_threadsHTTP.push_back(new ScanThread(*this, ThreadType::TTMAIN, new wxSocketClient(wxSOCKET_WAITALL | wxSOCKET_BLOCK)));
 			}
 		}
 	}
@@ -60,7 +68,7 @@ void WorkManager::Start()
 	if (!_started) {
 		logger_base.debug("Starting work.");
 		_started = true;
-		for (const auto& it : _threadsMain) {
+		for (const auto& it : _threadsHTTP) {
 			it->Run();
 		}
 		for (const auto& it : _threadsPing) {
@@ -70,13 +78,16 @@ void WorkManager::Start()
 			it->Run();
 		}
 	}
+
+	// this will load the mac file early
+	AddWork(new MACWork("", ""));
 }
 
 void WorkManager::Stop()
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.debug("Stopping work");
-	for (const auto& it : _threadsMain) {
+	for (const auto& it : _threadsHTTP) {
 		it->Terminate();
 	}
 	for (const auto& it : _threadsPing) {
@@ -90,9 +101,9 @@ void WorkManager::Stop()
 
 WorkManager::~WorkManager()
 {
-	while (_threadsMain.size() > 0) {
-		ScanThread* t = _threadsMain.back();
-		_threadsMain.pop_back();
+	while (_threadsHTTP.size() > 0) {
+		ScanThread* t = _threadsHTTP.back();
+		_threadsHTTP.pop_back();
 		t->Terminate();
 		t->Kill();
 	}
@@ -155,7 +166,7 @@ void WorkManager::AddHTTP(const std::string& ip, int port, const std::string& pr
 	if (std::find(begin(_scannedHTTP), end(_scannedHTTP), h) == end(_scannedHTTP)) {
 		// start with a ping ... work flows from there
 		_scannedHTTP.push_back(h);
-		_queueMain.push(new HTTPWork(ip, port, proxy));
+		_queueHTTP.push(new HTTPWork(ip, port, proxy));
 	}
 }
 
@@ -186,6 +197,10 @@ void WorkManager::AddClassDSubnet(const std::string& ip, const std::string& prox
 		}
 	}
 }
+
+#pragma endregion
+
+#pragma region PingWork
 
 void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
@@ -268,30 +283,40 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	}
 }
 
-std::string HTTPWork::GetTitle()
-{
-	try {
-		std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
+#pragma endregion
 
-		if (page == "") {
+#pragma region HTTPWork
+
+std::string HTTPWork::GetTitle(const std::string& page)
+{
+	wxRegEx title("<title[^>]*>([^<]*)<");
+	if (title.Matches(page)) {
+		wxString t = title.GetMatch(page, 1);
+
+		if (t.Contains("404")) {
 			return "";
 		}
 
-		wxRegEx title("<title>([^<]*)<");
-		if (title.Matches(page)) {
-			wxString t = title.GetMatch(page, 1);
-
-			if (t.Contains("404")) {
-				return "";
-			}
-
-			return t;
-		}
-	}
-	catch (...) 		{
-
+		return t;
 	}
 
+	return "";
+}
+
+std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& page)
+{
+	if (Contains(page, "ESPixelStick")) return "ESPixelStick";
+	if (Contains(page, "ECG-P2")) return "J1Sys P2";
+	if (Contains(page, "ECG-P12S")) return "J1Sys P12S";
+	if (Contains(page, "ECG-P12R")) return "J1Sys P12R";
+	if (Contains(page, "ECG-P12D")) return "J1Sys P12D";
+	if (Contains(page, "E6804")) return "SanDevices E6804";
+	if (Contains(page, "E682")) return "SanDevices E682";
+	if (Contains(page, "E681")) return "SanDevices E681";
+	if (Contains(page, "NDB")) return "Minleon NDB";
+	if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
+	if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
+	if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work
 	return "";
 }
 
@@ -301,7 +326,7 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 	std::list<std::pair<std::string, std::string>> results;
 
-	logger_base.debug("HTTPWork %s:%d", (const char*)_ip.c_str(), _port);
+	logger_base.debug("HTTPWork %s:%d Proxy: %s", (const char*)_ip.c_str(), _port, (const char*)_proxy.c_str());
 
 	wxIPV4address addr;
 	addr.Hostname(_ip);
@@ -313,13 +338,32 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			logger_base.debug("    HTTP Connected.");
 			results.push_back({ "IP", _ip });
 			results.push_back({ "Type", "HTTP" });
-			results.push_back({ "Port", wxString::Format("%d", _port)});
-			results.push_back({ "Web", "OK" });
-
-			std::string title = GetTitle();
-			if (title != "") {
-				results.push_back({ "Title", title });
+			if (_proxy != "") {
+				results.push_back({ "Web", wxString::Format("Via proxy %s OK on port %d", _proxy, _port) });
 			}
+			else {
+				results.push_back({ "Web", wxString::Format("Direct OK on port %d", _port) });
+			}
+
+			try {
+				std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
+
+				if (page != "") {
+					std::string title = GetTitle(page);
+					if (title != "") {
+						results.push_back({ "Title", title });
+					}
+
+					std::string controller = GetControllerTypeBasedOnPageContent(page);
+					if (controller != "") {
+						results.push_back({ "Controller", controller });
+					}
+				}
+			}
+			catch (...) {
+
+			}
+
 			PublishResult(workManager, results);
 
 			workManager.AddWork(new FPPWork(_ip, _proxy));
@@ -334,6 +378,10 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		wxASSERT(false);
 	}
 }
+
+#pragma endregion
+
+#pragma region FPPWork
 
 void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
@@ -355,46 +403,69 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		results.push_back({ "IP", _ip });
 		results.push_back({ "Type", "FPP" });
 
+
+		std::list<std::string> networks;
+
 		logger_base.debug("    Getting wifi strength");
 		auto wificonfig = Curl::HTTPSGet(proxy + _ip + "/api/network/wifi/strength", "", "", FAST_TIMEOUT);
+
+		wxJSONReader wifireader;
+		wxJSONValue wifiroot;
+		bool fwifi = false;
 		if (wificonfig != "") {
+			fwifi = wifireader.Parse(wificonfig, &wifiroot) == 0;
+		}
 
-			wxJSONReader wifireader;
-			wxJSONValue wifiroot;
-			bool fwifi = wifireader.Parse(wificonfig, &wifiroot) == 0;
+		wxJSONValue defaultValue = wxString("");
+		wxJSONReader reader;
+		wxJSONValue root;
+		if (reader.Parse(netconfig, &root) == 0) {
+			// extract the type of request
+			auto net = root.AsArray();
 
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(netconfig, &root) == 0) {
-				// extract the type of request
-				auto net = root.AsArray();
-
-				if (net != nullptr) {
-					int ii = 1;
-					for (size_t i = 0; i < net->Count(); i++) {
-						auto n = (*net)[i];
-						wxString operstate = n.Get("operstate", defaultValue).AsString();
-						wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
-						wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
-						if (operstate == "UP" && iip != "" && label != "") {
-							wxString wifiStrength = "";
-							if (label[0] == 'w' && fwifi) {
-								auto w = wifiroot.AsArray();
-								for (size_t j = 0; j < w->Count(); j++) {
-									auto ww = (*w)[j];
-									wxString iface = ww.Get("interface", defaultValue).AsString();
-									if (iface == label) {
-										int strength = ww.Get("level", wxJSONValue(0)).AsInt();
-										wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
-										break;
-									}
+			if (net != nullptr) {
+				int ii = 1;
+				for (size_t i = 0; i < net->Count(); i++) {
+					auto n = (*net)[i];
+					wxString operstate = n.Get("operstate", defaultValue).AsString();
+					wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
+					wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
+					wxString ifname = n.Get("ifname", defaultValue).AsString();
+					if (ifname != "") networks.push_back(ifname);
+					if (operstate == "UP" && iip != "" && label != "") {
+						wxString wifiStrength = "";
+						if (label[0] == 'w' && fwifi) {
+							auto w = wifiroot.AsArray();
+							for (size_t j = 0; j < w->Count(); j++) {
+								auto ww = (*w)[j];
+								wxString iface = ww.Get("interface", defaultValue).AsString();
+								if (iface == label) {
+									int strength = ww.Get("level", wxJSONValue(0)).AsInt();
+									wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
+									break;
 								}
 							}
-							results.push_back({ wxString::Format("IP %d", ii++), label + " : " + iip + " " + wifiStrength });
-							workManager.AddIP(iip, "");
 						}
+						results.push_back({ wxString::Format("IP %d", ii++), label + " : " + iip + " " + wifiStrength });
+						workManager.AddIP(iip, "");
 					}
+				}
+			}
+		}
+
+		int iii = 1;
+		for (const auto& it : networks) {
+			auto net = Curl::HTTPSGet(proxy + _ip + "/api/network/interface/" + it, "", "", FAST_TIMEOUT);
+			if (net != "") {
+				wxJSONValue defaultValue = wxString("");
+				wxJSONReader reader;
+				wxJSONValue root;
+				if (reader.Parse(net, &root) == 0) {
+					wxString dhcp = root.Get("PROTO", defaultValue).AsString();
+					wxString gateway = root.Get("GATEWAY", defaultValue).AsString();
+					wxString address = root.Get("CurrentAddress", defaultValue).AsString();
+					auto n = wxString::Format("%s %s IP : %s Gateway : %s", it, dhcp, address, gateway);
+					results.push_back({ wxString::Format("Net %d", iii++), n });
 				}
 			}
 		}
@@ -489,6 +560,10 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	}
 }
 
+#pragma endregion
+
+#pragma region FalconWork
+
 void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -503,7 +578,7 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	logger_base.debug("FalconWork %s %s", (const char*)_proxy.c_str(), (const char*)_ip.c_str());
 	auto status = Curl::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
-	if (status != "" && Contains(status, "<response>") && Contains(status, "<fv>")) {
+	if (status != "" && Contains(status, "<response>") && Contains(status, "<t1>") && Contains(status, "<p>")) {
 
 		logger_base.debug("    Falcon found");
 		results.push_back({ "IP", _ip});
@@ -538,6 +613,21 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 					else if (n->GetName() == "fv") {
 						results.push_back({ "Firmware Version", n->GetChildren()->GetContent() });
 					}
+					else if (n->GetName() == "v1") {
+						results.push_back({ "V1", n->GetChildren()->GetContent() });
+					}
+					else if (n->GetName() == "v2") {
+						results.push_back({ "V2", n->GetChildren()->GetContent() });
+					}
+					else if (n->GetName() == "t1") {
+						results.push_back({ "Processor Temp", n->GetChildren()->GetContent() + "C"});
+					}
+					else if (n->GetName() == "t2") {
+						results.push_back({ "Temp1", n->GetChildren()->GetContent() + "C" });
+					}
+					else if (n->GetName() == "t3") {
+						results.push_back({ "Temp2", n->GetChildren()->GetContent() + "C" });
+					}
 					else if (n->GetName() == "n") {
 						results.push_back({ "Name", n->GetChildren()->GetContent() });
 					}
@@ -568,6 +658,12 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 					if (status.HasMember("TS") && status["TS"].AsInt() != 0) {
 						results.push_back({ "Test Mode", "Enabled" });
 					}
+					if (status.HasMember("SD")) results.push_back({ "DHCP", (status["SD"].AsString() == "D" ? "DHCP" : "Static") });
+					if (status.HasMember("WSD")) results.push_back({ "WDHCP", (status["WSD"].AsString() == "D" ? "DHCP" : "Static") });
+					if (status.HasMember("D")) results.push_back({ "DNS", status["D"].AsString() });
+					if (status.HasMember("G")) results.push_back({ "Gateway", status["G"].AsString() });
+					if (status.HasMember("WD")) results.push_back({ "WiFi DNS", status["WD"].AsString() });
+					if (status.HasMember("WG")) results.push_back({ "WiFi Gateway", status["WG"].AsString() });
 					if (status.HasMember("N")) results.push_back({ "Name", status["N"].AsString()});
 					if (status.HasMember("T1")) results.push_back({ "Temp1", wxString::Format("%.1fC", (float)status["T1"].AsInt() / 10.0).ToStdString() });
 					if (status.HasMember("T2")) results.push_back({ "Temp2", wxString::Format("%.1fC", (float)status["T2"].AsInt() / 10.0).ToStdString() });
@@ -585,6 +681,10 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		PublishResult(workManager, results);
 	}
 }
+
+#pragma endregion
+
+#pragma region ScanWork
 
 wxWindow* ScanWork::GetFrameWindow()
 {
@@ -614,6 +714,10 @@ void ScanWork::PublishResult(WorkManager& workManager, std::list<std::pair<std::
 	workManager.PublishResult(out);
 }
 
+#pragma endregion
+
+#pragma region xScheduleWork
+
 void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -637,6 +741,10 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		PublishResult(workManager, results);
 	}
 }
+
+#pragma endregion
+
+#pragma region DiscoverWork
 
 void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
@@ -698,6 +806,10 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		}
 	}
 }
+
+#pragma endregion
+
+#pragma region ComputerWork
 
 void ComputerWork::ScanARP(WorkManager& workManager)
 {
@@ -978,6 +1090,10 @@ void ComputerWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	}
 }
 
+#pragma endregion
+
+#pragma region MACWork
+
 void MACWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -990,41 +1106,47 @@ void MACWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 	auto vendor = LookupMacAddress(_mac);
 
-	if (vendor == "") {
-		std::unique_lock<std::mutex> locker(lockcache);
-		if (cache.find(_mac) != end(cache)) {
-			vendor = cache[_mac];
-		}
-	}
-
-	if (vendor == "") {
-		auto macURL = std::string("https://api.macvendors.com/" + _mac);
-		logger_base.debug("    Looking up MAC: %s", (const char*)macURL.c_str());
-		vendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
-		if (Contains(vendor, "\"Not Found\"")) {
-			vendor = "";
-		}
-		else if (Contains(vendor, "\"Too Many Requests\"")) {
-			vendor = "MAC Lookup Unavailable";
-		}
-
-		if (vendor != "MAC Lookup Unavailable") {
+	if (_mac != "") {
+		if (vendor == "") {
 			std::unique_lock<std::mutex> locker(lockcache);
-			cache[_mac] = vendor;
+			if (cache.find(_mac) != end(cache)) {
+				vendor = cache[_mac];
+			}
 		}
-	}
 
-	if (vendor != "") 		{
-		results.push_back({ "Type", "MAC" });
-		results.push_back({ "IP", _ip });
-		results.push_back({ "MAC", _mac });
-		results.push_back({ "MAC Vendor", vendor });
-		PublishResult(workManager, results);
-	}
-	else 		{
-		results.push_back({ "Type", "MAC" });
-		results.push_back({ "IP", _ip });
-		results.push_back({ "MAC", _mac });
-		PublishResult(workManager, results);
+		if (vendor == "") {
+			std::unique_lock<std::mutex> locker(lockcache); // we do this to minimise concurrent web requests
+			auto macURL = std::string("https://api.macvendors.com/" + _mac);
+			logger_base.debug("    Looking up MAC: %s", (const char*)macURL.c_str());
+			vendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
+			logger_base.debug("    Looking up MAC: %s => %s", (const char*)macURL.c_str(), (const char*)vendor.c_str());
+			if (Contains(vendor, "\"Not Found\"")) {
+				vendor = "";
+			}
+			else if (Contains(vendor, "\"Too Many Requests\"")) {
+				vendor = "MAC Lookup Unavailable";
+			}
+
+			if (vendor != "MAC Lookup Unavailable") {
+				cache[_mac] = vendor;
+			}
+			wxSleep(1); // wait a second to keep web requests low
+		}
+
+		if (vendor != "") {
+			results.push_back({ "Type", "MAC" });
+			results.push_back({ "IP", _ip });
+			results.push_back({ "MAC", _mac });
+			results.push_back({ "MAC Vendor", vendor });
+			PublishResult(workManager, results);
+		}
+		else {
+			results.push_back({ "Type", "MAC" });
+			results.push_back({ "IP", _ip });
+			results.push_back({ "MAC", _mac });
+			PublishResult(workManager, results);
+		}
 	}
 }
+
+#pragma endregion

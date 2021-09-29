@@ -152,7 +152,7 @@ public:
 
 class WorkManager {
 protected:
-    ThreadsafeQueue<ScanWork*> _queueMain;
+    ThreadsafeQueue<ScanWork*> _queueHTTP;
     ThreadsafeQueue<ScanWork*> _queuePing;
     ThreadsafeQueue<ScanWork*> _queueOther;
     mutable std::mutex _mutex;
@@ -161,7 +161,7 @@ protected:
     ThreadsafeQueue < std::list<std::pair<std::string, std::string>>> _results;
     std::list<ScanThread*> _threadsOther;
     std::list<ScanThread*> _threadsPing;
-    std::list<ScanThread*> _threadsMain;
+    std::list<ScanThread*> _threadsHTTP;
     std::list<std::string> _found;
     bool _started = false;
     bool _singleThreaded = false;
@@ -179,8 +179,8 @@ public:
         while (_queuePing.size() > 0)             {
             _queuePing.pop();
         }
-        while (_queueMain.size() > 0) {
-            _queueMain.pop();
+        while (_queueHTTP.size() > 0) {
+            _queueHTTP.pop();
         }
         while (_queueOther.size() > 0) {
             _queueOther.pop();
@@ -194,7 +194,7 @@ public:
         for (const auto& it : _threadsPing) {
             it->TerminateWork();
         }
-        for (const auto& it : _threadsMain) {
+        for (const auto& it : _threadsHTTP) {
             it->TerminateWork();
         }
         _scannedIP.clear();
@@ -208,8 +208,8 @@ public:
         while (_queuePing.size() > 0) {
             _queuePing.pop();
         }
-        while (_queueMain.size() > 0) {
-            _queueMain.pop();
+        while (_queueHTTP.size() > 0) {
+            _queueHTTP.pop();
         }
         while (_queueOther.size() > 0) {
             _queueOther.pop();
@@ -223,7 +223,7 @@ public:
         for (const auto& it : _threadsPing) {
             it->TerminateWork();
         }
-        for (const auto& it : _threadsMain) {
+        for (const auto& it : _threadsHTTP) {
             it->TerminateWork();
         }
         _scannedIP.clear();
@@ -232,7 +232,7 @@ public:
     }
     std::string GetPendingWork()
     {
-        return wxString::Format("Main %d : Ping %d : Other %d", (int)_queueMain.size(), (int)_queuePing.size(), (int)_queueOther.size());
+        return wxString::Format("HTTP %d : Ping %d : Other %d", (int)_queueHTTP.size(), (int)_queuePing.size(), (int)_queueOther.size());
     }
     void AddHTTP(const std::string& ip, int port, const std::string& proxy = "");
     void AddIP(const std::string& ip, const std::string& why, const std::string& proxy = "");
@@ -247,7 +247,7 @@ public:
     {
         switch (work->GetType())             {
         case WorkType::HTTP:
-            _queueMain.push(work);
+            _queueHTTP.push(work);
             break;
         case WorkType::PING:
             _queuePing.push(work);
@@ -265,7 +265,7 @@ public:
     {
         switch (tt)             {
         case ThreadType::TTMAIN:
-            return _queueMain.pop();
+            return _queueHTTP.pop();
             break;
         case ThreadType::TTPING:
             return _queuePing.pop();
@@ -341,7 +341,8 @@ protected:
     int _port = 80;
     std::string _proxy;
 
-    std::string GetTitle();
+    std::string GetTitle(const std::string& page);
+    std::string GetControllerTypeBasedOnPageContent(const std::string& page);
 
 public:
     HTTPWork(const std::string& ip, int port = 80, const std::string& proxy = "") : ScanWork(WorkType::HTTP) { _ip = ip; _port = port; _proxy = proxy; }
