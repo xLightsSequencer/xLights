@@ -402,6 +402,8 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         Choice_Out_Transition_Type->SetSelection(0);
 		SpinCtrl_FreezeEffectAtFrame->SetValue(999999);
 		SpinCtrl_SuppressEffectUntil->SetValue(0);
+		CheckBox_In_Reverse->SetValue(false);
+		CheckBox_Out_Reverse->SetValue(false);
 
 		BitmapButton_In_Transition_Adjust->GetValue()->SetDefault(0.0f, 100.0f);
 		BitmapButton_In_Transition_Adjust->UpdateState();

@@ -3361,20 +3361,21 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     }
 }
 
-void PixelBufferClass::LayerInfo::createClockMask(bool out) {
+void PixelBufferClass::LayerInfo::createClockMask(bool out)
+{
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
-    if ( InTransitionAdjustValueCurve.IsActive() )
-       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+    if (InTransitionAdjustValueCurve.IsActive())
+        adjust = static_cast<int>(InTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
-        if ( OutTransitionAdjustValueCurve.IsActive() )
-           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+        if (OutTransitionAdjustValueCurve.IsActive())
+            adjust = static_cast<int>(OutTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     }
 
     float startradians = 2.0 * M_PI * (float)adjust / 100.0;
@@ -3387,26 +3388,22 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
             startradians += 2.0f * (float)M_PI;
             currentradians += 2.0f * (float)M_PI;
         }
-    } else {
+    }
+    else {
         currentradians = startradians + currentradians;
     }
 
-    for (int x = 0; x < BufferWi; x++)
-    {
-        for (int y = 0; y < BufferHt; y++)
-        {
+    for (int x = 0; x < BufferWi; x++) {
+        for (int y = 0; y < BufferHt; y++) {
             float radianspixel;
-            if (x - BufferWi / 2 == 0 && y - BufferHt / 2 == 0)
-            {
+            if (x - BufferWi / 2 == 0 && y - BufferHt / 2 == 0) {
                 radianspixel = 0.0;
             }
-            else
-            {
+            else {
                 radianspixel = atan2(x - BufferWi / 2,
-                                     y - BufferHt / 2);
+                    y - BufferHt / 2);
             }
-            if (radianspixel < 0)
-            {
+            if (radianspixel < 0) {
                 radianspixel += 2.0f * (float)M_PI;
             }
             if (currentradians > 2.0f * (float)M_PI && radianspixel < startradians) {
@@ -3418,24 +3415,23 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
             mask[x * BufferHt + y] = (s_lt_p && c_gt_p) ? m2 : m1;
         }
     }
-
 }
 
-
-void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
+void PixelBufferClass::LayerInfo::createBlindsMask(bool out)
+{
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
-    if ( InTransitionAdjustValueCurve.IsActive() )
-       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+    if (InTransitionAdjustValueCurve.IsActive())
+        adjust = static_cast<int>(InTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
-        if ( OutTransitionAdjustValueCurve.IsActive() )
-           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+        if (OutTransitionAdjustValueCurve.IsActive())
+            adjust = static_cast<int>(OutTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     }
     if (adjust == 0) {
         adjust = 1;
@@ -3464,7 +3460,6 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
             for (int y = 0; y < BufferHt; y++) {
                 mask[x * BufferHt + y] = c;
             }
-
         }
     }
 }
