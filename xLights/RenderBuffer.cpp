@@ -153,12 +153,6 @@ void TextDrawingContext::ReleaseContext(TextDrawingContext* pdc) {
     }
 }
 
-#ifdef __WXMSW__
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
-#else
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
-#endif
-
 EffectRenderCache::EffectRenderCache() {}
 EffectRenderCache::~EffectRenderCache() {}
 void RenderBuffer::SetAllowAlphaChannel(bool a) { allowAlpha = a; }
@@ -330,7 +324,7 @@ PathDrawingContext::~PathDrawingContext() {}
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
-    : DrawingContext(BufferWi, BufferHt, allowShared, false)
+    : DrawingContext(BufferWi, BufferHt, allowShared, true)
 #elif defined(__WXOSX__)
     : DrawingContext(BufferWi, BufferHt, allowShared, true)
 #elif defined(LINUX)
@@ -417,12 +411,18 @@ void TextDrawingContext::Clear() {
     }
     DrawingContext::Clear();
 
-#if USE_GRAPHICS_CONTEXT_FOR_TEXT
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef __WXMSW__
+    // must use the Direct2D renderer to get the color emoji's
+    // along with custom build of wxWidgets until
+    // https://trac.wxwidgets.org/ticket/19275#ticket
+    // is applied/fixed
+    gc = wxGraphicsRenderer::GetDirect2DRenderer()->CreateContext(*dc);
+#else
     gc = wxGraphicsContext::Create(*dc);
+#endif
 
-    if (gc == nullptr)
-    {
+    if (gc == nullptr) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("TextDrawingContext DC creation failed.");
         return;
     }
@@ -430,21 +430,14 @@ void TextDrawingContext::Clear() {
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
-#endif
 }
 
 void TextDrawingContext::SetOverlayMode(bool b) {
-#if USE_GRAPHICS_CONTEXT_FOR_TEXT
     gc->SetCompositionMode(b ? wxCompositionMode::wxCOMPOSITION_OVER : wxCompositionMode::wxCOMPOSITION_SOURCE);
-#endif
 }
 
 bool TextDrawingContext::AllowAlphaChannel() {
-#ifdef __WXMSW__
-    return false;
-#else
     return true;
-#endif
 }
 
 wxImage *DrawingContext::FlushAndGetImage() {
