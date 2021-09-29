@@ -4888,7 +4888,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 
                 if (n + 1 == highlightpixel) {
                     c3 = xlMAGENTA;
-                } else  if (firstNode && highlightFirst) {
+                } else  if (firstNode && highlightFirst && Nodes.size() > 1) {
                     c3 = xlCYAN;
                 }
 
@@ -4902,7 +4902,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                     ccolor = xlMAGENTA;
                     ecolor = xlMAGENTA;
                 }
-                else if (firstNode && highlightFirst) {
+                else if (firstNode && highlightFirst && Nodes.size() > 1) {
                     ccolor = xlCYAN;
                     ecolor = xlCYAN;
                 }
