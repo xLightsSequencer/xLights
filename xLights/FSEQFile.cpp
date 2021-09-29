@@ -955,7 +955,7 @@ public:
 
             uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
             len -= m_file->m_frameOffsets[m_curBlock].second;
-            int max = m_file->getNumFrames() * m_file->getChannelCount();
+            uint64_t max = m_file->getNumFrames() * m_file->getChannelCount();
             if (len > max) {
                 len = max;
             }
@@ -1034,7 +1034,7 @@ public:
             //read the ranges into the buffer
             for (auto &rng : data->m_ranges) {
                 if (rng.first < m_file->getChannelCount()) {
-                    int start = fidx + rng.first;
+                    uint32_t start = fidx + rng.first;
                     memcpy(&data->m_data[sz], &fdata[start], rng.second);
                     sz += rng.second;
                 }
