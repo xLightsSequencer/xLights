@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #ifdef __WXMSW__
 #include <iphlpapi.h>
+#include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <ifaddrs.h>
