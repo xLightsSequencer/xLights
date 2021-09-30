@@ -25,6 +25,13 @@
             <Protocol>artnet</Protocol>
         </InputProtocols>
     </AbstractVariant>
+    <Controller Name="E1-WiFi">
+        <Variant Name="ESP8266 V1.00" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+        </Variant>
+    </Controller>
     <Controller Name="E8D-WiFi">
         <Variant Name="Version 1.00" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
