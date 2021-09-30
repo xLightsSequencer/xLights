@@ -1,0 +1,42 @@
+<Vendor Name="Lightish">
+    <AbstractVariant Name="BaseWLEDSettings">
+        <!--SupportsPixelPortCommonSettings/-->
+        <SupportsPixelPortDirection/>
+        <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortNullPixels/>
+        <SupportsUpload/>
+        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4500</MaxPixelPortChannels>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsAutoLayout/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+        </PixelProtocols>
+        <SerialProtocols/>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+    <Controller Name="E8D-WiFi">
+        <Variant Name="Version 1.00" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>11</Port1>
+            <Port2>12</Port2>
+            <Port3>13</Port3>
+            <Port4>14</Port4>
+            <Port5>15</Port5>
+            <Port6>16</Port6>
+            <Port7>17</Port7>
+            <Port8>18</Port8>
+        </Variant>
+    </Controller>
+</Vendor>
