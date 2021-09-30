@@ -12,7 +12,7 @@ cd ..
 cd ..
 cd ..
 
-git clone --recurse-submodules -b xlights_2021.13 https://github.com/xLightsSequencer/wxWidgets wxWidgets
+git clone --recurse-submodules -b xlights_2021.31 https://github.com/xLightsSequencer/wxWidgets wxWidgets
 
 cd wxWidgets
 msbuild.exe /m .\build\msw\wx_vc16.sln /p:Configuration="Debug" /p:Platform="x64"
