@@ -96,34 +96,34 @@ END_EVENT_TABLE()
 
 TendrilPanel::TendrilPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
-    wxIntegerValidator<int> _tuneMovement(&__tuneMovement, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _tuneMovement(&__tuneMovement, wxNUM_VAL_DEFAULT);
     _tuneMovement.SetMin(0);
     _tuneMovement.SetMax(20);
-    wxIntegerValidator<int> _thickness(&__thickness, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _thickness(&__thickness, wxNUM_VAL_DEFAULT);
     _thickness.SetMin(1);
     _thickness.SetMax(20);
-    wxIntegerValidator<int> _friction(&__friction, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _friction(&__friction, wxNUM_VAL_DEFAULT);
     _friction.SetMin(0);
     _friction.SetMax(20);
-    wxIntegerValidator<int> _dampening(&__dampening, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _dampening(&__dampening, wxNUM_VAL_DEFAULT);
     _dampening.SetMin(0);
     _dampening.SetMax(20);
-    wxIntegerValidator<int> _tension(&__tension, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _tension(&__tension, wxNUM_VAL_DEFAULT);
     _tension.SetMin(0);
     _tension.SetMax(39);
-    wxIntegerValidator<int> _trails(&__trails, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _trails(&__trails, wxNUM_VAL_DEFAULT);
     _trails.SetMin(1);
     _trails.SetMax(20);
-    wxIntegerValidator<int> _length(&__length, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _length(&__length, wxNUM_VAL_DEFAULT);
     _length.SetMin(5);
     _length.SetMax(100);
-    wxIntegerValidator<int> _speed(&__speed, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _speed(&__speed, wxNUM_VAL_DEFAULT);
     _speed.SetMin(1);
     _speed.SetMax(10);
-    wxIntegerValidator<int> _horizontalOffset(&__horizontalOffset, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _horizontalOffset(&__horizontalOffset, wxNUM_VAL_DEFAULT);
     _horizontalOffset.SetMin(-100);
     _horizontalOffset.SetMax(100);
-    wxIntegerValidator<int> _verticalOffset(&__verticalOffset, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<int> _verticalOffset(&__verticalOffset, wxNUM_VAL_DEFAULT);
     _verticalOffset.SetMin(-100);
     _verticalOffset.SetMax(100);
 
