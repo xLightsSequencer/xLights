@@ -29,6 +29,9 @@
 #ifndef __WXMSW__
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 #include "../include/xLights.xpm"
