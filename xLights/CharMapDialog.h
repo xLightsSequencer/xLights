@@ -50,7 +50,7 @@ public:
 
 class CharMapDialog: public wxDialog
 {
-    unsigned long _page;
+    uint32_t _page;
     int _map[CHARMAP_COLS * CHARMAP_ROWS];
     int _charCode;
     int _originalCode;

@@ -17,6 +17,7 @@
 
 #include <wx/valnum.h>
 #include <wx/settings.h>
+#include <wx/numformatter.h>
 
 #include <log4cpp/Category.hh>
 
@@ -39,32 +40,23 @@ public:
     void OnKeyDown(wxKeyEvent& event)
     {
         wxCommandEvent e;
-        if (event.GetKeyCode() == WXK_UP)
-        {
+        if (event.GetKeyCode() == WXK_UP) {
             int v = wxAtoi(GetValue());
             v++;
             SetValue(wxString::Format("%d", v));
-        }
-        else if (event.GetKeyCode() == WXK_PAGEUP)
-        {
+        } else if (event.GetKeyCode() == WXK_PAGEUP) {
             int v = wxAtoi(GetValue());
             v+=10;
             SetValue(wxString::Format("%d", v));
-        }
-        else if (event.GetKeyCode() == WXK_DOWN)
-        {
+        } else if (event.GetKeyCode() == WXK_DOWN) {
             int v = wxAtoi(GetValue());
             v--;
             SetValue(wxString::Format("%d", v));
-        }
-        else if (event.GetKeyCode() == WXK_PAGEDOWN)
-        {
+        } else if (event.GetKeyCode() == WXK_PAGEDOWN) {
             int v = wxAtoi(GetValue());
             v-=10;
             SetValue(wxString::Format("%d", v));
-        }
-        else
-        {
+        } else {
             event.Skip();
         }
     }
@@ -85,7 +77,7 @@ CharMapDialog::CharMapDialog(wxWindow* parent, wxFont font, int charCode, wxWind
     _originalCode = charCode;
     _page = _charCode / (CHARMAP_ROWS * CHARMAP_COLS) + 1;
 
-    wxIntegerValidator<unsigned long> val(&_page, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    wxIntegerValidator<uint32_t> val(&_page, wxNUM_VAL_THOUSANDS_SEPARATOR);
     val.SetMin(1);
     val.SetMax(65536);
 
@@ -133,8 +125,7 @@ CharMapDialog::CharMapDialog(wxWindow* parent, wxFont font, int charCode, wxWind
     SetSize(CHARMAP_COLS * CHARMAP_SIZE * 2, CHARMAP_ROWS * CHARMAP_SIZE * 2);
 
     Freeze();
-    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++)
-    {
+    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++) {
         int c = (_page-1) * CHARMAP_ROWS * CHARMAP_COLS + i;
         wxString s = wxString(wxUniChar(c));
         auto id = wxNewId();
@@ -144,8 +135,7 @@ CharMapDialog::CharMapDialog(wxWindow* parent, wxFont font, int charCode, wxWind
         label->SetFont(font);
         Connect(id, wxEVT_COMMAND_LEFT_DCLICK, (wxObjectEventFunction)& CharMapDialog::OnDClick, 0, this);
         Connect(id, wxEVT_MOTION, (wxObjectEventFunction)& CharMapDialog::OnMouseMove, 0, this);
-        if (c == _originalCode)
-        {
+        if (c == _originalCode) {
             label->SetBackgroundColour(*wxLIGHT_GREY);
         }
         GridSizer1->Add(label, 1, wxALL | wxEXPAND, 0);
@@ -163,10 +153,8 @@ CharMapDialog::~CharMapDialog()
 
 void CharMapDialog::OnDClick(wxCommandEvent& event)
 {
-    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++)
-    {
-        if (GridSizer1->GetItem(i)->GetWindow() == event.GetEventObject())
-        {
+    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++) {
+        if (GridSizer1->GetItem(i)->GetWindow() == event.GetEventObject()) {
             if (!IsValidUnicode(_map[i])) return;
             _charCode = _map[i];
             break;
@@ -178,23 +166,20 @@ void CharMapDialog::OnDClick(wxCommandEvent& event)
 void CharMapDialog::PageChange()
 {
     Freeze();
-    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++)
-    {
-        int c = (wxAtoi(TextCtrl_Page->GetValue()) - 1) * CHARMAP_ROWS * CHARMAP_COLS + i;
+
+    long base;
+    wxNumberFormatter::FromString(TextCtrl_Page->GetValue(), &base);
+    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++) {
+        int c = (base - 1) * CHARMAP_ROWS * CHARMAP_COLS + i;
         wxString s = wxString(wxUniChar(c));
         auto label = GridSizer1->GetItem(i)->GetWindow();
         label->SetLabel(s);
         _map[i] = c;
-        if (!IsValidUnicode(c))
-        {
+        if (!IsValidUnicode(c)) {
             label->SetBackgroundColour(*wxRED);
-        }
-        else if (c == _originalCode)
-        {
+        } else if (c == _originalCode) {
             label->SetBackgroundColour(*wxLIGHT_GREY);
-        }
-        else
-        {
+        } else {
             label->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
         }
     }
@@ -206,32 +191,22 @@ void CharMapDialog::OnMouseMove(wxMouseEvent& event)
 {
     int newHighlighted = -1;
 
-    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++)
-    {
+    for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++) {
         auto label = GridSizer1->GetItem(i)->GetWindow();
         int c = _map[i];
-        if (!IsValidUnicode(c))
-        {
+        if (!IsValidUnicode(c)) {
             label->SetBackgroundColour(*wxRED);
             label->Refresh();
-        }
-        else if (label == event.GetEventObject())
-        {
-            if (c != _highlighted)
-            {
+        } else if (label == event.GetEventObject()) {
+            if (c != _highlighted) {
                 label->SetBackgroundColour(*wxYELLOW);
                 label->Refresh();
             }
             newHighlighted = c;
-        }
-        else if (c == _highlighted)
-        {
-            if (c == _originalCode)
-            {
+        } else if (c == _highlighted) {
+            if (c == _originalCode) {
                 label->SetBackgroundColour(*wxLIGHT_GREY);
-            }
-            else
-            {
+            } else {
                 label->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
             }
             label->Refresh();
@@ -242,9 +217,11 @@ void CharMapDialog::OnMouseMove(wxMouseEvent& event)
 
 void CharMapDialog::OnButton_DownClick(wxCommandEvent& event)
 {
-    int newPage = wxAtoi(TextCtrl_Page->GetValue()) - 1;
+    long newPage = 1;
+    wxNumberFormatter::FromString(TextCtrl_Page->GetValue(), &newPage);
+    newPage--;
     if (newPage < 1) newPage = 1;
-    TextCtrl_Page->SetValue(wxString::Format("%d", newPage));
+    TextCtrl_Page->SetValue(wxNumberFormatter::ToString(newPage));
     PageChange();
 }
 
@@ -258,19 +235,21 @@ bool CharMapDialog::IsValidUnicode(int c)
 
 void CharMapDialog::OnButton_UpClick(wxCommandEvent& event)
 {
-    int newPage = wxAtoi(TextCtrl_Page->GetValue()) + 1;
+    long newPage = 1;
+    wxNumberFormatter::FromString(TextCtrl_Page->GetValue(), &newPage);
+    newPage++;
     if (newPage > GetMaxPage()) newPage = GetMaxPage();
-    TextCtrl_Page->SetValue(wxString::Format("%d", newPage));
+    TextCtrl_Page->SetValue(wxNumberFormatter::ToString(newPage));
     PageChange();
 }
 
 void CharMapDialog::OnTextCtrl_PageText(wxCommandEvent& event)
 {
-    auto v = TextCtrl_Page->GetValue();
-    if (wxAtoi(TextCtrl_Page->GetValue()) < 1) TextCtrl_Page->SetValue("1");
-    if (wxAtoi(TextCtrl_Page->GetValue()) > GetMaxPage())
-    {
-        TextCtrl_Page->SetValue(wxString::Format("%d", GetMaxPage()));
+    long newPage = 1;
+    wxNumberFormatter::FromString(TextCtrl_Page->GetValue(), &newPage);
+    if (newPage < 1) TextCtrl_Page->SetValue("1");
+    if (newPage > GetMaxPage()) {
+        TextCtrl_Page->SetValue(wxNumberFormatter::ToString((long)GetMaxPage()));
     }
     PageChange();
 }

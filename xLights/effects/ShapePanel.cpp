@@ -511,6 +511,8 @@ void ShapePanel::OnShowCharMap(wxCommandEvent& event)
     dlg.ShowModal();
 
     SpinCtrl_CharCode->SetValue(dlg.GetCharCode());
+    wxSpinEvent sce;
+    HandleSpinChange(sce);
 
     ValidateWindow();
 }
