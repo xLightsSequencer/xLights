@@ -240,6 +240,8 @@ class UDController
 	
     public:
 
+    static bool IsError(const std::string& check);
+
     #pragma region Constructors and Destructors
     UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps);
 	~UDController();

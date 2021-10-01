@@ -1203,7 +1203,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     cud.Dump();
 
-    if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
+    if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && UDController::IsError(check)) {
         DisplayError("Not uploaded due to errors.\n" + check);
         check = "";
         if (doProgress) progress->Update(100, "Aborting.");
@@ -2869,7 +2869,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness, firstchanneloncontroller);
     }
     else {
-        if (stringData.size() > 0 && caps->GetMaxPixelPort() > 0 && check != "") {
+        if (stringData.size() > 0 && caps->GetMaxPixelPort() > 0 && UDController::IsError(check)) {
             DisplayError("Not uploaded due to errors.\n" + check);
             check = "";
         }
@@ -2907,7 +2907,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     }
     else {
-        if (caps->GetMaxSerialPort() > 0 && check != "") {
+        if (caps->GetMaxSerialPort() > 0 && UDController::IsError(check)) {
             DisplayError("Not uploaded due to errors.\n" + check);
         }
     }

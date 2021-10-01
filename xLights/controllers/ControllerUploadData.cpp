@@ -1361,6 +1361,11 @@ void UDController::Dump() const {
     }
 }
 
+bool UDController::IsError(const std::string& check)
+{
+    return Contains(check, "ERR:");
+}
+
 bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
     if (rules == nullptr) {
