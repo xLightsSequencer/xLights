@@ -51,6 +51,7 @@
             <InputProtocols>
                 <Protocol>e131</Protocol>
                 <Protocol>ddp</Protocol>
+                <Protocol>artnet</Protocol>
             </InputProtocols>
         </Variant>
         <Variant Name="ESP32" ID="ESP32">

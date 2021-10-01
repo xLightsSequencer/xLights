@@ -152,15 +152,19 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             type = "E1.31";
             startUniverse = outputs.front()->GetUniverse();
             chanPerUniverse = outputs.front()->GetChannels();
+        } else if (outputs.front()->GetType() == OUTPUT_ARTNET) {
+            type = "Artnet";
+            startUniverse = outputs.front()->GetUniverse();
+            chanPerUniverse = outputs.front()->GetChannels();
         }
         std::string origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].AsInt());
         std::string origType = inputConfig["channels"]["0"][origTypeIdx]["type"].AsString();
         if (origType != type) {
             changed = true;
-            for (int x = 0; x < 20; x++) {
+            for (int x = 0; x < 10; x++) {
                 std::string idx = std::to_string(x);
                 if (!inputConfig["channels"]["0"].HasMember(idx)) {
-                    return false;
+                    continue;
                 }
                 if (inputConfig["channels"]["0"][idx]["type"].AsString() == type) {
                     //found the new element, flip over to using that protocol
@@ -170,7 +174,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
                 }
             }
         }
-        if (type == "E1.31") {
+        if (type == "E1.31" || type == "Artnet" ) {
             std::string univString = std::to_string(startUniverse);
             std::string sizeString = std::to_string(chanPerUniverse);
 
