@@ -12,13 +12,13 @@ cd ..
 cd ..
 
 cd xSchedule
-msbuild.exe /m xSchedule.sln /p:Configuration="Release" /p:Platform="x86"
+msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
 cd xSchedule
 cd xSMSDaemon
-msbuild.exe /m xSMSDaemon.sln /p:Configuration="Release" /p:Platform="x86"
+msbuild.exe -m:10 xSMSDaemon.sln -p:Configuration="Release" -p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 cd ..

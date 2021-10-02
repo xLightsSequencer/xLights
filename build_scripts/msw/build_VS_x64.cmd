@@ -12,41 +12,41 @@ cd ..
 cd ..
 
 cd xFade
-msbuild.exe /m xFade.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xFade.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
 cd xCapture
-msbuild.exe /m xCapture.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xCapture.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
 cd xScanner
-msbuild.exe /m xScanner.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xScanner.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
 cd xSchedule
-msbuild.exe /m xSchedule.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
 cd xSchedule
 cd xSMSDaemon
-msbuild.exe /m xSMSDaemon.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xSMSDaemon.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 cd ..
 
 cd xSchedule
 cd RemoteFalcon
-msbuild.exe /m RemoteFalcon.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 RemoteFalcon.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 cd ..
 
 cd xLights
-msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 

@@ -13,11 +13,11 @@ cd ..
 cd ..
 
 cd wxWidgets
-msbuild.exe /m .\build\msw\wx_vc16.sln /p:Configuration="Debug" /p:Platform="x86"
+msbuild.exe -m:10 .\build\msw\wx_vc16.sln -p:Configuration="Debug" -p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 
 
-msbuild.exe /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x86"
+msbuild.exe -m:10 .\build\msw\wx_vc16.sln -p:Configuration="Release" -p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 
 
