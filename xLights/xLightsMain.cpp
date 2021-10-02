@@ -1622,6 +1622,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
                 return;
             }
         }
+        else {
+            if (ShowFolderIsInBackup(dir.ToStdString())) {
+                DisplayWarning("WARNING: Opening a show folder inside a backup folder. This is generally a very very bad idea.", this);
+            }
+
+#ifdef __WXMSW__
+            else if (ShowFolderIsInProgramFiles(dir.ToStdString())) {
+                DisplayWarning("ERROR: Show folder inside your Program Files folder either just wont work or will cause you security issues.", this);
+            }
+#endif
+        }
     }
     else {
         if (!PromptForShowDirectory(true)) {
