@@ -13,6 +13,8 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include <vector>
+
 #include "CustomModel.h"
 #include "../CustomModelDialog.h"
 #include "../xLightsMain.h"
@@ -882,6 +884,35 @@ std::list<std::string> CustomModel::CheckModelSettings()
         float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
         if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
             res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d : Nodes %u => %0.2f%%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop).ToStdString());
+        }
+    }
+
+    // if multiple strings then check the start nodes
+    // one string should start at 1
+    // all should be less than the number of nodes
+    // there should be no duplicates\        wxString nm = StartNodeAttrName(0);
+    auto nm = StartNodeAttrName(0);
+    bool hasIndiv = ModelXml->HasAttribute(nm);
+    if (_strings > 1 && hasIndiv) {
+        bool oneFound = false;
+        std::vector<int> prevStart;
+        int nodes = GetChanCount() / GetChanCountPerNode();
+        for (int i = 0; i < _strings; i++) {
+            nm = StartNodeAttrName(i);
+            auto val = wxAtoi(ModelXml->GetAttribute(nm, ""));
+            if (val == 1) {
+                oneFound = true;
+            }
+            if (std::find(begin(prevStart), end(prevStart), val) != end(prevStart)) {
+                res.push_back(wxString::Format("    ERR: Custom model '%s' String %d starts at a node %d which has already been used by another string.", GetName(), i, val).ToStdString());
+            }
+            if (val == 0 || val > nodes) {
+                res.push_back(wxString::Format("    ERR: Custom model '%s' String %d starts at a node %d outside the node count %d in the model.", GetName(), i+1, val, nodes).ToStdString());
+            }
+            prevStart.push_back(val);
+        }
+        if (!oneFound)             {
+            res.push_back(wxString::Format("    ERR: Custom model '%s' Multiple strings but none starting at node 1.", GetName()).ToStdString());
         }
     }
 
