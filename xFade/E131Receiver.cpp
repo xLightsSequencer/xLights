@@ -16,8 +16,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #else
-//#include <winsock2.h>
-//#include <ws2tcpip.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 class E131ReceiverThread : public wxThread
