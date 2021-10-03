@@ -22,6 +22,27 @@ static const std::string STACKED_STRANDS("Stacked Strands");
 
 const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
 
+// Check for duplicate nodes in a submodel
+void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
+{
+    _duplicateNodes = "";
+
+    auto it = begin(nodeIndexes);
+
+    while (it != end(nodeIndexes)) {
+        auto it2 = it;
+        ++it2;
+        while (it2 != end(nodeIndexes)) {
+            if (*it == *it2) {
+                if (_duplicateNodes != "") _duplicateNodes += ",";
+                _duplicateNodes += wxString::Format("%d", *it + 1);
+            }
+            ++it2;
+        }
+        ++it;
+    }
+}
+
 SubModel::SubModel(Model* p, wxXmlNode* n) :
     Model(p->GetModelManager()),
     parent(p),
@@ -62,6 +83,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     if (isRanges) {
         if (_bufferStyle == KEEP_XY) {
             int line = 0;
+            std::vector<int> nodeIndexes;
             std::set<int> nodeIdx;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
@@ -78,11 +100,14 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         end--;
                         for (int i = start; i <= end; i++) {
                             nodeIdx.insert(i);
+                            nodeIndexes.push_back(i);
                         }
                     }
                 }
                 line++;
             }
+
+            CheckDuplicates(nodeIndexes);
 
             float minx = 10000;
             float maxx = -1;
@@ -121,6 +146,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             int line = 0;
             int maxRow = 0;
             int maxCol = 0;
+            std::vector<int> nodeIndexes;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
                 //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
@@ -146,6 +172,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         wxInt32 nn = start;
                         while (!done) {
                             if ((uint32_t)nn < p->GetNodeCount()) {
+                                nodeIndexes.push_back(nn);
                                 NodeBaseClass* node = p->Nodes[nn]->clone();
                                 startChannel = (std::min)(startChannel, node->ActChan);
                                 Nodes.push_back(NodeBaseClassPtr(node));
@@ -201,10 +228,12 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 }
                 line++;
             }
+            CheckDuplicates(nodeIndexes);
             SetBufferSize(maxRow + 1, maxCol + 1);
         }
     }
     else {
+        // subbuffers cant generate duplicate nodes
         wxString range = n->GetAttribute("subBuffer");
         _properyGridDisplay = range;
         float x1 = 0;

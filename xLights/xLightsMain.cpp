@@ -5550,12 +5550,14 @@ void xLightsFrame::CheckSequence(bool display)
                 for (const auto& n : nodes) {
                     auto e = usedch.find(n->ActChan);
                     if (e != end(usedch)) {
-                        std::string warn = mg->Name() + m->Name() + e->second->Name();
-                        if (warned.find(warn) == end(warned)) {
-                            warned[warn] = true;
-                            wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %lu). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
+                        if (m->GetFullName() != e->second->GetFullName()) { // dont warn about duplicate nodes within a model
+                            std::string warn = mg->Name() + m->Name() + e->second->Name();
+                            if (warned.find(warn) == end(warned)) {
+                                warned[warn] = true;
+                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %lu). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
+                                LogAndWrite(f, msg.ToStdString());
+                                warncount++;
+                            }
                         }
                     }
                     else {
@@ -5651,6 +5653,32 @@ void xLightsFrame::CheckSequence(bool display)
                     wxString msg = wxString::Format("    ERR: SubModel '%s' contains no nodes.", sm->GetFullName());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave) {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for submodels with duplicate nodes
+    LogAndWrite(f, "");
+    LogAndWrite(f, "SubModels with duplicate nodes");
+
+    for (const auto& it : AllModels) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
+                SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
+                if (sm != nullptr) {
+                    std::string dups = sm->GetDuplicateNodes();
+                    if (dups != "") {
+                        wxString msg = wxString::Format("    WARN: SubModel '%s' contains duplicate nodes: %s. This may not render as expected.", (const char*)sm->GetFullName().c_str(), (const char*)dups.c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
                 }
             }
         }

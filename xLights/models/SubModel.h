@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <set>
+
 #include "Model.h"
 
 class SubModel : public Model {
@@ -42,13 +44,17 @@ public:
     static const std::vector<std::string> GetBufferStyleList() {
         return BUFFER_STYLES;
     }
+    std::string GetDuplicateNodes() const { return _duplicateNodes; }
 
 private:
+    void CheckDuplicates(const std::vector<int>& nodeIndexes);
+
     Model *parent = nullptr;
     bool _nodesAllValid = false;
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;
     std::string _properyGridDisplay;
+    std::string _duplicateNodes;
 };
 
