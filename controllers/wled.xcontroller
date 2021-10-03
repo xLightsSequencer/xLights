@@ -72,4 +72,11 @@
             <Port2>1</Port2>
         </Variant>
     </Controller>
+    <Controller Name="E1-WiFi">
+        <Variant Name="ESP8266 V1.00" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+        </Variant>
+    </Controller>
 </Vendor>
