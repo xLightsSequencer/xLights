@@ -35,7 +35,7 @@ class wxTextCtrl;
 #define VIDEO_CROP_MIN 0
 #define VIDEO_CROP_MAX 100
 
-#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv"
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
