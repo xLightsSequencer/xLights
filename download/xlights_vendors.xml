@@ -9,6 +9,11 @@
 		<link>https://raw.githubusercontent.com/GEUSA/xmodels/master/geusa-xlights.xml</link>
 	</vendor>
 	<vendor>
+		<name>EFL</name>
+        <link>https://www.dropbox.com/s/7sxrga8z6y3eva1/Vendor.xml?dl=1</link>
+        <maxmodels>70</maxmodels>
+    </vendor>
+	<vendor>
 		<name>DMX Fixture Library</name>
 		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>
