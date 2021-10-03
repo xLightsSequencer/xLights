@@ -596,7 +596,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     pos += sizeof(_config._staticSubnetMask);
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
-    data[pos++] = 0; // We always do complex config : _config._simpleConfig;
+    data[pos++] = 1; // We always do complex config : _config._simpleConfig;
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
@@ -1015,7 +1015,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._outputStartChannel[pp - 1] = port->GetUniverseStartChannel();
                 _config._outputPixels[pp - 1] = port->Pixels();
                 _config._outputNullPixels[pp - 1] = port->GetFirstModel()->GetStartNullPixels(0);
-                _config._outputGrouping[pp - 1] = port->GetFirstModel()->GetGroupCount(1);
+                _config._outputGrouping[pp - 1] = std::max(1, port->GetFirstModel()->GetGroupCount(1));
                 _config._outputBrightness[pp - 1] = port->GetFirstModel()->GetBrightness(100);
                 if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {
                     _config._outputReverse[pp - 1] = 1;
