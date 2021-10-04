@@ -1367,7 +1367,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     }
 }
 
-void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer)
+void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
     xlColor c;
     int num_colors = buffer.palette.Size();
@@ -1398,62 +1398,48 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
-    if (text == "")
-    {
-        if (wxFile::Exists(filename))
-        {
+    if (text == "") {
+        if (wxFile::Exists(filename)) {
             wxTextFile f(filename);
             f.Open();
             int i = 0;
             text = f.GetFirstLine() + "\n";
-            while (!f.Eof() && i < MAXTEXTLINES)
-            {
+            while (!f.Eof() && i < MAXTEXTLINES) {
                 text += f.GetNextLine() + "\n";
                 i++;
             }
-            if (text != "")
-            {
-                while (text.Last() == '\n')
-                {
+            if (text != "") {
+                while (text.Last() == '\n') {
                     text = text.BeforeLast('\n');
                 }
             }
             f.Close();
         }
-        else
-        {
-            if (lyricTrack != "")
-            {
+        else {
+            if (lyricTrack != "") {
                 Element* t = nullptr;
-                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-                {
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
                     auto lt = lyricTrack.BeforeLast('-');
                     lt = lt.Left(lt.size() - 1);
                     Element* e = mSequenceElements->GetElement(i);
-                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
-                    {
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt) {
                         t = e;
                         break;
                     }
                 }
 
-                if (t != nullptr)
-                {
+                if (t != nullptr) {
                     long time = buffer.curPeriod * buffer.frameTimeInMs;
                     EffectLayer* el = nullptr;
-                    if (lyricTrack.EndsWith(" - Phrases"))
-                    {
+                    if (lyricTrack.EndsWith(" - Phrases")) {
                         el = t->GetEffectLayer(0);
                     }
-                    else
-                    {
+                    else {
                         el = t->GetEffectLayer(1);
                     }
-                    for (int j = 0; j < el->GetEffectCount(); j++)
-                    {
+                    for (int j = 0; j < el->GetEffectCount(); j++) {
                         Effect* e = el->GetEffect(j);
-                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
-                        {
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time) {
                             text = e->GetEffectName();
                             break;
                         }
@@ -1496,7 +1482,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, char_width, char_height, vertical, rotate_90);
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
@@ -1509,17 +1495,16 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     else if (vertical) {
         OffsetLeft += buffer.BufferWi / 2 - char_width / 2;
         if (up) {
-            OffsetTop += buffer.BufferHt / 2 + (char_height*text.length()) / 2;
+            OffsetTop += buffer.BufferHt / 2 + (char_height * text.length()) / 2;
         }
         else {
-            OffsetTop += buffer.BufferHt / 2 - (char_height*text.length()) / 2;
+            OffsetTop += buffer.BufferHt / 2 - (char_height * text.length()) / 2;
         }
     }
     else {
         OffsetLeft += buffer.BufferWi / 2 - text_length / 2;
         OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
-
 
     if (text != "") {
         int space_offset = 0;
@@ -1537,13 +1522,10 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
             if (rotate_90 && up) {
                 OffsetTop -= actual_width;
             }
-            for (int w = 0; w < actual_width; w++)
-            {
+            for (int w = 0; w < actual_width; w++) {
                 int x_pos = x_start_corner + w;
-                for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++)
-                {
-                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight())
-                    {
+                for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
+                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
                         int red = image.GetRed(x_pos, y_pos);
                         int green = image.GetGreen(x_pos, y_pos);
                         int blue = image.GetBlue(x_pos, y_pos);
@@ -1582,13 +1564,28 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 }
 
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-    int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop) const
+    int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int char_width, int char_height, bool vertical, bool rotate_90) const
 {
     int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
-    int totwidth = buffer.BufferWi + txtwidth;
-    int totheight = buffer.BufferHt + txtheight;
+    int txtwidth = txtLen * char_width;
+    int txtheight = char_height;
+    int totwidth = buffer.BufferWi + txtLen * char_width;
+    int totheight = buffer.BufferHt + char_height;
+
+    if (vertical)         {
+        totwidth = buffer.BufferWi + char_width;
+        totheight = buffer.BufferHt + txtLen * char_height;
+        txtwidth = char_width;
+        txtheight = txtLen * char_height;
+    }
+    else if (rotate_90)         {
+        totwidth = buffer.BufferWi + char_height;
+        totheight = buffer.BufferHt + txtLen * char_width;
+        txtwidth = char_height;
+        txtheight = txtLen * char_width;
+    }
 
     int xlimit = totwidth * 8 + 1;
     int ylimit = totheight * 8 + 1;
