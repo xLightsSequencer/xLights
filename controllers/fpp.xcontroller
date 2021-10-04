@@ -127,6 +127,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
+			<SupportsVirtualMatrix/>
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
