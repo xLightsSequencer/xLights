@@ -46,6 +46,7 @@
 #include "UtilFunctions.h"
 #include "outputs/Output.h"
 #include "outputs/Controller.h"
+#include "outputs/ControllerEthernet.h"
 #include "../controllers/ControllerCaps.h"
 #include "CheckboxSelectDialog.h"
 #include "Parallel.h"
@@ -912,14 +913,15 @@ bool ModelManager::ReworkStartChannel() const
 
         if (it->IsAutoSize())
         {
-            if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
+            auto eth = dynamic_cast<const ControllerEthernet*>(it);
+            if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1) || (eth != nullptr && eth->IsUniversePerString()))
             {
                 logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
-                if (it->GetChannels() != oldC) {
+                if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
                     outputManager->SomethingChanged();
 
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
