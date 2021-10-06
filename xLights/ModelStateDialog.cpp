@@ -519,12 +519,12 @@ void ModelStateDialog::ClearNodeColor(Model* m) {
     }
 }
 
-wxColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force) {
+xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force) {
     if (prev) {
-        return wxColor(255, 100, 255);
+        return xlColor(255, 100, 255);
     }
     if (force) {
-        return grid->GetCellBackgroundColour(row, COLOUR_COL);
+        return xlColor(grid->GetCellBackgroundColour(row, COLOUR_COL));
     }
     return xlWHITE;
 }
@@ -535,24 +535,24 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                wxColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
+                xlColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
                 SetSingleNodeColor(grid, i, c);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                wxColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
+                xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
                 SetSingleNodeColor(grid, i, c );
             }
         }
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                wxColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
+                xlColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
                 SetNodeColor(grid, i, c);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                wxColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
+                xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
                 SetNodeColor(grid, i, c );
             }
         }

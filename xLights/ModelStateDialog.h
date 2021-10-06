@@ -143,7 +143,7 @@ class ModelStateDialog: public wxDialog
     void SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c);
     bool SetNodeColor(wxGrid *grid, int const row, xlColor const& c);
     void ClearNodeColor(Model* m);
-    wxColor GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force);
+    xlColor GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force);
 
     void GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info);
     void AddLabel(wxString label);
