@@ -225,15 +225,17 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftDClick);
-	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
+	Connect(ID_GRID_COROSTATES,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridLabelLeftClick);
+	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellSelect);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellRightClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftDClick);
+	Connect(ID_GRID3,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridLabelLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridLabelLeftDClick);
-	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
+	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
 	Connect(ID_GRID3,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellSelect);
 	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
 	//*)
@@ -503,48 +505,114 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
             info[key.ToStdString()] = grid->GetCellValue(row, col);
         }
     }
-    UpdatePreview(grid->GetCellValue(row, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(row, COLOUR_COL));
+    SelectRow(grid, row);
 }
 
-void ModelStateDialog::UpdatePreview(const std::string& channels, wxColor c)
-{
-    int nn = model->GetNodeCount();
-    xlColor cb(xlDARK_GREY);
-    if (model->modelDimmingCurve) {
-        model->modelDimmingCurve->apply(cb);
+void ModelStateDialog::ClearNodeColor(Model* m) {
+    xlColor c(xlDARK_GREY);
+    int nn = m->GetNodeCount();
+    if (m->modelDimmingCurve) {
+        m->modelDimmingCurve->apply(c);
     }
     for (int node = 0; node < nn; node++) {
-        model->SetNodeColor(node, cb);
+        m->SetNodeColor(node, c);
     }
+}
 
-    // now highlight selected
-    if (channels != "")
-    {
-        if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
-            wxStringTokenizer wtkz(channels, ",");
-            while (wtkz.HasMoreTokens())
-            {
-                wxString valstr = wtkz.GetNextToken();
-                for (size_t n = 0; n < model->GetNodeCount(); n++) {
-                    wxString ns = model->GetNodeName(n, true);
-                    if (ns == valstr) {
-                        model->SetNodeColor(n, c);
-                    }
-                }
+wxColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force) {
+    if (prev) {
+        return wxColor(255, 100, 255);
+    }
+    if (force) {
+        return grid->GetCellBackgroundColour(row, COLOUR_COL);
+    }
+    return xlWHITE;
+}
+
+void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
+    ClearNodeColor(model);
+
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        if (r == -1) {
+            for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                wxColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
+                SetSingleNodeColor(grid, i, c);
+            }
+        } else {
+            for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                wxColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
+                SetSingleNodeColor(grid, i, c );
             }
         }
-        else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
-            std::list<int> ch = model->ParseFaceNodes(channels);
-            for (auto it = ch.begin(); it != ch.end(); ++it)
-            {
-                if (*it < (int)model->GetNodeCount())
-                {
-                    model->SetNodeColor(*it, c);
-                }
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        if (r == -1) {
+            for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                wxColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
+                SetNodeColor(grid, i, c);
+            }
+        } else {
+            for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                wxColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
+                SetNodeColor(grid, i, c );
             }
         }
     }
+    grid->Refresh();
     model->DisplayEffectOnWindow(modelPreview, 2);
+}
+
+void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c) {
+    wxString v = grid->GetCellValue(row, CHANNEL_COL);
+    wxStringTokenizer wtkz(v, ",");
+    while (wtkz.HasMoreTokens()) {
+        wxString valstr = wtkz.GetNextToken();
+        for (size_t n = 0; n < model->GetNodeCount(); n++) {
+            wxString ns = model->GetNodeName(n, true);
+            if (ns == valstr) {
+                model->SetNodeColor(n, c);
+            }
+        }
+    }
+}
+
+bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c) {
+
+    wxString v = grid->GetCellValue(row, CHANNEL_COL);
+    if (v.empty()) {
+        return false;
+    }
+    bool found = false;
+    wxStringTokenizer wtkz(v, ",");
+    while (wtkz.HasMoreTokens()) {
+        wxString const valstr = wtkz.GetNextToken();
+
+        int start2, end2;
+        if (valstr.Contains("-")) {
+            int idx = valstr.Index('-');
+            start2 = wxAtoi(valstr.Left(idx));
+            end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+        } else {
+            start2 = end2 = wxAtoi(valstr);
+        }
+        start2--;
+        end2--;
+        bool done = false;
+        int n = start2;
+        while (!done) {
+            if (n >= 0 && n < (int)model->GetNodeCount()) {
+                model->SetNodeColor(n, c);
+                found = true;
+            }
+            if (start2 > end2) {
+                n--;
+                done = n < end2;
+            } else {
+                n++;
+                done = n > end2;
+            }
+        }
+    }
+    return found;
 }
 
 void ModelStateDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
@@ -572,7 +640,7 @@ void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
             break;
     }
     SelectStateModel(name);
-    UpdatePreview("", *wxWHITE);
+    ClearNodeColor(model);
 }
 
 void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
@@ -601,7 +669,7 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
             GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
         }
     }
-    UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(NodeRangeGrid, event.GetRow());
 }
 
 void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
@@ -618,33 +686,33 @@ void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
             GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), stateData[name]);
         }
     }
-    UpdatePreview(SingleNodeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(SingleNodeGrid, event.GetRow());
 }
 
 void ModelStateDialog::OnNodeRangeGridCellLeftClick(wxGridEvent& event)
 {
-    UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(NodeRangeGrid, event.GetRow());
     event.ResumePropagation(1);
     event.Skip(); // continue the event
 }
 
 void ModelStateDialog::OnSingleNodeGridCellLeftClick(wxGridEvent& event)
 {
-    UpdatePreview(SingleNodeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(SingleNodeGrid, event.GetRow());
     event.ResumePropagation(1);
     event.Skip(); // continue the event
 }
 
 void ModelStateDialog::OnSingleNodeGridCellSelect(wxGridEvent& event)
 {
-    UpdatePreview(SingleNodeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(SingleNodeGrid, event.GetRow());
     event.ResumePropagation(1);
     event.Skip(); // continue the event
 }
 
 void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
 {
-    UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
+    SelectRow(NodeRangeGrid, event.GetRow());
     event.ResumePropagation(1);
     event.Skip(); // continue the event
 }
@@ -675,6 +743,14 @@ void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
         GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
         dialog.Close();
     }
+}
+
+void ModelStateDialog::OnSingleNodeGridLabelLeftClick(wxGridEvent& event) {
+    SelectRow(SingleNodeGrid, -1);
+}
+
+void ModelStateDialog::OnNodeRangeGridLabelLeftClick(wxGridEvent& event) {
+    SelectRow(NodeRangeGrid, -1);
 }
 
 void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
@@ -732,7 +808,7 @@ void ModelStateDialog::AddLabel(wxString label)
             key += "-Name";
             stateData[name][key.ToStdString()] = label.Lower();
         }
-        UpdatePreview(grid->GetCellValue(free, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(free, COLOUR_COL));
+        SelectRow(grid, free);
     }
 }
 
@@ -1309,7 +1385,7 @@ void ModelStateDialog::RenameState()
             NameChoice->Delete(index);
             NameChoice->Insert(n, index);
 
-            auto const state = std::move(stateData[currentName]);
+            auto state = std::move(stateData[currentName]);
             stateData[n] = std::move(state);
             stateData.erase(currentName);
 
@@ -1341,7 +1417,7 @@ void ModelStateDialog::ShiftStateNodes()
         if (scaleFactor != 0) {
             ShiftNodes(stateData[name], scaleFactor, min, max);
             SelectStateModel(name);
-            UpdatePreview("", *wxWHITE);
+            ClearNodeColor(model);
         }
     }
 }
@@ -1361,5 +1437,5 @@ void ModelStateDialog::ReverseStateNodes()
 
     ReverseNodes(stateData[name], max);
     SelectStateModel(name);
-    UpdatePreview("", *wxWHITE);
+    ClearNodeColor(model);
 }

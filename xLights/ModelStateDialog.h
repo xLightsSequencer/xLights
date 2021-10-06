@@ -32,6 +32,7 @@ class Model;
 class ModelPreview;
 class xLightsFrame;
 class ModelManager;
+class xlColor;
 
 class ModelStateDialog: public wxDialog
 {
@@ -112,6 +113,8 @@ class ModelStateDialog: public wxDialog
 		void OnNodeRangeGridCellRightClick(wxGridEvent& event);
 		void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
 		void OnButton_ImportClick(wxCommandEvent& event);
+		void OnSingleNodeGridLabelLeftClick(wxGridEvent& event);
+		void OnNodeRangeGridLabelLeftClick(wxGridEvent& event);
 		//*)
 
         void OnAddBtnPopup(wxCommandEvent& event);
@@ -135,7 +138,13 @@ class ModelStateDialog: public wxDialog
     void SelectStateModel(const std::string &s);
     ModelPreview *modelPreview;
     Model *model;
-    void UpdatePreview(const std::string& channels, wxColor c);
+
+    void SelectRow(wxGrid* grid, int const row);
+    void SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c);
+    bool SetNodeColor(wxGrid *grid, int const row, xlColor const& c);
+    void ClearNodeColor(Model* m);
+    wxColor GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force);
+
     void GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info);
     void AddLabel(wxString label);
     void ValidateWindow();
