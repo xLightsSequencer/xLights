@@ -368,11 +368,21 @@ bool SelectPanel::ContainsColor(Effect* eff) const
 
     xlColor const search_color = xlColor(ColourPickerCtrlSelect->GetColour());
 
-    for (auto const& color : eff->GetPalette()) {
-        if (std::abs(search_color.Red() - color.Red()) <= diff &&
-            std::abs(search_color.Green() - color.Green()) <= diff &&
-            std::abs(search_color.Blue() - color.Blue()) <= diff) {
+    // if the effect has no colour then process it as white
+    if (eff->GetPalette().size() == 0) {
+        if (std::abs(search_color.Red() - xlWHITE.Red()) <= diff &&
+            std::abs(search_color.Green() - xlWHITE.Green()) <= diff &&
+            std::abs(search_color.Blue() - xlWHITE.Blue()) <= diff) {
             return true;
+        }
+    }
+    else {
+        for (auto const& color : eff->GetPalette()) {
+            if (std::abs(search_color.Red() - color.Red()) <= diff &&
+                std::abs(search_color.Green() - color.Green()) <= diff &&
+                std::abs(search_color.Blue() - color.Blue()) <= diff) {
+                return true;
+            }
         }
     }
     return false;
