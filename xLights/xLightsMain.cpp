@@ -1755,6 +1755,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
 #endif
 
+#ifdef __WXMSW__
+    //make sure Direct2DRenderer is created on the main thread before the other threads need it
+    wxGraphicsRenderer::GetDirect2DRenderer();
+#endif
+
     bool bgShaders = false;
     config->Read(_("xLightsShadersOnBackgroundThreads"), &bgShaders, false);
     ShaderEffect::SetBackgroundRender(bgShaders);

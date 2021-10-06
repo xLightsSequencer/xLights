@@ -16,7 +16,7 @@ QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.c
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2021.31
+WXWIDGETS_TAG=xlights_2021.31b
 
 .NOTPARALLEL:
 
