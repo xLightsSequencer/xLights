@@ -508,7 +508,8 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     int height = parm2;
     int depth = _depth;
 
-    if (SingleNode || SingleChannel) {
+    if ((SingleNode || SingleChannel) && IsMultiCoordsPerNode())
+    {
         BufferWi = GetCustomMaxChannel(ModelXml->GetAttribute("CustomModel"));
         BufferHi = 1;
     }
@@ -581,7 +582,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
 
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
 
-    if (SingleChannel || SingleNode) {
+    if ((SingleChannel || SingleNode) && IsMultiCoordsPerNode()) {
         // I am not 100% about this change but it makes sense to me
         // While the custom model may have a height and width if it is single channel then the render buffer really should be Nodes x 1
         // and all nodes should point to one cell.
@@ -596,6 +597,9 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
             }
             x++;
         }
+        return;
+    }
+    else if (SingleChannel || SingleNode) {
         return;
     }
 

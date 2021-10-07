@@ -5084,6 +5084,14 @@ std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint sta
     return nodes;
 }
 
+bool Model::IsMultiCoordsPerNode() const
+{
+    for (const auto& it : Nodes)         {
+        if (it.get()->Coords.size() > 1) return true;
+    }
+    return false;
+}
+
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
     bool success = preview->StartDrawing(pointSize);

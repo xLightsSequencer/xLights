@@ -363,6 +363,7 @@ public:
     virtual int NodeRenderOrder() { return 0; }
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
+    bool IsMultiCoordsPerNode() const;
 
     virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
