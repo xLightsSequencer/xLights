@@ -11,7 +11,29 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (david)  Linux set TCP_NODELAY for OpenPixelControl TCP Output
+2021.31 October 7, 2021
+   -- enh (david) Linux set TCP_NODELAY for OpenPixelControl TCP Output
+   -- enh (jason) Add virtual matrix to pi hat capabilities
+   -- enh (scott) Added purple highlight to State Dialog, Selecting Grid Header will populate all nodes with force color if enabled or white
+   -- enh (scott) Add ArtNet upload to ESPPixelStick V4
+   -- enh (dkulp) Add multi-colour emojis to windows
+   -- enh (keith) Report duplicate nodes in submodels in check sequence
+   -- enh (keith) Add cyan first pixel to 2D as well - disable it for single node models
+   -- enh (keith) Allow selection of gif files in movie effect
+   -- enh (keith) More xScanner enhancements. Recognise more controllers. Faster execution.
+   -- enh (keith) Warn every time xLights starts if the current show folder is in a backup folder
+   -- enh (keith) In check sequence add validations to string start nodes highlighting common errors
+   -- bug (keith) Fix double click on effects at maximum zoom can choose the wrong effect 
+   -- bug (keith) For single colour custom models where all nodes only occupy one cell go back to old buffer style
+   -- bug (keith) Fix select effects wont select effects that have no colour selected
+   -- bug (keith) Fix universe per string not updating if the number of channels on controller does not change
+   -- bug (keith) Fix XL font vertical and rotated 90 degree movement
+   -- bug (keith) Fix a crash when loading FSEQ files
+   -- bug (keith) Fix timing panel reverse checkboxes not being reset resulting in weird UI behaviour
+   -- bug (keith) Prevent Pixlite upload sending a group count of 0
+   -- bug (keith) Fix when channel block is first model on a Falcon V4 port an incorrect number of channels are configured
+   -- bug (keith) Allow falcon to upload even when warnings are reported
+   -- bug (scott) Fix layered arch start location
 2021.30 September 28, 2021
    -- enh (dkulp) Add Mr/Mrs Claus, Christmas Tree, Gift emoji to popup list
    -- enh (dkulp) Add skin tone for Emoji's (ShapeEffect)
