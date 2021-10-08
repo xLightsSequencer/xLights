@@ -35,6 +35,7 @@
 #include "RemapDMXChannelsDialog.h"
 #include "xLightsApp.h"
 #include "EffectPanelUtils.h"
+#include "../UtilFunctions.h"
 
 //(*IdInit(DMXPanel)
 const long DMXPanel::ID_STATICTEXT_DMX1 = wxNewId();
@@ -893,9 +894,11 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 		wxTextEntryDialog dlg(this, "Enter name for the state", "State Name");
 		if (dlg.ShowModal() == wxID_OK) {
 			stateName = dlg.GetValue();
+			stateName = ::Lower(stateName);
+			stateName = StripAllBut(stateName, "abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
 			for (const auto& it : models) {
 				if (it->GetChanCount() > maxChannels) maxChannels = it->GetChanCount();
-				if (it->HasState(dlg.GetValue()))
+				if (it->HasState(stateName))
 				{
 					stateName = "";
 					break;
@@ -918,15 +921,26 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 				auto attr = wxString::Format("s%d-Name", i + 1);
 				n->AddAttribute(attr, stateName);
 				attr = wxString::Format("s%d", i + 1);
-				auto val = wxString::Format("Node %d", i + 1);
-				n->AddAttribute(attr, val);
+
+				wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i + 1);
+				wxStaticText* label = (wxStaticText*)(this->FindWindowByName(label_ctrl));
+				wxASSERT(label != nullptr);
+
+				auto l = label->GetLabelText();
+				l = l.substr(0, l.size() - 1); // remove the :
+
+				if (StartsWith(l, "Channel")) {
+					l = wxString::Format("Node %d", i + 1);
+				}
+				n->AddAttribute(attr, l);
+
 				attr = wxString::Format("s%d-Color", i + 1);
 
 				wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
 				wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
 				wxASSERT(slider != nullptr);
 
-				val = wxString::Format("#%02x%02x%02x", slider->GetValue(), slider->GetValue(), slider->GetValue());
+				auto val = wxString::Format("#%02x%02x%02x", slider->GetValue(), slider->GetValue(), slider->GetValue());
 				n->AddAttribute(attr, val);
 			}
 			else 				{

@@ -160,6 +160,19 @@ inline bool Contains(const std::wstring& in, const std::wstring& contains) noexc
     return in.find(contains) != std::wstring::npos;
 }
 
+inline std::string StripAllBut(const std::string& in, const std::string& but)
+{
+    std::string res;
+
+    for (const auto c : in) {
+        if (but.find(c) != std::string::npos) {
+            res += c;
+        }
+    }
+
+    return res;
+}
+
 inline bool StartsWith(const std::string& in, const std::string& startswith) noexcept
 {
     return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
