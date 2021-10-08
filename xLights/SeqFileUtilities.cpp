@@ -1331,7 +1331,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     timingTracks[tel->GetName()] = tel;
 
                     // we want to know which timing tracks exist so we can preselect the ones which are not already present
-                    timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr);
+                    // a timing track is only considered to exist if it has at least one timing mark
+                    timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
                 }
             }
         }
