@@ -126,6 +126,7 @@ OtherSettingsPanel::~OtherSettingsPanel()
 	//(*Destroy(OtherSettingsPanel)
 	//*)
 }
+
 bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetExcludeAudioFromPackagedSequences(ExcludeAudioCheckBox->IsChecked());
     frame->SetExcludePresetsFromPackagedSequences(ExcludePresetsCheckBox->IsChecked());

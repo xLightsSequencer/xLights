@@ -1084,7 +1084,20 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
                     err = true;
                 }
             }
+
+            if (!IsIPValidOrHostname(GetIP())) {
+                err = true;
+            }
+
             if (err) {
+                p->SetBackgroundColour(*wxRED);
+            }
+            else {
+                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
+        }
+        else {
+            if (!IsIPValidOrHostname(GetIP())) {
                 p->SetBackgroundColour(*wxRED);
             }
             else {
