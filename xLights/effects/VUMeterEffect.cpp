@@ -2804,7 +2804,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
                     while (lb == (int)lastbar) {
                         lastbar = 1 + rand01() * bars;
                     }
-                    if (lastbar > bars) lastbar = 1;
+                    if (lastbar > bars + 1) lastbar = 1;
                 }
                 else {
                     lastbar++;
