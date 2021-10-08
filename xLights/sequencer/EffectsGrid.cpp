@@ -170,7 +170,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     if (mSequenceElements == nullptr) {
         return;
     }
-    int selectedTimeMS = mTimeline->GetTimeMSfromPosition(event.GetX()); // GetAbsoluteTimeMSfromPosition(event.GetX());
+    int selectedTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX()); // GetAbsoluteTimeMSfromPosition(event.GetX());
 
     if (!event.ShiftDown()) {
         update_time = selectedTimeMS;
