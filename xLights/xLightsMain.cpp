@@ -1214,6 +1214,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     info.BestSize(sz);
     MainAuiManager->Update();
 
+    wxToolTip::SetAutoPop(20000); // globally set tooltips stay on screen for a long time - may not work on all platforms per wxWidgets documentation
+
     SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
