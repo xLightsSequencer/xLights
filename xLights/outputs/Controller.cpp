@@ -463,29 +463,35 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 65335);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("For controllers that don't support universes the Id can be used with some start channel addressing modes.");
     }
 
     if (SupportsAutoLayout()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
         p->SetEditor("CheckBox");
+        p->SetHelpString("Auto layout models causes xLights to move models around in the controllers channel range to optimise them. It also needs to be set to allow you to move modes in the visualiser between controllers.");
     }
     if (SupportsAutoUpload()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
         p->SetEditor("CheckBox");
+        p->SetHelpString("This option will send your controller configuration to the controller when you turn on output to lights. This is known to cause delays in turning on output to lights when controllers are not reachable.");
     }
     if (SupportsAutoSize()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
         p->SetEditor("CheckBox");
+        p->SetHelpString("This option will cause xLights to dynamically resize the number of channels on the controller to ensure there are exactly enough for the models on the controller.");
     }
     if (SupportsFullxLightsControl()) {
         p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
         p->SetEditor("CheckBox");
+        p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
 
         if (IsFullxLightsControl()) {
             p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
             p->SetAttribute("Min", 5);
             p->SetAttribute("Max", 100);
             p->SetEditor("SpinCtrl");
+            p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
         }
     }
 
@@ -494,7 +500,8 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         ACTIVETYPENAMES.push_back("Inactive");
         ACTIVETYPENAMES.push_back("xLights Only");
     }
-    propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
+    p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
+    p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
 
     int v = 0;
     wxPGChoices vendors;
@@ -544,6 +551,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     if (SupportsSuppressDuplicateFrames()) {
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
         p->SetEditor("CheckBox");
+        p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
     }
 }
 

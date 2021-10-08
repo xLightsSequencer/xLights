@@ -730,6 +730,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("Kinet protocol version.");
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ZCPP) {
@@ -737,6 +738,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetAttribute("Min", 0);
         p->SetAttribute("Max", 100);
         p->SetEditor("SpinCtrl");
+        p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {

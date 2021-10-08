@@ -574,9 +574,11 @@ void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, st
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 1440);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("It would be very rare that you would ever want to change this from the default.");
 
     p = propertyGrid->Append(new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", IsKeepChannelNumbers()));
     p->SetEditor("CheckBox");
+    p->SetHelpString("When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.");
 }
 
 bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
