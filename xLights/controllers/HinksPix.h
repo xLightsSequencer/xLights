@@ -54,6 +54,7 @@ struct HinksPixOutput {
     void Dump() const;
     void SetConfig(wxString const& data);
     wxString BuildCommand() const;
+    wxString BuildCommandEasyLights() const;
 
 private:
     int controlerStartChannel;
@@ -82,6 +83,7 @@ struct HinksPixSerial {
     void SetConfig(wxJSONValue const& data);
 
     wxString BuildCommand() const;
+    wxString BuildCommandEasyLights(int mode) const;
 };
 
 struct HinksSmartOutput {
@@ -119,6 +121,7 @@ struct HinksPixInputUniverse {
 
     void Dump() const;
     wxString BuildCommand() const;
+    wxString BuildCommandEasyLights() const;
 };
 
 class HinksPix : public BaseController
@@ -157,6 +160,14 @@ class HinksPix : public BaseController
     std::unique_ptr<HinksPixSerial> InitSerialData();
 
     bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    
+    bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    void UploadPixelOutputsEasyLights(bool& worked);
+    wxString GetControllerE131Data(int rowIndex) const;
+    wxString GetControllerData(int rowIndex, std::string const& data = std::string())const ;
+    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
+    std::map<wxString, wxString> StringToMap(wxString const& text) const;
+    
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const;
     void UploadPixelOutputs(bool& worked) const;
@@ -173,6 +184,8 @@ class HinksPix : public BaseController
     static const std::string GetJSONInfoURL() { return "/XLights_BoardInfo.cgi"; };
     static const std::string GetJSONPortURL() { return "/Xlights_Board_Port_Config.cgi"; };
     static const std::string GetJSONModeURL() { return "/Xlights_Data_Mode.cgi"; };
+    static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
+    static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 

@@ -81,6 +81,13 @@ wxString HinksPixOutput::BuildCommand() const {
                             direction, colorOrder, nullPixel, brightness, gamma);
 }
 
+wxString HinksPixOutput::BuildCommandEasyLights() const {
+
+    return wxString::Format("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d|",
+        output, protocol, controlerStartChannel, pixels, controlerEndChannel,
+        direction, colorOrder, nullPixel, brightness, gamma);
+}
+
 void HinksPixOutput::setControllerChannels(const int startChan) {
     controlerStartChannel = startChan;
     int chanPerPix = 3;                       //RGB nodes
@@ -120,6 +127,13 @@ wxString HinksPixSerial::BuildCommand() const {
     return wxString::Format("DATA: {\"CMD\":\"DATA_MODE\",\"DMX_ACTIVE\":%d,\"DMX_UNIV\":%d,\"DMX_START\":%d,\"DMX_CHAN_CNT\":%d,\"DDP_DMX_ACTIVE\":%d,\"DDP_DMX_START\":%d,\"DDP_DMX_CHAN_CNT\":%d}",
                             (int)e131Enabled, e131Universe, e131StartChannel, e131NumOfChan,
                             (int)ddpDMXEnabled, ddpDMXStartChannel, ddpDMXNumOfChan);
+}
+
+wxString HinksPixSerial::BuildCommandEasyLights(int mode) const
+{
+    return wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d,F,%d,G,%d,H,%d",
+        mode, (int)e131Enabled, (int)ddpDMXEnabled, e131Universe, e131StartChannel,
+        e131NumOfChan, ddpDMXStartChannel, ddpDMXNumOfChan);
 }
 #pragma endregion
 
@@ -174,6 +188,12 @@ wxString HinksPixInputUniverse::BuildCommand() const {
                             universe, numOfChan, hinksPixStartChannel,
                             hinksPixStartChannel + numOfChan - 1);
 }
+
+wxString HinksPixInputUniverse::BuildCommandEasyLights() const {
+    return wxString::Format("%d,%d,%d,1,%d,%d", index,
+        universe, numOfChan, hinksPixStartChannel,
+        hinksPixStartChannel + numOfChan - 1);
+}
 #pragma endregion
 
 #pragma region Private Functions
@@ -227,8 +247,13 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
 std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData() {
     std::unique_ptr<HinksPixSerial> serial = std::make_unique<HinksPixSerial>();
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxJSONValue data;
 
+    if (_controllerType == "E") {
+        logger_base.warn("Easylight 16 is missing Serial API ATM");
+        return serial;
+    }
+    
+    wxJSONValue data;
     bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
     if (!worked || !data.HasMember("CMD")) {
@@ -248,6 +273,11 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData() {
 bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
+    if (_controllerType == "E")
+    {
+        return UploadInputUniversesEasyLights(controller, inputUniverses);
+    }
 
     wxString request;
 
@@ -303,7 +333,6 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 
     //Joes code allows 6 universe settings uploaded at a time
     //loop though and submit every 6
-
     int numberOfCalls;
     if (_numberOfUniverses <= 65) {
         numberOfCalls = 11;
@@ -353,6 +382,136 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     }
 
     return true;
+}
+
+bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const
+{
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
+
+        wxString request;
+
+        auto const data = GetControllerData(902);
+        if (data.empty()) {
+            return false;
+        }
+
+        const auto map = StringToMap(data);
+
+        int maxUnv = wxAtoi(map.at("C"));
+
+        if (controller->GetOutputCount() > maxUnv) {
+            DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
+            return false;
+        }
+
+        auto out = controller->GetOutputs().front();
+        int type = 0;//e131=0, ddp=1, artnet=2
+        int multi = 0;
+        int DDPStart = 0;
+        if (out->GetType() == OUTPUT_E131) {
+            type = 0;
+        }
+        else if (out->GetType() == OUTPUT_ARTNET) {
+            type = 2;
+        }
+        else if (out->GetType() == OUTPUT_DDP) {
+            type = 1;
+            DDPStart = out->GetStartChannel();
+        }
+
+        if (out->GetIP() == "MULTICAST") {
+            multi = 1;
+        }
+
+        bool worked = true;
+        int num_of_unv = 0;
+
+        //if DDP, skip the next part
+        if (type != 1) {
+
+            //Joes code allows 6 universe settings uploaded at a time
+            //loop though and submit every 6
+            int numberOfCalls;
+            if (maxUnv <= 65) {
+                numberOfCalls = 11;
+            }
+            else {
+                numberOfCalls = 25;
+            }
+
+            int index = 1;
+
+            for (int j = 0; j < numberOfCalls; j++) {
+                wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
+                for (int i = 0; i < 6; i++) {
+                    auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
+                    if (inpUn != inputUniverses.end()) {
+                        if (i != 0) {
+                            requestString += ",";
+                        }
+                        requestString += inpUn->BuildCommandEasyLights();
+                        index++;
+                        num_of_unv++;
+                    }
+                    else if (index <= maxUnv) {
+                        if (i != 0) {
+                            requestString += ",";
+                        }
+                        requestString += wxString::Format("%d,%d,0,1,0,0", index, index);
+                        index++;
+                    }
+                    else {
+                        requestString += ",0,0,0,0,0,0";
+                    }
+                }
+                //post data
+                auto const res = GetControllerData(2001, requestString);
+                if (res != "done") {
+                    worked = false;
+                }
+            }
+        }
+
+        auto const cmd = wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d",
+            multi, type, maxUnv, num_of_unv, DDPStart);
+
+        //Set Controller Input mode
+        auto const setRet = GetControllerData(4902, cmd);
+        if (setRet != "done")
+        {
+            logger_base.error("4902 Return %s", (const char*)setRet.c_str());
+            worked = false;
+        }
+
+        if (!worked) {
+            DisplayError("HinksPix E131 Input command FAILED.");
+        }
+
+        return worked;
+}
+
+void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Building pixel upload EasyLights");
+    wxString requestString;
+
+    for (int i = 0; i < 16; i++) {
+        _pixelOutputs[i].Dump();
+        requestString += _pixelOutputs[i].BuildCommandEasyLights();
+    }
+    requestString += "||";
+
+    logger_base.info("Set String Output Information for EasyLights.");
+
+    //Expansion Board board "row" 'setting' commands are 3041, 3042, 3043 for expansion 1,2,3
+    auto const pixelRet = GetControllerData(3041, requestString);
+    if (pixelRet != "done") {
+        logger_base.error("%d Return %s", 3041, (const char*)pixelRet.c_str());
+        worked = false;
+    }
 }
 
 void HinksPix::UploadPixelOutputs(bool& worked) const {
@@ -845,7 +1004,7 @@ HinksPix::~HinksPix() {
 
 #pragma region Getters and Setters
 bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
-    ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
+    ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
         DisplayError(wxString::Format("%s is not a HinksPix controller.", c->GetName().c_str()));
         return false;
@@ -855,11 +1014,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         DisplayError(wxString::Format("HinksPix CPU Firmware is too old (v%d) Update to v101 or Newer.", _MCPU_Version));
         return false;
     }
-
+    /*
     if (_MCPU_Version < 122 && _controllerType == "E") {
         DisplayError(wxString::Format("Easylights CPU Firmware is too old (v%d) Update to v122 or Newer.", _MCPU_Version));
         return false;
-    }
+    }*/
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -876,9 +1035,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     if (o->GetType() == OUTPUT_E131) {
         mode = 0;
-    } else if (o->GetType() == OUTPUT_ARTNET) {
+    }
+    else if (o->GetType() == OUTPUT_ARTNET) {
         mode = 2;
-    } else if (o->GetType() == OUTPUT_DDP) {
+    }
+    else if (o->GetType() == OUTPUT_DDP) {
         mode = 1;
 
         if (controller->IsUniversePerString()) {
@@ -964,7 +1125,12 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     logger_base.info("Uploading String Output Information.");
     progress.Update(60, "Uploading String Output Information.");
-    UploadPixelOutputs(worked);
+    if (_controllerType == "E") {
+        UploadPixelOutputsEasyLights(worked);
+    }
+    else {
+        UploadPixelOutputs(worked);
+    }
 
     logger_base.info("Figuring Out DMX Output Information.");
     progress.Update(70, "Figuring Out DMX Output Information.");
@@ -976,23 +1142,120 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     logger_base.info("Uploading DMX Output Information.");
     progress.Update(80, "Uploading DMX Output Information.");
-
     _serialOutput->Dump();
-    if (_serialOutput->upload) {
-        const std::string serialRequest = _serialOutput->BuildCommand();
-        auto const ret = GetJSONControllerData(GetJSONPostURL(), serialRequest);
-        if (ret.find("\"OK\"") == std::string::npos) {
-            logger_base.error("Failed Return %s", (const char*)ret.c_str());
+
+    if (_controllerType == "E") {
+        if (cud.HasSerialPort(1)) {
+            const std::string serialRequest = _serialOutput->BuildCommandEasyLights(mode);
+            auto const serRet = GetControllerData(4908, serialRequest);
+            if (serRet != "done") {
+                logger_base.error("4908 Return %s", (const char*)serRet.c_str());
+                worked = false;
+            }
+        }
+
+        //reboot
+        logger_base.info("Rebooting Controller.");
+        progress.Update(90, "Rebooting Controller.");
+        auto const resetres = GetControllerData(1111);
+        if (resetres != "done") {
             worked = false;
         }
     }
+    else {
+        if (_serialOutput->upload) {
+            const std::string serialRequest = _serialOutput->BuildCommand();
+            auto const ret = GetJSONControllerData(GetJSONPostURL(), serialRequest);
+            if (ret.find("\"OK\"") == std::string::npos) {
+                logger_base.error("Failed Return %s", (const char*)ret.c_str());
+                worked = false;
+            }
+        }
 
-    //reboot
-    logger_base.info("Rebooting Controller.");
-    progress.Update(90, "Rebooting Controller.");
-    SendRebootController(worked);
+        //reboot
+        logger_base.info("Rebooting Controller.");
+        progress.Update(90, "Rebooting Controller.");
+        SendRebootController(worked);
+    }
 
     progress.Update(100, "Done.");
     return worked;
 }
 #pragma endregion
+
+
+//Get most data using a GET .cgi endpoint
+wxString HinksPix::GetControllerData(int rowIndex, std::string const& data) const
+{
+    return GetControllerRowData(rowIndex, GetInfoURL(), data);
+}
+
+//E131 data uses a different .cgi endpoint
+wxString HinksPix::GetControllerE131Data(int rowIndex) const
+{
+    return GetControllerRowData(rowIndex, GetE131URL(), std::string());
+}
+
+//all of the Controller data is retrieved/set by "GET"ing different ROW values
+wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+
+    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+
+    CURL* curl = curl_easy_init();
+    struct curl_slist* list = NULL;
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+
+        list = curl_slist_append(list, "Content-type: text/plain");
+        logger_base.debug("Row='%d'.", rowIndex);
+        list = curl_slist_append(list, std::string("ROW: " + std::to_string(rowIndex)).c_str());
+
+        if (!data.empty()) {
+            list = curl_slist_append(list, std::string("DATA: " + data).c_str());
+            logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+
+        std::string response_string;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+
+        /* Perform the request, res will get the return code */
+        CURLcode r = curl_easy_perform(curl);
+
+        if (r != CURLE_OK) {
+            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+        }
+        else {
+            res = response_string;
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    return res;
+}
+
+std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
+{
+    std::map<wxString, wxString> map;
+    const wxArrayString items = Split(text, { ',' });
+    if (items.size() % 2 == 0) {
+        for (int i = 0; i < items.size() - 1; i += 2) {
+            map[items[i]] = items[i + 1];
+        }
+    }
+    return map;
+}

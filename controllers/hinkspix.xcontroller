@@ -6,6 +6,7 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
+			<SupportsUniversePerString/>
 			<SupportsUpload/>
 			<SupportsRemotes/>
 			<MaxInputUniverses>65</MaxInputUniverses>
