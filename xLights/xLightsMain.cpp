@@ -30,6 +30,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/version.h>
+#include <wx/tooltip.h>
 
 #include <cctype>
 #include <cstring>
