@@ -1181,6 +1181,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         }
         solidAccumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
         solidAccumulator.Finish(GL_TRIANGLES);
+        AddGridToAccumulator(ViewScale);
     } else {
         /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
@@ -1345,4 +1346,36 @@ void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
     solidAccumulator.AddDottedLinesRect(x1, y1, x2, y2,
                                        ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
     solidAccumulator.Finish(GL_LINES);
+}
+
+void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
+{
+    if (_displayGrid) {
+        auto colour = ColorManager::instance()->GetColor(ColorManager::COLOR_GRIDLINES);
+
+        auto sz = glm::translate(glm::mat4(1.0f), glm::vec3((float)getWidth(), (float)getHeight(), 0.0f));
+        sz /= ViewScale;
+
+        auto diff = glm::translate(glm::mat4(1.0f), glm::vec3((float)_displayGridSpacing , (float)_displayGridSpacing, 0.0f));
+        diff /= ViewScale;
+
+        for (long x = 0; x < sz[3].x * sz[0].x; x += diff[3].x * diff[0].x) {
+            auto pt1 = glm::translate(glm::mat4(1.0f), glm::vec3((float)x, (float)0, 0.0f));
+            pt1 /= ViewMatrix;
+            solidAccumulator.AddVertex(pt1[3].x, pt1[3].y, colour);
+            auto pt2 = glm::translate(glm::mat4(1.0f), glm::vec3((float)x, sz[3].y * sz[1].y, 0.0f));
+            pt2 /= ViewMatrix;
+            solidAccumulator.AddVertex(pt2[3].x, pt2[3].y, colour);
+            solidAccumulator.Finish(GL_LINES);
+        }
+        for (long y = 0; y < sz[3].y * sz[1].y; y += diff[3].y * diff[1].y) {
+            auto pt = glm::translate(glm::mat4(1.0f), glm::vec3((float)0, (float)y, 0.0f));
+            pt /= ViewMatrix;
+            solidAccumulator.AddVertex(pt[3].x, pt[3].y, colour);
+            pt = glm::translate(glm::mat4(1.0f), glm::vec3(sz[3].x * sz[0].x, (float)y, 0.0f));
+            pt /= ViewMatrix;
+            solidAccumulator.AddVertex(pt[3].x, pt[3].y, colour);
+            solidAccumulator.Finish(GL_LINES);
+        }
+    }
 }

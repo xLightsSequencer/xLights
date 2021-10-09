@@ -69,6 +69,34 @@ bool xLightsFrame::GetDisplay2DBoundingBox() const
     return (GetXmlSetting("Display2DBoundingBox", "0") == "1");
 }
 
+void xLightsFrame::SetDisplay2DGrid(bool grid)
+{
+    if (grid != GetDisplay2DBoundingBox()) {
+        SetXmlSetting("Display2DGrid", grid ? "1" : "0");
+        UnsavedRgbEffectsChanges = true;
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DGrid");
+    }
+}
+
+bool xLightsFrame::GetDisplay2DGrid() const
+{
+    return (GetXmlSetting("Display2DGrid", "0") == "1");
+}
+
+void xLightsFrame::SetDisplay2DGridSpacing(long spacing)
+{
+    if (spacing != GetDisplay2DGridSpacing()) {
+        SetXmlSetting("Display2DGridSpacing", wxString::Format("%d", (int)spacing));
+        UnsavedRgbEffectsChanges = true;
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DGridSpacing");
+    }
+}
+
+long xLightsFrame::GetDisplay2DGridSpacing() const
+{
+    return wxAtol(GetXmlSetting("Display2DGridSpacing", "100"));
+}
+
 void xLightsFrame::SetDisplay2DCenter0(bool bb) {
     if (bb != GetDisplay2DCenter0())
     {

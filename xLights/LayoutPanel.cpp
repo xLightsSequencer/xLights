@@ -887,6 +887,18 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         xlights->SetDisplay2DBoundingBox(event.GetValue().GetBool());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BoundingBox");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BoundingBox");
+    }
+    else if (name == "2DGrid") {
+        modelPreview->SetDisplay2DGrid(event.GetValue().GetBool(), xlights->GetDisplay2DGridSpacing());
+        xlights->SetDisplay2DGrid(event.GetValue().GetBool());
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::2DGrid");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::2DGrid");
+    }
+    else if (name == "2DGridSpacing") {
+        modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), event.GetValue().GetLong());
+        xlights->SetDisplay2DGridSpacing(event.GetValue().GetLong());
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::2DGridSpacing");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::2DGridSpacing");
     } else if (name == "2DXZeroIsCenter") {
         modelPreview->SetDisplay2DCenter0(event.GetValue().GetBool());
         xlights->SetDisplay2DCenter0(event.GetValue().GetBool());
@@ -971,6 +983,12 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 {
     modelPreview->SetDisplay2DBoundingBox(bb);
 }
+
+void LayoutPanel::SetDisplay2DGridSpacing(bool bb, long spacing)
+{
+    modelPreview->SetDisplay2DGrid(bb, spacing);
+}
+
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
@@ -2335,6 +2353,14 @@ void LayoutPanel::showBackgroundProperties()
 
     prop = propertyEditor->Append(new wxBoolProperty("2D Bounding Box", "BoundingBox", xlights->GetDisplay2DBoundingBox()));
     prop->SetAttribute("UseCheckbox", true);
+
+    prop = propertyEditor->Append(new wxBoolProperty("2D Grid", "2DGrid", xlights->GetDisplay2DGrid()));
+    prop->SetAttribute("UseCheckbox", true);
+
+    prop = propertyEditor->Append(new wxUIntProperty("2D Grid Spacing", "2DGridSpacing", xlights->GetDisplay2DGridSpacing()));
+    prop->SetAttribute("Min", 5);
+    prop->SetAttribute("Max", 200);
+    prop->SetEditor("SpinCtrl");
 
     prop = propertyEditor->Append(new wxBoolProperty("X0 Is Center", "2DXZeroIsCenter", xlights->GetDisplay2DCenter0()));
     prop->SetAttribute("UseCheckbox", true);
@@ -7406,6 +7432,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         UpdateModelList(true);
     }
     modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+    modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
     modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
@@ -7658,6 +7685,7 @@ void LayoutPanel::AddPreviewChoice(const std::string& name)
                 SetCurrentLayoutGroup(storedLayoutGroup);
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+                modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
                 modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
@@ -7749,6 +7777,7 @@ void LayoutPanel::DeleteCurrentPreview() {
 
         UpdateModelList(true);
         modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+        modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
         modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());

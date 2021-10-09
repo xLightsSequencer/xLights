@@ -298,6 +298,7 @@ class LayoutPanel: public wxPanel
         void SetDirtyHiLight(bool dirty);
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
+        void SetDisplay2DGridSpacing(bool grid, long spacing);
         void SetDisplay2DCenter0(bool bb);
         void ReloadModelList();
         void refreshModelList();

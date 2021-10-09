@@ -133,7 +133,10 @@ public:
     void RestoreDefaultCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
-    void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
+    void SetDisplay2DBoundingBox(bool bb) {
+        _display2DBox = bb; 
+    }
+    void SetDisplay2DGrid(bool grid, long gridSpacing) { _displayGrid = grid; _displayGridSpacing = gridSpacing; }
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
     bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
@@ -141,6 +144,7 @@ public:
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
+    void AddGridToAccumulator(const glm::mat4& ViewScale);
     virtual void InitializeGLCanvas() override;
     virtual void InitializeGLContext() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -181,6 +185,8 @@ private:
     int virtualHeight = 0;
 
     bool _display2DBox =  false;
+    bool _displayGrid = false;
+    long _displayGridSpacing = 100;
     bool _center2D0 = false;
     Image* image = nullptr;
     bool scaleImage = false;

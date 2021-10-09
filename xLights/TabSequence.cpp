@@ -294,6 +294,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     layoutPanel->SetDisplay2DBoundingBox(GetDisplay2DBoundingBox());
     SetDisplay2DCenter0(GetXmlSetting("Display2DCenter0", "0") == "1");
     layoutPanel->SetDisplay2DCenter0(GetDisplay2DCenter0());
+    SetDisplay2DGrid(GetXmlSetting("Display2DGrid", "0") == "1");
+    SetDisplay2DGridSpacing(wxAtol(GetXmlSetting("Display2DGridSpacing", "100")));
+    layoutPanel->SetDisplay2DGridSpacing(GetDisplay2DGrid(), GetDisplay2DGridSpacing());
 
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);

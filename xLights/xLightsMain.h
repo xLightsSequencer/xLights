@@ -1484,6 +1484,10 @@ public:
     void SetPreviewBackgroundImage(const wxString &filename);
     void SetDisplay2DBoundingBox(bool bb);
     bool GetDisplay2DBoundingBox() const;
+    void SetDisplay2DGrid(bool grid);
+    bool GetDisplay2DGrid() const;
+    void SetDisplay2DGridSpacing(long gridSpacing);
+    long GetDisplay2DGridSpacing() const;
     void SetDisplay2DCenter0(bool bb);
     bool GetDisplay2DCenter0() const;
     const wxString & GetDefaultPreviewBackgroundImage();
