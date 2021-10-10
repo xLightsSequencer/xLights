@@ -71,7 +71,7 @@ bool xLightsFrame::GetDisplay2DBoundingBox() const
 
 void xLightsFrame::SetDisplay2DGrid(bool grid)
 {
-    if (grid != GetDisplay2DBoundingBox()) {
+    if (grid != GetDisplay2DGrid()) {
         SetXmlSetting("Display2DGrid", grid ? "1" : "0");
         UnsavedRgbEffectsChanges = true;
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DGrid");

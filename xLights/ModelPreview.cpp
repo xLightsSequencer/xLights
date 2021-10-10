@@ -1189,7 +1189,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
-        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)translateToBacking(mWindowWidth) / (float)translateToBacking(mWindowHeight), 1.0f, 20000.0f);  // this must match prepare3DViewport call
+        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)translateToBacking(mWindowWidth) / (float)translateToBacking(mWindowHeight), 1.0f, 200000.0f);  // this must match prepare3DViewport call // bumped from 20,000 to 200,000 to allow bigger models without clipping
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
         // FIXME: commented out for debugging speed

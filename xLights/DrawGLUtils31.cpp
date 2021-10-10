@@ -1180,7 +1180,7 @@ public:
         if (zDepth < 24) {
             min = 50.0f;
         }
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 10000.0f);
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 200000.0f); // bumped from 20,000 to 200,000 to allow bigger models without clipping
         matrix = new glm::mat4(m);
     }
 
