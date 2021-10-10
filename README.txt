@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.32 October 10, 2021
+   -- enh (keith) Add an optional alignment grid to the 2D layout
+   -- enh (keith) Increase 3D clipping depth on layout for larger displays
+   -- ehh (keith) Increase tooltip duration and add a bunch of new tips
+   -- enh (keith) Validate controller IP on controller tab
+   -- bug (keith) Fix effect panels enabling/disabling broken after render all
+   -- bug (keith) Fix crash rendering text effect for non-true type fonts
+   -- bug (keith) Fix VU meter timing event random bar not lighting rightmost bar
+   -- bug (keith) Fix import of timing track auto selected if existing instance of that timing track has no marks
+   -- bug (keith) Fix DMX effect does not save correctly as a state
+   -- bug (keith) Fix double click on effect does not work if scrolled horizontally
+   -- bug (scott) Add back easylights 16 code until firmware fixes are released
 2021.31 October 7, 2021
    -- enh (david) Linux set TCP_NODELAY for OpenPixelControl TCP Output
    -- enh (jason) Add virtual matrix to pi hat capabilities
