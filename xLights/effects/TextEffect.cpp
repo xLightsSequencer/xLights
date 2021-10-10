@@ -825,7 +825,12 @@ void DrawLabel(TextDrawingContext *dc,
                             curPos++;
                             double loc = xRealStart;
                             if (x1 != 0) {
-                                loc += d[x1 - 1];
+                                if (x1 - 1 < d.size()) {
+                                    loc += d[x1 - 1];
+                                }
+                                else {
+                                    wxASSERT(false); // this seems to happen when fonts are not good
+                                }
                             }
                             dc->DrawText(c, loc, y);
                         }

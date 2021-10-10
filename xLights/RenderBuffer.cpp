@@ -514,6 +514,13 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
             || color != fontColor) {
             this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
 
+#ifdef __WXMSW__
+            // if font is not true type then we get a null font and bad things happen so at least set it to a valid font ... Somehow we really should not allow the selection of invalid fonts
+            if (this->font.IsNull()) {
+                this->font = gc->CreateFont(font.GetPixelSize().y, "segoe ui", style, color.asWxColor());
+            }
+#endif
+
             fontStyle = style;
             fontSize = font.GetPixelSize().y;
             fontName = font.GetFaceName();
