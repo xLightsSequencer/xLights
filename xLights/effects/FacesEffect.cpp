@@ -463,15 +463,7 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         }
     }
 
-    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
-        && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
-        //3.x style Faces effect
-        RenderFaces(buffer, 
-            SettingsMap["CHOICE_Faces_Phoneme"], 
-            "Auto", 
-            true, 
-            alpha);
-    } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
+    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
@@ -523,6 +515,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     int Ht = buffer.BufferHt;
     int Wt = buffer.BufferWi;
 
+    // this draws eyes as well
     drawoutline(buffer, PhonemeInt, outline, eyes, buffer.BufferHt, buffer.BufferWi);
     mouth(buffer, PhonemeInt, Ht,  Wt, shimmer); // draw a mouth syllable
 }
@@ -967,7 +960,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     std::string definition = faceDef;
-    if (definition == "Default" && !model_info->faceInfo.empty() && model_info->faceInfo.begin()->first != "") {
+    if ((definition == "Default" || definition == "") && !model_info->faceInfo.empty() && model_info->faceInfo.begin()->first != "") {
         definition = model_info->faceInfo.begin()->first;
     }
 
@@ -986,7 +979,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             definition = "Coro";
             found = true;
         }
-        else if (definition != "Default") {
+        else if (definition != "Default" && definition != "Rendered" && definition != "") {
             std::string firstFace = "";
             for (const auto& it : model_info->faceInfo) {
                 if (it.first != "") {
@@ -1014,7 +1007,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     else if ("NodeRange" == modelType) {
         type = 1;
     }
-    else if ("Rendered" == definition || "Default" == definition) {
+    else if ("Rendered" == definition || "Default" == definition || "" == definition) {
         type = 2;
     }
 
