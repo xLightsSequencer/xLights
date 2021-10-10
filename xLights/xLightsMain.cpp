@@ -4818,23 +4818,25 @@ void xLightsFrame::CheckSequence(bool display)
         for (const auto& it : AllModels) {
             if (it.second->GetControllerName() != "") {
                 auto c = _outputManager.GetController(it.second->GetControllerName());
-                auto caps = c->GetControllerCaps();
-                if (!it.second->IsControllerConnectionValid() && (caps != nullptr && caps->GetMaxPixelPort() != 0 && caps->GetMaxSerialPort() != 0)) {
-                    wxString msg = wxString::Format("    ERR: Model %s on %s controller '%s:%s' has invalid controller connection '%s'.",
-                        (const char*)it.second->GetName().c_str(),
-                        (const char*)c->GetProtocol().c_str(),
-                        (const char*)c->GetName().c_str(),
-                        (const char*)c->GetIP().c_str(),
-                        (const char*)it.second->GetControllerConnectionString().c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
+                if (c != nullptr) {
+                    auto caps = c->GetControllerCaps();
+                    if (!it.second->IsControllerConnectionValid() && (caps != nullptr && caps->GetMaxPixelPort() != 0 && caps->GetMaxSerialPort() != 0)) {
+                        wxString msg = wxString::Format("    ERR: Model %s on %s controller '%s:%s' has invalid controller connection '%s'.",
+                            (const char*)it.second->GetName().c_str(),
+                            (const char*)c->GetProtocol().c_str(),
+                            (const char*)c->GetName().c_str(),
+                            (const char*)c->GetIP().c_str(),
+                            (const char*)it.second->GetControllerConnectionString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
 
-                if (modelsByPortByController.find(c->GetName()) == modelsByPortByController.end()) {
-                    std::map<std::string, std::list<Model*>> pm;
-                    modelsByPortByController[c->GetName()] = pm;
+                    if (modelsByPortByController.find(c->GetName()) == modelsByPortByController.end()) {
+                        std::map<std::string, std::list<Model*>> pm;
+                        modelsByPortByController[c->GetName()] = pm;
+                    }
+                    modelsByPortByController[c->GetName()][wxString::Format("%s:%d:%d", it.second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it.second->GetControllerPort(), it.second->GetSmartRemote()).Lower().ToStdString()].push_back(it.second);
                 }
-                modelsByPortByController[c->GetName()][wxString::Format("%s:%d:%d", it.second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it.second->GetControllerPort(), it.second->GetSmartRemote()).Lower().ToStdString()].push_back(it.second);
             }
         }
 
