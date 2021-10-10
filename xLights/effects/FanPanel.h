@@ -31,7 +31,7 @@ class FanPanel: public xlEffectPanel
 
 		FanPanel(wxWindow* parent);
 		virtual ~FanPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(FanPanel)
 		BulkEditCheckBox* CheckBox_Fan_Blend_Edges;

@@ -32,7 +32,7 @@ class ColorWashPanel: public xlEffectPanel
 
 		ColorWashPanel(wxWindow* parent);
 		virtual ~ColorWashPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(ColorWashPanel)
 		BulkEditCheckBox* CircularPaletteCheckBox;

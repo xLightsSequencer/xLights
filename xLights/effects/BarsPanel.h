@@ -30,7 +30,7 @@ class BarsPanel: public xlEffectPanel
 
 		BarsPanel(wxWindow* parent);
 		virtual ~BarsPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(BarsPanel)
 		BulkEditCheckBox* CheckBox_Bars_3D;

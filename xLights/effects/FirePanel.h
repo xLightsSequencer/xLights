@@ -30,7 +30,7 @@ class FirePanel: public xlEffectPanel
 
 		FirePanel(wxWindow* parent);
 		virtual ~FirePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(FirePanel)
 		BulkEditCheckBox* CheckBox_Fire_GrowWithMusic;

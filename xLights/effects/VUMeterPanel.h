@@ -30,7 +30,7 @@ class VUMeterPanel: public xlEffectPanel
 
 		VUMeterPanel(wxWindow* parent);
 		virtual ~VUMeterPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(VUMeterPanel)
 		BulkEditCheckBox* CheckBox_LogarithmicXAxis;

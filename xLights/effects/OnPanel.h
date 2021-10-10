@@ -25,12 +25,11 @@ class wxTextCtrl;
 
 class OnPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		OnPanel(wxWindow* parent);
 		virtual ~OnPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(OnPanel)
 		BulkEditCheckBox* CheckBoxShimmer;

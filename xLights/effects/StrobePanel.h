@@ -29,7 +29,7 @@ class StrobePanel: public xlEffectPanel
 
 		StrobePanel(wxWindow* parent);
 		virtual ~StrobePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(StrobePanel)
 		BulkEditCheckBox* CheckBox_Strobe_Music;

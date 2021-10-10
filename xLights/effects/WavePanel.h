@@ -30,7 +30,7 @@ class WavePanel: public xlEffectPanel
 
 		WavePanel(wxWindow* parent);
 		virtual ~WavePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(WavePanel)
 		BulkEditCheckBox* CheckBox_Mirror_Wave;

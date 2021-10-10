@@ -28,7 +28,7 @@ class SpirographPanel: public xlEffectPanel
 
 		SpirographPanel(wxWindow* parent);
 		virtual ~SpirographPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(SpirographPanel)
 		BulkEditSlider* Slider_Spirograph_Animate;

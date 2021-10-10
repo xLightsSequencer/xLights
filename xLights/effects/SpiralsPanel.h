@@ -29,7 +29,7 @@ class SpiralsPanel: public xlEffectPanel
 
 		SpiralsPanel(wxWindow* parent);
 		virtual ~SpiralsPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(SpiralsPanel)
 		BulkEditCheckBox* CheckBox_Spirals_3D;

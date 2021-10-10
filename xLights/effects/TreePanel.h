@@ -29,7 +29,7 @@ class TreePanel: public xlEffectPanel
 
 		TreePanel(wxWindow* parent);
 		virtual ~TreePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(TreePanel)
 		BulkEditCheckBox* CheckBox1;

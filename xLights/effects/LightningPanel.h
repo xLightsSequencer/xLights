@@ -30,7 +30,7 @@ class LightningPanel: public xlEffectPanel
 
 		LightningPanel(wxWindow* parent);
 		virtual ~LightningPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(LightningPanel)
 		BulkEditCheckBox* CheckBox_ForkedLightning;

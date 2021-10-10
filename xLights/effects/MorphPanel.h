@@ -35,7 +35,7 @@ class MorphPanel: public xlEffectPanel
 
 		MorphPanel(wxWindow* parent);
 		virtual ~MorphPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(MorphPanel)
 		BulkEditButton* ButtonSwap;

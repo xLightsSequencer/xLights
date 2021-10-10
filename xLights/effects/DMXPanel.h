@@ -35,7 +35,7 @@ class DMXPanel: public xlEffectPanel
 
 		DMXPanel(wxWindow* parent);
 		virtual ~DMXPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(DMXPanel)
 		BulkEditSlider* Slider_DMX10;

@@ -29,7 +29,7 @@ class ButterflyPanel: public xlEffectPanel
 
 		ButterflyPanel(wxWindow* parent);
 		virtual ~ButterflyPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(ButterflyPanel)
 		BulkEditChoice* Choice_Butterfly_Colors;

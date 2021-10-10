@@ -173,8 +173,12 @@ void StateEffect::SetDefaultParameters() {
         return;
     }
 
+    sp->SetEffect(nullptr, nullptr);
     SetChoiceValue(sp->Choice_State_Mode, "Default");
     SetChoiceValue(sp->Choice_State_Color, "Graduate");
+    sp->Choice_StateDefinitonChoice->SetSelection(0);
+    SetRadioValue(sp->RadioButton1);
+    sp->ValidateWindow();
 }
 
 void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)

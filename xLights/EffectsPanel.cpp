@@ -136,6 +136,14 @@ void EffectsPanel::SetEffectType(int effectId)
     _suppressChangeEvent = false;
 }
 
+void EffectsPanel::ValidateWindow()
+{
+    xlEffectPanel* panel = dynamic_cast<xlEffectPanel*>(GetSelectedPanel());
+    if (panel != nullptr) {
+        panel->ValidateWindow();
+    }
+}
+
 void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {

@@ -123,40 +123,52 @@ StatePanel::~StatePanel()
 
 void StatePanel::ValidateWindow()
 {
-    if (RadioButton1->GetValue()) {
-        Choice_State_State->Enable();
-        Choice_State_TimingTrack->Disable();
-        Choice_State_Mode->Disable();
-    } else {
-        Choice_State_State->Disable();
-        Choice_State_TimingTrack->Enable();
-        Choice_State_Mode->Enable();
-    }
+	if (_effect == nullptr) 		{
+		Choice_State_State->Enable();
+		Choice_State_TimingTrack->Disable();
+		Choice_State_Mode->Disable();
+	}
+	else {
+		if (RadioButton1->GetValue()) {
+			Choice_State_State->Enable();
+			Choice_State_TimingTrack->Disable();
+			Choice_State_Mode->Disable();
+		}
+		else {
+			Choice_State_State->Disable();
+			Choice_State_TimingTrack->Enable();
+			Choice_State_Mode->Enable();
+		}
+	}
 }
 
 void StatePanel::UpdateStateList()
 {
-    if (_effect != nullptr)
-    {
-        wxString selected = Choice_State_State->GetStringSelection();
-        Choice_State_State->Clear();
-        std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
+	if (_effect != nullptr) {
+		wxString selected = Choice_State_State->GetStringSelection();
+		Choice_State_State->Clear();
+		std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
 
-        Choice_State_State->Append("<ALL>");
-        if (selected == "<ALL>")
-        {
-            Choice_State_State->SetSelection(0);
-        }
+		Choice_State_State->Append("<ALL>");
+		if (selected == "<ALL>") {
+			Choice_State_State->SetSelection(0);
+		}
 
-        for (const auto& it : states)
-        {
-            int item = Choice_State_State->Append(it);
-            if (it == selected)
-            {
-                Choice_State_State->SetSelection(item);
-            }
-        }
-    }
+		for (const auto& it : states) {
+			int item = Choice_State_State->Append(it);
+			if (it == selected) {
+				Choice_State_State->SetSelection(item);
+			}
+		}
+	}
+	else {
+		RadioButton1->SetValue(true);
+		Choice_State_State->Clear();
+		Choice_State_State->Append("<ALL>");
+		Choice_State_State->SetSelection(0);
+	}
+
+	ValidateWindow();
 }
 
 void StatePanel::SetEffect(StateEffect* effect, Model* model)

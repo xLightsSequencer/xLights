@@ -32,7 +32,7 @@ class LiquidPanel: public xlEffectPanel
 
 		LiquidPanel(wxWindow* parent);
 		virtual ~LiquidPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(LiquidPanel)
 		BulkEditCheckBox* CheckBox_BottomBarrier;

@@ -29,7 +29,7 @@ class GarlandsPanel: public xlEffectPanel
 
 		GarlandsPanel(wxWindow* parent);
 		virtual ~GarlandsPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(GarlandsPanel)
 		BulkEditChoice* Choice_Garlands_Direction;

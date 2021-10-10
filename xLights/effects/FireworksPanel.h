@@ -31,7 +31,7 @@ class FireworksPanel: public xlEffectPanel
 
 		FireworksPanel(wxWindow* parent);
 		virtual ~FireworksPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 		void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(FireworksPanel)

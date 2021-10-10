@@ -45,12 +45,12 @@ protected:
 class ShaderPanel: public xlEffectPanel
 {
     ShaderConfig* _shaderConfig = nullptr;
-	void ValidateWindow();
 
 	public:
 
 		ShaderPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ShaderPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(ShaderPanel)
 		BulkEditFilePickerCtrl* FilePickerCtrl1;

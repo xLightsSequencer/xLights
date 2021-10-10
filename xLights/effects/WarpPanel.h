@@ -43,7 +43,7 @@ class WarpPanel: public xlEffectPanel
 
 		WarpPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~WarpPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(WarpPanel)
 		BulkEditChoice* Choice_Warp_Treatment;

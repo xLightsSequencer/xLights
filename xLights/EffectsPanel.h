@@ -39,6 +39,7 @@ public:
     void SetEffectPanelStatus(Model *cls, const wxString &name);
     void SetSequenceElements(SequenceElements *els);
     void SetEffectType(int effectId);
+    void ValidateWindow();
     
     wxString GetRandomEffectString(int effidx);
     bool isRandom_() const;

@@ -26,7 +26,7 @@ class OffPanel: public xlEffectPanel
 
 		OffPanel(wxWindow* parent);
 		virtual ~OffPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(OffPanel)
 		BulkEditCheckBox* CheckBox_Transparent;

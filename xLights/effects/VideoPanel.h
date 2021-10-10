@@ -65,7 +65,7 @@ class VideoPanel: public xlEffectPanel
 
 		VideoPanel(wxWindow* parent);
 		virtual ~VideoPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
         //(*Declarations(VideoPanel)
         BulkEditCheckBox* CheckBox_SynchroniseWithAudio;

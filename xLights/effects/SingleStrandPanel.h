@@ -28,12 +28,11 @@ class wxTextCtrl;
 
 class SingleStrandPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		SingleStrandPanel(wxWindow* parent);
 		virtual ~SingleStrandPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(SingleStrandPanel)
 		BulkEditCheckBox* CheckBox_Chase_3dFade1;

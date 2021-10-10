@@ -30,7 +30,7 @@ class TwinklePanel: public xlEffectPanel
 
 		TwinklePanel(wxWindow* parent);
 		virtual ~TwinklePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(TwinklePanel)
 		BulkEditCheckBox* CheckBox_Twinkle_ReRandom;

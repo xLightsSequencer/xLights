@@ -29,7 +29,7 @@ class CirclesPanel: public xlEffectPanel
 
 		CirclesPanel(wxWindow* parent);
 		virtual ~CirclesPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(CirclesPanel)
 		BulkEditCheckBox* CheckBox_Circles_Bounce;

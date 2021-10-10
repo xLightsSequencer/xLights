@@ -26,12 +26,11 @@ class wxTextCtrl;
 
 class RipplePanel: public xlEffectPanel
 {
-    void ValidateWindow();
-
 	public:
 
 		RipplePanel(wxWindow* parent);
 		virtual ~RipplePanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(RipplePanel)
 		BulkEditCheckBox* CheckBox_Ripple3D;

@@ -33,7 +33,7 @@ class FacesPanel: public xlEffectPanel
 
 		FacesPanel(wxWindow* parent);
 		virtual ~FacesPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;

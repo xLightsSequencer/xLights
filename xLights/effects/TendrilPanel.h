@@ -41,7 +41,7 @@ class TendrilPanel: public xlEffectPanel
 
 		TendrilPanel(wxWindow* parent);
 		virtual ~TendrilPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(TendrilPanel)
 		BulkEditChoice* Choice_Tendril_Movement;

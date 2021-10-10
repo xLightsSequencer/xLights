@@ -53,7 +53,7 @@ class PicturesPanel: public xlEffectPanel
 
 		PicturesPanel(wxWindow* parent);
 		virtual ~PicturesPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(PicturesPanel)
 		BulkEditCheckBox* CheckBox_LoopGIF;

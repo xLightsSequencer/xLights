@@ -31,13 +31,12 @@ class MidiFile;
 
 class PianoPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-	
 	public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
-        void SetTimingTracks(wxCommandEvent& event);
+		virtual void ValidateWindow() override;
+		void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(PianoPanel)
 		BulkEditCheckBox* CheckBox_Piano_ShowSharps;

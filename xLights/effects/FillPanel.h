@@ -30,7 +30,7 @@ class FillPanel: public xlEffectPanel
 
 		FillPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FillPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(FillPanel)
 		BulkEditCheckBox* CheckBox_Fill_Color_Time;

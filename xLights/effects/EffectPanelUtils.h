@@ -60,7 +60,6 @@ public:
     
     void AddChangeListeners(wxTimer *timer);
     
-
     void OnLockButtonClick(wxCommandEvent& event) {
         EffectPanelUtils::OnLockButtonClick(event);
     }

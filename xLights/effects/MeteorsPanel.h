@@ -30,7 +30,7 @@ public:
 
 	MeteorsPanel(wxWindow* parent);
 	virtual ~MeteorsPanel();
-	void ValidateWindow();
+	virtual void ValidateWindow() override;
 
 	//(*Declarations(MeteorsPanel)
 	BulkEditCheckBox* CheckBox_FadeWithDistance;

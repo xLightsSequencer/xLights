@@ -25,12 +25,11 @@ class wxTextCtrl;
 
 class PlasmaPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		PlasmaPanel(wxWindow* parent);
 		virtual ~PlasmaPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(PlasmaPanel)
 		BulkEditChoice* Choice_Plasma_Color;

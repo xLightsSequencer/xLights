@@ -26,12 +26,11 @@ class wxTextCtrl;
 
 class ServoPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		ServoPanel(wxWindow* parent);
 		virtual ~ServoPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(ServoPanel)
 		BulkEditCheckBox* CheckBox_16bit;

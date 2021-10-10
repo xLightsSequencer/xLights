@@ -28,7 +28,7 @@ class LifePanel: public xlEffectPanel
 
 		LifePanel(wxWindow* parent);
 		virtual ~LifePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(LifePanel)
 		BulkEditSlider* Slider_Life_Count;

@@ -27,7 +27,7 @@ class GlediatorPanel: public xlEffectPanel
 
 		GlediatorPanel(wxWindow* parent);
 		virtual ~GlediatorPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(GlediatorPanel)
 		BulkEditChoice* Choice_Glediator_DurationTreatment;

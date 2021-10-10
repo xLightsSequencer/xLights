@@ -27,12 +27,11 @@ class wxTextCtrl;
 
 class ShockwavePanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		ShockwavePanel(wxWindow* parent);
 		virtual ~ShockwavePanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(ShockwavePanel)
 		BulkEditCheckBox* CheckBox_Shockwave_Blend_Edges;

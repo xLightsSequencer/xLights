@@ -33,7 +33,7 @@ class MarqueePanel: public xlEffectPanel
 
 		MarqueePanel(wxWindow* parent);
 		virtual ~MarqueePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(MarqueePanel)
 		BulkEditCheckBox* CheckBox1;

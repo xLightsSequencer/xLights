@@ -29,7 +29,7 @@ class LinesPanel: public xlEffectPanel
 
 		LinesPanel(wxWindow* parent);
 		virtual ~LinesPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(LinesPanel)
 		BulkEditCheckBox* CheckBox_FadeTrails;

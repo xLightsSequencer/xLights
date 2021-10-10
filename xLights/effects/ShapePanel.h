@@ -35,13 +35,13 @@ class ClickableStaticText;
 class ShapePanel: public xlEffectPanel
 {
     std::list<Emoji*> _emojis;
-    void ValidateWindow();
 
 	public:
 
 		ShapePanel(wxWindow* parent);
 		virtual ~ShapePanel();
-        void SetTimingTracks(wxCommandEvent& event);
+		virtual void ValidateWindow() override;
+		void SetTimingTracks(wxCommandEvent& event);
         void EmojiMenu(wxContextMenuEvent& event);
         void OnPopupEmoji(wxCommandEvent& event);
         void OnShowCharMap(wxCommandEvent& event);

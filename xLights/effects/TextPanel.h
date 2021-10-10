@@ -35,7 +35,7 @@ class TextPanel: public xlEffectPanel
 
 		TextPanel(wxWindow* parent);
 		virtual ~TextPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(TextPanel)
 		BulkEditCheckBox* CheckBox_Text_PixelOffsets;

@@ -30,7 +30,7 @@ class CurtainPanel: public xlEffectPanel
 
 		CurtainPanel(wxWindow* parent);
 		virtual ~CurtainPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(CurtainPanel)
 		BulkEditCheckBox* CheckBox_Curtain_Repeat;

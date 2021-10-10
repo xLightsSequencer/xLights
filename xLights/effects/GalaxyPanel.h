@@ -31,7 +31,7 @@ class GalaxyPanel: public xlEffectPanel
 
 		GalaxyPanel(wxWindow* parent);
 		virtual ~GalaxyPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(GalaxyPanel)
 		BulkEditCheckBox* CheckBox_Galaxy_Blend_Edges;

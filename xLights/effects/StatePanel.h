@@ -36,7 +36,7 @@ class StatePanel: public xlEffectPanel
 
 		StatePanel(wxWindow* parent);
 		virtual ~StatePanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(StatePanel)
 		BulkEditChoice* Choice_State_Color;

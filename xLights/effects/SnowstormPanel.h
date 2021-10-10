@@ -28,7 +28,7 @@ class SnowstormPanel: public xlEffectPanel
 
 		SnowstormPanel(wxWindow* parent);
 		virtual ~SnowstormPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(SnowstormPanel)
 		BulkEditSlider* Slider_Snowstorm_Count;

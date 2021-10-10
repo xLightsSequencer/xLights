@@ -25,12 +25,11 @@ class wxTextCtrl;
 
 class SnowflakesPanel: public xlEffectPanel
 {
-    void ValidateWindow();
-
 	public:
 
 		SnowflakesPanel(wxWindow* parent);
 		virtual ~SnowflakesPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(SnowflakesPanel)
 		BulkEditChoice* Choice_Falling;

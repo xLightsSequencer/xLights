@@ -25,7 +25,7 @@ class wxTextCtrl;
 
 class CandlePanel: public xlEffectPanel
 {
-    void ValidateWindow();
+	virtual void ValidateWindow() override;
 
 	public:
 

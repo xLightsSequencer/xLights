@@ -1522,7 +1522,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
-    //if (enableSeqNotAC) EffectsPanel1->ValidateWindow();
+    if (enableSeqNotAC) EffectsPanel1->ValidateWindow();
     enableAllChildControls(timingPanel, enableSeqNotAC);
     if (enableSeqNotAC) timingPanel->ValidateWindow();
     enableAllChildControls(bufferPanel, enableSeqNotAC);

@@ -39,12 +39,11 @@ class wxTextCtrl;
 
 class KaleidoscopePanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		KaleidoscopePanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~KaleidoscopePanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(KaleidoscopePanel)
 		BulkEditSlider* Slider_Kaleidoscope_Rotation;

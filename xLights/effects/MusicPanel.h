@@ -30,7 +30,7 @@ class MusicPanel: public xlEffectPanel
 
 		MusicPanel(wxWindow* parent);
 		virtual ~MusicPanel();
-		void ValidateWindow();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(MusicPanel)
 		BulkEditCheckBox* CheckBox_Music_Fade;

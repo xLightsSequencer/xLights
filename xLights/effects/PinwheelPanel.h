@@ -27,12 +27,11 @@ class wxTextCtrl;
 
 class PinwheelPanel: public xlEffectPanel
 {
-	void ValidateWindow();
-
 	public:
 
 		PinwheelPanel(wxWindow* parent);
 		virtual ~PinwheelPanel();
+		virtual void ValidateWindow() override;
 
 		//(*Declarations(PinwheelPanel)
 		BulkEditCheckBox* CheckBox_Pinwheel_Rotation;
