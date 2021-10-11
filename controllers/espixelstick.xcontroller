@@ -60,7 +60,7 @@
             <SupportsInputOnlyUpload/>
             <SupportsAutoUpload/>
             <MaxInputUniverses>6</MaxInputUniverses>
-            <MaxPixelPort>2</MaxPixelPort>
+            <MaxPixelPort>6</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3072</MaxPixelPortChannels>
@@ -81,6 +81,7 @@
             <InputProtocols>
                 <Protocol>e131</Protocol>
                 <Protocol>ddp</Protocol>
+		<Protocol>artnet</Protocol>
             </InputProtocols>
         </Variant>
     </Controller>
