@@ -289,8 +289,8 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 std::string HTTPWork::GetTitle(const std::string& page)
 {
-	wxRegEx title("<title[^>]*>([^<]*)<");
-	if (title.Matches(page)) {
+	wxRegEx title("<[^>]*title[^>]*>(.*)<[^>]*\\/[^>]*title[^>]*>");
+	if (title.Matches(page) && title.GetMatchCount() > 1) {
 		wxString t = title.GetMatch(page, 1);
 
 		if (t.Contains("404")) {
