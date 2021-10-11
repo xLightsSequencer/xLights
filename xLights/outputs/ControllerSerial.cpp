@@ -474,12 +474,19 @@ std::string ControllerSerial::GetChannelMapping(int32_t ch) const
         (IsActive() ? _("") : _("INACTIVE\n")));
 }
 
-Output::PINGSTATE ControllerSerial::Ping() {
+Output::PINGSTATE ControllerSerial::Ping()
+{
     if (_model == "FPP") {
-        IPOutput *ipOutput = dynamic_cast<IPOutput*>(GetFirstOutput());
-        _lastPingResult = ipOutput->Ping(ipOutput->GetResolvedIP(), _fppProxy == "" ? _outputManager->GetGlobalFPPProxy() : _fppProxy);
-    } else {
-        _lastPingResult =_serialOutput->Ping();
+        IPOutput* ipOutput = dynamic_cast<IPOutput*>(GetFirstOutput());
+        if (ipOutput != nullptr) {
+            _lastPingResult = ipOutput->Ping(ipOutput->GetResolvedIP(), _fppProxy == "" ? _outputManager->GetGlobalFPPProxy() : _fppProxy);
+        }
+        else {
+            _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
+        }
+    }
+    else {
+        _lastPingResult = _serialOutput->Ping();
     }
     return GetLastPingState();
 }

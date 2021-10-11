@@ -2257,11 +2257,11 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     //check if there are models that depend on timing tracks or similar that need to be rendered
     std::vector<Element *> elsToRender;
     if (_sequenceElements.GetElementsToRender(elsToRender)) {
-        for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); ++it) {
+        for (const auto& it : elsToRender) {
             int ss, es;
-            (*it)->GetDirtyRange(ss, es);
+            it->GetDirtyRange(ss, es);
             if (!_suspendRender) {
-                RenderEffectForModel((*it)->GetModelName(), ss, es);
+                RenderEffectForModel(it->GetModelName(), ss, es);
             }
         }
     }
@@ -2332,6 +2332,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 			}
         }
 
+        wxASSERT(_seqData.FrameTime() != 0);
         int frame = curt / _seqData.FrameTime();
         fpsEvents.push_back(FPSEvent(frame));
         size_t fpsSize = fpsEvents.size();
@@ -2349,7 +2350,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             }
             if ((frame % 200) == 0) {
                 static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.debug("Play fps  %f   (%d ms)", _fps, _seqData.FrameTime());
+                logger_opengl.debug("Play fps  %f   (%u ms)", _fps, _seqData.FrameTime());
             }
         }
 
@@ -2359,6 +2360,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->PanelWaveForm->CheckNeedToScroll();
             mainSequencer->PanelEffectGrid->ForceRefresh();
+            wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
             _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
 
@@ -2370,25 +2372,30 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     }
 
     int frame = curt / _seqData.FrameTime();
-    //have the frame, copy from SeqData
-    if (playModel != nullptr) {
-        int nn = playModel->GetNodeCount();
-        for (int node = 0; node < nn; node++) {
-            int start = playModel->NodeStartChannel(node);
-            playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
+    if (frame < _seqData.NumFrames()) {
+        //have the frame, copy from SeqData
+        if (playModel != nullptr) {
+            int nn = playModel->GetNodeCount();
+            for (int node = 0; node < nn; node++) {
+                int start = playModel->NodeStartChannel(node);
+                wxASSERT(start < _seqData.NumChannels());
+                playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
+            }
+        }
+        TimerOutput(frame);
+        if (playModel != nullptr) {
+            playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
+        }
+
+        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+
+        for (const auto& it : PreviewWindows) {
+            if (it->GetActive()) {
+                it->Render(&_seqData[frame][0]);
+            }
         }
     }
-    TimerOutput(frame);
-    if (playModel != nullptr) {
-        playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
-    }
-    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
-    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
-        ModelPreview* preview = *it;
-        if( preview->GetActive() ) {
-            preview->Render(&_seqData[frame][0]);
-        }
-    }
+
     return true;
 }
 
