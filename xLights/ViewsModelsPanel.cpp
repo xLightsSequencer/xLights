@@ -2656,8 +2656,7 @@ void ViewsModelsPanel::ImportRGBEffectsView()
                     wxArrayString split_model = wxSplit(sel_models, ',');
                     viewToAddMap.insert({ {sel_view, split_model} });
                 }
-
-                ImportViewData(viewToAddMap);
+                ImportViewData(viewToAddMap, wxArrayString());
             }
         }
     }
@@ -2712,9 +2711,13 @@ void ViewsModelsPanel::ImportSequenceMasterView()
     }
 }
 
-void ViewsModelsPanel::ImportViewData(std::map <wxString, wxArrayString> const& views, wxArrayString timings)
-{
+void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& views, wxArrayString const& timings) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (views.empty()) {
+        logger_base.debug("No Views Selected to Import");
+        return;
+    }
 
 	std::vector<std::string> newtimings;
 	for (auto const& tim : timings) {

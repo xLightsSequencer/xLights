@@ -114,7 +114,7 @@ public:
     void PopulateView(const std::string &models, int view);
     void AddView(const std::string &viewName);
     void RemoveView(int view_index);
-    void AddViewToTimings(std::vector<std::string> & timings, const std::string& name);
+    void AddViewToTimings(const std::vector<std::string>& timings, const std::string& name);
     void AddTimingToAllViews(const std::string& timing);
     void AddTimingToView(const std::string& timing, const std::string& name);
     void AddTimingToCurrentView(const std::string& timing);

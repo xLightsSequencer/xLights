@@ -119,7 +119,7 @@ class ViewsModelsPanel : public wxPanel
     void ImportRGBEffectsView();
     void ImportSequenceMasterView();
 
-    void ImportViewData(std::map <wxString, wxArrayString> const& views, wxArrayString timings = wxArrayString());
+    void ImportViewData(std::map<wxString, wxArrayString> const& views, wxArrayString const& timings);
 
     wxString CreateUniqueName(wxString const& prefix);
 

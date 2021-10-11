@@ -1091,11 +1091,10 @@ int SequenceElements::GetViewCount()
     return _viewsManager->GetViewCount();
 }
 
-void SequenceElements::AddViewToTimings(std::vector<std::string>& timings, const std::string& name)
+void SequenceElements::AddViewToTimings(const std::vector<std::string>& timings, const std::string& name)
 {
-    for( size_t i = 0; i < timings.size(); i++ )
-    {
-        AddTimingToView(timings[i], name);
+    for (auto const& timing : timings) {
+        AddTimingToView(timing, name);
     }
 }
 
@@ -2107,7 +2106,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         int start_time = wxAtof(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
         int end_time = wxAtof(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
         int total_time = end_time - start_time;
-        
+
         if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?
         {
             start_time = 0;
