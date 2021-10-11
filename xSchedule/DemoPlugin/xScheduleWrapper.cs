@@ -8,6 +8,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Windows.Forms;
 
 // requires package UnmanagedExports - version 1.6
 // https://github.com/3F/DllExport
@@ -169,7 +170,14 @@ namespace xScheduleWrapper
         {
             _action = action;
 
-            return _plugin.Start(showDir, xScheduleURL);
+            try {
+                return _plugin.Start(showDir, xScheduleURL);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            return false;
         }
 
         [DllExport("xSchedule_Stop", CallingConvention = CallingConvention.StdCall)]
