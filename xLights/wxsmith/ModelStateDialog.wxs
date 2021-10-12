@@ -123,7 +123,8 @@
 												<minsize>-1,200d</minsize>
 												<handler function="OnSingleNodeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 												<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-												<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+												<handler function="OnSingleNodeGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+												<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 												<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
@@ -188,8 +189,9 @@
 												<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 												<handler function="OnNodeRangeGridCellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
 												<handler function="OnNodeRangeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+												<handler function="OnNodeRangeGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 												<handler function="OnNodeRangeGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
-												<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+												<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 												<handler function="OnNodeRangeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
