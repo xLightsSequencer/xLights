@@ -158,6 +158,8 @@ protected:
     virtual ~BulkEditFilePickerCtrl() {}
     void OnRightDown(wxMouseEvent& event);
     void OnFilePickerCtrlPopup(wxCommandEvent &event);
+    void OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event);
+    void OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
