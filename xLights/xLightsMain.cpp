@@ -5687,7 +5687,7 @@ void xLightsFrame::CheckSequence(bool display)
                     if (dups != "") {
                         wxString msg = wxString::Format("    WARN: SubModel '%s' contains duplicate nodes: %s. This may not render as expected.", (const char*)sm->GetFullName().c_str(), (const char*)dups.c_str());
                         LogAndWrite(f, msg.ToStdString());
-                        errcount++;
+                        warncount++;
                     }
                 }
             }

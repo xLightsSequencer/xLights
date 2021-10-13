@@ -1335,9 +1335,12 @@ void ControllerModelDialog::ReloadModels()
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
-                ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
-                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
-                 _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
+                ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
+                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || 
+                                                                                     _controller->GetName() == it.second->GetControllerName() || 
+                                                                                     it.second->GetControllerName() == "" ||
+                                                                                     _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) || 
+                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
             }
         }
