@@ -1563,7 +1563,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         FalconString* string = new FalconString(defaultBrightness);
         string->startChannel = firstchannel;
         string->virtualStringIndex = 0;
-        string->pixels = 0;
+        string->pixels = 1;
         string->protocol = 0;
         string->universe = minuniverse;
         string->description = "";
