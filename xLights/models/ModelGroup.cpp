@@ -968,8 +968,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufX = BufferWi;
                         it2.bufY = y;
-                        y++;
                     }
+                    y++;
                     start++;
                 }
                 if (y > BufferHt) {
@@ -1094,8 +1094,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufY = BufferHt;
                         it2.bufX = y;
-                        y++;
                     }
+                    y++;
                     start++;
                 }
                 if (y > BufferWi) {
