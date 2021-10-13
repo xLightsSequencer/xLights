@@ -89,7 +89,7 @@ wxString windows_get_stacktrace(void* data)
                 sscanf(line.substr(28).c_str(), "%llx", &preferedLoadAddress);
             }
 
-            if (line.StartsWith("0001:") && line.EndsWith(".obj")) {
+            if (line.StartsWith("0001:") && (line.EndsWith(".obj") || line.EndsWith(".o"))) {
                 while (line.Replace("  ", " ") > 0);
                 auto comp = wxSplit(line, ' ');
                 if (comp.size() > 3)
@@ -107,7 +107,7 @@ wxString windows_get_stacktrace(void* data)
                     long long addr = 0;
                     sscanf(comp[2].c_str(), "%llx", &addr);
 
-                    auto l = wxString::Format("%016llx\t\t%s\t%s", addr - preferedLoadAddress, comp[ln], comp[1]);
+                    auto l = wxString::Format("%016llx\t\t%s\t%s", addr - (uint64_t)hModule, comp[ln], comp[1]);
                     mapLines.Add(l);
                     //logger_base.debug("Map file line: %s", (const char *)line.c_str());
                 }
@@ -123,6 +123,10 @@ wxString windows_get_stacktrace(void* data)
     }
 
     logger_base.debug("Preferred load address: 0x%016llx", preferedLoadAddress);
+
+    extern EXCEPTION_POINTERS* wxGlobalSEInformation;
+    uint64_t except = (uint64_t)wxGlobalSEInformation->ExceptionRecord->ExceptionAddress;
+    logger_base.debug("Exception address: 0x%016llx", except - (uint64_t)hModule);
 
     MyStackWalk sw(mapLines);
     sw.WalkFromException();
