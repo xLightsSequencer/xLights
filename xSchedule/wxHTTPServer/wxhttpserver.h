@@ -27,6 +27,8 @@
 #define SERVER_NAME    "xLights Web Server"
 #define SERVER_VERSION "1.0"
 
+#undef wxUSE_IPV6
+
 // server can be extended to allow using IPv6 sockets
 #if wxUSE_IPV6
 	typedef wxIPV6address IPaddress;
