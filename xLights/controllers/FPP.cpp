@@ -2102,13 +2102,17 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
                 port["header"] = controller->GetSaveablePreFix();
                 port["footer"] = controller->GetSaveablePostFix();
             }
-            port["description"] = controller->GetDescription() == "" ? controller->GetName() : controller->GetDescription();
+            std::string description = controller->GetDescription();
+            if (description == "") {
+                description = controller->GetName();
+            }
+            port["description"] = description;
             port["channelCount"] = mx;
             otherData["channelOutputs"].Append(port);
 
             rngs[sc - 1] = mx;
 
-            wxJSONValue otherOrigRoot;
+            wxJSONValue otherOrigRoot = otherData;
             bool changed = true;
             if (IsDrive()) {
                 GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
@@ -2462,7 +2466,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 port["channelCount"] = mx;
                 port["type"] = tp;
-                port["description"] = "";
+                port["description"] = wxString("");
                 otherDmxData["channelOutputs"].Append(port);
             }
 
@@ -2496,7 +2500,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["device"] = wxString(pixelControllerType);
         root["channelOutputs"].Append(bbbDmxData);
     } else {
-        wxJSONValue otherOrigRoot;
+        wxJSONValue otherOrigRoot = otherDmxData;
         bool changed = true;
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
