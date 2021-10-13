@@ -200,6 +200,7 @@ class ControllerModelDialog: public wxDialog
 		void PrintScreen();
 		void SaveCSV(bool withDescription);
 		double getFontSize();
+		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
 
 		DECLARE_EVENT_TABLE()
 };

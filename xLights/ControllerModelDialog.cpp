@@ -2326,6 +2326,19 @@ void ControllerModelDialog::OnPanelControllerLeftUp(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerLeftDClick(wxMouseEvent& event)
 {
+    wxPoint mouse = event.GetPosition();
+    wxPoint adjustedMouse = mouse + GetScrollPosition(PanelController);
+
+    ModelCMObject* cm = dynamic_cast<ModelCMObject*>(GetControllerCMObjectAt(mouse, adjustedMouse));
+    if (cm != nullptr) {
+        DropFromController(wxPoint(0, 0), cm->GetName(), PanelModels);
+
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
+        ReloadModels();
+    }
 }
 
 void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
@@ -2934,6 +2947,7 @@ void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)
 
     ModelCMObject* cm = dynamic_cast<ModelCMObject*>(GetModelsCMObjectAt(mouse));
     if (cm != nullptr) {
+        auto m = cm->GetName();
         DropModelFromModelsPaneOnModel(cm, _lastDropped, true);
 
         while (!_xLights->DoAllWork()) {
@@ -2941,6 +2955,53 @@ void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)
             _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         }
         ReloadModels();
+
+        for (const auto& it : _controllers)             {
+            cm = dynamic_cast<ModelCMObject*>(it);
+            if (cm != nullptr && cm->GetName() == m)                 {
+                EnsureSelectedModelIsVisible(cm);
+                break;
+            }
+        }
+    }
+}
+
+void ControllerModelDialog::EnsureSelectedModelIsVisible(ModelCMObject* cm)
+{
+    auto left = cm->GetRect().GetLeft();
+    auto right = cm->GetRect().GetRight();
+    auto top = cm->GetRect().GetTop();
+    auto bottom = cm->GetRect().GetBottom();
+
+    auto pos = GetScrollPosition(PanelController);
+
+    bool scrolled = false;
+
+    int x = ScrollBar_Controller_H->GetThumbPosition();
+    int y = ScrollBar_Controller_V->GetThumbPosition();
+
+    if (left < pos.x + LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP) {
+        x = left - 10;
+        scrolled = true;
+    }
+    else if (right > pos.x + PanelController->GetSize().GetWidth())         {
+        x = right - PanelController->GetSize().GetWidth() + 10;
+        scrolled = true;
+    }
+
+    if (bottom > pos.y + PanelController->GetSize().GetHeight()) {
+        y = bottom - PanelController->GetSize().GetHeight() + 10;
+        scrolled = true;
+    }
+    else if (top < pos.y) {
+        y = top - 10;
+        scrolled = true;
+    }
+
+    if (scrolled) {
+        ScrollBar_Controller_H->SetThumbPosition(x);
+        ScrollBar_Controller_V->SetThumbPosition(y);
+        PanelController->Refresh();
     }
 }
 
