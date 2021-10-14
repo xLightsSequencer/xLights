@@ -94,6 +94,7 @@
 #include "TraceLog.h"
 #include "AboutDialog.h"
 #include "ExternalHooks.h"
+#include "ExportSettings.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -10019,12 +10020,13 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     }
 
     auto controllers = GetOutputManager()->GetControllers();
+    ExportSettings::SETTINGS exportsettings = ExportSettings::GetSettings(this);
     for (const auto& it : controllers) {
         std::string check;
         UDController cud(it, &_outputManager, &AllModels, check, false);
         wxString const header = it->GetShortDescription() + "\n";
         f.Write(header);
-        std::vector<std::string> const lines = cud.ExportAsCSV(false);
+        std::vector<std::string> const lines = cud.ExportAsCSV(exportsettings);
         for (const auto& line : lines) {
             f.Write(line);
         }

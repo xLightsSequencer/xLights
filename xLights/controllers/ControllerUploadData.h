@@ -18,6 +18,8 @@
 #include <set>
 #include <vector>
 
+#include <ExportSettings.h>
+
 class UDControllerPort;
 class UDController;
 class Model;
@@ -196,14 +198,14 @@ class UDControllerPort
 
     std::string GetProtocol() const { return _protocol; }
     bool IsPixelProtocol() const;
-	
+
     float GetAmps(int defaultBrightness) const;
 
     std::string GetPortName() const;
 	int GetPort() const { return _port; }
-    
+
     bool IsValid() const { return _valid; }
-    void SetInvalid() { _valid = false; }    
+    void SetInvalid() { _valid = false; }
     std::string GetInvalidReason() const { return _invalidReason; }
     bool AtLeastOneModelIsUsingSmartRemote() const;
     bool AtLeastOneModelIsNotUsingSmartRemote() const;
@@ -212,7 +214,7 @@ class UDControllerPort
 
     void Dump() const;
     bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
-    std::string ExportAsCSV(bool withDescription) const;
+    [[nodiscard]] std::string ExportAsCSV(ExportSettings::SETTINGS const& settings) const;
     #pragma endregion
 };
 
@@ -237,7 +239,7 @@ class UDController
     #pragma endregion
 
     void ClearPorts();
-	
+
     public:
 
     static bool IsError(const std::string& check);
@@ -278,10 +280,10 @@ class UDController
     bool IsValid(ControllerCaps* rules) const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
-    std::vector<std::string> ExportAsCSV(bool withDescription);
-        
+    [[nodiscard]] std::vector<std::string> ExportAsCSV(ExportSettings::SETTINGS const& settings);
+
     Output* GetFirstOutput() const;
-    
+
     const std::list<Model *> GetNoConnectionModels() const { return _noConnectionModels; }
     #pragma endregion
 };

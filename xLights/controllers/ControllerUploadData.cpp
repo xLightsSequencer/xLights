@@ -96,14 +96,14 @@ int UDControllerPortModel::GetChannelsPerPixel() const
     return _model->GetNodeChannelCount(_model->GetStringType());
 }
 
-int UDControllerPortModel::GetDMXChannelOffset() const 
+int UDControllerPortModel::GetDMXChannelOffset() const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
     return 1;
 }
 
-int UDControllerPortModel::GetBrightness(int currentBrightness) const 
+int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
@@ -157,7 +157,7 @@ std::string UDControllerPortModel::GetColourOrder(const std::string& currentColo
     return currentColourOrder;
 }
 
-std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const 
+std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
@@ -242,7 +242,7 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
     return first;
 }
 
-UDControllerPortModel* UDControllerPort::GetLastModel() const 
+UDControllerPortModel* UDControllerPort::GetLastModel() const
 {
     if (_models.size() == 0) return nullptr;
     UDControllerPortModel* last = _models.front();
@@ -303,7 +303,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
             ++it2;
 
             for (; it2 != _models.end(); ++it2) {
-                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel() && 
+                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel() &&
                     (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                     // this model overlaps at least slightly
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel()) {
@@ -316,8 +316,8 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                         _models.erase(it2);
                         erased = true;
                     }
-                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() && 
-                             (*it2)->GetEndChannel() > (*it)->GetEndChannel() && 
+                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() &&
+                             (*it2)->GetEndChannel() > (*it)->GetEndChannel() &&
                              (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // i1 totally inside it2
                         logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
@@ -436,7 +436,7 @@ bool UDControllerPort::ClearSmartRemoteOnAllModels()
     return changed;
 }
 
-// This ensures none of the models on a port overlap ... they are all chained 
+// This ensures none of the models on a port overlap ... they are all chained
 // I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
 // you shouldnt set the port as that is just going to cause grief.
 bool UDControllerPort::EnsureAllModelsAreChained()
@@ -889,9 +889,22 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
     return success;
 }
 
-std::string UDControllerPort::ExportAsCSV(bool withDescription) const
-{
-    wxString line = wxString::Format("%s Port %d,",_type ,_port);
+std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings) const {
+    wxString line = wxString::Format("%s Port %d", _type ,_port);
+    if ((settings & ExportSettings::SETTINGS_PORT_ABSADDRESS) && GetStartChannel() != -1) {
+        line += "(SC:" + std::to_string(GetStartChannel()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_UNIADDRESS) && GetUniverse() != -1) {
+        line += "(UNI:#" + std::to_string(GetUniverse()) + ":" + std::to_string(GetUniverseStartChannel()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_CHANNELS) && Channels() != 0) {
+        line += "(CHANS:" + std::to_string(Channels()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0) {
+        line += "(PIX:" + std::to_string(Channels() / 3) + ")";
+    }
+    line += ",";
+
     for (const auto& it : GetModels()) {
         if (it->GetSmartRemote() > 0) {
             char remote = it->GetSmartRemoteLetter();
@@ -900,8 +913,21 @@ std::string UDControllerPort::ExportAsCSV(bool withDescription) const
             line += ":";
         }
         line += it->GetName();
-        if (withDescription && it->GetModel()->description != "") {
-            line += "(" + it->GetModel()->description + ")";
+        if ((settings & ExportSettings::SETTINGS_MODEL_DESCRIPTIONS) && it->GetModel()->description != "") {
+            line += "(DESP:" + it->GetModel()->description + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_ABSADDRESS) {
+            line += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_UNIADDRESS) {
+            line += "(UNI:#" + std::to_string(it->GetUniverse()) + ":" + std::to_string(it->GetUniverseStartChannel()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_CHANNELS) {
+            line += "(CHANS:" + std::to_string(it->Channels()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS)
+        {
+            line += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
         }
         line += ",";
     }
@@ -1580,34 +1606,33 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     return success;
 }
 
-std::vector<std::string> UDController::ExportAsCSV(bool withDescription)
-{
+std::vector<std::string> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings) {
     std::vector<std::string> lines;
     int columnSize = 0;
 
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
         if (columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
-        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(withDescription));
+        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings));
 	}
 	lines.push_back("\n");
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
         if (columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
-        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(withDescription));
+        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings));
     }
     lines.push_back("\n");
     for (auto &vm : _virtualMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(withDescription));
+        lines.push_back(vm.second->ExportAsCSV(settings));
     }
     lines.push_back("\n");
     for (auto &vm : _ledPanelMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(withDescription));
+        lines.push_back(vm.second->ExportAsCSV(settings));
     }
 
     wxString header = "Output,";

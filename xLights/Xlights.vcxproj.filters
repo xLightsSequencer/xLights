@@ -900,6 +900,7 @@
     </ClCompile>
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="LORPreview.cpp" />
+    <ClCompile Include="ExportSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1810,6 +1811,7 @@
     </ClInclude>
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="LORPreview.h" />
+    <ClInclude Include="ExportSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
