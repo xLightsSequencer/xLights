@@ -60,7 +60,7 @@
         </InputProtocols>
 		<NeedsDDPInputUpload/>
         <SmartRemoteTypes>
-            <Type>falconv1</Type>
+            <Type>falcon_v1</Type>
         </SmartRemoteTypes>
     </AbstractVariant>
 	<Controller Name="F4V2">
