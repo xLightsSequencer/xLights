@@ -22,6 +22,7 @@
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
+std::vector<std::unique_ptr<SmartRemote>> ControllerCaps::__smartRemotes;
 
 inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const std::string &var) {
     for (auto it : variants) {
@@ -146,6 +147,7 @@ void ControllerCaps::LoadControllers() {
                 }
             }
         }
+        LoadSmartRemoteTypes(d);
     } else {
         logger_base.error("Controllers folder not found " + d);
     }
@@ -162,6 +164,68 @@ void ControllerCaps::UnloadControllers() {
         }
     }
     __controllers.clear();
+}
+
+void ControllerCaps::LoadSmartRemoteTypes(const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (wxDir::Exists(folder)) {
+        wxDir dir(folder);
+
+        wxString filename;
+        bool cont = dir.GetFirst(&filename, "*.xremote", wxDIR_FILES);
+        int count = 0;
+        while (cont) {
+            count++;
+            cont = dir.GetNext(&filename);
+        }
+        std::vector<wxXmlDocument> docs;
+        docs.resize(count);
+        filename = "";
+        cont = dir.GetFirst(&filename, "*.xremote", wxDIR_FILES);
+        count = 0;
+        while (cont) {
+            wxFileName fn(dir.GetNameWithSep() + filename);
+            wxXmlDocument doc;
+            docs[count].Load(fn.GetFullPath());
+            if (!docs[count].IsOk()) {
+                wxASSERT(false);
+                logger_base.error("Problem loading " + fn.GetFullPath());
+            }
+            count++;
+            cont = dir.GetNext(&filename);
+        }
+        for (auto& doc : docs) {
+            if (doc.IsOk()) {
+                if (doc.GetRoot() != nullptr) {
+                    for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                        if (n->GetName() == "Remote") {
+                            auto name = n->GetAttribute("Name");
+                            std::unique_ptr<SmartRemote> sr = std::make_unique<SmartRemote>(name);
+                            std::vector<std::string> idMap;
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                if (nn->GetName() == "Description" && nn->GetChildren() != nullptr) {
+                                    sr->Desp = nn->GetChildren()->GetContent();
+                                } else if (nn->GetName() == "Ports" && nn->GetChildren() != nullptr) {
+                                    sr->Ports = wxAtoi(nn->GetChildren()->GetContent());
+                                } else if (nn->GetName() == "Count" && nn->GetChildren() != nullptr) {
+                                    sr->Count = wxAtoi(nn->GetChildren()->GetContent());
+                                } else if (nn->GetName() == "IDS" && nn->GetChildren() != nullptr) {
+                                    sr->ID_Numbering = Split(nn->GetChildren()->GetContent().ToStdString(), { ',' });
+                                }
+                            }
+                            __smartRemotes.push_back(std::move(sr));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ControllerCaps::UnloadSmartRemoteTypes()
+{
+    __smartRemotes.clear();
 }
 
 std::list<std::string> ControllerCaps::GetVendors(const std::string& type) {
@@ -577,6 +641,11 @@ std::string ControllerCaps::GetID() const {
     return name.ToStdString();
 }
 
+std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
+    if (!SupportsSmartRemotes())
+        return std::vector<std::string>();
+    return GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
+}
 
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
@@ -592,7 +661,13 @@ void ControllerCaps::Dump() const
     if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
     if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
     if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
-    if (SupportsSmartRemotes()) logger_base.debug("   Supports smart remotes.");
+    if (SupportsSmartRemotes()) {
+        logger_base.debug("   Supports smart remotes.");
+        logger_base.debug("   Supported smart remotes types:");
+        for (const auto& it : GetSmartRemoteTypes()) {
+            logger_base.debug("      " + it);
+        }
+    }
     if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
     if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");
     if (UniversesMustBeInNumericalOrder()) logger_base.debug("   All input universes must be in numerical order.");

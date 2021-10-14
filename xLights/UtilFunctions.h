@@ -17,6 +17,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <vector>
 
 #include <locale>
 #include <codecvt>
@@ -34,6 +35,7 @@ std::string DecodeIPError(wxSocketError err);
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);
 wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
+std::vector<std::string> Split(const std::string& s, const std::vector<char>& delimiters);
 bool DeleteDirectory(std::string directory);
 bool IsIPValid(const std::string& ip);
 bool IsEmailValid(const std::string& email);

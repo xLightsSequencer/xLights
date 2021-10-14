@@ -221,6 +221,30 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
     return res;
 }
 
+std::vector<std::string> Split(const std::string& s, const std::vector<char>& delimiters) {
+    std::vector<std::string> res;
+
+    std::string w;
+    for (const auto it : s) {
+        bool delim = false;
+        for (auto it2 : delimiters) {
+            if (it == it2) {
+                delim = true;
+                break;
+            }
+        }
+        if (delim) {
+            res.push_back(w);
+            w = "";
+        } else {
+            w += it;
+        }
+    }
+    res.push_back(w);
+
+    return res;
+}
+
 
 static bool doesFileExist(const wxString &dir, const wxString &origFileWin, const wxString &origFileUnix, wxString &path) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

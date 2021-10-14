@@ -2334,9 +2334,19 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "B";
                 } else if (pvs->_smartRemote == 3) {
                     vsname += "C";
+                } else if (pvs->_smartRemote == 4) {
+                    vsname += "D";
+                } else if (pvs->_smartRemote == 5) {
+                    vsname += "E";
+                } else if (pvs->_smartRemote == 6) {
+                    vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
+                    if (pvs->_smartRemoteType.find("v2") != std::string::npos) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 4;
+                    } else {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
+                    }
                 }
 
                 stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
@@ -2365,16 +2375,30 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if ((x & 0x3) == 0) {
             //need to check the group of 4 to see if we need a smartRemote or not
             int remoteType = 0;
+            bool remoteTypeV2 = false;
             for (int z = 0; z < 4; z++) {
                 if ((x + z) < maxport) {
-                    if (stringData["outputs"][x+z].HasMember("virtualStringsC")) {
+                    if (stringData["outputs"][x + z].HasMember("virtualStringsF")) {
+                        remoteType = std::max(remoteType, 6);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsE")) {
+                        remoteType = std::max(remoteType, 5);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsD")) {
+                        remoteType = std::max(remoteType, 4);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsC")) {
                         remoteType = std::max(remoteType, 3);
                     } else if (stringData["outputs"][x+z].HasMember("virtualStringsB")) {
                         remoteType = std::max(remoteType, 2);
                     } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
+                    if (stringData["outputs"][x + z].HasMember("differentialType") && 
+                        stringData["outputs"][x + z]["differentialType"].AsLong() > 3) {
+                        remoteTypeV2 = true;
+                    }
                 }
+            }
+            if (remoteTypeV2) {
+                remoteType += 3;
             }
             if (remoteType) {
                 for (int z = 0; z < 4; z++) {

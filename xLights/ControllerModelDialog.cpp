@@ -71,6 +71,7 @@ const long ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -432,6 +433,9 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
     if (_type == PORTTYPE::PIXEL || _type == PORTTYPE::SERIAL) {
         mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
     }
+    if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
+        mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
+    }
     mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove all models from port");
     if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
         mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move all models to port");
@@ -549,6 +553,17 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 }
             }
             return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE) {
+            wxArrayString choices;
+            if (_caps != nullptr) {
+                wxSingleChoiceDialog dlg(parent, "Port Smart Remote Type", "Smart Remote Type", choices);
+                if (dlg.ShowModal() == wxID_OK) {
+                    for (const auto& it : GetUDPort()->GetModels()) {
+                        it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -777,10 +792,25 @@ public:
                 int srcount = _caps->GetSmartRemoteCount();
 
                 auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
-                if (GetModel()->GetSmartRemote() == 0) mi->Check();
+                if (GetModel()->GetSmartRemote() == 0)
+                    mi->Check();
                 for (int i = 0; i < srcount; i++) {
                     mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
-                    if (GetModel()->GetSmartRemote() == i+1) mi->Check();
+                    if (GetModel()->GetSmartRemote() == i + 1)
+                        mi->Check();
+                }
+
+                if (_caps->GetSmartRemoteTypes().size() > 1) {
+                    wxMenu* srType = new wxMenu();
+                    for (auto const& smtype : _caps->GetSmartRemoteTypes()) {
+                        mi = srType->AppendRadioItem(wxNewId(), smtype);
+                        if (GetModel()->GetSmartRemoteType() == smtype) {
+                            mi->Check();
+                        }
+                    }
+                    srMenu->AppendSeparator();
+                    srMenu->AppendSubMenu(srType, "Type");
+                    srType->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 }
                 srMenu->AppendSeparator();
                 mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
@@ -856,9 +886,14 @@ public:
             GetModel()->ClearControllerBrightness();
             return true;
         }
-        else         {
+        else{
             wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
-            if (label == "None") {
+            auto const types = GetModel()->GetSmartRemoteTypes();
+            if (std::find(types.begin(), types.end(), label.ToStdString()) 
+                != types.end()) {
+                GetModel()->SetSmartRemoteType(label);
+            }
+            else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
                 return true;
             }
@@ -2535,6 +2570,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     if (m->GetSmartRemote() != 0) {
        sr = "Smart Remote: ";
        sr += m->GetSmartRemoteLetter();
+       sr += wxString::Format("\nSmart Remote Type: %s", m->GetSmartRemoteType());
        sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
        sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
        sr += "\n";

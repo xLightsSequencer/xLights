@@ -20,6 +20,28 @@
 class Controller;
 class BaseController;
 
+struct SmartRemote
+{
+    explicit SmartRemote() {}
+    explicit SmartRemote(std::string _name) :
+        Name(std::move(_name))
+    {}
+
+    explicit SmartRemote(std::string _name, std::string _desp, int _ports, int _count, std::vector<std::string> _numbering) :
+        Name(std::move(_name)),
+        Desp(std::move(_desp)),
+        Ports(_ports),
+        Count(_count),
+        ID_Numbering(std::move(_numbering))
+    {}
+
+    std::string Name;
+    std::string Desp;
+    int Ports{4};
+    int Count{3};
+    std::vector<std::string> ID_Numbering;
+};
+
 class ControllerCaps
 {
     #pragma region Member Variables
@@ -30,6 +52,7 @@ class ControllerCaps
 
     #pragma region Static Variables
     static std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> __controllers;
+    static std::vector<std::unique_ptr<SmartRemote>> __smartRemotes;
     #pragma endregion
 
     bool SupportsPixelPortCommonSettings() const;
@@ -44,6 +67,9 @@ public:
     #pragma region Static Functions
     static void LoadControllers();
     static void UnloadControllers();
+
+    static void LoadSmartRemoteTypes(const std::string& folder);
+    static void UnloadSmartRemoteTypes();
 
     static std::list<std::string> GetVendors(const std::string& type);
     static std::list<std::string> GetModels(const std::string& type, const std::string& vendor);
@@ -114,6 +140,7 @@ public:
     std::vector<std::string> GetPixelProtocols() const;
     std::vector<std::string> GetSerialProtocols() const;
     std::vector<std::string> GetAllProtocols() const;
+    std::vector<std::string> GetSmartRemoteTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     

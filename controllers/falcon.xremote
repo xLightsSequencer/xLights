@@ -1,0 +1,14 @@
+<Remotes>
+    <Remote Name="falcon_v2">
+        <Description>Falcon 4 Port v2</Description> 
+        <Ports>4</Ports>
+        <Count>6</Count>
+        <IDS>A,B,C,D,E,F</IDS>
+    </Remote>
+    <Remote Name="falcon_v1">
+        <Description>Falcon 4 Port v1</Description>
+        <Ports>4</Ports>
+        <Count>3</Count>
+        <IDS>A,B,C</IDS>
+    </Remote>
+</Remotes>

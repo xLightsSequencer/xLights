@@ -1,0 +1,8 @@
+<Remotes>
+    <Remote Name="fpp_v2">
+        <Description>Falcon 4 Port v2</Description> 
+        <Ports>4</Ports>
+        <Count>6</Count>
+        <IDS>4,5,6,7,8,9</IDS>
+    </Remote>
+</Remotes>

@@ -152,6 +152,7 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
@@ -1788,13 +1789,13 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
 
     // get the first controller connection
-    wxXmlNode *cc = nullptr;
+    Model *m = nullptr;
 
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
             std::string protocol = model->GetControllerProtocol();
             if (protocol != "") {
-                cc = model->GetControllerConnection();
+                m = model;
                 break;
             }
         }
@@ -1831,9 +1832,12 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT;
     }
+    else if (id == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE) {
+        ccbe = controller_connection_bulkedit::CEBE_SMARTREMOTETYPE;
+    }
 
     ControllerConnectionDialog dlg(this, ccbe);
-    dlg.Set(cc);
+    dlg.Set(m);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
@@ -4313,6 +4317,7 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
         if (IsAllSelectedModelsArePixelProtocol())
         {
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SMARTREMOTE, "Controller Smart Remote");
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE, "Controller Smart Remote Type");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
@@ -4516,7 +4521,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
         event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT||
+        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE
         )
     {
         BulkEditControllerConnection(event.GetId());
@@ -6995,7 +7001,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
         event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE
         )
     {
         BulkEditControllerConnection(event.GetId());

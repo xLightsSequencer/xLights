@@ -39,6 +39,7 @@ class UDControllerPortModel
     int32_t _universeStartChannel = -1;
     std::string _protocol;
     int _smartRemote = -1;
+    std::string _smartRemoteType;
     #pragma endregion
 
     #pragma region Private Functions
@@ -74,6 +75,7 @@ public:
 
     int GetSmartRemote() const { return _smartRemote; }
     char GetSmartRemoteLetter() const;
+    std::string GetSmartRemoteType() { return _smartRemoteType; }
 
     float GetAmps(int defaultBrightness) const;
     int GetSmartTs(int currentTs) const;
@@ -129,6 +131,7 @@ struct UDVirtualString
     int _ts = 0;
     std::string _reverse;
     int _channelsPerPixel = -1;
+    std::string _smartRemoteType;
     std::list<UDControllerPortModel*> _models;
 };
 

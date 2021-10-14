@@ -1,0 +1,20 @@
+<Remotes>
+    <Remote Name="hinkspix_4">
+        <Description>Hinkspix 4 Port</Description> 
+        <Ports>4</Ports>
+        <Count>16</Count>
+        <IDS>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</IDS>
+    </Remote>
+    <Remote Name="hinkspix_16">
+        <Description>Hinkspix 16 Port</Description> 
+        <Ports>16</Ports>
+        <Count>16</Count>
+        <IDS>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</IDS>
+    </Remote>
+    <Remote Name="hinkspix_16ac">
+        <Description>Hinkspix 16 Port AC</Description> 
+        <Ports>16</Ports>
+        <Count>16</Count>
+        <IDS>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</IDS>
+    </Remote>
+</Remotes>

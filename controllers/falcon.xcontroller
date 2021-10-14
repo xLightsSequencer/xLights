@@ -59,6 +59,9 @@
             <Protocol>ddp</Protocol>
         </InputProtocols>
 		<NeedsDDPInputUpload/>
+        <SmartRemoteTypes>
+            <Type>falconv1</Type>
+        </SmartRemoteTypes>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">
@@ -190,6 +193,9 @@
             <Protocol>ddp</Protocol>
             <Protocol>zcpp</Protocol>
         </InputProtocols>
+        <SmartRemoteTypes>
+            <Type>falcon_v2</Type>
+        </SmartRemoteTypes>
     </AbstractVariant>
 	<Controller Name="F16V4">
 		<Variant Name="16 Local Ports" Base="Falcon:BaseV4FalconSettings">
