@@ -520,6 +520,8 @@
 		<Unit filename="EmailDialog.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="ExportSettings.cpp" />
+		<Unit filename="ExportSettings.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
