@@ -10,10 +10,7 @@
 
 // free functions to create a CSV/Printing export configuration
 #include "ExportSettings.h"
-
 #include "UtilFunctions.h"
-
-#include <wx/dnd.h>
 
 #include <wx/window.h>
 #include <wx/choicdlg.h>

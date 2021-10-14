@@ -11,9 +11,6 @@
  **************************************************************/
 
 // free functions to create a CSV/Printing export configuration
-//#include <wx/dnd.h>
-//#include <wx/msgdlg.h>
-
 class wxWindow;
 
 namespace ExportSettings {
