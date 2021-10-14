@@ -2198,8 +2198,8 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_ARROW);
 }
 
-bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message)
-{
+bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2261,7 +2261,7 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
 }
 
 bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& message) {
-
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
