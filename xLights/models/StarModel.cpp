@@ -54,8 +54,9 @@ StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBase
 
     auto dir = node->GetAttribute("Dir", "");
     auto startSide = node->GetAttribute("StartSide", "");
+    auto startStartLocation = node->GetAttribute("StarStartLocation", "");
 
-    if (dir != "" || startSide != "") {
+    if (startStartLocation == "" && (dir != "" || startSide != "")) {
         if (dir == "") dir = "L";
         if (startSide == "") startSide = "B";
 
