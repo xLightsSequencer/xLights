@@ -1457,6 +1457,7 @@ int ScheduleManager::CheckSchedule()
             if (toUnsuspend != nullptr) {
                 logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char*)toUnsuspend->GetSchedule()->GetName().c_str());
                 framems = toUnsuspend->GetPlayList()->Suspend(false);
+                toUnsuspend->GetSchedule()->DidFire();
             }
         }
         else {

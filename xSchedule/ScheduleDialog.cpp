@@ -258,6 +258,12 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	// Allow schedule priorities to go to 11 which puts the schedule above queued playlists
 	SpinCtrl_Priority->SetRange(1,Schedule::GetMaxSchedulePriority());
 
+	Choice_FireFrequency->Append(_("Fire every 5 minutes"));
+#ifdef _DEBUG
+	Choice_FireFrequency->Append(_("Fire every 2 minutes"));
+#endif
+
+
     TextCtrl_Name->SetValue(schedule->GetName());
     TextCtrl_OnTime->SetValue(schedule->GetStartTimeAsString());
     TextCtrl_OffTime->SetValue(schedule->GetEndTimeAsString());
@@ -287,10 +293,6 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     Choice_FireFrequency->SetToolTip("Times are relative to schedule start time.");
 
     SetEscapeId(Button_Cancel->GetId());
-
-#ifdef _DEBUG
-    Choice_FireFrequency->Append(_("Fire every 2 minutes"));
-#endif
 
     ValidateWindow();
 }

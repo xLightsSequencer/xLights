@@ -19,6 +19,7 @@ std::string Schedule::__city = "Sydney";
 
 Schedule::Schedule(wxXmlNode* node)
 {
+    _lastFired = wxDateTime::Now() - wxTimeSpan(2, 0, 0, 0); // set the last time at least 2 hours ago
     _id = __scheduleid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
@@ -72,6 +73,11 @@ wxDateTime Schedule::GetNextFireTime() const
         while (res <= now)
         {
             res.Add(wxTimeSpan(0, 10));
+        }
+    }
+    else if (_fireFrequency == "Fire every 5 minutes") {
+        while (res <= now) {
+            res.Add(wxTimeSpan(0, 5));
         }
     }
     else if (_fireFrequency == "Fire every 2 minutes")
@@ -425,48 +431,96 @@ bool Schedule::CheckActive()
 
 bool Schedule::ShouldFire() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool fire = true;
     wxDateTime start = GetStartTime();
+    wxTimeSpan gap = wxDateTime::Now() - _lastFired;
+    wxTimeSpan sinceStart = wxDateTime::Now() - start;
 
     int minute = wxDateTime::Now().GetMinute();
 
-    if (_fireFrequency == "Fire every hour")
-    {
-        if (minute == start.GetMinute()) return true;
-        return false;
-    }
-    else if (_fireFrequency == "Fire every 30 minutes")
-    {
-        if (minute == start.GetMinute() || minute == (start.GetMinute() + 30) % 60) return true;
-        return false;
-    }
-    else if (_fireFrequency == "Fire every 20 minutes")
-    {
-        if (minute == start.GetMinute() || minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 40) % 60) return true;
-        return false;
-    }
-    else if (_fireFrequency == "Fire every 15 minutes")
-    {
-        if (minute == start.GetMinute() || minute == (start.GetMinute() + 15) % 60 || 
-            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 45) % 60) return true;
-        return false;
-    }
-    else if (_fireFrequency == "Fire every 10 minutes")
-    {
-        if (minute == start.GetMinute() || minute == (start.GetMinute() + 10) % 60 || 
-            minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 30) % 60 || 
-            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 50) % 60) return true;
-        return false;
-    }
-    else if (_fireFrequency == "Fire every 2 minutes")
-    {
-        for (int i = 0; i < 60; i += 2)
-        {
-            if (minute == (start.GetMinute() + i) % 60) return true;
+    if (_fireFrequency == "Fire every hour") {
+        fire = false;
+        if (minute == start.GetMinute() ||
+            gap.IsLongerThan(wxTimeSpan(0, 59, 59, 9999)) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0,59,59,9999))) {
+            fire = true;
         }
-        return false;
+    }
+    else if (_fireFrequency == "Fire every 30 minutes") {
+        fire = false;
+        if (minute == start.GetMinute() || minute == (start.GetMinute() + 30) % 60 ||
+            gap.IsLongerThan(wxTimeSpan(0, 29, 59, 9999)) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 29, 59, 9999))) {
+            fire = true;
+        }
+    }
+    else if (_fireFrequency == "Fire every 20 minutes") {
+        fire = false;
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 20) % 60 ||
+            minute == (start.GetMinute() + 40) % 60 ||
+            gap.IsLongerThan(wxTimeSpan(0, 19, 59, 9999))) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 19, 59, 9999))) {
+            fire = true;
+        }
+    }
+    else if (_fireFrequency == "Fire every 15 minutes") {
+        fire = false;
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 15) % 60 ||
+            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 45) % 60 ||
+            gap.IsLongerThan(wxTimeSpan(0, 14, 59, 9999))) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 14, 59, 9999))) {
+            fire = true;
+        }
+    }
+    else if (_fireFrequency == "Fire every 10 minutes") {
+        fire = false;
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 10) % 60 ||
+            minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 30) % 60 ||
+            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 50) % 60 ||
+            gap.IsLongerThan(wxTimeSpan(0, 9, 59, 9999))) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 9, 59, 9999))) {
+            fire = true;
+        }
+    }
+    else if (_fireFrequency == "Fire every 5 minutes") {
+        fire = false;
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 5) % 60 ||
+            minute == (start.GetMinute() + 10) % 60 || minute == (start.GetMinute() + 15) % 60 ||
+            minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 25) % 60 ||
+            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 35) % 60 ||
+            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 45) % 60 ||
+            minute == (start.GetMinute() + 50) % 60 || minute == (start.GetMinute() + 55) % 60 ||
+            gap.IsLongerThan(wxTimeSpan(0, 4, 59, 9999))) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 4, 59, 9999))) {
+            fire = true;
+        }
+    }
+    else if (_fireFrequency == "Fire every 2 minutes") {
+        fire = false;
+        if (gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 1, 59, 9999))) {
+            for (int i = 0; i < 60; i += 2) {
+                if (minute == (start.GetMinute() + i) % 60 ||
+                    gap.IsLongerThan(wxTimeSpan(0, 1, 59, 9999))) {
+                    fire = true;
+                    break;
+                }
+            }
+        }
     }
 
-    return true;
+    if (fire) {
+        logger_base.debug("Schedule %s should fire now.", (const char*)_name.c_str());
+    }
+
+    return fire;
+}
+
+void Schedule::DidFire()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Schedule %s did fire.", (const char*)_name.c_str());
+    _lastFired = wxDateTime::Now();
 }
 
 //#define LOGCALCNEXTTRIGGERTIME
