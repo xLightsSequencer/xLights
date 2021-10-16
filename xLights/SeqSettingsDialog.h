@@ -266,6 +266,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_Button_WizardDoneClick(wxCommandEvent& event);
 		void OnButton_ModelsChoiceNext(wxCommandEvent& event);
 		void OnViewSelect(wxCommandEvent& event);
+		void OnTextCtrl_Xml_Seq_DurationLoseFocus(wxFocusEvent& event);
 
         DECLARE_EVENT_TABLE()
 

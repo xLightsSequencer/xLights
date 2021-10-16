@@ -416,7 +416,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
 
-    
+    TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
+
     TreeCtrl_Data_Layers->AddRoot("Layers to Render");
     Button_Close->SetDefault();
 
@@ -515,6 +516,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     _plog->Show(false);
     SetEscapeId(Button_Cancel->GetId());
     ValidateWindow();
+}
+
+void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus(wxFocusEvent& event)
+{
+    UpdateSequenceTiming();
+    event.Skip();
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -848,15 +855,17 @@ bool SeqSettingsDialog::UpdateSequenceTiming()
     if (duration < 0.05) duration = 0.05;
 
     bool cont = true;
-    if (duration > 3600) {
-        if (wxMessageBox("Are you sure you want a sequence longer than an hour. This will consume a large amount of memory and is likely to crash xLights.", "Excessively long sequence detected.", wxYES_NO, this) == wxNO)                 {
-            cont = false;
+    if ((long)(duration * 1000.0) != xml_file->GetSequenceDurationMS()) {
+        if (duration > 3600) {
+            if (wxMessageBox("Are you sure you want a sequence longer than an hour. This will consume a large amount of memory and is likely to crash xLights.", "Excessively long sequence detected.", wxYES_NO, this) == wxNO) {
+                cont = false;
+            }
         }
-    }
-    if (cont) {
-        xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
-        xLightsParent->UpdateSequenceLength();
-        xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
+        if (cont) {
+            xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
+            xLightsParent->UpdateSequenceLength();
+            xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
+        }
     }
 
     return cont;
