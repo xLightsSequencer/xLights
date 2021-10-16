@@ -501,6 +501,26 @@ int ControllerCaps::GetBankSize() const
     return wxAtoi(GetXmlNodeContent(_config, "BankSize", "16"));
 }
 
+int ControllerCaps::GetMaxStartNullPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxStartNulls", "-1"));
+}
+
+int ControllerCaps::GetMaxEndNullPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxEndNulls", "-1"));
+}
+
+int ControllerCaps::GetMaxGroupPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
+}
+
+int ControllerCaps::GetMinGroupPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));
+}
+
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
 
     auto pp = GetPixelProtocols();

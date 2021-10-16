@@ -206,6 +206,23 @@ bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort
     }
     if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount()) {
         res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
+        success = false;
+    }
+    if (rules->GetMaxStartNullPixels() >= 0 && GetStartNullPixels(-1) > rules->GetMaxStartNullPixels()) {
+        res += wxString::Format("ERR: Model %s has too many start NULL pixels : %d. Maximum %d.\n", GetName(), GetStartNullPixels(-1), rules->GetMaxStartNullPixels());
+        success = false;
+    }
+    if (rules->GetMaxEndNullPixels() >= 0 && GetEndNullPixels(-1) > rules->GetMaxEndNullPixels()) {
+        res += wxString::Format("ERR: Model %s has too many end NULL pixels : %d. Maximum %d.\n", GetName(), GetEndNullPixels(-1), rules->GetMaxEndNullPixels());
+        success = false;
+    }
+    if (rules->GetMaxGroupPixels() >= 0 && GetGroupCount(-1) > rules->GetMaxGroupPixels()) {
+        res += wxString::Format("ERR: Model %s has too many grouped pixels : %d. Maximum %d.\n", GetName(), GetGroupCount(-1), rules->GetMaxGroupPixels());
+        success = false;
+    }
+    if (rules->GetMinGroupPixels() >= 0 && GetGroupCount(999) < rules->GetMinGroupPixels()) {
+        res += wxString::Format("ERR: Model %s has too few grouped pixels : %d. Minimum %d.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
+        success = false;
     }
     return success;
 }
