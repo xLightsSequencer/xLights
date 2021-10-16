@@ -114,18 +114,24 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&StartChannelDialog::OnStartChannelChange);
 	Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnipChoiceSelect);
+	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnuniverseChoiceSelect);
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnModelChoiceSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON6,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnChoiceControllerSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_CancelClick);
 	//*)
 
     SetEscapeId(ID_BUTTON2);
+
+    ValidateWindow();
 }
 
 StartChannelDialog::~StartChannelDialog()
@@ -172,6 +178,8 @@ void StartChannelDialog::UpdateModels(Model* model)
     ModelChoice->Thaw();
 
     ModelChoice->SetStringSelection(selected);
+
+    ValidateWindow();
 }
 
 void StartChannelDialog::Set(const wxString &s, const ModelManager &models, const std::string& preview, Model* model) {
@@ -304,6 +312,8 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
     }
 
     StartChannel->SetValue(start);
+
+    ValidateWindow();
 }
 
 std::string StartChannelDialog::Get() {
@@ -330,33 +340,96 @@ std::string StartChannelDialog::Get() {
     return std::to_string(StartChannel->GetValue());
 }
 
-void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
+void StartChannelDialog::ValidateWindow()
 {
+    bool ok = true;
+    bool requiresModel = false;
+    bool requiresController = false;
+
     if (NoneButton->GetValue()) {
         ModelChoice->Disable();
         ipChoice->Disable();
         universeChoice->Disable();
         ChoiceController->Disable();
-    } else if (UniverseButton->GetValue()) {
+    }
+    else if (UniverseButton->GetValue()) {
         ModelChoice->Disable();
         ipChoice->Enable();
         universeChoice->Enable();
         ChoiceController->Disable();
-    } else if (ControllerButton->GetValue()) {
+    }
+    else if (ControllerButton->GetValue()) {
+        requiresController = true;
         ModelChoice->Disable();
         ipChoice->Disable();
         universeChoice->Disable();
         ChoiceController->Enable();
-    } else {
+    }
+    else {
+        requiresModel = true;
         ModelChoice->Enable();
         ipChoice->Disable();
         universeChoice->Disable();
         ChoiceController->Disable();
     }
 
+    bool warnSC = false;
+    if (requiresController) {
+        if (ChoiceController->GetStringSelection() == "") {
+            ok = false;
+            ChoiceController->SetHelpText("A controller name must be selected.");
+            ChoiceController->SetBackgroundColour(*wxRED);
+        }
+        else {
+            ChoiceController->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            auto controller = _outputManager->GetController(ChoiceController->GetStringSelection());
+            if (controller != nullptr) {
+                if (StartChannel->GetValue() > controller->GetChannels()) {
+                    warnSC = true;
+                    StartChannel->SetHelpText(wxString::Format("WARNING: Start channel is greater than the number of channels on controller %s : %d", controller->GetName(), controller->GetChannels()));
+                }
+            }
+        }
+    }
+
+    if (requiresModel) {
+        if (ModelChoice->GetStringSelection() == "") {
+            ok = false;
+            ModelChoice->SetHelpText("A model name must be selected.");
+            ModelChoice->SetBackgroundColour(*wxRED);
+        }
+        else {
+            ModelChoice->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            if (_model != nullptr) {
+                auto ref = _model->GetModelManager()[ModelChoice->GetStringSelection()];
+                if (ref != nullptr) {
+                    if (StartChannel->GetValue() > (long)ref->GetChanCount()) {
+                        warnSC = true;
+                        StartChannel->SetHelpText(wxString::Format("WARNING: Start channel is greater than the number of channels on model %s : %u", ref->GetName(), ref->GetChanCount()));
+                    }
+                }
+            }
+        }
+    }
+
+    if (warnSC) {
+        StartChannel->SetBackgroundColour(xlORANGE.asWxColor());
+    }
+    else {
+        StartChannel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        StartChannel->SetHelpText("");
+    }
+
+    Button_Ok->Enable(ok);
+}
+
+void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
+{
     if (ModelButton->GetValue() || StartModelButton->GetValue()) {
         StartChannel->SetValue(1);
     }
+
+    ValidateWindow();
 }
 
 void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
@@ -412,16 +485,19 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     {
         universeChoice->SetSelection(0);
     }
+    ValidateWindow();
 }
 
 void StartChannelDialog::OnipChoiceSelect(wxCommandEvent& event)
 {
     SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
+    ValidateWindow();
 }
 
 void StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event)
 {
     UpdateModels(_model);
+    ValidateWindow();
 }
 
 void StartChannelDialog::OnButton_OkClick(wxCommandEvent& event)
@@ -432,4 +508,24 @@ void StartChannelDialog::OnButton_OkClick(wxCommandEvent& event)
 void StartChannelDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
+}
+
+void StartChannelDialog::OnModelChoiceSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void StartChannelDialog::OnuniverseChoiceSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void StartChannelDialog::OnStartChannelChange(wxSpinEvent& event)
+{
+    ValidateWindow();
+}
+
+void StartChannelDialog::OnChoiceControllerSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
