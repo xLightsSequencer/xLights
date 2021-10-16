@@ -639,7 +639,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         // if multi models in this cache then only call save when none of them have null pointers at the end
         for (const auto& itm : _frames)
         {
-            if (itm.second.back() == nullptr)
+            if (itm.second.size() == 0 || itm.second.back() == nullptr)
             {
                 //logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
                 return;
