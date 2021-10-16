@@ -408,6 +408,11 @@ bool ControllerCaps::SupportsSerialInputProtols() const
     return false;
 }
 
+bool ControllerCaps::NeedsFullUniverseForDMX() const
+{
+    return DoesXmlNodeExist(_config, "NeedsFullUniverseForSerial");
+}
+
 bool ControllerCaps::SupportsPixelPortNullPixels() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
