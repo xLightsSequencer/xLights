@@ -11,6 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.33 October 16, 2021
+   -- enh (keith) Add in validations for null pixels and group maximums for controllers
+   -- enh (keith) Add in a bunch of validations on the start channel dialog
+   -- enh (keith) Add ability to save/load dmx effect mappings
+   -- enh (keith) Double click on model removes it from the port.
+   -- enh (keith) When double clicking to add model to port scroll the controller so it is visible
+   -- enh (scott) Add detailed messages to multi controller upload
+   -- enh (scott) Enhance visualiser exporr with start channel and pixel count properties
+   -- bug (keith) Put in some protections for stupid long sequences in sequence settings. Also defer actually setting the sequence length until it is actually required.
+   -- bug (keith) Fix batch render shows sequences in backup folders even when told not to
+   -- bug (keith) Fix some artificial WS2811 protocol chips not showing in protocol list
+   -- bug (keith) Fix fire more than once sequences repeat fire if less than 1 minute long
+   -- bug (keith) Fix stars converting from old start location properties can end up corrupting rgbeffects file
+   -- bug (keith) Force Falcon V3 smart remote uploads to be one pixel for unused ports
+   -- bug (keith) Fix hide models on other controllers on visualiser does not always make sense
+   -- bug (keith) Fix windows stack walks are broken
+   -- bug (keith) Add filename checks to many effect properties to prevent filenames that wont save correctly
+   -- bug (keith) Add exception handler to prevent .net plugins crashing xSchedule
+   -- bug (keith) Fix hangs when zooming in on layout with grid visible
+   -- bug (keith) Fix some rendered face issues. This likely breaks anyone still using xLights 3 face effect definitions ... but it is time to get with the times guys.
+   -- bug (dkulp) Fix occasional corruption of FPP serial outputs
+   -- bug (dkulp) Fix issues with single channel custom models in groups not rendering simple things like "On" effects properly if Horiz/Vert per model selected.
+   -- bug (scott) Fix empty import view crash
+   -- bug (scott) Fix check sequence crash if no controller port assigned on a model
 2021.32 October 10, 2021
    -- enh (keith) Add an optional alignment grid to the 2D layout
    -- enh (keith) Increase 3D clipping depth on layout for larger displays

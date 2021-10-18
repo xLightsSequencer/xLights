@@ -2155,10 +2155,10 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
                 wxMessageBox("FPP " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
             }
         }
-
-        if (UploadInputToController(controller)) {
+        wxString message;
+        if (UploadInputToController(controller, message)) {
             if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
-                UploadOutputToController(controller);
+                UploadOutputToController(controller, message);
             }
         }
     }
@@ -2183,22 +2183,23 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
         }
 
         bool ok = true;
+        wxString message;
         auto caps = GetControllerCaps(controller->GetName());
         if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
             SetStatusText("Uploading inputs and outputs.");
-            ok = UploadInputToController(controller);
+            ok = UploadInputToController(controller, message);
         } else {
             SetStatusText("Uploading outputs");
         }
 
-        if (ok) UploadOutputToController(controller);
+        if (ok) UploadOutputToController(controller, message);
     }
 
     SetCursor(wxCURSOR_ARROW);
 }
 
-bool xLightsFrame::UploadInputToController(Controller* controller)
-{
+bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2226,40 +2227,41 @@ bool xLightsFrame::UploadInputToController(Controller* controller)
                 if (bc->IsConnected()) {
                     if (bc->SetInputUniverses(controller, this)) {
                         logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                        SetStatusText(vendor + " Input Upload complete.");
+                        message = vendor + " Input Upload complete.";
                         res = true;
                     }
                     else {
                         logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                        SetStatusText(vendor + " Input Upload failed.");
+                        message = vendor + " Input Upload failed.";
                     }
                 }
                 else {
-                    SetStatusText(vendor + " Input Upload Failed. Unable to connect");
+                    message = vendor + " Input Upload Failed. Unable to connect";
                 }
                 delete bc;
             }
             else {
                 logger_base.error("Unable to create base controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                SetStatusText(vendor + " Input Upload not supported.");
+                message = vendor + " Input Upload not supported.";
             }
         }
         else {
             // This controller does not support uploads
             logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-            SetStatusText("Upload not supported.");
+            message = "Upload inputs not supported.";
         }
     }
     else {
         logger_base.error("Unable to find controller capabilities info.");
-        SetStatusText("Upload not supported.");
+        message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
+    SetStatusText(message);
     return res;
 }
 
-bool xLightsFrame::UploadOutputToController(Controller* controller) {
-
+bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& message) {
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2287,26 +2289,28 @@ bool xLightsFrame::UploadOutputToController(Controller* controller) {
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText(vendor + " Output Upload Complete.");
+                        message = vendor + " Output Upload Complete.";
                         res = true;
                     } else {
-                        SetStatusText(vendor + " Output Upload Failed.");
+                        message = vendor + " Output Upload Failed.";
                     }
                 } else {
-                    SetStatusText(vendor + " Output Upload Failed. Unable to connect");
+                    message = vendor + " Output Upload Failed. Unable to connect";
                 }
                 delete bc;
             } else {
-                SetStatusText(vendor + " Output Upload Failed.");
+                message = vendor + " Output Upload Failed.";
             }
         } else {
             logger_base.error("Controller does not support upload.");
+            message = "Controller does not support upload.";
         }
     } else {
         logger_base.error("Unable to find controller capabilities info.");
+        message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
-
+    SetStatusText(message);
     return res;
 }
 #pragma endregion

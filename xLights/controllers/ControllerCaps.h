@@ -110,6 +110,7 @@ public:
     bool SupportsPixelPortColourOrder() const;
     bool SupportsEthernetInputProtols() const;
     bool SupportsSerialInputProtols() const;
+    bool NeedsFullUniverseForDMX() const;
 
     int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;
@@ -123,6 +124,10 @@ public:
     int GetMinInputUniverseChannels() const;
     int GetNumberOfBanks() const;
     int GetBankSize() const;
+    int GetMaxStartNullPixels() const;
+    int GetMaxEndNullPixels() const;
+    int GetMaxGroupPixels() const;
+    int GetMinGroupPixels() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;

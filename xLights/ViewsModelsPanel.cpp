@@ -325,7 +325,11 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
     for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
-        if (e != nullptr && e->GetType() == ElementType::ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr) {
+        if (!_sequenceElements->IsValidElement(e)) {
+            // This should never happen ... but it does so stop it crashing
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+        }
+        else if (e != nullptr && e->GetType() == ElementType::ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr) {
             delete e;
             ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
         }

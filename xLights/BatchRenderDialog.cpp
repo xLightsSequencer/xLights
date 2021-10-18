@@ -178,7 +178,7 @@ void BatchRenderDialog::GetFolderList(const wxString& folder)
     }
     subfolders.Sort();
     for (const auto& subfolder: subfolders) {
-        if(subfolder.StartsWith("Backup/") && subfolder.StartsWith("Backup\\"))
+        if(subfolder.StartsWith("Backup/") || subfolder.StartsWith("Backup\\"))
             continue;
         if (subfolder.StartsWith("."))
             continue;
@@ -254,7 +254,7 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             break;
         case 1:
             FolderChoice->Enable();
-            if (!name.StartsWith("Backup/") && !name.StartsWith("Backup\\") && isFileInFolder(name)) {
+            if (!name.StartsWith("Backup/") && !name.StartsWith("Backup\\") && !name.Contains("\\Backup\\") && !name.Contains("/Backup/") && isFileInFolder(name)) {
                 SequenceList->Append(name);
             }
             break;

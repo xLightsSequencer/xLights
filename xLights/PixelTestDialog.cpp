@@ -1238,7 +1238,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxConfigBase* config = wxConfigBase::Get();
     DeserialiseSettings(config->Read("xLightsTestSettings").ToStdString());
 
-    SetSuspend();
+    SetSuspend(false);
 
 	_starttime = wxDateTime::UNow();
 
@@ -1273,6 +1273,8 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
 PixelTestDialog::~PixelTestDialog()
 {
+    SetSuspend(false);
+
 	// need to delete all the TreeController Objects
 	wxTreeListItem root = TreeListCtrl_Outputs->GetRootItem();
 	DestroyTreeControllerData(TreeListCtrl_Outputs, root);
@@ -2323,7 +2325,7 @@ void PixelTestDialog::OnTimer(long curtime)
 
 	if (_checkChannelList)
 	{
-        SetSuspend();
+        SetSuspend(CheckBox_SuppressUnusedOutputs->GetValue());
 
         NextSequenceStart = -1;
 
@@ -3040,12 +3042,12 @@ void PixelTestDialog::SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeLis
 
 void PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick(wxCommandEvent& event)
 {
-    SetSuspend();
+    SetSuspend(CheckBox_SuppressUnusedOutputs->GetValue());
 }
 
-void PixelTestDialog::SetSuspend()
+void PixelTestDialog::SetSuspend(bool suspend)
 {
-    if (CheckBox_SuppressUnusedOutputs->GetValue())
+    if (suspend)
     {
         auto outputs = _outputManager->GetOutputs();
         for (const auto& it : outputs)

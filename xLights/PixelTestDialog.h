@@ -445,7 +445,7 @@ class PixelTestDialog: public wxDialog
         void DeserialiseSettings(const std::string& settings);
         TestFunctions GetTestFunction(int notebookSelection);
         void SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeListItem item, wxCheckBoxState parentState);
-        void SetSuspend();
+        void SetSuspend(bool suspend);
 
 		DECLARE_EVENT_TABLE()
 };

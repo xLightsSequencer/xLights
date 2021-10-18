@@ -3320,19 +3320,40 @@ void xScheduleFrame::UpdateUI(bool force)
                 case Output::PINGSTATE::PING_OPEN:
                 case Output::PINGSTATE::PING_OPENED:
                 case Output::PINGSTATE::PING_WEBOK:
-                    ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(180,255,180));
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    }
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 case Output::PINGSTATE::PING_ALLFAILED:
-                    ListView_Ping->SetItemBackgroundColour(item, *wxRED);
-                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 180, 180));
+                        ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                        ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                    }
                     break;
                 case Output::PINGSTATE::PING_UNAVAILABLE:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemTextColour(item, *wxLIGHT_GREY);
+                    }
+                    else {
+                        ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    }
                     ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
                     break;
                 case Output::PINGSTATE::PING_UNKNOWN:
-                    ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 180, 128));
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    }
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 }

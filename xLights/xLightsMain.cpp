@@ -94,6 +94,7 @@
 #include "TraceLog.h"
 #include "AboutDialog.h"
 #include "ExternalHooks.h"
+#include "ExportSettings.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -1446,7 +1447,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     }
     logger_base.debug("Perspectives loaded.");
 
-    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
+    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, true);
     logger_base.debug("Backup subdirectories: %s.", toStr( _backupSubfolders ));
 
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
@@ -1494,7 +1495,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", toStr( _autoSavePerspecive ));
 
-    config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
+    config->Read("xLightsRenderOnSave", &mRenderOnSave, false);
     logger_base.debug("Render on save: %s.", toStr( mRenderOnSave));
 
     config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
@@ -10019,12 +10020,13 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     }
 
     auto controllers = GetOutputManager()->GetControllers();
+    ExportSettings::SETTINGS exportsettings = ExportSettings::GetSettings(this);
     for (const auto& it : controllers) {
         std::string check;
         UDController cud(it, &_outputManager, &AllModels, check, false);
         wxString const header = it->GetShortDescription() + "\n";
         f.Write(header);
-        std::vector<std::string> const lines = cud.ExportAsCSV(false);
+        std::vector<std::string> const lines = cud.ExportAsCSV(exportsettings);
         for (const auto& line : lines) {
             f.Write(line);
         }

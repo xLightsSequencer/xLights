@@ -147,10 +147,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	media_directories(media_dirs),
 	xLightsParent((xLightsFrame*)parent),
 	selected_branch_index(-1),
-	wizard_active(wizard_active_),
-	selected_view("All Models")
+	selected_view("All Models"),
+    wizard_active(wizard_active_)
 {
     _plog = nullptr;
+    Button_WizardDone = nullptr;
+    BitmapButton_quick_start = nullptr;
 
     musical_seq = wxArtProvider::GetBitmap("xlART_musical_seq");
 	musical_seq_pressed = wxArtProvider::GetBitmap("xlART_musical_seq_pressed");
@@ -190,7 +192,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText_Xml_Seq_Timing;
 
-	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxSYSTEM_MENU|wxBORDER_STATIC, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	Notebook_Seq_Settings = new wxNotebook(this, ID_NOTEBOOK_Seq_Settings, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Seq_Settings"));
 	PanelInfo = new wxPanel(Notebook_Seq_Settings, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
@@ -414,7 +416,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
 
-    
+    TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
+
     TreeCtrl_Data_Layers->AddRoot("Layers to Render");
     Button_Close->SetDefault();
 
@@ -512,6 +515,13 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     _plog = new ConvertLogDialog(this, -1, wxPoint(x,y));
     _plog->Show(false);
     SetEscapeId(Button_Cancel->GetId());
+    ValidateWindow();
+}
+
+void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus(wxFocusEvent& event)
+{
+    UpdateSequenceTiming();
+    event.Skip();
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -740,6 +750,7 @@ void SeqSettingsDialog::ProcessSequenceType()
         StaticText_Warn_No_Media->Hide();
     }
     Fit();
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::SetHash()
@@ -789,11 +800,13 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
     wxASSERT(pFrame != nullptr);
     if (pFrame != nullptr)
         pFrame->UpdateSequenceVideoPanel(path);
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
 {
     MediaChooser();
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
@@ -836,11 +849,31 @@ void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
     xml_file->SetHeaderInfo(xLightsXmlFile::COMMENT, TextCtrl_Xml_Comment->GetValue());
 }
 
+bool SeqSettingsDialog::UpdateSequenceTiming()
+{
+    double duration = wxAtof(TextCtrl_Xml_Seq_Duration->GetValue());
+    if (duration < 0.05) duration = 0.05;
+
+    bool cont = true;
+    if ((long)(duration * 1000.0) != xml_file->GetSequenceDurationMS()) {
+        if (duration > 3600) {
+            if (wxMessageBox("Are you sure you want a sequence longer than an hour. This will consume a large amount of memory and is likely to crash xLights.", "Excessively long sequence detected.", wxYES_NO, this) == wxNO) {
+                cont = false;
+            }
+        }
+        if (cont) {
+            xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
+            xLightsParent->UpdateSequenceLength();
+            xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
+        }
+    }
+
+    return cont;
+}
+
 void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
-    xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
-    xLightsParent->UpdateSequenceLength();
-    xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::PopulateTimingGrid()
@@ -1334,21 +1367,22 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
-    if( needs_render )
-    {
-        if (!xLightsParent->IsSequenceDataValid())
-        {
-            EndModal(NEEDS_RENDER);
+    if (UpdateSequenceTiming()) {
+        if (needs_render) {
+            if (!xLightsParent->IsSequenceDataValid()) {
+                EndModal(NEEDS_RENDER);
+            }
+            else {
+                EndModal(wxID_OK);
+                xLightsParent->RenderAll();
+            }
         }
-        else
-        {
+        else {
             EndModal(wxID_OK);
-            xLightsParent->RenderAll();
         }
     }
-    else
-    {
-        EndModal(wxID_OK);
+    else {
+        event.Skip();
     }
 }
 
@@ -1425,6 +1459,7 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
     ProcessSequenceType();
     xLightsParent->UpdateSequenceLength();
     SetHash();
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::MediaChooser()
@@ -1472,6 +1507,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)
     CheckBox_Overwrite_Tags->SetValue(true);
     MediaChooser();
     WizardPage2();
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
@@ -1483,6 +1519,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     WizardPage2();
+    ValidateWindow();
 }
 
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
@@ -1570,7 +1607,9 @@ void SeqSettingsDialog::OnBitmapButton_xlightsClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_quick_startClick(wxCommandEvent& event)
 {
-	EndModal(wxID_OK);
+    if (UpdateSequenceTiming()) {
+        EndModal(wxID_OK);
+    }
 }
 
 void SeqSettingsDialog::OnButton_skip_importClick(wxCommandEvent& event)
@@ -1595,7 +1634,9 @@ void SeqSettingsDialog::OnButton_ImportTimingsClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Button_WizardDoneClick(wxCommandEvent& event)
 {
-	EndModal(wxID_OK);
+    if (UpdateSequenceTiming()) {
+        EndModal(wxID_OK);
+    }
 }
 
 void SeqSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)
@@ -1674,4 +1715,27 @@ void SeqSettingsDialog::OnRenderModeChoiceSelect(wxCommandEvent& event)
 {
     xml_file->SetRenderMode(RenderModeChoice->GetStringSelection());
     UpdateDataLayer();
+}
+
+void SeqSettingsDialog::ValidateWindow()
+{
+    bool ok = true;
+    double duration = wxAtof(TextCtrl_Xml_Seq_Duration->GetValue());
+    if (duration <= 0.0) {
+        ok = false;
+        TextCtrl_Xml_Seq_Duration->SetBackgroundColour(*wxRED);
+        TextCtrl_Xml_Seq_Duration->SetHelpText("Sequence length is invalid.");
+    }
+    else if (duration > 3600.0) {
+        TextCtrl_Xml_Seq_Duration->SetBackgroundColour(xlORANGE.asWxColor());
+        TextCtrl_Xml_Seq_Duration->SetHelpText("Sequence is excessively long and may crash xLights.");
+    }
+    else {
+        TextCtrl_Xml_Seq_Duration->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        TextCtrl_Xml_Seq_Duration->SetHelpText("");
+    }
+
+    if (Button_WizardDone != nullptr) Button_WizardDone->Enable(ok);
+    Button_Close->Enable(ok);
+    if (BitmapButton_quick_start != nullptr) BitmapButton_quick_start->Enable(ok);
 }

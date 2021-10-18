@@ -189,6 +189,7 @@
     <ClCompile Include="..\xLights\controllers\FPP.cpp" />
     <ClCompile Include="..\xLights\controllers\Pixlite16.cpp" />
     <ClCompile Include="..\xLights\Discovery.cpp" />
+    <ClCompile Include="..\xLights\ExportSettings.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="..\xLights\controllers\FPP.h" />
     <ClInclude Include="..\xLights\controllers\Pixlite16.h" />
     <ClInclude Include="..\xLights\Discovery.h" />
+    <ClInclude Include="..\xLights\ExportSettings.h" />
     <ClInclude Include="..\xLights\JobPool.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h" />

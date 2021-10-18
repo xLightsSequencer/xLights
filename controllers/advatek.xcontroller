@@ -9,6 +9,9 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsAutoLayout/>
+            <MaxStartNulls>10</MaxStartNulls>
+            <MaxGroup>340</MaxGroup>
+            <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -48,6 +51,9 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
+            <MaxStartNulls>10</MaxStartNulls>
+            <MaxGroup>340</MaxGroup>
+            <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
@@ -88,6 +94,9 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+            <MaxStartNulls>10</MaxStartNulls>
+            <MaxGroup>340</MaxGroup>
+            <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
@@ -128,6 +137,9 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
+            <MaxStartNulls>10</MaxStartNulls>
+            <MaxGroup>340</MaxGroup>
+            <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>

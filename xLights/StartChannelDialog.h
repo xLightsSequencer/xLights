@@ -86,7 +86,13 @@ class StartChannelDialog: public wxDialog
 		void OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnModelChoiceSelect(wxCommandEvent& event);
+		void OnuniverseChoiceSelect(wxCommandEvent& event);
+		void OnStartChannelChange(wxSpinEvent& event);
+		void OnChoiceControllerSelect(wxCommandEvent& event);
 		//*)
+
+		void ValidateWindow();
 
 		DECLARE_EVENT_TABLE()
 };

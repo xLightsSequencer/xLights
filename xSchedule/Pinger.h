@@ -33,6 +33,7 @@ class APinger
     ListenerManager* _listenerManager = nullptr;
     std::atomic<int> _failCount;
     bool _isLocal = false;
+    bool _active = true;
 
     void CheckLocal();
 
@@ -52,6 +53,7 @@ class APinger
     void Stop();
     std::string GetIP() const { return _ip; }
     int GetFailCount() const { return  _failCount; }
+    bool IsInactive() const { return !_active; }
     bool IsLocal() const
     {
         return _isLocal;
