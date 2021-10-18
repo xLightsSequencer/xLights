@@ -1447,7 +1447,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     }
     logger_base.debug("Perspectives loaded.");
 
-    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
+    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, true);
     logger_base.debug("Backup subdirectories: %s.", toStr( _backupSubfolders ));
 
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
@@ -1495,7 +1495,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", toStr( _autoSavePerspecive ));
 
-    config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
+    config->Read("xLightsRenderOnSave", &mRenderOnSave, false);
     logger_base.debug("Render on save: %s.", toStr( mRenderOnSave));
 
     config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
