@@ -106,6 +106,7 @@ APinger::APinger(ListenerManager* lm, Controller* controller)
 
     CheckLocal();
 
+    _active = controller->IsActive();
     _lastResult = Output::PINGSTATE::PING_UNKNOWN;
     _failCount = 0;
     _pingThread = new PingThread(this);
