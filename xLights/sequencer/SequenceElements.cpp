@@ -1731,6 +1731,16 @@ bool SequenceElements::IsValidEffect(Effect* ef) const
     return false;
 }
 
+bool SequenceElements::IsValidElement(Element* e) const
+{
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
+        Element* elem = mAllViews[MASTER_VIEW][i];
+        if (e == elem) return true;
+    }
+
+    return false;
+}
+
 size_t SequenceElements::GetHiddenTimingCount() const
 {
     size_t count = 0;
