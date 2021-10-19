@@ -2888,10 +2888,20 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             DisplayWarning("Upload warnings:\n" + check);
         }
 
-        std::string uri = "btnSave=Save";
+        bool sendSerial = false;
+
+        std::string uri = "a=";
+        if (_usingAbsolute) {
+            uri += "0";
+        }
+        else {
+            uri += "1";
+        }
+        uri += "&btnSave=Save";
 
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
             if (cud.HasSerialPort(sp)) {
+                sendSerial = true;
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
                 int sc = port->GetStartChannel();
                 logger_base.info("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
@@ -2901,7 +2911,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
 
-        if (uri != "")
+        if (sendSerial)
         {
             PutURL("/SerialOutputs.htm", uri);
         }
