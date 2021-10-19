@@ -12,6 +12,7 @@
             <MaxStartNulls>10</MaxStartNulls>
             <MaxGroup>340</MaxGroup>
             <MinGroup>1</MinGroup>
+            <NeedsFullUniverseForSerial/>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -56,6 +57,7 @@
             <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
+            <NeedsFullUniverseForSerial/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -99,6 +101,7 @@
             <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
+            <NeedsFullUniverseForSerial/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -142,6 +145,7 @@
             <MinGroup>1</MinGroup>
 			<NoWebUI/>
 			<SupportsAutoLayout/>
+            <NeedsFullUniverseForSerial/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>

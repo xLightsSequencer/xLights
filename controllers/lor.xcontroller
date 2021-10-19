@@ -9,6 +9,7 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+            <NeedsFullUniverseForSerial/>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
