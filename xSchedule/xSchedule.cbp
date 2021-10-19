@@ -488,6 +488,7 @@
 		<Unit filename="OutputProcessDeadChannel.h" />
 		<Unit filename="OutputProcessDim.cpp" />
 		<Unit filename="OutputProcessDimWhite.cpp" />
+		<Unit filename="OutputProcessExcludeDim.cpp" />
 		<Unit filename="OutputProcessGamma.cpp" />
 		<Unit filename="OutputProcessGamma.h" />
 		<Unit filename="OutputProcessRemap.cpp" />
