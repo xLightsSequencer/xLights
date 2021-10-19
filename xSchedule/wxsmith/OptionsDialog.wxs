@@ -10,7 +10,7 @@
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_SimpleMode" member="yes">
 							<label>Advanced Mode</label>
@@ -64,7 +64,7 @@
 							<label>When in remote mode turn off lights when master stops</label>
 							<checked>1</checked>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -121,6 +121,14 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX16" variable="CheckBox_SongMMSSFormat" member="yes">
 							<label>Use Song#:MM:SS timecode format</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX17" variable="CheckBox_TimecodeWaitForNextSong" member="yes">
+							<label>Timecode remote wait for next song</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

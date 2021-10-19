@@ -178,6 +178,7 @@ class ScheduleManager
         int GetBrightness() const { return _brightness; }
         void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }
         void SetBrightness(int brightness) { if (brightness < 0) _brightness = 0; else if (brightness > 100) _brightness = 100; else _brightness = brightness; }
+        void ApplyBrightness();
         int Frame(bool outputframe, xScheduleFrame* frame); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }

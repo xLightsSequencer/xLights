@@ -16,6 +16,7 @@
 
 #include "PlayListSimpleDialog.h"
 #include "../xScheduleMain.h"
+#include "../ScheduleOptions.h"
 #include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
@@ -588,6 +589,25 @@ bool PlayList::IsInSlaveMode()
     return sm->GetSyncManager()->IsSlave();
 }
 
+bool PlayList::IsInTimecodeSlaveMode()
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+
+    if (sm == nullptr) return false;
+
+    return sm->GetSyncManager()->IsTimecodeSlave();
+}
+
+bool PlayList::IsTimecodeNoAdvance()
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+
+    if (sm == nullptr) return false;
+
+    return sm->GetOptions()->IsRemoteTimecodeStepAdvance();
+}
+
+// return true if done
 bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -608,6 +628,9 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
             }
             else
             {
+                // now it depends ... if using a timecode and the dont advance option is set then we should stop ... other wise we advance
+                if (IsInTimecodeSlaveMode() && IsTimecodeNoAdvance()) return true;
+
                 return !MoveToNextStep(true);
             }
         }

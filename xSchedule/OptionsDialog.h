@@ -67,6 +67,7 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_SongMMSSFormat;
 		wxCheckBox* CheckBox_SuppressAudioOnRemotes;
 		wxCheckBox* CheckBox_Sync;
+		wxCheckBox* CheckBox_TimecodeWaitForNextSong;
 		wxChoice* Choice1;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
@@ -112,6 +113,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX14;
 		static const long ID_CHECKBOX15;
 		static const long ID_CHECKBOX16;
+		static const long ID_CHECKBOX17;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;

@@ -295,6 +295,7 @@
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
     <ClCompile Include="events\ListenerSMPTE.cpp" />
+    <ClCompile Include="ExcludeDimDialog.cpp" />
     <ClCompile Include="ExtraIPDialog.cpp" />
     <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
@@ -309,6 +310,7 @@
     <ClCompile Include="OutputProcessDeadChannel.cpp" />
     <ClCompile Include="OutputProcessDim.cpp" />
     <ClCompile Include="OutputProcessDimWhite.cpp" />
+    <ClCompile Include="OutputProcessExcludeDim.cpp" />
     <ClCompile Include="OutputProcessGamma.cpp" />
     <ClCompile Include="OutputProcessingDialog.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
@@ -529,6 +531,7 @@
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
     <ClInclude Include="events\ListenerSMPTE.h" />
+    <ClInclude Include="ExcludeDimDialog.h" />
     <ClInclude Include="ExtraIPDialog.h" />
     <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
@@ -544,6 +547,7 @@
     <ClInclude Include="OutputProcessDeadChannel.h" />
     <ClInclude Include="OutputProcessDim.h" />
     <ClInclude Include="OutputProcessDimWhite.h" />
+    <ClInclude Include="OutputProcessExcludeDim.h" />
     <ClInclude Include="OutputProcessGamma.h" />
     <ClInclude Include="OutputProcessingDialog.h" />
     <ClInclude Include="OutputProcessRemap.h" />

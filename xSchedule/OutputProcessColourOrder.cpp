@@ -47,7 +47,7 @@ wxXmlNode* OutputProcessColourOrder::Save()
     return res;
 }
 
-void OutputProcessColourOrder::Frame(uint8_t* buffer, size_t size)
+void OutputProcessColourOrder::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
     if (_colourOrder == 123) return;

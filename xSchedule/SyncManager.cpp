@@ -224,6 +224,11 @@ void SyncManager::Stop()
     _scheduleManager->GetListenerManager()->StartListeners();
 }
 
+bool SyncManager::IsTimecodeSlave() const
+{
+    return _remote != nullptr && (_remote->IsRemoteMode(REMOTEMODE::ARTNETSLAVE) || _remote->IsRemoteMode(REMOTEMODE::OSCSLAVE) || _remote->IsRemoteMode(REMOTEMODE::MIDISLAVE) || _remote->IsRemoteMode(REMOTEMODE::SMPTESLAVE));
+}
+
 bool SyncManager::IsFPPRemoteOrMaster() const
 {
     if (_remote != nullptr && Contains(_remote->GetType(), "FPP")) { return true; }

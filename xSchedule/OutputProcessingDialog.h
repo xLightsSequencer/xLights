@@ -11,11 +11,11 @@
  **************************************************************/
 
  //(*Headers(OutputProcessingDialog)
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/dialog.h>
+ #include <wx/listctrl.h>
+ #include <wx/sizer.h>
+ //*)
 
 #include <list>
 
@@ -40,6 +40,7 @@ class OutputProcessingDialog: public wxDialog
 		virtual ~OutputProcessingDialog();
 
 		//(*Declarations(OutputProcessingDialog)
+		wxButton* Button1;
 		wxButton* Button_3to4;
 		wxButton* Button_AddDeadChannel;
 		wxButton* Button_AddRemap;
@@ -67,6 +68,7 @@ class OutputProcessingDialog: public wxDialog
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON12;
 		static const long ID_BUTTON7;
+		static const long ID_BUTTON15;
 		static const long ID_BUTTON8;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
@@ -91,6 +93,7 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnButton_DimWhiteClick(wxCommandEvent& event);
+		void OnButton_AddExcludeDimClick(wxCommandEvent& event);
 		void OnButton_AddDimClick(wxCommandEvent& event);
 		void OnButton_AddDimWhiteClick(wxCommandEvent& event);
 		void OnButton_ColourOrderClick(wxCommandEvent& event);

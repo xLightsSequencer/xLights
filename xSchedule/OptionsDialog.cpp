@@ -43,6 +43,7 @@ const long OptionsDialog::ID_CHECKBOX12 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX15 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX16 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX17 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -103,7 +104,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Create(parent, wxID_ANY, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBox_SimpleMode = new wxCheckBox(this, ID_CHECKBOX4, _("Advanced Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_SimpleMode->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_SimpleMode, 1, wxALL|wxEXPAND, 5);
@@ -124,7 +125,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer7->Add(CheckBox_RetryOpen, 1, wxALL|wxEXPAND, 5);
 	CheckBox_RemoteAllOff = new wxCheckBox(this, ID_CHECKBOX8, _("When in remote mode turn off lights when master stops"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_RemoteAllOff->SetValue(true);
-	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxEXPAND, 5);
 	CheckBox_SuppressAudioOnRemotes = new wxCheckBox(this, ID_CHECKBOX9, _("Suppress audio on remotes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
 	CheckBox_SuppressAudioOnRemotes->SetValue(true);
 	FlexGridSizer7->Add(CheckBox_SuppressAudioOnRemotes, 1, wxALL|wxEXPAND, 5);
@@ -146,6 +147,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_SongMMSSFormat = new wxCheckBox(this, ID_CHECKBOX16, _("Use Song#:MM:SS timecode format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX16"));
 	CheckBox_SongMMSSFormat->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_SongMMSSFormat, 1, wxALL|wxEXPAND, 5);
+	CheckBox_TimecodeWaitForNextSong = new wxCheckBox(this, ID_CHECKBOX17, _("Timecode remote wait for next song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX17"));
+	CheckBox_TimecodeWaitForNextSong->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_TimecodeWaitForNextSong, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -310,6 +314,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_LastStartingSequenceUsesTime->SetValue(options->IsLateStartingScheduleUsesTime());
     CheckBox_DisableOutputOnPingFailure->SetValue(options->IsDisableOutputOnPingFailure());
     CheckBox_SongMMSSFormat->SetValue(options->IsUseStepMMSSTimecodeFormat());
+    CheckBox_TimecodeWaitForNextSong->SetValue(options->IsRemoteTimecodeStepAdvance());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -425,6 +430,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetDisableOutputOnPingFailure(CheckBox_DisableOutputOnPingFailure->GetValue());
     _options->SetSMPTEMode(_options->EncodeSMPTEMode(Choice_SMPTEFrameRate->GetStringSelection()));
     _options->SetStepMMSSTimecodeFormat(CheckBox_SongMMSSFormat->GetValue());
+    _options->SetRemoteTimecodeStepAdvance(CheckBox_TimecodeWaitForNextSong->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

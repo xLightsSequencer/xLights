@@ -61,6 +61,8 @@ protected:
     void ForgetChildren();
     void DeleteChildren();
     static bool IsInSlaveMode();
+    static bool IsInTimecodeSlaveMode();
+    static bool IsTimecodeNoAdvance();
     bool JumpToStep(PlayListStep* pls);
 
 public:

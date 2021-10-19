@@ -15,6 +15,7 @@
 
 class wxXmlNode;
 class OutputManager;
+class OutputProcessExcludeDim;
 
 class OutputProcess
 {
@@ -53,6 +54,7 @@ class OutputProcess
             return _enabled;
         }
         void Enable(bool enable) { _enabled = enable; _changeCount++; }
+        static std::list<OutputProcessExcludeDim*> GetExcludeDim(std::list<OutputProcess*>& processes, size_t sc, size_t ec);
 
-        virtual void Frame(uint8_t* buffer, size_t size) = 0;
+        virtual void Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes) = 0;
 };

@@ -1441,14 +1441,14 @@ void xScheduleFrame::UpdateTree() const
 
     auto pls = __schedule->GetPlayLists();
 
-    for (auto it = pls.begin(); it != pls.end(); ++it)
+    for (const auto& it : pls)
     {
-        auto pl = TreeCtrl_PlayListsSchedules->AppendItem(root, (*it)->GetName(), -1, -1, new MyTreeItemData(*it));
+        auto pl = TreeCtrl_PlayListsSchedules->AppendItem(root, it->GetName(), -1, -1, new MyTreeItemData(it));
 
-        auto schedules = (*it)->GetSchedules();
-        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+        auto schedules = it->GetSchedules();
+        for (const auto& it2 : schedules)
         {
-            TreeCtrl_PlayListsSchedules->AppendItem(pl, GetScheduleName(*it2, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(*it2));
+            TreeCtrl_PlayListsSchedules->AppendItem(pl, GetScheduleName(it2, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(it2));
         }
         TreeCtrl_PlayListsSchedules->Expand(pl);
     }
@@ -1460,11 +1460,11 @@ void xScheduleFrame::UpdateTree() const
 
 std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const
 {
-    for (auto it = active.begin(); it != active.end(); ++it)
+    for (const auto& it : active)
     {
-        if ((*it)->GetSchedule()->GetId() == schedule->GetId())
+        if (it->GetSchedule()->GetId() == schedule->GetId())
         {
-            if ((*it)->IsStopped())
+            if (it->IsStopped())
             {
                 return schedule->GetName() + " [Stopped]";
             }
@@ -1473,11 +1473,11 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 
     if (schedule->GetNextTriggerTime() == "NOW!")
     {
-        for (auto it = active.begin(); it != active.end(); ++it)
+        for (const auto& it : active)
         {
-            if ((*it)->GetSchedule()->GetId() == schedule->GetId())
+            if (it->GetSchedule()->GetId() == schedule->GetId())
             {
-                return schedule->GetName() + " [NOW until " + (*it)->GetSchedule()->GetNextEndTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
+                return schedule->GetName() + " [NOW until " + it->GetSchedule()->GetNextEndTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
             }
         }
     }

@@ -63,6 +63,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
     _disableOutputOnPingFailure = node->GetAttribute("DisableOutputOnPingFailure", "FALSE") == "TRUE";
     _useStepMMSSTimecodeFormat = node->GetAttribute("StepMMSSTimecodeFormat", "FALSE") == "TRUE";
+    _remoteTimecodeStepAdvance = node->GetAttribute("RemoteTimecodeStepAdvance", "FALSE") == "TRUE";
 
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -256,6 +257,7 @@ ScheduleOptions::ScheduleOptions()
     _minimiseUIUpdates = false;
     _retryOutputOpen = false;
     _useStepMMSSTimecodeFormat = false;
+    _remoteTimecodeStepAdvance = false;
     _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
@@ -321,6 +323,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (_useStepMMSSTimecodeFormat) {
         res->AddAttribute("StepMMSSTimecodeFormat", "TRUE");
     }
+
+    if (_remoteTimecodeStepAdvance) {
+        res->AddAttribute("RemoteTimecodeStepAdvance", "TRUE");
+    }
+
     if (_hardwareAcceleratedVideo) {
         res->AddAttribute("HardwareAcceleratedVideo", "TRUE");
     }

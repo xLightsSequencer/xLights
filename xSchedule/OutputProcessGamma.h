@@ -36,7 +36,7 @@ public:
     OutputProcessGamma(OutputManager* outputManager, std::string _startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description);
     virtual ~OutputProcessGamma() {}
     virtual wxXmlNode* Save() override;
-    virtual void Frame(uint8_t* buffer, size_t size) override;
+    virtual void Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes) override;
     virtual size_t GetP1() const override { return _nodes; }
     virtual size_t GetP2() const override { return 0; }
     virtual std::string GetType() const override { return "Gamma"; }
