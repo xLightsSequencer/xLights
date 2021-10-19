@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (billc) Add LED panel support for rpi-28D
 2021.33 October 16, 2021
    -- enh (keith) Add in validations for null pixels and group maximums for controllers
    -- enh (keith) Add in a bunch of validations on the start channel dialog
