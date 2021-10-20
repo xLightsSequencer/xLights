@@ -2620,7 +2620,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 
     SingleNode = HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
-    SingleChannel = (ncc == 1);
+    SingleChannel = (ncc == 1) && StringType != "Node Single Color";
     if (SingleNode) {
         rgbOrder = "RGB";
     }
