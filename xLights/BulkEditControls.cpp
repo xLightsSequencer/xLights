@@ -91,19 +91,20 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
-    if (GetFileName().GetFullPath().Contains(',')) {
-        wxMessageBox("File " + GetFileName().GetFullPath() + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
+    auto file = GetFileName().GetFullPath();
+    if (file.Contains(',')) {
+        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
     }
     event.Skip();
 }
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
 {
-    if (GetFileName().GetFullPath().Contains(',')) {
-        wxMessageBox("File " + GetFileName().GetFullPath() + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
-    }
-    else if (GetFileName().GetFullPath() != "" && !wxFile::Exists(GetFileName().GetFullName())) {
-        wxMessageBox("File " + GetFileName().GetFullPath() + " does not exist.", "File name problem", 5L, GetParent());
+    auto file = GetFileName().GetFullPath();
+    if (file.Contains(',')) {
+        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
+    } else if (file != "" && !wxFile::Exists(file)) {
+        wxMessageBox("File " + file + " does not exist.", "File name problem", 5L, GetParent());
     }
     event.Skip();
 }
