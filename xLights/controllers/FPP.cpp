@@ -450,7 +450,7 @@ void FPP::LoadPlaylists(std::list<std::string> &playlists) {
 }
 
 bool FPP::IsMultiSyncEnabled(){
-    if (IsVersionAtLeast(5, 0) && !IsDrive()) {
+    if (IsVersionAtLeast(5, 0) && !IsDrive() && mode == "player") {
         wxJSONValue val;
         if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
             if (val.HasMember("value")) {
