@@ -6236,6 +6236,13 @@ char Model::GetSmartRemoteLetter() const
     return char('A' + l - 1);
 }
 
+char Model::GetSmartRemoteLetterForString(int string) const
+{
+    auto sr = GetSmartRemoteForString(string);
+    if (sr == 0) return ' ';
+    return char('A' + sr - 1);
+}
+
 // This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
 int Model::GetSortableSmartRemote() const
 {

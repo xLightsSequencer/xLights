@@ -580,6 +580,7 @@ public:
     std::string GetName() const { return _name; }
     std::string GetDisplayName() const { return _displayName; }
     int GetVirtualString() const { return _virtualString; }
+    int GetString() const { return _string; }
     UDControllerPort* GetPort() const { return _port; }
     bool NameStartsWith(char c) {
         if (_name == "") return false;
@@ -2519,16 +2520,24 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string baud;
     int startUniverse;
     int endUniverse;
+    bool isSubsequentString = false;
 
     auto m = mob->GetModel();
-    if (m == nullptr) return "";
+    if (m == nullptr && mob->GetString() > 0)         {
+        // this is a 2nd+ string on a model
+        isSubsequentString = true;
+        m = _mm->GetModel(mob->GetName());
+        if (m == nullptr) return "";
+    }
 
     wxString sr;
     if (m->GetSmartRemote() != 0) {
        sr = "Smart Remote: ";
-       sr += m->GetSmartRemoteLetter();
-       sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
-       sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
+       sr += m->GetSmartRemoteLetterForString(mob->GetString()+1);
+       if (!isSubsequentString) {
+           sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
+           sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
+       }
        sr += "\n";
     }
 
@@ -2615,15 +2624,29 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         }
     }
 
+    std::string sccc;
+    if (isSubsequentString) {
+        if (usc != "") {
+            sccc = wxString::Format("Start Channel: %s\n", usc).ToStdString();
+        }
+    }
+    else         {
+        sccc = wxString::Format("Start Channel: %s%s\nEnd Channel %s\n", m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om)).ToStdString();
+    }
+
+    std::string mc;
+    if (!isSubsequentString) {
+        mc = wxString::Format("Model Chain : % s\n", m->GetModelChain() == "" ? "Beginning" : m->GetModelChain()).ToStdString();
+    }
+
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
-            mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), usc,
-            m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+        return wxString::Format("Name: %s\n%sController Name: %s\n%s%sStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
+            mob->GetDisplayName(), shadow, controllerName, mc, sccc,
+            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     } else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
-            mob->GetDisplayName(), shadow, controllerName, universe, m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%sStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
+            mob->GetDisplayName(), shadow, controllerName, universe, sccc,
+            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     }
 }
 

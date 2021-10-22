@@ -295,6 +295,7 @@ public:
 
     void GetPortSR(int string, int& outport, int& outsr) const;
     char GetSmartRemoteLetter() const;
+    char GetSmartRemoteLetterForString(int string = 1) const;
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;
