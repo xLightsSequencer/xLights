@@ -1466,8 +1466,18 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->GetMaxPixelPort() == 0 && _pixelPorts.size() > 0) {
         res += wxString::Format("ERR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
         success = false;
-    } else {
+    }
+    else {
+        std::vector<bool> blocksAreSmart;
+        blocksAreSmart.resize(rules->GetMaxPixelPort() / 4 + 1);
+        for (auto& it : blocksAreSmart) {
+            it = false;
+        }
         for (const auto& it : _pixelPorts) {
+
+            int block = (it.first - 1) / 4;
+            blocksAreSmart[block] = blocksAreSmart[block] || it.second->AtLeastOneModelIsUsingSmartRemote();
+
             if (rules->SupportsVirtualStrings()) {
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
             }
@@ -1481,6 +1491,19 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort()) {
                 res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
                 success = false;
+            }
+        }
+
+        // try to detect errors with a mix of smart remote and non smart remote ports/models
+        for (const auto& it : _pixelPorts) {
+
+            int block = (it.first - 1) / 4;
+
+            if (blocksAreSmart[block]) {
+                if (it.second->AtLeastOneModelIsNotUsingSmartRemote())                     {
+                    res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
+                    success = false;
+                }
             }
         }
     }
