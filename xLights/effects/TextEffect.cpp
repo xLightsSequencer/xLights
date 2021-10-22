@@ -1487,7 +1487,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, char_width, char_height, vertical, rotate_90);
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, text_length, char_width, char_height, vertical, rotate_90);
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
@@ -1569,14 +1569,14 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 }
 
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-    int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int char_width, int char_height, bool vertical, bool rotate_90) const
+    int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const
 {
     int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
-    int txtwidth = txtLen * char_width;
+    int txtwidth = text_len;
     int txtheight = char_height;
-    int totwidth = buffer.BufferWi + txtLen * char_width;
+    int totwidth = buffer.BufferWi + text_len;
     int totheight = buffer.BufferHt + char_height;
 
     if (vertical)         {
@@ -1584,12 +1584,11 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         totheight = buffer.BufferHt + txtLen * char_height;
         txtwidth = char_width;
         txtheight = txtLen * char_height;
-    }
-    else if (rotate_90)         {
+    } else if (rotate_90)         {
         totwidth = buffer.BufferWi + char_height;
-        totheight = buffer.BufferHt + txtLen * char_width;
+        totheight = buffer.BufferHt + text_len;
         txtwidth = char_height;
-        txtheight = txtLen * char_width;
+        txtheight = text_len;
     }
 
     int xlimit = totwidth * 8 + 1;
