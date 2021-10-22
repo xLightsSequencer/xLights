@@ -145,6 +145,7 @@ class UDControllerPort
     std::list<UDVirtualString*> _virtualStrings;
     std::string _type;
     bool _separateUniverses = false;
+    OutputManager* _om = nullptr;
     #pragma endregion
 
 	public:

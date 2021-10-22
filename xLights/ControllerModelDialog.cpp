@@ -2467,12 +2467,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
             sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d (Pixels %d)",
                 port->GetStartChannel(),
                 port->GetUniverse(),
-                // There is a risk this will be negative ... under auto layout that should not happen often ... but it could
-                // to fix i would need to get the absolute ... apply the dmx adjustment then go back to the output manager to get the Universe/startChannel
-                // Given this is just a tooltip I am going to do without it for now
-                // An example where it could occur. 2 serial ports in use. First one uses say 500 of 512 channels. Second has first model on start channel 20 ... so absolute channel 520
-                // would be in the 2nd universe at sc 8. 8 - 20 + 1 = -11 ... not valid
-                port->GetType() == "PIXEL" ? port->GetUniverseStartChannel() : port->GetUniverseStartChannel() - port->GetFirstModel()->GetDMXChannelOffset() + 1,
+                port->GetUniverseStartChannel(),
                 port->Channels(),
                 (int)std::ceil((float)port->Channels() / 3.0)
             );
@@ -2556,6 +2551,17 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string stringSettings;
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
+        UDControllerPortModel* udm = mob->GetUDModel();
+        if (udm != nullptr) {
+            auto ep = dynamic_cast<ControllerEthernet*>(_controller);
+            if (ep != nullptr) {
+                if (m->GetStartChannelInDisplayFormat(om)[0] != '#' && (ep->GetProtocol() == OUTPUT_E131 || ep->GetProtocol() == OUTPUT_ARTNET)) {
+                    usc = wxString::Format(" [#%d:%d]",
+                        udm->GetUniverse(),
+                        udm->GetUniverseStartChannel());
+                }
+            }
+        }
     } else if (m->IsMatrixProtocol()) {
         // Any extra matrix properties to display?
     } else {

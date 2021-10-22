@@ -614,17 +614,8 @@ void HinksPix::UpdateUniverseControlerChannels(UDControllerPort* stringData, std
 }
 
 void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const {
-    int dmxOffset = 1;
-    UDControllerPortModel* m = serialData->GetFirstModel();
-    if (m != nullptr) {
-        dmxOffset = m->GetDMXChannelOffset();
-        if (dmxOffset < 1 || dmxOffset > 512) {
-            dmxOffset = 1; // a value less than 1 makes no sense
-        }
-    }
-
     const int sc = serialData->GetStartChannel();
-    const int usc = serialData->GetUniverseStartChannel() - dmxOffset + 1; // it would be good if these functions behaved more like GetStartChannel does on serial ports
+    const int usc = serialData->GetUniverseStartChannel();
     int maxChan = serialData->GetEndChannel() - sc + 1;
 
     if (maxChan < 16) {

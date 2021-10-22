@@ -305,6 +305,8 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m, string));
 
+    _om = om;
+
     _models.push_back(new UDControllerPortModel(m, controller, om, string));
     if (_protocol == "") {
         _protocol = m->GetControllerProtocol();
@@ -765,7 +767,26 @@ int UDControllerPort::GetUniverse() const {
         return -1;
     }
     else {
-        return GetFirstModel()->GetUniverse();
+        if (_type == "Serial") {
+
+            if (_om == nullptr) {
+                wxASSERT(false);
+                return -1;
+            }
+
+            // need to offset the first DMX channel
+            auto abs = GetFirstModel()->GetStartChannel();
+            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+            int32_t sc;
+            Output* o = _om->GetOutput(abs, sc);
+            if (o != nullptr) {
+                return o->GetUniverse();
+            }
+            return -1;
+        }
+        else {
+            return GetFirstModel()->GetUniverse();
+        }
     }
 }
 
@@ -775,7 +796,26 @@ int UDControllerPort::GetUniverseStartChannel() const {
         return -1;
     }
     else {
-        return GetFirstModel()->GetUniverseStartChannel();
+        if (_type == "Serial") {
+
+            if (_om == nullptr) {
+                wxASSERT(false);
+                return -1;
+            }
+
+            // need to offset the first DMX channel
+            auto abs = GetFirstModel()->GetStartChannel();
+            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+            int32_t sc;
+            Output* o = _om->GetOutput(abs, sc);
+            if (o != nullptr) {
+                return sc;
+            }
+            return -1;
+        }
+        else {
+            return GetFirstModel()->GetUniverseStartChannel();
+        }
     }
 }
 
