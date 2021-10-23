@@ -1469,7 +1469,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
     else {
         std::vector<int> blocksAreSmart;
-        blocksAreSmart.resize(rules->GetMaxPixelPort() / 4 + 1);
+        blocksAreSmart.resize(100); // just add a lot ... lazy but i cant rely on may pixel port for the controller
         for (auto& it : blocksAreSmart) {
             it = 0;
         }

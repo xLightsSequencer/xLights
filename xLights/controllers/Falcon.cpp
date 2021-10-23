@@ -1418,7 +1418,7 @@ public:
     }
 };
 
-#define MINIMUMPIXELS 0
+#define MINIMUMPIXELS 1
 void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1563,7 +1563,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         FalconString* string = new FalconString(defaultBrightness);
         string->startChannel = firstchannel;
         string->virtualStringIndex = 0;
-        string->pixels = 1;
+        string->pixels = MINIMUMPIXELS;
         string->protocol = 0;
         string->universe = minuniverse;
         string->description = "";
