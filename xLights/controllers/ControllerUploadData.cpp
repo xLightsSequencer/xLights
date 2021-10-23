@@ -1468,15 +1468,15 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         success = false;
     }
     else {
-        std::vector<bool> blocksAreSmart;
+        std::vector<int> blocksAreSmart;
         blocksAreSmart.resize(rules->GetMaxPixelPort() / 4 + 1);
         for (auto& it : blocksAreSmart) {
-            it = false;
+            it = 0;
         }
         for (const auto& it : _pixelPorts) {
 
             int block = (it.first - 1) / 4;
-            blocksAreSmart[block] = blocksAreSmart[block] || it.second->AtLeastOneModelIsUsingSmartRemote();
+            blocksAreSmart[block] += it.second->AtLeastOneModelIsUsingSmartRemote() ? 1 : 0;
 
             if (rules->SupportsVirtualStrings()) {
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
@@ -1499,7 +1499,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
             int block = (it.first - 1) / 4;
 
-            if (blocksAreSmart[block]) {
+            if (blocksAreSmart[block] > 0) {
                 if (it.second->AtLeastOneModelIsNotUsingSmartRemote())                     {
                     res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
                     success = false;
