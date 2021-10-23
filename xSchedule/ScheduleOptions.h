@@ -274,8 +274,8 @@ class ScheduleOptions
         void SetDisableOutputOnPingFailure(bool disableOutputOnPingFailure) { if (_disableOutputOnPingFailure != disableOutputOnPingFailure) { _disableOutputOnPingFailure = disableOutputOnPingFailure; _changeCount++; } }
         bool IsDisableOutputOnPingFailure() const { return _disableOutputOnPingFailure; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
-        void SetDefaultVideoSize(wxSize& size) { if (size != _defaultVideoSize) { _defaultVideoSize = size; _changeCount++; } }
-        void SetDefaultVideoPos(wxPoint& pos) { if (pos != _defaultVideoPos) { _defaultVideoPos = pos; _changeCount++; } }
+        void SetDefaultVideoSize(const wxSize& size) { if (size != _defaultVideoSize) { _defaultVideoSize = size; _changeCount++; } }
+        void SetDefaultVideoPos(const wxPoint& pos) { if (pos != _defaultVideoPos) { _defaultVideoPos = pos; _changeCount++; } }
         TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }
         void SetCrashBehaviour(std::string crashBehaviour) { if (crashBehaviour != _crashBehaviour) { _crashBehaviour = crashBehaviour; _changeCount++; } }
