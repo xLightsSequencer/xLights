@@ -14,6 +14,7 @@
 #include <wx/wx.h>
 #include "xScheduleApp.h"
 #include "../xLights/outputs/OutputManager.h"
+#include "ScheduleOptions.h"
 
 extern "C"
 {
@@ -43,7 +44,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _window = nullptr;
 }
 
-VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, ScheduleOptions* options)
 {
     _suppress = false;
     _outputManager = outputManager;
@@ -58,8 +59,8 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
     _rotation = VMROTATION::VM_NORMAL;
     _quality = wxIMAGE_QUALITY_HIGH;
     _swsQuality = -1;
-    _size = wxSize(300, 300);
-    _location = wxPoint(0,0);
+    _size = options->GetDefaultVideoSize();
+    _location = options->GetDefaultVideoPos();
     _startChannel = "1";
     _window = nullptr;
 }

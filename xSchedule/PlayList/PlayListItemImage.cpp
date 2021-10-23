@@ -18,6 +18,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../ScheduleOptions.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
@@ -28,10 +29,6 @@ PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
     _done = false;
     _window = nullptr;
     _ImageFile = "";
-    _origin.x = 0;
-    _origin.y = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
     PlayListItemImage::Load(node);
 }
 
@@ -56,13 +53,13 @@ void PlayListItemImage::Load(wxXmlNode* node)
     _ImageFile = node->GetAttribute("ImageFile", "");
     _ImageFile = FixFile("", _ImageFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
-    _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    _size = wxSize(wxAtoi(node->GetAttribute("W", "300")), wxAtoi(node->GetAttribute("H", "300")));
     _duration = wxAtoi(node->GetAttribute("Duration", "0"));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
 }
 
-PlayListItemImage::PlayListItemImage() : PlayListItem()
+PlayListItemImage::PlayListItemImage(ScheduleOptions* options) : PlayListItem()
 {
     _type = "PLIImage";
     _gifImage = nullptr;
@@ -72,15 +69,15 @@ PlayListItemImage::PlayListItemImage() : PlayListItem()
     _done = false;
     _window = nullptr;
     _ImageFile = "";
-    _origin.x = 0;
-    _origin.y = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
+    if (options != nullptr) {
+        _origin = options->GetDefaultVideoPos();
+        _size = options->GetDefaultVideoSize();
+    }
 }
 
 PlayListItem* PlayListItemImage::Copy() const
 {
-    PlayListItemImage* res = new PlayListItemImage();
+    PlayListItemImage* res = new PlayListItemImage((ScheduleOptions*)nullptr);
     res->_ImageFile = _ImageFile;
     res->_origin = _origin;
     res->_size= _size;

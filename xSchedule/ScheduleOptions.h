@@ -195,6 +195,8 @@ class ScheduleOptions
     TIMECODEFORMAT _MIDITimecodeFormat;
     size_t _MIDITimecodeOffset = 0;
     std::list<ExtraIP*> _extraIPs;
+    wxSize _defaultVideoSize = { 300, 300 };
+    wxPoint _defaultVideoPos = { 0, 0 };
     bool _parallelTransmission;
     bool _remoteAllOff;
     bool _keepScreenOn;
@@ -207,6 +209,9 @@ class ScheduleOptions
     bool _minimiseUIUpdates = false;
     bool _useStepMMSSTimecodeFormat = false;
     bool _remoteTimecodeStepAdvance = false;
+
+    std::pair<int, int> ParsePair(const std::string& value, const std::pair<int, int>& default);
+    std::string SerialisePair(int a, int b);
 
     public:
 
@@ -224,6 +229,8 @@ class ScheduleOptions
         UserButton* GetButton(wxUint32 id) const;
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
+        wxSize GetDefaultVideoSize() const { return _defaultVideoSize; }
+        wxPoint GetDefaultVideoPos() const { return _defaultVideoPos; }
         std::list<ExtraIP*>* GetExtraIPs() { return &_extraIPs; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
@@ -266,6 +273,8 @@ class ScheduleOptions
         void SetDisableOutputOnPingFailure(bool disableOutputOnPingFailure) { if (_disableOutputOnPingFailure != disableOutputOnPingFailure) { _disableOutputOnPingFailure = disableOutputOnPingFailure; _changeCount++; } }
         bool IsDisableOutputOnPingFailure() const { return _disableOutputOnPingFailure; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
+        void SetDefaultVideoSize(wxSize& size) { if (size != _defaultVideoSize) { _defaultVideoSize = size; _changeCount++; } }
+        void SetDefaultVideoPos(wxPoint& pos) { if (pos != _defaultVideoPos) { _defaultVideoPos = pos; _changeCount++; } }
         TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }
         void SetCrashBehaviour(std::string crashBehaviour) { if (crashBehaviour != _crashBehaviour) { _crashBehaviour = crashBehaviour; _changeCount++; } }

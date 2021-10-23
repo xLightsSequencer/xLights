@@ -3031,7 +3031,7 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 void xScheduleFrame::AddPlayList(bool forceadvanced)
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
+    if (playlist->Configure(this, __schedule->GetOutputManager(), __schedule->GetOptions(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -3069,7 +3069,7 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
+        if (playlist->Configure(this, __schedule->GetOutputManager(), __schedule->GetOptions(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }
@@ -3534,7 +3534,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     }
 
     auto vmatrices = __schedule->GetOptions()->GetVirtualMatrices();
-    VirtualMatricesDialog dlg(this, __schedule->GetOutputManager(), vmatrices);
+    VirtualMatricesDialog dlg(this, __schedule->GetOutputManager(), vmatrices, __schedule->GetOptions());
 
     if (dlg.ShowModal() == wxID_OK)
     {

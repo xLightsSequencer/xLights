@@ -341,11 +341,11 @@ void PlayList::Load(OutputManager* outputManager, wxXmlNode* node)
     _schedules.sort(compare_sched);
 }
 
-PlayList* PlayList::Configure(wxWindow* parent, OutputManager* outputManager, bool advanced)
+PlayList* PlayList::Configure(wxWindow* parent, OutputManager* outputManager, ScheduleOptions* options, bool advanced)
 {
     if (advanced || !IsSimple())
     {
-        PlayListDialog dlg(parent, outputManager, this);
+        PlayListDialog dlg(parent, outputManager, this, options);
 
         if (dlg.ShowModal() == wxID_CANCEL)
         {
@@ -354,7 +354,7 @@ PlayList* PlayList::Configure(wxWindow* parent, OutputManager* outputManager, bo
     }
     else
     {
-        PlayListSimpleDialog dlg(parent, outputManager, this);
+        PlayListSimpleDialog dlg(parent, outputManager, this, options);
 
         if (dlg.ShowModal() == wxID_CANCEL)
         {

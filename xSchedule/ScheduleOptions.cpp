@@ -81,6 +81,11 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _defaultPage = node->GetAttribute("DefaultPage", "index.html");
     _allowUnauth = node->GetAttribute("AllowUnauth", "FALSE") == "TRUE";
     _city = node->GetAttribute("City", "Sydney");
+    auto pair = ParsePair(node->GetAttribute("DefaultVideoPos", "0|0"), { 0, 0 });
+    _defaultVideoPos = wxPoint(pair.first, pair.second);
+    pair = ParsePair(node->GetAttribute("DefaultVideoSize", "300|300"), { 300, 300 });
+    _defaultVideoSize = wxSize(pair.first, pair.second);
+
     if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
@@ -183,6 +188,20 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
     _buttons.push_back(b);
 }
 
+std::pair<int, int> ScheduleOptions::ParsePair(const std::string& value, const std::pair<int,int>& default)
+{
+    auto cc = wxSplit(value, '|');
+    if (cc.size() == 2)         {
+        return { wxAtoi(cc[0]), wxAtoi(cc[1]) };
+    }
+    return default;
+}
+
+std::string ScheduleOptions::SerialisePair(int a, int b)
+{
+    return wxString::Format("%d|%d", a, b).ToStdString();
+}
+
 int ScheduleOptions::EncodeSMPTEMode(const std::string& mode)
 {
     if (mode == "24 FPS") {
@@ -266,6 +285,8 @@ ScheduleOptions::ScheduleOptions()
     _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
     _SMPTEMode = 3;
+    _defaultVideoPos = { 0,0 };
+    _defaultVideoSize = { 100, 100 };
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -303,6 +324,8 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     res->AddAttribute("SMPTEMode", wxString::Format("%d", _SMPTEMode));
+    res->AddAttribute("DefaultVideoSize", SerialisePair(_defaultVideoSize.x, _defaultVideoSize.y));
+    res->AddAttribute("DefaultVideoPos", SerialisePair(_defaultVideoPos.x, _defaultVideoPos.y));
     if (IsSync()) {
         res->AddAttribute("Sync", "TRUE");
     }

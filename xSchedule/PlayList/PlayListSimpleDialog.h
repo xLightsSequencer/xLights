@@ -26,13 +26,16 @@ class PlayList;
 class wxXmlNode;
 class PlayListStep;
 class PlayListItem;
+class ScheduleOptions;
 
 class PlayListSimpleDialog: public wxDialog
 {
-    OutputManager* _outputManager;
-    PlayList* _playlist;
-    PlayList* _savedState;
-    bool _dragging;
+    OutputManager* _outputManager = nullptr;
+    PlayList* _playlist = nullptr;
+    PlayList* _savedState = nullptr;
+	ScheduleOptions* _options = nullptr;
+    bool _dragging = false;
+
     void ValidateWindow();
     void PopulateTree(PlayList* playlist, PlayListStep* step);
     int GetPos(const wxTreeItemId& item);
@@ -45,7 +48,7 @@ class PlayListSimpleDialog: public wxDialog
 
     public:
 
-		PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListSimpleDialog();
         void UpdateTree();
         void OnTreeDragEnd(wxMouseEvent& event);

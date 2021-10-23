@@ -21,6 +21,7 @@
 #include "City.h"
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "PlayList/VideoWindowPositionDialog.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
@@ -77,6 +78,7 @@ const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_CHOICE3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT10 = wxNewId();
 const long OptionsDialog::ID_CHOICE5 = wxNewId();
+const long OptionsDialog::ID_BUTTONDEFAULTWINODOWLOC = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -245,6 +247,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer3->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice1 = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
 	FlexGridSizer3->Add(Choice1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_DefaultWindowLocation = new wxButton(this, ID_BUTTONDEFAULTWINODOWLOC, _("Set Default Video/Virtual Matrix Location"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONDEFAULTWINODOWLOC"));
+	FlexGridSizer3->Add(Button_DefaultWindowLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -268,6 +273,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ExportClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ImportClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OptionsDialog::OnTextCtrl_wwwRootText);
+	Connect(ID_BUTTONDEFAULTWINODOWLOC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_DefaultWindowLocationClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_CancelClick);
 	//*)
@@ -778,4 +784,14 @@ void OptionsDialog::OnButton_ExportClick(wxCommandEvent& event)
     f.Write(wxString::Format("version=\"%s\" ", v));
     f.Write("/>");
     f.Close();
+}
+
+void OptionsDialog::OnButton_DefaultWindowLocationClick(wxCommandEvent& event)
+{
+    VideoWindowPositionDialog dlg(this, wxID_ANY, _options->GetDefaultVideoPos(), _options->GetDefaultVideoSize());
+
+    if (dlg.ShowModal() == wxID_OK) {
+        _options->SetDefaultVideoPos(dlg.GetDesiredPosition());
+        _options->SetDefaultVideoSize(dlg.GetDesiredSize());
+    }
 }

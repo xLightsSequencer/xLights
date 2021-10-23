@@ -5261,7 +5261,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
                                 }
                                 else if (PlayListItemVideo::IsVideo(ext))
                                 {
-                                    PlayListItemVideo* pli = new PlayListItemVideo();
+                                    PlayListItemVideo* pli = new PlayListItemVideo(_scheduleOptions);
                                     pli->SetVideoFile(base + "/" + itemname);
                                     pli->SetDelay(delay * 1000);
                                     step->AddItem(pli);

@@ -22,6 +22,7 @@ class PlayListStep;
 class wxWindow;
 class Schedule;
 class PlayListItem;
+class ScheduleOptions;
 
 class PlayList
 {
@@ -172,7 +173,7 @@ public:
     
     #pragma region UI
     // returns nullptr if cancelled
-    PlayList* Configure(wxWindow* parent, OutputManager* outputManager, bool advanced);
+    PlayList* Configure(wxWindow* parent, OutputManager* outputManager, ScheduleOptions* options, bool advanced);
     #pragma endregion UI
 
 };
