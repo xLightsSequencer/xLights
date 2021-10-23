@@ -188,13 +188,13 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
     _buttons.push_back(b);
 }
 
-std::pair<int, int> ScheduleOptions::ParsePair(const std::string& value, const std::pair<int,int>& default)
+std::pair<int, int> ScheduleOptions::ParsePair(const std::string& value, const std::pair<int, int>& def)
 {
     auto cc = wxSplit(value, '|');
-    if (cc.size() == 2)         {
+    if (cc.size() == 2) {
         return { wxAtoi(cc[0]), wxAtoi(cc[1]) };
     }
-    return default;
+    return def;
 }
 
 std::string ScheduleOptions::SerialisePair(int a, int b)

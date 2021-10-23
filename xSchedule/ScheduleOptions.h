@@ -13,6 +13,7 @@
 #include <list>
 #include <string>
 #include <vector>
+
 #include "MatrixMapper.h"
 #include "VirtualMatrix.h"
 #include "SyncManager.h"
@@ -210,7 +211,7 @@ class ScheduleOptions
     bool _useStepMMSSTimecodeFormat = false;
     bool _remoteTimecodeStepAdvance = false;
 
-    std::pair<int, int> ParsePair(const std::string& value, const std::pair<int, int>& default);
+    std::pair<int, int> ParsePair(const std::string& value, const std::pair<int, int>& def);
     std::string SerialisePair(int a, int b);
 
     public:

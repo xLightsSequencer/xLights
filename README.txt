@@ -11,7 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.34 October 23, 2021
    -- enh (billc) Add LED panel support for rpi-28D
+   -- enh (keith) Add ability to set a default virtual matrix and video location
+   -- enh (keith) Add to Alphapix and Pixlite/Pixcon property which forces DMX outputs to start at the beginning of a universe
+   -- enh (keith) Make inactive controllers ping results look different
+   -- enh (keith) Change some default settings for new users to be better options
+   -- enh (keith) Add an output processor which can exclude channels from dimming and gamma
+   -- enh (keith) Add to visualiser errors if smart remote and non-smart remote models are mixed on a group of 4 ports
+   -- enh (keith) Add tooltips to string 2+ on multistring models
+   -- bug (keith) Fix Hinks 4 port LR port 4, 8 etc show incorrect value
+   -- bug (keith) When testing with suppress unused outputs xlights normal output breaks
+   -- bug (keith) Fix calculation of first serial port channel when first model is not channel 1
+   -- bug (scott) Only show FPP multisync flag on players
+   -- bug (dkulp) Fix calculation of text length for non-OS fonts
 2021.33 October 16, 2021
    -- enh (keith) Add in validations for null pixels and group maximums for controllers
    -- enh (keith) Add in a bunch of validations on the start channel dialog
@@ -1797,7 +1810,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)   "Discover" button on setup tab to discover and automatically add/configure FPP instances
    -- enh (dkulp/keith) Add "Visualise" option for DDP/FPP controllers to see layout of models on controller
                             (work in progress)
-   -- bug (dkulp)   Fix problem with FPP connect not finding models if using hostname instead of ip address
    -- enh (dkulp)   FPP Connect can update the start channel of matrices for LED panel capes
    -- enh (dkulp)   FPP Connect can detect LED Panel capes, display the matrix size
    -- enh (dkulp/keith) Ability to use "Controller description" for starting channel (DDP only right now)
@@ -1808,6 +1820,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                     Unless those who want this function lean in and help get it right it will likely never be
 					quite right.
    -- enh (keith)   Use a dropdown for selection of Force IP address
+   -- bug (dkulp)   Fix problem with FPP connect not finding models if using hostname instead of ip address
    -- bug (keith)   Fix slow render when using render cache
 2019.17 March 15, 2019
    -- enh (keith)   Add falcon smart remote support
@@ -1821,18 +1834,24 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2019.16 March 9, 2019
    -- enh (scott)   Added Cut/Copy/Paste Support for 3D Objects in the Layout Tab
    -- enh (scott)   Added Arrow Key Support for 3D Objects in the Layout Tab
-   -- bug (scott)   Pressing Delete Key in Layout Model List now deletes model
    -- enh (scott)   Added Right Click Menu for Canvas Layers Selection. Select All, De-select All, Select Layers With Effects
    -- enh (dkulp)   Add more parallelism to kaleidoscope render
    -- enh (dkulp)   Make SMS feature available on OSX ... although in this release it may cause playback pauses
-   -- bug (dkulp)   Add some screen rendering options to sort through some display issues on model preview
    -- enh (priemd)  Add yet more wiring options to the cube model
+   -- enh (keith)   Expand pixlite upload to support all pixlite and LOR pixicon versions
+   -- bug (scott)   Pressing Delete Key in Layout Model List now deletes model
+   -- bug (dkulp)   Add some screen rendering options to sort through some display issues on model preview
    -- bug (keith)   Fix LOR Optimised output allows you to exceed memory allocated
    -- bug (keith)   Fix issue with canvas layers dialog displaying crazy number of layers
    -- bug (keith)   Fix some render cache issues
-   -- enh (keith)   Expand pixlite upload to support all pixlite and LOR pixicon versions
    -- bug (keith)   Fix single note spectrogram doesn't render
 2019.15 March 2, 2019
+   -- enh (keith)   All screen map area to be manipulated using the mouse
+   -- enh (keith)   Stop render range expansion to include immediately prior and immediately following effect
+                    There is a small chance this will cause user to need to click render all in some scenarios. Please report and provide
+					sample sequences if this happens
+   -- enh (keith)   Include a default SMS work whitelist and blacklist
+   -- enh (keith)   Add a frame audio waveform to the VUMeter
    -- bug (keith)   Fix rendering per preview from a 3D camera ... it just wasn't right
                     This may change how some rendering looks. I am happy to look into any issues but I will only change it again if it is
 					clearly wrong.
@@ -1842,13 +1861,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix SMS tool displays sent messages
    -- bug (keith)   Fix a crash when breaking down phrases with no actual words
    -- bug (keith)   Fix lines effect value curve not disabling on reset
-   -- enh (keith)   All screen map area to be manipulated using the mouse
-   -- enh (keith)   Stop render range expansion to include immediately prior and immediately following effect
-                    There is a small chance this will cause user to need to click render all in some scenarios. Please report and provide
-					sample sequences if this happens
-   -- enh (keith)   Include a default SMS work whitelist and blacklist
-   -- enh (keith)   Add a frame audio waveform to the VUMeter
 2019.14 February 23, 2019
+   -- enh (keith)   Add logarithmic x axis to spectrogram
+   -- enh (keith)   Add line spectrogram to vu meter
+   -- enh (keith)   Add circle line spectrogram to vu meter
+   -- enh (keith)   Add check sequence warning if firework is to fire with timing track but none is selcected
    -- bug (dkulp)   Fix bug where 2d background image not honoring center is 0 setting
    -- bug (keith)   Fix bandwidth.com cant send SMS
    -- bug (keith)   Fix accumulating snowflake does not accumulate if flake count value curve is used
@@ -1856,10 +1873,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   don't reset canvas mode when randomising effect settings
    -- bug (keith)   Fix crash when using large triangles in Kaleidoscope on some models
    -- bug (keith)   Fix xSchedule cant set text on a text item playing in every step
-   -- enh (keith)   Add logarithmic x axis to spectrogram
-   -- enh (keith)   Add line spectrogram to vu meter
-   -- enh (keith)   Add circle line spectrogram to vu meter
-   -- enh (keith)   Add check sequence warning if firework is to fire with timing track but none is selcected
 2019.13 February 21, 2019
    -- enh (keith)   Add the kaleidoscope effect
    -- enh (keith)   Add voip.ms support to SMS Daemon
@@ -1888,9 +1901,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)   Fix transparent image display problem on layout
    -- bug (dkulp)   Fix load issue on vixen eseq files
 2019.11 February 9, 2019
-   -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
-   -- bug (keith)   Fix 3d obj with space don't load
-   -- bug (keith)   Fix custom models don't draw at z=0 when first created
    -- enh (keith)   Add shift move to morph effect assist
    -- enh (keith)   Upgrade pixlite controller upload for the 16 Long Range
    -- enh (keith)   Allow material files to be left in a subfolder under obj file location as long as it is referenced in the material file
@@ -1898,19 +1908,22 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Make the row header resizable
    -- enh (smorgan) For timecode slightly outside jitter limit nudge it back into time
    -- enh (smorgan) Add support for E131 prioritisation
+   -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
+   -- bug (keith)   Fix 3d obj with space don't load
+   -- bug (keith)   Fix custom models don't draw at z=0 when first created
 2019.10 February 5, 2019
    -- enh (keith)   Add an <ALL> state to state effect that activates all states. Also recognise * in timing track as well
-   -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file
-   -- bug (keith)   Fix falcon upload with virtual strings miscalculates number of nodes on a port
    -- enh (keith)   If models on a port are not using contiguous channels put them on virtual strings
    -- enh (keith)   Add an xSchedule API to change/reload showfolder
    -- enh (keith)   Include xmap files in the backup
    -- enh (keith)   Increase maximum lines read from file to 20 for text effect
+   -- enh (gil)     Add option to convert tool for creating LEDBlinky animation files.
+   -- enh (kevin)   Enable timeline icons for fan and galaxy effects
+   -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file
+   -- bug (keith)   Fix falcon upload with virtual strings miscalculates number of nodes on a port
    -- bug (keith)   Fix disabled effect options with valuecurves don't disable correctly
    -- bug (keith)   Fix shape effect movement defaults to on when loading old sequences
-   -- enh (gil)     Add option to convert tool for creating LEDBlinky animation files.
    -- bug (kevin)   Fix model/row copy effects from one sequence and pasting in another. Fixes #1450
-   -- enh (kevin)   Enable timeline icons for fan and galaxy effects
 2019.09 February 2, 2019
    -- enh (keith)   Add movement to shapes effect
    -- enh (keith)   Add tool for applying reaper or xAudio edits to one or more audio files and generate a new audio file
@@ -1926,16 +1939,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   In layout mode adapt the axis of movement using the keyboard based on camera position
    -- enh (keith)   Add channel remapping to the DMX effect
    -- enh (keith)   Add the selected effect time to the waveform for easier alignment
+   -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
+   -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
+   -- enh (scott)   Added rotation to the Shape Effect
+   -- enh (scott)   Added Value Curve to Ripple Rotation Setting
    -- bug (keith)   Fix model per strand render buffers when group contains a custom model
    -- bug (keith)   Fix node layout on custom models when not square
    -- bug (keith)   Fix effect type bulk edit doesn't always initialise effect settings
-   -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
    -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for
                     various buffer styles
-   -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
    -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.
-   -- enh (scott)   Added rotation to the Shape Effect
-   -- enh (scott)   Added Value Curve to Ripple Rotation Setting
 2019.07 January 27, 2019
    -- enh (tyler)   Add inside/outside ratio to star model
    -- enh (dkulp)   Add zoom gesture to Preview Panels.
@@ -4067,44 +4080,44 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug(dkulp) Fix some problems with using the "From Output" stuff with new models.  Crash.
    -- enh(gil)   Allow zero speed for Marquee effect.
 4.2.17  Oct 21, 2015
-   -- enh(dpitts) Made output/start channel in models have correct end output/end channel.
-   -- enh(dkulp) Add some options to SuperStar import for doing some simple image scaling
-   -- enh(dkulp) don't scale image in effect assist to allow editing images smaller than the model
-   -- enh(dkulp) Start adding ability to resize image from effect assist
-   -- enh(dkulp) Able to parse .sup files that have configuration elements (that aren't valid XML) (fixes #394)
-   -- bug(dkulp) Prompt for image directory for SUP import up front so Cancel can work. (fixes #393)
-   -- enh(dkulp) Make sure user_dictionary can load from show dir and make sure it can override stuff in the standard dictionaries.
-   -- enh(sean) Removed built in fade from lightning effect
-   -- enh(sean) changed the backup (F10) so that it saves files <20mbytes. Before it was 10mbytes.
-   -- bug(gil)   Prevent magnetically connected effects from being crushed to zero duration.
-   -- bug(dkulp) Fix problem where numChannels*numFrames > 2G
-   -- bug(gil)   Fix Marquee not rendering smooth when reverse is checked.
+   -- enh (dpitts) Made output/start channel in models have correct end output/end channel.
+   -- enh (dkulp)  Add some options to SuperStar import for doing some simple image scaling
+   -- enh (dkulp)  don't scale image in effect assist to allow editing images smaller than the model
+   -- enh (dkulp)  Start adding ability to resize image from effect assist
+   -- enh (dkulp)  Able to parse .sup files that have configuration elements (that aren't valid XML) (fixes #394)
+   -- bug (dkulp)  Prompt for image directory for SUP import up front so Cancel can work. (fixes #393)
+   -- enh (dkulp)  Make sure user_dictionary can load from show dir and make sure it can override stuff in the standard dictionaries.
+   -- enh (sean)   Removed built in fade from lightning effect
+   -- enh (sean)   changed the backup (F10) so that it saves files <20mbytes. Before it was 10mbytes.
+   -- bug (gil)    Prevent magnetically connected effects from being crushed to zero duration.
+   -- bug (dkulp)  Fix problem where numChannels*numFrames > 2G
+   -- bug (gil)    Fix Marquee not rendering smooth when reverse is checked.
 4.2.16  Oct 13, 2015
-   -- bug(keith) Fix broken picture wiggle style
-   -- enh (sean) Added slider to give horizontal movement to lightning bolts
-   -- enh (sean) Added check box to give chose to have forked lightning.
+   -- bug (keith) Fix broken picture wiggle style
+   -- enh (sean)  Added slider to give horizontal movement to lightning bolts
+   -- enh (sean)  Added check box to give chose to have forked lightning.
 4.2.15  Oct 08, 2015
-   -- bug(gil) Fixed the labels showing "off"
+   -- bug (gil) Fixed the labels showing "off"
 4.2.14  Oct 07, 2015
-   -- enh(ChrisD) Add application launcher for linux
-   -- bug(ChrisD) New timing dialog should be titled as such (partial fix for issue #377)
-   -- bug(gil)   Buttons will now re-enable after an LSP export model operation.
-   -- enh(Keith) New feature in pictures, tiled pictures
-   -- bug(gil)   Fix potential crashes for all imports where models may be hidden.
-   -- bug(gil)   Fix LSP import effects when a target model is hidden.
-   -- enh (sean) New effect class Lightning
-   -- bug(gil)   Sequence SaveAs was not saving XML in new directory.
-   -- bug(gil)   Remove fixed attribute for timing track converted to papagayo timing.
-   -- enh(gil)   Add LOR conversion option to show verbose channel mapping.
-   -- enh(Keith) Updated tile code to support x/y offsets in Picture effect
-   -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
-   -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
-   -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
-   -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
-   -- enh(dkulp) Add option to twinkle to re-randomize the color after each twinkle
-   -- enh(keith) Added tiling options to picture effect
-   -- bug(sean) Fixed bottom row of plasma. Bug was the bottom row was copied from top row
-   -- bug(ChrisD) Fix issue #368 - missing OK/Cancel on Schedule Playlist
+   -- enh (ChrisD) Add application launcher for linux
+   -- bug (ChrisD) New timing dialog should be titled as such (partial fix for issue #377)
+   -- bug (gil)    Buttons will now re-enable after an LSP export model operation.
+   -- enh (Keith)  New feature in pictures, tiled pictures
+   -- bug (gil)    Fix potential crashes for all imports where models may be hidden.
+   -- bug (gil)    Fix LSP import effects when a target model is hidden.
+   -- enh (sean)   New effect class Lightning
+   -- bug (gil)    Sequence SaveAs was not saving XML in new directory.
+   -- bug (gil)    Remove fixed attribute for timing track converted to papagayo timing.
+   -- enh (gil)    Add LOR conversion option to show verbose channel mapping.
+   -- enh (Keith)  Updated tile code to support x/y offsets in Picture effect
+   -- bug (dkulp)  After deleting an effect, if you hit Up/Down, crash will result
+   -- bug (dkulp)  Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
+   -- bug (dkulp)  Click on a "node" may not hit test properly if an effect exists on the model or strand layers
+   -- bug (dkulp)  Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
+   -- enh (dkulp)  Add option to twinkle to re-randomize the color after each twinkle
+   -- enh (keith)  Added tiling options to picture effect
+   -- bug (sean)   Fixed bottom row of plasma. Bug was the bottom row was copied from top row
+   -- bug (ChrisD) Fix issue #368 - missing OK/Cancel on Schedule Playlist
 4.2.13  Sep 27, 2015
    -- enh (sean) Added new Plasma effect. Now you don't need to use Butterfly to get Plasma effects
    -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
@@ -5253,63 +5266,55 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 3.0.16 Jun 28,2013
    - (sean) New option added to the Text effect, Countdown timer.
 3.0.15 Jun 27,2013
-   - (sean) Added check to make it so empty picture selection does not cause hundreds of pop up windows
-    - (sean) fixed LOR lms and lcb export
-   - (sean) added check to make sure model's have at least 1 pixel wide and high
-   - (sean) new feature in Meteors effect. Meteors can now fall up
+   -- enh (sean) new feature in Meteors effect. Meteors can now fall up
+   -- bug (sean) Added check to make it so empty picture selection does not cause hundreds of pop up windows
+   -- bug (sean) fixed LOR lms and lcb export
+   -- bug (sean) added check to make sure model's have at least 1 pixel wide and high
 3.0.14 Jun 13,2013
-   - New movie files added to Picture Effect
-        Use web page to change your movies into jpg files. http://image.online-convert.com/convert-to-jpg
-    - Strobe in Twinkle Effect is now random lights
+   -- enh New movie files added to Picture Effect
+          Use web page to change your movies into jpg files. http://image.online-convert.com/convert-to-jpg
+   -- enh Strobe in Twinkle Effect is now random lights
 3.0.13 May 30,2013
-   - New Strobe Effect now available in the Twinkle Effect Class
-    - Twinkle Effect Class now allows different steps of twinkle.
+   -- enh New Strobe Effect now available in the Twinkle Effect Class
+   -- enh Twinkle Effect Class now allows different steps of twinkle.
 3.0.12 May 26,2013
-   - New type of vertical text where letters are not rotated but stacked on
-      top of each other. Finally we have Line 1 one color, line 2 second color.
-     Each line of text can have a different font, a different direction.
-     There is a position bar for each line of text.
+   -- enh New type of vertical text where letters are not rotated but stacked on
+          top of each other. Finally we have Line 1 one color, line 2 second color.
+          Each line of text can have a different font, a different direction.
+          There is a position bar for each line of text.
 3.0.11 May 15,2013
-   - Text can now be rotated 0, 90, 180 or 270 degrees
+   -- enh Text can now be rotated 0, 90, 180 or 270 degrees
 3.0.10 May 12,2013
-   - Changed 32 character limit in the Text effect to be 256 characters
+   -- enh Changed 32 character limit in the Text effect to be 256 characters
 3.0.9  May 11,2013
-   - Animated Gifs added to the Pictures effect
+   -- enh Animated Gifs added to the Pictures effect
 3.0.8  Apr 25,2013
-   - Added export for LSP to create UserPatterns.xml
-        The actual file created will have a *.user extension. rename it to use it
-   - New Effect, Fireworks!. Dave Pitts coded up this new effect.
+   -- enh Added export for LSP to create UserPatterns.xml
+          The actual file created will have a *.user extension. rename it to use it
+   -- enh (dpitts) New Effect, Fireworks!. Dave Pitts coded up this new effect.
 3.0.7  Apr 23,2013
-   - Fixed Pallet 3 button. It was not picking up color when it was clicked.
-    - Fixed export of Meteors. This effected all sequencers
-   - Fixed export of Life. This effected all sequencers
-   - Fixed export of Snowstorm. This effected all sequencers
+   -- bug Fixed Pallet 3 button. It was not picking up color when it was clicked.
+   -- bug Fixed export of Meteors. This effected all sequencers
+   -- bug Fixed export of Life. This effected all sequencers
+   -- bug Fixed export of Snowstorm. This effected all sequencers
 3.0.6  Mar 11,2013
-   - Corrected another bug in LOR lcb export.
-    - Modifed Nutcracker tab to keep a minimum size screen on left window.
-    - Added color selection based on distance from center of object for Spirograph.
-    - Added the ability to animate the d parameter in spirograph
-    - Moved all effects into their own source file.
-    RGBEffects.cpp is now smaller and there are 20 new cpp
-        files. RenderBars.cpp, RenderMeteors.cpp, .etc.
+   -- enh Modifed Nutcracker tab to keep a minimum size screen on left window.
+   -- enh Added color selection based on distance from center of object for Spirograph.
+   -- enh Added the ability to animate the d parameter in spirograph
+   -- enh Moved all effects into their own source file.
+          RGBEffects.cpp is now smaller and there are 20 new cpp
+          files. RenderBars.cpp, RenderMeteors.cpp, .etc.
+   -- bug Corrected another bug in LOR lcb export.
 3.0.5  Mar 08,2013
-   - Corrected color swap in lcb files. Corrected bug in HLS export.
+   -- bug Corrected color swap in lcb files. 
+   -- bug Corrected bug in HLS export.
 3.0.4  Mar 04,2013
-   - Added new effects, Tree and Spirograph.
+   -- Added new effects, Tree and Spirograph.
 3.0.3  Mar 02,2013
-   - Added new effect, Twinkle.
+   -- enh Added new effect, Twinkle.
 3.0.2  Feb 28,2013
-   - Corrected unsigned 24bit value for HLS *.hlsnc export.
+   -- bug Corrected unsigned 24bit value for HLS *.hlsnc export.
 3.0.1  Feb 26,2013
-   - Added wxGauge to show process for exporting sequence files.
+   -- enh Added wxGauge to show process for exporting sequence files.
 3.0.0  Feb 22,2013
-   - Initial Release. This is Matt Browns original porting of Nutcracker into xLights.
-
-
-
-
-
-
-
-
-
+   -- enh Initial Release. This is Matt Browns original porting of Nutcracker into xLights.
