@@ -46,11 +46,13 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _quality(quality)
+VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id, const wxPoint& pos, const wxSize& size) :
+    _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _quality(quality)
 {
     _outputManager = outputManager;
     _tempSize = _size;
     _tempLocation = _location;
+    _options = options;
 
     //(*Initialize(VirtualMatrixDialog)
     wxBoxSizer* BoxSizer1;
@@ -182,7 +184,7 @@ void VirtualMatrixDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void VirtualMatrixDialog::OnButton_PositionClick(wxCommandEvent& event)
 {
-    VideoWindowPositionDialog dlg(this, wxID_ANY, _tempLocation, _tempSize, wxSize(SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue()), _useMatrixSize, _matrixMultiplier);
+    VideoWindowPositionDialog dlg(this, _options, wxID_ANY, _tempLocation, _tempSize, wxSize(SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue()), _useMatrixSize, _matrixMultiplier);
 
     if (dlg.ShowModal() == wxID_OK)
     {

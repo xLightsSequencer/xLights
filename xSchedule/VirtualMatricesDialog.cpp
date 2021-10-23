@@ -215,7 +215,7 @@ void VirtualMatricesDialog::DoAdd()
     bool useMatrixSize = false;
     int matrixMultiplier = 1;
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -286,7 +286,7 @@ void VirtualMatricesDialog::DoEdit()
         useMatrixSize = true;
     }
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {

@@ -454,7 +454,7 @@ void PlayListItemFSEQVideoPanel::OnFilePickerCtrl_VideoFileFileChanged(wxFileDir
 
 void PlayListItemFSEQVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 {
-    VideoWindowPositionDialog dlg(this, wxID_ANY, _fseq->GetPosition(), _fseq->GetSize());
+    VideoWindowPositionDialog dlg(this, _fseq->GetOptions(), wxID_ANY, _fseq->GetPosition(), _fseq->GetSize());
 
     if (dlg.ShowModal() == wxID_OK)
     {

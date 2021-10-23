@@ -124,7 +124,7 @@ PlayListItemImagePanel::~PlayListItemImagePanel()
 
 void PlayListItemImagePanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 {
-    VideoWindowPositionDialog dlg(this, wxID_ANY, _image->GetPosition(), _image->GetSize());
+    VideoWindowPositionDialog dlg(this, _image->GetOptions(), wxID_ANY, _image->GetPosition(), _image->GetSize());
 
     if (dlg.ShowModal() == wxID_OK)
     {
