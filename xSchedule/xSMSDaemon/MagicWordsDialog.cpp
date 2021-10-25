@@ -10,7 +10,7 @@
 
 #include "MagicWordsDialog.h"
 #include "MagicWordDialog.h"
-#include "SMSDaemonoptions.h"
+#include "SMSDaemonOptions.h"
 #include "MagicWord.h"
 
 //(*InternalHeaders(MagicWordsDialog)
