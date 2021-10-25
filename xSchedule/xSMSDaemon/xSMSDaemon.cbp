@@ -30,6 +30,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDE_COMMAND_VALIDATION" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
@@ -81,6 +82,7 @@
 					<Add option="-D__WXMSW__" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDE_COMMAND_VALIDATION" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
@@ -159,6 +161,7 @@
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
+					<Add option="-DEXCLUDE_COMMAND_VALIDATION" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option='-D__cdecl=&quot;&quot;' />
 					<Add directory="include" />
@@ -198,7 +201,8 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
-					<Add option="-D__cdecl=&apos;&apos;" />
+					<Add option="-DEXCLUDE_COMMAND_VALIDATION" />
+                                            					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
 					<Add directory="../xSchedule/xSMSDaemon" />
 					<Add directory="../include" />
@@ -239,6 +243,7 @@
 					<Add option="-D__WXMSW__" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDE_COMMAND_VALIDATION" />
 					<Add directory="include" />
 					<Add directory="../../xSchedule/xSMSDaemon" />
 					<Add directory="../../include" />
@@ -325,6 +330,12 @@
 		<Unit filename="SMSMessage.cpp" />
 		<Unit filename="SMSService.h" />
 		<Unit filename="SMSSettingsDialog.cpp" />
+		<Unit filename="MagicWord.h" />
+		<Unit filename="MagicWord.cpp" />
+		<Unit filename="MagicWordDialog.h" />
+		<Unit filename="MagicWordDialog.cpp" />
+		<Unit filename="MagicWordsDialog.h" />
+		<Unit filename="MagicWordsDialog.cpp" />
 		<Unit filename="SMSSettingsDialog.h" />
 		<Unit filename="TestMessagesDialog.cpp" />
 		<Unit filename="TestMessagesDialog.h" />
@@ -337,6 +348,8 @@
 		</Unit>
 		<Unit filename="voip_ms.h" />
 		<Unit filename="wxsmith/SMSSettingsDialog.wxs" />
+		<Unit filename="wxsmith/MagicWordDialog.wxs" />
+		<Unit filename="wxsmith/MagicWordsDialog.wxs" />
 		<Unit filename="wxsmith/TestMessagesDialog.wxs" />
 		<Unit filename="wxsmith/xSMSDaemonframe.wxs" />
 		<Unit filename="xSMSDaemonApp.cpp" />
@@ -353,6 +366,8 @@
 				<resources>
 					<wxFrame wxs="wxsmith/xSMSDaemonframe.wxs" src="xSMSDaemonMain.cpp" hdr="xSMSDaemonMain.h" fwddecl="0" i18n="1" name="xSMSDaemonFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SMSSettingsDialog.wxs" src="SMSSettingsDialog.cpp" hdr="SMSSettingsDialog.h" fwddecl="0" i18n="1" name="SMSSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MagicWordDialog.wxs" src="MagicWordDialog.cpp" hdr="MagicWordDialog.h" fwddecl="0" i18n="1" name="MagicWordDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MagicWordsDialog.wxs" src="MagicWordsDialog.cpp" hdr="MagicWordsDialog.h" fwddecl="0" i18n="1" name="MagicWordsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/TestMessagesDialog.wxs" src="TestMessagesDialog.cpp" hdr="TestMessagesDialog.h" fwddecl="0" i18n="1" name="TestMessagesDialog" language="CPP" />
 				</resources>
 			</wxsmith>

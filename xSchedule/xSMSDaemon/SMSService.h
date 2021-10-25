@@ -10,6 +10,7 @@
 
 #include "SMSMessage.h"
 #include "SMSDaemonOptions.h"
+#include "MagicWord.h"
 
 class SMSService;
 
@@ -351,12 +352,23 @@ class SMSService
                                                     msg._wmessage = w;
                                                 }
 
-                                                _messages.push_back(msg);
-                                                added = true;
-                                                logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
-                                                if (msg._from != GetPhone())
-                                                {
-                                                    SendSuccessMessage(msg, _options.GetSuccessMessage());
+                                                bool magic = false;
+                                                for (const auto& it : _options.GetMagicWords()) {
+                                                    if (it->CheckMessage(msg))                                                         {
+                                                        _rejectedMessages.push_back(msg);
+                                                        magic = true;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (!magic) {
+                                                    _messages.push_back(msg);
+                                                    added = true;
+                                                    logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
+
+                                                    if (msg._from != GetPhone()) {
+                                                        SendSuccessMessage(msg, _options.GetSuccessMessage());
+                                                    }
                                                 }
                                             }
                                             else

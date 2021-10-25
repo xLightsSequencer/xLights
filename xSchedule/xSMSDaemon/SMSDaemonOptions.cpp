@@ -4,12 +4,21 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include "../../xLights/UtilFunctions.h"
+#include "MagicWord.h"
 
 #include <log4cpp/Category.hh>
 #include <wx/wxcrt.h>
 
 SMSDaemonOptions::SMSDaemonOptions()
 {
+}
+
+SMSDaemonOptions::~SMSDaemonOptions()
+{
+    while (_magicWords.size() > 0) {
+        delete _magicWords.back();
+        _magicWords.pop_back();
+    }
 }
 
 void SMSDaemonOptions::Load(const std::string& showDir)
@@ -61,6 +70,16 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _manualModeration = n->GetAttribute("ManualModeration", "FALSE") == "TRUE";
             _ignoreOversizedMessages = n->GetAttribute("IgnoreOversizedMessages", "FALSE") == "TRUE";
             _upperCase = n->GetAttribute("UpperCase", "FALSE") == "TRUE";
+
+            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                if (nn->GetName() == "MagicWords") {
+                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                        if (nnn->GetName() == "MagicWord") {
+                            _magicWords.push_back(new MagicWord(nnn));
+                        }
+                    }
+                }
+            }
         }
         else
         {
@@ -119,6 +138,12 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     if (_manualModeration) node->AddAttribute("ManualModeration", "TRUE");
     if (_ignoreOversizedMessages) node->AddAttribute("IgnoreOversizedMessages", "TRUE");
     if (_upperCase) node->AddAttribute("UpperCase", "TRUE");
+
+    wxXmlNode* mws = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "MagicWords");
+    node->AddChild(mws);
+    for (const auto& it : _magicWords)         {
+        it->Save(mws);
+    }
 
     doc.SetRoot(node);
     logger_base.debug("Options saved to %s.", (const char *)options.c_str());

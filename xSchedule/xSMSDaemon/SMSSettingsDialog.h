@@ -26,6 +26,7 @@ class SMSSettingsDialog: public wxDialog
 
 		//(*Declarations(SMSSettingsDialog)
 		wxButton* Button_Cancel;
+		wxButton* Button_MagicWords;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_IgnoreOversized;
 		wxCheckBox* CheckBox_Moderation;
@@ -126,6 +127,7 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL8;
 		static const long ID_STATICTEXT14;
 		static const long ID_TEXTCTRL9;
+		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -143,6 +145,7 @@ class SMSSettingsDialog: public wxDialog
 		void OnTextCtrl_UserText(wxCommandEvent& event);
 		void OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event);
 		void OnChoice_SMSServiceSelect(wxCommandEvent& event);
+		void OnButton_MagicWordsClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

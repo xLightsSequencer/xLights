@@ -5,6 +5,8 @@
 #include <vector>
 #include <wx/wx.h>
 
+class MagicWord;
+
 class SMSDaemonOptions
 {
     int _changeCount = 0;
@@ -36,6 +38,7 @@ class SMSDaemonOptions
     bool _manualModeration = false;
 	bool _ignoreOversizedMessages = false;
     bool _upperCase = false;
+    std::list<MagicWord*> _magicWords;
 
     public:
 
@@ -82,6 +85,7 @@ class SMSDaemonOptions
             }
         }
         void SetMaxTimesToDisplay(int maximiumTimesToDisplay) { if (maximiumTimesToDisplay != _maximiumTimesToDisplay) { _maximiumTimesToDisplay = maximiumTimesToDisplay; _changeCount++; } }
+        std::list<MagicWord*>& GetMagicWords() { return _magicWords; }
 
         bool GetManualModeration() const { return _manualModeration; }
         void SetManualModeration(bool manualModeration) { if (manualModeration != _manualModeration) { _manualModeration = manualModeration; _changeCount++; } }
@@ -104,7 +108,9 @@ class SMSDaemonOptions
 		
         bool IsDirty() const;
         void ClearDirty();
+        void SetDirty() { _changeCount++; }
         SMSDaemonOptions();
+        ~SMSDaemonOptions();
         void Load(const std::string& showDir);
         //virtual ~SMSDaemonOptions();
         void Save(const std::string& showDir);
