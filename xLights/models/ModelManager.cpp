@@ -872,7 +872,7 @@ bool ModelManager::ReworkStartChannel() const
                     // Handle controllers that must start serial outputs on a new universe and the first model is not DMX port 1
                     // This relies on serial ports being added first to any controller channels
                     if (itm == sortedmodels.front()) {
-                        if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps->NeedsFullUniverseForDMX()) {
+                        if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps && caps->NeedsFullUniverseForDMX()) {
                             ch += itm->GetControllerDMXChannel() - 1;
                         }
                     }
@@ -910,7 +910,7 @@ bool ModelManager::ReworkStartChannel() const
                     }
 
                     // Handle controllers that must start serial outputs on a new universe last model does not consume the full universe
-                    if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps->NeedsFullUniverseForDMX()) {
+                    if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps && caps->NeedsFullUniverseForDMX()) {
                         if (itm == sortedmodels.back()) {
                             int unisize = it->GetFirstOutput()->GetChannels();
                             if ((ch - 1) % unisize != 0) {
