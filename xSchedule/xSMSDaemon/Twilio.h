@@ -58,12 +58,13 @@ class Twilio : public SMSService
             std::string url = TWILIO_API_URL;
             auto sid = GetSID();
             auto token = GetToken();
+            auto user = GetUser();
             Replace(url, "{sid}", sid);
-            Replace(url, "{user}", GetUser());
+            Replace(url, "{user}", user);
             Replace(url, "{token}", token);
 
-            logger_base.debug("Retrieving messages.");
-            std::string res = Curl::HTTPSGet(url, sid, token);
+            logger_base.debug("Retrieving messages using basic auth {Account SID:Auth Token}.");
+            std::string res = Curl::HTTPSGet(url, user, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 

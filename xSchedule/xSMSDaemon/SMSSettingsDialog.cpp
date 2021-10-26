@@ -339,7 +339,8 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_Token->SetLabel("API Secret");
         TextCtrl_Token->Enable();
         TextCtrl_User->Enable();
-        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+		StaticText_SID->Enable();
+		if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "")
@@ -359,7 +360,8 @@ void SMSSettingsDialog::ValidateWindow()
 
         TextCtrl_Token->Disable();
         TextCtrl_User->Enable();
-        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+		StaticText_SID->Enable();
+		if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "")
         {
@@ -376,7 +378,8 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_SID->SetLabel("API Key SID");
         StaticText_Token->SetLabel("Auth Token");
 
-        TextCtrl_User->Enable();
+		TextCtrl_SID->Enable();
+		TextCtrl_User->Enable();
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "" ||
