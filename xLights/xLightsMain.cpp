@@ -7037,7 +7037,7 @@ void xLightsFrame::OnMenuItemHinksPixExportSelected(wxCommandEvent& event)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    HinksPixExportDialog dlg(this, &_outputManager);
+    HinksPixExportDialog dlg(this, &_outputManager, &AllModels);
 
     dlg.ShowModal();
 }

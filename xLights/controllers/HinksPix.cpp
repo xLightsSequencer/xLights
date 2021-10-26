@@ -1167,6 +1167,8 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         logger_base.info("Rebooting Controller.");
         progress.Update(90, "Rebooting Controller.");
         SendRebootController(worked);
+        wxMilliSleep(100);
+        SendRebootController(worked);
     }
 
     progress.Update(100, "Done.");

@@ -6,27 +6,29 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/volume.h>
-#include <wx/progdlg.h>
 #include <wx/config.h>
 #include <wx/dir.h>
+#include <wx/progdlg.h>
+#include <wx/volume.h>
 #include <wx/wfstream.h>
 
+#include "AudioManager.h"
+#include "ControllerCaps.h"
+#include "ControllerUploadData.h"
+#include "ExternalHooks.h"
 #include "HinksPixExportDialog.h"
+#include "UtilFunctions.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
+#include "../outputs/ControllerEthernet.h"
+#include "models/ModelManager.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
-#include "UtilFunctions.h"
-#include "ControllerCaps.h"
-#include "AudioManager.h"
-#include "ExternalHooks.h"
-#include "../outputs/ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>
 
-#include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
+#include "../include/spxml-0.5/spxmlparser.hpp"
 
 static const std::string CHECK_COL = "ID_UPLOAD_";
 static const std::string MODE_COL = "ID_MODE_";
@@ -60,9 +62,9 @@ const long HinksPixExportDialog::ID_MNU_SELECTNONE = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SELECTHIGH = wxNewId();
 const long HinksPixExportDialog::ID_MNU_DESELECTHIGH = wxNewId();
 
-BEGIN_EVENT_TABLE(HinksPixExportDialog,wxDialog)
-	//(*EventTable(HinksPixExportDialog)
-	//*)
+BEGIN_EVENT_TABLE(HinksPixExportDialog, wxDialog)
+//(*EventTable(HinksPixExportDialog)
+//*)
 END_EVENT_TABLE()
 
 inline void write2ByteUInt(uint8_t* data, uint32_t v) {
@@ -77,12 +79,12 @@ inline void write4ByteUInt(uint8_t* data, uint32_t v) {
     data[3] = (uint8_t)((v >> 24) & 0xFF);
 }
 
-inline std::array<int, 4> getIPBytes(const wxString& ip)
-{
+inline std::array<int, 4> getIPBytes(const wxString& ip) {
     wxArrayString const ips = wxSplit(ip, '.');
-    if (ips.size() != 4)
-        return { 0,0,0,0 };
-    return { wxAtoi(ips[0]),wxAtoi(ips[1]),wxAtoi(ips[2]),wxAtoi(ips[3]) };
+    if (ips.size() != 4) {
+        return { 0, 0, 0, 0 };
+    }
+    return { wxAtoi(ips[0]), wxAtoi(ips[1]), wxAtoi(ips[2]), wxAtoi(ips[3]) };
 }
 
 void HSEQFile::writeHeader() {
@@ -101,50 +103,48 @@ void HSEQFile::writeHeader() {
     header[4] = 3; //format version
 
     int num_of_Addition_Controllers = 0;
-    if (_slave1)
+    if (m_slave1) {
         num_of_Addition_Controllers++;
-    if (_slave2)
+    }
+    if (m_slave2) {
         num_of_Addition_Controllers++;
+    }
 
     header[9] = num_of_Addition_Controllers; //# of Slave Controllers
 
-    write2ByteUInt(&header[16], ((44100 * m_seqStepTime) / 1000));//framerate
-    write4ByteUInt(&header[20], m_seqNumFrames);//number of frames
+    write2ByteUInt(&header[16], ((44100 * m_seqStepTime) / 1000)); //framerate
+    write4ByteUInt(&header[20], m_seqNumFrames);                   //number of frames
 
-    write4ByteUInt(&header[24], m_seqChannelCount);//total channel count of all controllers
-    write2ByteUInt(&header[68], _hinx->GetChannels());//total channel count of master controllers
+    write4ByteUInt(&header[24], m_seqChannelCount);     //total channel count of all controllers
+    write2ByteUInt(&header[68], m_hinx->GetChannels()); //total channel count of master controllers
 
-    strcpy((char*)&header[28], _hinx->GetIP().c_str());//IP of master controllers
+    strcpy((char*)&header[28], m_hinx->GetIP().c_str()); //IP of master controllers
 
-    if (_slave1)
-    {
-        write2ByteUInt(&header[76], _slave1->GetChannels());
+    if (m_slave1) {
+        write2ByteUInt(&header[76], m_slave1->GetChannels());
 
-        auto const slave1IP = getIPBytes(_slave1->GetIP());
+        auto const slave1IP = getIPBytes(m_slave1->GetIP());
         header[72] = slave1IP[0];
         header[73] = slave1IP[1];
         header[74] = slave1IP[2];
         header[75] = slave1IP[3];
         int j = 0;
-        for (auto const output : _slave1->GetOutputs())
-        {
+        for (auto* const output : m_slave1->GetOutputs()) {
             write2ByteUInt(&header[80 + (j * 2)], output->GetUniverse());
             write2ByteUInt(&header[148 + (j * 2)], output->GetChannels());
             j++;
         }
     }
-    if (_slave2)
-    {
-        write2ByteUInt(&header[220], _slave2->GetChannels());
+    if (m_slave2) {
+        write2ByteUInt(&header[220], m_slave2->GetChannels());
 
-        auto const slave2IP = getIPBytes(_slave2->GetIP());
+        auto const slave2IP = getIPBytes(m_slave2->GetIP());
         header[216] = slave2IP[0];
         header[217] = slave2IP[1];
         header[218] = slave2IP[2];
         header[219] = slave2IP[3];
         int j = 0;
-        for (auto const output : _slave2->GetOutputs())
-        {
+        for (auto* const output : m_slave2->GetOutputs()) {
             write2ByteUInt(&header[224 + (j * 2)], output->GetUniverse());
             write2ByteUInt(&header[258 + (j * 2)], output->GetChannels());
             j++;
@@ -159,7 +159,7 @@ void HSEQFile::writeHeader() {
     header[327] = 1;
     header[328] = 28;
 
-    write2ByteUInt(&header[330], _orgChannelCount);
+    write2ByteUInt(&header[330], m_orgChannelCount);
 
     write2ByteUInt(&header[334], m_seqNumFrames);
 
@@ -168,8 +168,16 @@ void HSEQFile::writeHeader() {
     dumpInfo(false);
 }
 
-HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
-{
+void HinksChannelMap::Dump() const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug(" xLights StartChannel %d Channel Count %d Hinkspix StartChannel %d",
+                      OrgStartChannel,
+                      ChannelCount,
+                      HinksStartChannel);
+}
+
+HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager, wxWindowID id, const wxPoint& pos, const wxSize& size) :
+    m_outputManager(outputManager), m_modelManager(modelManager) {
 	//(*Initialize(HinksPixExportDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
@@ -290,17 +298,13 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
         int const filterSelect = config->ReadLong("HinksPixExportFilterSelection", -1);
         config->Read("HinksPixExportFolderSelection", &folderSelect);
         config->Read("HinksPixExportDriveSelection", &driveSelect);
-        if (filterSelect != wxNOT_FOUND)
-        {
+        if (filterSelect != wxNOT_FOUND) {
             ChoiceFilter->SetSelection(filterSelect);
         }
         int const ifoldSelect = ChoiceFolder->FindString(folderSelect);
-        if (ifoldSelect != wxNOT_FOUND)
-        {
+        if (ifoldSelect != wxNOT_FOUND) {
             ChoiceFolder->SetSelection(ifoldSelect);
-        }
-        else
-        {
+        } else {
             ChoiceFolder->SetSelection(0);
         }
 
@@ -318,14 +322,12 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     SplitterWindow1->SetSashPosition(h);
 }
 
-HinksPixExportDialog::~HinksPixExportDialog()
-{
+HinksPixExportDialog::~HinksPixExportDialog() {
     //(*Destroy(HinksPixExportDialog)
     //*)
 }
 
-void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
-{
+void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) {
     HinkControllerList->Freeze();
     //remove all the children from the first upload checkbox on
     wxWindow* w = HinkControllerList->FindWindow(CHECK_COL + "0");
@@ -337,25 +339,19 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
 
     auto const controllers = outputManager->GetControllers();
     wxArrayString otherControllers;
-    for (const auto& it : controllers)
-    {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged())
-        {
-            if (eth->GetVendor() == "HinksPix")
-            {
-                _hixControllers.push_back(eth);
-            }
-            else if(eth->GetProtocol() == OUTPUT_E131)
-            {
-                _otherControllers.push_back(eth);
+    for (const auto& it : controllers) {
+        auto* eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged()) {
+            if (eth->GetVendor() == "HinksPix") {
+                m_hixControllers.push_back(eth);
+            } else if (eth->GetProtocol() == OUTPUT_E131) {
+                m_otherControllers.push_back(eth);
                 otherControllers.push_back(eth->GetName());
             }
         }
     }
     int row = 0;
-    for (const auto& it : _hixControllers)
-    {
+    for (const auto& it : m_hixControllers) {
         std::string rowStr = std::to_string(row);
         wxCheckBox* CheckBox1 = new wxCheckBox(HinkControllerList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, CHECK_COL + rowStr);
         HinkControllerSizer->Add(CheckBox1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
@@ -372,14 +368,15 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
         Choice1->Append(_("Master"));
         Choice1->Append(_("Remote"));
         Choice1->Append(_("Don't Set"));
-        if(it == _hixControllers.front())
+        if (it == m_hixControllers.front()) {
             Choice1->SetSelection(0);
-        else
+        } else {
             Choice1->SetSelection(1);
+        }
         HinkControllerSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
 
         Choice1 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, DISK_COL + rowStr);
-        Choice1->Append(_drives);
+        Choice1->Append(m_drives);
 
         HinkControllerSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -387,8 +384,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
         Choice2->Append(_(""));
         wxChoice* Choice3 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, SLAVE2_COL + rowStr);
         Choice3->Append(_(""));
-        for (wxString const& oth : otherControllers)
-        {
+        for (wxString const& oth : otherControllers) {
             Choice2->Append(oth);
             Choice3->Append(oth);
         }
@@ -397,13 +393,10 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
 
         HinkControllerSizer->Add(Choice2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
         HinkControllerSizer->Add(Choice3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
-        if (otherControllers.size() == 0)
-        {
+        if (otherControllers.size() == 0) {
             Choice2->Enable(false);
             Choice3->Enable(false);
-        }
-        else if (otherControllers.size() == 1)
-        {
+        } else if (otherControllers.size() == 1) {
             Choice3->Enable(false);
         }
 
@@ -417,9 +410,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
     HinkControllerList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
     HinkControllerList->Thaw();
 }
-
-void HinksPixExportDialog::OnPopup(wxCommandEvent &event)
-{
+void HinksPixExportDialog::OnPopup(wxCommandEvent& event) {
     int id = event.GetId();
     if (id == ID_MNU_SELECTALL) {
         for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
@@ -448,11 +439,10 @@ void HinksPixExportDialog::OnPopup(wxCommandEvent &event)
     }
 }
 
-void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
-{
+void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char*)dir.c_str());
 
     const wxString fseqDir = xLightsFrame::FseqDir;
 
@@ -461,24 +451,22 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
 
     wxString file;
     bool fcont = directory.GetFirst(&file, "*.x*");
-    static const int BUFFER_SIZE = 1024*12;
+    static const int BUFFER_SIZE = 1024 * 12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
     while (fcont) {
-        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" &&
-            (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
+        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
             // this could be a sequence file ... lets open it and check
             //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
             wxFile doc(dir + wxFileName::GetPathSeparator() + file);
-            SP_XmlPullParser *parser = new SP_XmlPullParser();
+            SP_XmlPullParser* parser = new SP_XmlPullParser();
             size_t read = doc.Read(&buf[0], BUFFER_SIZE);
             parser->append(&buf[0], read);
-            SP_XmlPullEvent * event = parser->getNext();
-            int done = 0;
+            SP_XmlPullEvent* event = parser->getNext();
+            bool done = false;
             int count = 0;
             bool isSequence = false;
             bool isMedia = false;
             std::string mediaName;
-
 
             while (!done) {
                 if (!event) {
@@ -490,33 +478,32 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
                     }
                 } else {
                     switch (event->getEventType()) {
-                        case SP_XmlPullEvent::eEndDocument:
+                    case SP_XmlPullEvent::eEndDocument:
+                        done = true;
+                        break;
+                    case SP_XmlPullEvent::eStartTag: {
+                        SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
+                        wxString NodeName = wxString::FromAscii(stagEvent->getName());
+                        count++;
+                        if (NodeName == "xsequence") {
+                            isSequence = true;
+                        } else if (NodeName == "mediaFile") {
+                            isMedia = true;
+                        } else {
+                            isMedia = false;
+                        }
+                        if (count == 100) {
+                            //media file will be very early in the file, dont waste time;
                             done = true;
-                            break;
-                        case SP_XmlPullEvent::eStartTag: {
-                                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                                wxString NodeName = wxString::FromAscii(stagEvent->getName());
-                                count++;
-                                if (NodeName == "xsequence") {
-                                    isSequence = true;
-                                } else if (NodeName == "mediaFile") {
-                                    isMedia = true;
-                                } else {
-                                    isMedia = false;
-                                }
-                                if (count == 100) {
-                                    //media file will be very early in the file, dont waste time;
-                                    done = true;
-                                }
-                            }
-                            break;
-                        case SP_XmlPullEvent::eCData:
-                            if (isMedia) {
-                                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                                mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
-                                done = true;
-                            }
-                            break;
+                        }
+                    } break;
+                    case SP_XmlPullEvent::eCData:
+                        if (isMedia) {
+                            SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
+                            mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
+                            done = true;
+                        }
+                        break;
                     }
                 }
                 if (!done) {
@@ -537,10 +524,10 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
                     isSequence = false;
                 }
             }
-            if (mediaName != "") {
+            if (!mediaName.empty()) {
                 if (!wxFile::Exists(mediaName)) {
                     wxFileName fn(mediaName);
-                    for (auto &md : frame->GetMediaFolders()) {
+                    for (auto const& md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
                         if (wxFile::Exists(tmn)) {
                             mediaName = tmn;
@@ -562,20 +549,17 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
             if (isSequence) {
                 long index = CheckListBox_Sequences->GetItemCount();
                 CheckListBox_Sequences->InsertItem(index, fseqName);
-                if (mediaName != "") {
+                if (!mediaName.empty()) {
                     CheckListBox_Sequences->SetItem(index, 1, mediaName);
                 }
             }
         }
         fcont = directory.GetNext(&file);
     }
-    if (ChoiceFilter->GetSelection() == 0)
-    {
+    if (ChoiceFilter->GetSelection() == 0) {
         fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
-        while (fcont)
-        {
-            if (file != "Backup")
-            {
+        while (fcont) {
+            if (file != "Backup") {
                 LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file);
             }
             fcont = directory.GetNext(&file);
@@ -583,8 +567,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
     }
 }
 
-void HinksPixExportDialog::LoadSequences()
-{
+void HinksPixExportDialog::LoadSequences() {
     CheckListBox_Sequences->ClearAll();
     CheckListBox_Sequences->AppendColumn("Sequence");
     CheckListBox_Sequences->AppendColumn("Media");
@@ -592,37 +575,30 @@ void HinksPixExportDialog::LoadSequences()
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     wxString freqDir = frame->GetFseqDirectory();
 
-    if (ChoiceFolder->GetSelection() == 0)
-    {
+    if (ChoiceFolder->GetSelection() == 0) {
         LoadSequencesFromFolder(xLightsFrame::CurrentDir);
-    }
-    else
-    {
+    } else {
         const wxString folder = ChoiceFolder->GetString(ChoiceFolder->GetSelection());
         LoadSequencesFromFolder(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder);
         freqDir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder;
     }
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
+    if (config != nullptr) {
         const wxString itcsv = config->Read("HinksPixExportSelectedSequences", wxEmptyString);
-        if (!itcsv.IsEmpty())
-        {
+        if (!itcsv.IsEmpty()) {
             wxArrayString savedUploadItems = wxSplit(itcsv, ',');
 
-            for (int x = 0; x < CheckListBox_Sequences->GetItemCount(); x++)
-            {
-                if (savedUploadItems.Index(CheckListBox_Sequences->GetItemText(x)) != wxNOT_FOUND)
+            for (int x = 0; x < CheckListBox_Sequences->GetItemCount(); x++) {
+                if (savedUploadItems.Index(CheckListBox_Sequences->GetItemText(x)) != wxNOT_FOUND) {
                     CheckListBox_Sequences->CheckItem(x, true);
+                }
             }
 
             int index = 0;
-            for (wxString const& seq: savedUploadItems)
-            {
+            for (wxString const& seq : savedUploadItems) {
                 int const i = CheckListBox_Sequences->FindItem(0, seq);
-                if (i != -1)
-                {
+                if (i != -1) {
                     moveSequenceItem(index, i, false);
                     index++;
                 }
@@ -634,23 +610,21 @@ void HinksPixExportDialog::LoadSequences()
     CheckListBox_Sequences->SetColumnWidth(1, wxLIST_AUTOSIZE);
 }
 
-void HinksPixExportDialog::CreateDriveList()
-{
-    _drives.Clear();
+void HinksPixExportDialog::CreateDriveList() {
+    m_drives.Clear();
 
 #ifdef __WXMSW__
     wxArrayString ud = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
-    for (const auto &a : ud) {
-        _drives.push_back(a);
+    for (const auto& a : ud) {
+        m_drives.push_back(a);
     }
 #elif defined(__WXOSX__)
     wxDir d;
     d.Open("/Volumes");
     wxString dir;
     bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
-    while (fcont)
-    {
-        _drives.push_back("/Volumes/" + dir);
+    while (fcont) {
+        m_drives.push_back("/Volumes/" + dir);
         fcont = d.GetNext(&dir);
     }
 #else
@@ -664,23 +638,20 @@ void HinksPixExportDialog::CreateDriveList()
         d2.Open("/media/" + dir);
         wxString dir2;
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2)
-        {
-            _drives.push_back("/media/" + dir + "/" + dir2);
+        while (fcont2) {
+            m_drives.push_back("/media/" + dir + "/" + dir2);
             fcont2 = d2.GetNext(&dir2);
         }
         fcont = d.GetNext(&dir);
     }
 #endif
-
 }
 
-void HinksPixExportDialog::SaveSettings()
-{
+void HinksPixExportDialog::SaveSettings() {
     wxString selectedFSEQ = "";
     for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
         if (CheckListBox_Sequences->IsItemChecked(fs)) {
-            if (selectedFSEQ != "") {
+            if (!selectedFSEQ.empty()) {
                 selectedFSEQ += ",";
             }
             selectedFSEQ += CheckListBox_Sequences->GetItemText(fs);
@@ -697,7 +668,7 @@ void HinksPixExportDialog::SaveSettings()
     config->Write("HinksPixExportEndMin", SpinCtrlEndMin->GetValue());
 
     int row = 0;
-    for (const auto& inst : _hixControllers) {
+    for (const auto& inst : m_hixControllers) {
         std::string rowStr = std::to_string(row);
         wxString ipaddress = inst->GetIP();
 
@@ -713,8 +684,7 @@ void HinksPixExportDialog::SaveSettings()
     config->Flush();
 }
 
-void HinksPixExportDialog::ApplySavedSettings()
-{
+void HinksPixExportDialog::ApplySavedSettings() {
     /*
     static const std::string CHECK_COL = "ID_UPLOAD_";
     static const std::string MODE_COL = "ID_MODE_";
@@ -725,9 +695,8 @@ void HinksPixExportDialog::ApplySavedSettings()
 
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
-
         int row = 0;
-        for (const auto& hix : _hixControllers) {
+        for (const auto& hix : m_hixControllers) {
             std::string rowStr = std::to_string(row);
             wxString ipAddress = hix->GetIP();
             ipAddress.Replace(".", "_");
@@ -754,13 +723,11 @@ void HinksPixExportDialog::ApplySavedSettings()
     }
 }
 
-void HinksPixExportDialog::OnClose(wxCloseEvent& event)
-{
+void HinksPixExportDialog::OnClose(wxCloseEvent& /*event*/) {
     EndDialog(0);
 }
 
-void HinksPixExportDialog::SequenceListPopup(wxListEvent& event)
-{
+void HinksPixExportDialog::SequenceListPopup(wxListEvent& /*event*/) {
     wxMenu mnu;
     mnu.Append(ID_MNU_SELECTALL, "Select All");
     mnu.Append(ID_MNU_SELECTNONE, "Clear Selections");
@@ -770,59 +737,53 @@ void HinksPixExportDialog::SequenceListPopup(wxListEvent& event)
     PopupMenu(&mnu);
 }
 
-void HinksPixExportDialog::OnChoiceFolderSelect(wxCommandEvent& event)
-{
+void HinksPixExportDialog::OnChoiceFolderSelect(wxCommandEvent& /*event*/) {
     LoadSequences();
 }
 
-void HinksPixExportDialog::OnChoiceFilterSelect(wxCommandEvent& event)
-{
+void HinksPixExportDialog::OnChoiceFilterSelect(wxCommandEvent& /*event*/) {
     LoadSequences();
 }
 
-void HinksPixExportDialog::GetFolderList(const wxString& folder)
-{
+void HinksPixExportDialog::GetFolderList(const wxString& folder) {
     ChoiceFolder->Append("--Show Folder--");
     wxArrayString subfolders;
     wxDir dir(folder);
-    if (!dir.IsOpened())
-    {
+    if (!dir.IsOpened()) {
         return;
     }
     wxString strFile;
 
-    if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS))
+    if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS)) {
         subfolders.Add(strFile);
+    }
 
-    while (dir.GetNext(&strFile))
-    {
+    while (dir.GetNext(&strFile)) {
         subfolders.Add(strFile);
     }
     subfolders.Sort();
-    for (const auto& subfolder: subfolders)
-    {
-        if(subfolder.StartsWith("Backup"))
+    for (const auto& subfolder : subfolders) {
+        if (subfolder.StartsWith("Backup")) {
             continue;
-        if (subfolder.StartsWith("."))
+        }
+        if (subfolder.StartsWith(".")) {
             continue;
+        }
         ChoiceFolder->Append(subfolder);
     }
 }
 
-void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& event)
-{
+void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& /*event*/) {
     CreateDriveList();
-    for (int i = 0; i< _hixControllers.size(); i++) {
+    for (int i = 0; i < m_hixControllers.size(); i++) {
         std::string rowStr = std::to_string(i);
-        SetDropDownItems(DISK_COL + rowStr, _drives);
+        SetDropDownItems(DISK_COL + rowStr, m_drives);
     }
 }
 
-void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
-{
-    wxProgressDialog prgs("Generating HinksPix Files", "Generating HinksPix Files",
-        _hixControllers.size() * (CheckListBox_Sequences->GetItemCount()*2) + (_hixControllers.size() * 2) +1,
-        this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
+    wxProgressDialog prgs(
+        "Generating HinksPix Files", "Generating HinksPix Files", m_hixControllers.size() * (CheckListBox_Sequences->GetItemCount() * 2) + (m_hixControllers.size() * 2) + 1, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prgs.Show();
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -831,51 +792,43 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     wxString errorMsg;
     int count = 0;
     int row = 0;
-    for (auto hix : _hixControllers)
-    {
+    for (auto* hix : m_hixControllers) {
         std::string const rowStr = std::to_string(row);
         ++row;
         bool upload = GetCheckValue(CHECK_COL + rowStr);
-        if (!upload)
-        {
+        if (!upload) {
             ++count;
             continue;
         }
 
         wxString const ip = hix->GetIP();
 
-        prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'" , hix->GetName()));
+        prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
         wxString slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
         wxString slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
 
-        if (!slaveName1.IsEmpty() && slaveName1 == slaveName2)
-        {
+        if (!slaveName1.IsEmpty() && slaveName1 == slaveName2) {
             error = true;
             errorMsg = wxString::Format("Slave Controller 1 and 2 cannot not be the same: '%s'", slaveName1);
             continue;
         }
 
-        auto slave1 = getSlaveController(slaveName1);
-        auto slave2 = getSlaveController(slaveName2);
+        auto* slave1 = getSlaveController(slaveName1);
+        auto* slave2 = getSlaveController(slaveName2);
 
-        if (!slave1 && slave2)
-        {
+        if (!slave1 && slave2) {
             std::swap(slave1, slave2);
         }
 
-        if (slave1 && slave2)
-        {
-            if (slave2->GetOutputCount() > slave1->GetOutputCount())
-            {
+        if (slave1 && slave2) {
+            if (slave2->GetOutputCount() > slave1->GetOutputCount()) {
                 std::swap(slave1, slave2);
             }
         }
 
-        if (slave1 || slave2)
-        {
-            if (!CheckSlaveControllerSizes(hix, slave1, slave2))
-            {
+        if (slave1 || slave2) {
+            if (!CheckSlaveControllerSizes(hix, slave1, slave2)) {
                 error = true;
                 errorMsg = wxString::Format("Too Many Slave Controller Universes for '%s'", hix->GetName());
                 continue;
@@ -890,8 +843,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
             continue;
         }
         if (!ObtainAccessToURL(drive)) {
-            wxDirDialog dlg(this, "Select SD Directory", drive,
-                            wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            wxDirDialog dlg(this, "Select SD Directory", drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
             }
@@ -904,10 +856,8 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
         std::vector<std::tuple<wxString, wxString>> songs;
         std::vector<wxString> names;
 
-        for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++)
-        {
-            if (CheckListBox_Sequences->IsItemChecked(fs))
-            {
+        for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
+            if (CheckListBox_Sequences->IsItemChecked(fs)) {
                 wxString const fseq = CheckListBox_Sequences->GetItemText(fs);
                 wxString const media = CheckListBox_Sequences->GetItemText(fs, 1);
                 wxString const shortName = createUniqueShortName(fseq, names);
@@ -917,41 +867,35 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 bool worked = Create_HinksPix_HSEQ_File(fseq, drive + wxFileName::GetPathSeparator() + shortHseqName, hix, slave1, slave2, errorMsg);
 
                 wxString auName;
-                if (worked && !media.IsEmpty())
-                {
+                if (worked && !media.IsEmpty()) {
                     wxString tempFile;
                     auName = shortName + ".au";
                     prgs.Update(++count, "Generating AU File " + auName);
 
-                    AudioLoader audioLoader( media.ToStdString(), true );
+                    AudioLoader audioLoader(media.ToStdString(), true);
                     worked &= audioLoader.loadAudioData();
 
-                    if ( worked )
-                    {
-                        worked &= Make_AU_From_ProcessedAudio( audioLoader.processedAudio(), drive + wxFileName::GetPathSeparator() + auName, errorMsg );
-                    }
-                    else
-                    {
+                    if (worked) {
+                        worked &= Make_AU_From_ProcessedAudio(audioLoader.processedAudio(), drive + wxFileName::GetPathSeparator() + auName, errorMsg);
+                    } else {
                         AudioLoader::State loaderState = audioLoader.state();
 
                         AudioReaderDecoderInitState decoderInitState = AudioReaderDecoderInitState::NoInit;
-                        audioLoader.readerDecoderInitState( decoderInitState );
+                        audioLoader.readerDecoderInitState(decoderInitState);
 
                         AudioResamplerInitState resamplerInitState = AudioResamplerInitState::NoInit;
-                        audioLoader.resamplerInitState( resamplerInitState );
+                        audioLoader.resamplerInitState(resamplerInitState);
 
-                        logger_base.error( "HinksPixExportDialog export - loading audio fails - %d : %d : %d",
-                                           int( loaderState ), int( decoderInitState ), int (resamplerInitState ) );
+                        logger_base.error("HinksPixExportDialog export - loading audio fails - %d : %d : %d", int(loaderState), int(decoderInitState), int(resamplerInitState));
                     }
                 }
 
-                if (worked)
-                {
-                    songs.push_back(std::make_tuple(shortHseqName, auName));
+                if (worked) {
+                    songs.emplace_back(std::make_tuple(shortHseqName, auName));
                     names.push_back(shortName);
-                }
-                else
+                } else {
                     error = true;
+                }
             }
         }
         prgs.Update(++count, "Generating Schedule File");
@@ -962,74 +906,67 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 
     SaveSettings();
     prgs.Hide();
-    if(error)
+    if (error) {
         DisplayError("HinksPix File Generation Error\n" + errorMsg);
-    else
+    } else {
         wxMessageBox("HinksPix File Generation Complete");
-      // EndDialog(wxID_CLOSE);
+    }
+    // EndDialog(wxID_CLOSE);
 }
 
-void HinksPixExportDialog::OnBitmapButtonMoveDownClick(wxCommandEvent& event)
-{
-    for (int i = CheckListBox_Sequences->GetItemCount()-1; i >=0 ; --i)
-    {
-        if (CheckListBox_Sequences->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED)
-        {
-            if (i == CheckListBox_Sequences->GetItemCount() - 1) return;
-            moveSequenceItem(i+1,i);
+void HinksPixExportDialog::OnBitmapButtonMoveDownClick(wxCommandEvent& /*event*/) {
+    for (int i = CheckListBox_Sequences->GetItemCount() - 1; i >= 0; --i) {
+        if (CheckListBox_Sequences->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
+            if (i == CheckListBox_Sequences->GetItemCount() - 1) {
+                return;
+            }
+            moveSequenceItem(i + 1, i);
         }
     }
 }
 
-void HinksPixExportDialog::OnBitmapButtonMoveUpClick(wxCommandEvent& event)
-{
-    for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); ++i)
-    {
-        if (CheckListBox_Sequences->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED)
-        {
-            if (i == 0) return;
-            moveSequenceItem(i-1, i);
+void HinksPixExportDialog::OnBitmapButtonMoveUpClick(wxCommandEvent& /*event*/) {
+    for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); ++i) {
+        if (CheckListBox_Sequences->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
+            if (i == 0) {
+                return;
+            }
+            moveSequenceItem(i - 1, i);
         }
     }
 }
 
-void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
-{
+void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event) {
     wxString const text = event.GetString();
-    if (text.IsEmpty())
+    if (text.IsEmpty()) {
         return;
+    }
 
-    auto item = event.GetEventObject();
+    auto* item = event.GetEventObject();
     if (item) {
         wxChoice* cb = dynamic_cast<wxChoice*>(item);
         if (cb) {
             auto name = cb->GetName();
-            if (name.Contains(SLAVE1_COL) || name.Contains(SLAVE2_COL))
-            {
+            if (name.Contains(SLAVE1_COL) || name.Contains(SLAVE2_COL)) {
                 int row = 0;
-                for (auto hix : _hixControllers)
-                {
+                for (auto* hix : m_hixControllers) {
                     std::string const rowStr = std::to_string(row);
                     ++row;
                     wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
                     wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
-                    if (name == SLAVE1_COL + rowStr || name == SLAVE2_COL + rowStr)
-                    {
-                        if (!CheckSlaveControllerSizes(hix, getSlaveController(slaveName1), getSlaveController(slaveName2)))
-                        {
+                    if (name == SLAVE1_COL + rowStr || name == SLAVE2_COL + rowStr) {
+                        if (!CheckSlaveControllerSizes(hix, getSlaveController(slaveName1), getSlaveController(slaveName2))) {
                             cb->SetSelection(0);
                             event.Skip();
                             return;
                         }
-                        if (name == SLAVE1_COL + rowStr && slaveName2 == text)
-                        {
+                        if (name == SLAVE1_COL + rowStr && slaveName2 == text) {
                             DisplayError(wxString::Format("Cannot Set Slave Controller 1 and 2 as the same '%s' ", text));
                             cb->SetSelection(0);
                             event.Skip();
                             return;
                         }
-                        if (name == SLAVE2_COL + rowStr && slaveName1 == text)
-                        {
+                        if (name == SLAVE2_COL + rowStr && slaveName1 == text) {
                             DisplayError(wxString::Format("Cannot Set Slave Controller 1 and 2 as the same '%s' ", text));
                             cb->SetSelection(0);
                             event.Skip();
@@ -1038,8 +975,7 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
                         continue;
                     }
 
-                    if (text == slaveName1 || text == slaveName2)
-                    {
+                    if (text == slaveName1 || text == slaveName2) {
                         DisplayError(wxString::Format("Cannot use the Same Slave Controller across multiple HinksPix Controllers '%s' ", text));
                         cb->SetSelection(0);
                         event.Skip();
@@ -1051,8 +987,7 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
     }
 }
 
-void HinksPixExportDialog::moveSequenceItem(int to, int from, bool select)
-{
+void HinksPixExportDialog::moveSequenceItem(int to, int from, bool select) {
     bool const checked = CheckListBox_Sequences->IsItemChecked(to);
     wxString const fseq = CheckListBox_Sequences->GetItemText(to);
     wxString const audio = CheckListBox_Sequences->GetItemText(to, 1);
@@ -1062,23 +997,21 @@ void HinksPixExportDialog::moveSequenceItem(int to, int from, bool select)
     CheckListBox_Sequences->CheckItem(from, checked);
     CheckListBox_Sequences->SetItem(from, 0, fseq);
     CheckListBox_Sequences->SetItem(from, 1, audio);
-    if (select)
-    {
+    if (select) {
         CheckListBox_Sequences->Select(to);
         CheckListBox_Sequences->Select(from, false);
     }
 }
 
-void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxString>> const& songs, wxString const& drive)
-{
+void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxString>> const& songs, wxString const& drive) const {
     wxArrayString main;
 
-    for (std::tuple<wxString, wxString> const& song : songs)
-    {
-        wxString audio = std::get<1>(song);
-        if (audio.IsEmpty()) audio = "NONE";
+    for (auto [seq, audio] : songs) {
+        if (audio.IsEmpty()) {
+            audio = "NONE";
+        }
 
-        main.Add(wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":5}", std::get<0>(song), audio));
+        main.Add(wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":5}", seq, audio));
     }
 
     wxString const filename = drive + wxFileName::GetPathSeparator() + "MAIN.ply";
@@ -1086,8 +1019,7 @@ void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxStr
 
     f.Open(filename, wxFile::write);
 
-    if (f.IsOpened())
-    {
+    if (f.IsOpened()) {
         f.Write("[");
         f.Write(wxJoin(main, ',', '\0'));
         f.Write("]");
@@ -1095,33 +1027,28 @@ void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxStr
     }
 }
 
-void HinksPixExportDialog::createSchedule(wxString const& drive)
-{
+void HinksPixExportDialog::createSchedule(wxString const& drive) const {
     std::vector<wxString> const days{ "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
-    for (auto const &day : days)
-    {
+    for (auto const& day : days) {
         wxFile f;
         wxString const filename = drive + wxFileName::GetPathSeparator() + day + ".sched";
 
         f.Open(filename, wxFile::write);
 
-        if (f.IsOpened())
-        {
-            auto const line = wxString::Format("[{\"S\":\"%d%02d\",\"E\":\"%d%02d\",\"P\":\"MAIN.ply\",\"Q\":0}]",
-                SpinCtrlStartHour->GetValue(),SpinCtrlStartMin->GetValue(), SpinCtrlEndHour->GetValue(), SpinCtrlEndMin->GetValue());
+        if (f.IsOpened()) {
+            auto const line = wxString::Format("[{\"S\":\"%d%02d\",\"E\":\"%d%02d\",\"P\":\"MAIN.ply\",\"Q\":0}]", SpinCtrlStartHour->GetValue(), SpinCtrlStartMin->GetValue(), SpinCtrlEndHour->GetValue(), SpinCtrlEndMin->GetValue());
             f.Write(line);
             f.Close();
         }
     }
 }
 
-void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
-{
+void HinksPixExportDialog::createModeFile(wxString const& drive, int mode) const {
     //0=Master, 1=Slave
     wxFile f;
-    wxString const filename = drive + wxFileName::GetPathSeparator()+ "SD_StandAlone.sys";
+    wxString const filename = drive + wxFileName::GetPathSeparator() + "SD_StandAlone.sys";
 
-    if (mode == 2)//2=Skip, delete file that sets mode
+    if (mode == 2) //2=Skip, delete file that sets mode
     {
         wxRemoveFile(filename);
         return;
@@ -1129,8 +1056,7 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
 
     f.Open(filename, wxFile::write);
 
-    if (f.IsOpened())
-    {
+    if (f.IsOpened()) {
         auto const line = wxString::Format("M  %d\r\n", mode);
         f.Write(line);
         f.Write("  \r\n");
@@ -1138,14 +1064,12 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
     }
 }
 
-bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString & errorMsg)
-{
+bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString& errorMsg) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile));
 
     std::unique_ptr<FSEQFile> xf(FSEQFile::openFSEQFile(fseqFile));
-    if (!xf)
-    {
+    if (!xf) {
         errorMsg = wxString::Format("HinksPix Failed opening FSEQ %s", fseqFile);
         logger_base.error(errorMsg);
         return false;
@@ -1154,42 +1078,50 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     uint32_t const ogNumber_of_Frames = xf->getNumFrames();
     uint32_t const ogNumChannels = xf->getChannelCount();
     int const ogFrame_Rate = xf->getStepTime();
-    if (ogFrame_Rate != 50)
-    {
+    if (ogFrame_Rate != 50) {
         errorMsg = wxString::Format("HinksPix Failed Framerate must be 50Ms FSEQ %s", fseqFile);
         logger_base.error(errorMsg);
         return false;
     }
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
-    rng.push_back(std::pair<uint32_t, uint32_t>(0, ogNumChannels));
+    rng.emplace_back(std::pair<uint32_t, uint32_t>(0, ogNumChannels));
     xf->prepareRead(rng);
 
-    // acquire channel data on all controllers
-    int32_t ef_Num_Channel_To_Write = hix->GetChannels();
+    //Get Map of HinksPix Port channel locations to xLights channel locations
+    int32_t hix_Channels;
+    std::vector<HinksChannelMap> modelStarts;
+    if (hix->IsUniversePerString()) {
+        modelStarts = getModelChannelMap(hix, hix_Channels);
+    } else {
+        hix_Channels = hix->GetChannels();
+        auto const& hmm = modelStarts.emplace_back(hix->GetStartChannel(), hix->GetChannels(), 1);
+        hmm.Dump();
+    }
 
-    if (slave1)
+    int32_t ef_Num_Channel_To_Write = hix_Channels;
+
+    if (slave1) {
         ef_Num_Channel_To_Write += slave1->GetChannels();
+    }
 
-    if (slave2)
+    if (slave2) {
         ef_Num_Channel_To_Write += slave2->GetChannels();
+    }
 
     // read file ready -- do write file
     std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, slave1, slave2, ogNumChannels));
-    if (!ef)
-    {
+    if (!ef) {
         errorMsg = wxString::Format("HinksPix Failed Write opening FSEQ %s", shortHSEQName);
         logger_base.error(errorMsg);
         return false;
     }
 
-    uint8_t* src, * dest;
-
     ef->setChannelCount(ef_Num_Channel_To_Write);
     ef->setStepTime(ogFrame_Rate);
     ef->setNumFrames(ogNumber_of_Frames);
 
-    ef->writeHeader();	// ready for frame data
+    ef->writeHeader(); // ready for frame data
 
     uint8_t* WriteBuf = new uint8_t[ef_Num_Channel_To_Write];
 
@@ -1199,28 +1131,29 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     uint32_t frame = 0;
 
     //mostly copied from Joe's pull request(#1441) in Jan 2019
-    while (frame < ogNumber_of_Frames)
-    {
+    while (frame < ogNumber_of_Frames) {
         FSEQFile::FrameData* data = xf->getFrame(frame);
 
-        data->readFrame(tmpBuf, ogNumChannels);	// we have a read frame
+        data->readFrame(tmpBuf, ogNumChannels); // we have a read frame
 
-        // move wanted write channels into write frame buffer
-        src = tmpBuf + hix->GetStartChannel() - 1;		 // start of my data with global channel array
-        dest = WriteBuf;
-        memmove(dest, src, hix->GetChannels());
-        dest += hix->GetChannels();
+        uint8_t* dest = WriteBuf;
 
-        if (slave1)
-        {
-            src = tmpBuf + slave1->GetStartChannel() - 1;
+        //Loop through models channels
+        for (auto const& modelChan : modelStarts) {
+            uint8_t* tempSrc = tmpBuf + modelChan.OrgStartChannel - 1;
+            uint8_t* tempDest = WriteBuf + modelChan.HinksStartChannel - 1;
+            memmove(tempDest, tempSrc, modelChan.ChannelCount);
+            dest += modelChan.ChannelCount;
+        }
+
+        if (slave1) {
+            uint8_t* src = tmpBuf + slave1->GetStartChannel() - 1;
             memmove(dest, src, slave1->GetChannels());
             dest += slave1->GetChannels();
         }
 
-        if (slave2)
-        {
-            src = tmpBuf + slave2->GetStartChannel() - 1;
+        if (slave2) {
+            uint8_t* src = tmpBuf + slave2->GetStartChannel() - 1;
             memmove(dest, src, slave2->GetChannels());
             dest += slave2->GetChannels();
         }
@@ -1233,143 +1166,172 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
 
     ef->finalize();
 
-    delete[]tmpBuf;
-    delete[]WriteBuf;
+    delete[] tmpBuf;
+    delete[] WriteBuf;
 
     logger_base.debug(wxString::Format("HinksPix Completed HSEQ %s", shortHSEQName));
     return true;
 }
 
-wxString HinksPixExportDialog::createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names)
-{
+wxString HinksPixExportDialog::createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names) {
     //max Length is 20 according to HSA
     wxFileName fn(fseqName);
     wxString newfseqName = fn.GetName().Upper();
     newfseqName.erase(std::remove_if(newfseqName.begin(), newfseqName.end(), [](unsigned char c) { return !std::isalnum(c); }), newfseqName.end());
-    if (newfseqName.Length() > 20)
+    if (newfseqName.Length() > 20) {
         newfseqName = newfseqName.Left(20);
+    }
 
     //make sure name is unique
     int index = 1;
-    while (std::find_if(names.begin(), names.end(), [newfseqName](auto const& e) { return newfseqName == e; }) != names.end())
-    {
+    while (std::find_if(names.begin(), names.end(), [newfseqName](auto const& e) { return newfseqName == e; }) != names.end()) {
         //if not, add number to end
         auto const& suffix = wxString::Format("%d", index);
-        if ((newfseqName.Length() + suffix.Length()) > 20)
+        if ((newfseqName.Length() + suffix.Length()) > 20) {
             newfseqName = newfseqName.Left(20 - suffix.Length());
+        }
         newfseqName = newfseqName + suffix;
     }
     return newfseqName;
 }
 
-bool HinksPixExportDialog::Make_AU_From_ProcessedAudio( const std::vector<int16_t>&processedAudio, wxString const& AU_File, wxString& errorMsg )
-{
+bool HinksPixExportDialog::Make_AU_From_ProcessedAudio(const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg) {
     //this format was copied from Joe's HSA 2.0 JavaScript sourcecode
     uint8_t header[24];
-    ::memset( header, 0, 24 );
+    ::memset(header, 0, 24);
 
     uint32_t sz = processedAudio.size() * sizeof(int16_t);
 
     uint32_t magic = (0x2e << 24) | (0x73 << 16) | (0x6e << 8) | 0x64;
-    write4ByteUInt( &header[0], magic );
-    write4ByteUInt( &header[4], 24 );
+    write4ByteUInt(&header[0], magic);
+    write4ByteUInt(&header[4], 24);
 
-    write4ByteUInt( &header[8], sz );
+    write4ByteUInt(&header[8], sz);
 
-    write4ByteUInt( &header[12], 3) ;
-    write4ByteUInt( &header[16], 44100 );//bitrate
-    write4ByteUInt( &header[20], 2 );//channels?
+    write4ByteUInt(&header[12], 3);
+    write4ByteUInt(&header[16], 44100); //bitrate
+    write4ByteUInt(&header[20], 2);     //channels?
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxFile fo;
-    fo.Open( AU_File, wxFile::write );
-    if ( !fo.IsOpened() )
-    {
+    fo.Open(AU_File, wxFile::write);
+    if (!fo.IsOpened()) {
         errorMsg = wxString::Format("Error Creating the AU Audio file %s", AU_File);
         logger_base.error(errorMsg);
         return false;
     }
 
     fo.Write(&header, sizeof(header));
-    fo.Write( processedAudio.data(), sz );
+    fo.Write(processedAudio.data(), sz);
     fo.Close();
 
     return true;
 }
 
-bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2)
-{
+bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* controller, ControllerEthernet* slave1, ControllerEthernet* slave2) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    int slaveUni, slaveUni2;
+    int slaveUni{ 0 };
+    int slaveUni2{ 0 };
     slaveUni = slaveUni2 = getMaxSlaveControllerUniverses(controller);
 
-    if (slave1)
-    {
-        if (slave1->GetOutputCount()> 32)
-        {
-            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Unverses, Max is 32 Currently Used is %d",
-                slave1->GetName().c_str(), slave1->GetOutputCount());
+    if (slave1) {
+        if (slave1->GetOutputCount() > 32) {
+            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Universes, Max is 32 Currently Used is %d", slave1->GetName().c_str(), slave1->GetOutputCount());
 
-            DisplayError(wxString::Format("Slave Controller '%s' has too many Unverses, Max is 32 Currently Used is %d",
-                slave1->GetName().c_str(), slave1->GetOutputCount()));
+            DisplayError(wxString::Format("Slave Controller '%s' has too many Universes, Max is 32 Currently Used is %d", slave1->GetName().c_str(), slave1->GetOutputCount()));
             return false;
         }
         slaveUni -= slave1->GetOutputCount();
     }
 
-    if (slave2)
-    {
-        if (slave2->GetOutputCount() > 16)
-        {
-            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Unverses, Max is 16 Currently Used is %d",
-                slave2->GetName().c_str(), slave2->GetOutputCount());
+    if (slave2) {
+        if (slave2->GetOutputCount() > 16) {
+            logger_base.error("HinksPixExportDialog export - Slave Controller '%s' has too many Universes, Max is 16 Currently Used is %d", slave2->GetName().c_str(), slave2->GetOutputCount());
 
-            DisplayError(wxString::Format("Slave Controller '%s' has too many Unverses, Max is 16 Currently Used is %d",
-                slave2->GetName().c_str(), slave2->GetOutputCount()));
+            DisplayError(wxString::Format("Slave Controller '%s' has too many Universes, Max is 16 Currently Used is %d", slave2->GetName().c_str(), slave2->GetOutputCount()));
             return false;
         }
         slaveUni -= slave2->GetOutputCount();
     }
 
-    if (slaveUni >= 0)
+    if (slaveUni >= 0) {
         return true;
+    }
 
-    logger_base.error("HinksPixExportDialog export - too many Slave Controller Unverses - '%s' : Max %d Used %d",
-        controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
+    logger_base.error("HinksPixExportDialog export - too many Slave Controller Universes - '%s' : Max %d Used %d", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
 
-    DisplayError(wxString::Format("Too Many Slave Controller Unverses off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
+    DisplayError(wxString::Format("Too Many Slave Controller Universes off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
 
     return false;
 }
 
-int HinksPixExportDialog::getMaxSlaveControllerUniverses(ControllerEthernet* controller)
-{
-    if (controller->GetModel().find("PRO") != std::string::npos)   // PRO
+ControllerEthernet* HinksPixExportDialog::getSlaveController(const std::string& name) {
+    auto contrl = std::find_if(m_otherControllers.begin(), m_otherControllers.end(), [&name](auto po) { return po->GetName() == name; });
+    if (contrl != m_otherControllers.end()) {
+        return *contrl;
+    }
+    return nullptr;
+}
+
+std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(ControllerEthernet* hinks, int32_t& chanCount) const {
+    std::vector<HinksChannelMap> _modelMap;
+    std::string check;
+    UDController cud(hinks, m_outputManager, m_modelManager, check, false);
+    int32_t hinkstartChan = 1;
+
+    //serial first
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
+        if (cud.HasSerialPort(port)) {
+            UDControllerPort* portData = cud.GetControllerSerialPort(port);
+            for (auto const& m : portData->GetModels()) {
+                auto sizeofchan = m->Channels();
+                auto startChan = m->GetStartChannel();
+                auto const& hmm = _modelMap.emplace_back(startChan, sizeofchan, hinkstartChan);
+                hmm.Dump();
+                hinkstartChan += sizeofchan;
+            }
+        }
+    }
+
+    //pixels second
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
+        if (cud.HasPixelPort(port)) {
+            UDControllerPort* portData = cud.GetControllerPixelPort(port);
+            for (auto const& m : portData->GetModels()) {
+                auto sizeofchan = m->Channels();
+                auto startChan = m->GetStartChannel();
+                auto const& hmm = _modelMap.emplace_back(startChan, sizeofchan, hinkstartChan);
+                hmm.Dump();
+                hinkstartChan += sizeofchan;
+            }
+        }
+    }
+    chanCount = hinkstartChan - 1;
+    return _modelMap;
+}
+
+int HinksPixExportDialog::getMaxSlaveControllerUniverses(ControllerEthernet* controller) const {
+    if (controller->GetModel().find("PRO") != std::string::npos) // PRO
     {
-        if (controller->GetOutputCount() <= ((3 * 16) + 1))
-        {
+        if (controller->GetOutputCount() <= ((3 * 16) + 1)) {
             return (33 + 17);
         }
-        else if (controller->GetOutputCount() <= ((5 * 16) + 1))
-        {
+        if (controller->GetOutputCount() <= ((5 * 16) + 1)) {
             return (33);
         }
-        else if (controller->GetOutputCount() <= ((6 * 16) + 1))
-        {
+        if (controller->GetOutputCount() <= ((6 * 16) + 1)) {
             return (17);
         }
     }
 
-    if (controller->GetModel().find("EasyLights") != std::string::npos)  // easy
+    if (controller->GetModel().find("EasyLights") != std::string::npos) // easy
     {
-        if (controller->GetOutputCount() <= ((1 * 16) + 1))
-        {
+        if (controller->GetOutputCount() <= ((1 * 16) + 1)) {
             return (33);
 
         }
-        else if (controller->GetOutputCount() <= ((2 * 16) + 1))
-        {
+        if (controller->GetOutputCount() <= ((2 * 16) + 1)) {
             return (17);
         }
     }
@@ -1387,7 +1349,7 @@ void HinksPixExportDialog::AddInstanceHeader(const wxString& h) {
     HinkControllerSizer->Add(Panel1, 1, wxALL | wxEXPAND, 0);
 }
 
-bool HinksPixExportDialog::GetCheckValue(const wxString& col) {
+bool HinksPixExportDialog::GetCheckValue(const wxString& col) const {
     wxWindow* w = HinkControllerList->FindWindow(col);
     if (w) {
         wxCheckBox* cb = dynamic_cast<wxCheckBox*>(w);
@@ -1398,7 +1360,7 @@ bool HinksPixExportDialog::GetCheckValue(const wxString& col) {
     return false;
 }
 
-int HinksPixExportDialog::GetChoiceValueIndex(const wxString& col) {
+int HinksPixExportDialog::GetChoiceValueIndex(const wxString& col) const {
     wxWindow* w = HinkControllerList->FindWindow(col);
     if (w) {
         wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
@@ -1409,7 +1371,7 @@ int HinksPixExportDialog::GetChoiceValueIndex(const wxString& col) {
     return 0;
 }
 
-wxString HinksPixExportDialog::GetChoiceValue(const wxString& col) {
+wxString HinksPixExportDialog::GetChoiceValue(const wxString& col) const {
     wxWindow* w = HinkControllerList->FindWindow(col);
     if (w) {
         wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
