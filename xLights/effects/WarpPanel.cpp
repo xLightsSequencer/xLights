@@ -10,7 +10,7 @@
 
 #include "WarpPanel.h"
 #include "EffectPanelUtils.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 
 //(*InternalHeaders(WarpPanel)
 #include <wx/intl.h>

@@ -15,9 +15,11 @@
 #include <vector>
 #include <map>
 #include "wx/glcanvas.h"
-#include "Color.h"
+#include "../../Color.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
+
+#include "../xlGraphicsContext.h"
 
 class xlGLCanvas;
 
@@ -64,21 +66,19 @@ namespace DrawGLUtils
 
     class xlVertexAccumulatorBase {
     public:
-        virtual void Reset() { count = 0; }
-        void PreAlloc(unsigned int i)
-        {
+        float* vertices;
+        uint32_t count;
+        uint32_t _max;
+        uint32_t coordsPerVertex;
+
+    protected:
+        void DoReset() { count = 0; }
+        void DoPreAlloc(unsigned int i) {
             if ((count + i) > _max) {
                 DoRealloc(count + i);
                 _max = count + i;
             }
         };
-
-        float* vertices;
-        unsigned int count;
-        unsigned int _max;
-        unsigned int coordsPerVertex;
-
-    protected:
         virtual void DoRealloc(int newMax)
         {
             vertices = (float*)realloc(vertices, sizeof(float) * newMax * coordsPerVertex);
@@ -120,47 +120,48 @@ namespace DrawGLUtils
         }
     };
 
-    class xlVertexAccumulator : public xlVertexAccumulatorBase {
+    class xlVertexAccumulator : public xlGraphicsContext::xlVertexAccumulator, public xlVertexAccumulatorBase {
     public:
-        xlVertexAccumulator() : xlVertexAccumulatorBase() {}
+        xlVertexAccumulator() : xlGraphicsContext::xlVertexAccumulator(), xlVertexAccumulatorBase() {}
+        virtual ~xlVertexAccumulator() {}
 
-        void AddVertex(float x, float y)
-        {
+        virtual void Reset() override { if (!finalized) xlVertexAccumulatorBase::DoReset(); }
+        virtual void PreAlloc(unsigned int i) override { if (!finalized) xlVertexAccumulatorBase::DoPreAlloc(i); }
+        virtual uint32_t getCount() override { return count; }
+
+
+        virtual void Finalize(bool mayChange) override {
+            finalized = true;
+        }
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z) override {
+            if (vertex < count) {
+                int i = vertex * coordsPerVertex;
+                vertices[i++] = x;
+                vertices[i++] = y;
+                if (coordsPerVertex == 3) {
+                    vertices[i] = z;
+                }
+            }
+        }
+        virtual void FlushRange(uint32_t start, uint32_t end) override {
+        }
+
+        virtual void AddVertex(float x, float y) override {
             AddVertex(x, y, 0);
         }
-        void AddVertex(float x, float y, float z)
-        {
-            PreAlloc(1);
-            int i = count * coordsPerVertex;
-            vertices[i++] = x;
-            vertices[i++] = y;
-            if (coordsPerVertex == 3) {
-                vertices[i] = z;
+        virtual void AddVertex(float x, float y, float z)  override {
+            if (!finalized) {
+                PreAlloc(1);
+                int i = count * coordsPerVertex;
+                vertices[i++] = x;
+                vertices[i++] = y;
+                if (coordsPerVertex == 3) {
+                    vertices[i] = z;
+                }
+                count++;
             }
-            count++;
         }
-        void AddLinesRect(float x1, float y1, float x2, float y2)
-        {
-            PreAlloc(8);
-            AddVertex(x1, y1);
-            AddVertex(x1, y2);
-            AddVertex(x1, y2);
-            AddVertex(x2, y2);
-            AddVertex(x2, y2);
-            AddVertex(x2, y1);
-            AddVertex(x2, y1);
-            AddVertex(x1, y1);
-        }
-        void AddRect(float x1, float y1, float x2, float y2)
-        {
-            PreAlloc(6);
-            AddVertex(x1, y1);
-            AddVertex(x1, y2);
-            AddVertex(x2, y2);
-            AddVertex(x2, y2);
-            AddVertex(x2, y1);
-            AddVertex(x1, y1);
-        }
+        bool finalized = false;
     };
     class xlVertexColorAccumulator : public xlVertexAccumulatorBase {
     public:
@@ -187,6 +188,10 @@ namespace DrawGLUtils
         {
             free(colors);
         }
+
+        virtual void Reset() { xlVertexAccumulatorBase::DoReset(); }
+        virtual void PreAlloc(unsigned int i) { xlVertexAccumulatorBase::DoPreAlloc(i); }
+        virtual uint32_t getCount() { return count; }
 
         void AddVertex(float x, float y, const xlColor& c)
         {
@@ -317,6 +322,10 @@ namespace DrawGLUtils
             free(tvertices);
         }
 
+        virtual void Reset() { xlVertexAccumulatorBase::DoReset(); }
+        virtual void PreAlloc(unsigned int i) { xlVertexAccumulatorBase::DoPreAlloc(i); }
+        virtual int getCount() { return count; }
+
         void AddVertex(float x, float y, float tx, float ty)
         {
             PreAlloc(1);
@@ -355,7 +364,7 @@ namespace DrawGLUtils
     public:
         xlVertexTextAccumulator() : count(0), color(xlBLACK) {}
         xlVertexTextAccumulator(const xlColor& c) : count(0), color(c) {}
-        ~xlVertexTextAccumulator() {}
+        virtual ~xlVertexTextAccumulator() {}
 
         void PreAlloc(unsigned int i)
         {
@@ -363,6 +372,7 @@ namespace DrawGLUtils
             text.reserve(text.size() + i);
         };
         void Reset() { count = 0; vertices.clear(); text.clear(); }
+        virtual int getCount() { return count; }
         void AddVertex(float x, float y, const std::string& s)
         {
             vertices.push_back(x); vertices.push_back(y);

@@ -27,7 +27,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "EffectDropTarget.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "../RenderCommandEvent.h"
 #include "../BitmapCache.h"
 #include "../effects/RenderableEffect.h"

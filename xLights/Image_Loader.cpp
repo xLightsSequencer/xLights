@@ -15,7 +15,7 @@
 #include "wx/wx.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 

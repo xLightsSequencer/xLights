@@ -10,7 +10,7 @@
 
 #include "xlGridCanvasPictures.h"
 #include "../../BitmapCache.h"
-#include "../../DrawGLUtils.h"
+#include "../../graphics/opengl/DrawGLUtils.h"
 #include <wx/filefn.h>
 #include <wx/filename.h>
 

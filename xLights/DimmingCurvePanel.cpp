@@ -9,10 +9,8 @@
  **************************************************************/
 
 #include "DimmingCurvePanel.h"
-#include "DrawGLUtils.h"
 
-
-BEGIN_EVENT_TABLE(DimmingCurvePanel, xlGLCanvas)
+BEGIN_EVENT_TABLE(DimmingCurvePanel, GRAPHICS_BASE_CLASS)
 EVT_PAINT(DimmingCurvePanel::render)
 END_EVENT_TABLE()
 
@@ -21,14 +19,19 @@ DimmingCurvePanel::DimmingCurvePanel(wxWindow* parent,
                                      const wxPoint& pos,
                                      const wxSize& size,
                                      long style,
-                                     const wxString& name,
-                                     int glFlags[])
-    : xlGLCanvas(parent, id, pos, size, style, "DimmingCurve-" + name), curve(nullptr), channel(0)
+                                     const wxString& name)
+    : GRAPHICS_BASE_CLASS(parent, id, pos, size, style, "DimmingCurve-" + name), curve(nullptr), channel(0), boxVertices(nullptr), curveVertices(nullptr)
 {
 }
 
 DimmingCurvePanel::~DimmingCurvePanel()
 {
+    if (boxVertices) {
+        delete boxVertices;
+    }
+    if (curveVertices) {
+        delete curveVertices;
+    }
     if (curve != nullptr) {
         delete curve;
     }
@@ -44,44 +47,49 @@ void DimmingCurvePanel::SetDimmingCurve(DimmingCurve *c, int ch) {
     Update();
 }
 
-void DimmingCurvePanel::InitializeGLContext() {
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
-    LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-}
 void DimmingCurvePanel::render(wxPaintEvent& event) {
     if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
+    if(!mIsInitialized) { PrepareCanvas(); }
 
     wxPaintDC(this);
-    InitializeGLContext();
 
-    DrawGLUtils::xlVertexAccumulator va;
-    va.PreAlloc(16);
-    va.AddVertex(2,2);
-    va.AddVertex(mWindowWidth-2,2);
-
-    va.AddVertex(2,2);
-    va.AddVertex(2,mWindowWidth-2);
-    va.AddVertex(mWindowWidth-2,2);
-    va.AddVertex(mWindowWidth-2,mWindowHeight-2);
-    va.AddVertex(2,mWindowHeight-2);
-    va.AddVertex(mWindowWidth-2,mWindowHeight-2);
-
-    va.AddVertex(mWindowWidth-2,2);
-    va.AddVertex(2,mWindowHeight-2);
-    DrawGLUtils::SetLineWidth(0.5);
-    DrawGLUtils::Draw(va, xlLIGHT_GREY, GL_LINES);
+    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
 
-    va.Reset();
+    if (mWindowResized) {
+        if (boxVertices) {
+            delete boxVertices;
+        }
+        if (curveVertices) {
+            delete curveVertices;
+            curveVertices = nullptr;
+        }
+        boxVertices = ctx->createVertexAccumulator();
+        boxVertices->PreAlloc(6);
+        boxVertices->AddVertex(mWindowWidth - 2, 2);
+        boxVertices->AddVertex(2.1f, 2);
+        boxVertices->AddVertex(2.1f, mWindowHeight - 2);
+        boxVertices->AddVertex(mWindowWidth - 2, mWindowHeight - 2);
+        boxVertices->AddVertex(mWindowWidth - 2, 2);
+        boxVertices->AddVertex(2.1f, mWindowHeight - 2);
+
+        boxVertices->Finalize(false);
+        mWindowResized = false;
+    }
+    ctx->drawLineStrip(boxVertices, xlLIGHT_GREY);
+
     if (curve != nullptr) {
-        va.PreAlloc(256);
+        if (curveVertices == nullptr) {
+            curveVertices = ctx->createVertexAccumulator();
+            curveVertices->PreAlloc(256);
+            for (int x = 0; x < 255; x++) {
+                float xpos = float(x) * float(mWindowWidth - 4.0) / 255.0 + 2.0;
+                float ypos = float(x) * float(mWindowHeight - 4.0) / 255.0 + 2.0;
+                curveVertices->AddVertex(xpos, ypos, 0);
+            }
+            curveVertices->Finalize(true);
+        }
 
         for (int x = 0; x < 255; x++) {
             xlColor c(x,x,x);
@@ -102,10 +110,10 @@ void DimmingCurvePanel::render(wxPaintEvent& event) {
             }
 
             ypos = mWindowHeight - 2 - ypos * float(mWindowHeight - 4.0) / 255.0;
-            va.AddVertex(xpos, ypos);
+            curveVertices->SetVertex(x, xpos, ypos, 0);
         }
-        
-        DrawGLUtils::Draw(va, xlYELLOW, GL_LINE_STRIP);
+        curveVertices->FlushRange(0, 255);
+        ctx->drawLineStrip(curveVertices, xlYELLOW);
     }
-    SwapBuffers();
+    FinishDrawing(ctx);
 }

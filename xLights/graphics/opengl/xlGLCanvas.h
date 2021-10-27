@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "wx/glcanvas.h"
+#include "../xlGraphicsContext.h"
 #include "DrawGLUtils.h"
 
 class wxImage;
@@ -67,9 +68,17 @@ class xlGLCanvas
     
         int GetZDepth() const { return m_zDepth;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
-    
+
+        virtual xlColor ClearBackgroundColor() { return xlBLACK; }
+
     protected:
       	DECLARE_EVENT_TABLE()
+
+
+        virtual void PrepareCanvas();
+        virtual xlGraphicsContext*  PrepareContextForDrawing();
+        virtual void FinishDrawing(xlGraphicsContext* ctx);
+
 
         size_t mWindowWidth;
         size_t mWindowHeight;
@@ -77,7 +86,7 @@ class xlGLCanvas
         bool mIsInitialized;
 
         virtual void InitializeGLCanvas() { mIsInitialized = true; };
-        virtual void InitializeGLContext() = 0;  // pure virtual method to initialize a context (set clear color, viewport, etc...)
+        virtual void InitializeGLContext() {}
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);
@@ -98,6 +107,7 @@ class xlGLCanvas
 
     private:
         int _ver = 0;
+        bool is3d = false;
         wxString _name;
         wxGLContext* m_context = nullptr;
         bool m_coreProfile = false;

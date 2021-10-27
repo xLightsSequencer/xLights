@@ -28,20 +28,22 @@ static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
 wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
 
-static wxGLAttributes GetAttributes(int &zdepth) {
+static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
     DrawGLUtils::SetupDebugLogging();
     
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     
     wxGLAttributes atts;
-    for (int x = 0; x < 6; x++) {
+    for (int x = only2d ? 5 : 0; x < 6; x++) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
             .MinRGBA(8, 8, 8, 8)
-            .DoubleBuffer()
-            .Depth(DEPTH_BUFFER_BITS[x])
-            .EndList();
+            .DoubleBuffer();
+        if (!only2d) {
+            atts.Depth(DEPTH_BUFFER_BITS[x]);
+        }
+        atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
             logger_opengl.debug("Depth of %d supported, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
@@ -51,13 +53,15 @@ static wxGLAttributes GetAttributes(int &zdepth) {
     }
     logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
     // didn't find a display, try without MinRGBA
-    for (int x = 0; x < 6; x++) {
+    for (int x = only2d ? 5 : 0; x < 6; x++) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
-            .DoubleBuffer()
-            .Depth(DEPTH_BUFFER_BITS[x])
-            .EndList();
+            .DoubleBuffer();
+        if (!only2d) {
+            atts.Depth(DEPTH_BUFFER_BITS[x]);
+        }
+        atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
             logger_opengl.debug("Depth of %d supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
@@ -186,7 +190,7 @@ static int tempZDepth = 0;
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     const wxSize& size, long style, const wxString& name,
     bool only2d)
-    : wxGLCanvas(parent, GetAttributes(tempZDepth), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
+    : wxGLCanvas(parent, GetAttributes(tempZDepth, only2d), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
     mWindowWidth(0),
     mWindowHeight(0),
     mWindowResized(false),
@@ -195,7 +199,8 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     cache(nullptr),
     m_coreProfile(true),
     _name(name),
-    m_zDepth(tempZDepth)
+    m_zDepth(only2d ? 0 : tempZDepth),
+    is3d(!only2d)
 {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                    Creating GL Canvas for %s", (const char*)name.c_str());
@@ -682,4 +687,96 @@ void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright
 {
     DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
     mWindowResized = false;
+}
+
+
+void xlGLCanvas::PrepareCanvas() {
+    InitializeGLCanvas();
+}
+
+
+class GLGraphicsContext : public xlGraphicsContext {
+public:
+    GLGraphicsContext(xlGLCanvas *c) : canvas(c) {}
+    virtual ~GLGraphicsContext() {}
+
+
+    virtual xlVertexAccumulator *createVertexAccumulator() override {
+        return new DrawGLUtils::xlVertexAccumulator();
+    }
+
+    //drawing methods
+    virtual void drawLines(xlVertexAccumulator *vac, const xlColor &c) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, c, GL_LINES);
+    }
+    virtual void drawLineLoop(xlVertexAccumulator *vac, const xlColor &c) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, c, GL_LINE_LOOP);
+    }
+    virtual void drawLineStrip(xlVertexAccumulator *vac, const xlColor &c) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, c, GL_LINE_STRIP);
+    }
+
+
+    // Setup the Viewport
+    void SetViewport(int x1, int y1, int x2, int y2, bool is3D) override {
+        if (is3D) {
+            DrawGLUtils::SetViewport3D(*canvas, x1, y1, x2, y2);
+        } else {
+            DrawGLUtils::SetViewport(*canvas, x1, y1, x2, y2);
+        }
+    }
+
+
+    //manipulating the matrices
+    virtual void PushMatrix() override {
+        DrawGLUtils::PushMatrix();
+    }
+    virtual void PopMatrix() override {
+        DrawGLUtils::PopMatrix();
+    }
+    virtual void Translate(float x, float y, float z) override {
+        DrawGLUtils::Translate(x, y, z);
+    }
+    virtual void Rotate(float angle, float x, float y, float z) override {
+        DrawGLUtils::Rotate(angle, x, y, z);
+    }
+    virtual void Scale(float w, float h, float z) override {
+        DrawGLUtils::Scale(w, h, z);
+    }
+
+
+    xlGLCanvas *canvas;
+};
+
+xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
+    InitializeGLContext();
+
+    SetCurrentGLContext();
+
+    xlColor bg = ClearBackgroundColor();
+    float r = bg.red;
+    float g = bg.green;
+    float b = bg.blue;
+    float a = bg.alpha;
+    r /= 255.0f;
+    g /= 255.0f;
+    b /= 255.0f;
+    a /= 255.0f;
+    LOG_GL_ERRORV(glClearColor(r, g, b, a));
+
+    LOG_GL_ERRORV(glEnable(GL_BLEND));
+    if (is3d) {
+        LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    }
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | (is3d ? GL_DEPTH_BUFFER_BIT : 0)));
+
+    return new GLGraphicsContext(this);
+}
+void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx) {
+    SwapBuffers();
+    delete ctx;
 }

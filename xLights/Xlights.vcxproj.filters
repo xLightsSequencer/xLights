@@ -29,8 +29,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
@@ -135,7 +133,6 @@
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
-    <ClCompile Include="xlGLCanvas.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="XlightsDrawable.cpp" />
@@ -901,6 +898,9 @@
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="LORPreview.cpp" />
     <ClCompile Include="ExportSettings.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
+    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -932,7 +932,6 @@
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
-    <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
@@ -1033,7 +1032,6 @@
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
     <ClInclude Include="xlCustomControl.h" />
-    <ClInclude Include="xlGLCanvas.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
     <ClInclude Include="XlightsDrawable.h" />
@@ -1812,6 +1810,10 @@
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="ExportSettings.h" />
+    <ClInclude Include="graphics\xlGraphicsBase.h" />
+    <ClInclude Include="graphics\xlGraphicsContext.h" />
+    <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
+    <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -23,7 +23,7 @@
 #include "models/Model.h"
 #include "models/ViewObject.h"
 #include "PreviewPane.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"

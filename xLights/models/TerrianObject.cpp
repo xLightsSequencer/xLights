@@ -13,7 +13,7 @@
 #include <wx/propgrid/advprops.h>
 #include <vector>
 #include "TerrianObject.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "ModelPreview.h"
 #include "Model.h"
 #include "RulerObject.h"

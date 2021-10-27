@@ -11,17 +11,16 @@
  **************************************************************/
 
  //(*Headers(ModelDimmingCurveDialog)
-#include <wx/glcanvas.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/slider.h>
-#include <wx/choicebk.h>
-#include <wx/filepicker.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/choicebk.h>
+ #include <wx/dialog.h>
+ #include <wx/filepicker.h>
+ #include <wx/notebook.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 #include <wx/valnum.h>
 
@@ -39,42 +38,42 @@ class ModelDimmingCurveDialog: public wxDialog
         void Update(std::map<std::string, std::map<std::string,std::string>> &dimmingInfo);
 
 		//(*Declarations(ModelDimmingCurveDialog)
-		DimmingCurvePanel* redDCPanel;
-		DimmingCurvePanel* greenDCPanel;
 		DimmingCurvePanel* blueDCPanel;
-		wxSlider* RGBBlueSlider;
-		wxFilePickerCtrl* SingleFilePicker;
-		wxTextCtrl* SingleBrightnessBox;
-		wxSlider* RGBRedSlider;
-		wxPanel* BluePanel;
-		wxPanel* RGBGammaPanel;
-		wxPanel* RGBFromFilePanel;
-		wxPanel* RedPanel;
-		wxFilePickerCtrl* RGBRedFilePicker;
-		wxStaticText* StaticText10;
-		wxTextCtrl* RGBRedTextCtrl;
-		wxPanel* FromFilePanel;
-		wxSlider* SingleBrightnessSlider;
-		wxStaticText* StaticText3;
-		wxFilePickerCtrl* RGBGreenFilePicker;
-		wxPanel* GammaPanel;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText7;
-		wxTextCtrl* SingleGammaText;
-		wxTextCtrl* RGBRedGammaTextCtrl;
-		wxStaticText* StaticText4;
+		DimmingCurvePanel* greenDCPanel;
+		DimmingCurvePanel* redDCPanel;
 		wxChoicebook* DimmingTypeChoice;
-		wxStaticText* StaticText5;
 		wxFilePickerCtrl* RGBBlueFilePicker;
-		wxStaticText* StaticText6;
-		wxSlider* RGBGreenSlider;
-		wxTextCtrl* RGBGreenGammaTextCtrl;
-		wxTextCtrl* RGBBlueGammaTextCtrl;
-		wxStaticText* StaticText9;
+		wxFilePickerCtrl* RGBGreenFilePicker;
+		wxFilePickerCtrl* RGBRedFilePicker;
+		wxFilePickerCtrl* SingleFilePicker;
+		wxPanel* BluePanel;
+		wxPanel* FromFilePanel;
+		wxPanel* GammaPanel;
 		wxPanel* GreenPanel;
-		wxTextCtrl* RGBBlueTextCtrl;
-		wxTextCtrl* RGBGreenTextCtrl;
+		wxPanel* RGBFromFilePanel;
+		wxPanel* RGBGammaPanel;
+		wxPanel* RedPanel;
+		wxSlider* RGBBlueSlider;
+		wxSlider* RGBGreenSlider;
+		wxSlider* RGBRedSlider;
+		wxSlider* SingleBrightnessSlider;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxTextCtrl* RGBBlueGammaTextCtrl;
+		wxTextCtrl* RGBBlueTextCtrl;
+		wxTextCtrl* RGBGreenGammaTextCtrl;
+		wxTextCtrl* RGBGreenTextCtrl;
+		wxTextCtrl* RGBRedGammaTextCtrl;
+		wxTextCtrl* RGBRedTextCtrl;
+		wxTextCtrl* SingleBrightnessBox;
+		wxTextCtrl* SingleGammaText;
 		//*)
 
         wxIntegerValidator<int> brightnessValidator;
@@ -112,11 +111,11 @@ class ModelDimmingCurveDialog: public wxDialog
 		static const long ID_FILEPICKERCTRL4;
 		static const long ID_PANEL4;
 		static const long ID_CHOICEBOOK1;
-		static const long ID_GLCANVAS2;
+		static const long ID_REDDIMMINGPANEL;
 		static const long ID_PANEL5;
-		static const long ID_GLCANVAS1;
+		static const long ID_GREENDIMMINGPANEL;
 		static const long ID_PANEL6;
-		static const long ID_GLCANVAS3;
+		static const long ID_BLUEDIMMINGPANEL;
 		static const long ID_PANEL7;
 		//*)
 

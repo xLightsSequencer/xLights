@@ -19,7 +19,7 @@
 #ifndef __WXOSX__
     #include <GL/gl.h>
     #ifdef _MSC_VER
-        #include "GL\glext.h"
+        #include "graphics\opengl\GL\glext.h"
     #else
         #include <GL/glext.h>
     #endif

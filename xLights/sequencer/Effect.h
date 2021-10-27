@@ -18,7 +18,7 @@
 
 #include "../ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "../Color.h"
 
 class EffectLayer;

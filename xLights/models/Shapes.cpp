@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "Shapes.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "../support/VectorMath.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>

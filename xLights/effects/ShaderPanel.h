@@ -10,7 +10,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 

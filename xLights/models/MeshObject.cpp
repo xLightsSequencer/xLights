@@ -17,7 +17,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "MeshObject.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "ExternalHooks.h"

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "xlColorCanvas.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include <algorithm>
 
 BEGIN_EVENT_TABLE(xlColorCanvas, xlGLCanvas)

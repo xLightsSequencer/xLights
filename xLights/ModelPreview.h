@@ -17,7 +17,7 @@
 #include "Image.h"
 #include "XlightsDrawable.h"
 #include "Color.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "ViewpointMgr.h"
 #include "models/ModelManager.h"
 

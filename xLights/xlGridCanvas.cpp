@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "xlGridCanvas.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "models/Model.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)

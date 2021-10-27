@@ -500,9 +500,7 @@
 		<Unit filename="DragColoursBitmapButton.h" />
 		<Unit filename="DragValueCurveBitmapButton.cpp" />
 		<Unit filename="DragValueCurveBitmapButton.h" />
-		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
-		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -627,10 +625,10 @@
 		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
-		<Unit filename="Pixels.cpp" />
-		<Unit filename="Pixels.h" />
 		<Unit filename="PixelTestDialog.cpp" />
 		<Unit filename="PixelTestDialog.h" />
+		<Unit filename="Pixels.cpp" />
+		<Unit filename="Pixels.h" />
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
@@ -785,10 +783,10 @@
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
 		<Unit filename="controllers/SanDevices.h" />
-		<Unit filename="controllers/WebSocketClient.cpp" />
-		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="controllers/WLED.cpp" />
 		<Unit filename="controllers/WLED.h" />
+		<Unit filename="controllers/WebSocketClient.cpp" />
+		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
@@ -1012,6 +1010,13 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
+		<Unit filename="graphics/opengl/DrawGLUtils.h" />
+		<Unit filename="graphics/opengl/DrawGLUtils31.cpp" />
+		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
+		<Unit filename="graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="graphics/xlGraphicsBase.h" />
+		<Unit filename="graphics/xlGraphicsContext.h" />
 		<Unit filename="kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -1461,8 +1466,6 @@
 		<Unit filename="xlColorPicker.h" />
 		<Unit filename="xlColorPickerFields.cpp" />
 		<Unit filename="xlColorPickerFields.h" />
-		<Unit filename="xlGLCanvas.cpp" />
-		<Unit filename="xlGLCanvas.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlLockButton.cpp" />

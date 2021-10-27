@@ -21,7 +21,7 @@
 //#endif
 #endif
 
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 
 /*
  * This is a simple class built on top of OpenGL that manages drawing images in a higher-level and quicker way.

@@ -26,7 +26,7 @@
 #include "TimeLine.h"
 #include "../RenderCommandEvent.h"
 #include <wx/file.h>
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "ColorManager.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -531,7 +531,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
             wv.lastRenderSize = max;
             wv.lastRenderStart = mStartPixelOffset;
         }
-        vac.PreAlloc(wv.background.count + wv.outline.count + 6);
+        vac.PreAlloc(wv.background.getCount() + wv.outline.getCount() + 6);
         vac.Load(wv.background, c);
         vac.Finish(GL_TRIANGLE_STRIP);
         vac.Load(wv.outline, xlWHITE);

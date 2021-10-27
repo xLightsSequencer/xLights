@@ -16,7 +16,7 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-#include "../xlGLCanvas.h"
+#include "../graphics/opengl/xlGLCanvas.h"
 #include "../Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"

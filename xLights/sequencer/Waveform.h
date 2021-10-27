@@ -12,7 +12,7 @@
 
 #include "wx/wx.h"
 
-#include "../xlGLCanvas.h"
+#include "../graphics/opengl/xlGLCanvas.h"
 #include <vector>
 #include <string>
 

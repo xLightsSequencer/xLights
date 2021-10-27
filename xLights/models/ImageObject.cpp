@@ -13,7 +13,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "ImageObject.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"

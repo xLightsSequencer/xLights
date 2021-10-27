@@ -37,7 +37,7 @@
 #include "LayoutPanel.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
 #include "ModelGroupPanel.h"

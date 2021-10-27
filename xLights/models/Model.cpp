@@ -25,7 +25,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "../DimmingCurve.h"
 #include "../StrandNodeNamesDialog.h"
 #include "../ModelFaceDialog.h"
@@ -5004,7 +5004,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         }
     }
 
-    if (wiring && vaLines.count > 0) {
+    if (wiring && vaLines.getCount() > 0) {
         vaLines.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
     if (pixelStyle > 1) {
@@ -5258,7 +5258,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
 
-                    if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+                    if (va.getCount() && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
 
                         if (lastPixelStyle > 1) {
                             va.Finish(GL_TRIANGLES);
@@ -5288,9 +5288,9 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 }
             }
         }
-        if (va.count) {
-            if (va.count > maxVertexCount) {
-                maxVertexCount = va.count;
+        if (va.getCount()) {
+            if (va.getCount() > maxVertexCount) {
+                maxVertexCount = va.getCount();
             }
             if (lastPixelStyle > 1) {
                 va.Finish(GL_TRIANGLES);

@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "sequencer/Effect.h"
 
 class Model;  // forward declaration

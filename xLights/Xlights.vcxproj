@@ -271,6 +271,9 @@
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
+    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -336,8 +339,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\Controller.cpp" />
     <ClCompile Include="outputs\ControllerEthernet.cpp" />
     <ClCompile Include="outputs\ControllerNull.cpp" />
@@ -626,7 +627,6 @@
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
-    <ClCompile Include="xlGLCanvas.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="XlightsDrawable.cpp" />
@@ -706,6 +706,10 @@
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
+    <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
+    <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
+    <ClInclude Include="graphics\xlGraphicsBase.h" />
+    <ClInclude Include="graphics\xlGraphicsContext.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="LORPreview.h" />
@@ -781,7 +785,6 @@
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
-    <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="outputs\ControllerEthernet.h" />
     <ClInclude Include="outputs\ControllerNull.h" />
     <ClInclude Include="outputs\ControllerSerial.h" />
@@ -1068,7 +1071,6 @@
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
     <ClInclude Include="xlCustomControl.h" />
-    <ClInclude Include="xlGLCanvas.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
     <ClInclude Include="XlightsDrawable.h" />

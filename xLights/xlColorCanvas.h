@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "Color.h"
 
 wxDECLARE_EVENT(EVT_CP_SLIDER_CHANGED, wxCommandEvent);

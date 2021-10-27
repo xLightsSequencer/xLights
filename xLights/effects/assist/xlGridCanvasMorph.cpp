@@ -10,7 +10,7 @@
 
 #include "xlGridCanvasMorph.h"
 #include "../../BitmapCache.h"
-#include "../../DrawGLUtils.h"
+#include "../../graphics/opengl/DrawGLUtils.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "../../ValueCurveButton.h"

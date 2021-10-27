@@ -18,7 +18,7 @@
 
 #include "Model.h"
 #include "../ModelPreview.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "Shapes.h"
 #include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
