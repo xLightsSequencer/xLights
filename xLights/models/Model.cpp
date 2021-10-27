@@ -925,7 +925,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
 wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount)
 {
     wxArrayString res;
-    res.push_back("None");
+    //res.push_back("None");
     for (int i = 0; i < smartRemoteCount; i++) {
         res.push_back(wxString((char)(65 + i)));
     }
@@ -973,23 +973,45 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         if (smartRemoteCount != 0)
         {
             int sr = GetSmartRemote();
-            wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
-            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr));
 
-            sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", GetSRCascadeOnPort()));
+            sp = grid->AppendIn(p, new wxBoolProperty("Use Smart Remote", "UseSmartRemote", sr));
             sp->SetAttribute("UseCheckbox", true);
-            p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
-            if (sr == 0) {
-                grid->DisableProperty(sp);
-            }
+            p->SetHelpString("Enable Smart Remote for this Model.");
 
-            sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
-            sp->SetAttribute("Min", 1);
-            sp->SetAttribute("Max", smartRemoteCount);
-            p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
-            sp->SetEditor("SpinCtrl");
-            if (sr == 0) {
-                grid->DisableProperty(sp);
+            if (sr != 0) {
+                if (GetSmartRemote() != 0) {
+                    auto const& srTypes = GetSmartRemoteTypes();
+                    if (srTypes.size() > 1) {
+                        wxArrayString srlist;
+                        for (auto const& typ : srTypes) {
+                            srlist.Add(typ);
+                        }
+                        grid->AppendIn(p, new wxEnumProperty("Smart Remote Type", "SmartRemoteType", srlist, wxArrayInt(), GetSmartRemoteTypeIndex(GetSmartRemoteType())));
+                    }
+                    else {
+                        std::string type = GetSmartRemoteType();
+                        auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
+                        smt->ChangeFlag(wxPG_PROP_READONLY, true);
+                        smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                    }
+                }
+
+                wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
+                grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr-1));
+
+                bool cop = GetSRCascadeOnPort();
+
+                sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", cop));
+                sp->SetAttribute("UseCheckbox", true);
+                p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
+
+                if (cop) {
+                    sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
+                    sp->SetAttribute("Min", 1);
+                    sp->SetAttribute("Max", smartRemoteCount);
+                    p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
+                    sp->SetEditor("SpinCtrl");
+                }
             }
         }
     }
@@ -1493,15 +1515,31 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "Active") {
         SetActive(event.GetValue().GetBool());
         return 0;
+        
+    }
+    else if (event.GetPropertyName() == "UseSmartRemote") {
+        auto usr = event.GetValue().GetBool();
+        if (!usr)
+        {
+            SetSmartRemote(0);
+        }
+        else
+        {
+            SetSmartRemote(1);
+        }
+        return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
         int sr = wxAtoi(event.GetValue().GetString());
-        SetSmartRemote(sr);
+        SetSmartRemote(sr + 1);
         return 0;
     } else if (event.GetPropertyName() == "CascadeOnPort") {
         SetSRCascadeOnPort(event.GetValue().GetBool());
         return 0;
     } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
         SetSRMaxCascade(event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName() == "SmartRemoteType") {
+        SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         wxArrayString cp;
@@ -2827,7 +2865,7 @@ std::string Model::GetControllerConnectionAttributeString() const
     while (att != nullptr) {
         if (att->GetName() == "SmartRemote") {
             ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
-        } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort") {
+        } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort" && att->GetName() != "SmartRemoteType") {
             ret += ":" + att->GetName() + "=" + att->GetValue();
         }
         att = att->GetNext();
@@ -6298,6 +6336,7 @@ void Model::SetSRCascadeOnPort(bool cascade)
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSRCascadeOnPort");
         IncrementChangeCount();
     }
@@ -6339,11 +6378,27 @@ void Model::SetSmartRemote(int sr)
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSmartRemote");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSmartRemote");
         IncrementChangeCount();
     }
+}
+
+void Model::SetSmartRemoteType(const std::string& type) {
+    if (GetSmartRemoteType() != type) {
+        GetControllerConnection()->DeleteAttribute("SmartRemoteType");
+        if (!type.empty()) {
+            GetControllerConnection()->AddAttribute("SmartRemoteType", type);
+        }
+    }
+
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SmartRemoteType");
+    IncrementChangeCount();
 }
 
 void Model::SetModelChain(const std::string& modelChain)
@@ -6855,6 +6910,56 @@ bool Model::IsLEDPanelMatrixProtocol() const {
 }
 bool Model::IsVirtualMatrixProtocol() const {
     return GetControllerPort(1) != 0 && ::IsVirtualMatrixProtocol(GetControllerProtocol());
+}
+
+std::vector<std::string> Model::GetSmartRemoteTypes() const {
+    auto caps = GetControllerCaps();
+    if (caps == nullptr)
+        return { "" };
+    return caps->GetSmartRemoteTypes();
+}
+
+std::string Model::GetSmartRemoteType() const {
+    std::string t = GetSmartRemoteTypes().front();
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemoteType", t);
+    return s;
+}
+
+int Model::GetSmartRemoteTypeIndex(const std::string& srType) const {
+    auto caps = GetControllerCaps();
+    int i = 0;
+    if (caps != nullptr) {
+        for (const auto& it : caps->GetSmartRemoteTypes()) {
+            if (srType == Lower(it)) {
+                return i;
+            }
+            i++;
+        }
+    }
+
+    return 0;
+}
+
+std::string Model::GetSmartRemoteTypeName(int idx) const {
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        const auto srList = caps->GetSmartRemoteTypes();
+        if (idx < srList.size() && idx >= 0) {
+            auto it = srList.begin();
+            std::advance(it, idx);
+            return *it;
+        }
+    }
+
+    return std::string();
+}
+
+int Model::GetSmartRemoteCount() const {
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->GetSmartRemoteCount();
+    }
+    return 3;
 }
 
 bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const

@@ -63,6 +63,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     _string = string;
     _protocol = _model->GetControllerProtocol();
     _smartRemote = _model->GetSmartRemoteForString(string+1);
+    _smartRemoteType = _model->GetSmartRemoteType();
 
     if (string == -1) {
         _startChannel = _model->GetNumberFromChannelString(_model->ModelStartChannel);
@@ -409,7 +410,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
                 if (GetType() == "PIXEL") {
                     np = ChooseBestControllerPixel(protocols, it->GetModel()->GetControllerProtocol());
                 }
-                else                     {
+                else {
                     np = ChooseBestControllerSerial(protocols, it->GetModel()->GetControllerProtocol());
                 }
                 if (np == it->GetModel()->GetControllerProtocol()) {
@@ -422,7 +423,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
                         if (np == "") {
                             it->GetModel()->SetControllerProtocol(protocols.front());
                         }
-                        else                             {
+                        else {
                             it->GetModel()->SetControllerProtocol(np);
                         }
                         p = it->GetModel()->GetControllerProtocol();
@@ -540,6 +541,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_universeStartChannel = it->GetUniverseStartChannel();
                     current->_channelsPerPixel = 3;
                     current->_smartRemote = sr;
+                    current->_smartRemoteType = it->GetSmartRemoteType();
                     current->_gammaSet = false;
                     current->_gamma = 0;
                     current->_startNullPixelsSet = false;
@@ -592,6 +594,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_universeStartChannel = it->GetUniverseStartChannel();
                         current->_channelsPerPixel = 3;
                         current->_smartRemote = sr;
+                        current->_smartRemoteType = it->GetSmartRemoteType();
                         current->_gammaSet = false;
                         current->_gamma = 0;
                         current->_startNullPixelsSet = false;
@@ -631,6 +634,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_channelsPerPixel = it->GetChannelsPerPixel();
             if (current->_channelsPerPixel == 1) current->_channelsPerPixel = 3; // this happens if a channel block is dropped first on a port and we dont want that
             current->_smartRemote = it->GetSmartRemote();
+            current->_smartRemoteType = it->GetSmartRemoteType();
 
             if (gamma == -9999) {
                 current->_gammaSet = false;

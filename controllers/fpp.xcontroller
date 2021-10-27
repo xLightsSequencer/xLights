@@ -45,7 +45,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
-        <SupportsSmartRemotes>3</SupportsSmartRemotes>
+        <SupportsSmartRemotes>6</SupportsSmartRemotes>
         <SupportsPixelPortEndNullPixels/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -54,6 +54,10 @@
             <Protocol>dmx</Protocol>
             <Protocol>pixelnet</Protocol>
         </SerialProtocols>
+        <SmartRemoteTypes>
+            <Type>falcon_v1</Type>
+            <Type>fpp_v2</Type>
+        </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
@@ -62,7 +66,7 @@
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
-        <SupportsSmartRemotes>3</SupportsSmartRemotes>
+        <SupportsSmartRemotes>6</SupportsSmartRemotes>
         <SupportsPixelPortEndNullPixels/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -76,6 +80,10 @@
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
         </SerialProtocols>
+        <SmartRecieverTypes>
+            <Type>falcon_v1</Type>
+            <Type>fpp_v2</Type>
+        </SmartRecieverTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
 	<Controller Name="LED Panels">

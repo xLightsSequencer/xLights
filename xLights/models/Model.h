@@ -292,6 +292,11 @@ public:
     int GetSmartRemote() const;
     bool GetSRCascadeOnPort() const;
     int GetSRMaxCascade() const;
+    std::vector<std::string> GetSmartRemoteTypes() const;
+    std::string GetSmartRemoteType() const;
+    int GetSmartRemoteTypeIndex(const std::string& srType) const;
+    std::string GetSmartRemoteTypeName(int idx) const;
+    int GetSmartRemoteCount() const;
 
     void GetPortSR(int string, int& outport, int& outsr) const;
     char GetSmartRemoteLetter() const;
@@ -304,6 +309,7 @@ public:
     void SetSmartRemote(int sr);
     void SetSRCascadeOnPort(bool cascade);
     void SetSRMaxCascade(int max);
+    void SetSmartRemoteType(const std::string& type);
     void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model*>& GetSubModels() const { return subModels; }

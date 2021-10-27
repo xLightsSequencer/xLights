@@ -119,6 +119,7 @@ public:
     std::vector<std::string> GetPixelProtocols() const;
     std::vector<std::string> GetSerialProtocols() const;
     std::vector<std::string> GetAllProtocols() const;
+    std::vector<std::string> GetSmartRemoteTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     
