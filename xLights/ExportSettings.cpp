@@ -35,46 +35,9 @@ namespace ExportSettings
         wxMultiChoiceDialog dlg(parent, "Export to CSV Options", "Fields to Include", choices);
         //OptimiseDialogPosition(&dlg);
 
-        if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.ShowModal() == wxID_OK ) {
             for (auto const& idx : dlg.GetSelections()) {
-                switch (idx) {
-                    case 0: {
-                        sett |= SETTINGS_PORT_ABSADDRESS;
-                        break;
-                    }
-                    case 1: {
-                        sett |= SETTINGS_PORT_UNIADDRESS;
-                        break;
-                    }
-                    case 2: {
-                        sett |= SETTINGS_PORT_CHANNELS;
-                        break;
-                    }
-                    case 3: {
-                        sett |= SETTINGS_PORT_PIXELS;
-                        break;
-                    }
-                    case 4: {
-                        sett |= SETTINGS_MODEL_DESCRIPTIONS;
-                        break;
-                    }
-                    case 5: {
-                        sett |= SETTINGS_MODEL_ABSADDRESS;
-                        break;
-                    }
-                    case 6: {
-                        sett |= SETTINGS_MODEL_UNIADDRESS;
-                        break;
-                    }
-                    case 7: {
-                        sett |= SETTINGS_MODEL_CHANNELS;
-                        break;
-                    }
-                    case 8: {
-                        sett |= SETTINGS_MODEL_PIXELS;
-                        break;
-                    }
-                }
+                sett |= static_cast< SETTINGS >( 1 << idx );
             }
         }
 
