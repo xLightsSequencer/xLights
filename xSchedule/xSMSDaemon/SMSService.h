@@ -40,7 +40,7 @@ class SMSService
 
     protected:
 
-    SMSDaemonOptions _options;
+    SMSDaemonOptions* _options;
 
     int GetMessagesReceivedFromPhone(const std::string& phone)
     {
@@ -66,9 +66,9 @@ class SMSService
 
     public:
 
-        SMSService(const SMSDaemonOptions& options) : _options(options)
+        SMSService(SMSDaemonOptions* options) : _options(options)
         {
-            StartThread(_options.GetRetrieveInterval() * 1000);
+            StartThread(_options->GetRetrieveInterval() * 1000);
         }
         virtual ~SMSService()
         {
@@ -106,22 +106,22 @@ class SMSService
         std::string GetUser()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
-            return _options.GetUser();
+            return _options->GetUser();
         }
         std::string GetSID()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
-            return _options.GetSID();
+            return _options->GetSID();
         }
         std::string GetToken()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
-            return _options.GetToken();
+            return _options->GetToken();
         }
         std::string GetPhone()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
-            return _options.GetPhone();
+            return _options->GetPhone();
         }
         void PrepareMessages(int maxAgeMins)
         {
@@ -159,7 +159,7 @@ class SMSService
 
             return res;
         }
-        void Reset(const SMSDaemonOptions& options)
+        void Reset(SMSDaemonOptions* options)
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             _options = options;
@@ -182,7 +182,7 @@ class SMSService
         void SendSuccessMessage(const SMSMessage& msg, const wxString& successMessage)
         {
             if (successMessage != "" &&
-                (_options.GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options.GetMaxMsgAgeMinsForResponse()))
+                (_options->GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options->GetMaxMsgAgeMinsForResponse()))
             {
                 SendSMS(msg._from, successMessage);
             }
@@ -202,7 +202,7 @@ class SMSService
                             logger_base.info("Moderated Accepted Msg: %s", (const char*)it.GetLog().c_str());
                             if (it._from != GetPhone())
                             {
-                                SendSuccessMessage(it, _options.GetSuccessMessage());
+                                SendSuccessMessage(it, _options->GetSuccessMessage());
                             }
                         }
                         return true;
@@ -226,7 +226,7 @@ class SMSService
         void SendRejectMessage(const SMSMessage& msg, const wxString& rejectMessage)
         {
             if (rejectMessage != "" &&
-                (_options.GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options.GetMaxMsgAgeMinsForResponse()))
+                (_options->GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options->GetMaxMsgAgeMinsForResponse()))
             {
                 SendSMS(msg._from, rejectMessage);
             }
@@ -239,7 +239,7 @@ class SMSService
 
             Replace(msg._rawMessage, ",", ""); // remove commas from messages as these cause issues
 
-            int maxAgeMins = _options.GetMaxMessageAge();
+            int maxAgeMins = _options->GetMaxMessageAge();
 
             // Only add if not too old
             if (maxAgeMins == 0 || msg.GetAgeMins() < maxAgeMins)
@@ -264,17 +264,17 @@ class SMSService
                 }
                 if (!found)
                 {
-                    if (!_options.GetUsePhoneBlacklist() || msg.PassesPhoneBlacklist())
+                    if (!_options->GetUsePhoneBlacklist() || msg.PassesPhoneBlacklist())
                     {
-                        if (_options.GetMaximumMessagesPerPhone() == 0 || MessagesBelowMaximumMessageCount(_options.GetMaximumMessagesPerPhone(), msg._from))
+                        if (_options->GetMaximumMessagesPerPhone() == 0 || MessagesBelowMaximumMessageCount(_options->GetMaximumMessagesPerPhone(), msg._from))
                         {
-                            if (!_options.GetUseLocalBlacklist() || msg.PassesBlacklist())
+                            if (!_options->GetUseLocalBlacklist() || msg.PassesBlacklist())
                             {
-                                if (!_options.GetUseLocalWhitelist() || msg.PassesWhitelist())
+                                if (!_options->GetUseLocalWhitelist() || msg.PassesWhitelist())
                                 {
-                                    if (_options.GetUsePurgoMalum())
+                                    if (_options->GetUsePurgoMalum())
                                     {
-                                        msg.Censor(_options.GetRejectProfanity());
+                                        msg.Censor(_options->GetRejectProfanity());
                                     }
                                     else
                                     {
@@ -283,9 +283,9 @@ class SMSService
 
                                     if (msg._message != "")
                                     {
-                                        int maxMessageLen = _options.GetMaxMessageLength();
+                                        int maxMessageLen = _options->GetMaxMessageLength();
                                         if (maxMessageLen != 0 && msg._message.size() > maxMessageLen &&
-                                            !_options.GetIgnoreOversizedMessages())
+                                            !_options->GetIgnoreOversizedMessages())
                                         {
                                             msg._message = msg._message.substr(0, maxMessageLen);
                                         }
@@ -293,9 +293,9 @@ class SMSService
                                         // messages have to be under the max
                                         if (maxMessageLen == 0 || msg._message.size() <= maxMessageLen)
                                         {
-                                            if (!_options.GetAcceptOneWordOnly() || msg._message.find(" ") == std::string::npos)
+                                            if (!_options->GetAcceptOneWordOnly() || msg._message.find(" ") == std::string::npos)
                                             {
-                                                if (_options.GetUpperCase())
+                                                if (_options->GetUpperCase())
                                                 {
                                                     msg._message = wxString(msg._message).Upper().ToStdString();
                                                 }
@@ -353,7 +353,7 @@ class SMSService
                                                 }
 
                                                 bool magic = false;
-                                                for (const auto& it : _options.GetMagicWords()) {
+                                                for (const auto& it : _options->GetMagicWords()) {
                                                     if (it->CheckMessage(msg))                                                         {
                                                         _rejectedMessages.push_back(msg);
                                                         magic = true;
@@ -367,7 +367,7 @@ class SMSService
                                                     logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
 
                                                     if (msg._from != GetPhone()) {
-                                                        SendSuccessMessage(msg, _options.GetSuccessMessage());
+                                                        SendSuccessMessage(msg, _options->GetSuccessMessage());
                                                     }
                                                 }
                                             }
@@ -375,23 +375,23 @@ class SMSService
                                             {
                                                 logger_base.warn("Rejected Msg: Not one word : %s", (const char*)msg.GetLog().c_str());
                                                 _rejectedMessages.push_back(msg);
-                                                SendRejectMessage(msg, _options.GetRejectMessage());
+                                                SendRejectMessage(msg, _options->GetRejectMessage());
                                             }
                                         }
                                         else
                                         {
                                             logger_base.warn("Rejected Msg: Too long : %s", (const char*)msg.GetLog().c_str());
                                             _rejectedMessages.push_back(msg);
-                                            SendRejectMessage(msg, _options.GetRejectMessage());
+                                            SendRejectMessage(msg, _options->GetRejectMessage());
                                         }
                                     }
                                     else
                                     {
-                                        if (_options.GetRejectProfanity())
+                                        if (_options->GetRejectProfanity())
                                         {
                                             logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
                                             _rejectedMessages.push_back(msg);
-                                            SendRejectMessage(msg, _options.GetRejectMessage());
+                                            SendRejectMessage(msg, _options->GetRejectMessage());
                                         }
                                     }
                                 }
@@ -399,19 +399,19 @@ class SMSService
                                 {
                                     logger_base.warn("Rejected Msg: Whitelist : %s", (const char*)msg.GetLog().c_str());
                                     _rejectedMessages.push_back(msg);
-                                    SendRejectMessage(msg, _options.GetRejectMessage());
+                                    SendRejectMessage(msg, _options->GetRejectMessage());
                                 }
                             }
                             else
                             {
                                 logger_base.warn("Rejected Msg: Blacklist : %s", (const char*)msg.GetLog().c_str());
                                 _rejectedMessages.push_back(msg);
-                                SendRejectMessage(msg, _options.GetRejectMessage());
+                                SendRejectMessage(msg, _options->GetRejectMessage());
                             }
                         }
                         else
                         {
-                            logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options.GetMaximumMessagesPerPhone());
+                            logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options->GetMaximumMessagesPerPhone());
                             _rejectedMessages.push_back(msg);
                             //SendRejectMessage(msg, _options.GetRejectMessage()); //  - we dont want to do this
                         }
@@ -420,7 +420,7 @@ class SMSService
                     {
                         logger_base.warn("Rejected Msg: Phone Blacklist : %s", (const char*)msg.GetLog().c_str());
                         _rejectedMessages.push_back(msg);
-                        SendRejectMessage(msg, _options.GetRejectMessage());
+                        SendRejectMessage(msg, _options->GetRejectMessage());
                     }
                 }
                 else
@@ -450,7 +450,7 @@ class SMSService
             for (auto m : msgs)
             {
                 SMSMessage msg;
-                msg._timestamp = wxDateTime::Now().MakeGMT() + (suppressTimezoneAdjust ? 0 : wxTimeSpan(0, _options.GetTimezoneAdjust()));
+                msg._timestamp = wxDateTime::Now().MakeGMT() + (suppressTimezoneAdjust ? 0 : wxTimeSpan(0, _options->GetTimezoneAdjust()));
                 msg._from = "TEST";
                 msg._rawMessage = m;
                 AddMessage(msg);
@@ -510,7 +510,7 @@ class TestService : public SMSService
 {
 public:
 
-    TestService(const SMSDaemonOptions& options) : SMSService(options) {}
+    TestService(SMSDaemonOptions* options) : SMSService(options) {}
     virtual bool SendSMS(const std::string& number, const std::string& message) override { return true; }
     virtual std::string GetServiceName() const override { return "Test"; }
     virtual bool RetrieveMessages() override { return true; }

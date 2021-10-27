@@ -19,7 +19,7 @@ class Bandwidth : public SMSService
 
     public:
 
-        Bandwidth(const SMSDaemonOptions& options) : SMSService(options) {}
+        Bandwidth(SMSDaemonOptions* options) : SMSService(options) {}
 
         virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
@@ -103,7 +103,7 @@ class Bandwidth : public SMSService
                             SMSMessage msg;
                             auto timestamp = m.Get("time", defaultValue).AsString();
                             msg._timestamp.ParseISOCombined(timestamp);
-                            msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
+                            msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
 
