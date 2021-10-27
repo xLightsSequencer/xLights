@@ -288,16 +288,17 @@ void ListenerFPP::Poll()
                         cpkt->fppd[2]      = 'P';
                         cpkt->fppd[3]      = 'D';
                         cpkt->pktType        = CTRL_PKT_PING;
-                        cpkt->extraDataLen   = 214; // v2 ping length
+                        cpkt->extraDataLen   = 294; // v2 ping length
                         
                         unsigned char *ed = (unsigned char*)(outBuf + 7);
                         
-                        int majorVersion = 2019;
-                        int minorVersion = 17;
+                        auto v = wxSplit(xlights_version_string, '.');
+                        int majorVersion = wxAtoi(v[0]);
+                        int minorVersion = wxAtoi(v[1]);
                         
-                        ed[0]  = 2; // ping version 2
+                        ed[0]  = 3; // ping version 2
                         ed[1]  = 0; // 0 = ping, 1 = discover
-                        ed[2]  = 0xC1; // xLigths type
+                        ed[2]  = 0xC1; // xLights type
                         ed[3]  = (majorVersion & 0xFF00) >> 8;
                         ed[4]  = (majorVersion & 0x00FF);
                         ed[5]  = (minorVersion & 0xFF00) >> 8;
@@ -319,10 +320,11 @@ void ListenerFPP::Poll()
                         strncpy((char *)(ed + 118), "xSchedule", 41);
                         //strncpy((char *)(ed + 159), sysInfo.ranges.c_str(), 41);
                         
+                        wxString r = wxString::Format("%d.%d.%d.255", (uint8_t)buffer[15], (uint8_t)buffer[16], (uint8_t)buffer[17]);
                         wxIPV4address remoteAddr;
-                        remoteAddr.Hostname("255.255.255.255");
+                        remoteAddr.Hostname(r); //                        ("255.255.255.255");
                         remoteAddr.Service(FPP_CTRL_PORT);
-                        _socket->SendTo(remoteAddr, outBuf, 214 + 7);
+                        _socket->SendTo(remoteAddr, outBuf, 294 + 7);
                     }
                 }
             }
