@@ -7,6 +7,8 @@
 #include "xlMetalGraphicsContext.h"
 #include "CPPMetal/CPPMetalRenderPipeline.hpp"
 
+#include "ExternalHooks.h"
+
 BEGIN_EVENT_TABLE(xlMetalCanvas, wxMetalCanvas)
     EVT_SIZE(xlMetalCanvas::Resized)
     EVT_ERASE_BACKGROUND(xlMetalCanvas::OnEraseBackGround)  // Override to do nothing on this event
@@ -34,7 +36,9 @@ is3d(!only2d)
 xlMetalCanvas::~xlMetalCanvas() {
 }
 
-
+double xlMetalCanvas::translateToBacking(double x) {
+    return xlTranslateToRetina(*this, x);
+}
 void xlMetalCanvas::Resized(wxSizeEvent& evt)
 {
     mWindowWidth = evt.GetSize().GetWidth() * GetContentScaleFactor();

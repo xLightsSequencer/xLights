@@ -1141,7 +1141,7 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 
 void MainSequencer::SetLargeWaveform()
 {
-    PanelWaveForm->SetGLSize(-1, Waveform::GetLargeSize());
+    PanelWaveForm->SetWaveFormSize(Waveform::GetLargeSize());
     timeDisplay->SetGLSize(-1, Waveform::GetLargeSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
@@ -1150,7 +1150,7 @@ void MainSequencer::SetLargeWaveform()
 
 void MainSequencer::SetSmallWaveform()
 {
-    PanelWaveForm->SetGLSize(-1, Waveform::GetSmallSize());
+    PanelWaveForm->SetWaveFormSize(Waveform::GetSmallSize());
     timeDisplay->SetGLSize(-1, Waveform::GetSmallSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
@@ -1161,9 +1161,7 @@ void MainSequencer::GetPresetData(wxString& copy_data)
 {
     if (PanelEffectGrid->IsACActive()) {
         GetACEffectsData(copy_data);
-    }
-    else
-    {
+    } else {
         GetSelectedEffectsData(copy_data);
     }
 }

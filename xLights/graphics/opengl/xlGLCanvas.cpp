@@ -704,21 +704,52 @@ public:
     virtual xlVertexAccumulator *createVertexAccumulator() override {
         return new DrawGLUtils::xlVertexAccumulator();
     }
+    virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
+        return new DrawGLUtils::xlVertexColorAccumulator();
+    }
 
     //drawing methods
     virtual void drawLines(xlVertexAccumulator *vac, const xlColor &c) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_LINES);
-    }
-    virtual void drawLineLoop(xlVertexAccumulator *vac, const xlColor &c) override {
-        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_LINE_LOOP);
+        DrawGLUtils::Draw(*v, c, GL_LINES, enableCapabilities);
     }
     virtual void drawLineStrip(xlVertexAccumulator *vac, const xlColor &c) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_LINE_STRIP);
+        DrawGLUtils::Draw(*v, c, GL_LINE_STRIP, enableCapabilities);
+    }
+    virtual void drawTriangles(xlVertexAccumulator *vac, const xlColor &c) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, c, GL_TRIANGLES, enableCapabilities);
+    }
+    virtual void drawTriangleStrip(xlVertexAccumulator *vac, const xlColor &c) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, c, GL_TRIANGLE_STRIP, enableCapabilities);
     }
 
+    virtual void drawLines(xlVertexColorAccumulator *vac) override {
+        DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, GL_LINES, enableCapabilities);
+    }
+    virtual void drawLineStrip(xlVertexColorAccumulator *vac) override {
+        DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, GL_LINE_STRIP, enableCapabilities);
+    }
+    virtual void drawTriangles(xlVertexColorAccumulator *vac) override {
+        DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+    }
+    virtual void drawTriangleStrip(xlVertexColorAccumulator *vac) override {
+        DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
+        DrawGLUtils::Draw(*v, GL_TRIANGLE_STRIP, enableCapabilities);
+    }
+
+    virtual void enableBlending(bool e = true) override {
+        if (e) {
+            enableCapabilities = GL_BLEND;
+        } else {
+            enableCapabilities = 0;
+        }
+    }
 
     // Setup the Viewport
     void SetViewport(int x1, int y1, int x2, int y2, bool is3D) override {
@@ -747,7 +778,7 @@ public:
         DrawGLUtils::Scale(w, h, z);
     }
 
-
+    int enableCapabilities = 0;
     xlGLCanvas *canvas;
 };
 

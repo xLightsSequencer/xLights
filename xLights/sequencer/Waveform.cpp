@@ -38,7 +38,7 @@
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(Waveform, xlGLCanvas)
+BEGIN_EVENT_TABLE(Waveform, GRAPHICS_BASE_CLASS)
 EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
@@ -61,7 +61,7 @@ const long Waveform::ID_WAVE_MNU_NONVOCALS = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm")
+    GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "WaveForm")
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating Waveform");
@@ -104,8 +104,11 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
     // Zoom on double click
     wxCommandEvent eventZoom(EVT_ZOOM);
 
-    if(event.ShiftDown() || event.ControlDown()){eventZoom.SetInt(ZOOM_OUT);}
-    else {eventZoom.SetInt(ZOOM_IN);}
+    if (event.ShiftDown() || event.ControlDown()) {
+        eventZoom.SetInt(ZOOM_OUT);
+    } else {
+        eventZoom.SetInt(ZOOM_IN);
+    }
 
     wxPostEvent(GetParent(), eventZoom);
 }
@@ -121,8 +124,7 @@ void Waveform::CheckNeedToScroll() const
     int EndTime;
     mTimeline->GetViewableTimeRange(StartTime, EndTime);
     int scroll_point = mTimeline->GetPositionFromTimeMS(EndTime) * 0.99;
-    if (mTimeline->GetPlayMarker() > scroll_point)
-    {
+    if (mTimeline->GetPlayMarker() > scroll_point) {
         wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
         wxPostEvent(mParent, eventScroll);
     }
@@ -132,13 +134,11 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
 {
     if(!mIsInitialized) return;
 
-    if (!m_dragging)
-    {
+    if (!m_dragging) {
         m_dragging = true;
         CaptureMouse();
     }
-    if (m_drag_mode == DRAG_NORMAL)
-    {
+    if (m_drag_mode == DRAG_NORMAL) {
         mTimeline->SetSelectedPositionStart(event.GetX());
     }
     SetFocus();
@@ -151,8 +151,7 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
 
 void Waveform::mouseLeftUp( wxMouseEvent& event)
 {
-    if(m_dragging)
-    {
+    if (m_dragging) {
         ReleaseMouse();
         m_dragging = false;
     }
@@ -161,12 +160,9 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
     Refresh(false);
 
     wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
-    if (mTimeline->GetNewEndTimeMS() == -1)
-    {
+    if (mTimeline->GetNewEndTimeMS() == -1) {
         eventSelected.SetInt(0);
-    }
-    else
-    {
+    } else {
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
     }
     wxPostEvent(mParent, eventSelected);
@@ -176,14 +172,11 @@ void Waveform::rightClick(wxMouseEvent& event)
 {
     wxMenu mnuWave;
     if( (mTimeline->GetSelectedPositionStartMS() != -1 ) &&
-        (mTimeline->GetSelectedPositionEndMS() != -1 ) )
-    {
+        (mTimeline->GetSelectedPositionEndMS() != -1 ) ) {
         mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
     }
-    if (_media != nullptr)
-    {
-        if (mnuWave.GetMenuItemCount() > 0)
-        {
+    if (_media != nullptr) {
+        if (mnuWave.GetMenuItemCount() > 0) {
             mnuWave.AppendSeparator();
         }
 
@@ -194,8 +187,7 @@ void Waveform::rightClick(wxMouseEvent& event)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_CUSTOM, "Custom filtered waveform")->Check(_type == AUDIOSAMPLETYPE::CUSTOM);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
     }
-    if (mnuWave.GetMenuItemCount() > 0)
-    {
+    if (mnuWave.GetMenuItemCount() > 0) {
         mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
         renderGL();
         PopupMenu(&mnuWave);
@@ -206,34 +198,21 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
-    if(id == ID_WAVE_MNU_RENDER)
-    {
+    if(id == ID_WAVE_MNU_RENDER) {
         logger_base.debug("OnGridPopup - ID_WAVE_MNU_RENDER");
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
-    }
-    else if (id == ID_WAVE_MNU_RAW)
-    {
+    } else if (id == ID_WAVE_MNU_RAW) {
         _type = AUDIOSAMPLETYPE::RAW;
-    }
-    else if (id == ID_WAVE_MNU_BASS)
-    {
+    } else if (id == ID_WAVE_MNU_BASS) {
         _type = AUDIOSAMPLETYPE::BASS;
-    }
-    else if (id == ID_WAVE_MNU_TREBLE)
-    {
+    } else if (id == ID_WAVE_MNU_TREBLE) {
         _type = AUDIOSAMPLETYPE::TREBLE;
-    }
-    else if (id == ID_WAVE_MNU_ALTO)
-    {
+    } else if (id == ID_WAVE_MNU_ALTO) {
         _type = AUDIOSAMPLETYPE::ALTO;
-    }
-    else if (id == ID_WAVE_MNU_NONVOCALS)
-    {
+    } else if (id == ID_WAVE_MNU_NONVOCALS) {
         _type = AUDIOSAMPLETYPE::NONVOCALS;
-    }
-    else if (id == ID_WAVE_MNU_CUSTOM)
-    {
+    } else if (id == ID_WAVE_MNU_CUSTOM) {
         int origLow = _lowNote;
         int origHigh = _highNote;
         if (_lowNote == -1) _lowNote = 0;
@@ -250,20 +229,14 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     wxSetCursor(wxCURSOR_WAIT);
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    for (size_t i = 0; i < views.size(); i++)
-    {
-        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
-        {
-            if (_type == AUDIOSAMPLETYPE::CUSTOM)
-            {
-                if (views[i].GetLowNote() == _lowNote && views[i].GetHighNote() == _highNote)
-                {
+    for (size_t i = 0; i < views.size(); i++) {
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type) {
+            if (_type == AUDIOSAMPLETYPE::CUSTOM) {
+                if (views[i].GetLowNote() == _lowNote && views[i].GetHighNote() == _highNote) {
                     mCurrentWaveView = i;
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 mCurrentWaveView = i;
                 break;
             }
@@ -272,11 +245,9 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     if (_media) {
         _media->SwitchTo(_type, _lowNote, _highNote);
     }
-    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
-    {
+    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
-        views.push_back(wv);
+        views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
 
@@ -304,27 +275,23 @@ void Waveform::mouseMoved(wxMouseEvent& event)
     if (m_dragging) {
         if (m_drag_mode == DRAG_LEFT_EDGE) {
             mTimeline->SetSelectedPositionStart(event.GetX(), false);
-        }
-        else {
+        } else {
             mTimeline->SetSelectedPositionEnd(event.GetX());
         }
         Refresh(false);
         wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
-    }
-    else {
+    } else {
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
         if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
             SetCursor(wxCURSOR_POINT_LEFT);
             m_drag_mode = DRAG_LEFT_EDGE;
-        }
-        else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
+        } else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
             SetCursor(wxCURSOR_POINT_RIGHT);
             m_drag_mode = DRAG_RIGHT_EDGE;
-        }
-        else {
+        } else {
             SetCursor(wxCURSOR_ARROW);
             m_drag_mode = DRAG_NORMAL;
         }
@@ -347,40 +314,29 @@ void Waveform::mouseMoved(wxMouseEvent& event)
 
 void Waveform::mouseWheelMoved(wxMouseEvent& event)
 {
-    if(event.CmdDown())
-    {
+    if(event.CmdDown()) {
         int i = event.GetWheelRotation();
-        if(i<0)
-        {
+        if (i < 0) {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_OUT);
             wxPostEvent(mParent, eventZoom);
-        }
-        else
-        {
+        } else {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_IN);
             wxPostEvent(mParent, eventZoom);
         }
-    }
-    else if(event.ShiftDown())
-    {
+    } else if (event.ShiftDown()) {
         int i = event.GetWheelRotation();
-        if(i<0)
-        {
+        if (i < 0) {
             wxCommandEvent eventScroll(EVT_GSCROLL);
             eventScroll.SetInt(SCROLL_RIGHT);
             wxPostEvent(mParent, eventScroll);
-        }
-        else
-        {
+        } else {
             wxCommandEvent eventScroll(EVT_GSCROLL);
             eventScroll.SetInt(SCROLL_LEFT);
             wxPostEvent(mParent, eventScroll);
         }
-    }
-    else
-    {
+    } else {
         wxPostEvent(GetParent()->GetEventHandler(), event);
         event.Skip();
     }
@@ -392,86 +348,80 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _type = AUDIOSAMPLETYPE::RAW;
     _media = media;
     views.clear();
-	if (_media != nullptr)
-	{
+	if (_media != nullptr) {
         _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		WaveView wv(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
-		views.push_back(wv);
+		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		mCurrentWaveView = 0;
 		return media->LengthMS();
-	}
-	else
-	{
+    } else {
         mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
         SetZoomLevel(GetZoomLevel());
 	    return 0;
 	}
 }
 
-void Waveform::InitializeGLCanvas()
-{
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
-    mIsInitialized = true;
-    SetZoomLevel(mZoomLevel);
+
+xlColor Waveform::ClearBackgroundColor() {
+    if (AudioManager::GetSDL()->IsNoAudio()) {
+        return xlRED;
+    }
+    return ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 }
-void Waveform::InitializeGLContext()
+
+void Waveform::Paint(wxPaintEvent& event)
 {
-    SetCurrentGLContext();
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
-    LOG_GL_ERRORV(glDisable(GL_BLEND));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-}
-void Waveform::Paint( wxPaintEvent& event )
-{
+    wxPaintDC(this);
     renderGL();
 }
 
 void Waveform::renderGL()
 {
     if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-    InitializeGLContext();
-	if (mCurrentWaveView >= 0) {
-		DrawWaveView(views[mCurrentWaveView]);
-	}
-    LOG_GL_ERRORV(SwapBuffers());
-}
-
-void Waveform::DrawWaveView(const WaveView &wv)
-{
-    DrawGLUtils::SetLineWidth(1.0);
-
-    DrawGLUtils::xlAccumulator vac;
-    vac.PreAlloc(18);
-    xlColor color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
-
-    // Set a red background if there is no audio device
-    if (_media != nullptr) {
-        if (AudioManager::GetSDL()->IsNoAudio()) {
-            color = xlRED;
-        }
+    if(!mIsInitialized) {
+        PrepareCanvas();
+        SetZoomLevel(mZoomLevel);
     }
 
-    vac.AddVertex(0, 0, color);
-    vac.AddVertex(mWindowWidth, 0, color);
-    vac.AddVertex(mWindowWidth, mWindowHeight, color);
-    vac.AddVertex(0, mWindowHeight, color);
-    vac.Finish(GL_TRIANGLE_FAN);
+    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
+    if (mCurrentWaveView >= 0) {
+		DrawWaveView(ctx, views[mCurrentWaveView]);
+	}
 
-    // Draw Outside rectangle
+    FinishDrawing(ctx);
+}
+
+float Waveform::translateOffset(float f) {
+    if (drawingUsingLogicalSize()) {
+        return f;
+    }
+    return translateToBacking(f);
+}
+
+
+void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
+{
+    if (!border) {
+        border = ctx->createVertexAccumulator();
+        border->PreAlloc(5);
+        border->AddVertex(0.25, 0.25, 0);
+        border->AddVertex(mWindowWidth - 0.5, 0.25, 0);
+        border->AddVertex(mWindowWidth - 0.5, mWindowHeight - 0.5, 0);
+        border->AddVertex(0.25, mWindowHeight - 0.5, 0);
+        border->AddVertex(0.25, 0.25, 0);
+        border->Finalize(true);
+    } else if (mWindowResized) {
+        border->SetVertex(1, mWindowWidth - 0.5, 0.25, 0);
+        border->SetVertex(2, mWindowWidth - 0.5, mWindowHeight - 0.5, 0);
+        border->SetVertex(3, 0.25, mWindowHeight - 0.5, 0);
+        border->FlushRange(1, 3);
+    }
+    xlColor color;
     color.Set(128, 128, 128);
-    vac.AddVertex(0.25, 0, color);
-    vac.AddVertex(mWindowWidth, 0, color);
-    vac.AddVertex(mWindowWidth, mWindowHeight-0.5, color);
-    vac.AddVertex(0.25, mWindowHeight-0.5, color);
-    vac.Finish(GL_LINE_LOOP, 0, 1);
+    // Draw Outside rectangle
+    ctx->drawLineStrip(border, color);
 
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
@@ -479,17 +429,25 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     // draw shaded region if needed
     if (selected_x1 != -1 && selected_x2 != -1) {
-        //color.Set(0, 0, 200, 45);
+        float x1 = translateOffset(selected_x1);
+        float x2 = translateOffset(selected_x2);
         color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
         color.SetAlpha(45);
-        vac.AddVertex(selected_x1, 1, color);
-        vac.AddVertex(selected_x2, 1, color);
-        vac.AddVertex(selected_x2, mWindowHeight-1, color);
-        vac.AddVertex(selected_x1, mWindowHeight-1, color);
-        vac.Finish(GL_TRIANGLE_FAN, GL_BLEND);
+        xlGraphicsContext::xlVertexAccumulator *selection = ctx->createVertexAccumulator();
+        selection->PreAlloc(4);
+        selection->AddVertex(x1, 1, 0);
+        selection->AddVertex(x2, 1, 0);
+        selection->AddVertex(x1, mWindowHeight - 1, 0);
+        selection->AddVertex(x2, mWindowHeight - 1, 0);
+        ctx->enableBlending();
+        ctx->drawTriangleStrip(selection, color);
+        ctx->disableBlending();
+        delete selection;
     }
 
-    if(_media != nullptr) {
+    int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
+
+    if (_media != nullptr) {
         xlColor c(130,178,207,255);
         if (xLightsApp::GetFrame() != nullptr) {
             c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
@@ -497,96 +455,93 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
         int max = std::min(mWindowWidth, wv.MinMaxs.size());
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
-            wv.background.Reset();
-            wv.outline.Reset();
-            wv.background.PreAlloc((mWindowWidth + 2) * 2);
-            wv.outline.PreAlloc((mWindowWidth + 2) + 4);
+            float pixelOffset = translateOffset(mStartPixelOffset);
+
+            wv.background = std::unique_ptr<xlGraphicsContext::xlVertexAccumulator>(ctx->createVertexAccumulator());
+            wv.outline = std::unique_ptr<xlGraphicsContext::xlVertexAccumulator>(ctx->createVertexAccumulator());
+            wv.background->PreAlloc((mWindowWidth + 2) * 2);
+            wv.outline->PreAlloc((mWindowWidth + 2) + 4);
 
             std::vector<double> vertexes;
             vertexes.resize((mWindowWidth + 2));
 
-            for (size_t x = 0; x < mWindowWidth && x < wv.MinMaxs.size(); x++)
-            {
+            for (size_t x = 0; x < mWindowWidth && x < wv.MinMaxs.size(); x++) {
                 int index = x;
-                index += mStartPixelOffset;
-                if (index >= 0 && index < wv.MinMaxs.size())
-                {
+                index += pixelOffset;
+                if (index >= 0 && index < wv.MinMaxs.size()) {
                     double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
                     double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
 
-                    wv.background.AddVertex(x, y1);
-                    wv.background.AddVertex(x, y2);
+                    wv.background->AddVertex(x, y1);
+                    wv.background->AddVertex(x, y2);
 
-                    wv.outline.AddVertex(x, y1);
+                    wv.outline->AddVertex(x, y1);
                     vertexes[x] = y2;
                 }
             }
-            for (int x = mWindowWidth; x >= 0; x--) {
+            for (int x = std::min(mWindowWidth, wv.MinMaxs.size()) - 1; x >= 0; x--) {
                 int index = x;
-                index += mStartPixelOffset;
+                index += pixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size()) {
-                    wv.outline.AddVertex(x, vertexes[x]);
+                    wv.outline->AddVertex(x, vertexes[x]);
                 }
             }
             wv.lastRenderSize = max;
             wv.lastRenderStart = mStartPixelOffset;
+            wv.background->Finalize(false);
+            wv.outline->Finalize(false);
         }
-        vac.PreAlloc(wv.background.getCount() + wv.outline.getCount() + 6);
-        vac.Load(wv.background, c);
-        vac.Finish(GL_TRIANGLE_STRIP);
-        vac.Load(wv.outline, xlWHITE);
-        vac.Finish(GL_LINE_STRIP, 0, 1);
+        ctx->drawTriangleStrip(wv.background.get(), c);
+        ctx->drawLineStrip(wv.outline.get(), xlWHITE);
     }
 
+
+    xlGraphicsContext::xlVertexColorAccumulator *vac = ctx->createVertexColorAccumulator();
     // draw selection line if not a range
-    if (selected_x1 != -1 && selected_x2 == -1)
-    {
+    if (selected_x1 != -1 && selected_x2 == -1) {
         color.Set(0, 0, 0, 128);
-        vac.AddVertex(selected_x1, 1, color);
-        vac.AddVertex(selected_x1, mWindowHeight - 1, color);
+        float f = translateOffset(selected_x1);
+        vac->AddVertex(f, 1, 0, color);
+        vac->AddVertex(f, mWindowHeight - 1, 0, color);
     }
 
     // draw mouse position line
     int mouse_marker = mTimeline->GetMousePosition();
-    if (mouse_marker != -1)
-    {
+    if (mouse_marker != -1) {
         color.Set(0, 0, 255, 255);
-        vac.AddVertex(mouse_marker, 1, color);
-        vac.AddVertex(mouse_marker, mWindowHeight-1, color);
+        float f = translateOffset(mouse_marker);
+        vac->AddVertex(f, 1, 0, color);
+        vac->AddVertex(f, mWindowHeight - 1, 0, color);
     }
 
     // draw play marker line
     int play_marker = mTimeline->GetPlayMarker();
-    if (play_marker != -1)
-    {
+    if (play_marker != -1) {
         color.Set(0, 0, 0, 255);
-        vac.AddVertex(play_marker, 1, color);
-        vac.AddVertex(play_marker, mWindowHeight-1, color);
+        float f = translateOffset(play_marker);
+        vac->AddVertex(f, 1, 0, color);
+        vac->AddVertex(f, mWindowHeight - 1, 0, color);
     }
 
-    if (xLightsApp::GetFrame() != nullptr)
-    {
+    if (xLightsApp::GetFrame() != nullptr) {
         Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
-        if (selectedEffect != nullptr)
-        {
+        if (selectedEffect != nullptr) {
             color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
-            int start = mTimeline->GetPositionFromTimeMS(selectedEffect->GetStartTimeMS());
-            int end = mTimeline->GetPositionFromTimeMS(selectedEffect->GetEndTimeMS());
-            vac.AddVertex(start, 1, color);
-            vac.AddVertex(start, (mWindowHeight - 1) / 4, color);
-            vac.AddVertex(end, 1, color);
-            vac.AddVertex(end, (mWindowHeight - 1) / 4, color);
-            vac.AddVertex(start, (mWindowHeight - 1) / 8, color);
-            vac.AddVertex(end, (mWindowHeight - 1) / 8, color);
+            int start = translateOffset(mTimeline->GetPositionFromTimeMS(selectedEffect->GetStartTimeMS()));
+            int end = translateOffset(mTimeline->GetPositionFromTimeMS(selectedEffect->GetEndTimeMS()));
+            vac->AddVertex(start, 1, 0, color);
+            vac->AddVertex(start, (mWindowHeight - 1) / 4, 0, color);
+            vac->AddVertex(end, 1, 0, color);
+            vac->AddVertex(end, (mWindowHeight - 1) / 4, 0, color);
+            vac->AddVertex(start, (mWindowHeight - 1) / 8, 0, color);
+            vac->AddVertex(end, (mWindowHeight - 1) / 8, 0, color);
         }
     }
-
-    if (vac.HasMoreVertices()) {
-        vac.Finish(GL_LINES, 0, 1);
+    if (vac->getCount() > 0) {
+        ctx->drawLines(vac);
     }
-    if (vac.count > 0) {
-        DrawGLUtils::Draw(vac);
-    }
+    delete vac;
+    mWindowResized = false;
 }
 
 void Waveform::SetZoomLevel(int level)
@@ -596,18 +551,14 @@ void Waveform::SetZoomLevel(int level)
     if (!mIsInitialized) return;
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    for (size_t i = 0; i < views.size(); i++)
-    {
-        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
-        {
+    for (size_t i = 0; i < views.size(); i++) {
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type) {
             mCurrentWaveView = i;
         }
     }
-    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
-    {
+    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
-        views.push_back(wv);
+        views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
 }
@@ -619,12 +570,9 @@ int Waveform::GetZoomLevel() const
 
 int Waveform::SetStartPixelOffset(int offset)
 {
-    if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
-    {
+    if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED) {
        mStartPixelOffset = offset;
-    }
-    else
-    {
+    } else {
         mStartPixelOffset = 0;
     }
     return mStartPixelOffset;
@@ -650,19 +598,19 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
     // The number of periods for each Zoomlevel is held in ZoomLevelValues array
     int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
     float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
-	if (_media != nullptr)
-	{
+    if (!drawingUsingLogicalSize()) {
+        timePerPixel /= GetContentScaleFactor();
+    }
+	if (_media != nullptr) {
 		return (float)timePerPixel * (float)_media->GetRate();
-	}
-	else
-	{
+    } else {
 		return 0.0f;
 	}
 }
 
-void Waveform::SetGLSize(int w, int h)
+void Waveform::SetWaveFormSize(int h)
 {
-
+    int w = -1;
     SetMinSize(wxSize(w, h));
 
     wxSize size = GetSize();
@@ -677,11 +625,9 @@ void Waveform::SetGLSize(int w, int h)
     // All of our existing views are invalid ... so erase them
     views.clear();
 
-    if (_media != nullptr)
-    {
+    if (_media != nullptr) {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(0, samplesPerLine, _media, _type, _lowNote, _highNote);
-        views.push_back(wv);
+        views.emplace_back(0, samplesPerLine, _media, _type, _lowNote, _highNote);
     }
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
@@ -690,12 +636,14 @@ void Waveform::SetGLSize(int w, int h)
     Refresh(false);
 }
 
+Waveform::WaveView::~WaveView() {
+}
+
 void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
 	MinMaxs.clear();
 
-	if (media != nullptr)
-	{
+	if (media != nullptr) {
 		float minimum=1;
 		float maximum=-1;
 		long trackSize = media->GetTrackSize();

@@ -79,6 +79,7 @@ class xlGLCanvas
         virtual xlGraphicsContext*  PrepareContextForDrawing();
         virtual void FinishDrawing(xlGraphicsContext* ctx);
 
+        virtual bool drawingUsingLogicalSize() const { return true; }
 
         size_t mWindowWidth;
         size_t mWindowHeight;

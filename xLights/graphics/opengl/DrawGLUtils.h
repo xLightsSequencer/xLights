@@ -163,9 +163,9 @@ namespace DrawGLUtils
         }
         bool finalized = false;
     };
-    class xlVertexColorAccumulator : public xlVertexAccumulatorBase {
+    class xlVertexColorAccumulator : public xlGraphicsContext::xlVertexColorAccumulator, public xlVertexAccumulatorBase {
     public:
-        xlVertexColorAccumulator() : xlVertexAccumulatorBase()
+        xlVertexColorAccumulator() : xlGraphicsContext::xlVertexColorAccumulator(), xlVertexAccumulatorBase()
         {
             colors = (uint8_t*)malloc(_max * 4);
         }
@@ -189,16 +189,38 @@ namespace DrawGLUtils
             free(colors);
         }
 
-        virtual void Reset() { xlVertexAccumulatorBase::DoReset(); }
-        virtual void PreAlloc(unsigned int i) { xlVertexAccumulatorBase::DoPreAlloc(i); }
+        virtual void Reset() { if (!finalized) xlVertexAccumulatorBase::DoReset(); }
+        virtual void PreAlloc(unsigned int i) { if (!finalized) xlVertexAccumulatorBase::DoPreAlloc(i); }
         virtual uint32_t getCount() { return count; }
 
-        void AddVertex(float x, float y, const xlColor& c)
-        {
-            AddVertex(x, y, 0, c);
+        virtual void Finalize(bool mayChangeVertices, bool mayChangeColors) {
+            finalized = true;
         }
-        void AddVertex(float x, float y, float z, const xlColor& c, bool replace = false)
-        {
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z, const xlColor &c) {
+            if (vertex < count) {
+                int i = vertex * coordsPerVertex;
+                vertices[i++] = x;
+                vertices[i++] = y;
+                if (coordsPerVertex == 3) {
+                    vertices[i] = z;
+                }
+
+                i = vertex * 4;
+                colors[i++] = c.Red();
+                colors[i++] = c.Green();
+                colors[i++] = c.Blue();
+                colors[i] = c.Alpha();
+            }
+        };
+        virtual void FlushRange(uint32_t start, uint32_t len) {}
+
+        virtual void AddVertex(float x, float y, const xlColor& c) {
+            AddVertex(x, y, 0, c, false);
+        }
+        virtual void AddVertex(float x, float y, float z, const xlColor& c) {
+            AddVertex(x, y, z, c, false);
+        }
+        void AddVertex(float x, float y, float z, const xlColor& c, bool replace) {
             if (replace) {
                 for (unsigned int i = 0; i < count; i++) {
                     int base = i * coordsPerVertex;
@@ -275,6 +297,7 @@ namespace DrawGLUtils
 
         uint8_t* colors;
     protected:
+        bool finalized = false;
         virtual void DoRealloc(int newMax)
         {
             xlVertexAccumulatorBase::DoRealloc(newMax);

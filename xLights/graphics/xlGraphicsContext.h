@@ -51,6 +51,27 @@ public:
         }
     };
 
+    class xlVertexColorAccumulator {
+    public:
+        xlVertexColorAccumulator() {}
+        virtual ~xlVertexColorAccumulator() {}
+
+        virtual void Reset() {}
+        virtual void PreAlloc(unsigned int i) {};
+        virtual void AddVertex(float x, float y, float z, const xlColor &c) {};
+        virtual uint32_t getCount() { return 0; }
+
+
+        // mark this as ready to be copied to graphics card, after finalize,
+        // vertices cannot be added, but if mayChange is set, the vertex/color
+        // data can change via SetVertex and then flushed to push the
+        // new data to the graphics card
+        virtual void Finalize(bool mayChangeVertices, bool mayChangeColors) {}
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z, const xlColor &c) {};
+        virtual void FlushRange(uint32_t start, uint32_t len) {}
+
+    };
+
 
     xlGraphicsContext() {}
     virtual ~xlGraphicsContext() {}
@@ -61,7 +82,7 @@ public:
 
     //create various accumulators/buffers
     virtual xlVertexAccumulator *createVertexAccumulator() = 0;
-
+    virtual xlVertexColorAccumulator *createVertexColorAccumulator() = 0;
 
 
     //manipulating the matrices
@@ -72,11 +93,18 @@ public:
     virtual void Scale(float w, float h, float z) = 0;
 
     //setters for various states
-
+    virtual void enableBlending(bool e = true) = 0;
+    virtual void disableBlending() { enableBlending(false); }
 
     //drawing methods
     virtual void drawLines(xlVertexAccumulator *vac, const xlColor &c) = 0;
-    virtual void drawLineLoop(xlVertexAccumulator *vac, const xlColor &c) = 0;
     virtual void drawLineStrip(xlVertexAccumulator *vac, const xlColor &c) = 0;
+    virtual void drawTriangles(xlVertexAccumulator *vac, const xlColor &c) = 0;
+    virtual void drawTriangleStrip(xlVertexAccumulator *vac, const xlColor &c) = 0;
+
+    virtual void drawLines(xlVertexColorAccumulator *vac) = 0;
+    virtual void drawLineStrip(xlVertexColorAccumulator *vac) = 0;
+    virtual void drawTriangles(xlVertexColorAccumulator *vac) = 0;
+    virtual void drawTriangleStrip(xlVertexColorAccumulator *vac) = 0;
 
 };

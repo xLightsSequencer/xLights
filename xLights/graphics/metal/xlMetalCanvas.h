@@ -28,12 +28,16 @@ public:
 
     virtual xlColor ClearBackgroundColor() { return xlBLACK; }
 
+    double translateToBacking(double x);
+
 protected:
     DECLARE_EVENT_TABLE()
 
     virtual void PrepareCanvas();
     virtual xlGraphicsContext* PrepareContextForDrawing();
     virtual void FinishDrawing(xlGraphicsContext *ctx);
+
+    virtual bool drawingUsingLogicalSize() const { return false; }
 
 
     size_t mWindowWidth;
