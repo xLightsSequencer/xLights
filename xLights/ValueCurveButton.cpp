@@ -144,7 +144,7 @@ void ValueCurveButton::NotifyChange()
 {
     wxCommandEvent eventVCChange(EVT_VC_CHANGED);
     eventVCChange.SetEventObject(this);
-    wxPostEvent(GetParent(), eventVCChange);
+    GetParent()->ProcessWindowEvent(eventVCChange);
 }
 
 void ValueCurveButton::SetLimits(float min, float max)
