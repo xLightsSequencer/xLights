@@ -259,6 +259,7 @@ void xlMetalGraphicsContext::drawPrimitive(MTL::PrimitiveType type, xlVertexAccu
 
     encoder->setVertexBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
     encoder->setFragmentBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
+    frameDataChanged = false;
     encoder->drawPrimitives(type, 0, vac->getCount());
 }
 void xlMetalGraphicsContext::drawLines(xlGraphicsContext::xlVertexColorAccumulator *vac) {
@@ -279,8 +280,11 @@ void xlMetalGraphicsContext::drawPrimitive(MTL::PrimitiveType type, xlVertexColo
     xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
 
-    encoder->setVertexBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
-    encoder->setFragmentBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
+    if (frameDataChanged) {
+        encoder->setVertexBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
+        encoder->setFragmentBytes(&frameData, sizeof(frameData), BufferIndexFrameData);
+        frameDataChanged = false;
+    }
     encoder->drawPrimitives(type, 0, vac->getCount());
 }
 
@@ -300,6 +304,7 @@ void xlMetalGraphicsContext::SetViewport(int topleft_x, int topleft_y, int botto
         MTL::Viewport vp = {  (double)topleft_x, (double)topleft_y, w, h, 1.0, 1.0 };
         encoder->setViewport(vp);
         frameData.MVP = matrix_ortho_left_hand(topleft_x, bottomright_x, bottomright_y, topleft_y, 1.0, 0.0);
+        frameDataChanged = true;
     }
 }
 
@@ -325,9 +330,11 @@ void xlMetalGraphicsContext::Scale(float w, float h, float z) {
 
 
 
-void xlMetalGraphicsContext::setPipelineState(const std::string &name, const char *vShader, const char *fShader) {
+bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const char *vShader, const char *fShader) {
     if (lastPipeline != name) {
         encoder->setRenderPipelineState(canvas->getPipelineState(name, vShader, fShader, blending));
         lastPipeline = name;
+        return true;
     }
+    return false;
 }

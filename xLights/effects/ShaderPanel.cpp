@@ -54,23 +54,6 @@ const long ShaderPanel::ID_VALUECURVE_Shader_Zoom = wxNewId();
 const long ShaderPanel::ID_TEXTCTRL_Shader_Zoom = wxNewId();
 //*)
 
-ShaderPreview::ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name, bool coreProfile)
-    : xlGLCanvas(parent, id, pos, size, style, name, coreProfile)
-{
-
-}
-
-ShaderPreview::~ShaderPreview()
-{
-
-}
-
-void ShaderPreview::InitializeGLContext()
-{
-    // should just be doing init stuff?
-    SetCurrentGLContext();
-}
-
 const long ShaderPanel::ID_CANVAS = wxNewId();
 
 BEGIN_EVENT_TABLE(ShaderPanel, wxPanel)
@@ -165,8 +148,6 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_Shader_Offset_X->GetValue()->SetLimits(SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX);
     BitmapButton_Shader_Offset_Y->GetValue()->SetLimits(SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX);
     BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
-
-    _preview = new ShaderPreview(this, ID_CANVAS);
 
     ValidateWindow();
 }

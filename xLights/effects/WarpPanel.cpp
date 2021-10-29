@@ -42,24 +42,6 @@ const long WarpPanel::ID_SLIDER_Warp_Frequency = wxNewId();
 const long WarpPanel::ID_TEXTCTRL_Warp_Frequency = wxNewId();
 //*)
 
-WarpPreview::WarpPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
-   : xlGLCanvas( parent, id, pos, size, style, name, coreProfile )
-{
-
-}
-
-WarpPreview::~WarpPreview()
-{
-
-}
-
-void WarpPreview::InitializeGLCanvas()
-{
-   SetCurrentGLContext();
-
-   mIsInitialized = true;
-}
-
 BEGIN_EVENT_TABLE(WarpPanel,wxPanel)
 	//(*EventTable(WarpPanel)
 	//*)

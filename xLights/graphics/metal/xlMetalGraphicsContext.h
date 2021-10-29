@@ -57,10 +57,11 @@ protected:
     void drawPrimitive(MTL::PrimitiveType type, xlVertexAccumulator *vac, const xlColor &c);
     void drawPrimitive(MTL::PrimitiveType type, xlVertexColorAccumulator *vac);
 
-    void setPipelineState(const std::string &name, const char *vShader, const char *fShader);
+    bool setPipelineState(const std::string &name, const char *vShader, const char *fShader);
 
     bool blending = false;
     std::string lastPipeline;
     FrameData frameData;
+    bool frameDataChanged = true;
     std::stack<simd::float4x4> matrixStack;
 };
