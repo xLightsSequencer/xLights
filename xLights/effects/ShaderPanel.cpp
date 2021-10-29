@@ -29,6 +29,26 @@
 #include <wx/artprov.h>
 #include <wx/progdlg.h>
 
+
+#ifndef __WXOSX__
+class ShaderPreview : public xlGLCanvas
+{
+public:
+    ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+                  const wxSize &size=wxDefaultSize,
+                  long style=0,
+                  const wxString &name=wxPanelNameStr,
+                  bool coreProfile = true) : xlGLCanvas(parent, id, pos, size, style, name, coreProfile) {
+    }
+    virtual ~ShaderPreview() {}
+
+    void InitializeGLContext() override {
+        SetCurrentGLContext();
+    }
+};
+#endif
+
+
 //(*IdInit(ShaderPanel)
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
 const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
@@ -150,6 +170,10 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
 
     ValidateWindow();
+
+#ifndef __WXOSX__
+    _preview = new ShaderPreview(this, ID_CANVAS);
+#endif
 }
 
 ShaderPanel::~ShaderPanel()

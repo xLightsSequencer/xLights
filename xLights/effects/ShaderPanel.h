@@ -93,7 +93,11 @@ class ShaderPanel: public xlEffectPanel
 		//*)
 
 		static const long ID_CANVAS;
-      friend class ShaderEffect;
+
+#ifndef __WXOSX__
+        friend class ShaderEffect;
+        xlGLCanvas *preview;
+#endif
 
 	private:
 
