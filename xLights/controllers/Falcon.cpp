@@ -2768,13 +2768,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
             if (largestDaughter2Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d, Bank 3 Port %d\n", largestMainPort, largestDaughter1Port, largestDaughter2Port);
+                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d, Bank 3 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
             }
             else if (largestDaughter1Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d\n", largestMainPort, largestDaughter1Port);
+                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
             }
             else                 {
-                check += wxString::Format("       Bank 1 Port %d\n", largestMainPort);
+                check += wxString::Format("       Bank 1 Port %d=%d\n", largestMainPort, maxMain);
             }
 
             logger_base.warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
@@ -2919,7 +2919,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     else {
         if (caps->GetMaxSerialPort() > 0 && UDController::IsError(check)) {
             DisplayError("Not uploaded due to errors.\n" + check);
+            check = "";
         }
+    }
+
+    if (!success && check != "") {
+        DisplayError("Not uploaded due to errors.\n" + check);
+        check = "";
     }
 
     if (doProgress) progress->Update(100, "Done.");
