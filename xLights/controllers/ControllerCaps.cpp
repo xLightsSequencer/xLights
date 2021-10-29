@@ -604,7 +604,7 @@ std::string ControllerCaps::GetID() const {
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {
-        return std::vector<std::string>();
+        return { "" };
     }
     return GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
 }
