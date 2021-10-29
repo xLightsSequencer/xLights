@@ -461,6 +461,7 @@ bool ModelManager::RecalcStartChannels() const {
     wxStopWatch sw;
     bool changed = false;
     std::set<std::string> modelsDone;
+    std::set<std::string> modelsOnNoController;
 
     for (const auto& it : models) {
         it.second->CouldComputeStartChannel = false;
@@ -482,6 +483,9 @@ bool ModelManager::RecalcStartChannels() const {
                     changed = true;
                 }
             }
+            if (it.second->GetControllerName() == "No Controller") {
+                modelsOnNoController.emplace(it.first);
+            }
         }
     }
 
@@ -499,7 +503,12 @@ bool ModelManager::RecalcStartChannels() const {
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
                     std::string dependsOn = Trim(Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1));
-                    if (modelsDone.find(dependsOn) != modelsDone.end())
+
+                    if (first == '>'  && modelsOnNoController.find(dependsOn) != modelsOnNoController.end()) {
+                        modelsOnNoController.emplace(it.first);
+                    }
+
+                    if (modelsDone.find(dependsOn) != modelsDone.end() && modelsOnNoController.find(dependsOn) == modelsOnNoController.end())
                     {
                         // the depends on model is done
                         modelsDone.emplace(it.first);
@@ -952,7 +961,66 @@ bool ModelManager::ReworkStartChannel() const
             }
         }
     }
+
+    // now we want to deal with any models specified as being on "No Controller"
+    // first we need to work out the last used channel by all controllers and models other than those on No Controller
+    uint32_t lastChannel = 0;
+    for (const auto& it : outputManager->GetControllers()) {
+        lastChannel = std::max(lastChannel, (uint32_t)it->GetEndChannel());
+    }
+
+    std::list<std::string> modelsToSet;
+    {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        for (auto itm : models) {
+            std::list<std::string> visited;
+            if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
+                if (itm.second->GetControllerName() != "No Controller") {
+                    lastChannel = std::max(lastChannel, itm.second->GetLastChannel());
+                } else {
+                    modelsToSet.push_back(itm.first);
+                }
+            }
+        }
+    }
+
+    // now we need to go through the models in a deterministic order and assign them ... so we sort them first
+    modelsToSet.sort();
+    for (const auto& it : modelsToSet) {
+        Model* m = GetModel(it);
+        auto osc = m->ModelStartChannel;
+        m->SetStartChannel(wxString::Format("%u", lastChannel + 1));
+        m->ClearIndividualStartChannels();
+        lastChannel += m->GetChanCount();
+        if (osc != m->ModelStartChannel) {
+            outputsChanged = true;
+        }
+    }
+
     return outputsChanged;
+}
+
+bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const {
+
+    if (std::find(visited.begin(), visited.end(), m->GetName()) != visited.end())
+        return false;
+
+    visited.push_back(m->GetName());
+
+    if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
+        return false;
+
+    wxString sc = m->ModelStartChannel;
+    if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+        std::string dependson = sc.substr(1).BeforeFirst(':');
+        Model* mm = GetModel(dependson);
+        if (mm != nullptr) {
+            if (mm->GetControllerName() == "No Controller")
+                return false;
+            return ModelHasNoDependencyOnNoController(mm, visited);
+        }
+    }
+    return true;
 }
 
 bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
@@ -1277,6 +1345,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     }
 
     model->SetControllerProtocol(protocol);
+    model->SetControllerName("No Controller");
 
     return model;
 }

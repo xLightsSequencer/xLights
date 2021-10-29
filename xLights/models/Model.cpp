@@ -654,6 +654,11 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     _controller = 0;
     CONTROLLERS.clear();
     CONTROLLERS.Add("Use Start Channel");
+    CONTROLLERS.Add("No Controller");
+
+    if (GetControllerName() == "No Controller") {
+        _controller = 1;
+    }
 
     for (const auto& it : outputManager->GetAutoLayoutControllerNames()) {
         if (GetControllerName() == it) {
@@ -2467,20 +2472,19 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
         sc = sc.substr(sc.find(":") + 1);
         if (start[0] == '@' || start[0] == '<' || start[0] == '>') {
             int returnChannel = wxAtoi(sc);
+            bool chain = start[0] == '>';
             bool fromStart = start[0] == '@';
             start = Trim(start.substr(1, start.size()));
             if (start == GetName() && !CouldComputeStartChannel)
             {
                 valid = false;
                 output = 1;
-            }
-            else
-            {
+            } else {
                 if (start != GetName()) {
                     dependsonmodel = start;
                 }
-                Model *m = modelManager[start];
-                if (m != nullptr && m->CouldComputeStartChannel) {
+                Model* m = modelManager[start];
+                if (m != nullptr && m->CouldComputeStartChannel && (!chain || (chain && m->GetControllerName() != "No Controller"))) {
                     if (fromStart) {
                         int i = m->GetFirstChannel();
                         if (i == -1 && m == this && stringStartChan.size() > 0) {
@@ -6536,15 +6540,14 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor)
     IncrementChangeCount();
 }
 
-void Model::SetControllerName(const std::string& controller)
-{
+void Model::SetControllerName(const std::string& controller) {
     auto n = Trim(controller);
 
-    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false)) return;
+    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false))
+        return;
 
     ModelXml->DeleteAttribute("Controller");
-    if (n != "" && n != "Use Start Channel")
-    {
+    if (n != "" && n != "Use Start Channel") {
         ModelXml->AddAttribute("Controller", n);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");

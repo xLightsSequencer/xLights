@@ -1935,8 +1935,11 @@ void LayoutPanel::BulkEditControllerName()
 
     wxArrayString cn;
     int sel = 0;
-    int i = 1;
+    int i = 2;
     cn.push_back("");
+    cn.push_back("No Controller");
+    if (name == "No Controller")
+        sel = 1;
     for (const auto& it : xlights->GetOutputManager()->GetAutoLayoutControllerNames())
     {
         if (it == name) sel = i;
@@ -3354,6 +3357,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         if (_newModel != nullptr) {
             m_moving_handle = true;
             _newModel->SetLayoutGroup(currentLayoutGroup);
+            _newModel->SetControllerName("No Controller");
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
@@ -3569,6 +3573,7 @@ void LayoutPanel::FinalizeModel()
         CreateUndoPoint("All", "", "");
         _newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(_newModel);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
 
         _newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
@@ -5847,9 +5852,11 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     {
         t = "Custom";
     }
-    std::string startChannel = xlights->AllModels.GenerateNewStartChannel( lastModelName );
+    //std::string startChannel = xlights->AllModels.GenerateNewStartChannel( lastModelName );
 
-    Model* m = xlights->AllModels.CreateDefaultModel(t, startChannel);
+    Model* m = xlights->AllModels.CreateDefaultModel(t, "1");
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::CreateNewModel");
 
     return m;
 }
@@ -6482,40 +6489,12 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                             }
                         }
 
-						if (xlights->AllModels[lastModelName] != nullptr) {
-							nd->DeleteAttribute("StartChannel");
-							nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
-						}
-						else
-						{
-							unsigned int highestch = 0;
-							Model* highest = nullptr;
-							for (const auto& it : xlights->AllModels)
-							{
-								if (it.second->GetDisplayAs() != "ModelGroup")
-								{
-									if (it.second->GetLastChannel() > highestch)
-									{
-										highestch = it.second->GetLastChannel();
-										highest = it.second;
-									}
-								}
-							}
-
-							if (highest != nullptr)
-							{
-								nd->DeleteAttribute("StartChannel");
-								nd->AddAttribute("StartChannel", ">" + highest->GetName() + ":1");
-							}
-							else
-							{
-								nd->DeleteAttribute("StartChannel");
-								nd->AddAttribute("StartChannel", "1");
-							}
-						}
+						nd->DeleteAttribute("StartChannel");
+						nd->AddAttribute("StartChannel", "1");
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
 						name = xlights->AllModels.GenerateModelName(newModel->name);
+                        newModel->SetControllerName("No Controller");
 						newModel->name = name;
 						newModel->GetModelXml()->DeleteAttribute("name");
 						newModel->Lock(false);
@@ -6546,6 +6525,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoPaste");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoPaste");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoPaste", nullptr, nullptr, name);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DoPaste", nullptr, nullptr, name);
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 }
             }
@@ -7164,80 +7144,36 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     {
         if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
         {
-            Model* lastModel = nullptr;
-            unsigned int lastModelEndChannel = 0;
-            for (const auto& it : xlights->AllModels)
-            {
-                if (it.second->GetLastChannel() > lastModelEndChannel)
-                {
-                    if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
-                    {
-                        lastModelEndChannel = it.second->GetLastChannel();
-                        lastModel = it.second;
-                    }
-                }
-            }
-
             for (const auto& it : xlights->AllModels)
             {
                 if (it.second->GetDisplayAs() != "ModelGroup" && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString()))
                 {
-                    if (lastModel == nullptr)
-                    {
-                        it.second->SetStartChannel("1");
-                        lastModel = it.second;
-                    }
-                    else
-                    {
-                        it.second->SetStartChannel(">" + lastModel->GetName() + ":1");
-                        lastModel = it.second;
-                    }
+                    it.second->SetControllerName("No Controller");
                 }
             }
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
         }
     }
     else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING)
     {
         if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
         {
-            Model* lastModel = nullptr;
-            unsigned int lastModelEndChannel = 0;
-            for (const auto& it : xlights->AllModels)
-            {
-                if (it.second->GetLastChannel() > lastModelEndChannel)
-                {
-                    if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
-                    {
-                        lastModelEndChannel = it.second->GetLastChannel();
-                        lastModel = it.second;
-                    }
-                }
-            }
-
             for (const auto& it : xlights->AllModels)
             {
                 if (it.second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it.second))
                 {
-                    if (lastModel == nullptr)
-                    {
-                        it.second->SetStartChannel("1");
-                        lastModel = it.second;
-                    }
-                    else
-                    {
-                        it.second->SetStartChannel(">" + lastModel->GetName() + ":1");
-                        lastModel = it.second;
-                    }
+                    it.second->SetControllerName("No Controller");
                 }
             }
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
         }
     }
     else if (id == ID_MNU_MAKESCVALID)
@@ -7247,30 +7183,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             if (selectedBaseObject != nullptr)
             {
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-                Model* lastModel = nullptr;
-                unsigned int lastModelEndChannel = 0;
-                for (const auto& it : xlights->AllModels)
-                {
-                    if (it.second->GetLastChannel() > lastModelEndChannel)
-                    {
-                        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
-                        {
-                            lastModelEndChannel = it.second->GetLastChannel();
-                            lastModel = it.second;
-                        }
-                    }
-                }
-                if (lastModel == nullptr)
-                {
-                    selectedModel->SetStartChannel("1");
-                }
-                else
-                {
-                    selectedModel->SetStartChannel(">" + lastModel->GetName() + ":1");
-                }
+                selectedModel->SetControllerName("No Controller");
+
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
             }
         }
     }
