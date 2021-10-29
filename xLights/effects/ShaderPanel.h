@@ -95,9 +95,9 @@ class ShaderPanel: public xlEffectPanel
 		static const long ID_CANVAS;
 
 #ifndef __WXOSX__
-        friend class ShaderEffect;
         xlGLCanvas *_preview;
 #endif
+        friend class ShaderEffect;
 
 	private:
 
