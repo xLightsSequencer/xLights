@@ -96,7 +96,7 @@ class ShaderPanel: public xlEffectPanel
 
 #ifndef __WXOSX__
         friend class ShaderEffect;
-        xlGLCanvas *preview;
+        xlGLCanvas *_preview;
 #endif
 
 	private:
