@@ -522,8 +522,7 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
 
-void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
-{
+void StarModel::AddTypeProperties(wxPropertyGridInterface* grid) {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
@@ -553,7 +552,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
         if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
             ssl = i;
             break;
-        }        
+        }
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
@@ -564,11 +563,12 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", innerPercent));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
+    if (GetLayerSizeCount() > 1) {
+        p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", innerPercent));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 100);
+        p->SetEditor("SpinCtrl");
+    }
 }
 
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
