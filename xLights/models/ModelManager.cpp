@@ -976,7 +976,7 @@ bool ModelManager::ReworkStartChannel() const
             std::list<std::string> visited;
             if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
                 if (itm.second->GetControllerName() != "No Controller") {
-                    lastChannel = std::max(lastChannel, itm.second->GetLastChannel());
+                    lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {
                     modelsToSet.push_back(itm.first);
                 }
