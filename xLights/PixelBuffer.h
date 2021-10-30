@@ -321,6 +321,10 @@ public:
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
     void SetColors(int layer, const unsigned char *fdata);
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
+
+
+    //place for GPU Renderers to attach extra data/objects it needs
+    void *gpuRenderData = nullptr;
 };
 
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

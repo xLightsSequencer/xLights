@@ -24,6 +24,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "DissolveTransitionPattern.h"
+#include "GPURenderUtils.h"
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -46,6 +47,7 @@ namespace
    struct ColorBuffer
    {
       ColorBuffer( const xlColorVector& i_cv, int i_w, int i_h ) : cv( i_cv ), w( i_w ), h( i_h ) {}
+      ColorBuffer( xlColor *i_cv, int count, int i_w, int i_h ) : cv( i_cv, &i_cv[count] ), w( i_w ), h( i_h ) {}
 
       xlColor GetPixel( int x, int y ) const
       {
@@ -889,17 +891,17 @@ PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
 
 PixelBufferClass::~PixelBufferClass()
 {
-    if (ssModel != nullptr)
-    {
+    if (ssModel != nullptr) {
         delete ssModel;
     }
-    if (zbModel != nullptr)
-    {
+    if (zbModel != nullptr) {
         delete zbModel;
     }
-    for (int x = 0; x < numLayers; x++)
-    {
+    for (int x = 0; x < numLayers; x++) {
         delete layers[x];
+    }
+    if (gpuRenderData) {
+        GPURenderUtils::cleanUp(this);
     }
 }
 
@@ -958,6 +960,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->ModelBufferHt = layers[x]->BufferHt;
         layers[x]->ModelBufferWi = layers[x]->BufferWi;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform, isNode);
+        GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
     }
 }
 
@@ -969,6 +972,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, i
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
+        GPURenderUtils::setupRenderBuffer(this, buf);
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -1945,8 +1949,8 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     if (b < 2) {
         return;
     } else if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
-        int os = std::max((int)layer->buffer.pixels.size(), layer->BufferWi * layer->BufferHt);
-        int pixCount = layer->buffer.pixels.size();
+        int os = std::max((int)layer->buffer.pixelVector.size(), layer->BufferWi * layer->BufferHt);
+        int pixCount = layer->buffer.pixelVector.size();
         std::vector<float> input;
         input.resize(os * 4);
         std::vector<float> tmp;
@@ -2518,6 +2522,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
+        GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
+
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
@@ -2531,6 +2537,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 if (bh == 0) bh = 1;
                 it->InitBuffer(bh, bw, bh, bw, transform);
                 it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                GPURenderUtils::setupRenderBuffer(this, it.get());
                 ++cnt;
             }
         } else {
@@ -2992,6 +2999,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++) {
         int effStartPer, effEndPer;
+        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
         layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
         float offset = 0.0f;
         if (effEndPer != effStartPer) {
@@ -3668,7 +3676,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( inTransitionType ) ) {
-            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+            ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
 
             if ( inTransitionType == STR_FOLD ) {
                foldIn( buffer, cb, prevRB, inMaskFactor, inTransitionReverse );
@@ -3720,7 +3728,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( outTransitionType ) ) {
-            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+            ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
             if ( outTransitionType == STR_FOLD ) {
                foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
             } else if ( outTransitionType == STR_DISSOLVE ) {

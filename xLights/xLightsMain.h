@@ -1084,6 +1084,8 @@ public:
     bool ShadersOnBackgroundThreads() const;
     void SetShadersOnBackgroundThreads(bool b);
 
+    bool UseGPURendering() const;
+    void SetUseGPURendering(bool b);
 
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);

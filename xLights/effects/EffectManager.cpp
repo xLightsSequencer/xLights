@@ -62,59 +62,69 @@
 #include "WarpEffect.h"
 #include "WaveEffect.h"
 
+
+#ifdef __WXOSX__
+extern RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff);
+inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
+    return CreateMetalEffect(eff);
+}
+#else
+inline RenderableEffect* CreateGPUEffect(RGB_EFFECTS_e eff) {return nullptr;}
+#endif
+
 EffectManager::EffectManager()
 {
-    add(new OffEffect(eff_OFF));
-    add(new OnEffect(eff_ON));
-    add(new BarsEffect(eff_BARS));
-    add(new ButterflyEffect(eff_BUTTERFLY));
-    add(new CandleEffect(eff_CANDLE));
-    add(new CirclesEffect(eff_CIRCLES));
-    add(new ColorWashEffect(eff_COLORWASH));
-    add(new CurtainEffect(eff_CURTAIN));
-    add(new DMXEffect(eff_DMX));
-    add(new FacesEffect(eff_FACES));
-    add(new FanEffect(eff_FAN));
-    add(new FillEffect(eff_FILL));
-    add(new FireEffect(eff_FIRE));
-    add(new FireworksEffect(eff_FIREWORKS));
-    add(new GalaxyEffect(eff_GALAXY));
-    add(new GarlandsEffect(eff_GARLANDS));
-    add(new GlediatorEffect(eff_GLEDIATOR));
-    add(new KaleidoscopeEffect(eff_KALEIDOSCOPE));
-    add(new LifeEffect(eff_LIFE));
-    add(new LightningEffect(eff_LIGHTNING));
-    add(new LinesEffect(eff_LINES));
-    add(new LiquidEffect(eff_LIQUID));
-    add(new MarqueeEffect(eff_MARQUEE));
-    add(new MeteorsEffect(eff_METEORS));
-    add(new MusicEffect(eff_MUSIC));
-    add(new MorphEffect(eff_MORPH));
-    add(new PianoEffect(eff_PIANO));
-    add(new PicturesEffect(eff_PICTURES));
-    add(new PinwheelEffect(eff_PINWHEEL));
-    add(new PlasmaEffect(eff_PLASMA));
-    add(new RippleEffect(eff_RIPPLE));
-    add(new ServoEffect (eff_SERVO));
-    add(new ShaderEffect(eff_SHADER));
-    add(new ShapeEffect (eff_SHAPE));
-    add(new ShimmerEffect(eff_SHIMMER));
-    add(new ShockwaveEffect(eff_SHOCKWAVE));
-    add(new SingleStrandEffect(eff_SINGLESTRAND));
-    add(new SnowflakesEffect(eff_SNOWFLAKES));
-    add(new SnowstormEffect(eff_SNOWSTORM));
-    add(new SpiralsEffect(eff_SPIRALS));
-    add(new SpirographEffect(eff_SPIROGRAPH));
-    add(new StateEffect(eff_STATE));
-    add(new StrobeEffect(eff_STROBE));
-    add(new TendrilEffect(eff_TENDRIL));
-    add(new TextEffect(eff_TEXT));
-	add(new TreeEffect(eff_TREE));
-	add(new TwinkleEffect(eff_TWINKLE));
-	add(new VideoEffect(eff_VIDEO));
-	add(new VUMeterEffect(eff_VUMETER));
-    add(new WarpEffect(eff_WARP));
-    add(new WaveEffect(eff_WAVE));
+    add(createEffect(eff_OFF));
+    add(createEffect(eff_ON));
+    add(createEffect(eff_BARS));
+    add(createEffect(eff_BUTTERFLY));
+    add(createEffect(eff_CANDLE));
+    add(createEffect(eff_CIRCLES));
+    add(createEffect(eff_COLORWASH));
+    add(createEffect(eff_CURTAIN));
+    add(createEffect(eff_DMX));
+    add(createEffect(eff_FACES));
+    add(createEffect(eff_FAN));
+    add(createEffect(eff_FILL));
+    add(createEffect(eff_FIRE));
+    add(createEffect(eff_FIREWORKS));
+    add(createEffect(eff_GALAXY));
+    add(createEffect(eff_GARLANDS));
+    add(createEffect(eff_GLEDIATOR));
+    add(createEffect(eff_KALEIDOSCOPE));
+    add(createEffect(eff_LIFE));
+    add(createEffect(eff_LIGHTNING));
+    add(createEffect(eff_LINES));
+    add(createEffect(eff_LIQUID));
+    add(createEffect(eff_MARQUEE));
+    add(createEffect(eff_METEORS));
+    add(createEffect(eff_MUSIC));
+    add(createEffect(eff_MORPH));
+    add(createEffect(eff_PIANO));
+    add(createEffect(eff_PICTURES));
+    add(createEffect(eff_PINWHEEL));
+    add(createEffect(eff_PLASMA));
+    add(createEffect(eff_RIPPLE));
+    add(createEffect(eff_SERVO));
+    add(createEffect(eff_SHADER));
+    add(createEffect(eff_SHAPE));
+    add(createEffect(eff_SHIMMER));
+    add(createEffect(eff_SHOCKWAVE));
+    add(createEffect(eff_SINGLESTRAND));
+    add(createEffect(eff_SNOWFLAKES));
+    add(createEffect(eff_SNOWSTORM));
+    add(createEffect(eff_SPIRALS));
+    add(createEffect(eff_SPIROGRAPH));
+    add(createEffect(eff_STATE));
+    add(createEffect(eff_STROBE));
+    add(createEffect(eff_TENDRIL));
+    add(createEffect(eff_TEXT));
+	add(createEffect(eff_TREE));
+	add(createEffect(eff_TWINKLE));
+	add(createEffect(eff_VIDEO));
+	add(createEffect(eff_VUMETER));
+    add(createEffect(eff_WARP));
+    add(createEffect(eff_WAVE));
 
     //Map an old name
     effectsByName["CoroFaces"] = GetEffect("Faces");
@@ -126,6 +136,69 @@ EffectManager::~EffectManager()
         delete *it;
     }
 }
+
+RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
+    RenderableEffect *effect = CreateGPUEffect(eff);
+    if (effect) {
+        return effect;
+    }
+    switch (eff) {
+        case eff_OFF: return new OffEffect(eff_OFF);
+        case eff_ON: return new OnEffect(eff_ON);
+        case eff_BARS: return new BarsEffect(eff_BARS);
+        case eff_BUTTERFLY: return new ButterflyEffect(eff_BUTTERFLY);
+        case eff_CANDLE: return new CandleEffect(eff_CANDLE);
+        case eff_CIRCLES: return new CirclesEffect(eff_CIRCLES);
+        case eff_COLORWASH: return new ColorWashEffect(eff_COLORWASH);
+        case eff_CURTAIN: return new CurtainEffect(eff_CURTAIN);
+        case eff_DMX: return new DMXEffect(eff_DMX);
+        case eff_FACES: return new FacesEffect(eff_FACES);
+        case eff_FAN: return new FanEffect(eff_FAN);
+        case eff_FILL: return new FillEffect(eff_FILL);
+        case eff_FIRE: return new FireEffect(eff_FIRE);
+        case eff_FIREWORKS: return new FireworksEffect(eff_FIREWORKS);
+        case eff_GALAXY: return new GalaxyEffect(eff_GALAXY);
+        case eff_GARLANDS: return new GarlandsEffect(eff_GARLANDS);
+        case eff_GLEDIATOR: return new GlediatorEffect(eff_GLEDIATOR);
+        case eff_KALEIDOSCOPE: return new KaleidoscopeEffect(eff_KALEIDOSCOPE);
+        case eff_LIFE: return new LifeEffect(eff_LIFE);
+        case eff_LIGHTNING: return new LightningEffect(eff_LIGHTNING);
+        case eff_LINES: return new LinesEffect(eff_LINES);
+        case eff_LIQUID: return new LiquidEffect(eff_LIQUID);
+        case eff_MARQUEE: return new MarqueeEffect(eff_MARQUEE);
+        case eff_METEORS: return new MeteorsEffect(eff_METEORS);
+        case eff_MUSIC: return new MusicEffect(eff_MUSIC);
+        case eff_MORPH: return new MorphEffect(eff_MORPH);
+        case eff_PIANO: return new PianoEffect(eff_PIANO);
+        case eff_PICTURES: return new PicturesEffect(eff_PICTURES);
+        case eff_PINWHEEL: return new PinwheelEffect(eff_PINWHEEL);
+        case eff_PLASMA: return new PlasmaEffect(eff_PLASMA);
+        case eff_RIPPLE: return new RippleEffect(eff_RIPPLE);
+        case eff_SERVO: return new ServoEffect (eff_SERVO);
+        case eff_SHADER: return new ShaderEffect(eff_SHADER);
+        case eff_SHAPE: return new ShapeEffect (eff_SHAPE);
+        case eff_SHIMMER: return new ShimmerEffect(eff_SHIMMER);
+        case eff_SHOCKWAVE: return new ShockwaveEffect(eff_SHOCKWAVE);
+        case eff_SINGLESTRAND: return new SingleStrandEffect(eff_SINGLESTRAND);
+        case eff_SNOWFLAKES: return new SnowflakesEffect(eff_SNOWFLAKES);
+        case eff_SNOWSTORM: return new SnowstormEffect(eff_SNOWSTORM);
+        case eff_SPIRALS: return new SpiralsEffect(eff_SPIRALS);
+        case eff_SPIROGRAPH: return new SpirographEffect(eff_SPIROGRAPH);
+        case eff_STATE: return new StateEffect(eff_STATE);
+        case eff_STROBE: return new StrobeEffect(eff_STROBE);
+        case eff_TENDRIL: return new TendrilEffect(eff_TENDRIL);
+        case eff_TEXT: return new TextEffect(eff_TEXT);
+        case eff_TREE: return new TreeEffect(eff_TREE);
+        case eff_TWINKLE: return new TwinkleEffect(eff_TWINKLE);
+        case eff_VIDEO: return new VideoEffect(eff_VIDEO);
+        case eff_VUMETER: return new VUMeterEffect(eff_VUMETER);
+        case eff_WARP: return new WarpEffect(eff_WARP);
+        case eff_WAVE: return new WaveEffect(eff_WAVE);
+        default: return nullptr;
+    }
+}
+
+
 
 void EffectManager::add(RenderableEffect *eff) {
     int id = eff->GetId();

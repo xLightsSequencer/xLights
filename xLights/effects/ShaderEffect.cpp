@@ -1234,8 +1234,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glBindVertexArray(0));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    xlColorVector& cv(buffer.pixels);
-    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
+    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.pixels));
     if (!CanRenderOnBackgroundThread(eff, SettingsMap, buffer)) {
         LOG_GL_ERRORV(glUseProgram(0));
     }

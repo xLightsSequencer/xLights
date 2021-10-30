@@ -115,9 +115,12 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
-#endif
-#ifndef __WXMSW__
     ShaderCheckbox->Hide();
+#endif
+#ifdef __WXOSX__
+    //repurpose ShaderCheckbox for GPU rendering
+    ShaderCheckbox->SetLabel("Experimental GPU Rendering");
+    ShaderCheckbox->SetToolTip("Some effects (currently just Butterfly type 1) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
 #endif
 }
 
@@ -131,7 +134,11 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetExcludeAudioFromPackagedSequences(ExcludeAudioCheckBox->IsChecked());
     frame->SetExcludePresetsFromPackagedSequences(ExcludePresetsCheckBox->IsChecked());
     frame->SetHardwareVideoAccelerated(HardwareVideoDecodingCheckBox->IsChecked());
+#ifdef __WXOSX__
+    frame->SetUseGPURendering(ShaderCheckbox->IsChecked());
+#else
     frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
+#endif
     frame->SetUserEMAIL(eMailTextControl->GetValue());
 	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
@@ -145,7 +152,11 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     ExcludeAudioCheckBox->SetValue(frame->ExcludeAudioFromPackagedSequences());
     ExcludePresetsCheckBox->SetValue(frame->ExcludePresetsFromPackagedSequences());
     HardwareVideoDecodingCheckBox->SetValue(frame->HardwareVideoAccelerated());
+#ifdef __WXOSX__
+    ShaderCheckbox->SetValue(frame->UseGPURendering());
+#else
     ShaderCheckbox->SetValue(frame->ShadersOnBackgroundThreads());
+#endif
     eMailTextControl->SetValue(frame->UserEMAIL());
 	Choice_LinkSave->SetStringSelection(frame->LinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->LinkedControllerUpload());

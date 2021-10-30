@@ -23,6 +23,7 @@
 #include "UtilFunctions.h"
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
+#include "GPURenderUtils.h"
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
@@ -634,6 +635,10 @@ RenderBuffer::~RenderBuffer()
         delete it.second;
         it.second = nullptr;
     }
+    if (gpuRenderData) {
+        GPURenderUtils::cleanUp(this);
+        gpuRenderData = nullptr;
+    }
 }
 
 PathDrawingContext * RenderBuffer::GetPathDrawingContext()
@@ -673,8 +678,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
     ModelBufferWi = newModelBufferWi;
-    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi))
-    {
+    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi)) {
         wxASSERT(false);
         logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
     }
@@ -682,16 +686,17 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
     
-    pixels.resize(NumPixels);
-    tempbuf.resize(NumPixels);
+    pixelVector.resize(NumPixels);
+    pixels = &pixelVector[0];
+    tempbufVector.resize(NumPixels);
+    tempbuf = &tempbufVector[0];
     isTransformed = (bufferTransform != "None");
 }
 
 void RenderBuffer::Clear()
 {
-    if (pixels.size() > 0)
-    {
-        memset(&pixels[0], 0x00, sizeof(xlColor) * pixels.size());
+    if (pixelVector.size() > 0) {
+        memset(pixels, 0x00, sizeof(xlColor) * pixelVector.size());
     }
 }
 
@@ -878,7 +883,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
     }
     
     // I dont like this ... it should actually never happen
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
     {
         // if you do this sparkles dont work when 100% transparent on effect ... so dont do it
         //if (color.alpha == 0)
@@ -953,7 +958,7 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
             y -= BufferHt;
         }
     }
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
     {
         pixels[y*BufferWi+x] = hsv;
     }
@@ -974,7 +979,7 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
         for (auto &a : Nodes[n]->Coords) {
             int x = a.bufX;
             int y = a.bufY;
-            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size()) {
+            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size()) {
                 pixels[y*BufferWi+x] = c;
                 done[y*BufferWi+x] = true;
             }
@@ -987,8 +992,8 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
 //copy src to dest: -DJ
 void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
 {
-    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt) && srcy*BufferWi + srcx < pixels.size())
-        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt) && desty*BufferWi + destx < pixels.size())
+    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt) && srcy*BufferWi + srcx < pixelVector.size())
+        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt) && desty*BufferWi + destx < pixelVector.size())
         {
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
         }
@@ -1189,7 +1194,7 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 }
 
 void RenderBuffer::Fill(const xlColor& color) {
-    std::fill_n(&pixels[0], pixels.size(), color);
+    std::fill_n(pixels, pixelVector.size(), color);
 }
 
 
@@ -1198,7 +1203,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         color = pixels[pidx];
     } else {
         color = xlBLACK;
@@ -1207,7 +1212,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 
 const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixels.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         return pixels[pidx];
     }
     return xlBLACK;
@@ -1216,7 +1221,7 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < tempbuf.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < tempbufVector.size()) {
         tempbuf[pidx] = color;
     }
 }
@@ -1230,13 +1235,13 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) 
 // 0,0 is lower left
 void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         color = tempbuf[y * BufferWi + x];
     }
 }
 
 const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
@@ -1244,7 +1249,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
@@ -1270,7 +1275,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
 
 void RenderBuffer::ClearTempBuf()
 {
-    for (size_t i = 0; i < tempbuf.size(); i++) {
+    for (size_t i = 0; i < tempbufVector.size(); i++) {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
@@ -1396,7 +1401,7 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 }
 
 // create a copy of the buffer suitable only for copying out pixel data and fake rendering
-RenderBuffer::RenderBuffer(RenderBuffer& buffer)
+RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &buffer.pixels[buffer.pixelVector.size()])
 {
     _isCopy = true;
     frame = buffer.frame;
@@ -1419,9 +1424,11 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer)
     ModelBufferWi = buffer.ModelBufferWi;
     infoCache = buffer.infoCache;
 
-    pixels = buffer.pixels;
+    pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
     _pathDrawingContext = buffer._pathDrawingContext;
+    gpuRenderData = nullptr;
+    GPURenderUtils::copyGPUData(this, &buffer);
 }
 
 void RenderBuffer::Forget()
@@ -1438,7 +1445,7 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
     if (model_info != nullptr) {
         if (x != 0 || y != 0) return;  //Only render colors for the first pixel
 
-        if (pixels.size() == 1) { //pixel size equals 1 when putting "on" effect at node level
+        if (pixelVector.size() == 1) { //pixel size equals 1 when putting "on" effect at node level
             pixels[0] = color;
             return;
         }
@@ -1453,7 +1460,7 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
                 c.red = color.red;
                 c.green = color.red;
                 c.blue = color.red;
-                if (pixels.size() > white_channel - 1) pixels[white_channel - 1] = c;
+                if (pixelVector.size() > white_channel - 1) pixels[white_channel - 1] = c;
             }
             else
             {
@@ -1464,19 +1471,19 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
                     c.red = color.red;
                     c.green = color.red;
                     c.blue = color.red;
-                    if (pixels.size() > red_channel - 1) pixels[red_channel - 1] = c;
+                    if (pixelVector.size() > red_channel - 1) pixels[red_channel - 1] = c;
                 }
                 if (grn_channel != 0) {
                     c.red = color.green;
                     c.green = color.green;
                     c.blue = color.green;
-                    if (pixels.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
+                    if (pixelVector.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
                 }
                 if (blu_channel != 0) {
                     c.red = color.blue;
                     c.green = color.blue;
                     c.blue = color.blue;
-                    if (pixels.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
+                    if (pixelVector.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
                 }
             }
         }

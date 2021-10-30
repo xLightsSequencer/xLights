@@ -472,7 +472,7 @@ namespace
 
    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
    {
-      xlColorVector cvOrig( rb.pixels );
+      xlColorVector cvOrig( rb.pixels, &rb.pixels[rb.pixelVector.size()] );
       ColorBuffer cb( cvOrig, rb.BufferWi, rb.BufferHt );
 
       parallel_for(0, rb.BufferHt, [&rb, &cb, &transform, &params](int y) {

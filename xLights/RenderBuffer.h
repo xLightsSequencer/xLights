@@ -487,8 +487,11 @@ public:
     int ModelBufferHt = 1;
     int ModelBufferWi = 1;  // size of the buffer
 
-    xlColorVector pixels; // this is the calculation buffer
-    xlColorVector tempbuf;
+    xlColorVector pixelVector; // this is the calculation buffer
+    xlColor *pixels = nullptr;
+    xlColorVector tempbufVector;
+    xlColor *tempbuf = nullptr;
+
     PaletteClass palette;
     bool _nodeBuffer = false;
 
@@ -513,6 +516,9 @@ public:
     std::map<int, EffectRenderCache*> infoCache;
     int tempInt = 0;
     int tempInt2 = 0;
+
+    //place for GPU Renderers to attach extra data/objects it needs
+    void *gpuRenderData = nullptr;
 
 private:
     friend class PixelBufferClass;

@@ -95,6 +95,7 @@
 #include "AboutDialog.h"
 #include "ExternalHooks.h"
 #include "ExportSettings.h"
+#include "GPURenderUtils.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -1754,6 +1755,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     MenuFile->Append(newInst);
 
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
+
+
+    bool gpuRendering = false;
+    config->Read(_("xLightsGPURendering"), &gpuRendering, false);
+    GPURenderUtils::SetEnabled(gpuRendering);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -9991,6 +9997,16 @@ void xLightsFrame::SetShadersOnBackgroundThreads(bool b) {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsShadersOnBackgroundThreads", b);
 }
+
+bool xLightsFrame::UseGPURendering() const {
+    return GPURenderUtils::IsEnabled();
+}
+void xLightsFrame::SetUseGPURendering(bool b) {
+    GPURenderUtils::SetEnabled(b);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsGPURendering", b);
+}
+
 
 void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
 {
