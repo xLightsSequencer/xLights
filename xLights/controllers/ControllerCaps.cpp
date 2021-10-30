@@ -606,7 +606,11 @@ std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {
         return { "" };
     }
-    return GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
+    auto types = GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
+    if (types.size() == 0) {
+        types.emplace_back("");
+    }
+    return types;
 }
 
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {

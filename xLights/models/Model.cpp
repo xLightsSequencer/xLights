@@ -6923,6 +6923,10 @@ std::vector<std::string> Model::GetSmartRemoteTypes() const {
 }
 
 std::string Model::GetSmartRemoteType() const {
+    auto types = GetSmartRemoteTypes();
+    if (types.size()==0) {
+        return "";
+    }
     std::string t = GetSmartRemoteTypes().front();
     wxString s = GetControllerConnection()->GetAttribute("SmartRemoteType", t);
     return s;
