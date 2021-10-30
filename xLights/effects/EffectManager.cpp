@@ -69,7 +69,9 @@ inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
     return CreateMetalEffect(eff);
 }
 #else
-inline RenderableEffect* CreateGPUEffect(RGB_EFFECTS_e eff) {return nullptr;}
+inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
+    return nullptr;
+}
 #endif
 
 EffectManager::EffectManager()
