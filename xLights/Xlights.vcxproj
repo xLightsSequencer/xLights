@@ -271,6 +271,7 @@
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
+    <ClCompile Include="GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />

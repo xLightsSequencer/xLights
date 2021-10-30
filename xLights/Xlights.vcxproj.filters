@@ -898,9 +898,16 @@
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="LORPreview.cpp" />
     <ClCompile Include="ExportSettings.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
-    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="GPURenderUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1810,10 +1817,18 @@
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="ExportSettings.h" />
-    <ClInclude Include="graphics\xlGraphicsBase.h" />
-    <ClInclude Include="graphics\xlGraphicsContext.h" />
-    <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
-    <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
+    <ClInclude Include="graphics\opengl\DrawGLUtils.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\xlGLCanvas.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsBase.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsContext.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1839,6 +1854,12 @@
     </Filter>
     <Filter Include="cad">
       <UniqueIdentifier>{1096ad9f-b290-43d7-9267-5716023074ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics">
+      <UniqueIdentifier>{91803950-314a-4700-8d29-8be91f8a217d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics\opengl">
+      <UniqueIdentifier>{6a3bbe99-6c51-4b5c-a7af-1e8d44671419}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
