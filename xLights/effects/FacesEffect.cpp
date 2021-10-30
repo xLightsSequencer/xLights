@@ -1348,8 +1348,10 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/
         std::string stf = "Scale To Fit";
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
-            dirstr = "none"; /*RENDER_PICTURE_NONE */
             stf = "No Scaling";
+        } else if (model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio" || 
+            model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio Crop") {
+            stf = model_info->faceInfo[definition]["ImagePlacement"];
         }
         RenderBuffer* crb = cache->GetImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf));
         if (crb == nullptr)
