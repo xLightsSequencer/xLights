@@ -25,6 +25,9 @@
 #endif
 
 #ifndef __XL_EXTERNAL_HOOKS__
+
+#include <functional>
+
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
 #define EnableSleepModes()
@@ -35,9 +38,12 @@
 #define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
 #define GetOSFormattedClipboardData() ""
+#define ProcessJob(job) job->Process()
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path) { return true; }
 inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
+inline void RunInAutoReleasePool(std::function<void()> &f) { f(); }
+
 #endif

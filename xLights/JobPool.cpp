@@ -29,6 +29,7 @@
     #include <cxxabi.h>
 #endif
 
+#include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
 #include "TraceLog.h"
@@ -272,7 +273,7 @@ void JobPoolWorker::ProcessJob(Job *job)
             SetThreadName(job->GetName());
         }
         bool deleteWhenComplete = job->DeleteWhenComplete();
-        job->Process();
+        RunInAutoReleasePool([job]() { job->Process(); });
         if (job->SetThreadName()) {
             SetThreadName(origName);
         }
