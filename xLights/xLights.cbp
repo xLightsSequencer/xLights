@@ -528,6 +528,8 @@
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="FontManager.cpp" />
 		<Unit filename="FontManager.h" />
+		<Unit filename="GPURenderUtils.cpp" />
+		<Unit filename="GPURenderUtils.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
 		<Unit filename="GenerateLyricsDialog.cpp" />
