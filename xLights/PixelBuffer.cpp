@@ -2582,6 +2582,9 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         //get all the data
         xlColor color;
         int nc = 0;
+        for (auto& modelBuffer : layers[layer]->modelBuffers) {
+            GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
+        }
         for (const auto& modelBuffer : layers[layer]->modelBuffers) {
             for (const auto& node : modelBuffer->Nodes) {
                 if (nc < layers[layer]->buffer.Nodes.size())
