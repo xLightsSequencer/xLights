@@ -111,9 +111,13 @@ E131Output::E131Output(E131Output* output) : IPOutput(output) {
 
 E131Output::~E131Output()
 {
-    if (_datagram != nullptr) delete _datagram;
-    for (auto i : _outputs_CONVERT) {
-        delete i;
+    if (_datagram != nullptr) {
+        delete _datagram;
+        _datagram = nullptr;
+    }
+    while (_outputs_CONVERT.size() > 0) {
+        delete _outputs_CONVERT.back();
+        _outputs_CONVERT.pop_back();
     }
 }
 

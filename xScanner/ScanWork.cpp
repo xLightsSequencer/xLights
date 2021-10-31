@@ -753,8 +753,7 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 	logger_base.debug("DiscoverWork");
 
-	OutputManager om;
-	Discovery discovery(GetFrameWindow(), &om);
+	Discovery discovery(GetFrameWindow(), &_om);
 
 	Pixlite16::PrepareDiscovery(discovery);
 	ZCPPOutput::PrepareDiscovery(discovery);
@@ -806,6 +805,9 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			workManager.AddClassDSubnet(it->GetResolvedIP());
 		}
 	}
+
+	// wait a couple of seconds as otherwise I see crashes on the discovery delete
+	wxSleep(2);
 }
 
 #pragma endregion

@@ -11,6 +11,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "../xLights/outputs/OutputManager.h"
+
 // seed with ... xLights defined stuff
 // seed with networks we are attached to
 
@@ -328,6 +330,8 @@ public:
 
 class DiscoverWork : public ScanWork
 {
+    OutputManager _om;
+
 public:
     DiscoverWork() : ScanWork(WorkType::DISCOVER) {}
     virtual ~DiscoverWork() {}
