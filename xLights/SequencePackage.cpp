@@ -64,7 +64,7 @@ void SeqPkgImportOptions::RestoreDefaults() {
 SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xlights) {
     _xlights = xlights;
 
-    if (fileName.GetExt() == "zip") {
+    if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz") {
         _xsqOnly = false;
         _pkgFile = fileName;
     } else {
