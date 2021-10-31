@@ -13,7 +13,7 @@ public:
     virtual ~MetalRenderUtils() {}
 
     virtual bool enabled() override {
-        return isEnabled;
+        return isEnabled && MetalComputeUtilities::INSTANCE.computeEnabled();
     }
     virtual void enable(bool b) override {
         isEnabled = b;

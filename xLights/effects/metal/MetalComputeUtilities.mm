@@ -61,6 +61,10 @@ MetalComputeUtilities::MetalComputeUtilities() {
 
     NSError *libraryError = NULL;
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
+    if (!libraryFile) {
+        NSLog(@"Library file error");
+        enabled = false;
+    }
     library = [device newLibraryWithFile:libraryFile error:&libraryError];
     if (!library) {
         NSLog(@"Library error: %@", libraryError);

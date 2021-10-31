@@ -36,7 +36,14 @@ public:
             MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
             id<MTLCommandBuffer> commandBuffer = rbcd->getCommandBuffer();
+            if (commandBuffer == nil) {
+                return false;
+            }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+            if (computeEncoder == nil) {
+                commandBuffer = nil;
+                return false;
+            }
             [computeEncoder setComputePipelineState:function];
 
             NSInteger dataSize = sizeof(data);
@@ -44,12 +51,18 @@ public:
 
             
             id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
+            if (bufferResult == nil) {
+                computeEncoder = nil;
+                commandBuffer = nil;
+                return false;
+            }
+
             [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
 
             MTLSize gridSize = MTLSizeMake(data.width, data.height, 1);
             int maxtgs = function.maxTotalThreadsPerThreadgroup;
             int tgs = highestPowerof2(data.width);
-            if (tgs > maxtgs) {
+            if (tgs > maxtgs || tgs < 1) {
                 tgs = maxtgs;
             }
             MTLSize threadgroupSize = MTLSizeMake(tgs, 1, 1);
@@ -80,7 +93,7 @@ void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, Rend
     const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 
     //currently just  Style 1 is GPU enabled
-    if (rbcd == nullptr || Style != 1) {
+    if (rbcd == nullptr || Style != 1 || function == nil) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }
