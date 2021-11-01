@@ -581,6 +581,8 @@ protected:
     int _string = 0;
     UDControllerPort* _port = nullptr;
     int _virtualString;
+    bool _isShadow = false;
+
 public:
     ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
         BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString) {
@@ -592,6 +594,9 @@ public:
         }
         if (name != displayName) {
             _string = wxAtoi(AfterLast(displayName, '-')) -1;
+        }
+        if (GetModel() != nullptr) {
+            _isShadow = GetModel()->GetShadowModelFor() != "" || GetModel()->GetModelManager().IsModelShadowing(GetModel());
         }
     }
 
@@ -715,6 +720,9 @@ public:
 
         wxSize sz = _size;
         sz = sz.Scale(scale, scale);
+        if (_isShadow) {
+            dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
+        }
         dc.DrawRectangle(location + offset, sz);
         if (_over == HITLOCATION::LEFT) {
             dc.SetPen(__dropTargetPen);
@@ -2596,6 +2604,17 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     if (m->IsShadowModel()) {
         shadow = "Shadowing '" + m->GetShadowModelFor() + "'\n";
+    } else {
+        auto shadows = m->GetShadowedBy();
+        if (shadows.size() > 0) {
+            std::string sh;
+            for (const auto& it : shadows) {
+                if (sh != "")
+                    sh += ", ";
+                sh += it;
+            }
+            shadow = "Shadowed By: " + sh + "\n";
+        }
     }
 
     std::string mdescription;

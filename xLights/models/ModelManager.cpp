@@ -195,7 +195,7 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
     return true;
 }
 
-bool ModelManager::IsModelOverlapping(Model* model) const
+bool ModelManager::IsModelOverlapping(const Model* model) const
 {
     int32_t start = model->GetFirstChannel(); //model->GetNumberFromChannelString(model->ModelStartChannel);
     int32_t end = start + model->GetChanCount() - 1;
@@ -1583,30 +1583,25 @@ std::string ModelManager::GenerateNewStartChannel( const std::string& lastModel 
     return startChannel;
 }
 
-void ModelManager::Delete(const std::string &name) {
-
+void ModelManager::Delete(const std::string& name) {
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
-    if( xlights->CurrentSeqXmlFile != nullptr )
-    {
+    if (xlights->CurrentSeqXmlFile != nullptr) {
         Element* elem_to_delete = xlights->GetSequenceElements().GetElement(mn);
-        if (elem_to_delete != nullptr)
-        {
+        if (elem_to_delete != nullptr) {
             // does model have any effects on it
             bool effects_exist = false;
-            for (size_t i = 0; i < elem_to_delete->GetEffectLayerCount() && !effects_exist; ++i)
-            {
+            for (size_t i = 0; i < elem_to_delete->GetEffectLayerCount() && !effects_exist; ++i) {
                 auto layer = elem_to_delete->GetEffectLayer(i);
-                if (layer->GetEffectCount() > 0)
-                {
+                if (layer->GetEffectCount() > 0) {
                     effects_exist = true;
                 }
             }
 
-            if (effects_exist)
-            {
-                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES) return;
+            if (effects_exist) {
+                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES)
+                    return;
             }
 
             // Delete the model from the sequencer grid and views
@@ -1617,14 +1612,14 @@ void ModelManager::Delete(const std::string &name) {
     // now delete the model
     for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->first == mn) {
-            Model *model = it->second;
+            Model* model = it->second;
 
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
 
                 for (auto& it2 : models) {
                     if (it2.second->GetDisplayAs() == "ModelGroup") {
-                        ModelGroup *group = (ModelGroup*)it2.second;
+                        ModelGroup* group = (ModelGroup*)it2.second;
                         group->ModelRemoved(mn);
                     }
                 }
@@ -1633,10 +1628,8 @@ void ModelManager::Delete(const std::string &name) {
 
                 // If models are chained to us then make their start channel ... our start channel
                 std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
-                for (auto it3: models)
-                {
-                    if (it3.second->ModelStartChannel == chainedtous)
-                    {
+                for (auto it3 : models) {
+                    if (it3.second->ModelStartChannel == chainedtous) {
                         it3.second->SetStartChannel(model->ModelStartChannel);
                     }
                 }
@@ -1652,9 +1645,30 @@ void ModelManager::Delete(const std::string &name) {
 std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
     return models.begin();
 }
+
 std::map<std::string, Model*>::const_iterator ModelManager::end() const {
     return models.end();
 }
+
 unsigned int ModelManager::size() const {
     return models.size();
+}
+
+bool ModelManager::IsModelShadowing(const Model* m) const {
+    for (const auto& it : models) {
+        if (it.second->GetShadowModelFor() == m->GetName()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::list<std::string> ModelManager::GetModelsShadowing(const Model* m) const {
+    std::list<std::string> res;
+    for (const auto& it : models) {
+        if (it.second->GetShadowModelFor() == m->GetName()) {
+            res.push_back(it.first);
+        }
+    }
+    return res;
 }

@@ -47,7 +47,9 @@ class ModelManager : public ObjectManager
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
         bool RenameInListOnly(const std::string &oldName, const std::string &newName);
-        bool IsModelOverlapping(Model* model) const;
+        bool IsModelOverlapping(const Model* model) const;
+        bool IsModelShadowing(const Model* m) const;
+        std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
         //void AddModel(wxXmlNode* m);
         void Delete(const std::string &name);

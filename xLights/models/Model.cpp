@@ -3881,6 +3881,10 @@ bool Model::FourChannelNodes() const
          Contains(StringType, "BGRW")));
 }
 
+std::list<std::string> Model::GetShadowedBy() const {
+    return GetModelManager().GetModelsShadowing(this);
+}
+
 // set size of Nodes vector and each Node's Coords vector
 void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder) {
     size_t n;

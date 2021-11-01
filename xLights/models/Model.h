@@ -152,6 +152,7 @@ public:
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);
     bool FourChannelNodes() const;
+    std::list<std::string> GetShadowedBy() const;
 
     void SetStartChannel(std::string startChannel);
     void ReloadModelXml() override
