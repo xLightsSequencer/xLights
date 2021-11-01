@@ -86,6 +86,7 @@ void Waveform::CloseMedia()
     views.clear();
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
 	_media = nullptr;
+    mParent->Refresh();
 }
 
 void Waveform::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
