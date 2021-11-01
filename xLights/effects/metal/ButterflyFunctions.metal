@@ -5,17 +5,17 @@ using namespace metal;
 
 #include "ButterflyTypes.h"
 
-char4 hsv2rgb(float3 c) {
+uchar4 hsv2rgb(float3 c) {
     float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     c = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-    return char4(c.r * 255, c.g * 255, c.b * 255, -1);
+    return uchar4(c.r * 255, c.g * 255, c.b * 255, 255);
 }
 
 uint8_t channelBlend(uint8_t c1, uint8_t c2, float ratio) {
     return c1 + floor(ratio * (c2 - c1) + 0.5);
 }
-char4 getMultiColorBlend(constant ButterflyData &data, float n, bool circular) {
+uchar4 getMultiColorBlend(constant ButterflyData &data, float n, bool circular) {
     if (data.numColors <= 1) {
         return data.colors[0];
     }
@@ -26,17 +26,17 @@ char4 getMultiColorBlend(constant ButterflyData &data, float n, bool circular) {
     int coloridx1 = floor(realidx);
     int coloridx2 = (coloridx1 + 1) % data.numColors;
     float ratio = realidx - float(coloridx1);
-    char4 ret;
+    uchar4 ret;
     ret.r = channelBlend(data.colors[coloridx1].r, data.colors[coloridx2].r,  ratio);
     ret.g = channelBlend(data.colors[coloridx1].g, data.colors[coloridx2].g,  ratio);
     ret.b = channelBlend(data.colors[coloridx1].b, data.colors[coloridx2].b,  ratio);
-    ret.a = -1;
+    ret.a = 255;
     return ret;
 }
 constant float pi2 = 3.14159*2.0;
 
 kernel void ButterflyEffect(constant ButterflyData &data,
-                            device char4* result,
+                            device uchar4* result,
                             uint2 index [[thread_position_in_grid]])
 {
     int x = index.x;

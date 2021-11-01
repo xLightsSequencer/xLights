@@ -244,8 +244,8 @@ public:
     }
 
 #if __has_include(<simd/simd.h>)
-    simd_char4 asChar4() const {
-        return {(char)red, (char)green, (char)blue, (char)alpha};
+    simd_uchar4 asChar4() const {
+        return {red, green, blue, alpha};
     }
 #endif
 

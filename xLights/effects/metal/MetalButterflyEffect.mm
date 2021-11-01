@@ -32,6 +32,9 @@ public:
     }
 
     bool Render(ButterflyData &data, RenderBuffer &buffer) {
+        if (function == nil) {
+            return false;
+        }
         @autoreleasepool {
             MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
@@ -93,7 +96,7 @@ void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, Rend
     const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 
     //currently just  Style 1 is GPU enabled
-    if (rbcd == nullptr || Style != 1 || function == nil) {
+    if (rbcd == nullptr || Style != 1) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }

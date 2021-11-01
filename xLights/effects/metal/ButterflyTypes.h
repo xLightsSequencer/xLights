@@ -5,7 +5,7 @@
 
 struct ButterflyData
 {
-    simd::char4 colors[8];
+    simd::uchar4 colors[8];
 
     float offset;
     int chunks;

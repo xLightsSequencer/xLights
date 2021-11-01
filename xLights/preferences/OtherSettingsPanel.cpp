@@ -24,6 +24,13 @@
 #include <wx/preferences.h>
 #include "../xLightsMain.h"
 
+
+#ifdef __WXOSX__
+extern "C" {
+extern bool isMetalComputeSupported();
+}
+#endif
+
 //(*IdInit(OtherSettingsPanel)
 const long OtherSettingsPanel::ID_STATICTEXT1 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE1 = wxNewId();
@@ -119,8 +126,12 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindow
 #endif
 #ifdef __WXOSX__
     //repurpose ShaderCheckbox for GPU rendering
-    ShaderCheckbox->SetLabel("Experimental GPU Rendering");
-    ShaderCheckbox->SetToolTip("Some effects (currently just Butterfly type 1) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
+    if (isMetalComputeSupported()) {
+        ShaderCheckbox->SetLabel("Experimental GPU Rendering");
+        ShaderCheckbox->SetToolTip("Some effects (currently just Butterfly type 1) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
+    } else {
+        ShaderCheckbox->Hide();
+    }
 #endif
 }
 

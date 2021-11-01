@@ -57,23 +57,32 @@ MetalRenderBufferComputeData *MetalRenderBufferComputeData::getMetalRenderBuffer
 
 
 MetalComputeUtilities::MetalComputeUtilities() {
-    device = MTLCreateSystemDefaultDevice();
+    enabled = false;
+    if (@available(macOS 10.13, *)) {
+        device = MTLCreateSystemDefaultDevice();
 
-    NSError *libraryError = NULL;
-    NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
-    if (!libraryFile) {
-        NSLog(@"Library file error");
-        enabled = false;
-    }
-    library = [device newLibraryWithFile:libraryFile error:&libraryError];
-    if (!library) {
-        NSLog(@"Library error: %@", libraryError);
-        enabled = false;
-    }
+        if (device.argumentBuffersSupport == MTLArgumentBuffersTier1) {
+            device = nil;
+            return;
+        }
 
-    commandQueue = [device newCommandQueue];
-    if (!commandQueue) {
-        enabled = false;
+        NSError *libraryError = NULL;
+        NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
+        if (!libraryFile) {
+            NSLog(@"Library file error");
+            return;
+        }
+        library = [device newLibraryWithFile:libraryFile error:&libraryError];
+        if (!library) {
+            NSLog(@"Library error: %@", libraryError);
+            return;
+        }
+
+        commandQueue = [device newCommandQueue];
+        if (!commandQueue) {
+            return;
+        }
+        enabled = true;
     }
 }
 MetalComputeUtilities::~MetalComputeUtilities() {
@@ -97,4 +106,10 @@ id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const cha
 
 
 
+
+extern "C" {
+bool isMetalComputeSupported() {
+    return MetalComputeUtilities::INSTANCE.enabled;
+}
+}
 
