@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.35 November 2, 2021
+   -- enh (keith) Allow setting a sefault Virtual Matrix/Video display location used when creating new playlist items
+   -- enh (keith) Add magic words to SMS plugin that can trigger actions
+   -- enh (keith) Update xSchedule FPP ping response to version 3
+   -- enh (keith) Introduce the "No Controller" as the default when adding new models to reduce overlap situations even further
+   -- enh (keith) Start introducing pixielink support
+   -- enh (keith) Make shadow models/models being shadowed visually distinct in visualiser
+   -- enh (scott) Make hinkspix sequence export weave universes like the upload config does
+   -- enh (scott) Add support for smart remote types for controllers
+   -- enh (scott) Add scale but keep aspect ratio to matrix singing faces
+   -- enh (scott) Allow sequence import to load *.piz files without renaming them
+   -- enh (dkulp) Begin introducing use of the Metal graphics API from some screen drawing and effect rendering
+   -- bug (keith) Prevent blank web page being set for xSchedule which looks like web interface is broken
+   -- bug (keith) Adjust Twilio plugin to work with updated API
+   -- bug (keith) Fix error display when F48 is configured with 512+512+1 pixel
+   -- bug (keith) Remove inner % property when star is 1 layer
+   -- bug (keith) Fix layout wiring view does not correctly show missing nodes in custom models
+   -- bug (keith) Fix faces effect wont render if nodes have been renamed after face effect was created with default names
+   -- bug (scott) Fix crash due to _MACOSX folder in zip files
 2021.34 October 23, 2021
    -- enh (billc) Add LED panel support for rpi-28D
    -- enh (keith) Add ability to set a default virtual matrix and video location
