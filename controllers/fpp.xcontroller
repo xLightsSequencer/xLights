@@ -46,6 +46,7 @@
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
         <SupportsSmartRemotes>6</SupportsSmartRemotes>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsPixelPortEndNullPixels/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -67,6 +68,7 @@
         <SupportsAutoLayout/>
 		<SupportsRemotes/>
         <SupportsSmartRemotes>6</SupportsSmartRemotes>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsPixelPortEndNullPixels/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>

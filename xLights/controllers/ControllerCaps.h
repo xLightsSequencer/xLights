@@ -85,6 +85,7 @@ public:
     bool SupportsEthernetInputProtols() const;
     bool SupportsSerialInputProtols() const;
     bool NeedsFullUniverseForDMX() const;
+    bool AllSmartRemoteTypesPerPortMustBeSame() const;
 
     int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;

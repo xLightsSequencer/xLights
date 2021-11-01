@@ -867,6 +867,20 @@ bool UDControllerPort::AtLeastOneModelIsNotUsingSmartRemote() const
     return false;
 }
 
+bool UDControllerPort::AllSmartRemoteTypesSame() const
+{
+    if(_models.size() < 2) {
+        return true;
+    }
+    
+    for (const auto& it : _models) {
+        if (it->GetSmartRemoteType() != _models.front()->GetSmartRemoteType()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1504,8 +1518,18 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             int block = (it.first - 1) / 4;
 
             if (blocksAreSmart[block] > 0) {
-                if (it.second->AtLeastOneModelIsNotUsingSmartRemote())                     {
+                if (it.second->AtLeastOneModelIsNotUsingSmartRemote()){
                     res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
+                    success = false;
+                }
+            }
+        }
+        
+        
+        if(rules->AllSmartRemoteTypesPerPortMustBeSame()) {
+            for (const auto& it : _pixelPorts) {
+                if (!it.second->AllSmartRemoteTypesSame()){
+                    res += wxString::Format("ERR: Pixel port %d has a models not configured all as the same smart remote type.\n", it.second->GetPort()).ToStdString();
                     success = false;
                 }
             }

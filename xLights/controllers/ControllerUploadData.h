@@ -213,6 +213,7 @@ class UDControllerPort
     std::string GetInvalidReason() const { return _invalidReason; }
     bool AtLeastOneModelIsUsingSmartRemote() const;
     bool AtLeastOneModelIsNotUsingSmartRemote() const;
+    bool AllSmartRemoteTypesSame() const;
 
     void SetSeparateUniverses(bool sep) { _separateUniverses = sep; }
 

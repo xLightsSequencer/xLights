@@ -894,7 +894,19 @@ public:
             auto const types = GetModel()->GetSmartRemoteTypes();
             if (std::find(types.begin(), types.end(), label.ToStdString()) 
                 != types.end()) {
-                GetModel()->SetSmartRemoteType(label);
+
+                int const port = GetModel()->GetControllerPort();
+                int const sm = GetModel()->GetSmartRemote();
+                int lowPort = (((port - 1)/ 4 ) * 4) + 1;
+                int highPort = lowPort + 3 < _cud->GetMaxPixelPort() ? lowPort + 3 : _cud->GetMaxPixelPort();
+                for (int i = lowPort; i <= highPort; i++) {
+                    for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels()) {
+                        if(it->GetModel()->GetSmartRemote() == sm ) {
+                            it->GetModel()->SetSmartRemoteType(label);
+                        }
+                    }
+                }
+                return true;
             }
             else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
@@ -2668,7 +2680,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             sccc = wxString::Format("Start Channel: %s\n", usc).ToStdString();
         }
     }
-    else         {
+    else {
         sccc = wxString::Format("Start Channel: %s%s\nEnd Channel %s\n", m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om)).ToStdString();
     }
 
@@ -3019,9 +3031,9 @@ void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)
         }
         ReloadModels();
 
-        for (const auto& it : _controllers)             {
+        for (const auto& it : _controllers) {
             cm = dynamic_cast<ModelCMObject*>(it);
-            if (cm != nullptr && cm->GetName() == m)                 {
+            if (cm != nullptr && cm->GetName() == m) {
                 EnsureSelectedModelIsVisible(cm);
                 break;
             }

@@ -613,6 +613,11 @@ std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     return types;
 }
 
+bool ControllerCaps::AllSmartRemoteTypesPerPortMustBeSame() const {
+
+    return DoesXmlNodeExist(_config, "AllSmartRemoteTypesPerPortMustBeSame");
+}
+
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
     return GetXmlNodeContent(_config, name, def);

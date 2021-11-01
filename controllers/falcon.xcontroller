@@ -51,6 +51,7 @@
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV3Settings" Base="Falcon:BaseFalconSettings">
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxPixelPortChannels>3072</MaxPixelPortChannels>
         <InputProtocols>
             <Protocol>e131</Protocol>
@@ -166,7 +167,7 @@
         <MaxEndNulls>20</MaxEndNulls>
         <MaxGroup>10</MaxGroup>
         <MinGroup>1</MinGroup>
-
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <SerialProtocols>
