@@ -653,10 +653,10 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     _controller = 0;
     CONTROLLERS.clear();
-    CONTROLLERS.Add("Use Start Channel");
-    CONTROLLERS.Add("No Controller");
+    CONTROLLERS.Add(USE_START_CHANNEL);
+    CONTROLLERS.Add(NO_CONTROLLER);
 
-    if (GetControllerName() == "No Controller") {
+    if (GetControllerName() == NO_CONTROLLER) {
         _controller = 1;
     }
 
@@ -2484,7 +2484,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                     dependsonmodel = start;
                 }
                 Model* m = modelManager[start];
-                if (m != nullptr && m->CouldComputeStartChannel && (!chain || (chain && m->GetControllerName() != "No Controller"))) {
+                if (m != nullptr && m->CouldComputeStartChannel && (!chain || (chain && m->GetControllerName() != NO_CONTROLLER))) {
                     if (fromStart) {
                         int i = m->GetFirstChannel();
                         if (i == -1 && m == this && stringStartChan.size() > 0) {
@@ -6551,7 +6551,7 @@ void Model::SetControllerName(const std::string& controller) {
         return;
 
     ModelXml->DeleteAttribute("Controller");
-    if (n != "" && n != "Use Start Channel") {
+    if (n != "" && n != USE_START_CHANNEL) {
         ModelXml->AddAttribute("Controller", n);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");

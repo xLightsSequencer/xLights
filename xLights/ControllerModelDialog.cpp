@@ -456,7 +456,9 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
             if (port) {
                 for (const auto& it : port->GetModels()) {
                     it->GetModel()->SetModelChain("");
-                    it->GetModel()->SetControllerName("No Controller");
+                    if (it->GetModel()->GetControllerName() != "") {
+                        it->GetModel()->SetControllerName(NO_CONTROLLER);
+                    }
                     it->GetModel()->SetControllerPort(0);
                 }
             }
@@ -1394,7 +1396,7 @@ void ControllerModelDialog::ReloadModels()
         if (it.second->GetDisplayAs() != "ModelGroup") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
-                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == "No Controller" || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
+                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                   _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
             }
@@ -1585,7 +1587,9 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
                 if (_autoLayout) {
 
                     m->GetModel()->SetModelChain("");
-                    m->GetModel()->SetControllerName("No Controller");
+                    if (m->GetModel()->GetControllerName() != "") {
+                        m->GetModel()->SetControllerName(NO_CONTROLLER);
+                    }
                 }
                 m->GetModel()->SetControllerPort(0);
             }
@@ -2080,7 +2084,9 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 nextFrom->SetModelChain(m->GetModelChain());
             }
 
-            m->SetControllerName("No Controller");
+            if (m->GetControllerName() != "") {
+                m->SetControllerName(NO_CONTROLLER);
+            }
             m->SetModelChain("");
         }
         m->SetControllerPort(0);

@@ -1937,8 +1937,8 @@ void LayoutPanel::BulkEditControllerName()
     int sel = 0;
     int i = 2;
     cn.push_back("");
-    cn.push_back("No Controller");
-    if (name == "No Controller")
+    cn.push_back(NO_CONTROLLER);
+    if (name == NO_CONTROLLER)
         sel = 1;
     for (const auto& it : xlights->GetOutputManager()->GetAutoLayoutControllerNames())
     {
@@ -3357,7 +3357,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         if (_newModel != nullptr) {
             m_moving_handle = true;
             _newModel->SetLayoutGroup(currentLayoutGroup);
-            _newModel->SetControllerName("No Controller");
+            _newModel->SetControllerName(NO_CONTROLLER);
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
@@ -6494,7 +6494,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
 						name = xlights->AllModels.GenerateModelName(newModel->name);
-                        newModel->SetControllerName("No Controller");
+                        newModel->SetControllerName(NO_CONTROLLER);
 						newModel->name = name;
 						newModel->GetModelXml()->DeleteAttribute("name");
 						newModel->Lock(false);
@@ -6810,69 +6810,49 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     }
 }
 
-void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
-{
+void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int id = event.GetId();
-    if (id == ID_MNU_DELETE_MODEL)
-    {
+    if (id == ID_MNU_DELETE_MODEL) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
-    }
-    else if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
-    {
+    } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
         ShowNodeLayout();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_LOCK) {
         LockSelectedModels(true);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK) {
         LockSelectedModels(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr) return;
+        if (md == nullptr)
+            return;
         md->ExportAsCustomXModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
-    }
-    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS)
-    {
+    } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
         ExportModelAsCAD();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int screen_wi = md->GetBaseObjectScreenLocation().GetMWidth();
         int screen_ht = md->GetBaseObjectScreenLocation().GetMHeight();
         float render_ht = md->GetBaseObjectScreenLocation().GetRenderHt();
         float render_wi = md->GetBaseObjectScreenLocation().GetRenderWi();
         float ht_ratio = render_ht / (float)screen_ht;
         float wi_ratio = render_wi / (float)screen_wi;
-        if( ht_ratio > wi_ratio) {
+        if (ht_ratio > wi_ratio) {
             render_wi = render_wi / ht_ratio;
             md->GetBaseObjectScreenLocation().SetMWidth((int)render_wi);
         } else {
@@ -6883,38 +6863,32 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         md->ExportXlightsModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int handle = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
         md->UpdateXmlWithScale();
         md->InitModel();
         //SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int selected_handle = md->GetSelectedHandle();
-        if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
-        {
-            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
+        if ((selected_handle != -1) && (md->GetNumHandles() > 2)) {
+            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle + 0x4000));
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
@@ -6924,211 +6898,156 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int seg = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
         md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int seg = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
         md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM) {
+        if (editing_models) {
             PreviewModelAlignBottoms();
         } else {
             objects_panel->PreviewObjectAlignBottoms();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND) {
+        if (editing_models) {
             PreviewModelAlignWithGround();
         } else {
             objects_panel->PreviewObjectAlignWithGround();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_TOP) {
+        if (editing_models) {
             PreviewModelAlignTops();
         } else {
             objects_panel->PreviewObjectAlignTops();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE
-        )
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE) {
         BulkEditControllerConnection(event.GetId());
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME) {
         BulkEditControllerName();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE) {
         BulkEditActive(true);
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE) {
         BulkEditActive(false);
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR) {
         BulkEditTagColour();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW) {
         BulkEditControllerPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES) {
         BulkEditDimmingCurves();
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT) {
+        if (editing_models) {
             PreviewModelAlignLeft();
         } else {
             objects_panel->PreviewObjectAlignLeft();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT) {
+        if (editing_models) {
             PreviewModelAlignRight();
         } else {
             objects_panel->PreviewObjectAlignRight();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT) {
+        if (editing_models) {
             PreviewModelAlignFronts();
         } else {
             objects_panel->PreviewObjectAlignFronts();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_BACK)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_BACK) {
+        if (editing_models) {
             PreviewModelAlignBacks();
         } else {
             objects_panel->PreviewObjectAlignBacks();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER) {
+        if (editing_models) {
             PreviewModelAlignHCenter();
         } else {
             objects_panel->PreviewObjectAlignHCenter();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER) {
+        if (editing_models) {
             PreviewModelAlignVCenter();
         } else {
             objects_panel->PreviewObjectAlignVCenter();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE) {
+        if (editing_models) {
             PreviewModelHDistribute();
         } else {
             objects_panel->PreviewObjectHDistribute();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE) {
+        if (editing_models) {
             PreviewModelVDistribute();
         } else {
             objects_panel->PreviewObjectVDistribute();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
+        if (editing_models) {
             PreviewModelResize(true, false);
         } else {
             objects_panel->PreviewObjectResize(true, false);
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT) {
+        if (editing_models) {
             PreviewModelResize(false, true);
         } else {
             objects_panel->PreviewObjectResize(false, true);
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE) {
+        if (editing_models) {
             PreviewModelResize(true, true);
         } else {
             objects_panel->PreviewObjectResize(true, true);
         }
-    }
-    else if (id == ID_MNU_DELETE_MODEL_GROUP)
-    {
+    } else if (id == ID_MNU_DELETE_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
         DeleteSelectedGroups();
-    }
-    else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS)
-    {
+    } else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
 
         bool deleted = true;
 
-        while (deleted)
-        {
+        while (deleted) {
             deleted = false;
             auto it = xlights->AllModels.begin();
-            while (it != xlights->AllModels.end())
-            {
-                if (it->second->GetDisplayAs() == "ModelGroup")
-                {
+            while (it != xlights->AllModels.end()) {
+                if (it->second->GetDisplayAs() == "ModelGroup") {
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
                     ++it;
-                    if (mg->GetModelCount() == 0)
-                    {
+                    if (mg->GetModelCount() == 0) {
                         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
                         xlights->AllModels.Delete(mg->GetName());
                         deleted = true;
                     }
-                }
-                else
-                {
+                } else {
                     ++it;
                 }
             }
@@ -7139,16 +7058,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
-    }
-    else if (id == ID_MNU_MAKEALLSCVALID)
-    {
-        if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
-        {
-            for (const auto& it : xlights->AllModels)
-            {
-                if (it.second->GetDisplayAs() != "ModelGroup" && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString()))
-                {
-                    it.second->SetControllerName("No Controller");
+    } else if (id == ID_MNU_MAKEALLSCVALID) {
+        if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES) {
+            for (const auto& it : xlights->AllModels) {
+                if (it.second->GetDisplayAs() != "ModelGroup" && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
+                    it.second->SetControllerName(NO_CONTROLLER);
                 }
             }
 
@@ -7157,16 +7071,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
         }
-    }
-    else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING)
-    {
-        if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
-        {
-            for (const auto& it : xlights->AllModels)
-            {
-                if (it.second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it.second))
-                {
-                    it.second->SetControllerName("No Controller");
+    } else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING) {
+        if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES) {
+            for (const auto& it : xlights->AllModels) {
+                if (it.second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it.second)) {
+                    it.second->SetControllerName(NO_CONTROLLER);
                 }
             }
 
@@ -7175,15 +7084,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
         }
-    }
-    else if (id == ID_MNU_MAKESCVALID)
-    {
-        if (wxMessageBox("While this will make your start channel valid and not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
-        {
-            if (selectedBaseObject != nullptr)
-            {
+    } else if (id == ID_MNU_MAKESCVALID) {
+        if (wxMessageBox("While this will make your start channel valid and not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES) {
+            if (selectedBaseObject != nullptr) {
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-                selectedModel->SetControllerName("No Controller");
+                selectedModel->SetControllerName(NO_CONTROLLER);
 
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
@@ -7191,9 +7096,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
             }
         }
-    }
-    else if (id == ID_MNU_RENAME_MODEL_GROUP)
-    {
+    } else if (id == ID_MNU_RENAME_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if (selectedTreeGroups[0].IsOk()) {
             wxString sel = TreeListViewModels->GetItemText(selectedTreeGroups[0]);
@@ -7207,8 +7110,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                     OptimiseDialogPosition(&dlg2);
                     if (dlg2.ShowModal() == wxID_OK) {
                         name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
-                    }
-                    else {
+                    } else {
                         return;
                     }
                 }
@@ -7221,25 +7123,20 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP");
             }
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
-    }
-    else if (id == ID_MNU_ADD_MODEL_GROUP)
-    {
+    } else if (id == ID_MNU_ADD_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
         OptimiseDialogPosition(&dlg);
-        if (dlg.ShowModal() == wxID_OK ) {
+        if (dlg.ShowModal() == wxID_OK) {
             wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
             while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr || name.IsEmpty()) {
                 wxTextEntryDialog dlg2(this, "Model of name '" + name + "' already exists. Enter name for new group", "Enter name for new group");
                 OptimiseDialogPosition(&dlg2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
-                }
-                else {
+                } else {
                     return;
                 }
             }
@@ -7262,25 +7159,20 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
         }
-    }
-    else if (id == ID_MNU_CLONE_MODEL_GROUP)
-    {
+    } else if (id == ID_MNU_CLONE_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup CLONE_MODEL_GROUP");
 
         wxString sel = TreeListViewModels->GetItemText(selectedTreeGroups[0]);
         ModelGroup* mg = dynamic_cast<ModelGroup*>(xlights->AllModels.GetModel(sel));
-        if (mg == nullptr) return;
+        if (mg == nullptr)
+            return;
         std::string name = xlights->AllModels.GenerateModelName(sel);
 
         wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-        for (auto it = mg->GetModelXml()->GetAttributes(); it != nullptr; it = it->GetNext())
-        {
-            if (it->GetName() == "name")
-            {
+        for (auto it = mg->GetModelXml()->GetAttributes(); it != nullptr; it = it->GetNext()) {
+            if (it->GetName() == "name") {
                 node->AddAttribute("name", name);
-            }
-            else
-            {
+            } else {
                 node->AddAttribute(it->GetName(), it->GetValue());
             }
         }

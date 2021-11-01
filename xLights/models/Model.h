@@ -39,6 +39,9 @@ class ControllerCaps;
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
+#define NO_CONTROLLER "No Controller"
+#define USE_START_CHANNEL "Use Start Channel"
+
 namespace DrawGLUtils {
     class xlAccumulator;
     class xl3Accumulator;

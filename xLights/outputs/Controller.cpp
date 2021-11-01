@@ -23,6 +23,7 @@
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
+#include "../models/Model.h"
 
 #include <log4cpp/Category.hh>
 
@@ -561,7 +562,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     if (name == "ControllerName") {
         auto cn = event.GetValue().GetString().Trim(true).Trim(false);
-        if (_outputManager->GetController(cn) != nullptr || cn == "" || cn == "No Controller") {
+        if (_outputManager->GetController(cn) != nullptr || cn == "" || cn == NO_CONTROLLER) {
             DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
             return false;

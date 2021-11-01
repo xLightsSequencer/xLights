@@ -483,7 +483,7 @@ bool ModelManager::RecalcStartChannels() const {
                     changed = true;
                 }
             }
-            if (it.second->GetControllerName() == "No Controller") {
+            if (it.second->GetControllerName() == NO_CONTROLLER) {
                 modelsOnNoController.emplace(it.first);
             }
         }
@@ -975,7 +975,7 @@ bool ModelManager::ReworkStartChannel() const
         for (auto itm : models) {
             std::list<std::string> visited;
             if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
-                if (itm.second->GetControllerName() != "No Controller") {
+                if (itm.second->GetControllerName() != NO_CONTROLLER) {
                     lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {
                     modelsToSet.push_back(itm.first);
@@ -1015,7 +1015,7 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
         std::string dependson = sc.substr(1).BeforeFirst(':');
         Model* mm = GetModel(dependson);
         if (mm != nullptr) {
-            if (mm->GetControllerName() == "No Controller")
+            if (mm->GetControllerName() == NO_CONTROLLER)
                 return false;
             return ModelHasNoDependencyOnNoController(mm, visited);
         }
@@ -1345,7 +1345,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     }
 
     model->SetControllerProtocol(protocol);
-    model->SetControllerName("No Controller");
+    model->SetControllerName(NO_CONTROLLER);
 
     return model;
 }
