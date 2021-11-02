@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CPPMetal/CPPMetal.hpp"
 
 #include "osxUtils/wxMetalCanvas.hpp"
 #include "../xlGraphicsContext.h"
@@ -28,7 +27,8 @@ public:
 
     virtual xlColor ClearBackgroundColor() { return xlBLACK; }
 
-    double translateToBacking(double x);
+    double translateToBacking(double x) const;
+    double mapLogicalToAbsolute(double x) const;
 
 protected:
     DECLARE_EVENT_TABLE()

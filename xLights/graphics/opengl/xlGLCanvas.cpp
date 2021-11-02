@@ -672,8 +672,14 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
 #endif
 }
 
-double xlGLCanvas::translateToBacking(double x) {
+double xlGLCanvas::translateToBacking(double x) const {
     return xlTranslateToRetina(*this, x);
+}
+double xlGLCanvas::mapLogicalToAbsolute(double x) const {
+    if (drawingUsingLogicalSize()) {
+        return x;
+    }
+    return translateToBacking(x);
 }
 
 // Inits the OpenGL viewport for drawing in 2D.
@@ -697,6 +703,14 @@ void xlGLCanvas::PrepareCanvas() {
 
 class GLGraphicsContext : public xlGraphicsContext {
 public:
+    class xlGLTexture : public xlTexture {
+    public:
+        xlGLTexture() : xlTexture() {}
+        virtual ~xlGLTexture() {}
+
+        GLuint tid;
+    };
+
     GLGraphicsContext(xlGLCanvas *c) : canvas(c) {}
     virtual ~GLGraphicsContext() {}
 
@@ -707,6 +721,20 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
         return new DrawGLUtils::xlVertexColorAccumulator();
     }
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
+        xlGLTexture *t = new xlGLTexture();
+        DrawGLUtils::CreateOrUpdateTexture(bitmaps[0], bitmaps[1], bitmaps[2], &t->tid);
+        return t;
+    }
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override {
+        xlGLTexture *t = new xlGLTexture();
+        DrawGLUtils::CreateOrUpdateTexture(wxBitmap(images[0]), wxBitmap(images[1]), wxBitmap(images[2]), &t->tid);
+        return t;
+    }
+    virtual xlTexture *createTexture(const wxImage &image) override {
+        return nullptr;
+    }
+
 
     //drawing methods
     virtual void drawLines(xlVertexAccumulator *vac, const xlColor &c) override {
@@ -741,6 +769,14 @@ public:
     virtual void drawTriangleStrip(xlVertexColorAccumulator *vac) override {
         DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
         DrawGLUtils::Draw(*v, GL_TRIANGLE_STRIP, enableCapabilities);
+    }
+
+    virtual void drawTexture(xlTexture *texture,
+                             float x, float y, float x2, float y2,
+                             float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
+                             bool nearest = true) override {
+        xlGLTexture *t = (xlGLTexture*)texture;
+        DrawGLUtils::DrawTexture(t->tid, x, y, x2, y2, tx, ty, tx2, ty2);
     }
 
     virtual void enableBlending(bool e = true) override {
@@ -797,10 +833,11 @@ xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
     b /= 255.0f;
     a /= 255.0f;
     LOG_GL_ERRORV(glClearColor(r, g, b, a));
-
-    LOG_GL_ERRORV(glEnable(GL_BLEND));
-    if (is3d) {
+    LOG_GL_ERRORV(glDisable(GL_BLEND));
+    if (!is3d) {
         LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    } else {
+        LOG_GL_ERRORV(glEnable(GL_DEPTH_TEST));
     }
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | (is3d ? GL_DEPTH_BUFFER_BIT : 0)));

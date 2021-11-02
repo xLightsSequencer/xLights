@@ -2,10 +2,11 @@
 //  xlMetalCanvas.cpp
 //  xLights-macOSLib
 //
+#include <Metal/Metal.h>
+#include <MetalKit/MetalKit.h>
 
 #include "xlMetalCanvas.h"
 #include "xlMetalGraphicsContext.h"
-#include "CPPMetal/CPPMetalRenderPipeline.hpp"
 
 #include "ExternalHooks.h"
 
@@ -36,9 +37,17 @@ is3d(!only2d)
 xlMetalCanvas::~xlMetalCanvas() {
 }
 
-double xlMetalCanvas::translateToBacking(double x) {
+double xlMetalCanvas::translateToBacking(double x) const {
     return xlTranslateToRetina(*this, x);
 }
+double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
+    if (drawingUsingLogicalSize()) {
+        return x;
+    }
+    return translateToBacking(x);
+}
+
+
 void xlMetalCanvas::Resized(wxSizeEvent& evt)
 {
     mWindowWidth = evt.GetSize().GetWidth() * GetContentScaleFactor();

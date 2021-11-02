@@ -212,6 +212,25 @@ namespace DrawGLUtils
                 colors[i] = c.Alpha();
             }
         };
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z) {
+            if (vertex < count) {
+                int i = vertex * coordsPerVertex;
+                vertices[i++] = x;
+                vertices[i++] = y;
+                if (coordsPerVertex == 3) {
+                    vertices[i] = z;
+                }
+            }
+        };
+        virtual void SetVertex(uint32_t vertex, const xlColor &c) {
+            if (vertex < count) {
+                int i = vertex * 4;
+                colors[i++] = c.Red();
+                colors[i++] = c.Green();
+                colors[i++] = c.Blue();
+                colors[i] = c.Alpha();
+            }
+        };
         virtual void FlushRange(uint32_t start, uint32_t len) {}
 
         virtual void AddVertex(float x, float y, const xlColor& c) {

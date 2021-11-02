@@ -2,7 +2,6 @@
 
 #include <stack>
 
-#include "CPPMetal/CPPMetal.hpp"
 
 #include "../xlGraphicsContext.h"
 #include "xlMetalCanvas.h"
@@ -18,6 +17,9 @@ public:
 
     virtual xlVertexAccumulator *createVertexAccumulator() override;
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override;
+    virtual xlTexture *createTexture(const wxImage &image) override;
 
     // Setup the Viewport
     virtual void SetViewport(int x1, int y1, int x2, int y2, bool is3D = false) override;
@@ -39,6 +41,12 @@ public:
     virtual void drawTriangles(xlVertexColorAccumulator *vac) override;
     virtual void drawTriangleStrip(xlVertexColorAccumulator *vac) override;
 
+    virtual void drawTexture(xlTexture *texture,
+                             float x, float y, float x2, float y2,
+                             float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
+                             bool linearScale = true) override;
+
+
     //manipulating the matrices
     virtual void PushMatrix() override;
     virtual void PopMatrix() override;
@@ -49,13 +57,13 @@ public:
 
 protected:
     xlMetalCanvas *canvas;
-    MTL::CommandBuffer buffer;
-    MTL::RenderCommandEncoder *encoder = nullptr;
-    MTL::Drawable *drawable = nullptr;
+    id<MTLCommandBuffer> buffer;
+    id<MTLRenderCommandEncoder> encoder;
+    id<CAMetalDrawable> drawable;
 
 
-    void drawPrimitive(MTL::PrimitiveType type, xlVertexAccumulator *vac, const xlColor &c);
-    void drawPrimitive(MTL::PrimitiveType type, xlVertexColorAccumulator *vac);
+    void drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c);
+    void drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac);
 
     bool setPipelineState(const std::string &name, const char *vShader, const char *fShader);
 

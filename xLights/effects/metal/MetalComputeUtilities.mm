@@ -20,20 +20,20 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
     @autoreleasepool {
-        commandBuffer = nil;
-        pixelBuffer = nil;
+        [commandBuffer release];
+        [pixelBuffer release];
     }
 }
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     if (commandBuffer == nil) {
-        commandBuffer = [MetalComputeUtilities::INSTANCE.commandQueue commandBuffer];
+        commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
     }
     return commandBuffer;
 }
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer() {
     if (pixelBufferSize < renderBuffer->pixelVector.size()) {
         int bufferSize = renderBuffer->pixelVector.size() * 4;
-        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
+        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
@@ -45,6 +45,7 @@ void MetalRenderBufferComputeData::waitForCompletion() {
     if (commandBuffer != nil) {
         @autoreleasepool {
             [commandBuffer waitUntilCompleted];
+            [commandBuffer release];
             commandBuffer = nil;
         }
     }

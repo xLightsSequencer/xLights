@@ -26,7 +26,6 @@
 #include "TimeLine.h"
 #include "../RenderCommandEvent.h"
 #include <wx/file.h>
-#include "../graphics/opengl/DrawGLUtils.h"
 #include "ColorManager.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"

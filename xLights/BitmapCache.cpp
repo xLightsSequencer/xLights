@@ -235,6 +235,9 @@ public:
         const wxBitmap &bmp = (*data)[eff];
         if (!bmp.IsOk()) {
             wxImage image(dc);
+            if (image.HasMask() && !image.HasAlpha()) {
+                image.InitAlpha();
+            }
             if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
 #ifdef __WXOSX__
