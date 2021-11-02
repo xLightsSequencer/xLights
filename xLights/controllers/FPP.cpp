@@ -3060,13 +3060,17 @@ void FPP::PrepareDiscovery(Discovery &discovery) {
         wxArrayString ips = wxSplit(force, '|');
         wxString newForce;
         for (auto& a : ips) {
-            startAddresses.push_back(a);
+            if (a != "") {
+                startAddresses.push_back(a);
+            }
         }
     }
     for (auto &it : discovery.GetOutputManager()->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr) {
-            startAddresses.push_back(eth->GetIP());
+            if (eth->GetIP() != "") {
+                startAddresses.push_back(eth->GetIP());
+            }
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(eth->GetFPPProxy());
             }
@@ -3074,7 +3078,6 @@ void FPP::PrepareDiscovery(Discovery &discovery) {
     }
     PrepareDiscovery(discovery, startAddresses);
 }
-
 
 void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};

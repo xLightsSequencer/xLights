@@ -1290,6 +1290,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             if (!updated) {
                 // we need to ensure the id is still unique
                 it->EnsureUniqueId();
+                it->EnsureUniqueName();
                 _outputManager.AddController(it);
                 discovered->controller = nullptr;
                 found = true;

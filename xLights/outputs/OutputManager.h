@@ -102,6 +102,7 @@ public:
     int GetControllerCount(const std::string& type, const std::string& ip) const;
     std::list<std::string> GetControllerNames() const;
     std::list<std::string> GetAutoLayoutControllerNames() const;
+    bool IsControllerNameUnique(const std::string& name) const;
     #pragma endregion 
 
     #pragma region Output Management
