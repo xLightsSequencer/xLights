@@ -107,7 +107,7 @@ public:
 
     bool RenameController(const std::string& oldName, const std::string& newName);
     virtual std::string GetFullName() const { return name; }
-    void Rename(std::string newName);
+    void Rename(std::string const& newName);
     int GetNumStrings() const { return parm1; }
     int GetPixelStyle() const { return pixelStyle; }
     void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
@@ -151,13 +151,13 @@ public:
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
-    virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
+    virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);
     bool FourChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
 
-    void SetStartChannel(std::string startChannel);
+    void SetStartChannel(std::string const& startChannel);
     void ReloadModelXml() override
     {
         GetModelScreenLocation().Reload();
@@ -171,7 +171,7 @@ public:
     int GetDefaultBufferHt() const { return BufferHt; }
     virtual bool IsDMXModel() const { return false; }
 
-    void SetProperty(wxString property, wxString value, bool apply = false);
+    void SetProperty(wxString const& property, wxString const& value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     void GetControllerProtocols(wxArrayString& cp, int& idx);
@@ -212,9 +212,9 @@ protected:
     void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi) const;
 
     // size of the default buffer
-    int BufferHt = 0;
-    int BufferWi = 0;
-    int BufferDp = 0;
+    int BufferHt{ 0 };
+    int BufferWi{ 0 };
+    int BufferDp{ 0 };
     std::vector<NodeBaseClassPtr> Nodes;
     const ModelManager& modelManager;
 
@@ -237,9 +237,9 @@ protected:
     std::string GetNextName();
 
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
-    int pixelSize = 2;
-    int transparency = 0;
-    int blackTransparency = 0;
+    int pixelSize{ 2 };
+    int transparency{ 0 };
+    int blackTransparency{ 0 };
     wxColour modelTagColour;
 
     int StrobeRate;      // 0=no strobing
@@ -338,12 +338,12 @@ public:
     bool SingleNode = false;     // true for dumb strings and single channel strings
     bool SingleChannel = false;  // true for traditional single-color strings
 
-    std::string ModelStartChannel = "";
-    bool CouldComputeStartChannel = false;
-    bool Overlapping = false;
-    std::string _pixelCount = "";
-    std::string _pixelType = "";
-    std::string _pixelSpacing = "";
+    std::string ModelStartChannel{ "" };
+    bool CouldComputeStartChannel{ false };
+    bool Overlapping{ false };
+    std::string _pixelCount{ "" };
+    std::string _pixelType{ "" };
+    std::string _pixelSpacing{ "" };
 
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
@@ -388,7 +388,7 @@ public:
     virtual void InsertHandle(int after_handle, float zoom, int scale);
     virtual void DeleteHandle(int handle);
 
-    bool HasState(const std::string state) const;
+    bool HasState(std::string const& state) const;
     std::vector<std::string> GetModelState() const;
     void SaveModelState(std::vector<std::string>& state);
 
@@ -435,9 +435,9 @@ public:
     bool GetIsBtoT() const { return isBotToTop; }
     virtual int GetStrandLength(int strand) const;
 
-    float _savedWidth = 0;
-    float _savedHeight = 0;
-    float _savedDepth = 0;
+    float _savedWidth{ 0.0F };
+    float _savedHeight{ 0.0F };
+    float _savedDepth{ 0.0F };
     void SaveDisplayDimensions();
     void RestoreDisplayDimensions();
 
@@ -492,7 +492,7 @@ public:
     /*static */size_t GetNodeChannelCount(const std::string& nodeType) const;
 
     // Methods to support layer sizes
-    int layerSizeMenu = -1; // when a layer size is right clicked on this holds the layer that was clicked on
+    int layerSizeMenu{ -1 }; // when a layer size is right clicked on this holds the layer that was clicked on
     virtual bool ModelSupportsLayerSizes() const { return false; }
     std::vector<int> GetLayerSizes() const { return layerSizes; }
     void SetLayerSizeCount(int count)
@@ -566,11 +566,11 @@ public:
     virtual void OnLayerSizesChange(bool countChanged) {}
     static const long ID_LAYERSIZE_DELETE;
     static const long ID_LAYERSIZE_INSERT;
-    virtual void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) override;
-    virtual void HandlePropertyGridContextMenu(wxCommandEvent& event) override;
+    void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) override;
+    void HandlePropertyGridContextMenu(wxCommandEvent& event) override;
 
     // reverse is used for conversion scenarios where the old format was reversed
-    void DeserialiseLayerSizes(const std::string ls, bool reverse)
+    void DeserialiseLayerSizes(std::string const& ls, bool reverse)
     {
         layerSizes.resize(0);
         auto lss = wxSplit(ls, ',');

@@ -4908,10 +4908,7 @@ void xLightsFrame::CheckSequence(bool display)
             LogAndWrite(f, msg.ToStdString());
 
             std::string check;
-            UDController edc(it, &_outputManager, &AllModels, check, false);
-            if (check != "") {
-                LogAndWrite(f, check);
-            }
+            UDController edc(it, &_outputManager, &AllModels, false);
 
             check = "";
             auto fcr = ControllerCaps::GetControllerConfig(it->GetVendor(), it->GetModel(), it->GetVariant());
@@ -10038,8 +10035,7 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     auto controllers = GetOutputManager()->GetControllers();
     ExportSettings::SETTINGS exportsettings = ExportSettings::GetSettings(this);
     for (const auto& it : controllers) {
-        std::string check;
-        UDController cud(it, &_outputManager, &AllModels, check, false);
+        UDController cud(it, &_outputManager, &AllModels, false);
         wxString const header = it->GetShortDescription() + "\n";
         f.Write(header);
         std::vector<std::string> const lines = cud.ExportAsCSV(exportsettings);

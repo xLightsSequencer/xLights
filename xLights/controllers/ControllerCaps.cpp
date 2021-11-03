@@ -607,7 +607,7 @@ std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
         return { "" };
     }
     auto types = GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
-    if (types.size() == 0) {
+    if (types.empty()) {
         types.emplace_back("");
     }
     return types;

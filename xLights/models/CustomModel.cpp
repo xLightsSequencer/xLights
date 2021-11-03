@@ -1106,8 +1106,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void CustomModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     if (!wxString(filename).Lower().EndsWith("xmodel"))
     {
         return ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
@@ -1279,7 +1278,7 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
     return false;
 }
 
-void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc(filename);

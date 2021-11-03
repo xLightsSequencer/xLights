@@ -720,8 +720,7 @@ void StarModel::ExportXlightsModel()
     f.Close();
 }
 
-void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void StarModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     wxXmlDocument doc(filename);
 
     if (doc.IsOk()) {

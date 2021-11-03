@@ -370,7 +370,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
     logger_base.debug("J1Sys Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
 
     auto caps = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(caps, check);

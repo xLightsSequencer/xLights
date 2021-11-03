@@ -2083,8 +2083,7 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
-        std::string check;
-        UDController cud(controller, &_outputManager, &AllModels, check, true);
+        UDController cud(controller, &_outputManager, &AllModels, true);
         ControllerModelDialog dlg(this, &cud, &AllModels, controller);
         dlg.ShowModal();
     }
@@ -2505,8 +2504,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 
     auto zcpp = dynamic_cast<ZCPPOutput*>(controller->GetFirstOutput());
 
-    std::string check;
-    UDController cud(controller, outputManager, modelManager, check, false);
+    UDController cud(controller, outputManager, modelManager, false);
 
     long baseStart = zcpp->GetStartChannel();
 

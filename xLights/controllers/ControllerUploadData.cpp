@@ -134,7 +134,7 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
 
 float UDControllerPortModel::GetAmps(int defaultBrightness) const
 {
-    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0f) * GetBrightness(defaultBrightness)) / 100.0f;
+    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0F) * GetBrightness(defaultBrightness)) / 100.0F;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
@@ -199,7 +199,7 @@ void UDControllerPortModel::Dump() const {
 }
 
 
-bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const {
+bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* rules, std::string& res) const {
 
     bool success = true;
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
@@ -464,8 +464,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool changed = false;
-    std::string last = "";
-    int lastsr = 0;
+    std::string last;
+    int lastsr{ 0 };
 
     for (const auto& it : _models)
     {
@@ -881,6 +881,31 @@ bool UDControllerPort::AllSmartRemoteTypesSame() const
     return true;
 }
 
+bool UDControllerPort::AllSmartRemoteTypesSame(int smartRemote) const {
+    std::string smType;
+
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == smartRemote) {
+            if (smType.empty()) {
+                smType = it->GetSmartRemoteType();
+            } else if (it->GetSmartRemoteType() != smType) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+std::string UDControllerPort::GetSmartRemoteType(int smartRemote) const {
+
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == smartRemote) {
+            return it->GetSmartRemoteType();
+        }
+    }
+    return "";
+}
+
 void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -891,7 +916,7 @@ void UDControllerPort::Dump() const {
     }
 }
 
-bool UDControllerPort::Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const {
+bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const {
 
     bool success = true;
 
@@ -914,6 +939,13 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
         if (Channels() > rules->GetMaxPixelPortChannels()) {
             res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
+        }
+
+        for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+            if (!AllSmartRemoteTypesSame(i + 1)) {
+                res += wxString::Format("ERR: Pixel port %d has different types of smart remotes types for %s.\n", _port, std::string(1, 'A' + i)).ToStdString();
+                success = false;
+            }
         }
     }
     else {
@@ -958,7 +990,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
 
     for (const auto& it : _models) {
         // all models must be fully contained within the outputs on this controller
-        success &= it->Check(c, this, pixel, rules, res);
+        success &= it->Check(c, rules, res);
     }
 
     return success;
@@ -1044,7 +1076,7 @@ bool UDController::ModelProcessed(Model* m, int string) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps) :
+UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, bool eliminateOverlaps) :
     _controller(controller), _outputManager(om), _modelManager(mm) {
 
     _ipAddress = _controller->GetColumn2Label();
@@ -1413,7 +1445,7 @@ bool UDController::HasPixelPort(int port) const {
     return false;
 }
 
-bool UDController::IsValid(ControllerCaps* rules) const {
+bool UDController::IsValid() const {
 
     for (const auto& it : _pixelPorts) {
         if (!it.second->IsValid()) return false;
@@ -1504,7 +1536,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 it.second->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
             }
 
-            success &= it.second->Check(_controller, this, true, rules, res);
+            success &= it.second->Check(_controller, true, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort()) {
                 res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
@@ -1512,20 +1544,46 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             }
         }
 
+        int prevBlock{-1};
+        std::vector<std::string> smType;
         // try to detect errors with a mix of smart remote and non smart remote ports/models
         for (const auto& it : _pixelPorts) {
 
             int block = (it.first - 1) / 4;
+            
+            if (prevBlock != block) {
+                smType = std::vector<std::string>(rules->GetSmartRemoteCount(), "");
+                prevBlock = block;
+            }
 
             if (blocksAreSmart[block] > 0) {
                 if (it.second->AtLeastOneModelIsNotUsingSmartRemote()){
                     res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
                     success = false;
                 }
+
+                if (rules->AllSmartRemoteTypesPerPortMustBeSame()) {
+                    for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+                        if (smType[0].empty()) {
+                            smType[0] = it.second->GetSmartRemoteType(i + 1);
+                        } else if (it.second->GetSmartRemoteType(i + 1) != smType[0] && !it.second->GetSmartRemoteType(i + 1).empty()) {
+                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            success = false;
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+                        if (smType[i].empty()) {
+                            smType[i] = it.second->GetSmartRemoteType(i + 1);
+                        } else if (it.second->GetSmartRemoteType(i + 1) != smType[i] && !it.second->GetSmartRemoteType(i + 1).empty()) {
+                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            success = false;
+                        }
+                    }
+                }
             }
         }
-        
-        
+
         if(rules->AllSmartRemoteTypesPerPortMustBeSame()) {
             for (const auto& it : _pixelPorts) {
                 if (!it.second->AllSmartRemoteTypesSame()){
@@ -1694,7 +1752,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         success = false;
     } else {
         for (const auto& it : _serialPorts) {
-            success &= it.second->Check(_controller, this, false, rules, res);
+            success &= it.second->Check(_controller, false, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort()) {
                 res += wxString::Format("ERR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();

@@ -216,8 +216,7 @@ void DmxGeneral::ExportXlightsModel()
     f.Close();
 }
 
-void DmxGeneral::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void DmxGeneral::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     // We have already loaded gdtf properties
     if (EndsWith(filename, "gdtf")) return;
 

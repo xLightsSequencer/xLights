@@ -442,8 +442,7 @@ void MatrixModel::ExportXlightsModel()
     f.Close();
 }
 
-void MatrixModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void MatrixModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())

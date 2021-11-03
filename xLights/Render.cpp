@@ -80,8 +80,8 @@ public:
     SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
-    bool returnVal = true;
-    bool suppress = false;
+    bool returnVal{ true };
+    bool suppress{ false };
 };
 
 class NextRenderer {

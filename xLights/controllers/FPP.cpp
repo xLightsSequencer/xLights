@@ -1839,7 +1839,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         return false;
     }
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
     wxJSONValue origJson;
@@ -1900,7 +1900,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         return false;
     }
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     bool changed = false;
     wxJSONValue origJson;
@@ -2050,11 +2050,11 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
-    std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     if (cud.GetMaxSerialPort() == 0) {
         return false;
     }
+    std::string check;
     cud.Check(rules, check);
     cud.Dump();
 
@@ -2159,9 +2159,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
-
-    std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+        
+    UDController cud(controller, outputManager, allmodels, false);
 
     if (cud.GetMaxPixelPort() == 0 && cud.GetMaxSerialPort() == 0) {
         return false;
@@ -2170,6 +2169,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     if (fppFileName == "") {
         fppFileName = "co-bbbStrings";
     }
+    std::string check;
     cud.Check(rules, check);
     cud.Dump();
 

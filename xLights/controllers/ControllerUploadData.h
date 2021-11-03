@@ -98,7 +98,7 @@ public:
 
     void Dump() const;
 
-    bool Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const;
+    bool Check(Controller* controller, const ControllerCaps* rules, std::string& res) const;
     #pragma endregion
 };
 
@@ -213,12 +213,14 @@ class UDControllerPort
     std::string GetInvalidReason() const { return _invalidReason; }
     bool AtLeastOneModelIsUsingSmartRemote() const;
     bool AtLeastOneModelIsNotUsingSmartRemote() const;
-    bool AllSmartRemoteTypesSame() const;
+    [[nodiscard]] bool AllSmartRemoteTypesSame() const;
+    [[nodiscard]] bool AllSmartRemoteTypesSame(int smartRemote) const;
+    [[nodiscard]] std::string GetSmartRemoteType(int smartRemote) const;
 
     void SetSeparateUniverses(bool sep) { _separateUniverses = sep; }
 
     void Dump() const;
-    bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
+    bool Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const;
     [[nodiscard]] std::string ExportAsCSV(ExportSettings::SETTINGS const& settings) const;
     #pragma endregion
 };
@@ -250,7 +252,7 @@ class UDController
     static bool IsError(const std::string& check);
 
     #pragma region Constructors and Destructors
-    UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps);
+    UDController(Controller* controller, OutputManager* om, ModelManager* mm, bool eliminateOverlaps);
 	~UDController();
     void Rescan(bool eliminateOverlaps);
     #pragma endregion
@@ -282,7 +284,7 @@ class UDController
     bool SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame);
     bool ClearSmartRemoteOnAllModels();
 
-    bool IsValid(ControllerCaps* rules) const;
+    bool IsValid() const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
     [[nodiscard]] std::vector<std::string> ExportAsCSV(ExportSettings::SETTINGS const& settings);

@@ -473,15 +473,13 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     return lg;
 }
 
-void Model::Rename(std::string newName)
-{
+void Model::Rename(std::string const& newName) {
     name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
 }
 
-void Model::SetStartChannel(std::string startChannel)
-{
+void Model::SetStartChannel(std::string const& startChannel) {
     //wxASSERT(!StartsWith(startChannel, "!:"));
 
     if (startChannel == ModelXml->GetAttribute("StartChannel", "xyzzy_kw")) return;
@@ -497,8 +495,7 @@ void Model::SetStartChannel(std::string startChannel)
     IncrementChangeCount();
 }
 
-void Model::SetProperty(wxString property, wxString value, bool apply)
-{
+void Model::SetProperty(wxString const& property, wxString const& value, bool apply) {
     if (ModelXml->HasAttribute(property))
     {
         ModelXml->DeleteAttribute(property);
@@ -3152,8 +3149,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     return GetChannelInStartChannelFormat(outputManager, GetLastChannel() + 1);
 }
 
-std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, unsigned int channel)
-{
+std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel) {
     std::list<std::string> visitedModels;
     visitedModels.push_back(GetName());
 
@@ -6760,11 +6756,12 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
     return res;
 }
 
-bool Model::HasState(const std::string state) const
-{
+bool Model::HasState(std::string const& state) const {
     auto s = Lower(state);
     for (const auto& it : stateInfo) {
-        if (it.first == s) return true;
+        if (it.first == s) {
+            return true;
+        }
     }
     return false;
 }
@@ -6921,18 +6918,23 @@ bool Model::IsVirtualMatrixProtocol() const {
 
 std::vector<std::string> Model::GetSmartRemoteTypes() const {
     auto caps = GetControllerCaps();
-    if (caps == nullptr)
+    if (caps == nullptr) {
         return { "" };
+    }
     return caps->GetSmartRemoteTypes();
 }
 
 std::string Model::GetSmartRemoteType() const {
     auto types = GetSmartRemoteTypes();
-    if (types.size()==0) {
+    if (types.empty()) {
         return "";
     }
     std::string t = GetSmartRemoteTypes().front();
     wxString s = GetControllerConnection()->GetAttribute("SmartRemoteType", t);
+
+    if (std::find(types.begin(), types.end(), s) == types.end()) {
+        return t;
+    }
     return s;
 }
 

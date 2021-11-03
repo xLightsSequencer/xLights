@@ -1276,8 +1276,8 @@ ControllerEthernet* HinksPixExportDialog::getSlaveController(const std::string& 
 
 std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(ControllerEthernet* hinks, int32_t& chanCount) const {
     std::vector<HinksChannelMap> _modelMap;
-    std::string check;
-    UDController cud(hinks, m_outputManager, m_modelManager, check, false);
+
+    UDController cud(hinks, m_outputManager, m_modelManager, false);
     int32_t hinkstartChan = 1;
 
     //serial first
