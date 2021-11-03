@@ -14,6 +14,7 @@
 #include "../xSMSDaemon/Curl.h"
 #include "RemoteFalconApp.h"
 #include "../wxJSON/jsonreader.h"
+#include "RemoteFalconOptions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -25,12 +26,15 @@ class xSchedule
 	{
 		size_t size = 1024 * 1024; // 1MB ... surely that is enough ... and on the heap so should be ok
 		char* result = (char*)malloc(size);
-		std::wstring p(parameters.begin(), parameters.end());
-		__action(command.c_str(), (const wchar_t*)p.c_str(), data.c_str(), result, size);
-		result[size - 1] = 0x00; // force null termination
-		std::string s(result);
-		free(result);
-		return s;
+        if (result != nullptr) {
+            std::wstring p(parameters.begin(), parameters.end());
+            __action(command.c_str(), (const wchar_t*)p.c_str(), data.c_str(), result, size);
+            result[size - 1] = 0x00; // force null termination
+            std::string s(result);
+            free(result);
+            return s;
+        }
+        return "";
 	}
 
 public:
@@ -84,4 +88,15 @@ public:
 	{
 		return Action("Enqueue playlist step", playlist + "," + step);
 	}
+    static std::string PlayEffect(const std::string& playlist, const std::string& step, EFFECT_MODE mode) {
+		switch (mode) {
+        case EFFECT_MODE::EM_PLAY_IMMEDIATELY:
+            return Action("Run event playlist step unique", playlist + "," + step);
+        case EFFECT_MODE::EM_PLAY_IMMEDIATELY_LOOPED:
+            return Action("Run event playlist step unique looped", playlist + "," + step);
+        case EFFECT_MODE::EM_PLAY_ONLY_IF_IDLE:
+            return Action("Run event playlist step if idle", playlist + "," + step);
+        }
+        return "";
+    }
 };

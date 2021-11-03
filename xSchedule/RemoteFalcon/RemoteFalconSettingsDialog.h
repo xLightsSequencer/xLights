@@ -40,13 +40,16 @@ class RemoteFalconSettingsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_ClearQueue;
 		wxCheckBox* CheckBox_ImmediatelyInterrupt;
+		wxCheckBox* CheckBox_PlayAsOverlay;
 		wxCheckBox* CheckBox_SendEnableDisable;
 		wxCheckListBox* CheckListBox_Playlists;
+		wxChoice* Choice_OverlayEffectMode;
 		wxChoice* Choice_Playlists;
 		wxSpinCtrl* SpinCtrl_LeadTime;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText_Token;
 		wxTextCtrl* TextCtrl_Token;
 		//*)
@@ -61,6 +64,9 @@ class RemoteFalconSettingsDialog: public wxDialog
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
+		static const long ID_CHECKBOX4;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
@@ -82,6 +88,7 @@ class RemoteFalconSettingsDialog: public wxDialog
 		void OnTextCtrl_TokenText(wxCommandEvent& event);
 		void OnChoice_PlaylistsSelect(wxCommandEvent& event);
 		void OnCheckListBox_PlaylistsToggled(wxCommandEvent& event);
+		void OnCheckBox_PlayAsOverlayClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
