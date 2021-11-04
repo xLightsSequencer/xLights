@@ -38,7 +38,7 @@ xlEffectPanel *FanEffect::CreatePanel(wxWindow *parent) {
 
 
 int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                    DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
+                                    xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_Fan_Duration", 50);
     int num_colors = e->GetPalette().size();
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
@@ -54,19 +54,18 @@ int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int
     for(int i = 0; i < num_colors; i++ ) {
         int cx = x1 + (i*head_length);
         int cx1 = x_mid + (i*color_length);
-        if( i == (num_colors-1) ) // fix any roundoff error for last color
-        {
+        if (i == (num_colors-1)) { // fix any roundoff error for last color
             xlColor c1 = e->GetPalette()[i];
             c1.ApplyMask(colorMask);
-            backgrounds.AddHBlendedRectangle(c1, c1, cx, y1+1, x_mid, y2-1);
-            backgrounds.AddHBlendedRectangle(c1, c1, cx1, y1+4, x2, y2-4);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx, y1+1, x_mid, y2-1, c1, c1);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx1, y1+4, x2, y2-4, c1, c1);
         } else {
             xlColor c1 = e->GetPalette()[i];
             c1.ApplyMask(colorMask);
             xlColor c2 = e->GetPalette()[i + 1];
             c2.ApplyMask(colorMask);
-            backgrounds.AddHBlendedRectangle(c1, c2, cx, y1+1, cx+head_length, y2-1);
-            backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, cx1+color_length, y2-4);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx, y1+1, cx+head_length, y2-1, c1, c2);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx1, y1+4, cx1+color_length, y2-4, c1, c2);
         }
     }
     return 2;

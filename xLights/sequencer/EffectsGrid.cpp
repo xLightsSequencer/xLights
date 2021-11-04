@@ -5518,13 +5518,13 @@ void EffectsGrid::DrawLines() const
             if (isEvenLayer) {
                 //Element is collapsed only one row should be shaded
                 int h = e->GetCollapsed() ? DEFAULT_ROW_HEADING_HEIGHT : DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
-                va.AddRect(x1, y, x2, y + h);
+                va.AddRectAsTriangles(x1, y, x2, y + h);
             }
             isEvenLayer = !isEvenLayer;
         }
         else if (ri->strandIndex != -1) {
             if (isEvenLayer) {
-                va.AddRect(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT);
+                va.AddRectAsTriangles(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT);
             }
             isEvenLayer = !isEvenLayer;
         }
@@ -5685,7 +5685,7 @@ void EffectsGrid::DrawEffects()
                             // that wont work
                         }
                         else {
-                            backgrounds.AddRect(x, y1a, x2, y2a, colors[n]);
+                            backgrounds.AddRectAsTriangles(x, y1a, x2, y2a, colors[n]);
                         }
                     }
                     x = x2;
@@ -5811,7 +5811,7 @@ void EffectsGrid::DrawEffects()
                                 linesRight->AddVertex((x1 + x2) / 2.0 + sz, y);
                                 linesRight->AddVertex(x2, y);
 
-                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
+                                lines.AddRectAsLines(xl - 0.4, y - sz, xr + 0.4, y + sz);
                             }
                             else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
                                 linesLeft->AddVertex(x1, y);
@@ -5825,7 +5825,7 @@ void EffectsGrid::DrawEffects()
 
                                 textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y - sz, xr, y + sz);
 
-                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
+                                lines.AddRectAsLines(xl - 0.4, y - sz, xr + 0.4, y + sz);
                             }
                             else {
                                 linesCenter->AddVertex(x1, y);
@@ -5847,7 +5847,7 @@ void EffectsGrid::DrawEffects()
                     highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = TIMING_ALPHA;
-                selectedBoxes.AddRect(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
+                selectedBoxes.AddRectAsTriangles(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
                 mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
@@ -5920,8 +5920,8 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawG
             double pct = std::min(fadeInTimeMS / durationMS, 1.);
             int width = int(pct * (x2 - x1));
             inTransitionEnd = x1 + width;
-            backgrounds.AddRect(x1, y1, inTransitionEnd, y1 + 2, xlGREEN);
-            backgrounds.AddRect(x1, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+            backgrounds.AddRectAsTriangles(x1, y1, inTransitionEnd, y1 + 2, xlGREEN);
+            backgrounds.AddRectAsTriangles(x1, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
         }
     }
     double fadeOutTime = sm.GetDouble("T_TEXTCTRL_Fadeout");
@@ -5934,15 +5934,15 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawG
             double pct = std::min(fadeOutTimeMS / durationMS, 1.);
             int width = int(pct * (x2 - x1));
             outTransitionStart = x2 - width;
-            backgrounds.AddRect(outTransitionStart, y1, x2, y1 + 2, xlRED);
-            backgrounds.AddRect(outTransitionStart, y1 + 2, x2, y1 + 3, xlBLACK);
+            backgrounds.AddRectAsTriangles(outTransitionStart, y1, x2, y1 + 2, xlRED);
+            backgrounds.AddRectAsTriangles(outTransitionStart, y1 + 2, x2, y1 + 3, xlBLACK);
         }
     }
 
     if (fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart)
     {
-        backgrounds.AddRect(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
-        backgrounds.AddRect(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+        backgrounds.AddRectAsTriangles(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
+        backgrounds.AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
 }
 
@@ -6069,8 +6069,8 @@ void EffectsGrid::DrawTimingEffects(int row)
                     {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHONEMES);
                     }
-                    textBackgrounds.AddRect(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
-                    timingLines.AddLinesRect(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
+                    textBackgrounds.AddRectAsTriangles(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
+                    timingLines.AddRectAsLines(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
 
                     // trim the text to fit
                     auto name = eff->GetEffectName();

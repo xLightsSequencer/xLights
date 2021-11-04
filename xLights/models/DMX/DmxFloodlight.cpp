@@ -176,7 +176,7 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
 	float min_size = (float)(std::min(rh, rw));
 
     if (shutter_open) {
-        va.AddTrianglesCircle(sx, sy, min_size / 2.0f, beam_color, ecolor);
+        va.AddCircleAsTriangles(sx, sy, min_size / 2.0f, beam_color, ecolor);
         va.Finish(GL_TRIANGLES);
     }
 }
@@ -262,7 +262,7 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
 
     if (shutter_open) {
-        va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor, beam_length);
+        va.AddRotatedCircleAsTriangles(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor, beam_length);
         va.Finish(GL_TRIANGLES);
     }
 }

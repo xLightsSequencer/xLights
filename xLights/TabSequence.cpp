@@ -39,6 +39,8 @@
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"
 
+#include "xLightsVersion.h"
+
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
@@ -1424,7 +1426,7 @@ void xLightsFrame::SaveAsSequence()
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
-    SetTitle(xlights_base_name + " - " + NewFilename);
+    SetTitle(xlights_base_name + xlights_qualifier + " - " + NewFilename);
 }
 
 void xLightsFrame::RenderAll()

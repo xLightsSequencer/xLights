@@ -1017,6 +1017,8 @@
 		<Unit filename="graphics/opengl/DrawGLUtils31.cpp" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />
+		<Unit filename="graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="graphics/xlGraphicsBase.h" />
 		<Unit filename="graphics/xlGraphicsContext.h" />
 		<Unit filename="kiss_fft/kiss_fft.c">

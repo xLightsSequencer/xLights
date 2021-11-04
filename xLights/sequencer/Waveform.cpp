@@ -433,7 +433,7 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
         float x2 = translateOffset(selected_x2);
         color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
         color.SetAlpha(45);
-        xlGraphicsContext::xlVertexAccumulator *selection = ctx->createVertexAccumulator();
+        xlVertexAccumulator *selection = ctx->createVertexAccumulator();
         selection->PreAlloc(4);
         selection->AddVertex(x1, 1, 0);
         selection->AddVertex(x2, 1, 0);
@@ -457,8 +457,8 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
             float pixelOffset = translateOffset(mStartPixelOffset);
 
-            wv.background = std::unique_ptr<xlGraphicsContext::xlVertexAccumulator>(ctx->createVertexAccumulator());
-            wv.outline = std::unique_ptr<xlGraphicsContext::xlVertexAccumulator>(ctx->createVertexAccumulator());
+            wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+            wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
             wv.background->PreAlloc((mWindowWidth + 2) * 2);
             wv.outline->PreAlloc((mWindowWidth + 2) + 4);
 
@@ -491,12 +491,16 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
             wv.background->Finalize(false);
             wv.outline->Finalize(false);
         }
-        ctx->drawTriangleStrip(wv.background.get(), c);
-        ctx->drawLineStrip(wv.outline.get(), xlWHITE);
+        if (wv.background.get() && wv.background->getCount()) {
+            ctx->drawTriangleStrip(wv.background.get(), c);
+        }
+        if (wv.outline.get() && wv.outline->getCount()) {
+            ctx->drawLineStrip(wv.outline.get(), xlWHITE);
+        }
     }
 
 
-    xlGraphicsContext::xlVertexColorAccumulator *vac = ctx->createVertexColorAccumulator();
+    xlVertexColorAccumulator *vac = ctx->createVertexColorAccumulator();
     // draw selection line if not a range
     if (selected_x1 != -1 && selected_x2 == -1) {
         color.Set(0, 0, 0, 128);

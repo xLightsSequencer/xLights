@@ -37,8 +37,8 @@ xlEffectPanel *ShockwaveEffect::CreatePanel(wxWindow *parent) {
 }
 
 int ShockwaveEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                          DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
-    backgrounds.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2, colorMask);
+                                          xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
+    backgrounds.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, e->GetPalette());
     return 2;
 }
 

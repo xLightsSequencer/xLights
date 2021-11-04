@@ -1084,163 +1084,9 @@ void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint
     start = count;
 }
 
-void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor &color) {
-    // Line 1
-    float xs = x1<x2?x1:x2;
-    float xf = x1>x2?x1:x2;
-    for(float x = xs; x <= xf; x += 8)
-    {
-        AddVertex(x, y1, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y1, color);
-        AddVertex(x, y2, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y2, color);
-    }
-    // Line 2
-    int ys = y1<y2?y1:y2;
-    int yf = y1>y2?y1:y2;
-    for(int y=ys;y<=yf;y+=8)
-    {
-        AddVertex(x1, y, color);
-        AddVertex(x1, y + 4 < yf ? y + 4 : yf, color);
-        AddVertex(x2, y, color);
-        AddVertex(x2, y + 4 < yf ? y + 4 : yf, color);
-    }
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &color) {
-    // Line 1
-    float xs = x1<x2?x1:x2;
-    float xf = x1>x2?x1:x2;
-    for(float x = xs; x <= xf; x += 8)
-    {
-        AddVertex(x, y1, z1, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y1, z1, color);
-        AddVertex(x, y2, z2, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y2, z2, color);
-    }
-    // Line 2
-    int ys = y1<y2?y1:y2;
-    int yf = y1>y2?y1:y2;
-    for(int y=ys;y<=yf;y+=8)
-    {
-        AddVertex(x1, y, z1, color);
-        AddVertex(x1, y + 4 < yf ? y + 4 : yf, z1, color);
-        AddVertex(x2, y, z2, color);
-        AddVertex(x2, y + 4 < yf ? y + 4 : yf, z2, color);
-    }
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
-    xlColor start;
-    xlColor end;
-    int cnt = colors.size();
-    if (cnt == 0) {
-        return;
-    }
-    start = colors[0 + offset];
-    start.ApplyMask(colorMask);
-    if (cnt == 1) {
-        AddHBlendedRectangle(start, start, x1, y1, x2, y2);
-        return;
-    }
-    int xl = x1;
-    start = colors[0+offset];
-    start.ApplyMask(colorMask);
-    for (int x = 1+offset; x < cnt; x++) {
-        end =  colors[x];
-        end.ApplyMask(colorMask);
-        int xr = x1 + (x2 - x1) * x / (cnt  - 1);
-        if (x == (cnt - 1)) {
-            xr = x2;
-        }
-        AddHBlendedRectangle(start, end, xl, y1, xr, y2);
-        start = end;
-        xl = xr;
-    }
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2) {
-    AddVertex(x1, y1, left);
-    AddVertex(x1, y2, left);
-    AddVertex(x2, y2, right);
-    AddVertex(x2, y2, right);
-    AddVertex(x2, y1, right);
-    AddVertex(x1, y1, left);
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
-    AddTrianglesCircle(x, y, radius, color, color);
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color) {
-    AddTrianglesCircle(x, y, z, radius, color, color);
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
-    int num_segments = radius;
-    if (num_segments < 16) {
-        num_segments = 16;
-    }
-    PreAlloc(num_segments * 3);
-    float theta = 2 * 3.1415926 / float(num_segments);
-    float tangetial_factor = tanf(theta);//calculate the tangential factor
-    float radial_factor = cosf(theta);//calculate the radial factor
-
-    float x = radius;//we start at angle = 0
-    float y = 0;
-
-    for(int ii = 0; ii < num_segments; ii++) {
-        AddVertex(x + cx, y + cy, edge);
-        //calculate the tangential vector
-        //remember, the radial vector is (x, y)
-        //to get the tangential vector we flip those coordinates and negate one of them
-        float tx = -y;
-        float ty = x;
-
-        //add the tangential vector
-        x += tx * tangetial_factor;
-        y += ty * tangetial_factor;
-        x *= radial_factor;
-        y *= radial_factor;
-        AddVertex(x + cx, y + cy, edge);
-        AddVertex(cx, cy, center);
-    }
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
-    int num_segments = radius;
-    if (num_segments < 16) {
-        num_segments = 16;
-    }
-    PreAlloc(num_segments * 4);
-    float theta = 2 * 3.1415926 / float(num_segments);
-    float tangetial_factor = tanf(theta);//calculate the tangential factor
-    float radial_factor = cosf(theta);//calculate the radial factor
-
-    float x = radius;//we start at angle = 0
-    float y = 0;
-
-    for(int ii = 0; ii < num_segments; ii++) {
-        AddVertex(x + cx, y + cy, cz, edge);
-        //calculate the tangential vector
-        //remember, the radial vector is (x, y)
-        //to get the tangential vector we flip those coordinates and negate one of them
-        float tx = -y;
-        float ty = x;
-
-        //add the tangential vector
-        x += tx * tangetial_factor;
-        y += ty * tangetial_factor;
-        x *= radial_factor;
-        y *= radial_factor;
-        AddVertex(x + cx, y + cy, cz, edge);
-        AddVertex(cx, cy, cz, center);
-    }
-}
-
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float ocy, float ocz, float radius,
-                                                               const xlColor &center, const xlColor &edge,
-                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace) {
+void DrawGLUtils::xlVertexColorAccumulator::AddTranslatedCircleAsTriangles(float ocx, float ocy, float ocz, float radius,
+                                                                           const xlColor &center, const xlColor &edge,
+                                                                           std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -1295,7 +1141,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
     }
 }
 
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth)
+void DrawGLUtils::xlVertexColorAccumulator::AddRotatedCircleAsTriangles(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth)
 {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -1336,21 +1182,6 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
         position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         AddVertex(cx, cy, cz, center);
-    }
-}
-
-void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
-                                  float width, float height,
-                                  const DrawGLUtils::xlDisplayList & dl,
-                                  xlVertexColorAccumulator &bg) {
-    std::lock_guard<std::recursive_mutex> lock(dl.lock);
-    if (dl.empty()) {
-        return;
-    }
-    bg.PreAlloc(dl.size());
-    for (int idx = 0; idx < dl.size(); idx++) {
-        const DisplayListItem &item = dl[idx];
-        bg.AddVertex(xOffset + item.x * width, yOffset + item.y * height, item.color);
     }
 }
 

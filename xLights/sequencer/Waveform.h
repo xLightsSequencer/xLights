@@ -77,7 +77,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         virtual xlColor ClearBackgroundColor();
 
     protected:
-        xlGraphicsContext::xlVertexAccumulator *border = nullptr;
+        xlVertexAccumulator *border = nullptr;
 
         virtual bool UsesVertexTextureAccumulator() {return false;}
         virtual bool UsesVertexColorAccumulator() {return true;}
@@ -122,8 +122,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         public:
 
-            mutable std::unique_ptr<xlGraphicsContext::xlVertexAccumulator> background;
-            mutable std::unique_ptr<xlGraphicsContext::xlVertexAccumulator> outline;
+            mutable std::unique_ptr<xlVertexAccumulator> background;
+            mutable std::unique_ptr<xlVertexAccumulator> outline;
             mutable int lastRenderStart;
             mutable int lastRenderSize;
             std::vector<MINMAX> MinMaxs;

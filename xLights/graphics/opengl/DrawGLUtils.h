@@ -120,9 +120,9 @@ namespace DrawGLUtils
         }
     };
 
-    class xlVertexAccumulator : public xlGraphicsContext::xlVertexAccumulator, public xlVertexAccumulatorBase {
+    class xlVertexAccumulator : public ::xlVertexAccumulator, public xlVertexAccumulatorBase {
     public:
-        xlVertexAccumulator() : xlGraphicsContext::xlVertexAccumulator(), xlVertexAccumulatorBase() {}
+        xlVertexAccumulator() : ::xlVertexAccumulator(), xlVertexAccumulatorBase() {}
         virtual ~xlVertexAccumulator() {}
 
         virtual void Reset() override { if (!finalized) xlVertexAccumulatorBase::DoReset(); }
@@ -163,9 +163,9 @@ namespace DrawGLUtils
         }
         bool finalized = false;
     };
-    class xlVertexColorAccumulator : public xlGraphicsContext::xlVertexColorAccumulator, public xlVertexAccumulatorBase {
+    class xlVertexColorAccumulator : public ::xlVertexColorAccumulator, public xlVertexAccumulatorBase {
     public:
-        xlVertexColorAccumulator() : xlGraphicsContext::xlVertexColorAccumulator(), xlVertexAccumulatorBase()
+        xlVertexColorAccumulator() : ::xlVertexColorAccumulator(), xlVertexAccumulatorBase()
         {
             colors = (uint8_t*)malloc(_max * 4);
         }
@@ -270,46 +270,9 @@ namespace DrawGLUtils
         }
 
 
-        void AddRect(float x1, float y1, float x2, float y2, const xlColor& c)
-        {
-            AddRect(x1, y1, x2, y2, 0, c);
-        }
-        void AddLinesRect(float x1, float y1, float x2, float y2, const xlColor& c)
-        {
-            PreAlloc(8);
-            AddVertex(x1, y1, c);
-            AddVertex(x1, y2, c);
-            AddVertex(x2, y2, c);
-            AddVertex(x2, y1, c);
 
-            AddVertex(x1, y2, c);
-            AddVertex(x2, y2, c);
-            AddVertex(x2, y1, c);
-            AddVertex(x1, y1, c);
-        }
-        void AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor& c);
-        void AddHBlendedRectangle(const xlColorVector& colors, float x1, float y1, float x2, float y2, xlColor* colorMask, int offset = 0);
-        void AddHBlendedRectangle(const xlColor& left, const xlColor& right, float x1, float y1, float x2, float y2);
-        void AddTrianglesCircle(float x, float y, float radius, const xlColor& color);
-        void AddTrianglesCircle(float x, float y, float radius, const xlColor& center, const xlColor& edge);
-
-
-        void AddRect(float x1, float y1, float x2, float y2, float z1, const xlColor& c)
-        {
-            PreAlloc(6);
-            AddVertex(x1, y1, z1, c);
-            AddVertex(x1, y2, z1, c);
-            AddVertex(x2, y2, z1, c);
-            AddVertex(x2, y2, z1, c);
-            AddVertex(x2, y1, z1, c);
-            AddVertex(x1, y1, z1, c);
-        }
-        void AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor& c);
-        void AddTrianglesRotatedCircle(float x, float y, float z, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth = 0);
-
-        void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor& color);
-        void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor& center, const xlColor& edge);
-        void AddTrianglesCircle(float ox, float oy, float oz, float radius,
+        void AddRotatedCircleAsTriangles(float x, float y, float z, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth = 0);
+        void AddTranslatedCircleAsTriangles(float ox, float oy, float oz, float radius,
             const xlColor& center, const xlColor& edge,
             std::function<void(float& x, float& y, float& z)>&& translateFunction, bool replace = false);
 
@@ -640,25 +603,6 @@ namespace DrawGLUtils
     void LogGLError(const char* file, int line, const char* msg = nullptr);
     void SetupDebugLogging();
 
-    class DisplayListItem {
-    public:
-        DisplayListItem() : x(0.0), y(0.0) {};
-        xlColor color;
-        float x, y;
-    };
-    class xlDisplayList : public std::vector<DisplayListItem> {
-    public:
-        xlDisplayList() : iconSize(2) {};
-        int iconSize;
-        mutable std::recursive_mutex lock;
-
-        void LockedClear()
-        {
-            std::unique_lock<std::recursive_mutex> locker(lock);
-            clear();
-        }
-    };
-
 
     bool IsCoreProfile();
     int NextTextureIdx();
@@ -708,12 +652,6 @@ namespace DrawGLUtils
         float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0);
 
     void UpdateTexturePixel(GLuint texture, double x, double y, xlColor& color, bool hasAlpha);
-
-
-    void DrawDisplayList(float xOffset, float yOffset,
-        float width, float height,
-        const xlDisplayList& dl,
-        xlVertexColorAccumulator& bg);
 
     void DrawCube(double x, double y, double z, double width, const xlColor& color, xl3Accumulator& va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor& color, xl3Accumulator& va);

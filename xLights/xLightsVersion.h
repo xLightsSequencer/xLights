@@ -17,7 +17,11 @@
 #else
 static const wxString xlights_version_string  = "2021.35";
 #endif
+#ifdef DEBUG
+static const wxString xlights_qualifier       = " DEBUG";
+#else
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
+#endif
 static const wxString xlights_build_date      = "November 2, 2021";
 	
 const wxString &GetBitness();

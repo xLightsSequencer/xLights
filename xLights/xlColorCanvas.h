@@ -11,13 +11,13 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "graphics/opengl/xlGLCanvas.h"
+#include "graphics/xlGraphicsBase.h"
 #include "Color.h"
 
 wxDECLARE_EVENT(EVT_CP_SLIDER_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CP_PALETTE_CHANGED, wxCommandEvent);
 
-class xlColorCanvas : public xlGLCanvas
+class xlColorCanvas : public GRAPHICS_BASE_CLASS
 {
     public:
         xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
@@ -43,7 +43,6 @@ class xlColorCanvas : public xlGLCanvas
         virtual bool UsesVertexAccumulator() {return false;}
         virtual bool UsesAddVertex() {return true;}
     protected:
-        virtual void InitializeGLContext();
 
     private:
 
@@ -51,9 +50,9 @@ class xlColorCanvas : public xlGLCanvas
         void mouseDown(wxMouseEvent& event);
         void mouseReleased(wxMouseEvent& event);
         void render(wxPaintEvent& event);
-        void OnCanvasResize(wxSizeEvent& evt);
-        void DrawSlider();
-        void DrawPalette();
+        void render();
+        void DrawSlider(xlGraphicsContext *ctx);
+        void DrawPalette(xlGraphicsContext *ctx);
         void ProcessSliderClick(int row);
         void ProcessPaletteClick(int row, int column);
         int GetRGBColorFromRangeValue( int position, int range, int max_value, bool invert );
@@ -63,10 +62,7 @@ class xlColorCanvas : public xlGLCanvas
         bool mDragging = false;
         HSVValue mHSV;
         xlColor mRGB;
-        int iXrange = 1;
-        int iYrange = 1;
-        double dXrange = 1.0;
-        double dYrange = 1.0;
 
+        xlVertexColorAccumulator *background;
         DECLARE_EVENT_TABLE()
 };

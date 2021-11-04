@@ -908,6 +908,9 @@
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\xlGraphicsAccumulators.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1827,6 +1830,9 @@
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\xlGraphicsContext.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsAccumulators.h">
       <Filter>graphics</Filter>
     </ClInclude>
   </ItemGroup>

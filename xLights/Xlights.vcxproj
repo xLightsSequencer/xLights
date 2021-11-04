@@ -275,6 +275,7 @@
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -709,6 +710,7 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
+    <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
     <ClInclude Include="graphics\xlGraphicsBase.h" />
     <ClInclude Include="graphics\xlGraphicsContext.h" />
     <ClInclude Include="HousePreviewPanel.h" />

@@ -673,10 +673,10 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAcc
     va.AddVertex(p16m.x, p16m.y, ccolor);
 
     // Draw Eyes
-    va.AddTrianglesCircle(left_eye_socket.x, left_eye_socket.y, scale*sf*0.25, black, black);
-    va.AddTrianglesCircle(right_eye_socket.x, right_eye_socket.y, scale*sf*0.25, black, black);
-    va.AddTrianglesCircle(left_eye.x, left_eye.y, scale*sf*0.10, eye_color, eye_color);
-    va.AddTrianglesCircle(right_eye.x, right_eye.y, scale*sf*0.10, eye_color, eye_color);
+    va.AddCircleAsTriangles(left_eye_socket.x, left_eye_socket.y, scale*sf*0.25, black, black);
+    va.AddCircleAsTriangles(right_eye_socket.x, right_eye_socket.y, scale*sf*0.25, black, black);
+    va.AddCircleAsTriangles(left_eye.x, left_eye.y, scale*sf*0.10, eye_color, eye_color);
+    va.AddCircleAsTriangles(right_eye.x, right_eye.y, scale*sf*0.10, eye_color, eye_color);
 
     va.Finish(GL_TRIANGLES);
 }
@@ -979,10 +979,10 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Ac
     va.AddVertex(p16m.x, p16m.y, p16m.z, ccolor);
 
     // Draw Eyes
-    va.AddTrianglesCircle(left_eye_socket.x, left_eye_socket.y, left_eye_socket.z, scale*sf*0.25, black, black);
-    va.AddTrianglesCircle(right_eye_socket.x, right_eye_socket.y, right_eye_socket.z, scale*sf*0.25, black, black);
-    va.AddTrianglesCircle(left_eye.x, left_eye.y, left_eye.z, scale*sf*0.10, eye_color, eye_color);
-    va.AddTrianglesCircle(right_eye.x, right_eye.y, right_eye.z, scale*sf*0.10, eye_color, eye_color);
+    va.AddCircleAsTriangles(left_eye_socket.x, left_eye_socket.y, left_eye_socket.z, scale*sf*0.25, black, black);
+    va.AddCircleAsTriangles(right_eye_socket.x, right_eye_socket.y, right_eye_socket.z, scale*sf*0.25, black, black);
+    va.AddCircleAsTriangles(left_eye.x, left_eye.y, left_eye.z, scale*sf*0.10, eye_color, eye_color);
+    va.AddCircleAsTriangles(right_eye.x, right_eye.y, right_eye.z, scale*sf*0.10, eye_color, eye_color);
 
     va.Finish(GL_TRIANGLES);
 }

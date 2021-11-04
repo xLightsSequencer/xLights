@@ -1179,7 +1179,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             currentPixelScaleFactor = scale2d;
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         }
-        solidAccumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        solidAccumulator.AddRectAsTriangles(0, 0, virtualWidth, virtualHeight, xlBLACK);
         solidAccumulator.Finish(GL_TRIANGLES);
         AddGridToAccumulator(ViewScale);
     } else {
@@ -1262,9 +1262,9 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         if (_center2D0) {
             float x = -virtualWidth;
             x /= 2.0f;
-            transparentAccumulator.AddLinesRect(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+            transparentAccumulator.AddRectAsLines(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
         } else {
-            transparentAccumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+            transparentAccumulator.AddRectAsLines(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
         }
         transparentAccumulator.Finish(GL_LINES);
     }
@@ -1343,8 +1343,8 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 }
 
 void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
-    solidAccumulator.AddDottedLinesRect(x1, y1, x2, y2,
-                                       ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    solidAccumulator.AddRectAsDashedLines(x1, y1, x2, y2, mapLogicalToAbsolute(8),
+                                          ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
     solidAccumulator.Finish(GL_LINES);
 }
 

@@ -1351,7 +1351,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += -BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw /2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw /2), sy + (hw / 2), handleColor);
     mHandlePosition[L_TOP_HANDLE].x = sx;
     mHandlePosition[L_TOP_HANDLE].y = sy;
     mHandlePosition[L_TOP_HANDLE].z = sz;
@@ -1362,7 +1362,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
     mHandlePosition[R_TOP_HANDLE].x = sx;
     mHandlePosition[R_TOP_HANDLE].y = sy;
     mHandlePosition[R_TOP_HANDLE].z = sz;
@@ -1373,7 +1373,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
     mHandlePosition[R_BOT_HANDLE].x = sx;
     mHandlePosition[R_BOT_HANDLE].y = sy;
     mHandlePosition[R_BOT_HANDLE].z = sz;
@@ -1384,7 +1384,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += -BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
     mHandlePosition[L_BOT_HANDLE].x = sx;
     mHandlePosition[L_BOT_HANDLE].y = sy;
     mHandlePosition[L_BOT_HANDLE].z = sz;
@@ -1394,7 +1394,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     sy = RenderHt / 2 + (50/scaley);
     sz = 0.0f;
     TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
     // Save rotate handle
     mHandlePosition[ROTATE_HANDLE].x = sx;
     mHandlePosition[ROTATE_HANDLE].y = sy;
@@ -2362,7 +2362,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float z
     float sz = worldPos_z;
     //TranslatePoint(sx, sy, sz);
     float hw = GetRectHandleWidth(zoom, scale);
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), xlGREENTRANSLUCENT);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), xlGREENTRANSLUCENT);
     mHandlePosition[START_HANDLE].x = sx;
     mHandlePosition[START_HANDLE].y = sy;
     mHandlePosition[START_HANDLE].z = sz;
@@ -2371,7 +2371,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float z
     sy = point2.y;
     sz = point2.z;
     //TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
+    va.AddRectAsTriangles(sx - (hw / 2), sy - (hw / 2), sx + (hw / 2), sy + (hw / 2), handleColor);
     mHandlePosition[END_HANDLE].x = sx;
     mHandlePosition[END_HANDLE].y = sy;
     mHandlePosition[END_HANDLE].z = sz;
@@ -2388,12 +2388,10 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
         if (handle == CENTER_HANDLE) {
             saved_position = center;
             saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        }
-        else if (handle == END_HANDLE) {
+        } else if (handle == END_HANDLE) {
             saved_position = point2;
             saved_point = glm::vec3(x2, y2, z2);
-        }
-        else {
+        } else {
             saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             saved_point = glm::vec3(x2, y2, z2);
         }
@@ -3602,7 +3600,7 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float
         handleColor = xlREDTRANSLUCENT;
     }
     float hw = GetRectHandleWidth(zoom, scale);
-    va.AddRect(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
+    va.AddRectAsTriangles(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
     va.Finish(GL_TRIANGLES);
     mHandlePosition[SHEAR_HANDLE].x = sx;
     mHandlePosition[SHEAR_HANDLE].y = sy;
@@ -4943,10 +4941,10 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator& va, float 
     if (_locked) {
         handleColor = xlREDTRANSLUCENT;
     }
-    va.AddRect(x1, y1, x1 + hw, y1 + hw, handleColor);
-    va.AddRect(x1, y2, x1 + hw, y2 + hw, handleColor);
-    va.AddRect(x2, y1, x2 + hw, y1 + hw, handleColor);
-    va.AddRect(x2, y2, x2 + hw, y2 + hw, handleColor);
+    va.AddRectAsTriangles(x1, y1, x1 + hw, y1 + hw, handleColor);
+    va.AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);
+    va.AddRectAsTriangles(x2, y1, x2 + hw, y1 + hw, handleColor);
+    va.AddRectAsTriangles(x2, y2, x2 + hw, y2 + hw, handleColor);
     while (mHandlePosition.size() < num_points + 5) // not sure this is the best way to do this but it stops a crash
     {
         xlPoint pt;
@@ -5019,7 +5017,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator& va, float 
         float sx = mPos[i].x * scalex + worldPos_x - hw / 2;
         float sy = mPos[i].y * scaley + worldPos_y - hw / 2;
         float sz = mPos[i].z * scalez + worldPos_z - hw / 2;
-        va.AddRect(sx, sy, sx + hw, sy + hw, i == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
+        va.AddRectAsTriangles(sx, sy, sx + hw, sy + hw, i == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
         int hpos = i + 1;
         mHandlePosition[hpos].x = sx;
         mHandlePosition[hpos].y = sy;
@@ -5036,7 +5034,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator& va, float 
             sx = mPos[i + 1].x * scalex + worldPos_x - hw / 2;
             sy = mPos[i + 1].y * scaley + worldPos_y - hw / 2;
             sz = mPos[i + 1].z * scalez + worldPos_z - hw / 2;
-            va.AddRect(sx, sy, sx + hw, sy + hw, i + 1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
+            va.AddRectAsTriangles(sx, sy, sx + hw, sy + hw, i + 1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
             hpos++;
             mHandlePosition[hpos].x = sx;
             mHandlePosition[hpos].y = sy;
@@ -5057,14 +5055,14 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator& va, float 
             float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
             float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
-            va.AddRect(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
+            va.AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
             mPos[i].cp0.x = mPos[i].curve->get_cp0x();
             mPos[i].cp0.y = mPos[i].curve->get_cp0y();
             mPos[i].cp0.z = mPos[i].curve->get_cp0z();
             cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - hw / 2;
             cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - hw / 2;
             cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - hw / 2;
-            va.AddRect(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
+            va.AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
             mPos[i].cp1.x = mPos[i].curve->get_cp1x();
             mPos[i].cp1.y = mPos[i].curve->get_cp1y();
             mPos[i].cp1.z = mPos[i].curve->get_cp1z();

@@ -40,8 +40,8 @@ class DimmingCurvePanel : public GRAPHICS_BASE_CLASS
         DimmingCurve *curve;
         int channel;
 
-        xlGraphicsContext::xlVertexAccumulator *boxVertices;
-        xlGraphicsContext::xlVertexAccumulator *curveVertices;
+        xlVertexAccumulator *boxVertices;
+        xlVertexAccumulator *curveVertices;
 
     DECLARE_EVENT_TABLE()
 };

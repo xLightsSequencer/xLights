@@ -41,7 +41,7 @@ xlMetalGraphicsContext::~xlMetalGraphicsContext() {
 
 
 
-class xlMetalVertexAccumulator : public xlGraphicsContext::xlVertexAccumulator {
+class xlMetalVertexAccumulator : public xlVertexAccumulator {
 public:
     xlMetalVertexAccumulator() {}
     virtual ~xlMetalVertexAccumulator() {
@@ -115,7 +115,7 @@ public:
 
 
 
-class xlMetalVertexColorAccumulator : public xlGraphicsContext::xlVertexColorAccumulator {
+class xlMetalVertexColorAccumulator : public xlVertexColorAccumulator {
 public:
     xlMetalVertexColorAccumulator() {}
     virtual ~xlMetalVertexColorAccumulator() {
@@ -239,9 +239,9 @@ public:
     id<MTLBuffer> cbuffer = nil;
 };
 
-class xlMetalTexture : public xlGraphicsContext::xlTexture {
+class xlMetalTexture : public xlTexture {
 public:
-    xlMetalTexture() : xlGraphicsContext::xlTexture(), texture(nil) {
+    xlMetalTexture() : xlTexture(), texture(nil) {
     }
     virtual ~xlMetalTexture() {
         if (texture) {
@@ -253,10 +253,10 @@ public:
 };
 
 
-xlGraphicsContext::xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
+xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
     return new xlMetalVertexAccumulator();
 }
-xlGraphicsContext::xlVertexColorAccumulator *xlMetalGraphicsContext::createVertexColorAccumulator() {
+xlVertexColorAccumulator *xlMetalGraphicsContext::createVertexColorAccumulator() {
     return new xlMetalVertexColorAccumulator();
 }
 
@@ -278,14 +278,14 @@ static void getImageBytes(const wxImage &img, uint8_t *bytes) {
         }
     }
 }
-xlGraphicsContext::xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) {
+xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) {
     std::vector<wxImage> images;
     for (auto &a : bitmaps) {
         images.push_back(a.ConvertToImage());
     }
     return createTextureMipMaps(images);
 }
-xlGraphicsContext::xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images) {
+xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images) {
     xlMetalTexture *txt = new xlMetalTexture();
 
     @autoreleasepool {
@@ -317,7 +317,7 @@ xlGraphicsContext::xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const
     }
     return txt;
 }
-xlGraphicsContext::xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
+xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
     xlMetalTexture *txt = new xlMetalTexture();
 
     @autoreleasepool {
@@ -342,10 +342,10 @@ xlGraphicsContext::xlTexture *xlMetalGraphicsContext::createTexture(const wxImag
 }
 
 //drawing methods
-void xlMetalGraphicsContext::drawLines(xlGraphicsContext::xlVertexAccumulator *vac, const xlColor &c) {
+void xlMetalGraphicsContext::drawLines(xlVertexAccumulator *vac, const xlColor &c) {
     drawPrimitive(MTLPrimitiveTypeLine, vac, c);
 }
-void xlMetalGraphicsContext::drawLineStrip(xlGraphicsContext::xlVertexAccumulator *vac, const xlColor &c) {
+void xlMetalGraphicsContext::drawLineStrip(xlVertexAccumulator *vac, const xlColor &c) {
     drawPrimitive(MTLPrimitiveTypeLineStrip, vac, c);
 }
 void xlMetalGraphicsContext::drawTriangles(xlVertexAccumulator *vac, const xlColor &c) {
@@ -371,10 +371,10 @@ void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumu
     frameDataChanged = false;
     [encoder drawPrimitives:type vertexStart:0 vertexCount:vac->getCount()];
 }
-void xlMetalGraphicsContext::drawLines(xlGraphicsContext::xlVertexColorAccumulator *vac) {
+void xlMetalGraphicsContext::drawLines(xlVertexColorAccumulator *vac) {
     drawPrimitive(MTLPrimitiveTypeLine, vac);
 }
-void xlMetalGraphicsContext::drawLineStrip(xlGraphicsContext::xlVertexColorAccumulator *vac) {
+void xlMetalGraphicsContext::drawLineStrip(xlVertexColorAccumulator *vac) {
     drawPrimitive(MTLPrimitiveTypeLineStrip, vac);
 }
 void xlMetalGraphicsContext::drawTriangles(xlVertexColorAccumulator *vac) {
@@ -411,6 +411,9 @@ void xlMetalGraphicsContext::drawTexture(xlTexture *texture,
     va.AddVertex(x2, y2, 0);
 
     std::string name = blending ? "textureProgramBlend" : "textureProgram";
+    if (!linearScale) {
+        name += "Nearest";
+    }
     setPipelineState(name, "textureVertexShader", linearScale ? "textureFragmentShader" : "textureNearestFragmentShader");
     va.SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
 

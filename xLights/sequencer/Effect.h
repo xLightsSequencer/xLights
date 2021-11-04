@@ -18,7 +18,7 @@
 
 #include "../ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
-#include "../graphics/opengl/DrawGLUtils.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../Color.h"
 
 class EffectLayer;
@@ -54,7 +54,7 @@ class Effect
     SettingsMap mPaletteMap;
     xlColorVector mColors;
     xlColorCurveVector mCC;
-    DrawGLUtils::xlDisplayList background;
+    xlDisplayList background;
     RenderCacheItem *mCache = nullptr;
     wxLongLong _timeToDelete = 0;
 
@@ -134,8 +134,8 @@ public:
     SettingsMap &GetPaletteMap() { return mPaletteMap; }
     void PaletteMapUpdated();
 
-    DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() { return background; }
-    const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const { return background; }
+    xlDisplayList &GetBackgroundDisplayList() { return background; }
+    const xlDisplayList &GetBackgroundDisplayList() const { return background; }
     bool HasBackgroundDisplayList() const {
         std::lock_guard<std::recursive_mutex> lock(background.lock);
         return !background.empty();

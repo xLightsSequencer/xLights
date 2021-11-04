@@ -90,9 +90,9 @@ AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl
 }
 
 int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                           DrawGLUtils::xlAccumulator &background, xlColor* colorMask, bool ramps) {
+                                           xlVertexColorAccumulator &background, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {
-        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), background);
+        e->GetBackgroundDisplayList().addToAccumulator(x1, y1, x2-x1, y2-y1, background);
         return e->GetBackgroundDisplayList().iconSize;
     }
     return 1;

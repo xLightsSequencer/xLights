@@ -4840,7 +4840,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 } else {
                     ecolor.alpha = 0;
                 }
-                va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
+                va.AddCircleAsTriangles(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
             }
         }
     }
@@ -4987,7 +4987,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 } else {
                     ecolor.alpha = 0;
                 }
-                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
+                va.AddTranslatedCircleAsTriangles(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
                                       [this](float &x, float &y, float &z) {
                                           GetModelScreenLocation().TranslatePoint(x, y, z);
                                       }, replaceVertices);
@@ -5288,7 +5288,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     } else {
                         ecolor.alpha = 0;
                     }
-                    va.AddTrianglesCircle((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
+                    va.AddCircleAsTriangles((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
                 }
             }
         }
