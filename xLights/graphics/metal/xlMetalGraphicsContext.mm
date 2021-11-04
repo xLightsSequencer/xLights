@@ -249,6 +249,22 @@ public:
         }
     }
 
+    virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) override {
+        uint8_t bytes[4];
+        bytes[0] = c.red;
+        bytes[1] = c.green;
+        bytes[2] = c.blue;
+        if (copyAlpha) {
+            bytes[3] = c.alpha;
+        } else {
+            bytes[3] = 255;
+        }
+
+        MTLRegion region = MTLRegionMake2D(x, y, 1, 1);
+        [texture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:4];
+    }
+
+
     id<MTLTexture> texture;
 };
 

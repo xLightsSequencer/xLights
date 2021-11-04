@@ -16,44 +16,44 @@ Image::Image() : ID(0)
 {
 }
 
-Image::Image(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
+Image::Image(const wxString &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
 {
     load(path, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
 
-Image::Image(wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
+Image::Image(const wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
 {
     load(img, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
 
-void Image::load(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
+void Image::load(const wxString &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
 {
     wxImage img(path);
     load(img, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
-
+void Image::load(const wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
+{
+    wxImage cp = img;
+    load(cp, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
+}
 void Image::load(wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
 {
     mAlpha = img.HasAlpha();
-
-    if (!mAlpha && whiteIsAlphaIfNoAlpha)
-    {
+    bool scaledW, scaledH;
+    if (!mAlpha && whiteIsAlphaIfNoAlpha) {
         img.InitAlpha();
-        for (int x = 0; x < img.GetWidth(); x++)
-        {
-            for (int y = 0; y < img.GetHeight(); y++)
-            {
+        for (int x = 0; x < img.GetWidth(); x++) {
+            for (int y = 0; y < img.GetHeight(); y++) {
                 int r = img.GetRed(x,y);
-                if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y))
-                {
+                if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
                     img.SetAlpha(x, y, r);
                 }
             }
         }
     }
-
-    bool scaledW, scaledH;
     ID = loadImage(&img, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha, useForcePowerOfTwo);
+
+
     if (scaledW) {
         tex_coord_x = 1.0;
     } else {

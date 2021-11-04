@@ -9,18 +9,17 @@
  **************************************************************/
 
 #include "xlGridCanvas.h"
-#include "graphics/opengl/DrawGLUtils.h"
+#include "graphics/xlGraphicsBase.h"
 #include "models/Model.h"
 
-BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)
+BEGIN_EVENT_TABLE(xlGridCanvas, GRAPHICS_BASE_CLASS)
 END_EVENT_TABLE()
 
 xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name),
+    : GRAPHICS_BASE_CLASS(parent, id, pos, size, style, name),
       mEffect(nullptr),
       mModel(nullptr),
       mGridlineColor(new xlColor(0,153,153)),
-      mCellSize(20),
       mColumns(0),
       mRows(0),
       mDragging(false)
@@ -34,84 +33,126 @@ xlGridCanvas::~xlGridCanvas()
 
 void xlGridCanvas::AdjustSize(wxSize& parent_size)
 {
+    float w = parent_size.GetWidth() - 15.0f;
+    float h = parent_size.GetHeight() - 15.0f;
+
+    float cell_height = (h - 10.0) / (float)mRows;
+    float cell_width = (w - 10.0) / (float)mColumns;
+    float cellSize = std::min(cell_height, cell_width);
+
+
     wxSize grid_size;
-    grid_size.SetWidth(parent_size.GetWidth()-10);
-    grid_size.SetHeight(parent_size.GetHeight()-10);
-    int cell_height = grid_size.GetHeight() / (mRows + 2);
-    int cell_width = grid_size.GetWidth() / (mColumns + 2);
-    mCellSize = std::min( cell_height, cell_width );
-    grid_size.SetWidth(mCellSize*(mColumns+2));
-    grid_size.SetHeight(mCellSize*(mRows+2));
+    w = cellSize * mColumns + 10;
+    h = cellSize * mRows + 10;
+    grid_size.SetWidth(std::max((int)w, 12));
+    grid_size.SetHeight(std::max((int)h, 12));
     SetMinSize(grid_size);
     SetSize(grid_size);
 }
+float xlGridCanvas::getCellSize(bool logical) const {
+    if (drawingUsingLogicalSize() || !logical) {
+        // mWindow* are in absolute pixels
+        float cell_height = float(mWindowHeight - mapLogicalToAbsolute(10.0f)) / (float)mRows ;
+        float cell_width = float(mWindowWidth - mapLogicalToAbsolute(10.0f)) / (float)mColumns;
+        return std::min(cell_height, cell_width);
+    }
 
-int xlGridCanvas::GetRowCenter(int percent)
-{
-    int row = calcCellFromPercent(percent, mRows);
-    return ((mRows-row-1)* mCellSize) + (1.5 * mCellSize);
+    float cell_height = float(float(mWindowHeight)/GetContentScaleFactor() - 10.0f) / (float)mRows ;
+    float cell_width = float(float(mWindowWidth)/GetContentScaleFactor() - 10.0f) / (float)mRows ;
+    return std::min(cell_height, cell_width);
 }
 
-int xlGridCanvas::GetColumnCenter(int percent)
+float xlGridCanvas::calcCellFromPercent(int value, int base) const
 {
-    int col = calcCellFromPercent(percent, mColumns);
-    return (col * mCellSize) + (1.5 * mCellSize);
+    if (value == 100) return (base - 1);
+    float band = 100.0 / (float)base;
+    return ((float)value / band);
+}
+float xlGridCanvas::GetRowCenter(int percent, bool logical)
+{
+    float row = calcCellFromPercent(percent, mRows) + 0.5;
+    return ((mRows - row) * getCellSize(logical)) + (logical ? 5.0 : mapLogicalToAbsolute(5.0));
+}
+float xlGridCanvas::GetColumnCenter(int percent, bool logical)
+{
+    float col = calcCellFromPercent(percent, mColumns) + 0.5;
+    return (col * getCellSize(logical)) + (logical ? 5.0 : mapLogicalToAbsolute(5.0));
 }
 
-int xlGridCanvas::GetCellFromPosition(int position) const
+int xlGridCanvas::GetCellFromPosition(int position, bool logical) const
 {
-    return (position / mCellSize) - 1;
+    float offset = (logical ? 5.0 : mapLogicalToAbsolute(5.0));
+    float p = ((float)position) - offset;
+    if (p < 0) {
+        p = 0;
+    }
+    float result = (p / getCellSize());
+    return result;
 }
-
-int xlGridCanvas::SetRowCenter(int position)
+int xlGridCanvas::SetRowCenter(int position, bool logical)
 {
-    int row = GetCellFromPosition(position);
+    int row = GetCellFromPosition(position, logical);
     row = mRows - row - 1;
-    return calcPercentFromCell(row, mRows);
-}
-
-int xlGridCanvas::SetColumnCenter(int position)
-{
-    int col = GetCellFromPosition(position);
-    return calcPercentFromCell(col, mColumns);
-}
-
-int xlGridCanvas::calcCellFromPercent(int value, int base) const
-{
-    if( value == 100 ) return (base - 1);
-    double band = 100.0 / (double)base;
-    return (int)((double)value / band);
-}
-
-int xlGridCanvas::calcPercentFromCell(int value, int base) const
-{
-    if( value == 0 ) return 0;
-    if( value == base-1 ) return 100;
-    double band = 100.0 / (double)base;
-    return (int)(((double)value + 0.5) * band);
-}
-
-void xlGridCanvas::DrawBaseGrid()
-{
-    //*mGridlineColor = xlCYAN;
-    DrawGLUtils::xlVertexAccumulator va;
-    
-    int height = mCellSize * mRows;
-    int width = mCellSize * mColumns;
-    va.PreAlloc((mRows + mColumns + 2) * 2);
-    for(int row = 0; row <= mRows; row++ )
-    {
-        int y = mCellSize*(row+1);
-        va.AddVertex(mCellSize, y);
-        va.AddVertex(width+mCellSize,y);
+    float p = calcPercentFromCell(row, mRows, logical);
+    if (mRows >= 100) {
+        return std::round(p);
     }
-    for(int col = 0; col <= mColumns; col++ )
-    {
-        int x = mCellSize*(col+1);
-        va.AddVertex(x,mCellSize);
-        va.AddVertex(x,height+mCellSize);
+    return std::ceil(p);
+}
+int xlGridCanvas::SetColumnCenter(int position, bool logical)
+{
+    int col = GetCellFromPosition(position, logical);
+    float p = calcPercentFromCell(col, mColumns, logical);
+    if (mColumns >= 100) {
+        return std::round(p);
     }
-    DrawGLUtils::SetLineWidth(0.5);
-    DrawGLUtils::Draw(va, *mGridlineColor, GL_LINES, GL_BLEND);
+    return std::ceil(p);
+}
+
+
+float xlGridCanvas::calcPercentFromCell(int value, int base, bool logical) const
+{
+    if (value <= 0) return 0;
+    if (value >= (base-1)) return 100;
+    if (base == 1) return 100;
+
+    float f = 100.f / ((float)base);
+    f *= value;
+    return f;
+}
+
+void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
+{
+    auto *va = ctx->createVertexAccumulator();
+
+    float cellSize = getCellSize();
+    float height = cellSize * mRows;
+    float width = cellSize * mColumns;
+    float inset = mapLogicalToAbsolute(5.0) + 0.25;
+    va->PreAlloc((mRows + mColumns + 2) * 2 * 3);
+
+    //use triangles as lines on retina displays are VERY thin, almost invisible
+    float lwidth = mapLogicalToAbsolute(0.8);
+    for (int row = 0; row <= mRows; row++ ) {
+        float y = std::round(cellSize * row + inset) - lwidth / 2.0;
+        va->AddVertex(inset, y);
+        va->AddVertex(inset + width, y);
+        va->AddVertex(inset, y + lwidth);
+        va->AddVertex(inset + width, y);
+        va->AddVertex(inset, y + lwidth);
+        va->AddVertex(inset + width, y + lwidth);
+    }
+    for(int col = 0; col <= mColumns; col++ ) {
+        float x = std::round(cellSize * col + inset) - lwidth / 2.0;
+        va->AddVertex(x, inset);
+        va->AddVertex(x, inset + height);
+        va->AddVertex(x + lwidth, inset);
+        va->AddVertex(x, inset + height);
+        va->AddVertex(x + lwidth, inset);
+        va->AddVertex(x + lwidth, inset + height);
+    }
+
+    ctx->drawTriangles(va, *mGridlineColor);
+    delete va;
 }
 

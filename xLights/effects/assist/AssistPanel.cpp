@@ -197,9 +197,8 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
                 case 'c':
                 case 'C':
                 case WXK_CONTROL_C:
-                    if (event.CmdDown() || event.ControlDown()) {
-                       	if( mGridCanvas != nullptr )
-                        {
+                    if (event.CmdDown() || event.ControlDown() || event.RawControlDown()) {
+                       	if (mGridCanvas != nullptr) {
                             mGridCanvas->Copy();
                         }
                         event.StopPropagation();
@@ -208,29 +207,29 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
                 case 'v':
                 case 'V':
                 case WXK_CONTROL_V:
-                    if (event.CmdDown() || event.ControlDown()) {
-                       	if( mGridCanvas != nullptr )
-                        {
+                    if (event.CmdDown() || event.ControlDown() || event.RawControlDown()) {
+                       	if (mGridCanvas != nullptr) {
                             mGridCanvas->Paste();
                         }
                         event.StopPropagation();
                     }
                     break;
+                case WXK_ESCAPE:
+                    if (mGridCanvas != nullptr) {
+                        mGridCanvas->Cancel();
+                    }
+                    event.StopPropagation();
+                    break;
 #ifdef __WXMSW__
 				case WXK_INSERT:
 				case WXK_NUMPAD_INSERT:
-					if (event.ControlDown()) // Copy
-					{
-						if (mGridCanvas != nullptr)
-						{
+                    if (event.ControlDown()) { // Copy
+                        if (mGridCanvas != nullptr) {
 							mGridCanvas->Copy();
 						}
 						event.StopPropagation();
-					}
-					else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
-					{
-						if (mGridCanvas != nullptr)
-						{
+                    } else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) { // Paste
+                        if (mGridCanvas != nullptr) {
 							mGridCanvas->Paste();
 						}
 						event.StopPropagation();

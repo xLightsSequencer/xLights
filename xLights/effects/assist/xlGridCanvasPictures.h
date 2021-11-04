@@ -13,8 +13,6 @@
 #include "wx/wx.h"
 #include "../../xlGridCanvas.h"
 #include "../../sequencer/Effect.h"
-#include "../../Image.h"
-#include "../../XlightsDrawable.h"
 
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);
@@ -38,7 +36,6 @@ class xlGridCanvasPictures : public xlGridCanvas
         virtual ~xlGridCanvasPictures();
 
         virtual void SetEffect(Effect* effect_);
-        virtual void ForceRefresh();
         void SetMessageParent(wxWindow* parent) { mMessageParent = parent; }
         void LoadImage();
         void SaveImage();
@@ -46,12 +43,11 @@ class xlGridCanvasPictures : public xlGridCanvas
         void ResizeImage();
         virtual void Copy();
         virtual void Paste();
+        virtual void Cancel();
+
         void CreateNewImage(wxString& image_dir);
         void SetPaintColor( xlColor& color ) { mPaintColor = color; }
-        void SetPaintMode( PaintMode mode ) { mPaintMode = mode; Refresh(false); }
-
-    protected:
-        virtual void InitializeGLContext();
+        void SetPaintMode( PaintMode mode ) { mPaintMode = mode; render(); }
 
     private:
 
@@ -72,8 +68,9 @@ class xlGridCanvasPictures : public xlGridCanvas
         void mouseRightUp(wxMouseEvent& event);
         void mouseUp();
         void render(wxPaintEvent& event);
-        void DrawPicturesEffect();
-        void DrawSelection();
+        void render();
+        void DrawPicturesEffect(xlGraphicsContext *ctx);
+        void DrawSelection(xlGraphicsContext *ctx);
         void LoadAndProcessImage();
         void ProcessNewImage();
         wxString GetImageFilename();
@@ -97,13 +94,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         double scaleh;
         double scalew;
         wxImage image;
-        Image* imageGL_ping;
-        Image* imageGL_pong;
-        Image* mImage;
         wxImage image_copy;
-        Image* mImageCopy;
-        xLightsDrawable* sprite;
-        xLightsDrawable* copy_sprite;
         wxString PictureName;
         wxString NewPictureName;
         xlColor mPaintColor;
@@ -124,7 +115,13 @@ class xlGridCanvasPictures : public xlGridCanvas
         int mEndCol;
         bool mHoverSelection;
         bool mCopyAvailable;
-        bool mPasteCopy;
 
-        DECLARE_EVENT_TABLE()
+
+    bool imagesValid;
+    wxImage scaledImage;
+    xlTexture *imageTexture;
+    xlTexture *imageCopy;
+
+
+    DECLARE_EVENT_TABLE()
 };

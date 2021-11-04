@@ -40,17 +40,18 @@ public:
 	 * to get only the image, without the black filling.
 	 */
     int width, height, textureWidth, textureHeight;
-    bool mAlpha;
-    float tex_coord_x, tex_coord_y;
+    bool mAlpha = false;
+    float tex_coord_x = 1.0f, tex_coord_y = 1.0f;
 
     GLuint getID() const { return ID; }
     void setID(GLuint i) { ID = i; }
     bool hasAlpha() const { return mAlpha; }
     Image();
-    Image(wxString path, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
-    Image(wxImage &img, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
+    Image(const wxString &path, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
+    Image(const wxImage &img, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
 
     ~Image();
+    void load(const wxImage &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
     void load(wxImage &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
-    void load(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
+    void load(const wxString &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
 };

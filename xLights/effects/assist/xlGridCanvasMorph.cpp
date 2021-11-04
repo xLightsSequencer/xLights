@@ -10,7 +10,6 @@
 
 #include "xlGridCanvasMorph.h"
 #include "../../BitmapCache.h"
-#include "../../graphics/opengl/DrawGLUtils.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "../../ValueCurveButton.h"
@@ -49,16 +48,17 @@ xlGridCanvasMorph::xlGridCanvasMorph(wxWindow* parent, wxWindowID id, const wxPo
     mMorphEndLinked(false)
 {
     for (int i = 0; i < 6; i++) {
-        mCornerTextures[i] = 0;
+        mCornerTextures[i] = nullptr;
     }
 }
 
 xlGridCanvasMorph::~xlGridCanvasMorph()
 {
-}
-
-void xlGridCanvasMorph::ForceRefresh()
-{
+    for (int i = 0; i < 6; i++) {
+        if (mCornerTextures[i]) {
+            delete mCornerTextures[i];
+        }
+    }
 }
 
 void xlGridCanvasMorph::SetEffect(Effect* effect_)
@@ -68,8 +68,9 @@ void xlGridCanvasMorph::SetEffect(Effect* effect_)
 
 int xlGridCanvasMorph::CheckForCornerHit(int x, int y) const
 {
-    int corner_size = std::max(mMinCornerSize, mCellSize);
-    int half = corner_size / 2;
+    float mCellSize = getCellSize();
+    float corner_size = std::max((float)mMinCornerSize, mCellSize - 2);
+    float half = corner_size / 2;
     if (x > x1a - half && x < x1a + half && y > y1a - half && y < y1a + half) {
         return CORNER_1A_SELECTED;
     }
@@ -88,15 +89,14 @@ int xlGridCanvasMorph::CheckForCornerHit(int x, int y) const
 void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
-    mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
+    mSelectedCorner = CheckForCornerHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
     if (mSelectedCorner == CORNER_NOT_SELECTED) {
-        if (CheckForInsideHit(event.GetX(), event.GetY())) {
+        if (CheckForInsideHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()))) {
             mSelectedCorner = CORNER_ALL_SELECTED;
-        }
-        else {
+        } else {
             return;
         }
-        _startPoint = wxPoint(event.GetX(), event.GetY());
+        _startPoint = wxPoint(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
         _starta1 = wxPoint(x1a, y1a);
         _startb1 = wxPoint(x1b, y1b);
         _starta2 = wxPoint(x2a, y2a);
@@ -105,7 +105,7 @@ void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
     mDragging = true;
     CaptureMouse();
     SetCursor(wxCURSOR_HAND);
-    Refresh(false);
+    render();
     SetUndoPoint();
 }
 
@@ -139,29 +139,26 @@ void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
 
-    mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
+    mSelectedCorner = CheckForCornerHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
     if (mSelectedCorner == CORNER_NOT_SELECTED) {
         mRightDragging = true;
         SetUndoPoint();
         if (event.ControlDown() || event.CmdDown()) {
             // dragging out end
-            SetMorphCorner2a(event.GetX(), event.GetY());
+            SetMorphCorner2a(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
             StoreUpdatedMorphPositions();
-            SetMorphCorner2b(event.GetX(), event.GetY());
+            SetMorphCorner2b(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
             //StoreUpdatedMorphPositions();
-            Update();
-        }
-        else {
+        } else {
             // dragging out start
-            SetMorphCorner1a(event.GetX(), event.GetY());
+            SetMorphCorner1a(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
             StoreUpdatedMorphPositions();
-            SetMorphCorner1b(event.GetX(), event.GetY());
+            SetMorphCorner1b(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
             //StoreUpdatedMorphPositions();
-            Update();
         }
         CaptureMouse();
         SetCursor(wxCURSOR_HAND);
-        Refresh(false);
+        render();
     }
 }
 
@@ -178,40 +175,35 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
 
+    float mCellSize = getCellSize();
     if (!mDragging && !mRightDragging) {
-        if (CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED) {
-            if (CheckForInsideHit(event.GetX(), event.GetY())) {
+        if (CheckForCornerHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY())) == CORNER_NOT_SELECTED) {
+            if (CheckForInsideHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()))) {
                 if (event.ControlDown() || event.CmdDown()) {
                     if (event.ShiftDown()) {
                         SetCursor(wxCURSOR_SIZENS);
-                    }
-                    else {
+                    } else {
                         SetCursor(wxCURSOR_SIZEWE);
                     }
-                }
-                else {
+                } else {
                     SetCursor(wxCURSOR_SIZING);
                 }
-            }
-            else {
+            } else {
                 SetCursor(wxCURSOR_DEFAULT);
             }
-        }
-        else {
+        } else {
             SetCursor(wxCURSOR_HAND);
         }
-    }
-    else {
+    } else {
         if (mSelectedCorner == CORNER_ALL_SELECTED) {
-            int dx = (event.GetX() - _startPoint.x) / mCellSize * mCellSize;
-            int dy = (event.GetY() - _startPoint.y) / mCellSize * mCellSize;
+            int dx = (mapLogicalToAbsolute(event.GetX()) - _startPoint.x) / mCellSize * mCellSize;
+            int dy = (mapLogicalToAbsolute(event.GetY()) - _startPoint.y) / mCellSize * mCellSize;
 
             if (event.ControlDown() || event.CmdDown()) {
                 if (event.ShiftDown()) {
                     // only move in y direction
                     dx = 0;
-                }
-                else {
+                } else {
                     // only move in x direction
                     dy = 0;
                 }
@@ -244,31 +236,26 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
             y2b = _startb2.y + dy;
             if (y2b < 0) y2b = 0;
             if (y2b >= mRows * mCellSize) y2b = mRows * mCellSize;
-
-            Refresh(false);
-        }
-        else {
+        } else {
             if (event.ControlDown() || event.CmdDown()) {
                 if (event.ShiftDown()) {
                     // y only
-                    UpdateSelectedMorphCorner(event.GetX(), event.GetY(), false, true);
-                }
-                else {
+                    UpdateSelectedMorphCorner(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()), false, true);
+                } else {
                     // x only
-                    UpdateSelectedMorphCorner(event.GetX(), event.GetY(), true, false);
+                    UpdateSelectedMorphCorner(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()), true, false);
                 }
-            }
-            else {
-                UpdateSelectedMorphCorner(event.GetX(), event.GetY());
+            } else {
+                UpdateSelectedMorphCorner(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
             }
             if (!mRightDragging) {
                 StoreUpdatedMorphPositions();
             }
         }
-        Update();
+        render();
     }
 
-    SetTooltip(event.GetX(), event.GetY());
+    SetTooltip(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
 }
 
 void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
@@ -300,8 +287,7 @@ void xlGridCanvasMorph::ProcessNearest(int targetX, int targetY, bool* done)
     for (int i = 0; i < 4; i++) {
         if (least == -1 && done[i] == false) {
             least = i;
-        }
-        else if (done[i] == false) {
+        } else if (done[i] == false) {
             if (distanceTo[i] < distanceTo[least]) {
                 least = i;
             }
@@ -332,6 +318,7 @@ void xlGridCanvasMorph::mouseLeftDClick(wxMouseEvent& event)
 {
     bool done[4] = { false,false,false,false };
 
+    float mCellSize = getCellSize();
     ProcessNearest(0, 0, done);
     ProcessNearest(0, mRows * mCellSize, done);
     ProcessNearest(mColumns * mCellSize, 0, done);
@@ -339,7 +326,7 @@ void xlGridCanvasMorph::mouseLeftDClick(wxMouseEvent& event)
     mSelectedCorner = CORNER_ALL_SELECTED;
     StoreUpdatedMorphPositions();
     mSelectedCorner = CORNER_NOT_SELECTED;
-    Refresh(false);
+    render();
 }
 
 void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
@@ -354,17 +341,21 @@ void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
     }
 }
 
-void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y, bool updateX, bool updateY)
+void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x_pos, int y_pos, bool updateX, bool updateY)
 {
-    if (mCellSize == 0) return;
-    
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    int x_pos = (x / mCellSize) * mCellSize + mCellSize / 2;
-    int y_pos = (y / mCellSize) * mCellSize + mCellSize / 2;
+    float offset = mapLogicalToAbsolute(5.0);
+    if (x_pos < offset) {
+        x_pos = offset;
+    }
+    if (y_pos < offset) {
+        y_pos = offset;
+    }
+    if (x_pos >= (mWindowWidth-offset)) {
+        x_pos = mWindowWidth-offset - 1;
+    }
+    if (y_pos >= (mWindowHeight-offset)) {
+        y_pos = mWindowHeight-offset - 1;
+    }
 
     if (mSelectedCorner == CORNER_1A_SELECTED) {
         if (updateX) x1a = x_pos;
@@ -373,37 +364,38 @@ void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y, bool updateX, bo
             if (updateX) x1b = x_pos;
             if (updateY) y1b = y_pos;
         }
-    }
-    else if (mSelectedCorner == CORNER_1B_SELECTED) {
+    } else if (mSelectedCorner == CORNER_1B_SELECTED) {
         if (updateX) x1b = x_pos;
         if (updateY) y1b = y_pos;
-    }
-    else if (mSelectedCorner == CORNER_2A_SELECTED) {
+    } else if (mSelectedCorner == CORNER_2A_SELECTED) {
         if (updateX) x2a = x_pos;
         if (updateY) y2a = y_pos;
         if (mMorphEndLinked) {
             if (updateX) x2b = x_pos;
             if (updateY) y2b = y_pos;
         }
-    }
-    else if (mSelectedCorner == CORNER_2B_SELECTED) {
+    } else if (mSelectedCorner == CORNER_2B_SELECTED) {
         if (updateX) x2b = x_pos;
         if (updateY) y2b = y_pos;
     }
-    Refresh(false);
+    render();
 }
 
-void xlGridCanvasMorph::SetMorphCorner1a(int x, int y)
+void xlGridCanvasMorph::SetMorphCorner1a(int x_pos, int y_pos)
 {
-    if (mCellSize == 0) return;
-
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    int x_pos = (x / mCellSize) * mCellSize + mCellSize / 2;
-    int y_pos = (y / mCellSize) * mCellSize + mCellSize / 2;
+    float offset = mapLogicalToAbsolute(5.0);
+    if (x_pos < offset) {
+        x_pos = offset;
+    }
+    if (y_pos < offset) {
+        y_pos = offset;
+    }
+    if (x_pos >= (mWindowWidth-offset)) {
+        x_pos = mWindowWidth-offset - 1;
+    }
+    if (y_pos >= (mWindowHeight-offset)) {
+        y_pos = mWindowHeight-offset - 1;
+    }
 
     x1a = x_pos;
     y1a = y_pos;
@@ -414,18 +406,22 @@ void xlGridCanvasMorph::SetMorphCorner1a(int x, int y)
     mSelectedCorner = CORNER_1A_SELECTED;
 }
 
-void xlGridCanvasMorph::SetMorphCorner1b(int x, int y)
+void xlGridCanvasMorph::SetMorphCorner1b(int x_pos, int y_pos)
 {
-    if (mCellSize == 0) return;
-
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    int x_pos = (x / mCellSize) * mCellSize + mCellSize / 2;
-    int y_pos = (y / mCellSize) * mCellSize + mCellSize / 2;
-
+    float offset = mapLogicalToAbsolute(5.0);
+    if (x_pos < offset) {
+        x_pos = offset;
+    }
+    if (y_pos < offset) {
+        y_pos = offset;
+    }
+    if (x_pos >= (mWindowWidth-offset)) {
+        x_pos = mWindowWidth-offset - 1;
+    }
+    if (y_pos >= (mWindowHeight-offset)) {
+        y_pos = mWindowHeight-offset - 1;
+    }
+    
     x1b = x_pos;
     y1b = y_pos;
     if (!mMorphStartLinked) {
@@ -433,17 +429,21 @@ void xlGridCanvasMorph::SetMorphCorner1b(int x, int y)
     }
 }
 
-void xlGridCanvasMorph::SetMorphCorner2a(int x, int y)
+void xlGridCanvasMorph::SetMorphCorner2a(int x_pos, int y_pos)
 {
-    if (mCellSize == 0) return;
-
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    int x_pos = (x / mCellSize) * mCellSize + mCellSize / 2;
-    int y_pos = (y / mCellSize) * mCellSize + mCellSize / 2;
+    float offset = mapLogicalToAbsolute(5.0);
+    if (x_pos < offset) {
+        x_pos = offset;
+    }
+    if (y_pos < offset) {
+        y_pos = offset;
+    }
+    if (x_pos >= (mWindowWidth-offset)) {
+        x_pos = mWindowWidth-offset - 1;
+    }
+    if (y_pos >= (mWindowHeight-offset)) {
+        y_pos = mWindowHeight-offset - 1;
+    }
 
     x2a = x_pos;
     y2a = y_pos;
@@ -454,23 +454,49 @@ void xlGridCanvasMorph::SetMorphCorner2a(int x, int y)
     mSelectedCorner = CORNER_2A_SELECTED;
 }
 
-void xlGridCanvasMorph::SetMorphCorner2b(int x, int y)
+void xlGridCanvasMorph::SetMorphCorner2b(int x_pos, int y_pos)
 {
-    if (mCellSize == 0) return;
-
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    int x_pos = (x / mCellSize) * mCellSize + mCellSize / 2;
-    int y_pos = (y / mCellSize) * mCellSize + mCellSize / 2;
-
+    float offset = mapLogicalToAbsolute(5.0);
+    if (x_pos < offset) {
+        x_pos = offset;
+    }
+    if (y_pos < offset) {
+        y_pos = offset;
+    }
+    if (x_pos >= (mWindowWidth-offset)) {
+        x_pos = mWindowWidth-offset - 1;
+    }
+    if (y_pos >= (mWindowHeight-offset)) {
+        y_pos = mWindowHeight-offset - 1;
+    }
     x2b = x_pos;
     y2b = y_pos;
     if (!mMorphStartLinked) {
         mSelectedCorner = CORNER_2B_SELECTED;
     }
+}
+
+
+void xlGridCanvasMorph::SetTooltip(int x, int y)
+{
+    float mCellSize = getCellSize();
+    float offset = mapLogicalToAbsolute(5.0);
+    x -= offset;
+    y -= offset;
+    if (x < 0 || y < 0 || mCellSize == 0 || mRows == 0 || mColumns == 0) {
+        UnsetToolTip();
+        return;
+    }
+    if ((x > mColumns * mCellSize) || (y > mRows * mCellSize)) {
+        UnsetToolTip();
+        return;
+    }
+
+    x = ((float)x) / mCellSize * 100.0f / mColumns;
+    y = 100 - (((float)y) / mCellSize * 100.0f / mRows);
+
+    wxString tt = wxString::Format("%d%%, %d%%", x, y);
+    SetToolTip(tt);
 }
 
 void DeactivateValueCurve(SettingsMap& settings, const std::string& setting)
@@ -519,65 +545,50 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 
-void xlGridCanvasMorph::SetTooltip(int x, int y)
-{
-    if ((x == -1 && y == -1) || mCellSize == 0 || mRows == 0 || mColumns == 0) {
-        UnsetToolTip();
-        return;
-    }
-
-    if (x < mCellSize) x = mCellSize;
-    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
-    if (y < mCellSize) y = mCellSize;
-    if (y > mRows * mCellSize) y = mRows * mCellSize;
-
-    x = x / mCellSize * 100 / mColumns;
-    y = 100 - y / mCellSize * 100 / mRows;
-
-    wxString tt = wxString::Format("%d%%, %d%%", x, y);
-    SetToolTip(tt);
-}
-
-void xlGridCanvasMorph::CreateCornerTextures()
+static std::vector<std::vector<wxImage>> CORNER_IMAGES;
+void xlGridCanvasMorph::CreateCornerTextures(xlGraphicsContext *ctx)
 {
     wxString tooltip;
+    if (CORNER_IMAGES.empty()) {
+        CORNER_IMAGES.resize(6);
+        for (int x = 0; x < 6; x++) {
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 64, true).ConvertToImage());
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 32, true).ConvertToImage());
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 16, true).ConvertToImage());
+            CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(8, 8, wxIMAGE_QUALITY_HIGH));
+            CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(4, 4, wxIMAGE_QUALITY_HIGH));
+            CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(2, 2, wxIMAGE_QUALITY_HIGH));
+            CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(1, 1, wxIMAGE_QUALITY_HIGH));
+        }
+    }
     for (int i = 0; i < 6; i++) {
-        DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetCornerIcon(i, tooltip, 64, true),
-            BitmapCache::GetCornerIcon(i, tooltip, 32, true),
-            BitmapCache::GetCornerIcon(i, tooltip, 16, true),
-            &mCornerTextures[i]);
+        mCornerTextures[i] = ctx->createTextureMipMaps(CORNER_IMAGES[i]);
     }
 }
-
-void xlGridCanvasMorph::InitializeGLContext()
-{
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
-    LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
-}
-
-void xlGridCanvasMorph::InitializeGLCanvas()
-{
-    SetCurrentGLContext();
-    CreateCornerTextures();
-    mIsInitialized = true;
-}
-
 void xlGridCanvasMorph::render(wxPaintEvent& event)
 {
-    if (!IsShownOnScreen()) return;
-    if (!mIsInitialized) { InitializeGLCanvas(); }
-    InitializeGLContext();
+    wxPaintDC p(this);
+    render();
+}
+void xlGridCanvasMorph::render()
+{
+    if(!IsShownOnScreen()) return;
+    if(!mIsInitialized) {
+        PrepareCanvas();
+    }
+
+    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
+
+    if (!mCornerTextures[0]) {
+        CreateCornerTextures(ctx);
+    }
 
     if (mEffect != nullptr) {
-        DrawBaseGrid();
-        DrawMorphEffect();
+        DrawBaseGrid(ctx);
+        DrawMorphEffect(ctx);
     }
-    SwapBuffers();
+    FinishDrawing(ctx);
 }
 
 void xlGridCanvasMorph::UpdateMorphPositionsFromEffect()
@@ -589,32 +600,23 @@ void xlGridCanvasMorph::UpdateMorphPositionsFromEffect()
         if (parts.size() > 1) {
             if (parts[0] == "E_SLIDER_Morph_Start_X1") {
                 x1a = GetColumnCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_X2") {
+            } else if (parts[0] == "E_SLIDER_Morph_Start_X2") {
                 x1b = GetColumnCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_Y1") {
+            } else if (parts[0] == "E_SLIDER_Morph_Start_Y1") {
                 y1a = GetRowCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_Y2") {
+            } else if (parts[0] == "E_SLIDER_Morph_Start_Y2") {
                 y1b = GetRowCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_X1") {
+            } else if (parts[0] == "E_SLIDER_Morph_End_X1") {
                 x2a = GetColumnCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_X2") {
+            } else if (parts[0] == "E_SLIDER_Morph_End_X2") {
                 x2b = GetColumnCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_Y1") {
+            } else if (parts[0] == "E_SLIDER_Morph_End_Y1") {
                 y2a = GetRowCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_Y2") {
+            } else if (parts[0] == "E_SLIDER_Morph_End_Y2") {
                 y2b = GetRowCenter(wxAtoi(parts[1]));
-            }
-            else if (parts[0] == "E_CHECKBOX_Morph_Start_Link") {
+            } else if (parts[0] == "E_CHECKBOX_Morph_Start_Link") {
                 mMorphStartLinked = wxAtoi(parts[1]) > 0;
-            }
-            else if (parts[0] == "E_CHECKBOX_Morph_End_Link") {
+            } else if (parts[0] == "E_CHECKBOX_Morph_End_Link") {
                 mMorphEndLinked = wxAtoi(parts[1]) > 0;
             }
         }
@@ -629,49 +631,46 @@ void xlGridCanvasMorph::UpdateMorphPositionsFromEffect()
     }
 }
 
-void xlGridCanvasMorph::DrawMorphEffect()
+void xlGridCanvasMorph::DrawMorphEffect(xlGraphicsContext *ctx)
 {
     if (!mDragging && !mRightDragging) {
         UpdateMorphPositionsFromEffect();
     }
     xlColor yellowLine = xlYELLOW;
     xlColor redLine = xlRED;
+    xlVertexColorAccumulator *va = ctx->createVertexColorAccumulator();
+    va->PreAlloc(8);
 
-    DrawGLUtils::xlVertexColorAccumulator va;
-    va.PreAlloc(8);
-
-    DrawGLUtils::SetLineWidth(0.5);
     if (!mMorphStartLinked) {
-        va.AddVertex(x1a, y1a, redLine);
-        va.AddVertex(x1b, y1b, redLine);
+        va->AddVertex(x1a, y1a, 0, redLine);
+        va->AddVertex(x1b, y1b, 0, redLine);
     }
     if (!mMorphEndLinked) {
-        va.AddVertex(x2a, y2a, redLine);
-        va.AddVertex(x2b, y2b, redLine);
+        va->AddVertex(x2a, y2a, 0, redLine);
+        va->AddVertex(x2b, y2b, 0, redLine);
     }
-    va.AddVertex(x1a, y1a, yellowLine);
-    va.AddVertex(x2a, y2a, yellowLine);
-    va.AddVertex(x1b, y1b, yellowLine);
-    va.AddVertex(x2b, y2b, yellowLine);
-    LOG_GL_ERRORV(glEnable(GL_LINE_SMOOTH));
-    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    DrawGLUtils::Draw(va, GL_LINES, GL_BLEND);
-    LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
+    va->AddVertex(x1a, y1a, 0, yellowLine);
+    va->AddVertex(x2a, y2a, 0, yellowLine);
+    va->AddVertex(x1b, y1b, 0, yellowLine);
+    va->AddVertex(x2b, y2b, 0, yellowLine);
+    ctx->drawLines(va);
+    delete va;
 
     // draw the corners
-    int corner_size = std::max(mMinCornerSize, mCellSize);
+    ctx->enableBlending();
+    int cellSize = getCellSize();
+    int corner_size = std::max(mMinCornerSize, cellSize - 2);
     if (mMorphEndLinked) {
-        DrawGLUtils::DrawTexture(mCornerTextures[5], x2a - corner_size / 2, y2a - corner_size / 2, x2a + corner_size / 2, y2a + corner_size / 2);
-    }
-    else {
-        DrawGLUtils::DrawTexture(mCornerTextures[3], x2b - corner_size / 2, y2b - corner_size / 2, x2b + corner_size / 2, y2b + corner_size / 2);
-        DrawGLUtils::DrawTexture(mCornerTextures[2], x2a - corner_size / 2, y2a - corner_size / 2, x2a + corner_size / 2, y2a + corner_size / 2);
+        ctx->drawTexture(mCornerTextures[5], x2a - corner_size / 2, y2a - corner_size / 2, x2a + corner_size / 2, y2a + corner_size / 2);
+    } else {
+        ctx->drawTexture(mCornerTextures[3], x2b - corner_size / 2, y2b - corner_size / 2, x2b + corner_size / 2, y2b + corner_size / 2);
+        ctx->drawTexture(mCornerTextures[2], x2a - corner_size / 2, y2a - corner_size / 2, x2a + corner_size / 2, y2a + corner_size / 2);
     }
     if (mMorphStartLinked) {
-        DrawGLUtils::DrawTexture(mCornerTextures[4], x1a - corner_size / 2, y1a - corner_size / 2, x1a + corner_size / 2, y1a + corner_size / 2);
+        ctx->drawTexture(mCornerTextures[4], x1a - corner_size / 2, y1a - corner_size / 2, x1a + corner_size / 2, y1a + corner_size / 2);
+    } else {
+        ctx->drawTexture(mCornerTextures[1], x1b - corner_size / 2, y1b - corner_size / 2, x1b + corner_size / 2, y1b + corner_size / 2);
+        ctx->drawTexture(mCornerTextures[0], x1a - corner_size / 2, y1a - corner_size / 2, x1a + corner_size / 2, y1a + corner_size / 2);
     }
-    else {
-        DrawGLUtils::DrawTexture(mCornerTextures[1], x1b - corner_size / 2, y1b - corner_size / 2, x1b + corner_size / 2, y1b + corner_size / 2);
-        DrawGLUtils::DrawTexture(mCornerTextures[0], x1a - corner_size / 2, y1a - corner_size / 2, x1a + corner_size / 2, y1a + corner_size / 2);
-    }
+    ctx->disableBlending();
 }

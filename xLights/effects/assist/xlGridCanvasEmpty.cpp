@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "xlGridCanvasEmpty.h"
-#include "../../graphics/opengl/DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvasEmpty, xlGridCanvas)
 EVT_PAINT(xlGridCanvasEmpty::render)
@@ -20,14 +19,9 @@ xlGridCanvasEmpty::xlGridCanvasEmpty(wxWindow* parent, wxWindowID id, const wxPo
 {
     mRows = 10;
     mColumns = 10;
-    mCellSize = 20;
 }
 
 xlGridCanvasEmpty::~xlGridCanvasEmpty()
-{
-}
-
-void xlGridCanvasEmpty::ForceRefresh()
 {
 }
 
@@ -36,42 +30,34 @@ void xlGridCanvasEmpty::SetEffect(Effect* effect_)
     mEffect = effect_;
 }
 
-void xlGridCanvasEmpty::InitializeGLContext()
-{
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
-    LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-}
-
 void xlGridCanvasEmpty::render( wxPaintEvent& event )
 {
     if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-
-    InitializeGLContext();
-
-    if( mEffect != nullptr )
-    {
-        DrawBaseGrid();
-        DrawEmptyEffect();
+    if(!mIsInitialized) {
+        PrepareCanvas();
     }
 
-    SwapBuffers();
+    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
+
+    if (mEffect != nullptr) {
+        DrawBaseGrid(ctx);
+        DrawEmptyEffect(ctx);
+    }
+    FinishDrawing(ctx);
 }
 
-void xlGridCanvasEmpty::DrawEmptyEffect()
+void xlGridCanvasEmpty::DrawEmptyEffect(xlGraphicsContext *ctx)
 {
-    xlColor redLine = xlRED;
-    DrawGLUtils::xlVertexAccumulator va;
-    va.PreAlloc(8);
-    va.AddVertex(0,0);
-    va.AddVertex(mWindowWidth,mWindowHeight);
-    va.AddVertex(0,mWindowHeight);
-    va.AddVertex(mWindowWidth,0);
-    DrawGLUtils::Draw(va, redLine, GL_LINES, GL_BLEND);
+    xlVertexAccumulator *va = ctx->createVertexAccumulator();
+    va->PreAlloc(8);
+    va->AddVertex(0, 0);
+    va->AddVertex(mWindowWidth, mWindowHeight);
+    va->AddVertex(0, mWindowHeight);
+    va->AddVertex(mWindowWidth, 0);
+    ctx->enableBlending();
+    ctx->drawLines(va, xlRED);
+    ctx->disableBlending();
+    delete va;
 }
 

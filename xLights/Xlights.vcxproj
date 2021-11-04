@@ -274,6 +274,8 @@
     <ClCompile Include="GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
+    <ClCompile Include="graphics\opengl\Image.cpp" />
+    <ClCompile Include="graphics\opengl\Image_Loader.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
@@ -449,8 +451,6 @@
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
@@ -631,7 +631,6 @@
     <ClCompile Include="xlColorPickerFields.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
-    <ClCompile Include="XlightsDrawable.cpp" />
     <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
@@ -709,6 +708,8 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
+    <ClInclude Include="graphics\opengl\Image.h" />
+    <ClInclude Include="graphics\opengl\Image_Loader.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
     <ClInclude Include="graphics\xlGraphicsBase.h" />
@@ -890,9 +891,7 @@
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
-    <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
-    <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
     <ClInclude Include="LayoutGroup.h" />
@@ -1076,7 +1075,6 @@
     <ClInclude Include="xlCustomControl.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
-    <ClInclude Include="XlightsDrawable.h" />
     <ClInclude Include="xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />

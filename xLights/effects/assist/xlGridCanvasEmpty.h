@@ -23,20 +23,17 @@ class xlGridCanvasEmpty : public xlGridCanvas
         virtual ~xlGridCanvasEmpty();
 
         virtual void SetEffect(Effect* effect_);
-        virtual void ForceRefresh();
-
     
         virtual bool UsesVertexTextureAccumulator() {return false;}
         virtual bool UsesVertexColorAccumulator() {return false;}
         virtual bool UsesVertexAccumulator() {return true;}
         virtual bool UsesAddVertex() {return false;}
     protected:
-        virtual void InitializeGLContext();
 
     private:
 
         void render(wxPaintEvent& event);
-        void DrawEmptyEffect();
+        void DrawEmptyEffect(xlGraphicsContext *ctx);
 
         DECLARE_EVENT_TABLE()
 };

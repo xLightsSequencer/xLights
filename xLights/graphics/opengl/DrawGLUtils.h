@@ -651,7 +651,7 @@ namespace DrawGLUtils
         float x, float y, float x2, float y2,
         float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0);
 
-    void UpdateTexturePixel(GLuint texture, double x, double y, xlColor& color, bool hasAlpha);
+    void UpdateTexturePixel(GLuint texture, double x, double y, const xlColor& color, bool hasAlpha);
 
     void DrawCube(double x, double y, double z, double width, const xlColor& color, xl3Accumulator& va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor& color, xl3Accumulator& va);

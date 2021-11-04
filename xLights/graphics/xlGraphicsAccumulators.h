@@ -83,6 +83,8 @@ class xlTexture {
 public:
     xlTexture() {}
     virtual ~xlTexture() {}
+
+    virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) = 0;
 };
 
 

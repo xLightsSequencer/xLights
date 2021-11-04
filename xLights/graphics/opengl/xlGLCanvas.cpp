@@ -23,6 +23,7 @@ END_EVENT_TABLE()
 #include <wx/config.h>
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
+#include "Image.h"
 
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
@@ -705,10 +706,17 @@ class GLGraphicsContext : public xlGraphicsContext {
 public:
     class xlGLTexture : public xlTexture {
     public:
-        xlGLTexture() : xlTexture() {}
-        virtual ~xlGLTexture() {}
+        xlGLTexture() : xlTexture(), flip(false) {}
+        xlGLTexture(const wxImage &i) : image(i), flip(true) {}
+        virtual ~xlGLTexture() {
+        }
 
-        GLuint tid;
+        virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) override {
+            DrawGLUtils::UpdateTexturePixel(image.getID(), (double)x, (double)y, c, copyAlpha);
+        }
+
+        Image image;
+        bool flip;
     };
 
     GLGraphicsContext(xlGLCanvas *c) : canvas(c) {}
@@ -723,16 +731,24 @@ public:
     }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
         xlGLTexture *t = new xlGLTexture();
-        DrawGLUtils::CreateOrUpdateTexture(bitmaps[0], bitmaps[1], bitmaps[2], &t->tid);
+        GLuint tid = 0;
+        DrawGLUtils::CreateOrUpdateTexture(bitmaps[0], bitmaps[1], bitmaps[2], &tid);
+        t->image.setID(tid);
         return t;
     }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override {
         xlGLTexture *t = new xlGLTexture();
-        DrawGLUtils::CreateOrUpdateTexture(wxBitmap(images[0]), wxBitmap(images[1]), wxBitmap(images[2]), &t->tid);
+        GLuint tid = 0;
+        DrawGLUtils::CreateOrUpdateTexture(wxBitmap(images[0]), wxBitmap(images[1]), wxBitmap(images[2]), &tid);
+        t->image.setID(tid);
+        t->image.width = images[0].GetWidth();
+        t->image.height = images[0].GetHeight();
+        t->image.textureWidth = images[0].GetWidth();
+        t->image.textureHeight = images[0].GetHeight();
         return t;
     }
     virtual xlTexture *createTexture(const wxImage &image) override {
-        return nullptr;
+        return new xlGLTexture(image);
     }
 
 
@@ -776,7 +792,20 @@ public:
                              float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
                              bool nearest = true) override {
         xlGLTexture *t = (xlGLTexture*)texture;
-        DrawGLUtils::DrawTexture(t->tid, x, y, x2, y2, tx, ty, tx2, ty2);
+        tx *= t->image.tex_coord_x;
+        ty *= t->image.tex_coord_y;
+        tx2 *= t->image.tex_coord_x;
+        ty2 *= t->image.tex_coord_y;
+        if (t->flip) {
+            std::swap(ty, ty2);
+        }
+        if (enableCapabilities) {
+            glEnable(enableCapabilities);
+        }
+        DrawGLUtils::DrawTexture(t->image.getID(), x, y, x2, y2, tx, ty, tx2, ty2);
+        if (enableCapabilities) {
+            glDisable(enableCapabilities);
+        }
     }
 
     virtual void enableBlending(bool e = true) override {

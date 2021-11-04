@@ -1193,8 +1193,7 @@ static void addMipMap(const wxImage& l_Image, int& level)
         int err = glGetError();
         if (err == GL_NO_ERROR) {
             level++;
-        }
-        else {
+        } else {
             static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error glTexImage2D: %d", err);
         }
@@ -1227,7 +1226,7 @@ void DrawGLUtils::DrawTexture(GLuint texture,
     currentCache->DrawTexture(texture, x, y, x2, y2, tx, ty, tx2, ty2);
 }
 
-void DrawGLUtils::UpdateTexturePixel(GLuint texture, double x, double y, xlColor& color, bool hasAlpha)
+void DrawGLUtils::UpdateTexturePixel(GLuint texture, double x, double y, const xlColor& color, bool hasAlpha)
 {
     int bytesPerPixel = hasAlpha ?  4 : 3;
     GLubyte *imageData=new GLubyte[bytesPerPixel];

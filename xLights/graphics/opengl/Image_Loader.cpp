@@ -19,7 +19,7 @@
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 
-GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
+GLuint loadImage(const wxString &path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
                  bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo)
 {
     // check the file exists

@@ -14,8 +14,8 @@
 
 #include <wx/wx.h>
 
-#include "Image.h"
-#include "XlightsDrawable.h"
+#include "graphics/opengl/Image.h"
+#include "graphics/opengl/XlightsDrawable.h"
 #include "Color.h"
 #include "graphics/opengl/xlGLCanvas.h"
 #include "ViewpointMgr.h"

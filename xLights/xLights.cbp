@@ -500,7 +500,6 @@
 		<Unit filename="DragColoursBitmapButton.h" />
 		<Unit filename="DragValueCurveBitmapButton.cpp" />
 		<Unit filename="DragValueCurveBitmapButton.h" />
-		<Unit filename="DrawGLUtils.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -511,7 +510,6 @@
 		<Unit filename="EffectTimingDialog.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
-		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="EmailDialog.cpp" />
@@ -538,10 +536,6 @@
 		<Unit filename="HousePreviewPanel.h" />
 		<Unit filename="IPEntryDialog.cpp" />
 		<Unit filename="IPEntryDialog.h" />
-		<Unit filename="Image.cpp" />
-		<Unit filename="Image.h" />
-		<Unit filename="Image_Loader.cpp" />
-		<Unit filename="Image_Loader.h" />
 		<Unit filename="Images_png.h" />
 		<Unit filename="ImportPreviewsModelsDialog.cpp" />
 		<Unit filename="ImportPreviewsModelsDialog.h" />
@@ -599,7 +593,6 @@
 		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
-		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
 		<Unit filename="NodeSelectGrid.cpp" />
@@ -631,7 +624,6 @@
 		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="Pixels.cpp" />
 		<Unit filename="Pixels.h" />
-		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
 		<Unit filename="RemapDMXChannelsDialog.cpp" />
@@ -648,7 +640,6 @@
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
-		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
@@ -742,7 +733,6 @@
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
-		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
@@ -1015,6 +1005,12 @@
 		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
 		<Unit filename="graphics/opengl/DrawGLUtils.h" />
 		<Unit filename="graphics/opengl/DrawGLUtils31.cpp" />
+		<Unit filename="graphics/opengl/Image.cpp" />
+		<Unit filename="graphics/opengl/Image.h" />
+		<Unit filename="graphics/opengl/Image_Loader.cpp" />
+		<Unit filename="graphics/opengl/Image_Loader.h" />
+		<Unit filename="graphics/opengl/XlightsDrawable.cpp" />
+		<Unit filename="graphics/opengl/XlightsDrawable.h" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="graphics/opengl/xlGLCanvas.h" />
 		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />

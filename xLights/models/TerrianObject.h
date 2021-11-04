@@ -12,7 +12,7 @@
 
 #include "ViewObject.h"
 #include "TerrianScreenLocation.h"
-#include "Image.h"
+#include "graphics/opengl/Image.h"
 
 class ModelPreview;
 
