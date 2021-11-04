@@ -115,7 +115,7 @@ bool WebSocketClient::Send(std::string message)
 std::string WebSocketClient::Receive()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    uint8_t buffer[4096];
+    uint8_t buffer[8192];
     _socket.Peek(buffer, sizeof(buffer));
     auto read = _socket.LastCount();
     if (read >= 2) {
@@ -163,7 +163,7 @@ std::string WebSocketClient::Receive()
                     masking_key[2] = 0;
                     masking_key[3] = 0;
                 }
-                
+                //FIX ME: this causes an infinate loop if the buffer is smaller than than data from the client.
                 if (read >= header_size + N) {
                     // now really read it
                     _socket.Read(buffer, header_size + N);
@@ -183,7 +183,6 @@ std::string WebSocketClient::Receive()
                         return res;
                     }
                 }
-                
                 _socket.Peek(buffer, sizeof(buffer));
                 read = _socket.LastCount();
                 while (read < 2) {
