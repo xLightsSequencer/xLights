@@ -914,6 +914,7 @@
     <ClCompile Include="graphics\opengl\Image_Loader.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1841,6 +1842,7 @@
     <ClInclude Include="graphics\opengl\Image_Loader.h">
       <Filter>graphics\opengl</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
