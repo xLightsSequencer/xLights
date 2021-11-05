@@ -99,6 +99,7 @@ id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const cha
     id<MTLFunction> function = [library newFunctionWithName:fname];
     NSError *error = NULL;
     id<MTLComputePipelineState> ps = [device newComputePipelineStateWithFunction:function error:&error];
+    [function release];
     if (!ps) {
         NSLog(@"Library error: %@", error);
     }

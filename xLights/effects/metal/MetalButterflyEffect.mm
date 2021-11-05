@@ -5,36 +5,29 @@
 
 #include "../../RenderBuffer.h"
 
+#include <array>
 
 class MetalButterflyEffectData {
 public:
     MetalButterflyEffectData() {
-        function = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffect");
+        functions[1] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle1");
+        functions[2] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle2");
+        functions[3] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle3");
+        functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle4");
+        functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle5");
     }
     ~MetalButterflyEffectData() {
-        function = nil;
-    }
-
-
-    uint32_t highestPowerof2(uint32_t x) {
-        // check for the set bits
-        x |= x >> 1;
-        x |= x >> 2;
-        x |= x >> 4;
-        x |= x >> 8;
-        x |= x >> 16;
-
-        // Then we remove all but the top bit by xor'ing the
-        // string of 1's with that string of 1's shifted one to
-        // the left, and we end up with just the one top bit
-        // followed by 0's.
-        return x ^ (x >> 1);
-    }
-
-    bool Render(ButterflyData &data, RenderBuffer &buffer) {
-        if (function == nil) {
-            return false;
+        for (auto &f : functions) {
+            if (f != nil) {
+                [f release];
+            }
         }
+    }
+    bool canRenderStyle(int style) {
+        return style < functions.size() && functions[style] != nil;
+    }
+
+    bool Render(int style, ButterflyData &data, RenderBuffer &buffer) {
         @autoreleasepool {
             MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
@@ -47,7 +40,7 @@ public:
                 commandBuffer = nil;
                 return false;
             }
-            [computeEncoder setComputePipelineState:function];
+            [computeEncoder setComputePipelineState:functions[style]];
 
             NSInteger dataSize = sizeof(data);
             [computeEncoder setBytes:&data length:dataSize atIndex:0];
@@ -62,15 +55,14 @@ public:
 
             [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
 
-            MTLSize gridSize = MTLSizeMake(data.width, data.height, 1);
-            int maxtgs = function.maxTotalThreadsPerThreadgroup;
-            int tgs = highestPowerof2(data.width);
-            if (tgs > maxtgs || tgs < 1) {
-                tgs = maxtgs;
-            }
-            MTLSize threadgroupSize = MTLSizeMake(tgs, 1, 1);
+            NSInteger maxThreads = functions[style].maxTotalThreadsPerThreadgroup;
+            dataSize = data.width * data.height;
+            NSInteger threads = std::min(dataSize, maxThreads);
+            MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
+            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+
             [computeEncoder dispatchThreadgroups:gridSize
-                      threadsPerThreadgroup:threadgroupSize];
+                      threadsPerThreadgroup:threadsPerThreadgroup];
 
             [computeEncoder endEncoding];
             [commandBuffer commit];
@@ -78,7 +70,7 @@ public:
         return true;
     }
 
-    id<MTLComputePipelineState> function;
+    std::array<id<MTLComputePipelineState>, 11> functions;
 };
 
 MetalButterflyEffect::MetalButterflyEffect(int i) : ButterflyEffect(i) {
@@ -93,10 +85,10 @@ MetalButterflyEffect::~MetalButterflyEffect() {
 
 void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
+    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 
     //currently just  Style 1 is GPU enabled
-    if (rbcd == nullptr || Style != 1) {
+    if (rbcd == nullptr || !data->canRenderStyle(Style)) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }
@@ -123,6 +115,7 @@ void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, Rend
     ButterflyData rdata;
     rdata.width = buffer.BufferWi;
     rdata.height = buffer.BufferHt;
+    rdata.curState = curState;
     rdata.numColors = buffer.palette.Size();
     rdata.offset = offset;
     rdata.chunks = Chunks;
@@ -133,7 +126,7 @@ void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, Rend
     }
 
 
-    if (!data->Render(rdata, buffer)) {
+    if (!data->Render(Style, rdata, buffer)) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
     }
 }

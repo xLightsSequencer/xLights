@@ -10,6 +10,7 @@ struct ButterflyData
     float offset;
     int chunks;
     int skip;
+    int curState;
 
     uint16_t colorScheme;
     uint16_t width;

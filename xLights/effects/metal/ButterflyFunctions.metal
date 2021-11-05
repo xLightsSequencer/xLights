@@ -35,42 +35,141 @@ uchar4 getMultiColorBlend(constant ButterflyData &data, float n, bool circular) 
 }
 constant float pi2 = 3.14159*2.0;
 
-kernel void ButterflyEffect(constant ButterflyData &data,
-                            device uchar4* result,
-                            uint2 index [[thread_position_in_grid]])
+kernel void ButterflyEffectStyle1(constant ButterflyData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]])
 {
-    int x = index.x;
-    int y = index.y;
+    int x = index % data.width;
+    int y = index / data.width;
 
     if (x > data.width) return;
     if (y > data.height) return;
 
-    int bindex = y * data.width + x;
+    //  This section is to fix the colors on pixels at {0,1} and {1,0}
+    if (x == 0 && y == 1) y++;
+    if (x == 1 && y == 0) x++;
 
     float n = abs((x*x - y*y) * sin(data.offset + ((x+y)*pi2 / float(data.height + data.width))));
     float d = x*x + y*y;
+    float h = d > 0.001 ? n/d : 0.0;
 
-    //  This section is to fix the colors on pixels at {0,1} and {1,0}
-    float x0 = x + 1;
-    float y0 = y + 1;
-    if((x==0 && y==1)) {
-        n = abs((x*x - y0*y0) * sin(data.offset + ((x+y0)*pi2 / float(data.height+data.width))));
-        d = x*x + y0*y0;
-    }
-    if((x==1 && y==0)) {
-        n = abs((x0*x0 - y*y) * sin(data.offset + ((x0+y)*pi2 / float(data.height+data.width))));
-        d = x0*x0 + y*y;
-    }
-    // end of fix
-
-    float h=d>0.001 ? n/d : 0.0;
-
-    float3 hsv = float3(h, 1.0, 1.0);
     if (data.chunks <= 1 || int(h*data.chunks) % data.skip != 0) {
         if (data.colorScheme == 0) {
-            result[bindex] = hsv2rgb(hsv);
+            result[index] = hsv2rgb(float3(h, 1.0, 1.0));
         } else {
-            result[bindex] = getMultiColorBlend(data, h, false);
+            result[index] = getMultiColorBlend(data, h, false);
+        }
+    }
+}
+kernel void ButterflyEffectStyle2(constant ButterflyData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]])
+{
+    int x = index % data.width;
+    int y = index / data.width;
+
+    if (x > data.width) return;
+    if (y > data.height) return;
+
+    int maxframe = data.height * 2;
+    int frame = (data.height * data.curState / 200) % maxframe;
+
+    float f= (frame < maxframe/2) ? frame + 1 : maxframe - frame;
+    float x1= (float(x) - data.width/2.0)/f;
+    float y1= (float(y) - data.height/2.0)/f;
+    float h = sqrt(x1*x1 + y1*y1);
+
+    if (data.chunks <= 1 || int(h*data.chunks) % data.skip != 0) {
+        if (data.colorScheme == 0) {
+            result[index] = hsv2rgb(float3(h, 1.0, 1.0));
+        } else {
+            result[index] = getMultiColorBlend(data, h, false);
+        }
+    }
+}
+kernel void ButterflyEffectStyle3(constant ButterflyData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]])
+{
+    int x = index % data.width;
+    int y = index / data.width;
+
+    if (x > data.width) return;
+    if (y > data.height) return;
+
+    int maxframe = data.height * 2;
+    int frame = (data.height * data.curState / 200) % maxframe;
+
+
+
+    float f = (frame < maxframe/2) ? frame + 1 : maxframe - frame;
+    f = f * 0.1 + float(data.height)/60.0;
+    float x1 = (x-data.width/2.0)/f;
+    float y1 = (y-data.height/2.0)/f;
+    float h = sin(x1) * cos(y1);
+
+    if (data.chunks <= 1 || int(h*data.chunks) % data.skip != 0) {
+        if (data.colorScheme == 0) {
+            result[index] = hsv2rgb(float3(h, 1.0, 1.0));
+        } else {
+            result[index] = getMultiColorBlend(data, h, false);
+        }
+    }
+}
+kernel void ButterflyEffectStyle4(constant ButterflyData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]])
+{
+    int x = index % data.width;
+    int y = index / data.width;
+
+    if (x > data.width) return;
+    if (y > data.height) return;
+
+    //  This section is to fix the colors on pixels at {0,1} and {1,0}
+    if (x == 0 && y == 1) y++;
+    if (x == 1 && y == 0) x++;
+
+    float n = ((x*x - y*y) * sin(data.offset + ((x+y)*pi2 / float(data.height+data.width))));
+    float d = x*x + y*y;
+
+    float h = d>0.001 ? n/d : 0.0;
+    float intpart;
+    float fractpart = modf(h , intpart);
+    h = fractpart;
+    if (h < 0) h = 1.0 + h;
+
+    if (data.chunks <= 1 || int(h*data.chunks) % data.skip != 0) {
+        if (data.colorScheme == 0) {
+            result[index] = hsv2rgb(float3(h, 1.0, 1.0));
+        } else {
+            result[index] = getMultiColorBlend(data, h, false);
+        }
+    }
+}
+kernel void ButterflyEffectStyle5(constant ButterflyData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]])
+{
+    int x = index % data.width;
+    int y = index / data.width;
+
+    if (x > data.width) return;
+    if (y > data.height) return;
+
+    //  This section is to fix the colors on pixels at {0,1} and {1,0}
+    if (x == 0 && y == 1) y++;
+    if (x == 1 && y == 0) x++;
+
+    float n = abs((x*x - y*y) * sin(data.offset + ((x+y)*pi2 / float(data.height*data.width))));
+    float d = x*x + y*y;
+    float h=d>0.001 ? n/d : 0.0;
+
+    if (data.chunks <= 1 || int(h*data.chunks) % data.skip != 0) {
+        if (data.colorScheme == 0) {
+            result[index] = hsv2rgb(float3(h, 1.0, 1.0));
+        } else {
+            result[index] = getMultiColorBlend(data, h, false);
         }
     }
 }
