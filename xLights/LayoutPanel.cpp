@@ -208,6 +208,8 @@ const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CAD_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -4269,28 +4271,27 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
     }
     if (editing_models && (selectedBaseObject != nullptr))
     {
-        Model* model = dynamic_cast<Model*>(selectedBaseObject);
-        if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
-        {
-            menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
-        }
         menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
         menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
+        Model* model = dynamic_cast<Model*>(selectedBaseObject);
+        if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+            menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+        }
+        if (model->SupportsWiringView()) {
+            menu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
+        }
+        menu.AppendSeparator();
         if (model->SupportsExportAsCustom())
         {
             menu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
-        }
-        if (model->SupportsWiringView())
-        {
-            menu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
         }
         if (model->SupportsXlightsModel())
         {
             menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
         }
-
         menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
 
+        menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
                 menu.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add to Existing Groups");
@@ -4298,6 +4299,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             }
         }
         menu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
+        menu.AppendSeparator();
+        menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal");
+        menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical");
     }
 
     if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1))
@@ -4781,7 +4785,19 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         modelPreview->SaveCurrentCameraPosition();
         SetDirtyHiLight(true);
-    }
+    } else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {        
+        if (editing_models) {
+            PreviewModelFlipH();
+        } else {
+            objects_panel->PreviewObjectFlipH();
+        }
+    } else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
+        if (editing_models) {
+            PreviewModelFlipV();
+        } else {
+            objects_panel->PreviewObjectFlipV();
+        }
+    }    
     else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
@@ -4831,7 +4847,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
     {
         if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected)
         {
-            modelPreview->GetModels()[i]->SetBottom(0.0f);
+            modelPreview->GetModels()[i]->SetBottom(0.0F);
         }
     }
 
@@ -5279,6 +5295,48 @@ void LayoutPanel::PreviewModelAlignVCenter()
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
 
     ReselectTreeModels(selectedModelPaths);
+}
+
+void LayoutPanel::PreviewModelFlipV() {
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) {
+        return;
+    }
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+
+    for (auto model : modelPreview->GetModels()) {
+        if (model->Selected) {
+            model->FlipVertical();
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
+
+    ReselectTreeModels(selectedModelPaths);
+}
+
+void LayoutPanel::PreviewModelFlipH() {
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) {
+        return;
+    }
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+
+    for (auto model : modelPreview->GetModels()) {
+        if (model->Selected) {
+            model->FlipHorizontal();
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
+
+    ReselectTreeModels(selectedModelPaths);    
 }
 
 int LayoutPanel::GetSelectedModelIndex() const
@@ -7184,6 +7242,20 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
     }
+    else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
+        if (editing_models) {
+            PreviewModelFlipH();
+        } else {
+            objects_panel->PreviewObjectFlipH();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
+        if (editing_models) {
+            PreviewModelFlipV();
+        } else {
+            objects_panel->PreviewObjectFlipV();
+        }
+    }
 }
 
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
@@ -8227,6 +8299,10 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "MODEL_DISTRIBUTE_VERT") {
             PreviewModelVDistribute();
+        } else if (type == "MODEL_FLIP_VERT") {
+            PreviewModelFlipV();
+        } else if (type == "MODEL_FLIP_HORIZ") {
+            PreviewModelFlipH();
         }
         else {
             logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());

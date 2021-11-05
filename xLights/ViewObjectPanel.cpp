@@ -994,6 +994,42 @@ void ViewObjectPanel::PreviewObjectVDistribute()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
+void ViewObjectPanel::PreviewObjectFlipV() {
+    if (mSelectedObject == nullptr) {
+        return;
+    }
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->Selected) {
+            view_object->FlipVertical();
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectFlipVertical");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectFlipVertical");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipVertical", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+
+void ViewObjectPanel::PreviewObjectFlipH() {
+    if (mSelectedObject == nullptr) {
+        return;
+    }
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->Selected) {
+            view_object->FlipHorizontal();
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectFlipHorizontal");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectFlipHorizontal");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipHorizontal", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+
 void ViewObjectPanel::DoCut(wxCommandEvent& event)
 {
 	layoutPanel->DoCut(event);

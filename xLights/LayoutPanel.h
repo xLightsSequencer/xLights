@@ -216,6 +216,8 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_FLOODAREA;
         static const long ID_PREVIEW_MODEL_CAD_EXPORT;
         static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
+        static const long ID_PREVIEW_FLIP_HORIZONTAL;
+        static const long ID_PREVIEW_FLIP_VERTICAL;
 
 	public:
 
@@ -386,6 +388,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
+        void PreviewModelFlipV();
+        void PreviewModelFlipH();
         Model *CreateNewModel(const std::string &type) const;
 
         bool _firstTreeLoad = true;
