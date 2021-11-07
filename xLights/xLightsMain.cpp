@@ -1957,6 +1957,19 @@ void xLightsFrame::DoPostStartupCommands() {
         }
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
+
+#ifdef __WXOSX__
+        wxConfigBase* config = wxConfigBase::Get();
+        if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
+            if (config->Read("MacOSUnsupportedVersionCheck", "") != xlights_version_string) {
+                config->Write("MacOSUnsupportedVersionCheck", xlights_version_string);
+                wxMessageBox("Your version of macOS will soon be unsupported.  It is strongly "
+                             "recommended to upgrade to at least macOS 10.14.",
+                             "MacOS Version",
+                             wxICON_WARNING| wxOK | wxCENTRE, this);
+            }
+        }
+#endif
     }
 }
 
