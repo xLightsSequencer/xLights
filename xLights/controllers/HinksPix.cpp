@@ -722,6 +722,7 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                     auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
                     if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
                         smartPort.type = 2;
+                        smartPort.portStartPixel = { 0, 0, 0, 0 };
                     }
                     else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
                         smartPort.type = 1;
