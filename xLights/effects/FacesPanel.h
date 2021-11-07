@@ -45,12 +45,14 @@ class FacesPanel: public xlEffectPanel
 		BulkEditSlider* Slider_Faces_TransparentBlack;
 		BulkEditTextCtrl* TextCtrl_Faces_TransparentBlack;
 		wxCheckBox* CheckBox_Fade;
+		wxChoice* Choice1;
 		wxChoice* Choice_Faces_Phoneme;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;
 		wxSpinCtrl* SpinCtrl_LeadFrames;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText71;
 		//*)
 
@@ -66,6 +68,8 @@ class FacesPanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Faces_Eyes;
 		static const long ID_CHOICE_Faces_Eyes;
 		static const long ID_CHECKBOX_Faces_Outline;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Faces_UseState;
 		static const long ID_CHECKBOX_Faces_SuppressWhenNotSinging;
 		static const long ID_STATICTEXT_Faces_Lead_Frames;
 		static const long ID_SPINCTRL_Faces_LeadFrames;
@@ -81,6 +85,7 @@ class FacesPanel: public xlEffectPanel
 		void OnMouthMovementTypeSelected(wxCommandEvent& event);
 		void OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event);
 		void OnCheckBox_FadeClick(wxCommandEvent& event);
+		void OnCheckBox_Faces_OutlineClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

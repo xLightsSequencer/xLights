@@ -43,10 +43,10 @@ public:
         blinkEndTime(0), nextBlinkTime(intRand(0, 5000)) {
     }
     virtual ~FacesRenderCache() {
-        for (auto it = _imageCache.begin(); it != _imageCache.end(); ++it) {
-            delete it->second;
-            ;
+        for (auto it : _imageCache) {
+            delete it.second;
         }
+        _imageCache.clear();
     }
     void Clear() {
         nodeNameCache.clear();
@@ -78,6 +78,12 @@ wxString FacesEffect::GetEffectString() {
 
     if (p->CheckBox_Faces_Outline->GetValue()) {
         ret << "E_CHECKBOX_Faces_Outline=1,";
+
+        if (p->Choice1->GetStringSelection() != "") {
+            ret << "E_CHOICE_Faces_UseState=";
+            ret << p->Choice1->GetStringSelection();
+            ret << ",";
+        }
     }
 
     if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
@@ -231,6 +237,8 @@ void FacesEffect::SetPanelStatus(Model* cls) {
     if (fp == nullptr)
         return;
 
+    fp->Choice1->Clear();
+    fp->Choice1->Append("");
     fp->Choice_Faces_TimingTrack->Clear();
     fp->Face_FaceDefinitonChoice->Clear();
     for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|')) {
@@ -254,6 +262,15 @@ void FacesEffect::SetPanelStatus(Model* cls) {
                     if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
                         addRender = false;
                     }
+                }
+            }
+
+            std::list<std::string> used;
+            for (const auto& it : m->stateInfo) {
+                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
+                {
+                    fp->Choice1->Append(it.first);
+                    used.push_back(it.first);
                 }
             }
         }
@@ -333,6 +350,7 @@ void FacesEffect::SetDefaultParameters() {
     SetRadioValue(fp->RadioButton1);
     SetChoiceValue(fp->Choice_Faces_Phoneme, "AI");
     SetChoiceValue(fp->Choice_Faces_Eyes, "Auto");
+    SetChoiceValue(fp->Choice1, "");
 
     if (fp->Face_FaceDefinitonChoice->GetCount() > 0) {
         fp->Face_FaceDefinitonChoice->SetSelection(0);
@@ -440,7 +458,9 @@ void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer&
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
-                    alpha);
+                    alpha,
+                    SettingsMap.Get("CHOICE_Faces_UseState", "")
+            );
     }
 }
 
@@ -852,7 +872,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
     SequenceElements *elements, const std::string &faceDef,
     const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha)
+    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState)
 {
     if (alpha == 0) return; // if alpha is zero dont bother.
 
@@ -1368,6 +1388,46 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 end--;
                 for (int n = start; n <= end; n++) {
                     buffer.SetNodePixel(n, colors[t], true);
+                }
+            }
+        }
+
+        if (todo[t] == "FaceOutline" && outlineState != "") {
+            auto sts = model_info->stateInfo[outlineState];
+            if (sts["CustomColors"] == "1") {
+                if (sts["Type"] == "NodeRange") {
+                    for (size_t i = 1; i <= 40; i++) {
+                        auto r = sts[wxString::Format("s%d", (int)i)];
+                        auto c = sts[wxString::Format("s%d-Color", (int)i)];
+                        if (r != "") {
+                            xlColor colour = xlColor(c);
+                            colour.alpha = ((int)alpha * colour.alpha) / 255;
+                            wtkz = wxStringTokenizer(r, ",");
+                            while (wtkz.HasMoreTokens()) {
+                                wxString valstr = wtkz.GetNextToken();
+
+                                int start, end;
+                                if (valstr.Contains("-")) {
+                                    int idx = valstr.Index('-');
+                                    start = wxAtoi(valstr.Left(idx));
+                                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                                    if (end < start) {
+                                        std::swap(start, end);
+                                    }
+                                } else {
+                                    start = end = wxAtoi(valstr);
+                                }
+                                if (start > end) {
+                                    start = end;
+                                }
+                                start--;
+                                end--;
+                                for (int n = start; n <= end; n++) {
+                                    buffer.SetNodePixel(n, colour, true);
+                                }
+                            }                            
+                        }
+                    }
                 }
             }
         }

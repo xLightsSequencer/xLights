@@ -34,6 +34,8 @@ const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
+const long FacesPanel::ID_STATICTEXT1 = wxNewId();
+const long FacesPanel::ID_CHOICE_Faces_UseState = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_SuppressWhenNotSinging = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Lead_Frames = wxNewId();
 const long FacesPanel::ID_SPINCTRL_Faces_LeadFrames = wxNewId();
@@ -105,6 +107,10 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Use State as outline"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer98->Add(StaticText2, 1, wxALL|wxEXPAND, 5);
+	Choice1 = new wxChoice(this, ID_CHOICE_Faces_UseState, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_UseState"));
+	FlexGridSizer98->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -138,6 +144,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
+	Connect(ID_CHECKBOX_Faces_Outline,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_Faces_OutlineClick);
 	Connect(ID_CHECKBOX_Faces_SuppressWhenNotSinging,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_SuppressWhenNotSingingClick);
 	Connect(ID_CHECKBOX_Faces_Fade,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_FadeClick);
 	//*)
@@ -183,6 +190,13 @@ void FacesPanel::ValidateWindow()
 			CheckBox_Fade->Disable();
 		}
 	}
+
+	if (CheckBox_Faces_Outline->IsChecked()) {
+        Choice1->Enable();
+	}
+	else {
+        Choice1->Enable(false);
+    }
 }
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
@@ -196,6 +210,10 @@ void FacesPanel::OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event)
 }
 
 void FacesPanel::OnCheckBox_FadeClick(wxCommandEvent& event)
+{
+	ValidateWindow();
+}
+void FacesPanel::OnCheckBox_Faces_OutlineClick(wxCommandEvent& event)
 {
 	ValidateWindow();
 }

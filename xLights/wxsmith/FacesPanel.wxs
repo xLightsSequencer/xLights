@@ -118,8 +118,23 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Outline" subclass="BulkEditCheckBox" variable="CheckBox_Faces_Outline" member="yes">
 							<label>Show outline</label>
+							<handler function="OnCheckBox_Faces_OutlineClick" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
+							<label>Use State as outline</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_Faces_UseState" variable="Choice1" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
