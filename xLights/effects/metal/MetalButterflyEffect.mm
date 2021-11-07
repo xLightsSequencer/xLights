@@ -10,6 +10,9 @@
 class MetalButterflyEffectData {
 public:
     MetalButterflyEffectData() {
+        for (auto &f : functions) {
+            f = nil;
+        }
         functions[1] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle1");
         functions[2] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle2");
         functions[3] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle3");
