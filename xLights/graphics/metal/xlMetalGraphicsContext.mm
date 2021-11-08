@@ -4,39 +4,54 @@
 #include "Shaders/SIMDMathUtilities.h"
 
 xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c) : xlGraphicsContext(),  canvas(c) {
-    buffer = [c->getMTLCommandQueue() commandBuffer];
-    MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
-
     id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
     CAMetalLayer *layer = [d2 layer];
     drawable = [layer nextDrawable];
-    renderPass.colorAttachments[0].texture = [drawable texture];
-    renderPass.colorAttachments[0].loadAction = MTLLoadActionClear;
 
-    xlColor bg = canvas->ClearBackgroundColor();
-    float r = bg.red;
-    float g = bg.green;
-    float b = bg.blue;
-    float a = bg.alpha;
-    r /= 255.0f;
-    g /= 255.0f;
-    b /= 255.0f;
-    a /= 255.0f;
-    renderPass.colorAttachments[0].clearColor = {r, g, b, a};
-    renderPass.colorAttachments[0].storeAction = MTLStoreActionStore;
+    if (drawable != nil) {
+        [drawable retain];
 
-    encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
-    [renderPass release];
+        buffer = [c->getMTLCommandQueue() commandBuffer];
+        MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
 
-    frameData.MVP = matrix4x4_identity();
-    frameData.fragmentColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        renderPass.colorAttachments[0].texture = [drawable texture];
+        renderPass.colorAttachments[0].loadAction = MTLLoadActionClear;
+
+        xlColor bg = canvas->ClearBackgroundColor();
+        float r = bg.red;
+        float g = bg.green;
+        float b = bg.blue;
+        float a = bg.alpha;
+        r /= 255.0f;
+        g /= 255.0f;
+        b /= 255.0f;
+        a /= 255.0f;
+        renderPass.colorAttachments[0].clearColor = {r, g, b, a};
+        renderPass.colorAttachments[0].storeAction = MTLStoreActionStore;
+
+        encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
+        [renderPass release];
+
+        frameData.MVP = matrix4x4_identity();
+        frameData.fragmentColor = {0.0f, 0.0f, 0.0f, 1.0f};
+    } else {
+        printf("Drawable is nil\n");
+        buffer = nil;
+        encoder = nil;
+    }
 }
 xlMetalGraphicsContext::~xlMetalGraphicsContext() {
-    [encoder endEncoding];
-    [buffer presentDrawable:drawable];
-    [buffer commit];
-
+    if (encoder != nil) {
+        [encoder endEncoding];
+        [buffer presentDrawable:drawable];
+        [buffer commit];
+        [drawable release];
+    }
     //[buffer waitUntilCompleted];
+}
+
+bool xlMetalGraphicsContext::hasDrawable() {
+    return drawable != nil;
 }
 
 

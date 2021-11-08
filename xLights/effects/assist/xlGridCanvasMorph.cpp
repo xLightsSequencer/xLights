@@ -578,6 +578,9 @@ void xlGridCanvasMorph::render()
     }
 
     xlGraphicsContext *ctx = PrepareContextForDrawing();
+    if (ctx == nullptr) {
+        return;
+    }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if (!mCornerTextures[0]) {

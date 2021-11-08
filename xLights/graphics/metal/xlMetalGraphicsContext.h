@@ -55,6 +55,7 @@ public:
     virtual void Scale(float w, float h, float z) override;
 
 
+    bool hasDrawable();
 protected:
     xlMetalCanvas *canvas;
     id<MTLCommandBuffer> buffer;

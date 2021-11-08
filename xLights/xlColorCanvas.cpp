@@ -221,6 +221,9 @@ void xlColorCanvas::render()
     }
 
     xlGraphicsContext *ctx = PrepareContextForDrawing();
+    if (ctx == nullptr) {
+        return;
+    }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if( mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER ) {

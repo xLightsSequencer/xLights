@@ -38,6 +38,9 @@ void xlGridCanvasEmpty::render( wxPaintEvent& event )
     }
 
     xlGraphicsContext *ctx = PrepareContextForDrawing();
+    if (ctx == nullptr) {
+        return;
+    }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if (mEffect != nullptr) {

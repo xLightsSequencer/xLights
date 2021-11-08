@@ -54,6 +54,9 @@ void DimmingCurvePanel::render(wxPaintEvent& event) {
     wxPaintDC(this);
 
     xlGraphicsContext *ctx = PrepareContextForDrawing();
+    if (ctx == nullptr) {
+        return;
+    }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
 

@@ -65,7 +65,12 @@ void xlMetalCanvas::PrepareCanvas() {
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
-    return new xlMetalGraphicsContext(this);
+    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this);
+    if (!ret->hasDrawable()) {
+        delete ret;
+        return nullptr;
+    }
+    return ret;
 }
 void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx) {
     delete ctx;
