@@ -6408,7 +6408,7 @@ void LayoutPanel::ReplaceModel()
         if ((replaceModel->ModelStartChannel !=
             modelToReplaceItWith->ModelStartChannel &&
             wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
-            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && modelToReplaceItWith->GetControllerName() == ""))
+            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && (modelToReplaceItWith->GetControllerName() == "" || modelToReplaceItWith->GetControllerName() == NO_CONTROLLER)))
         {
             auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
@@ -6431,6 +6431,7 @@ void LayoutPanel::ReplaceModel()
         xlights->ReplaceModelWithModelFixGroups(rmn, riw);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ReplaceModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReplaceModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel");
     }
 }
