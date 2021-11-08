@@ -71,17 +71,18 @@ class xlGLCanvas
         int GetZDepth() const { return m_zDepth;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
 
-        virtual xlColor ClearBackgroundColor() { return xlBLACK; }
-
-    protected:
-      	DECLARE_EVENT_TABLE()
+        virtual xlColor ClearBackgroundColor() const { return xlBLACK; }
+        virtual bool drawingUsingLogicalSize() const { return true; }
 
 
         virtual void PrepareCanvas();
-        virtual xlGraphicsContext*  PrepareContextForDrawing();
+        virtual xlGraphicsContext* PrepareContextForDrawing();
+        virtual xlGraphicsContext* PrepareContextForDrawing(const xlColor &bg);
         virtual void FinishDrawing(xlGraphicsContext* ctx);
+        void Resized(wxSizeEvent& evt);
 
-        virtual bool drawingUsingLogicalSize() const { return true; }
+    protected:
+      	DECLARE_EVENT_TABLE()
 
         size_t mWindowWidth;
         size_t mWindowHeight;
@@ -92,7 +93,6 @@ class xlGLCanvas
         virtual void InitializeGLContext() {}
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
-        void Resized(wxSizeEvent& evt);
         void OnEraseBackGround(wxEraseEvent& event) {};
 
         void CreateGLContext();

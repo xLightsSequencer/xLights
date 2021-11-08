@@ -74,7 +74,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
             float max;
         };
 
-        virtual xlColor ClearBackgroundColor();
+        virtual xlColor ClearBackgroundColor() const override;
 
     protected:
         xlVertexAccumulator *border = nullptr;

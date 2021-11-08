@@ -8,7 +8,6 @@
 
 #include "Shaders/MetalShaderTypes.h"
 
-
 class xlMetalGraphicsContext : public xlGraphicsContext {
 public:
     xlMetalGraphicsContext(xlMetalCanvas *c);

@@ -4,6 +4,7 @@
 #include "osxUtils/wxMetalCanvas.hpp"
 #include "../xlGraphicsContext.h"
 
+class xlGLCanvas;
 
 class xlMetalCanvas : public wxMetalCanvas {
 public:
@@ -25,7 +26,7 @@ public:
     void Resized(wxSizeEvent& evt);
     void OnEraseBackGround(wxEraseEvent& event) {};
 
-    virtual xlColor ClearBackgroundColor() { return xlBLACK; }
+    virtual xlColor ClearBackgroundColor() const;
 
     double translateToBacking(double x) const;
     double mapLogicalToAbsolute(double x) const;
@@ -37,7 +38,7 @@ protected:
     virtual xlGraphicsContext* PrepareContextForDrawing();
     virtual void FinishDrawing(xlGraphicsContext *ctx);
 
-    virtual bool drawingUsingLogicalSize() const { return false; }
+    virtual bool drawingUsingLogicalSize() const;
 
 
     size_t mWindowWidth;
@@ -46,6 +47,8 @@ protected:
     bool mIsInitialized = false;
     wxString mName;
     bool is3d;
+    
+    xlGLCanvas *fallback;
 
 };
 

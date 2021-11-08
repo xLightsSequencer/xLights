@@ -10,11 +10,58 @@
 
 #include "ExternalHooks.h"
 
+#include "../opengl/xlGLCanvas.h"
+#include "wx/osx/private.h"
+
 BEGIN_EVENT_TABLE(xlMetalCanvas, wxMetalCanvas)
     EVT_SIZE(xlMetalCanvas::Resized)
     EVT_ERASE_BACKGROUND(xlMetalCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
+
+@interface wxNSCustomOpenGLView : NSOpenGLView
+{
+}
+@end
+@implementation wxNSCustomOpenGLView
+
++ (void)initialize
+{
+    static BOOL initialized = NO;
+    if (!initialized)
+    {
+        initialized = YES;
+        wxOSXCocoaClassAddWXMethods( self );
+    }
+}
+
+- (BOOL)isOpaque
+{
+    return YES;
+}
+
+- (BOOL) acceptsFirstResponder
+{
+    return YES;
+}
+
+// for special keys
+
+- (void)doCommandBySelector:(SEL)aSelector
+{
+    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
+    if (impl)
+        impl->doCommandBySelector(aSelector, self, _cmd);
+}
+
+- (NSOpenGLContext *) openGLContext
+{
+    // Prevent the NSOpenGLView from making it's own context
+    // We want to force using wxGLContexts
+    return NULL;
+}
+
+@end
 
 xlMetalCanvas::xlMetalCanvas(wxWindow *parent,
                              wxWindowID id,
@@ -29,18 +76,51 @@ mWindowHeight(0),
 mWindowResized(false),
 mIsInitialized(false),
 mName(name),
-is3d(!only2d)
+is3d(!only2d),
+fallback(nullptr)
 {
+    if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
+        //We need a Metal supported graphics card.  Only 10.14 guarentees that so
+        //If we aren't on 10.14 or better, we'll fall back to OpenGL
+        fallback = new xlGLCanvas(parent, id, pos, size, style, name, only2d);
+
+        NSRect r = wxOSXGetFrameForControl( this, pos , size ) ;
+        wxNSCustomOpenGLView* v = [[[wxNSCustomOpenGLView alloc] initWithFrame:r] retain];
+        [v setWantsBestResolutionOpenGLSurface:YES];
+
+        wxWidgetCocoaImpl* c = new wxWidgetCocoaImpl( this, v, wxWidgetImpl::Widget_UserKeyEvents | wxWidgetImpl::Widget_UserMouseEvents );
+        SetPeer(c);
+        MacPostControlCreate(pos, size);
+        fallback->SetPeer(new wxWidgetCocoaImpl( this, v, wxWidgetImpl::Widget_UserKeyEvents | wxWidgetImpl::Widget_UserMouseEvents ));
+    }
 }
 
 
 xlMetalCanvas::~xlMetalCanvas() {
+    if (fallback) {
+        delete fallback;
+    }
+}
+xlColor xlMetalCanvas::ClearBackgroundColor() const {
+    return xlBLACK;
+}
+bool xlMetalCanvas::drawingUsingLogicalSize() const {
+    if (fallback) {
+        return fallback->drawingUsingLogicalSize();
+    }
+    return false;
 }
 
 double xlMetalCanvas::translateToBacking(double x) const {
+    if (fallback) {
+        return fallback->translateToBacking(x);
+    }
     return xlTranslateToRetina(*this, x);
 }
 double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
+    if (fallback) {
+        return fallback->mapLogicalToAbsolute(x);
+    }
     if (drawingUsingLogicalSize()) {
         return x;
     }
@@ -50,8 +130,14 @@ double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
 
 void xlMetalCanvas::Resized(wxSizeEvent& evt)
 {
-    mWindowWidth = evt.GetSize().GetWidth() * GetContentScaleFactor();
-    mWindowHeight = evt.GetSize().GetHeight() * GetContentScaleFactor();
+    if (fallback) {
+        fallback->Resized(evt);
+        mWindowWidth = fallback->getWidth();
+        mWindowHeight = fallback->getHeight();
+    } else {
+        mWindowWidth = evt.GetSize().GetWidth() * GetContentScaleFactor();
+        mWindowHeight = evt.GetSize().GetHeight() * GetContentScaleFactor();
+    }
     mWindowResized = true;
     Refresh();
 }
@@ -59,12 +145,19 @@ void xlMetalCanvas::Resized(wxSizeEvent& evt)
 
 void xlMetalCanvas::PrepareCanvas() {
     if (!mIsInitialized) {
-        //just make sure this will load
-        getPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader");
+        if (fallback) {
+            fallback->PrepareCanvas();
+        } else {
+            //just make sure this will load
+            getPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader");
+        }
         mIsInitialized = true;
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
+    if (fallback) {
+        return fallback->PrepareContextForDrawing(this->ClearBackgroundColor());
+    }
     xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this);
     if (!ret->hasDrawable()) {
         delete ret;
@@ -73,5 +166,9 @@ xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
     return ret;
 }
 void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx) {
-    delete ctx;
+    if (fallback) {
+        return fallback->FinishDrawing(ctx);
+    } else {
+        delete ctx;
+    }
 }

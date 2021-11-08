@@ -848,11 +848,12 @@ public:
 };
 
 xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
+    return PrepareContextForDrawing(ClearBackgroundColor());
+}
+xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
     InitializeGLContext();
-
     SetCurrentGLContext();
 
-    xlColor bg = ClearBackgroundColor();
     float r = bg.red;
     float g = bg.green;
     float b = bg.blue;
