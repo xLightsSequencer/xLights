@@ -759,6 +759,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     wxFile fileobj(fullFileName);
     if (!usingJqUpload) {
         std::string cl = "Content-Length: " + std::to_string(fileobj.Length());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length());
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
