@@ -79,6 +79,42 @@ public:
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge);
 };
 
+class xlVertexTextureAccumulator {
+public:
+    xlVertexTextureAccumulator() {}
+    virtual ~xlVertexTextureAccumulator() {}
+
+    virtual void Reset() {}
+    virtual void PreAlloc(unsigned int i) {};
+    virtual void AddVertex(float x, float y, float z, float tx, float ty) {};
+    virtual uint32_t getCount() { return 0; }
+
+
+    // mark this as ready to be copied to graphics card, after finalize,
+    // vertices cannot be added, but if mayChangeV is set, the vertex
+    // data can change via SetVertex and then flushed to push the
+    // new data to the graphics card.  mayChangeT allows changing the texture vertices
+    virtual void Finalize(bool mayChangeV, bool mayChangeT) {}
+    virtual void SetVertex(uint32_t vertex, float x, float y, float z, float tx, float ty) {};
+    virtual void FlushRange(uint32_t start, uint32_t len) {}
+
+
+    virtual void AddVertex(float x, float y, float tx, float ty) {
+        AddVertex(x, y, 0, tx, ty);
+    }
+    virtual void AddFullTexture(float x, float y, float x2, float y2) {
+        PreAlloc(6);
+        AddVertex(x, y, 0, 0, 0);
+        AddVertex(x, y2, 0,0, 1);
+        AddVertex(x2, y2, 0, 1, 1);
+        AddVertex(x2, y2, 0, 1, 1);
+        AddVertex(x2, y, 0, 1, 0);
+        AddVertex(x, y, 0, 0, 0);
+    }
+};
+
+
+
 class xlTexture {
 public:
     xlTexture() {}

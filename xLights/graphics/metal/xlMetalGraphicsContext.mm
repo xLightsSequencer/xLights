@@ -254,6 +254,116 @@ public:
     id<MTLBuffer> cbuffer = nil;
 };
 
+
+
+class xlMetalVertexTextureAccumulator : public xlVertexTextureAccumulator {
+public:
+    xlMetalVertexTextureAccumulator() {}
+    virtual ~xlMetalVertexTextureAccumulator() {
+        if (vbuffer) {
+            [vbuffer release];
+        }
+        if (tbuffer) {
+            [tbuffer release];
+        }
+    }
+
+    virtual void Reset() override { if (!finalized) { count = 0; vertices.resize(0); tvertices.resize(0); } }
+    virtual void PreAlloc(unsigned int i) override {  vertices.reserve(i); tvertices.reserve(i); }
+    virtual void AddVertex(float x, float y, float z, float tx, float ty) override {
+        if (!finalized) {
+            vertices.emplace_back((simd_float3){x, y, z});
+            tvertices.emplace_back((simd_float2){tx, ty});
+            count++;
+        }
+    }
+    virtual uint32_t getCount() override { return count; }
+
+
+    virtual void Finalize(bool mcv, bool mct) override {
+        finalized = true;
+        mayChangeVertices = mcv;
+        mayChangeTextures = mct;
+    }
+
+    virtual void SetVertex(uint32_t vertex, float x, float y, float z, float tx, float ty) override {
+        if (vertex < count) {
+            if (bufferVertices) {
+                bufferVertices[vertex] = (simd_float3){x, y, z};
+            } else {
+                vertices[vertex] = (simd_float3){x, y, z};
+            }
+            if (bufferTexture) {
+                bufferTexture[vertex] = (simd_float2){tx, ty};
+            } else {
+                tvertices[vertex] = (simd_float2){tx, ty};
+            }
+        }
+    }
+
+    virtual void FlushRange(uint32_t start, uint32_t len) override {
+        if (bufferVertices) {
+            uint32_t s = start * sizeof(simd_float3);
+            uint32_t l = len * sizeof(simd_float3);
+            [vbuffer didModifyRange:NSMakeRange(s, l)];
+        }
+        if (bufferTexture) {
+            uint32_t s = start * sizeof(simd_float2);
+            uint32_t l = len * sizeof(simd_float2);
+            [tbuffer didModifyRange:NSMakeRange(s, l)];
+        }
+    }
+
+    void SetBufferBytes(id<MTLDevice> device, id<MTLRenderCommandEncoder> encoder, int indexV, int indexT) {
+        int sz = count * sizeof(simd_float3);
+        if (finalized) {
+            if (!vbuffer) {
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                if (mayChangeVertices) {
+                    bufferVertices = (simd_float3 *)vbuffer.contents;
+                }
+            }
+            [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
+        } else if (sz > 4095) {
+            vbuffer = nil;
+            vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+            [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
+        } else {
+            [encoder setVertexBytes:&vertices[0] length:sz atIndex:indexV];
+        }
+
+        sz = count * sizeof(simd_float2);
+        if (finalized) {
+            if (!tbuffer) {
+                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+                if (mayChangeTextures) {
+                    bufferTexture = (simd_float2 *)tbuffer.contents;
+                }
+            }
+            [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
+        } else if (sz > 4095) {
+            tbuffer = nil;
+            tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+            [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
+        } else {
+            [encoder setVertexBytes:&tvertices[0] length:sz atIndex:indexT];
+        }
+    }
+
+    uint32_t count = 0;
+    std::vector<simd_float3> vertices;
+    std::vector<simd_float2> tvertices;
+
+    bool finalized = false;
+    bool mayChangeVertices = false;
+    bool mayChangeTextures = false;
+    simd_float3 *bufferVertices = nullptr;
+    simd_float2 *bufferTexture = nullptr;
+    id<MTLBuffer> vbuffer = nil;
+    id<MTLBuffer> tbuffer = nil;
+};
+
+
 class xlMetalTexture : public xlTexture {
 public:
     xlMetalTexture() : xlTexture(), texture(nil) {
@@ -289,6 +399,9 @@ xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
 }
 xlVertexColorAccumulator *xlMetalGraphicsContext::createVertexColorAccumulator() {
     return new xlMetalVertexColorAccumulator();
+}
+xlVertexTextureAccumulator *xlMetalGraphicsContext::createVertexTextureAccumulator() {
+    return new xlMetalVertexTextureAccumulator();
 }
 
 
@@ -348,7 +461,7 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImag
     }
     return txt;
 }
-xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
+xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt) {
     xlMetalTexture *txt = new xlMetalTexture();
 
     @autoreleasepool {
@@ -359,18 +472,54 @@ xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
                                                                                         width:w
                                                                                         height:h
                                                                                         mipmapped:false];
-        txt->texture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
-
-
+        id <MTLTexture> srcTexture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
         uint8_t *bytes = (uint8_t *)malloc(w * h * 4);
         getImageBytes(image, bytes);
         int rlen = w * 4;
         MTLRegion region = {0, 0, 0, w, h , 1};
-        [txt->texture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:rlen];
+        [srcTexture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:rlen];
+
+
+        if (pvt) {
+            // Create a private texture.
+            desc.storageMode = MTLStorageModePrivate;
+            id <MTLTexture> privateTexture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
+            // Encode a blit pass to copy data from the source texture to the private texture.
+            id<MTLCommandBuffer> bltBuffer = [canvas->getMTLCommandQueue() commandBuffer];
+            id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
+            MTLOrigin textureOrigin = MTLOriginMake(0, 0, 0);
+            MTLSize textureSize = MTLSizeMake(w, h, 1);
+            [blitCommandEncoder copyFromTexture:srcTexture
+                                    sourceSlice:0
+                                    sourceLevel:0
+                                   sourceOrigin:textureOrigin
+                                     sourceSize:textureSize
+                                      toTexture:privateTexture
+                               destinationSlice:0
+                               destinationLevel:0
+                              destinationOrigin:textureOrigin];
+            [blitCommandEncoder endEncoding];
+            [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+                // Private texture is populated, we can release the srcBuffer
+                [srcTexture release];
+            }];
+            [bltBuffer commit];
+
+            txt->texture = privateTexture;
+        } else {
+            txt->texture = srcTexture;
+        }
         free(bytes);
     }
     return txt;
 }
+xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
+    return createTexture(image, false);
+}
+xlTexture *xlMetalGraphicsContext::createTextureForFont(const xlFontInfo &font) {
+    return createTexture(font.getImage(), true);
+}
+
 
 //drawing methods
 void xlMetalGraphicsContext::drawLines(xlVertexAccumulator *vac, const xlColor &c) {
@@ -386,8 +535,7 @@ void xlMetalGraphicsContext::drawTriangleStrip(xlVertexAccumulator *vac, const x
     drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac, c);
 }
 void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c) {
-    std::string name = blending ? "singleColorProgramBlend" : "singleColorProgram";
-    setPipelineState(name, "singleColorVertexShader", "singleColorFragmentShader");
+    setPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader");
     xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
 
@@ -415,8 +563,7 @@ void xlMetalGraphicsContext::drawTriangleStrip(xlVertexColorAccumulator *vac) {
     drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac);
 }
 void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac) {
-    std::string name = blending ? "multiColorProgramBlend" : "multiColorProgram";
-    setPipelineState(name, "multiColorVertexShader", "multiColorFragmentShader");
+    setPipelineState("multiColorProgram", "multiColorVertexShader", "multiColorFragmentShader");
     xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
 
@@ -441,10 +588,7 @@ void xlMetalGraphicsContext::drawTexture(xlTexture *texture,
     va.AddVertex(x, y2, 0);
     va.AddVertex(x2, y2, 0);
 
-    std::string name = blending ? "textureProgramBlend" : "textureProgram";
-    if (!linearScale) {
-        name += "Nearest";
-    }
+    std::string name = linearScale ? "textureProgramNearest" : "textureProgram";
     setPipelineState(name, "textureVertexShader", linearScale ? "textureFragmentShader" : "textureNearestFragmentShader");
     va.SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
 
@@ -467,6 +611,37 @@ void xlMetalGraphicsContext::drawTexture(xlTexture *texture,
     xlMetalTexture *txt = (xlMetalTexture*)texture;
     [encoder setFragmentTexture:txt->texture atIndex:TextureIndexBase];
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:va.getCount()];
+}
+
+void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) {
+    setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
+    xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
+    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+
+    if (frameDataChanged) {
+        [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+        [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
+        frameDataChanged = false;
+    }
+    xlMetalTexture *txt = (xlMetalTexture*)texture;
+    [encoder setFragmentTexture:txt->texture atIndex:TextureIndexBase];
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vac->getCount()];
+}
+void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) {
+    xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
+    setPipelineState("textureColorProgram", "textureVertexShader", "textureColorFragmentShader");
+    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+
+    frameData.fragmentColor.r = c.red;
+    frameData.fragmentColor.g = c.green;
+    frameData.fragmentColor.b = c.blue;
+    frameData.fragmentColor.a = c.alpha;
+    frameData.fragmentColor /= 255.0f;
+    [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    xlMetalTexture *txt = (xlMetalTexture*)texture;
+    [encoder setFragmentTexture:txt->texture atIndex:TextureIndexBase];
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vac->getCount()];
 }
 
 

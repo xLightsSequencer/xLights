@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="xLights 4.0" />
+		<Option title="xLights" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
@@ -1013,6 +1013,8 @@
 		<Unit filename="graphics/opengl/XlightsDrawable.h" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="graphics/xlFontInfo.cpp" />
+		<Unit filename="graphics/xlFontInfo.h" />
 		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="graphics/xlGraphicsBase.h" />

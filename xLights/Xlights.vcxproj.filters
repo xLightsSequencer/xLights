@@ -915,6 +915,7 @@
       <Filter>graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\xlFontInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1843,6 +1844,7 @@
       <Filter>graphics\opengl</Filter>
     </ClInclude>
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\xlFontInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

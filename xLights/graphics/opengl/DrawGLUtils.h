@@ -287,7 +287,7 @@ namespace DrawGLUtils
         }
     };
 
-    class xlVertexTextureAccumulator : public xlVertexAccumulatorBase {
+    class xlVertexTextureAccumulator : public xlVertexAccumulatorBase, public :: xlVertexTextureAccumulator {
     public:
         xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false), brightness(100.0)
         {
@@ -327,12 +327,11 @@ namespace DrawGLUtils
             free(tvertices);
         }
 
-        virtual void Reset() { xlVertexAccumulatorBase::DoReset(); }
-        virtual void PreAlloc(unsigned int i) { xlVertexAccumulatorBase::DoPreAlloc(i); }
-        virtual int getCount() { return count; }
+        virtual void Reset() override { xlVertexAccumulatorBase::DoReset(); }
+        virtual void PreAlloc(unsigned int i) override { xlVertexAccumulatorBase::DoPreAlloc(i); }
+        virtual uint32_t getCount() override { return count; }
 
-        void AddVertex(float x, float y, float tx, float ty)
-        {
+        virtual void AddVertex(float x, float y, float z, float tx, float ty) override {
             PreAlloc(1);
             int i = count * coordsPerVertex;
             vertices[i] = x;
@@ -340,17 +339,13 @@ namespace DrawGLUtils
             i++;
             vertices[i] = y;
             tvertices[i] = ty;
+            if (coordsPerVertex == 3) {
+                vertices[i + 1] = z;
+            }
             count++;
         }
-        void AddFullTexture(float x, float y, float x2, float y2)
-        {
-            PreAlloc(6);
-            AddVertex(x, y, 0, 0);
-            AddVertex(x, y2, 0, 1);
-            AddVertex(x2, y2, 1, 1);
-            AddVertex(x2, y2, 1, 1);
-            AddVertex(x2, y, 1, 0);
-            AddVertex(x, y, 0, 0);
+        virtual void AddVertex(float x, float y, float tx, float ty) override {
+            AddVertex(x, y, 0, tx, ty);
         }
         GLuint id;
         uint8_t alpha;
@@ -359,8 +354,7 @@ namespace DrawGLUtils
         xlColor color;
         float* tvertices;
     protected:
-        virtual void DoRealloc(int newMax)
-        {
+        virtual void DoRealloc(int newMax) override {
             xlVertexAccumulatorBase::DoRealloc(newMax);
             tvertices = (float*)realloc(tvertices, sizeof(float) * newMax * 2);
         }

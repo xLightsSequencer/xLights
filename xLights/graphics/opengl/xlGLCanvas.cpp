@@ -729,6 +729,9 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
         return new DrawGLUtils::xlVertexColorAccumulator();
     }
+    virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override {
+        return new DrawGLUtils::xlVertexTextureAccumulator();
+    }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
         xlGLTexture *t = new xlGLTexture();
         GLuint tid = 0;
@@ -749,6 +752,9 @@ public:
     }
     virtual xlTexture *createTexture(const wxImage &image) override {
         return new xlGLTexture(image);
+    }
+    virtual xlTexture *createTextureForFont(const xlFontInfo &font) override {
+        return createTexture(font.getImage().Mirror(false));
     }
 
 
@@ -806,6 +812,21 @@ public:
         if (enableCapabilities) {
             glDisable(enableCapabilities);
         }
+    }
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) override {
+        DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
+        xlGLTexture *t = (xlGLTexture*)texture;
+        v->id = t->image.getID();
+        v->forceColor = false;
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+    }
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) override {
+        DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
+        xlGLTexture *t = (xlGLTexture*)texture;
+        v->id = t->image.getID();
+        v->forceColor = true;
+        v->color = c;
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
     }
 
     virtual void enableBlending(bool e = true) override {

@@ -278,6 +278,7 @@
     <ClCompile Include="graphics\opengl\Image_Loader.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
@@ -713,6 +714,7 @@
     <ClInclude Include="graphics\opengl\Image_Loader.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
     <ClInclude Include="graphics\xlGraphicsBase.h" />
     <ClInclude Include="graphics\xlGraphicsContext.h" />

@@ -5,6 +5,7 @@
 
 #include "../Color.h"
 #include "xlGraphicsAccumulators.h"
+#include "xlFontInfo.h"
 
 class xlGraphicsContext {
 public:
@@ -19,9 +20,11 @@ public:
     //create various accumulators/buffers/textures
     virtual xlVertexAccumulator *createVertexAccumulator() = 0;
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() = 0;
+    virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() = 0;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) = 0;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) = 0;
     virtual xlTexture *createTexture(const wxImage &image) = 0;
+    virtual xlTexture *createTextureForFont(const xlFontInfo &font) = 0;
 
 
     //manipulating the matrices
@@ -50,5 +53,7 @@ public:
                              float x, float y, float x2, float y2,
                              float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
                              bool smoothScale = true) = 0;
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) = 0;
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) = 0;
 
 };
