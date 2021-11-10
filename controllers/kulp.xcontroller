@@ -139,4 +139,41 @@
             <fppSerialPort1>ttyS2</fppSerialPort1>
         </Variant>
     </Controller>
+        <Controller Name="K8-B-Scroller">
+        <Variant Name="" ID="K8-B-Scroller" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>12</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <SupportsLEDPanelMatrix/>
+        </Variant>
+    </Controller>
+    <Controller Name="OctoPlus">
+        <Variant Name="" ID="OctoPlus" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
+    <Controller Name="PocketScroller">
+        <Variant Name="" ID="PocketScroller" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
 </Vendor>

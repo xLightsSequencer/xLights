@@ -38,7 +38,6 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsAutoUpload/>
         <SupportsFullxLightsControl/>
-		<SupportsLEDPanelMatrix/>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -95,6 +94,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsLEDPanelMatrix/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
@@ -109,6 +109,7 @@
             <MaxSerialPortChannels>0</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
 			<SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
@@ -124,6 +125,7 @@
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
+            <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
@@ -138,6 +140,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
 			<SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
@@ -157,6 +160,20 @@
             <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 	</Controller>
+    <Controller Name="Octoscroller">
+        <Variant Name="" ID="Octoscroller" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
 	<Controller Name="RGBCape24">
 		<Variant Name="" ID="RGBCape24" Base="FPP:FPPStringCape">
 			<MaxPixelPort>24</MaxPixelPort>
