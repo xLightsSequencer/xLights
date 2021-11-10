@@ -60,7 +60,7 @@ std::vector<std::string> Falcon::V4_GetMediaFiles()
             const wxJSONInternalArray* parr = outParams["F"].AsArray();
 
             for (size_t i = 0; i < parr->Count(); i++) {
-                res.push_back(parr->Item(i).AsString());
+                res.push_back(parr->Item(i)["f"].AsString());
             }
 
             batch++;
