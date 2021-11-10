@@ -134,6 +134,9 @@ void xlMetalCanvas::Resized(wxSizeEvent& evt)
         fallback->Resized(evt);
         mWindowWidth = fallback->getWidth();
         mWindowHeight = fallback->getHeight();
+    } else if (drawingUsingLogicalSize()) {
+        mWindowWidth = evt.GetSize().GetWidth();
+        mWindowHeight = evt.GetSize().GetHeight();
     } else {
         mWindowWidth = evt.GetSize().GetWidth() * GetContentScaleFactor();
         mWindowHeight = evt.GetSize().GetHeight() * GetContentScaleFactor();

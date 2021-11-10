@@ -5990,6 +5990,7 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
 
+#ifndef __WXOSX__
         if (usesShader) {
             if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
                 wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3 (%d). These effects will not render.", mainSequencer->PanelEffectGrid->GetCreatedVersion());
@@ -5997,6 +5998,7 @@ void xLightsFrame::CheckSequence(bool display)
                 errcount++;
             }
         }
+#endif
 
         if (videoCacheWarning) {
             LogAndWrite(f, "    WARN: Sequence has one or more video effects where render caching is turned off. This will render slowly.");

@@ -138,7 +138,7 @@ void xlVertexColorAccumulator::AddHBlendedRectangleAsTriangles(float x1, float y
         if (x == (cnt - 1)) {
             xr = x2;
         }
-        AddHBlendedRectangleAsTriangles( xl, y1, xr, y2, start, start);
+        AddHBlendedRectangleAsTriangles( xl, y1, xr, y2, start, end);
         start = end;
         xl = xr;
     }

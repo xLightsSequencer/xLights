@@ -16,7 +16,7 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-#include "../graphics/opengl/xlGLCanvas.h"
+#include "../graphics/xlGraphicsBase.h"
 #include "../Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
@@ -28,6 +28,7 @@
 #include "RowHeading.h"
 
 #include <map>
+#include <array>
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
@@ -69,7 +70,7 @@ class MainSequencer;
 class PixelBufferClass;
 class SequenceData;
 
-class EffectsGrid : public xlGLCanvas
+class EffectsGrid : public GRAPHICS_BASE_CLASS
 {
 
 public:
@@ -77,6 +78,10 @@ public:
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
 
 	virtual ~EffectsGrid();
+
+    virtual bool drawingUsingLogicalSize() const {
+        return true;
+    }
 
     // Public Methods
     void SetStartPixelOffset(int offset);
@@ -154,13 +159,14 @@ public:
     void UnselectEffect(bool force = false);
     void SelectEffect(Effect* ef);
     void ScrollBy(int by);
+    void Draw();
 protected:
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms) const;
 
-    void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator& backgrounds) const;
+    void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator *backgrounds) const;
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
@@ -174,9 +180,8 @@ private:
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
-	void Draw();
 
-    void CreateEffectIconTextures();
+    void CreateEffectIconTextures(xlGraphicsContext *ctx);
     void DeleteEffectIconTextures();
     void SetRCToolTip();
 
@@ -184,11 +189,11 @@ private:
     void DrawSelectedCells(xlGraphicsContext *ctx);
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
                              int x1, int y1, int x2, int y2,
-                             xlVertexColorAccumulator &backgrounds) const;
+                             xlVertexColorAccumulator *backgrounds) const;
 
     void DrawTimingEffects(int row);
-    void DrawEffects();
-    void DrawPlayMarker() const;
+    void DrawEffects(xlGraphicsContext *ctx);
+    void DrawPlayMarker(xlGraphicsContext *ctx) const;
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset, bool control);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
@@ -241,9 +246,6 @@ private:
     bool mGridNodeValues = true;
     bool _doubleClick = false;
 
-    //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
-    // for effect count
-    std::vector<GLuint> m_EffectTextures;
     int mStartPixelOffset;
 
     wxWindow* mParent;
@@ -252,23 +254,26 @@ private:
     int mSelectedRow;
     Effect* mSelectedEffect;
 
-    DrawGLUtils::xlVertexAccumulator lines;
-    DrawGLUtils::xlVertexAccumulator selectedLinesFixed;
-    DrawGLUtils::xlVertexAccumulator selectedLinesLocked;
-    DrawGLUtils::xlVertexAccumulator timingEffLines;
-    DrawGLUtils::xlVertexColorAccumulator timingLines;
-    DrawGLUtils::xlVertexTextAccumulator texts;
-    DrawGLUtils::xlVertexAccumulator selectedLines;
-    DrawGLUtils::xlVertexAccumulator selectFocusLines;
-    DrawGLUtils::xlVertexAccumulator selectFocusLinesLocked;
-    DrawGLUtils::xlVertexAccumulator selectFocusLinesDisabled;
-    DrawGLUtils::xlVertexAccumulator selectedLinesDisabled;
-    DrawGLUtils::xlVertexAccumulator linesDisabled;
-    DrawGLUtils::xlVertexAccumulator linesLocked;
-    DrawGLUtils::xlAccumulator backgrounds;
-    DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
-    DrawGLUtils::xlVertexColorAccumulator selectedBoxes;
-    std::map<GLuint, DrawGLUtils::xlVertexTextureAccumulator> textures;
+    xlVertexAccumulator *lines = nullptr;
+    xlVertexAccumulator *selectedLinesFixed = nullptr;
+    xlVertexAccumulator *selectedLinesLocked = nullptr;
+    xlVertexAccumulator *timingEffLines = nullptr;
+    xlVertexAccumulator *selectedLines = nullptr;
+    xlVertexAccumulator *selectFocusLines = nullptr;
+    xlVertexAccumulator *selectFocusLinesLocked = nullptr;
+    xlVertexAccumulator *selectFocusLinesDisabled = nullptr;
+    xlVertexAccumulator *selectedLinesDisabled = nullptr;
+    xlVertexAccumulator *linesDisabled = nullptr;
+    xlVertexAccumulator *linesLocked = nullptr;
+    xlVertexColorAccumulator *timingLines = nullptr;
+    xlVertexColorAccumulator *backgrounds = nullptr;
+    xlVertexColorAccumulator *textBackgrounds = nullptr;
+    xlVertexColorAccumulator *selectedBoxes = nullptr;
+    xlVertexTextureAccumulator *texts = nullptr;
+    xlTexture *fontTexture = nullptr;
+    int curFontSize = 0;
+    std::array<xlTexture *, EffectManager::eff_LASTEFFECT> m_EffectTextures;
+    std::array<xlVertexTextureAccumulator *, EffectManager::eff_LASTEFFECT> textures;
 
     int mResizingMode;
     int mStartResizeTimeMS;

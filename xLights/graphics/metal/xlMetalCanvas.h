@@ -31,6 +31,7 @@ public:
     double translateToBacking(double x) const;
     double mapLogicalToAbsolute(double x) const;
 
+    virtual bool drawingUsingLogicalSize() const;
 protected:
     DECLARE_EVENT_TABLE()
 
@@ -38,7 +39,6 @@ protected:
     virtual xlGraphicsContext* PrepareContextForDrawing();
     virtual void FinishDrawing(xlGraphicsContext *ctx);
 
-    virtual bool drawingUsingLogicalSize() const;
 
 
     size_t mWindowWidth;

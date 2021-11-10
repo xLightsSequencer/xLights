@@ -363,7 +363,7 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
     int thumbSize = mSequenceElements->GetMaxModelsDisplayed();
     ScrollBarEffectsVertical->SetScrollbar(position,thumbSize,range,pageSize);
     ScrollBarEffectsVertical->Refresh();
-    PanelEffectGrid->Refresh();
+    PanelEffectGrid->Draw();
     PanelRowHeadings->Refresh();
 }
 
@@ -950,7 +950,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                    mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
                     PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->Draw();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
                 event.StopPropagation();
@@ -964,7 +964,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                    mSequenceElements->get_undo_mgr().CanRedo() ) {
                     mSequenceElements->get_undo_mgr().RedoLastStep();
                     PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->Draw();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
                 event.StopPropagation();
@@ -1128,7 +1128,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Refresh();
+        PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
@@ -1139,7 +1139,7 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
         mSequenceElements->get_undo_mgr().RedoLastStep();
         PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Refresh();
+        PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
@@ -1734,7 +1734,7 @@ void MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& ev
 
 void MainSequencer::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int position = ScrollBarEffectsHorizontal->IsEnabled() ? ScrollBarEffectsHorizontal->GetThumbPosition() : 0;
     int timeLength = PanelTimeLine->GetTimeLength();
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
     PanelTimeLine->SetStartTimeMS(startTime);
@@ -1781,8 +1781,7 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     PanelTimeLine->Update();
     PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
-    PanelEffectGrid->Refresh();
-    PanelEffectGrid->Update();
+    PanelEffectGrid->Draw();
     UpdateEffectGridHorizontalScrollBar();
     delete tla;
 }
@@ -1798,18 +1797,17 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     PanelTimeLine->Update();
     PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
-    PanelEffectGrid->Refresh();
-    PanelEffectGrid->Update();
-
+    PanelEffectGrid->Draw();
 
     int zoomLevel = PanelTimeLine->GetZoomLevel();
-    int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel();
-    if(zoomLevel == maxZoomLevel) {
+    int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel(); 
+    if (zoomLevel >= maxZoomLevel) {
         // Max Zoom so scrollbar is same size as window.
         int range = PanelTimeLine->GetSize().x;
         int pageSize =range;
         int thumbSize = range;
         ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
+        ScrollBarEffectsHorizontal->Disable();
     } else {
         int startTime;
         int endTime;
@@ -1821,8 +1819,8 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
         int pageSize = thumbSize;
         int position = startTime;
         ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
+        ScrollBarEffectsHorizontal->Enable();
     }
-
     ScrollBarEffectsHorizontal->Refresh();
 }
 

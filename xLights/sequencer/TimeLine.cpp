@@ -214,7 +214,7 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
 {
     if( m_dragging ) {
         mCurrentPlayMarkerEndMS = GetAbsoluteTimeMSfromPosition(event.GetX());
-        if( mCurrentPlayMarkerEndMS < mStartTimeMS ) {
+        if (mCurrentPlayMarkerEndMS < mStartTimeMS ) {
             mCurrentPlayMarkerEndMS = mStartTimeMS;
         }
         mCurrentPlayMarkerEnd = GetPositionFromTimeMS(mCurrentPlayMarkerEndMS);
@@ -343,7 +343,7 @@ bool TimeLine::SetPlayMarkerMS(int ms)
 {
     mCurrentPlayMarkerMS = ms;
     bool changed = false;
-    if( ms < mStartTimeMS ) {
+    if (ms < mStartTimeMS) {
         if (mCurrentPlayMarker != -1) {
             changed = true;
         }
@@ -795,12 +795,10 @@ int TimeLine::GetMaxZoomLevel()
 {
     float width = (float)GetSize().x;
     mMaxZoomLevel = MAX_ZOOM_OUT_INDEX;
-    for (int i = 0; i <= MAX_ZOOM_OUT_INDEX; i++)
-    {
+    for (int i = 0; i <= MAX_ZOOM_OUT_INDEX; i++) {
         float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
         int timeMS = (int)((float)ZoomLevelValues[i] * ((float)1000 / (float)mFrequency) * majorTicks);
-        if (timeMS > mTimeLength)
-        {
+        if (timeMS > mTimeLength) {
             mMaxZoomLevel = i;
             break;
         }

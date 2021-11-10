@@ -35,7 +35,6 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c) : xlGraphicsCon
         frameData.MVP = matrix4x4_identity();
         frameData.fragmentColor = {0.0f, 0.0f, 0.0f, 1.0f};
     } else {
-        printf("Drawable is nil\n");
         buffer = nil;
         encoder = nil;
     }
@@ -130,7 +129,7 @@ public:
                 }
             }
             [encoder setVertexBuffer:buffer offset:0 atIndex:index];
-        } else if (sz > 4095) {
+        } else if (sz > 4095 || buffer != nil) {
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 bufferVertices = (simd_float3 *)buffer.contents;
@@ -276,7 +275,7 @@ public:
                 }
             }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
-        } else if (sz > 4095) {
+        } else if (sz > 4095 || vbuffer != nil) {
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -296,7 +295,7 @@ public:
                 }
             }
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
-        } else if (sz > 4095) {
+        } else if (sz > 4095 || cbuffer != nil) {
             if (cbuffer == nil) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 bufferColors = (simd_uchar4 *)cbuffer.contents;
@@ -428,7 +427,7 @@ public:
                 }
             }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
-        } else if (sz > 4095) {
+        } else if (sz > 4095 || vbuffer != nil) {
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -448,7 +447,7 @@ public:
                 }
             }
             [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
-        } else if (sz > 4095) {
+        } else if (sz > 4095 || tbuffer != nil) {
             if (tbuffer == nil) {
                 tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
                 bufferTexture = (simd_float2 *)tbuffer.contents;
@@ -475,47 +474,6 @@ public:
 };
 
 
-class xlMetalTexture : public xlTexture {
-public:
-    xlMetalTexture() : xlTexture(), texture(nil) {
-    }
-    virtual ~xlMetalTexture() {
-        if (texture) {
-            [texture release];
-        }
-    }
-
-    virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) override {
-        uint8_t bytes[4];
-        bytes[0] = c.red;
-        bytes[1] = c.green;
-        bytes[2] = c.blue;
-        if (copyAlpha) {
-            bytes[3] = c.alpha;
-        } else {
-            bytes[3] = 255;
-        }
-
-        MTLRegion region = MTLRegionMake2D(x, y, 1, 1);
-        [texture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:4];
-    }
-
-
-    id<MTLTexture> texture;
-};
-
-
-xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
-    return new xlMetalVertexAccumulator();
-}
-xlVertexColorAccumulator *xlMetalGraphicsContext::createVertexColorAccumulator() {
-    return new xlMetalVertexColorAccumulator();
-}
-xlVertexTextureAccumulator *xlMetalGraphicsContext::createVertexTextureAccumulator() {
-    return new xlMetalVertexTextureAccumulator();
-}
-
-
 static void getImageBytes(const wxImage &img, uint8_t *bytes) {
     unsigned char * alpha = img.HasAlpha() ? img.GetAlpha() : nullptr;
     unsigned char * data = img.GetData();
@@ -533,6 +491,105 @@ static void getImageBytes(const wxImage &img, uint8_t *bytes) {
         }
     }
 }
+
+class xlMetalTexture : public xlTexture {
+public:
+    xlMetalTexture() : xlTexture(), texture(nil) {
+    }
+    xlMetalTexture(const wxImage &image) : xlTexture(), texture(nil) {
+        LoadImage(image);
+    }
+    virtual ~xlMetalTexture() {
+        if (texture) {
+            [texture release];
+        }
+    }
+
+    void LoadImage(const wxImage &image) {
+        @autoreleasepool {
+            const uint32_t w = image.GetWidth();
+            const uint32_t h = image.GetHeight();
+
+            MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                                   width:w
+                                                                                                  height:h
+                                                                                               mipmapped:false];
+            id <MTLTexture> srcTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            uint8_t *bytes = (uint8_t *)malloc(w * h * 4);
+            getImageBytes(image, bytes);
+            int rlen = w * 4;
+            MTLRegion region = {0, 0, 0, w, h , 1};
+            [srcTexture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:rlen];
+            texture = srcTexture;
+            textureSize = MTLSizeMake(w, h, 1);
+            free(bytes);
+        }
+    }
+    void Finalize() override {
+        // Create a private texture.
+        @autoreleasepool {
+            id<MTLTexture> srcTexture = texture;
+            MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                                   width:textureSize.width
+                                                                                                  height:textureSize.height
+                                                                                               mipmapped:false];
+            description.storageMode = MTLStorageModePrivate;
+            id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            // Encode a blit pass to copy data from the source texture to the private texture.
+            id<MTLCommandBuffer> bltBuffer = [wxMetalCanvas::getMTLCommandQueue() commandBuffer];
+            id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
+            MTLOrigin textureOrigin = MTLOriginMake(0, 0, 0);
+            [blitCommandEncoder copyFromTexture:srcTexture
+                                    sourceSlice:0
+                                    sourceLevel:0
+                                   sourceOrigin:textureOrigin
+                                     sourceSize:textureSize
+                                      toTexture:privateTexture
+                               destinationSlice:0
+                               destinationLevel:0
+                              destinationOrigin:textureOrigin];
+            [blitCommandEncoder endEncoding];
+            [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+                // Private texture is populated, we can release the srcBuffer
+                [srcTexture release];
+            }];
+            [bltBuffer commit];
+
+            texture = privateTexture;
+        }
+    }
+
+
+    virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) override {
+        uint8_t bytes[4];
+        bytes[0] = c.red;
+        bytes[1] = c.green;
+        bytes[2] = c.blue;
+        if (copyAlpha) {
+            bytes[3] = c.alpha;
+        } else {
+            bytes[3] = 255;
+        }
+
+        MTLRegion region = MTLRegionMake2D(x, y, 1, 1);
+        [texture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:4];
+    }
+
+    id<MTLTexture> texture;
+    MTLSize textureSize;
+};
+
+
+xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
+    return new xlMetalVertexAccumulator();
+}
+xlVertexColorAccumulator *xlMetalGraphicsContext::createVertexColorAccumulator() {
+    return new xlMetalVertexColorAccumulator();
+}
+xlVertexTextureAccumulator *xlMetalGraphicsContext::createVertexTextureAccumulator() {
+    return new xlMetalVertexTextureAccumulator();
+}
+
 xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) {
     std::vector<wxImage> images;
     for (auto &a : bitmaps) {
@@ -573,54 +630,9 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImag
     return txt;
 }
 xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt) {
-    xlMetalTexture *txt = new xlMetalTexture();
-
-    @autoreleasepool {
-        const uint32_t w = image.GetWidth();
-        const uint32_t h = image.GetHeight();
-
-        MTLTextureDescriptor * desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                        width:w
-                                                                                        height:h
-                                                                                        mipmapped:false];
-        id <MTLTexture> srcTexture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
-        uint8_t *bytes = (uint8_t *)malloc(w * h * 4);
-        getImageBytes(image, bytes);
-        int rlen = w * 4;
-        MTLRegion region = {0, 0, 0, w, h , 1};
-        [srcTexture replaceRegion:region mipmapLevel:0 withBytes:bytes bytesPerRow:rlen];
-
-
-        if (pvt) {
-            // Create a private texture.
-            desc.storageMode = MTLStorageModePrivate;
-            id <MTLTexture> privateTexture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
-            // Encode a blit pass to copy data from the source texture to the private texture.
-            id<MTLCommandBuffer> bltBuffer = [canvas->getMTLCommandQueue() commandBuffer];
-            id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
-            MTLOrigin textureOrigin = MTLOriginMake(0, 0, 0);
-            MTLSize textureSize = MTLSizeMake(w, h, 1);
-            [blitCommandEncoder copyFromTexture:srcTexture
-                                    sourceSlice:0
-                                    sourceLevel:0
-                                   sourceOrigin:textureOrigin
-                                     sourceSize:textureSize
-                                      toTexture:privateTexture
-                               destinationSlice:0
-                               destinationLevel:0
-                              destinationOrigin:textureOrigin];
-            [blitCommandEncoder endEncoding];
-            [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
-                // Private texture is populated, we can release the srcBuffer
-                [srcTexture release];
-            }];
-            [bltBuffer commit];
-
-            txt->texture = privateTexture;
-        } else {
-            txt->texture = srcTexture;
-        }
-        free(bytes);
+    xlMetalTexture *txt = new xlMetalTexture(image);
+    if (pvt) {
+        txt->Finalize();
     }
     return txt;
 }
@@ -646,6 +658,9 @@ void xlMetalGraphicsContext::drawTriangleStrip(xlVertexAccumulator *vac, const x
     drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac, c);
 }
 void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c) {
+    if (vac->getCount() == 0) {
+        return;
+    }
     setPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader");
     xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
@@ -674,6 +689,9 @@ void xlMetalGraphicsContext::drawTriangleStrip(xlVertexColorAccumulator *vac) {
     drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac);
 }
 void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac) {
+    if (vac->getCount() == 0) {
+        return;
+    }
     setPipelineState("multiColorProgram", "multiColorVertexShader", "multiColorFragmentShader");
     xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
@@ -725,6 +743,9 @@ void xlMetalGraphicsContext::drawTexture(xlTexture *texture,
 }
 
 void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) {
+    if (vac->getCount() == 0) {
+        return;
+    }
     setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
@@ -739,6 +760,9 @@ void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlText
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vac->getCount()];
 }
 void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) {
+    if (vac->getCount() == 0) {
+        return;
+    }
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
     setPipelineState("textureColorProgram", "textureVertexShader", "textureColorFragmentShader");
     mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
@@ -769,8 +793,14 @@ void xlMetalGraphicsContext::SetViewport(int topleft_x, int topleft_y, int botto
         double w = std::max(x, x2) - std::min(x, x2);
         double h = std::max(y, y2) - std::min(y, y2);
 
-        MTLViewport vp = {  (double)topleft_x, (double)topleft_y, w, h, 1.0, 1.0 };
-        [encoder setViewport:vp];
+        if (canvas->drawingUsingLogicalSize()) {
+            MTLViewport vp = {  canvas->translateToBacking(topleft_x), canvas->translateToBacking(topleft_y),
+                canvas->translateToBacking(w), canvas->translateToBacking(h), 1.0, 1.0 };
+            [encoder setViewport:vp];
+        } else {
+            MTLViewport vp = {  (double)topleft_x, (double)topleft_y, w, h, 1.0, 1.0 };
+            [encoder setViewport:vp];
+        }
         frameData.MVP = matrix_ortho_left_hand(topleft_x, bottomright_x, bottomright_y, topleft_y, 1.0, 0.0);
         frameDataChanged = true;
     }

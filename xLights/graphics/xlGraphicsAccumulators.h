@@ -23,6 +23,7 @@ public:
     virtual void Finalize(bool mayChange) {}
     virtual void SetVertex(uint32_t vertex, float x, float y, float z) {};
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     virtual void AddVertex(float x, float y) {
@@ -58,6 +59,7 @@ public:
     virtual void SetVertex(uint32_t vertex, float x, float y, float z) = 0;
     virtual void SetVertex(uint32_t vertex, const xlColor &c) = 0;
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexColorAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     //various utilities for adding various shapes
@@ -97,6 +99,7 @@ public:
     virtual void Finalize(bool mayChangeV, bool mayChangeT) {}
     virtual void SetVertex(uint32_t vertex, float x, float y, float z, float tx, float ty) {};
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexTextureAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     virtual void AddVertex(float x, float y, float tx, float ty) {
@@ -114,11 +117,13 @@ public:
 };
 
 
-
 class xlTexture {
 public:
     xlTexture() {}
     virtual ~xlTexture() {}
+
+    // mark the texture as immutable
+    virtual void Finalize() {}
 
     virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) = 0;
 };
