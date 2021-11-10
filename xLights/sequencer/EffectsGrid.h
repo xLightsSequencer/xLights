@@ -155,8 +155,6 @@ public:
     void SelectEffect(Effect* ef);
     void ScrollBy(int by);
 protected:
-    void InitializeGLCanvas() override;
-    void InitializeGLContext() override;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
@@ -180,13 +178,13 @@ private:
 
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
-    void DrawLines() const;
-    void DrawSelectedCells();
     void SetRCToolTip();
 
+    void DrawLines(xlGraphicsContext *ctx) const;
+    void DrawSelectedCells(xlGraphicsContext *ctx);
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
                              int x1, int y1, int x2, int y2,
-                             DrawGLUtils::xlAccumulator &backgrounds) const;
+                             xlVertexColorAccumulator &backgrounds) const;
 
     void DrawTimingEffects(int row);
     void DrawEffects();

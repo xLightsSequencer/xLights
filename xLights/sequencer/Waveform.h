@@ -76,6 +76,9 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         virtual xlColor ClearBackgroundColor() const override;
 
+        void render();
+
+
     protected:
         xlVertexAccumulator *border = nullptr;
 
@@ -155,7 +158,6 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         void DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv);
         void Paint( wxPaintEvent& event );
-        void renderGL();
         void UpdateMousePosition(int time);
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);

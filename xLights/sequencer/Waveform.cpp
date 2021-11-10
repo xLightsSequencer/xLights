@@ -115,7 +115,7 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
 
 void Waveform::UpdatePlayMarker()
 {
-    renderGL();
+    render();
 }
 
 void Waveform::CheckNeedToScroll() const
@@ -189,7 +189,7 @@ void Waveform::rightClick(wxMouseEvent& event)
     }
     if (mnuWave.GetMenuItemCount() > 0) {
         mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
-        renderGL();
+        render();
         PopupMenu(&mnuWave);
     }
 }
@@ -372,10 +372,10 @@ xlColor Waveform::ClearBackgroundColor() const {
 void Waveform::Paint(wxPaintEvent& event)
 {
     wxPaintDC(this);
-    renderGL();
+    render();
 }
 
-void Waveform::renderGL()
+void Waveform::render()
 {
     if(!IsShownOnScreen()) return;
     if(!mIsInitialized) {
@@ -460,8 +460,12 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
             float pixelOffset = translateOffset(mStartPixelOffset);
 
-            wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
-            wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+            if (wv.background.get() == nullptr) {
+                wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+                wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+            }
+            wv.background->Reset();
+            wv.outline->Reset();
             wv.background->PreAlloc((mWindowWidth + 2) * 2);
             wv.outline->PreAlloc((mWindowWidth + 2) + 4);
 
@@ -491,8 +495,8 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
             }
             wv.lastRenderSize = max;
             wv.lastRenderStart = mStartPixelOffset;
-            wv.background->Finalize(false);
-            wv.outline->Finalize(false);
+            wv.background->FlushRange(0, wv.background->getCount());
+            wv.outline->FlushRange(0, wv.outline->getCount());
         }
         if (wv.background.get() && wv.background->getCount()) {
             ctx->drawTriangleStrip(wv.background.get(), c);

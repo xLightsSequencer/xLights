@@ -5480,24 +5480,8 @@ void EffectsGrid::SetStartPixelOffset(int offset)
     mStartPixelOffset = offset;
 }
 
-void EffectsGrid::InitializeGLCanvas()
-{
-    if (xlights == nullptr) return;
-    if (!IsShownOnScreen()) return;
-    SetCurrentGLContext();
-    CreateEffectIconTextures();
-    mIsInitialized = true;
-}
 
-void EffectsGrid::InitializeGLContext()
-{
-    SetCurrentGLContext();
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
-}
-
-void EffectsGrid::DrawLines() const
+void EffectsGrid::DrawLines(xlGraphicsContext *ctx) const
 {
     // Draw Horizontal lines
     int x1 = 1;
@@ -5565,7 +5549,7 @@ void EffectsGrid::DrawPlayMarker() const
 
 int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Effect* e,
     int x1, int y1, int x2, int y2,
-    DrawGLUtils::xlAccumulator& backgrounds) const
+    xlVertexColorAccumulator& backgrounds) const
 {
     if (e->GetPaletteSize() == 0) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
@@ -5582,12 +5566,10 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
             if (se != nullptr) {
                 colorMask = m->GetNodeMaskColor(se->GetStrand());
-            }
-            else {
+            } else {
                 colorMask = xlWHITE;
             }
-        }
-        else {
+        } else {
             if (wxString(m->GetStringType()).StartsWith("Single Color") || m->GetStringType() == "Node Single Color") {
                 colorMask = m->GetNodeMaskColor(0);
             }
@@ -5842,8 +5824,7 @@ void EffectsGrid::DrawEffects()
                 int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
                 if (selected_timing_row >= 0) {
                     highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
-                }
-                else {
+                }  else {
                     highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = TIMING_ALPHA;
@@ -6094,27 +6075,36 @@ void EffectsGrid::render( wxPaintEvent& evt )
 
 void EffectsGrid::Draw()
 {
-    if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
+    if (!IsShownOnScreen()) return;
+
+    xlGraphicsContext *ctx = nullptr;
+    if (!mIsInitialized) {
+        PrepareCanvas();
+        ctx = PrepareContextForDrawing();
+        CreateEffectIconTextures();
+    }
+
+    if (ctx == nullptr) {
+        ctx = PrepareContextForDrawing();
+        if (ctx == nullptr) {
+            return;
+        }
+    }
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if (mWindowResized && mTimeline != nullptr) {
         mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
     }
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
     if (mSequenceElements) {
-        DrawLines();
+        DrawLines(ctx);
         DrawEffects();
         DrawPlayMarker();
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
         if ((mDragging || mCellRangeSelected) && !mPartialCellSelected) {
             if (has_timing_effects && mRangeStartCol >= 0) {
-                DrawSelectedCells();
+                DrawSelectedCells(ctx);
             }
         }
         if (mDragging && !has_timing_effects) {
@@ -6122,12 +6112,10 @@ void EffectsGrid::Draw()
             DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
         }
     }
-
-
-    LOG_GL_ERRORV(SwapBuffers());
+    FinishDrawing(ctx);
 }
 
-void EffectsGrid::DrawSelectedCells()
+void EffectsGrid::DrawSelectedCells(xlGraphicsContext *ctx)
 {
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     int start_row = mRangeStartRow;

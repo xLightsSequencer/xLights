@@ -160,6 +160,7 @@ public:
         SetColors();
         Refresh();
     }
+public:
     void render()
     {
         if(!IsShownOnScreen()) return;
@@ -1781,9 +1782,9 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
     UpdateTimeDisplay(tla->CurrentTimeMS, -1);
+    PanelTimeLine->Refresh();
     PanelTimeLine->Update();
-    PanelWaveForm->Refresh();
-    PanelWaveForm->Update();
+    PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     PanelEffectGrid->Refresh();
     PanelEffectGrid->Update();
@@ -1800,8 +1801,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
-    PanelWaveForm->Refresh();
-    PanelWaveForm->Update();
+    PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
     PanelEffectGrid->Refresh();
     PanelEffectGrid->Update();
@@ -1809,16 +1809,13 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
 
     int zoomLevel = PanelTimeLine->GetZoomLevel();
     int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel();
-    if(zoomLevel == maxZoomLevel)
-    {
+    if(zoomLevel == maxZoomLevel) {
         // Max Zoom so scrollbar is same size as window.
         int range = PanelTimeLine->GetSize().x;
         int pageSize =range;
         int thumbSize = range;
         ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
-    }
-    else
-    {
+    } else {
         int startTime;
         int endTime;
         int range = PanelTimeLine->GetTimeLength();
@@ -1836,8 +1833,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
 
 void MainSequencer::TagAllSelectedEffects()
 {
-    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
-    {
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         el->TagAllSelectedEffects();
     }
@@ -1857,14 +1853,11 @@ void MainSequencer::RestorePosition()
 {
     if (mSequenceElements == nullptr) return;
 
-    if (_savedTopModel != "")
-    {
+    if (_savedTopModel != "") {
         PanelTimeLine->RestorePosition();
         Element* elem = mSequenceElements->GetElement(_savedTopModel);
-        if (elem != nullptr)
-        {
-            for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
-            {
+        if (elem != nullptr) {
+            for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
                 EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                 if (el->GetParentElement()->GetModelName() == elem->GetName()) {
                     ScrollToRow(row - mSequenceElements->GetNumberOfTimingRows());

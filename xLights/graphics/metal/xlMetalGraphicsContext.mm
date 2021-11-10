@@ -65,16 +65,37 @@ public:
         }
     }
 
-    virtual void Reset() override { if (!finalized) { count = 0; vertices.resize(0); } }
-    virtual void PreAlloc(unsigned int i) override {  vertices.reserve(i); }
+    virtual void Reset() override {
+        if (!finalized) {
+            count = 0;
+            vertices.resize(0);
+        }
+    }
+    virtual void PreAlloc(unsigned int i) override {
+        vertices.reserve(i);
+    }
     virtual void AddVertex(float x, float y, float z) override {
         if (!finalized) {
-            vertices.emplace_back((simd_float3){x, y, z});
+            if (bufferVertices) {
+                if (count < bufferCount) {
+                    bufferVertices[count] = (simd_float3){x, y, z};
+                } else {
+                    vertices.resize(count + 1);
+                    memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
+                    vertices[count] = (simd_float3){x, y, z};
+                    bufferVertices = nullptr;
+                    [buffer release];
+                    buffer = nil;
+                }
+            } else {
+                vertices.emplace_back((simd_float3){x, y, z});
+            }
             count++;
         }
     }
-    virtual uint32_t getCount() override { return count; }
-
+    virtual uint32_t getCount() override {
+        return count;
+    }
 
     virtual void Finalize(bool mc) override {
         finalized = true;
@@ -90,7 +111,7 @@ public:
         }
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
-        if (buffer) {
+        if (buffer && (!finalized || mayChange)) {
             uint32_t s = start * sizeof(simd_float4);
             uint32_t l = len * sizeof(simd_float4);
             [buffer didModifyRange:NSMakeRange(s, l)];
@@ -105,14 +126,16 @@ public:
                 buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:MTLResourceStorageModeManaged];
                 if (mayChange) {
                     bufferVertices = (simd_float3 *)buffer.contents;
+                    bufferCount = count;
                 }
             }
             [encoder setVertexBuffer:buffer offset:0 atIndex:index];
         } else if (sz > 4095) {
-            if (buffer) {
-                buffer = nil;
+            if (!buffer) {
+                buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                bufferVertices = (simd_float3 *)buffer.contents;
+                bufferCount = count;
             }
-            buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
             [encoder setVertexBuffer:buffer offset:0 atIndex:index];
         } else {
             [encoder setVertexBytes:&vertices[0] length:(sizeof(simd_float3) * count) atIndex:index];
@@ -126,6 +149,7 @@ public:
     bool mayChange = false;
     simd_float3 *bufferVertices = nullptr;
     id<MTLBuffer> buffer = nullptr;
+    uint32_t bufferCount = 0;
 };
 
 
@@ -142,17 +166,54 @@ public:
         }
     }
 
-    virtual void Reset() override { if (!finalized) { count = 0; vertices.resize(0); colors.resize(0); } }
-    virtual void PreAlloc(unsigned int i) override {  vertices.reserve(i); colors.reserve(i); }
+    virtual uint32_t getCount() override {
+        return count;
+    }
+    virtual void Reset() override {
+        if (!finalized) {
+            count = 0;
+            vertices.resize(0);
+            colors.resize(0);
+        }
+    }
+    virtual void PreAlloc(unsigned int i) override {
+        vertices.reserve(i);
+        colors.reserve(i);
+    }
     virtual void AddVertex(float x, float y, float z, const xlColor &c) override {
         if (!finalized) {
-            vertices.emplace_back((simd_float3){x, y, z});
-            colors.emplace_back((simd_uchar4){c.red, c.green, c.blue, c.alpha});
+            if (bufferVertices) {
+                if (count < bufferCount) {
+                    bufferVertices[count] = (simd_float3){x, y, z};
+                } else {
+                    vertices.resize(count + 1);
+                    memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
+                    vertices[count] = (simd_float3){x, y, z};
+                    bufferVertices = nullptr;
+                    [vbuffer release];
+                    vbuffer = nil;
+                }
+            } else {
+                vertices.emplace_back((simd_float3){x, y, z});
+            }
+
+            if (bufferColors) {
+                if (count < bufferCount) {
+                    bufferColors[count] = (simd_uchar4){c.red, c.green, c.blue, c.alpha};
+                } else {
+                    colors.resize(count + 1);
+                    memcpy(&colors[0], bufferColors, count * sizeof(simd_uchar4));
+                    colors[count] = (simd_uchar4){c.red, c.green, c.blue, c.alpha};
+                    bufferColors = nullptr;
+                    [cbuffer release];
+                    cbuffer = nil;
+                }
+            } else {
+                colors.emplace_back((simd_uchar4){c.red, c.green, c.blue, c.alpha});
+            }
             count++;
         }
     }
-    virtual uint32_t getCount() override { return count; }
-
 
     virtual void Finalize(bool mcv, bool mcc) override {
         finalized = true;
@@ -192,12 +253,12 @@ public:
         }
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
-        if (bufferVertices) {
+        if (bufferVertices && (!finalized || mayChangeVertices)) {
             uint32_t s = start * sizeof(simd_float3);
             uint32_t l = len * sizeof(simd_float3);
             [vbuffer didModifyRange:NSMakeRange(s, l)];
         }
-        if (bufferColors) {
+        if (bufferColors && (!finalized || mayChangeColors)) {
             uint32_t s = start * sizeof(simd_uchar4);
             uint32_t l = len * sizeof(simd_uchar4);
             [cbuffer didModifyRange:NSMakeRange(s, l)];
@@ -216,8 +277,11 @@ public:
             }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else if (sz > 4095) {
-            vbuffer = nil;
-            vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+            if (vbuffer == nil) {
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                bufferVertices = (simd_float3 *)vbuffer.contents;
+                bufferCount = count;
+            }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else {
             [encoder setVertexBytes:&vertices[0] length:sz atIndex:indexV];
@@ -233,8 +297,11 @@ public:
             }
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
         } else if (sz > 4095) {
-            cbuffer = nil;
-            cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
+            if (cbuffer == nil) {
+                cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
+                bufferColors = (simd_uchar4 *)cbuffer.contents;
+                bufferCount = count;
+            }
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
         } else {
             [encoder setVertexBytes:&colors[0] length:sz atIndex:indexC];
@@ -252,6 +319,7 @@ public:
     simd_uchar4 *bufferColors = nullptr;
     id<MTLBuffer> vbuffer = nil;
     id<MTLBuffer> cbuffer = nil;
+    uint32_t bufferCount = 0;
 };
 
 
@@ -268,12 +336,48 @@ public:
         }
     }
 
-    virtual void Reset() override { if (!finalized) { count = 0; vertices.resize(0); tvertices.resize(0); } }
-    virtual void PreAlloc(unsigned int i) override {  vertices.reserve(i); tvertices.reserve(i); }
+    virtual void Reset() override {
+        if (!finalized) {
+            count = 0;
+            vertices.resize(0);
+            tvertices.resize(0);
+        }
+    }
+    virtual void PreAlloc(unsigned int i) override {
+        vertices.reserve(i);
+        tvertices.reserve(i);
+    }
     virtual void AddVertex(float x, float y, float z, float tx, float ty) override {
         if (!finalized) {
-            vertices.emplace_back((simd_float3){x, y, z});
-            tvertices.emplace_back((simd_float2){tx, ty});
+            if (bufferVertices) {
+                if (count < bufferCount) {
+                    bufferVertices[count] = (simd_float3){x, y, z};
+                } else {
+                    vertices.resize(count + 1);
+                    memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
+                    vertices[count] = (simd_float3){x, y, z};
+                    bufferVertices = nullptr;
+                    [vbuffer release];
+                    vbuffer = nil;
+                }
+            } else {
+                vertices.emplace_back((simd_float3){x, y, z});
+            }
+
+            if (bufferTexture) {
+                if (count < bufferCount) {
+                    bufferTexture[count] = (simd_float2){tx, ty};
+                } else {
+                    tvertices.resize(count + 1);
+                    memcpy(&tvertices[0], bufferTexture, count * sizeof(simd_float2));
+                    tvertices[count] = (simd_float2){tx, ty};
+                    bufferTexture = nullptr;
+                    [tbuffer release];
+                    tbuffer = nil;
+                }
+            } else {
+                tvertices.emplace_back((simd_float2){tx, ty});
+            }
             count++;
         }
     }
@@ -302,12 +406,12 @@ public:
     }
 
     virtual void FlushRange(uint32_t start, uint32_t len) override {
-        if (bufferVertices) {
+        if (bufferVertices && (!finalized || mayChangeVertices)) {
             uint32_t s = start * sizeof(simd_float3);
             uint32_t l = len * sizeof(simd_float3);
             [vbuffer didModifyRange:NSMakeRange(s, l)];
         }
-        if (bufferTexture) {
+        if (bufferTexture && (!finalized || mayChangeTextures)) {
             uint32_t s = start * sizeof(simd_float2);
             uint32_t l = len * sizeof(simd_float2);
             [tbuffer didModifyRange:NSMakeRange(s, l)];
@@ -325,8 +429,11 @@ public:
             }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else if (sz > 4095) {
-            vbuffer = nil;
-            vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+            if (vbuffer == nil) {
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                bufferVertices = (simd_float3 *)vbuffer.contents;
+                bufferCount = count;
+            }
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else {
             [encoder setVertexBytes:&vertices[0] length:sz atIndex:indexV];
@@ -342,8 +449,11 @@ public:
             }
             [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
         } else if (sz > 4095) {
-            tbuffer = nil;
-            tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+            if (tbuffer == nil) {
+                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+                bufferTexture = (simd_float2 *)tbuffer.contents;
+                bufferCount = count;
+            }
             [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
         } else {
             [encoder setVertexBytes:&tvertices[0] length:sz atIndex:indexT];
@@ -361,6 +471,7 @@ public:
     simd_float2 *bufferTexture = nullptr;
     id<MTLBuffer> vbuffer = nil;
     id<MTLBuffer> tbuffer = nil;
+    uint32_t bufferCount = 0;
 };
 
 
@@ -688,9 +799,10 @@ void xlMetalGraphicsContext::Scale(float w, float h, float z) {
 
 
 bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const char *vShader, const char *fShader) {
-    if (lastPipeline != name) {
+    if (lastPipeline != name || blending != lastPipelineBlend) {
         [encoder setRenderPipelineState:canvas->getPipelineState(name, vShader, fShader, blending)];
         lastPipeline = name;
+        lastPipelineBlend = blending;
         return true;
     }
     return false;
