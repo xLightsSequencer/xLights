@@ -28,11 +28,6 @@ class xlGridCanvasMorph : public xlGridCanvas
 
         virtual void SetEffect(Effect* effect_);
 
-        virtual bool UsesVertexTextureAccumulator() {return true;}
-        virtual bool UsesVertexColorAccumulator() {return true;}
-        virtual bool UsesVertexAccumulator() {return true;}
-        virtual bool UsesAddVertex() {return false;}
-
     protected:
         void SetUndoPoint() const;
 

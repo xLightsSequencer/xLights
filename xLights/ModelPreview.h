@@ -147,13 +147,6 @@ protected:
     void AddGridToAccumulator(const glm::mat4& ViewScale);
     virtual void InitializeGLCanvas() override;
     virtual void InitializeGLContext() override;
-    virtual bool UsesVertexTextureAccumulator() override {return true;}
-    virtual bool UsesVertexColorAccumulator() override {return false;}
-    virtual bool UsesVertexAccumulator() override {return false;}
-    virtual bool UsesAddVertex() override {return true;}
-    virtual bool UsesVertex3Accumulator() override {return true;}
-    virtual bool UsesVertex3TextureAccumulator() override { return true; }
-    virtual bool UsesVertex3ColorAccumulator() override {return true;}
 
 private:
     void setupCameras();

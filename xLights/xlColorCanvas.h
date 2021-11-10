@@ -39,19 +39,6 @@ public:
     }
     void SetRGB(xlColor rgb);
 
-    virtual bool UsesVertexTextureAccumulator() override {
-        return false;
-    }
-    virtual bool UsesVertexColorAccumulator() override {
-        return false;
-    }
-    virtual bool UsesVertexAccumulator() override {
-        return true;
-    }
-    virtual bool UsesAddVertex() override {
-        return true;
-    }
-
 protected:
 private:
     void mouseMoved(wxMouseEvent& event);

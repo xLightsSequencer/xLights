@@ -82,11 +82,6 @@ class Waveform : public GRAPHICS_BASE_CLASS
     protected:
         xlVertexAccumulator *border = nullptr;
 
-        virtual bool UsesVertexTextureAccumulator() {return false;}
-        virtual bool UsesVertexColorAccumulator() {return true;}
-        virtual bool UsesVertexAccumulator() {return true;}
-        virtual bool UsesAddVertex()  {return false;}
-
     private:
       	DECLARE_EVENT_TABLE()
         //void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);

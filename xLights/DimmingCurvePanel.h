@@ -29,12 +29,6 @@ class DimmingCurvePanel : public GRAPHICS_BASE_CLASS
     
         void SetDimmingCurve(DimmingCurve *c, int channel);
     
-    
-        virtual bool UsesVertexTextureAccumulator() {return false;}
-        virtual bool UsesVertexColorAccumulator() {return false;}
-        virtual bool UsesVertexAccumulator() {return true;}
-        virtual bool UsesAddVertex() {return false;}
-
     protected:
     private:
         DimmingCurve *curve;

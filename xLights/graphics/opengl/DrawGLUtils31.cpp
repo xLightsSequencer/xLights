@@ -553,13 +553,13 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     static GLuint normal3ProgramId;
     static GLuint vbNormalProgramId;
 
-    bool Load33Shaders(bool UsesVertexTextureAccumulator,
-                       bool UsesVertexColorAccumulator,
-                       bool UsesVertexAccumulator,
-                       bool UsesAddVertex,
-					   bool UsesVertex3Accumulator,
-                       bool UsesVertex3TextureAccumulator,
-					   bool UsesVertex3ColorAccumulator) {
+    bool Load33Shaders(bool UsesVertexTextureAccumulator = true,
+                       bool UsesVertexColorAccumulator = true,
+                       bool UsesVertexAccumulator = true,
+                       bool UsesAddVertex = true,
+					   bool UsesVertex3Accumulator = true,
+                       bool UsesVertex3TextureAccumulator = true,
+					   bool UsesVertex3ColorAccumulator = true) {
         bool res = true;
         cacheCount++;
         if (UsesVertexTextureAccumulator) {
@@ -816,19 +816,11 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 
 
 public:
-    OpenGL33Cache(bool UsesVertexTextureAccumulator,
-                  bool UsesVertexColorAccumulator,
-                  bool UsesVertexAccumulator,
-                  bool UsesAddVertex,
-                  bool UsesVertex3Accumulator,
-                  bool UsesVertex3TextureAccumulator,
-		          bool UsesVertex3ColorAccumulator) : matrix(nullptr)
+    OpenGL33Cache() : matrix(nullptr)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        UsesVertexColorAccumulator |= UsesAddVertex;
-        if (!Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator)) {
-
+        if (!Load33Shaders()) {
             logger_base.error("OpenGL33Cache constructor One or more shaders failed to compile. Turn on opengl logging for more details.");
         }
     }
@@ -1258,12 +1250,6 @@ GLuint OpenGL33Cache::vbNormalProgramId(0);
 
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool UsesVertexTextureAccumulator,
-                                          bool UsesVertexColorAccumulator,
-                                          bool UsesVertexAccumulator,
-                                          bool UsesAddVertex,
-                                          bool UsesVertex3Accumulator,
-                                          bool UsesVertex3TextureAccumulator,
-										  bool UsesVertex3ColorAccumulator) {
-    return new OpenGL33Cache(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertexTextureAccumulator, UsesVertex3ColorAccumulator);
+DrawGLUtils::xlGLCacheInfo *Create33Cache() {
+    return new OpenGL33Cache();
 }

@@ -423,7 +423,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString& msg)
@@ -563,13 +563,7 @@ void xlGLCanvas::SetCurrentGLContext()
                 AddDebugLog(this);
             }
             logger_opengl.info("Try creating 3.3 Cache for %s", (const char*)_name.c_str());
-            LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
-                UsesVertexColorAccumulator(),
-                UsesVertexAccumulator(),
-                UsesAddVertex(),
-                UsesVertex3Accumulator(),
-                UsesVertex3TextureAccumulator(),
-                UsesVertex3ColorAccumulator()));
+            LOG_GL_ERRORV(cache = Create33Cache());
             if (cache != nullptr) _ver = 3;
         }
         if (cache == nullptr) {
