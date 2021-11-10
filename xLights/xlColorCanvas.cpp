@@ -24,37 +24,31 @@ END_EVENT_TABLE()
 #define CORNER_2A_SELECTED      3
 #define CORNER_2B_SELECTED      4
 
-xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : GRAPHICS_BASE_CLASS(parent, id, pos, size, style, name),
-      mHSV(0.0,1.0,1.0),
-      mRGB(255,0,0),
-    background(nullptr)
-{
+xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) :
+    GRAPHICS_BASE_CLASS(parent, id, pos, size, style, name),
+    mHSV(0.0, 1.0, 1.0),
+    mRGB(255, 0, 0),
+    background(nullptr) {
 }
 
-xlColorCanvas::~xlColorCanvas()
-{
+xlColorCanvas::~xlColorCanvas() {
     if (background) {
         delete background;
     }
 }
 
-const HSVValue &xlColorCanvas::GetHSV() const
-{
+const HSVValue& xlColorCanvas::GetHSV() const {
     return mHSV;
 }
 
-
-void xlColorCanvas::SetMode( ColorDisplayMode mode )
-{
+void xlColorCanvas::SetMode(ColorDisplayMode mode) {
     if (mDisplayMode != mode) {
         mDisplayMode = mode;
         render();
     }
 }
 
-void xlColorCanvas::SetHSV(const HSVValue &hsv)
-{
+void xlColorCanvas::SetHSV(const HSVValue& hsv) {
     xlColor c = hsv;
     if (c != mRGB) {
         mHSV = hsv;
@@ -63,8 +57,7 @@ void xlColorCanvas::SetHSV(const HSVValue &hsv)
     }
 }
 
-void xlColorCanvas::SetRGB( xlColor rgb)
-{
+void xlColorCanvas::SetRGB(xlColor rgb) {
     if (mRGB != rgb) {
         mRGB = rgb;
         rgb.toHSV(mHSV);
@@ -72,8 +65,7 @@ void xlColorCanvas::SetRGB( xlColor rgb)
     }
 }
 
-void xlColorCanvas::mouseDown(wxMouseEvent& event)
-{
+void xlColorCanvas::mouseDown(wxMouseEvent& event) {
     mDragging = true;
     if (mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER) {
         ProcessSliderClick(mapLogicalToAbsolute(event.GetY()));
@@ -90,8 +82,7 @@ void xlColorCanvas::mouseDown(wxMouseEvent& event)
     render();
 }
 
-void xlColorCanvas::mouseMoved(wxMouseEvent& event)
-{
+void xlColorCanvas::mouseMoved(wxMouseEvent& event) {
     if (mDragging) {
         if (mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER) {
             ProcessSliderClick(mapLogicalToAbsolute(event.GetY()));
@@ -107,40 +98,39 @@ void xlColorCanvas::mouseMoved(wxMouseEvent& event)
     }
 }
 
-void xlColorCanvas::mouseReleased(wxMouseEvent& event)
-{
+void xlColorCanvas::mouseReleased(wxMouseEvent& event) {
     if (mDragging) {
         ReleaseMouse();
         mDragging = false;
     }
 }
 
-int xlColorCanvas::GetRGBColorFromRangeValue( int position, int range, int max_value, bool invert )
-{
+int xlColorCanvas::GetRGBColorFromRangeValue(int position, int range, int max_value, bool invert) {
     if (invert) {
-        return (int)(max_value * (1.0 - (double)position/(double)range));
+        return (int)(max_value * (1.0 - (double)position / (double)range));
     } else {
-        return (int)(max_value * (double)position/(double)range);
+        return (int)(max_value * (double)position / (double)range);
     }
 }
 
-void xlColorCanvas::ProcessSliderClick( int row )
-{
+void xlColorCanvas::ProcessSliderClick(int row) {
     float dYrange = mWindowHeight - 1;
     int iYrange = mWindowHeight - 1;
-    if ( row < 0 ) row = 0;
-    else if (row > mWindowHeight) row = mWindowHeight;
+    if (row < 0)
+        row = 0;
+    else if (row > mWindowHeight)
+        row = mWindowHeight;
     switch (mDisplayMode) {
     case MODE_HUE:
-        mHSV.hue = 1.0 - (double)row/dYrange;
+        mHSV.hue = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_SATURATION:
-        mHSV.saturation = 1.0 - (double)row/dYrange;
+        mHSV.saturation = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_BRIGHTNESS:
-        mHSV.value = 1.0 - (double)row/dYrange;
+        mHSV.value = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_RED:
@@ -159,31 +149,34 @@ void xlColorCanvas::ProcessSliderClick( int row )
     render();
 }
 
-void xlColorCanvas::ProcessPaletteClick( int row, int column )
-{
+void xlColorCanvas::ProcessPaletteClick(int row, int column) {
     float dYrange = mWindowHeight - 1;
     float dXrange = mWindowWidth - 1;
     int iYrange = mWindowHeight - 1;
     int iXrange = mWindowWidth - 1;
 
-    if( row < 0 ) row = 0;
-    else if( row > iYrange ) row = iYrange;
-    if( column < 0 ) column = 0;
-    else if( column > iXrange ) column = iXrange;
+    if (row < 0)
+        row = 0;
+    else if (row > iYrange)
+        row = iYrange;
+    if (column < 0)
+        column = 0;
+    else if (column > iXrange)
+        column = iXrange;
     switch (mDisplayMode) {
     case MODE_HUE:
-        mHSV.saturation = (double)column/dXrange;
-        mHSV.value = 1.0 - (double)row/dYrange;
+        mHSV.saturation = (double)column / dXrange;
+        mHSV.value = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_SATURATION:
-        mHSV.hue = (double)column/dXrange;
-        mHSV.value = 1.0 - (double)row/dYrange;
+        mHSV.hue = (double)column / dXrange;
+        mHSV.value = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_BRIGHTNESS:
-        mHSV.hue = (double)column/dXrange;
-        mHSV.saturation = 1.0 - (double)row/dYrange;
+        mHSV.hue = (double)column / dXrange;
+        mHSV.saturation = 1.0 - (double)row / dYrange;
         mRGB = mHSV;
         break;
     case MODE_RED:
@@ -205,14 +198,12 @@ void xlColorCanvas::ProcessPaletteClick( int row, int column )
     render();
 }
 
-
-void xlColorCanvas::render( wxPaintEvent& event )
-{
+void xlColorCanvas::render(wxPaintEvent& event) {
     wxPaintDC dc(this);
     render();
 }
-void xlColorCanvas::render()
-{
+
+void xlColorCanvas::render() {
     if (!IsShownOnScreen()) {
         return;
     }
@@ -220,13 +211,13 @@ void xlColorCanvas::render()
         PrepareCanvas();
     }
 
-    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    xlGraphicsContext* ctx = PrepareContextForDrawing();
     if (ctx == nullptr) {
         return;
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if( mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER ) {
+    if (mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER) {
         DrawSlider(ctx);
     } else {
         DrawPalette(ctx);
@@ -234,12 +225,13 @@ void xlColorCanvas::render()
     FinishDrawing(ctx);
 }
 
-inline void setSixVertices(xlVertexColorAccumulator *vac, const xlColor &c, uint32_t &idx) {
-    for (int x = 0; x < 6; x++) vac->SetVertex(idx++, c);
+inline void setSixVertices(xlVertexColorAccumulator* vac, const xlColor& c, uint32_t& idx) {
+    for (int x = 0; x < 6; x++) {
+        vac->SetVertex(idx++, c);
+    }
 }
 
-void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
-{
+void xlColorCanvas::DrawPalette(xlGraphicsContext* ctx) {
     float dYrange = mWindowHeight - 1;
     float dXrange = mWindowWidth - 1;
     int iYrange = mWindowHeight - 1;
@@ -273,9 +265,9 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
     case MODE_HUE:
         hsv.hue = mHSV.hue;
         for (int col = 0; col <= iXrange; col++) {
-            hsv.saturation = (double)col/dXrange;
+            hsv.saturation = (double)col / dXrange;
             for (int row = 0; row <= iYrange; row++) {
-                hsv.value = (1.0 - (double)row/dYrange);
+                hsv.value = (1.0 - (double)row / dYrange);
                 color = hsv;
                 setSixVertices(background, color, idx);
             }
@@ -286,9 +278,9 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
     case MODE_SATURATION:
         hsv.saturation = mHSV.saturation;
         for (int col = 0; col <= iXrange; col++) {
-            hsv.hue = (double)col/dXrange;
+            hsv.hue = (double)col / dXrange;
             for (int row = 0; row <= iYrange; row++) {
-                hsv.value = (1.0 - (double)row/dYrange);
+                hsv.value = (1.0 - (double)row / dYrange);
                 color = hsv;
                 setSixVertices(background, color, idx);
             }
@@ -299,9 +291,9 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
     case MODE_BRIGHTNESS:
         hsv.value = mHSV.value;
         for (int col = 0; col <= iXrange; col++) {
-            hsv.hue = (double)col/dXrange;
+            hsv.hue = (double)col / dXrange;
             for (int row = 0; row <= iYrange; row++) {
-                hsv.saturation = (1.0 - (double)row/dYrange);
+                hsv.saturation = (1.0 - (double)row / dYrange);
                 color = hsv;
                 setSixVertices(background, color, idx);
             }
@@ -351,7 +343,7 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
 
     double radius = std::max(4.0, dXrange / 40.0);
 
-    auto *va2 = ctx->createVertexAccumulator();
+    auto* va2 = ctx->createVertexAccumulator();
     va2->AddCircleAsLines(focus_col, focus_row, radius);
     if (mHSV.value > 0.6) {
         ctx->drawLineStrip(va2, xlBLACK);
@@ -361,68 +353,67 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext *ctx)
     delete va2;
 }
 
-void xlColorCanvas::DrawSlider(xlGraphicsContext *ctx)
-{
+void xlColorCanvas::DrawSlider(xlGraphicsContext* ctx) {
     HSVValue hsv;
     xlColor color;
-    
+
     switch (mDisplayMode) {
-        case MODE_HUE:
-            hsv.saturation = 1.0;
-            hsv.value = 1.0;
-            break;
-        case MODE_SATURATION:
-            hsv.hue = mHSV.hue;
-            hsv.value = mHSV.value;
-            break;
-        case MODE_BRIGHTNESS:
-            hsv.saturation = mHSV.saturation;
-            hsv.hue = mHSV.hue;
-            break;
-        case MODE_RED:
-            color.green = mRGB.green;
-            color.blue = mRGB.blue;
-            break;
-        case MODE_GREEN:
-            color.red = mRGB.red;
-            color.blue = mRGB.blue;
-            break;
-        case MODE_BLUE:
-            color.red = mRGB.red;
-            color.green = mRGB.green;
-            break;
+    case MODE_HUE:
+        hsv.saturation = 1.0;
+        hsv.value = 1.0;
+        break;
+    case MODE_SATURATION:
+        hsv.hue = mHSV.hue;
+        hsv.value = mHSV.value;
+        break;
+    case MODE_BRIGHTNESS:
+        hsv.saturation = mHSV.saturation;
+        hsv.hue = mHSV.hue;
+        break;
+    case MODE_RED:
+        color.green = mRGB.green;
+        color.blue = mRGB.blue;
+        break;
+    case MODE_GREEN:
+        color.red = mRGB.red;
+        color.blue = mRGB.blue;
+        break;
+    case MODE_BLUE:
+        color.red = mRGB.red;
+        color.green = mRGB.green;
+        break;
     }
 
     float dYrange = mWindowHeight - 1;
     int iYrange = mWindowHeight - 1;
 
-    auto *va = ctx->createVertexColorAccumulator();
-    va->PreAlloc((iYrange +1 ) * 6);
+    auto* va = ctx->createVertexColorAccumulator();
+    va->PreAlloc((iYrange + 1) * 6);
     for (int row = 0; row <= iYrange; row++) {
         switch (mDisplayMode) {
-            case MODE_HUE:
-                hsv.hue = (1.0 - (double)row/dYrange);
-                color = hsv;
-                break;
-            case MODE_SATURATION:
-                hsv.saturation = (1.0 - (double)row/dYrange);
-                color = hsv;
-                break;
-            case MODE_BRIGHTNESS:
-                hsv.value = (1.0 - (double)row/dYrange);
-                color = hsv;
-                break;
-            case MODE_RED:
-                color.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                break;
-            case MODE_GREEN:
-                color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                break;
-            case MODE_BLUE:
-                color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                break;
+        case MODE_HUE:
+            hsv.hue = (1.0 - (double)row / dYrange);
+            color = hsv;
+            break;
+        case MODE_SATURATION:
+            hsv.saturation = (1.0 - (double)row / dYrange);
+            color = hsv;
+            break;
+        case MODE_BRIGHTNESS:
+            hsv.value = (1.0 - (double)row / dYrange);
+            color = hsv;
+            break;
+        case MODE_RED:
+            color.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+            break;
+        case MODE_GREEN:
+            color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+            break;
+        case MODE_BLUE:
+            color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+            break;
         }
-        va->AddRectAsTriangles(0, row, mWindowWidth-1, row + 1, color);
+        va->AddRectAsTriangles(0, row, mWindowWidth - 1, row + 1, color);
     }
     ctx->drawTriangles(va);
     delete va;
