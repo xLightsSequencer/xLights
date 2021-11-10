@@ -14,23 +14,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2021.36 November 9, 2021
    -- enh (dkulp) Fix crashing on OSX 10.12
    -- enh (dkulp) Warn on OSX 10.12 and 10.13 that support will be dropped soon, update to 10.14 will be necessary soon
-   -- bug (keith) Prevent discovery duplicating controller names.
-   -- enh (scott) Variou smart receiver type checks
    -- enh (dkulp) More work moving to Metal on  macOS
+   -- enh (dkulp) Esc to cancel drag/paste in Pictures assist
+   -- enh (dkulp) Add Butterfly types 2-5 to "Experimental GPU Rendering" option
+   -- enh (scott) Added Flip Horizontal and Flip Vertical to Layout Tab
+   -- enh (scott) Variou smart receiver type checks
+   -- enh (scott) Increased ESPixelStick v4 ESP32 Max Universe size to 12
+   -- enh (keith) Add the ability to use a state as a face outline when using node ranges
+   -- enh (keith) Add entec controller properties (no upload yet)
+   -- bug (keith) Prevent discovery duplicating controller names.
+   -- bug (keith) Fix sequence being marked as dirty when it isnt really.
+   -- bug (keith) Replace model with this model does not prompt if the model is on No Controller (#2910)
    -- bug (scott) Don't override ESPixelStick controller parameters if not set in xLights
    -- bug (scott) Workaround for ESP32 lockup issues
-   -- enh (scott) Increased ESPixelStick v4 ESP32 Max Universe size to 12
+   -- bug (scott) Default HinksPix 16 Port AC to 0 start pixels
    -- bug (dkulp) Fix dragging of selection in Pictures assist window
    -- bug (dkulp) More of a workaround - CTRL-C/V copy/paste in Pictures assist.  Cmd-C/V  still not working.
-   -- enh (dkulp) Esc to cancel drag/paste in Pictures assist
-   -- enh (scott) Added Flip Horizontal and Flip Vertical to Layout Tab
-   -- bug (keith) Fix sequence being marked as dirty when it isnt really.
-   -- enh (keith) Add the ability to use a state as a face outline when using node ranges
-   -- bug (scott) Default HinksPix 16 Port AC to 0 start pixels
-   -- enh (keith) Add entec controller properties (no upload yet)
-   -- bug (keith) Replace model with this model does not prompt if the model is on No Controller (#2910)
    -- bug (Shelby) Upgraded libcurl on Monterey defaults to chunked transfers which breaks uploads to ESPixelStick
-   -- enh (dkulp) Add Butterfly types 2-5 to "Experimental GPU Rendering" option
 2021.35 November 2, 2021
    -- enh (keith) Allow setting a sefault Virtual Matrix/Video display location used when creating new playlist items
    -- enh (keith) Add magic words to SMS plugin that can trigger actions
