@@ -38,6 +38,7 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsAutoUpload/>
         <SupportsFullxLightsControl/>
+		<SupportsLEDPanelMatrix/>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -94,7 +95,6 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
-			<SupportsLEDPanelMatrix/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
