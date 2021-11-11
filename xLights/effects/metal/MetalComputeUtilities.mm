@@ -31,8 +31,8 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     return commandBuffer;
 }
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer() {
-    if (pixelBufferSize < renderBuffer->pixelVector.size()) {
-        int bufferSize = renderBuffer->pixelVector.size() * 4;
+    if (pixelBufferSize < renderBuffer->GetPixelCount()) {
+        int bufferSize = renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();

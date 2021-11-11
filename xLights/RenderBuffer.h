@@ -65,6 +65,7 @@ class xLightsFrame;
 class Effect;
 class SettingsMap;
 class SequenceElements;
+class MetalRenderBufferComputeData;
 
 
 class DrawingContext {
@@ -487,10 +488,19 @@ public:
     int ModelBufferHt = 1;
     int ModelBufferWi = 1;  // size of the buffer
 
+private:
     xlColorVector pixelVector; // this is the calculation buffer
-    xlColor *pixels = nullptr;
     xlColorVector tempbufVector;
+    xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
+
+    friend class MetalRenderBufferComputeData;
+public:
+    uint32_t GetPixelCount() { return pixelVector.size(); }
+    xlColor *GetPixels() { return pixels; }
+    xlColor *GetTempBuf() { return tempbuf; }
+    void CopyTempBufToPixels();
+    void CopyPixelsToTempBuf();
 
     PaletteClass palette;
     bool _nodeBuffer = false;

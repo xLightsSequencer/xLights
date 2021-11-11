@@ -470,29 +470,28 @@ namespace
        }
    }
 
-   void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
-   {
-      xlColorVector cvOrig( rb.pixels, &rb.pixels[rb.pixelVector.size()] );
-      ColorBuffer cb( cvOrig, rb.BufferWi, rb.BufferHt );
+    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
+    {
+        xlColor *pixels = rb.GetPixels();
+        xlColorVector cvOrig(pixels, pixels + rb.GetPixelCount());
+        ColorBuffer cb( cvOrig, rb.BufferWi, rb.BufferHt );
 
-      parallel_for(0, rb.BufferHt, [&rb, &cb, &transform, &params](int y) {
-         double t = double( y ) / ( rb.BufferHt - 1 );
-         for ( int x = 0; x < rb.BufferWi; ++x ) {
-            double s = double( x ) / ( rb.BufferWi - 1 );
-            rb.SetPixel( x, y, transform( cb, s, t, params ) );
-         }
-      }, 25);
-   }
+        parallel_for(0, rb.BufferHt, [&rb, &cb, &transform, &params](int y) {
+            double t = double( y ) / ( rb.BufferHt - 1 );
+            for ( int x = 0; x < rb.BufferWi; ++x ) {
+                double s = double( x ) / ( rb.BufferWi - 1 );
+                rb.SetPixel( x, y, transform( cb, s, t, params ) );
+            }
+        }, 25);
+    }
 }
 
 WarpEffect::WarpEffect(int i) : RenderableEffect(i, "Warp", warp_16_xpm, warp_24_xpm, warp_32_xpm, warp_48_xpm, warp_64_xpm)
 {
-
 }
 
 WarpEffect::~WarpEffect()
 {
-
 }
 
 xlEffectPanel *WarpEffect::CreatePanel(wxWindow *parent)

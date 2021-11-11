@@ -607,7 +607,7 @@ public:
 
                     // I have to calc the output here to apply blend, rotozoom and transitions
                     buffer->CalcOutput(frame, vl, layer);
-                    std::vector<bool> done(rb.pixelVector.size());
+                    std::vector<bool> done(rb.GetPixelCount());
                     rb.CopyNodeColorsToPixels(done);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {

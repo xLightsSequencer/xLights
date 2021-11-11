@@ -440,7 +440,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     _dirty = true;
     std::string mname = GetModelName(buffer);
     wxASSERT(mname != "");
-    _frameSize[mname] = sizeof(xlColor) * buffer->pixelVector.size();
+    _frameSize[mname] = sizeof(xlColor) * buffer->GetPixelCount();
     wxString elname = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
     elname.Replace("/", "_");
     elname.Replace("\\", "_");
@@ -488,7 +488,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     if (buffer != nullptr)
     {
         std::string mname = GetModelName(buffer);
-        if (_frameSize.at(mname) != sizeof(xlColor) * buffer->pixelVector.size()) return false;
+        if (_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
     }
 
     if (wxAtoi(_properties.at("EndMS")) != effect->GetEndTimeMS()) return false;
@@ -566,7 +566,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         return;
     }
     
-    if (buffer->pixelVector.size() == 0)
+    if (buffer->GetPixelCount() == 0)
     {
         logger_base.error("RenderCacheItem::AddFrame was passed a buffer with no pixels in it");
         return;
@@ -592,11 +592,11 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     std::string mname = GetModelName(buffer);
     if (_frameSize.find(mname) == _frameSize.end())
     {
-        _frameSize[mname] = sizeof(xlColor) * buffer->pixelVector.size();
+        _frameSize[mname] = sizeof(xlColor) * buffer->GetPixelCount();
     }
     else
     {
-        if (_frameSize[mname] != sizeof(xlColor) * buffer->pixelVector.size())
+        if (_frameSize[mname] != sizeof(xlColor) * buffer->GetPixelCount())
         {
             // the buffer size has changed ... we dont support this.
             logger_base.warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
@@ -624,7 +624,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         wxASSERT(false);
         return;
     }
-    memcpy(frameBuffer, buffer->pixels, _frameSize.at(mname));
+    memcpy(frameBuffer, buffer->GetPixels(), _frameSize.at(mname));
 
     if (_frames.at(mname)[frame] != nullptr) {
         free(_frames.at(mname)[frame]);
@@ -661,7 +661,7 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
     }
 
     auto modelFrames = _frames[mname];
-    if (_frameSize.at(mname) != (sizeof(xlColor) * buffer->pixelVector.size()))
+    if (_frameSize.at(mname) != (sizeof(xlColor) * buffer->GetPixelCount()))
     {
         logger_rcache.info("RenderCache::GetFrame on model " + mname + " failed due to frame size difference.");
         return false;
@@ -672,7 +672,7 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
     if (frame < modelFrames.size() && modelFrames[frame]) {
         // its in memory ... read it from there
         unsigned char* pc = modelFrames[frame];
-        memcpy(buffer->pixels, pc, _frameSize.at(mname));
+        memcpy(buffer->GetPixels(), pc, _frameSize.at(mname));
         return true;
     }
 

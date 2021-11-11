@@ -1279,6 +1279,12 @@ void RenderBuffer::ClearTempBuf()
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
+void RenderBuffer::CopyTempBufToPixels() {
+    memcpy(pixels, tempbuf, pixelVector.size() * 4);
+}
+void RenderBuffer::CopyPixelsToTempBuf() {
+    memcpy(tempbuf, pixels, pixelVector.size() * 4);
+}
 
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {

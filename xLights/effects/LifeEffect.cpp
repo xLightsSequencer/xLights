@@ -114,24 +114,18 @@ void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     int effectState = (buffer.curPeriod-buffer.curEffStartPer) * lspeed * buffer.frameTimeInMs / 50;
     
     long TempState=effectState % 400 / 20;
-    if (TempState == cache->LastLifeState)
-    {
-        buffer.pixels=buffer.tempbuf;
+    if (TempState == cache->LastLifeState) {
+        buffer.CopyTempBufToPixels();
         return;
-    }
-    else
-    {
+    } else {
         cache->LastLifeState=TempState;
     }
-    for (x=0; x < BufferWi; x++)
-    {
-        for (y=0; y < BufferHt; y++)
-        {
+    for (x=0; x < BufferWi; x++) {
+        for (y=0; y < BufferHt; y++) {
             buffer.GetTempPixel(x,y,color);
             isLive = color != xlBLACK;
             cnt=Life_CountNeighbors(buffer, x, y);
-            switch (Type)
-            {
+            switch (Type) {
                 case 0:
                     // B3/S23
                     /*
@@ -202,5 +196,5 @@ void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
     }
     // copy new life state to tempbuf
-    buffer.tempbuf=buffer.pixels;
+    buffer.CopyPixelsToTempBuf();
 }
