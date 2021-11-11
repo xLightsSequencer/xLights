@@ -672,7 +672,6 @@ void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumu
     frameData.fragmentColor /= 255.0f;
 
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-    [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
     frameDataChanged = false;
     [encoder drawPrimitives:type vertexStart:0 vertexCount:vac->getCount()];
 }
@@ -698,7 +697,6 @@ void xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexColorA
 
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-        [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
         frameDataChanged = false;
     }
     [encoder drawPrimitives:type vertexStart:0 vertexCount:vac->getCount()];
@@ -733,7 +731,6 @@ void xlMetalGraphicsContext::drawTexture(xlTexture *texture,
 
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-        [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
         frameDataChanged = false;
     }
 
@@ -752,7 +749,6 @@ void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlText
 
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-        [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
         frameDataChanged = false;
     }
     xlMetalTexture *txt = (xlMetalTexture*)texture;
@@ -773,7 +769,6 @@ void xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlText
     frameData.fragmentColor.a = c.alpha;
     frameData.fragmentColor /= 255.0f;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-    [encoder setFragmentBytes:&frameData length:sizeof(frameData) atIndex:BufferIndexFrameData];
     xlMetalTexture *txt = (xlMetalTexture*)texture;
     [encoder setFragmentTexture:txt->texture atIndex:TextureIndexBase];
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vac->getCount()];

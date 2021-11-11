@@ -1210,13 +1210,15 @@ void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, *texture));
     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
-    addMipMap(bmp48.ConvertToImage().Rescale(64, 64, wxIMAGE_QUALITY_HIGH), level);
+
+    addMipMap(bmp48.ConvertToImage(), level);
     addMipMap(bmp32.ConvertToImage(), level);
     addMipMap(bmp16.ConvertToImage(), level);
-    addMipMap(bmp16.ConvertToImage().Rescale(8, 8, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(bmp16.ConvertToImage().Rescale(4, 4, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(bmp16.ConvertToImage().Rescale(2, 2, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(bmp16.ConvertToImage().Rescale(1, 1, wxIMAGE_QUALITY_HIGH), level);
+    int w = bmp16.GetScaledWidth() / 2;
+    while (w > 0) {
+        addMipMap(bmp16.ConvertToImage().Rescale(w, w, wxIMAGE_QUALITY_HIGH), level);
+        w = w / 2;
+    }
 }
 
 void DrawGLUtils::DrawTexture(GLuint texture,

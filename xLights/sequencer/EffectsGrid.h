@@ -182,7 +182,6 @@ private:
 	void keyReleased(wxKeyEvent& event);
 
     void CreateEffectIconTextures(xlGraphicsContext *ctx);
-    void DeleteEffectIconTextures();
     void SetRCToolTip();
 
     void DrawLines(xlGraphicsContext *ctx) const;
@@ -269,11 +268,14 @@ private:
     xlVertexColorAccumulator *backgrounds = nullptr;
     xlVertexColorAccumulator *textBackgrounds = nullptr;
     xlVertexColorAccumulator *selectedBoxes = nullptr;
+
     xlVertexTextureAccumulator *texts = nullptr;
     xlTexture *fontTexture = nullptr;
     int curFontSize = 0;
-    std::array<xlTexture *, EffectManager::eff_LASTEFFECT> m_EffectTextures;
-    std::array<xlVertexTextureAccumulator *, EffectManager::eff_LASTEFFECT> textures;
+
+    std::array<float[2], EffectManager::eff_LASTEFFECT> effectIconLocations;
+    xlTexture *effectIconTexture;
+    xlVertexTextureAccumulator *effectIcons;
 
     int mResizingMode;
     int mStartResizeTimeMS;

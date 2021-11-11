@@ -5750,7 +5750,11 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                                 double xl = (x1 + x2) / 2.0 - sz;
                                 double xr = (x1 + x2) / 2.0 + sz;
 
-                                textures[e->GetEffectIndex()]->AddFullTexture(xl, y - sz, xr, y + sz);
+                                effectIcons->AddTexture(xl, y - sz, xr, y + sz,
+                                                        effectIconLocations[e->GetEffectIndex()][0],
+                                                        effectIconLocations[e->GetEffectIndex()][1],
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f/512.0f,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f/512.0f);
 
                                 linesLeft->AddVertex(x1, y);
                                 linesLeft->AddVertex((x1 + x2) / 2.0 - sz, y);
@@ -5769,8 +5773,11 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                                 float xl = x1 + (x / 2) - 1;
                                 float xr = x1 + (x / 2) + 1;
 
-                                textures[e->GetEffectIndex()]->AddFullTexture(xl, y - sz, xr, y + sz);
-
+                                effectIcons->AddTexture(xl, y - sz, xr, y + sz,
+                                                        effectIconLocations[e->GetEffectIndex()][0],
+                                                        effectIconLocations[e->GetEffectIndex()][1],
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f/512.0f,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f/512.0f);
                                 lines->AddRectAsLines(xl - 0.4, y - sz, xr + 0.4, y + sz);
                             } else {
                                 linesCenter->AddVertex(x1, y);
@@ -5799,9 +5806,7 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
     ctx->enableBlending();
     ctx->drawTriangles(backgrounds->Flush());
     ctx->disableBlending();
-    for (int x = 0; x < textures.size(); x++) {
-        ctx->drawTexture(textures[x]->Flush(), m_EffectTextures[x]);
-    }
+    ctx->drawTexture(effectIcons->Flush(), effectIconTexture);
     ctx->drawLines(lines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_DEFAULT));
     ctx->drawLines(linesDisabled->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_DISABLED_EFFECT));
     ctx->drawLines(linesLocked->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_LOCKED_EFFECT));
@@ -6010,6 +6015,7 @@ void EffectsGrid::Draw()
         textBackgrounds = ctx->createVertexColorAccumulator();
         selectedBoxes = ctx->createVertexColorAccumulator();
         texts = ctx->createVertexTextureAccumulator();
+        effectIcons = ctx->createVertexTextureAccumulator();
     } else {
         textBackgrounds->Reset();
         timingLines->Reset();
@@ -6027,9 +6033,7 @@ void EffectsGrid::Draw()
         linesDisabled->Reset();
         linesLocked->Reset();
         lines->Reset();
-        for (int x = 0; x < textures.size(); x++) {
-            textures[x]->Reset();
-        }
+        effectIcons->Reset();
     }
 
     if (ctx == nullptr) {
@@ -6125,26 +6129,38 @@ void EffectsGrid::DrawSelectedCells(xlGraphicsContext *ctx)
 
 void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext *ctx)
 {
+    std::vector<wxImage> images;
+    images.emplace_back(512, 512);
+    images.emplace_back(256, 256);
+    images.emplace_back(128, 128);
+    images[0].InitAlpha();
+    images[1].InitAlpha();
+    images[2].InitAlpha();
     for (int x = 0; x < xlights->GetEffectManager().size(); x++) {
         RenderableEffect *eff = xlights->GetEffectManager()[x];
-        std::vector<wxImage> bitmaps;
-        bitmaps.emplace_back(eff->GetEffectIcon(64, true).ConvertToImage());
-        bitmaps.emplace_back(eff->GetEffectIcon(32, true).ConvertToImage());
-        bitmaps.emplace_back(eff->GetEffectIcon(16, true).ConvertToImage());
-        if (bitmaps[0].GetWidth() != 64 || bitmaps[0].GetHeight() != 64) {
-            bitmaps[0] = bitmaps[0].Rescale(64, 64, wxIMAGE_QUALITY_HIGH);
-        }
-        m_EffectTextures[eff->GetId()] = ctx->createTextureMipMaps(bitmaps);
-        textures[eff->GetId()] = ctx->createVertexTextureAccumulator();
-    }
-}
+        int xLoc = (x % 8) * 64;
+        int yLoc = x / 8 * 64;
 
-void EffectsGrid::DeleteEffectIconTextures()
-{
-    for (size_t x = 0; x < m_EffectTextures.size(); x++) {
-        delete m_EffectTextures[x];
-        m_EffectTextures[x] = nullptr;
+        wxImage img = eff->GetEffectIcon(64, true).ConvertToImage();
+        if (img.GetWidth() != 64 || img.GetHeight() != 64) {
+            img = img.Rescale(64, 64, wxIMAGE_QUALITY_HIGH);
+        }
+        images[0].Paste(img, xLoc, yLoc);
+        img = eff->GetEffectIcon(32, true).ConvertToImage();
+        if (img.GetWidth() != 32 || img.GetHeight() != 32) {
+            img = img.Rescale(32, 32, wxIMAGE_QUALITY_HIGH);
+        }
+        images[1].Paste(img, xLoc / 2, yLoc / 2);
+        img = eff->GetEffectIcon(16, true).ConvertToImage();
+        if (img.GetWidth() != 16 || img.GetHeight() != 16) {
+            img = img.Rescale(16, 16, wxIMAGE_QUALITY_HIGH);
+        }
+        images[2].Paste(img, xLoc / 4, yLoc / 4);
+
+        effectIconLocations[eff->GetId()][0] = ((float)xLoc) / 512.0f;
+        effectIconLocations[eff->GetId()][1] = ((float)yLoc) / 512.0f;
     }
+    effectIconTexture = ctx->createTextureMipMaps(images);
 }
 
 void EffectsGrid::magnify(wxMouseEvent& event) {
