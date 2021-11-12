@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.37 November 12, 2021
+   -- bug (dkulp) Fix Life effect not rendering past first frame
+   -- bug (keith) Insert Prior seems to max out at 50 but the number box allows larger numbers
+   -- enh (keith/dkulp) Add LED Panel output to Pi based FPP controller types
+   -- bug (keith) Fix crash with Pictures Effect Assist panel
+   -- bug (keith) Fix media upload repeats to FV4 whwn it shouldnt
 2021.36 November 9, 2021
    -- enh (dkulp) Fix crashing on OSX 10.12
    -- enh (dkulp) Warn on OSX 10.12 and 10.13 that support will be dropped soon, update to 10.14 will be necessary soon
