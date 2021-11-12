@@ -2859,18 +2859,30 @@ std::string Model::GetControllerConnectionPortRangeString() const
     return ret;
 }
 
+bool compare_pairstring(const std::pair<std::string, std::string>& a, const std::pair<std::string, std::string>& b) {
+    return a.first > b.first;
+}
+
 std::string Model::GetControllerConnectionAttributeString() const
 {
     std::string ret;
+    std::list<std::pair<std::string, std::string>> props;
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
         if (att->GetName() == "SmartRemote") {
-            ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
+            props.push_back({"SmartRemote", DecodeSmartRemote(wxAtoi(att->GetValue()))});
         } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort" && att->GetName() != "SmartRemoteType") {
-            ret += ":" + att->GetName() + "=" + att->GetValue();
+            props.push_back({att->GetName(), att->GetValue()});
         }
         att = att->GetNext();
     }
+
+    // this adds the properties alphabetically
+    props.sort(compare_pairstring);
+    for (const auto& it : props) {
+        ret += ":" + it.first + "=" + it.second;
+    }
+
     return ret;
 }
 
