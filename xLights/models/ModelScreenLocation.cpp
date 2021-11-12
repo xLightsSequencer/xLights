@@ -5655,6 +5655,17 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
     wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Length", "RealLength", RulerObject::PrescaledMeasureDescription(len)));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    
+    last = mPos[0].AsVector();
+    for (int i = 1; i < mPos.size(); i++) {
+        len = RulerObject::Measure(last, mPos[i].AsVector());
+        last = mPos[i].AsVector();
+
+        auto seg = wxString::Format("Segment %d", i);
+        prop = propertyEditor->Append(new wxStringProperty(seg, seg, RulerObject::PrescaledMeasureDescription(len)));
+        prop->ChangeFlag(wxPG_PROP_READONLY, true);
+        prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    }
 }
 
 std::string PolyPointScreenLocation::GetDimension(float factor) const
