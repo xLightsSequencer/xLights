@@ -1739,44 +1739,6 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
         maxPort = std::max(maxPort, sd->port);
     }
 
-    // fill in missing smart ports
-    int quads = (maxPort + 3) / 4;
-    for (int i = 0; i < quads; i++) {
-        int maxRemote = 0;
-        for (int j = 0; j < 4; j++) {
-            for (const auto& it : stringData) {
-                if (it->port == i * 4 + j) {
-                    if (it->smartRemote != 0) {
-                        maxRemote = std::max(maxRemote, it->smartRemote);
-                    }
-                }
-            }
-        }
-
-        if (maxRemote > 0) {
-            for (int k = 0; k < 4; k++) {
-                RemoveNonSmartRemote(stringData, i * 4 + k);
-                for (int j = 0; j < maxRemote; j++) {
-                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchannel);
-                }
-            }
-        }
-    }
-
-    // Sort strings in the right order
-    std::sort(begin(stringData), end(stringData), [](FalconString* a, FalconString* b) {
-        return *a > *b;
-        });
-
-    // reindex the string data
-    int i = 0;
-    for (auto& it : stringData) {
-        it->index = i++;
-    }
-
-    logger_base.debug("Final string data for upload.");
-    DumpStringData(stringData);
-
     int S = stringData.size();
     int m = 0;
 
@@ -2679,6 +2641,48 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     // delete any read strings we didnt keep
     for (const auto& d : toDelete) {
         delete d;
+    }
+
+    // fill in missing smart ports
+    {
+        int mp = 0;
+        for (const auto& sd : stringData) {
+            mp = std::max(mp, sd->port);
+        }
+
+        int quads = (mp + 3) / 4;
+        for (int i = 0; i < quads; i++) {
+            int maxRemote = 0;
+            for (int j = 0; j < 4; j++) {
+                for (const auto& it : stringData) {
+                    if (it->port == i * 4 + j) {
+                        if (it->smartRemote != 0) {
+                            maxRemote = std::max(maxRemote, it->smartRemote);
+                        }
+                    }
+                }
+            }
+
+            if (maxRemote > 0) {
+                for (int k = 0; k < 4; k++) {
+                    RemoveNonSmartRemote(stringData, i * 4 + k);
+                    for (int j = 0; j < maxRemote; j++) {
+                        EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchannel);
+                    }
+                }
+            }
+        }
+
+        // Sort strings in the right order
+        std::sort(begin(stringData), end(stringData), [](FalconString* a, FalconString* b) {
+            return *a > *b;
+        });
+
+        // reindex the string data
+        int i = 0;
+        for (auto& it : stringData) {
+            it->index = i++;
+        }
     }
 
     logger_base.debug("Virtual strings created.");
