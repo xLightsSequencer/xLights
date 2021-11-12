@@ -686,7 +686,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     bool cancelled = false;
     progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
+    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -818,7 +818,7 @@ bool FPP::copyFile(const std::string &filename,
 
     progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
+    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
     progressDialog->Show();
     wxFile in;
     in.Open(file);

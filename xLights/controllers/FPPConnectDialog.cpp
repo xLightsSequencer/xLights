@@ -885,7 +885,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (!cancelled && uploadCount) {
                     prgs.SetTitle("Generating FSEQ Files");
-                    cancelled |= !prgs.Update(0, "Generating " + fseq);
+                    cancelled |= !prgs.Update(0, "Generating " + wxFileName(fseq).GetFullName());
                     prgs.Show();
                     int lastDone = 0;
                     static const int FRAMES_TO_BUFFER = 50;
@@ -898,7 +898,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         int donePct = frame * 1000 / seq->getNumFrames();
                         if (donePct != lastDone) {
                             lastDone = donePct;
-                            cancelled |= !prgs.Update(donePct, "Generating " + fseq);
+                            cancelled |= !prgs.Update(donePct, "Generating " + wxFileName(fseq).GetFullName());
                             wxYield();
                         }
 
