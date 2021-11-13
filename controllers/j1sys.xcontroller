@@ -1,6 +1,7 @@
 <Vendor Name="J1Sys">
 	<Controller Name="P2">
 		<Variant Name="">
+            <SupportsAutoLayout/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
@@ -26,6 +27,7 @@
 	</Controller>
 	<Controller Name="P12D">
 		<Variant Name="">
+            <SupportsAutoLayout/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>12</MaxInputUniverses>
@@ -53,6 +55,7 @@
 	</Controller>
 	<Controller Name="P12R">
 		<Variant Name="">
+            <SupportsAutoLayout/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -75,6 +78,7 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 		<Variant Name="3.4+">
+            <SupportsAutoLayout/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>26</MaxInputUniverses>
@@ -99,6 +103,7 @@
 	</Controller>
 	<Controller Name="P12S">
 		<Variant Name="">
+            <SupportsAutoLayout/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
